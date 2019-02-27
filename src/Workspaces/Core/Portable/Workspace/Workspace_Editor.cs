@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Workspace
     {
         // open documents
-        private readonly Dictionary<ProjectId, ISet<DocumentId>> _projectToOpenDocumentsMap = new Dictionary<ProjectId, ISet<DocumentId>>();
+        private readonly Dictionary<ProjectId, HashSet<DocumentId>> _projectToOpenDocumentsMap = new Dictionary<ProjectId, HashSet<DocumentId>>();
 
         // text buffer maps
         /// <summary>
@@ -42,17 +42,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual bool CanChangeActiveContextDocument => false;
 
-        private static void RemoveIfEmpty<TKey, TValue>(IDictionary<TKey, ISet<TValue>> dictionary, TKey key)
-        {
-            if (dictionary.TryGetValue(key, out var values))
-            {
-                if (values.Count == 0)
-                {
-                    dictionary.Remove(key);
-                }
-            }
-        }
-
         private void ClearOpenDocuments()
         {
             List<DocumentId> docIds;
@@ -69,7 +58,7 @@ namespace Microsoft.CodeAnalysis
 
         private void ClearOpenDocuments(ProjectId projectId)
         {
-            ISet<DocumentId> openDocs;
+            HashSet<DocumentId> openDocs;
             using (_stateLock.DisposableWait())
             {
                 _projectToOpenDocumentsMap.TryGetValue(projectId, out openDocs);
@@ -90,12 +79,7 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
-                if (_projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocIds) && openDocIds != null)
-                {
-                    openDocIds.Remove(documentId);
-                }
-
-                RemoveIfEmpty(_projectToOpenDocumentsMap, documentId.ProjectId);
+                _projectToOpenDocumentsMap.MultiRemove(documentId.ProjectId, documentId);
 
                 // Stop tracking the buffer or update the documentId associated with the buffer.
                 if (_textTrackers.TryGetValue(documentId, out var tracker))
@@ -182,8 +166,8 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
-                var openDocuments = this.GetProjectOpenDocuments_NoLock(documentId.ProjectId);
-                return openDocuments != null && openDocuments.Contains(documentId);
+                return _projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocuments) &&
+                       openDocuments.Contains(documentId);
             }
         }
 
@@ -361,13 +345,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ISet<DocumentId> GetProjectOpenDocuments_NoLock(ProjectId project)
-        {
-            _stateLock.AssertHasLock();
-            _projectToOpenDocumentsMap.TryGetValue(project, out var openDocs);
-            return openDocs;
-        }
-
         protected internal void OnDocumentOpened(
             DocumentId documentId, SourceTextContainer textContainer,
             bool isCurrentContext = true)
@@ -473,15 +450,7 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
-                var openDocuments = GetProjectOpenDocuments_NoLock(documentId.ProjectId);
-                if (openDocuments != null)
-                {
-                    openDocuments.Add(documentId);
-                }
-                else
-                {
-                    _projectToOpenDocumentsMap.Add(documentId.ProjectId, new HashSet<DocumentId> { documentId });
-                }
+                _projectToOpenDocumentsMap.MultiAdd(documentId.ProjectId, documentId);
             }
         }
 

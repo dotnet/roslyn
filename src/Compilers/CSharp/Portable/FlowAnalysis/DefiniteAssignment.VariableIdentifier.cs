@@ -3,12 +3,13 @@
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalDataFlowPass<TLocalState>
     {
-        internal struct VariableIdentifier : IEquatable<VariableIdentifier>
+        internal readonly struct VariableIdentifier : IEquatable<VariableIdentifier>
         {
             public readonly Symbol Symbol;
             public readonly int ContainingSlot;
@@ -26,26 +27,62 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get { return (object)Symbol != null; }
             }
+
             public override int GetHashCode()
             {
-                return Roslyn.Utilities.Hash.Combine(Symbol?.OriginalDefinition, ContainingSlot);
+                Debug.Assert(Exists);
+
+                int currentKey = ContainingSlot;
+                // MemberIndexOpt, if available, is a fast approach to comparing relative members,
+                // and is necessary in cases such as anonymous types where OriginalDefinition will be distinct.
+                int? thisIndex = Symbol.MemberIndexOpt;
+                return thisIndex.HasValue ?
+                    Hash.Combine(thisIndex.GetValueOrDefault(), currentKey) :
+                    Hash.Combine(Symbol.OriginalDefinition, currentKey);
             }
+
             public bool Equals(VariableIdentifier other)
             {
-                return ((object)Symbol == null ? (object)other.Symbol == null : Symbol.OriginalDefinition.Equals(other.Symbol.OriginalDefinition)) && ContainingSlot == other.ContainingSlot;
+                Debug.Assert(Exists);
+                Debug.Assert(other.Exists);
+
+                if (ContainingSlot != other.ContainingSlot)
+                {
+                    return false;
+                }
+
+                // MemberIndexOpt, if available, is a fast approach to comparing relative members,
+                // and is necessary in cases such as anonymous types where OriginalDefinition will be distinct.
+                int? thisIndex = Symbol.MemberIndexOpt;
+                int? otherIndex = other.Symbol.MemberIndexOpt;
+                if (thisIndex != otherIndex)
+                {
+                    return false;
+                }
+
+                if (thisIndex.HasValue)
+                {
+                    return true;
+                }
+
+                return Symbol.OriginalDefinition.Equals(other.Symbol.OriginalDefinition);
             }
+
             public override bool Equals(object obj)
             {
-                VariableIdentifier? other = obj as VariableIdentifier?;
-                return other.HasValue && Equals(other.Value);
+                throw ExceptionUtilities.Unreachable;
             }
+
+            [Obsolete]
             public static bool operator ==(VariableIdentifier left, VariableIdentifier right)
             {
-                return left.Equals(right);
+                throw ExceptionUtilities.Unreachable;
             }
+
+            [Obsolete]
             public static bool operator !=(VariableIdentifier left, VariableIdentifier right)
             {
-                return !left.Equals(right);
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override string ToString()

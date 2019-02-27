@@ -59,5 +59,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
             base.ProjectProperties();
         }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30599")]
+        [Trait(Traits.Feature, Traits.Features.Workspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public override void RenamingOpenFilesViaDTE()
+        {
+            base.RenamingOpenFilesViaDTE();
+        }
     }
 }
