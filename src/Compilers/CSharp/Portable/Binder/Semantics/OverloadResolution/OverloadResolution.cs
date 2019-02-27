@@ -1561,6 +1561,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var type1Normalized = type1;
                 var type2Normalized = type2;
+
+                // Normalizing task types can cause attributes to be bound on the type,
+                // and attribute arguments may call overloaded methods in error cases.
+                // To avoid a stack overflow, we must not normalize task types within attribute arguments.
                 if (!_binder.InAttributeArgument)
                 {
                     type1Normalized = type1.NormalizeTaskTypes(Compilation);
