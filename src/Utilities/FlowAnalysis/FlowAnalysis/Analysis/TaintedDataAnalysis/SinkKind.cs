@@ -12,5 +12,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         ProcessCommand,
         Regex,
         Ldap,
+        Redirect,
     }
 }
