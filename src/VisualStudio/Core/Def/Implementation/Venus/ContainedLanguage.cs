@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
@@ -68,53 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // re-compute all of the tag data when they re-connect it, and this causes issues like classification
         // flickering.
         private ITagAggregator<ITag> _bufferTagAggregator;
-
-        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
-        public ContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            AbstractProject project,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            TLanguageService languageService,
-            SourceCodeKind sourceCodeKind,
-            IFormattingRule vbHelperFormattingRule,
-            Workspace workspace)
-            : this(bufferCoordinator,
-                   componentModel,
-                   project.VisualStudioProject,
-                   hierarchy,
-                   itemid,
-                   project.ProjectTracker,
-                   project.Id,
-                   languageService,
-                   vbHelperFormattingRule: null)
-        {
-            Contract.ThrowIfFalse(vbHelperFormattingRule != null);
-        }
-
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
-        public ContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator,
-            IComponentModel componentModel,
-            AbstractProject project,
-            IVsHierarchy hierarchy,
-            uint itemid,
-            TLanguageService languageService,
-            SourceCodeKind sourceCodeKind,
-            IFormattingRule vbHelperFormattingRule)
-            : this(bufferCoordinator,
-                   componentModel,
-                   project.VisualStudioProject,
-                   hierarchy,
-                   itemid,
-                   projectTrackerOpt: null,
-                   project.VisualStudioProject.Id,
-                   languageService,
-                   vbHelperFormattingRule: null)
-        {
-            Contract.ThrowIfFalse(vbHelperFormattingRule != null);
-        }
 
         internal ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
