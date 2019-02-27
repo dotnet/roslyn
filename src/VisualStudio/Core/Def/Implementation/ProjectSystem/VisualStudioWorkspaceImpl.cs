@@ -432,6 +432,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.ChangeAdditionalDocument:
                 case ApplyChangesKind.ChangeCompilationOptions:
                 case ApplyChangesKind.ChangeParseOptions:
+                case ApplyChangesKind.ChangeDocumentInfo:
                     return true;
 
                 default:
@@ -1084,6 +1085,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
                 }
             }
+        }
+
+        protected override void ApplyDocumentInfoChanged(DocumentId id, DocumentInfo updatedInfo)
+        {
+            // TODO: Do we need an undo transaction here?
+
+            var document = CurrentSolution.GetDocument(id);
+            if (document.Name != updatedInfo.Name)
+            {
+                GetProjectData(updatedInfo.Id.ProjectId, out var _, out var project);
+                var projectItemForDocument = project.FindItem(document.Name, StringComparer.InvariantCultureIgnoreCase); //?
+
+                // Must save the document first for things like Breakpoints to be preserved.
+                projectItemForDocument.Save();
+                projectItemForDocument.Name = updatedInfo.Name;
+            }
+
+            // TODO: There are other kinds of DocumentInfo changes. Should we support them?
+
+            // TODO: Every place that throws on an unexpected ApplyChangesKind 
+            // will trigger when we issue the following event:
+            // base.ApplyDocumentInfoChanged(id, info);
         }
 
         private string GetPreferredExtension(DocumentId documentId, SourceCodeKind sourceCodeKind)
