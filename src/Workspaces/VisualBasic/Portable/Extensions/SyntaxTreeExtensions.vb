@@ -243,7 +243,7 @@ recurse:
         End Function
 
         <Extension()>
-        Public Function GetMembersInSpan(root As SyntaxNode,
+        Public Function GetSelectedFieldsAndPropertiesInSpan(root As SyntaxNode,
                                          textSpan As TextSpan, allowPartialSelection As Boolean) As ImmutableArray(Of StatementSyntax)
 
             Dim token = root.FindTokenOnRightOfPosition(textSpan.Start)
@@ -255,14 +255,14 @@ recurse:
                 If containingType IsNot Nothing AndAlso
                    firstMember IsNot containingType.BlockStatement AndAlso
                    firstMember IsNot containingType.EndBlockStatement Then
-                    Return GetMembersInSpan(textSpan, containingType, firstMember, allowPartialSelection)
+                    Return GetFieldsAndPropertiesInSpan(textSpan, containingType, firstMember, allowPartialSelection)
                 End If
             End If
 
             Return ImmutableArray(Of StatementSyntax).Empty
         End Function
 
-        Private Function GetMembersInSpan(
+        Private Function GetFieldsAndPropertiesInSpan(
             textSpan As TextSpan,
             containingType As TypeBlockSyntax,
             firstMember As StatementSyntax,
@@ -278,10 +278,8 @@ recurse:
 
                 For i = fieldIndex To members.Count - 1
                     Dim member = members(i)
-                    If textSpan.Contains(member.Span) Or (allowPartialSelection And textSpan.OverlapsWith(member.Span)) Then
+                    If IsSelected(textSpan, member, allowPartialSelection) Then
                         selectedMembers.Add(member)
-                    Else
-                        Exit For
                     End If
                 Next
 
@@ -289,6 +287,29 @@ recurse:
             Finally
                 selectedMembers.Free()
             End Try
+        End Function
+
+        Private Function IsSelected(textSpan As TextSpan, member As StatementSyntax, allowPartialSelection As Boolean) As Boolean
+            If textSpan.Contains(member.Span) Then
+                Return True
+            End If
+
+            If Not allowPartialSelection Then
+                Return False
+            End If
+
+            If member.IsKind(SyntaxKind.FieldDeclaration) Then
+                Dim fieldDeclaration = DirectCast(member, FieldDeclarationSyntax)
+                For Each declarator In fieldDeclaration.Declarators
+                    If textSpan.Contains(member.Span) Or (allowPartialSelection And textSpan.OverlapsWith(declarator.Names.Span)) Then
+                        Return True
+                    End If
+                Next
+            ElseIf member.IsKind(SyntaxKind.PropertyStatement) Then
+                Return textSpan.OverlapsWith((DirectCast(member, PropertyStatementSyntax)).Identifier.Span)
+            End If
+
+            Return False
         End Function
 
         <Extension()>

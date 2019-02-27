@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers
             var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var selectedDeclarations = syntaxFacts.GetSelectedMembers(root, textSpan, allowPartialSelection);
+            var selectedDeclarations = syntaxFacts.GetSelectedFieldsAndProperties(root, textSpan, allowPartialSelection);
 
             if (selectedDeclarations.Length > 0)
             {

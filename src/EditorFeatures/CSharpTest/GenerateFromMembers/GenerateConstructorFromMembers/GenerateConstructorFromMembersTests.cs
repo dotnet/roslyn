@@ -1162,6 +1162,89 @@ chosenSymbols: null);
 }");
         }
 
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a|]bcdefg;
+}",
+@"class Z
+{
+    int abcdefg;
+
+    public Z(int abcdefg{|Navigation:)|}
+    {
+        this.abcdefg = abcdefg;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelection3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int abcdef[|g|];
+}",
+@"class Z
+{
+    int abcdefg;
+
+    public Z(int abcdefg{|Navigation:)|}
+    {
+        this.abcdefg = abcdefg;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelectionBeforeIdentifier()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    int [||]a;
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelectionAfterIdentifier()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    int a[||];
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelectionIdentifierNotSelected()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    in[|t|] a;
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestPartialFieldSelectionIdentifierNotSelected2()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    int a [|= 3|];
+}");
+        }
 
         [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
@@ -1171,7 +1254,7 @@ chosenSymbols: null);
 @"class Z
 {
     int [|a;
-    int|] b;
+    int b|];
 }",
 @"class Z
 {
@@ -1183,6 +1266,60 @@ chosenSymbols: null);
         this.a = a;
         this.b = b;
     }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a = 2;
+    int|] b;
+}",
+@"class Z
+{
+    int a = 2;
+    int b;
+
+    public Z(int a{|Navigation:)|}
+    {
+        this.a = a;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Z
+{
+    int [|a|] = 2, b = 3;
+}",
+@"class Z
+{
+    int a = 2, b = 3;
+
+    public Z(int a, int b{|Navigation:)|}
+    {
+        this.a = a;
+        this.b = b;
+    }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
+        public async Task TestMultiplePartialFieldSelection4()
+        {
+            await TestMissingAsync(
+@"class Z
+{
+    int a = [|2|], b = 3;
 }");
         }
     }

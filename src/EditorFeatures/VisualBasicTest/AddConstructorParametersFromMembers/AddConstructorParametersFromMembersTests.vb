@@ -209,7 +209,7 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class Program
     Private i As Integer
-    Private s As St[|ri|]ng
+    Private [|s|] As String
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
@@ -230,8 +230,8 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Class Program
     Private i As Integer
-    Private s As St[|ring
-    Private j As Inte|]ger
+    Private [|s As String
+    Private j|] As Integer
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
@@ -244,6 +244,29 @@ End Class",
         Me.i = i
         Me.s = s
         Me.j = j
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestMultiplePartialSelection2() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Private i As Integer
+    Private [|s As String
+    Private |]j As Integer
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Private j As Integer
+    Public Sub New(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
     End Sub
 End Class")
         End Function

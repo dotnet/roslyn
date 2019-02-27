@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        public static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
+        public static ImmutableArray<MemberDeclarationSyntax> GetFieldsAndPropertiesInSpan(
             this SyntaxNode root, TextSpan textSpan, bool allowPartialSelection)
         {
             var token = root.FindTokenOnRightOfPosition(textSpan.Start);
@@ -526,14 +526,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (firstMember.Parent is TypeDeclarationSyntax containingType)
                 {
-                    return GetMembersInSpan(textSpan, containingType, firstMember, allowPartialSelection);
+                    return GetFieldsAndPropertiesInSpan(textSpan, containingType, firstMember, allowPartialSelection);
                 }
             }
 
             return ImmutableArray<MemberDeclarationSyntax>.Empty;
         }
 
-        private static ImmutableArray<MemberDeclarationSyntax> GetMembersInSpan(
+        private static ImmutableArray<MemberDeclarationSyntax> GetFieldsAndPropertiesInSpan(
             TextSpan textSpan,
             TypeDeclarationSyntax containingType,
             MemberDeclarationSyntax firstMember,
@@ -553,14 +553,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 for (var i = fieldIndex; i < members.Count; i++)
                 {
                     var member = members[i];
-                    if (textSpan.Contains(member.Span) ||
-                        (allowPartialSelection && textSpan.OverlapsWith(member.Span)))
+                    if (IsSelected(textSpan, member, allowPartialSelection))
                     {
                         selectedMembers.Add(member);
-                    }
-                    else
-                    {
-                        break;
                     }
                 }
 
@@ -569,6 +564,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             finally
             {
                 selectedMembers.Free();
+            }
+        }
+
+        private static bool IsSelected(TextSpan textSpan, MemberDeclarationSyntax member, bool allowPartialSelection)
+        {
+            // first, check if entire member is selected
+            if (textSpan.Contains(member.Span))
+            {
+                return true;
+            }
+
+            if (!allowPartialSelection)
+            {
+                return false;
+            }
+
+            // next, check if identifier part of member is selected
+            switch (member.Kind())
+            {
+                case SyntaxKind.FieldDeclaration:
+                    var variables = ((FieldDeclarationSyntax)member).Declaration.Variables;
+                    foreach (var variable in variables)
+                    {
+                        if (textSpan.OverlapsWith(variable.Identifier.Span))
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                case SyntaxKind.PropertyDeclaration:
+                    return textSpan.OverlapsWith(((PropertyDeclarationSyntax)member).Identifier.Span);
+                default:
+                    return false;
             }
         }
 

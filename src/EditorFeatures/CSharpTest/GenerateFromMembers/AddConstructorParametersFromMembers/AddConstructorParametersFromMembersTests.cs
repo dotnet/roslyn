@@ -680,7 +680,7 @@ class C
 {
     int i;
     int [|j;
-    int|] k;
+    int k|];
     public C(int i)
     {
     }
@@ -695,6 +695,35 @@ class C
     {
         this.j = j;
         this.k = k;
+    }
+}"
+            );
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialMultipleSelected2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    int [|j;
+    int |]k;
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    int k;
+    public C(int i, int j)
+    {
+        this.j = j;
     }
 }"
             );
