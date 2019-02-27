@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // A static member '{0}' cannot be marked as override, virtual, or abstract
                 diagnostics.Add(ErrorCode.ERR_StaticNotVirtual, location, this);
             }
-            else if (IsStatic && IsReadOnly)
+            else if (IsReadOnly && (IsStatic || HasAssociatedField))
             {
                 // The modifier '{0}' is not valid for this item
                 diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
