@@ -133,14 +133,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 return CommitResultUnhandled;
             }
 
+            var triggerDocument = triggerSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (triggerDocument == null)
+            {
+                return CommitResultUnhandled;
+            }
+
             // Commit with completion service assumes that null is provided is case of invoke. VS provides '\0' in the case.
             char? commitChar = typeChar == '\0' ? null : (char?)typeChar;
             var commitBehavior = Commit(
-                document, completionService, session.TextView, subjectBuffer, 
+                triggerDocument, completionService, session.TextView, subjectBuffer,
                 roslynItem, commitChar, triggerSnapshot, serviceRules, filterText, cancellationToken);
 
             _recentItemsManager.MakeMostRecentItem(roslynItem.DisplayText);
-            return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);            
+            return new AsyncCompletionData.CommitResult(isHandled: true, commitBehavior);
         }
 
         private AsyncCompletionData.CommitBehavior Commit(
