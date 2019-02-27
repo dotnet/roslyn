@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check that the set of modifiers is allowed
             DeclarationModifiers allowedModifiers = DeclarationModifiers.AccessibilityMask;
-            if (this.ContainingType.IsStructType())
+            if (this.ContainingType.IsStructType() && !_property.HasReadOnlyModifier)
             {
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }
-            else if (IsStatic && IsReadOnly)
+            else if (IsStatic && IsReadOnly && !_property.HasReadOnlyModifier)
             {
                 // The modifier '{0}' is not valid for this item
                 diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));

@@ -389,9 +389,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (5,37): error CS0106: The modifier 'readonly' is not valid for this item
+                // (5,32): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static readonly int P => i;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "i").WithArguments("readonly").WithLocation(5, 37));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("readonly").WithLocation(5, 32));
         }
 
         [Fact]
@@ -440,6 +440,22 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyProperty_RedundantReadOnlyAccessor()
+        {
+            var csharp = @"
+public struct S
+{
+    public readonly int P { readonly get; }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,38): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly int P { readonly get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(4, 38));
+        }
+
+        [Fact]
         public void ReadOnlyStaticAutoProperty()
         {
             var csharp = @"
@@ -451,12 +467,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (4,37): error CS0106: The modifier 'readonly' is not valid for this item
+                // (4,32): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static readonly int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(4, 37),
-                // (4,42): error CS0106: The modifier 'readonly' is not valid for this item
-                //     public static readonly int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("readonly").WithLocation(4, 42),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(4, 32),
                 // (5,37): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public static int P2 { readonly get; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(5, 37));
