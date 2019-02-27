@@ -127,6 +127,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
+        public void RenameFileViaDTE(ProjectUtils.Project project, string oldFileName, string newFileName)
+        {
+            // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
+            _inProc.RenameFileViaDTE(project.Name, oldFileName, newFileName);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
         public void CloseFile(ProjectUtils.Project project, string fileName, bool saveFile)
             => _inProc.CloseFile(project.Name, fileName, saveFile);
 

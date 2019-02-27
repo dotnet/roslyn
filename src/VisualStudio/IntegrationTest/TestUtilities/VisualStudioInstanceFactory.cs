@@ -323,6 +323,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Process.Start(vsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
                 Process.Start(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
 
+                // Disable roaming settings to avoid interference from the online user profile
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"").WaitForExit();
+
                 _firstLaunch = false;
             }
 

@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 {
-    public class SendKeys : AbstractSendKeys
+    internal class SendKeys_InProc : AbstractSendKeys
     {
-        private readonly VisualStudioInstance _visualStudioInstance;
+        private readonly VisualStudio_InProc _visualStudioInstance;
 
-        public SendKeys(VisualStudioInstance visualStudioInstance)
+        public SendKeys_InProc(VisualStudio_InProc visualStudioInstance)
         {
             _visualStudioInstance = visualStudioInstance;
         }
@@ -20,7 +21,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Input
 
         protected override void WaitForApplicationIdle(CancellationToken cancellationToken)
         {
-            _visualStudioInstance.WaitForApplicationIdle(cancellationToken);
+            _visualStudioInstance.WaitForApplicationIdle();
         }
     }
 }
