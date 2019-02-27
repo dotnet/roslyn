@@ -101,6 +101,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             bool thirdPartyNavigationAllowed = true,
             bool throwOnHiddenDefinition = false)
         {
+            var languageServices = project.Solution.Workspace.Services.GetLanguageServices(LanguageNames.FSharp);
+            var symbolicNavigationService = languageServices?.GetService<ISymbolicNavigationService>();
+            var found = symbolicNavigationService?.TryNavigateToSymbol(symbol, cancellationToken)
+                .WaitAndGetResult(cancellationToken);
+            if (found != null && found == true)
+                return true;
+
             var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
 
             var presenter = streamingPresenters.FirstOrDefault()?.Value;
