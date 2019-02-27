@@ -31,15 +31,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         internal override bool TryApply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            var solution = workspace.CurrentSolution;
+            // TODO: Things go wrong if you change the name to an existing file name
 
-            // currently, document rename is accomplished by a remove followed by an add.
-            // the workspace takes care of resolving conflicts if the document name is not unique in the project
-            // by adding numeric suffixes to the new document being added.
-            var oldDocument = solution.GetDocument(_oldDocumentId);
-            var newSolution = solution.RemoveDocument(_oldDocumentId);
-
-            newSolution = newSolution.AddDocument(_newDocumentId, _newFileName, _text, oldDocument.Folders);
+            var newSolution = workspace.CurrentSolution.WithDocumentName(_oldDocumentId, _newFileName);
             return workspace.TryApplyChanges(newSolution, progressTracker);
         }
 
