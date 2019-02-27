@@ -41218,9 +41218,6 @@ class C
                 // (5,30): error CS1997: Since 'C.F0()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
                 //     static async Task F0() { return null; }
                 Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F0()").WithLocation(5, 30),
-                // (5,37): warning CS8603: Possible null reference return.
-                //     static async Task F0() { return null; }
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(5, 37),
                 // (6,39): warning CS8603: Possible null reference return.
                 //     static async Task<string> F1() => null;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(6, 39),
@@ -81484,6 +81481,136 @@ class Program
                 // (20,9): warning CS8602: Possible dereference of a null reference.
                 //         S<T3>.P.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "S<T3>.P").WithLocation(20, 9));
+        }
+
+        [Fact]
+        public void Expression_VoidReturn()
+        {
+            var source =
+@"class Program
+{
+    static object F(object x) => x;
+    static void G(object? y)
+    {
+        return F(y);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0127: Since 'Program.G(object?)' returns void, a return keyword must not be followed by an object expression
+                //         return F(y);
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.G(object?)").WithLocation(6, 9),
+                // (6,18): warning CS8604: Possible null reference argument for parameter 'x' in 'object Program.F(object x)'.
+                //         return F(y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "object Program.F(object x)").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void Expression_AsyncTaskReturn()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class Program
+{
+    static object F(object x) => x;
+    static async Task G(object? y)
+    {
+        await Task.Delay(0);
+        return F(y);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1997: Since 'Program.G(object?)' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                //         return F(y);
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("Program.G(object?)").WithLocation(8, 9),
+                // (8,18): warning CS8604: Possible null reference argument for parameter 'x' in 'object Program.F(object x)'.
+                //         return F(y);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("x", "object Program.F(object x)").WithLocation(8, 18));
+        }
+
+        [Fact]
+        [WorkItem(33481, "https://github.com/dotnet/roslyn/issues/33481")]
+        public void TypelessTuple_VoidReturn()
+        {
+            var source =
+@"class Program
+{
+    static void F()
+    {
+        return (null, string.Empty);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,9): error CS0127: Since 'Program.F()' returns void, a return keyword must not be followed by an object expression
+                //         return (null, string.Empty);
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.F()").WithLocation(5, 9));
+        }
+
+        [Fact]
+        [WorkItem(33481, "https://github.com/dotnet/roslyn/issues/33481")]
+        public void TypelessTuple_AsyncTaskReturn()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class Program
+{
+    static async Task F()
+    {
+        await Task.Delay(0);
+        return (null, string.Empty);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,9): error CS1997: Since 'Program.F()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                //         return (null, string.Empty);
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("Program.F()").WithLocation(7, 9));
+        }
+
+        [Fact]
+        public void TypelessTuple_VoidLambdaReturn()
+        {
+            var source =
+@"class Program
+{
+    static void F()
+    {
+        _ = new System.Action(() =>
+        {
+            return (null, string.Empty);
+        });
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,13): error CS8030: Anonymous function converted to a void returning delegate cannot return a value
+                //             return (null, string.Empty);
+                Diagnostic(ErrorCode.ERR_RetNoObjectRequiredLambda, "return").WithLocation(7, 13));
+        }
+
+        [Fact]
+        public void TypelessTuple_AsyncTaskLambdaReturn()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class Program
+{
+    static void F()
+    {
+        _ = new System.Func<Task>(async () =>
+        {
+            await Task.Delay(0);
+            return (null, string.Empty);
+        });
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,13): error CS8031: Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task<T>'?
+                //             return (null, string.Empty);
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithLocation(9, 13));
         }
     }
 }

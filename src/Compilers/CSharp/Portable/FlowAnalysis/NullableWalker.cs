@@ -1124,30 +1124,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (_returnTypesOpt != null)
+            // Should not convert to method return type when inferring return type (when _returnTypesOpt != null).
+            if (_returnTypesOpt == null &&
+                TryGetReturnType(out TypeSymbolWithAnnotations returnType))
             {
-                // Inferring return type. Should not convert to method return type.
+                VisitOptionalImplicitConversion(expr, returnType, useLegacyWarnings: false, AssignmentKind.Return);
+            }
+            else
+            {
                 TypeSymbolWithAnnotations result = VisitRvalueWithResult(expr);
-                _returnTypesOpt.Add((node, result));
-                return null;
+                if (_returnTypesOpt != null)
+                {
+                    _returnTypesOpt.Add((node, result));
+                }
             }
 
-            TypeSymbolWithAnnotations returnType = GetReturnType();
-            VisitOptionalImplicitConversion(expr, returnType, useLegacyWarnings: false, AssignmentKind.Return);
             return null;
         }
 
-        private TypeSymbolWithAnnotations GetReturnType()
+        private bool TryGetReturnType(out TypeSymbolWithAnnotations type)
         {
             var method = (MethodSymbol)_symbol;
             var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt : method).ReturnType;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
-            if (method.IsGenericTaskReturningAsync(compilation))
+
+            if (returnType.SpecialType == SpecialType.System_Void)
             {
-                returnType = ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
+                type = default;
+                return false;
             }
 
-            return returnType;
+            if (!method.IsAsync)
+            {
+                type = returnType;
+                return true;
+            }
+
+            if (method.IsGenericTaskReturningAsync(compilation))
+            {
+                type = ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
+                return true;
+            }
+
+            type = default;
+            return false;
         }
 
         private static bool IsTypeParameterDisallowingAnnotation(TypeSymbol typeOpt)
