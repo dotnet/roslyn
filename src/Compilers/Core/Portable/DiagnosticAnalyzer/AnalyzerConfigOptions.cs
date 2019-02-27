@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public static StringComparer KeyComparer { get; } = AnalyzerConfig.Section.PropertiesKeyComparer;
 
+        internal static ImmutableDictionary<string, string> EmptyDictionary = ImmutableDictionary.Create<string, string>(KeyComparer);
+
         /// <summary>
         /// Get an analyzer config value for the given key, using the <see cref="KeyComparer"/>.
         /// </summary>
@@ -23,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
     internal sealed class CompilerAnalyzerConfigOptions : AnalyzerConfigOptions
     {
-        public static CompilerAnalyzerConfigOptions Empty { get; } = new CompilerAnalyzerConfigOptions(
-            ImmutableDictionary.Create<string, string>(KeyComparer));
+        public static CompilerAnalyzerConfigOptions Empty { get; } = new CompilerAnalyzerConfigOptions(EmptyDictionary);
 
         private readonly ImmutableDictionary<string, string> _backing;
 

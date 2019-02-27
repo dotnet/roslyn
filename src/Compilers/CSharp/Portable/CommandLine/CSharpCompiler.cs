@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TextWriter consoleOutput,
             TouchedFileLogger touchedFilesLogger,
             ErrorLogger errorLogger,
-            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> syntaxDiagOptionsOpt)
+            ImmutableArray<AnalyzerConfigOptionsResult> analyzerConfigOptions)
         {
             var parseOptions = Arguments.ParseOptions;
 
@@ -62,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         trees[i] = ParseFile(
                             parseOptions,
                             scriptParseOptions,
-                            syntaxDiagOptionsOpt.IsDefault
+                            analyzerConfigOptions.IsDefault
                                 ? null
-                                : syntaxDiagOptionsOpt[i],
+                                : analyzerConfigOptions[i].TreeOptions,
                             ref hadErrors,
                             sourceFiles[i],
                             diagnosticBag,
@@ -84,9 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trees[i] = ParseFile(
                         parseOptions,
                         scriptParseOptions,
-                        syntaxDiagOptionsOpt.IsDefault
+                        analyzerConfigOptions.IsDefault
                             ? null
-                            : syntaxDiagOptionsOpt[i],
+                            : analyzerConfigOptions[i].TreeOptions,
                         ref hadErrors,
                         sourceFiles[i],
                         diagnosticBag,
