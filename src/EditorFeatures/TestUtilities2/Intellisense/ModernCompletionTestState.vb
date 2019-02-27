@@ -112,6 +112,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendWordDeleteToStart(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDeleteWordToLeft)
         End Sub
 
+        Public Overrides Sub ToggleSuggestionMode()
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of ToggleCompletionModeCommandArgs))
+            MyBase.ToggleSuggestionMode(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+        End Sub
+
         Protected Overrides Function GetHandler(Of T As VSCommanding.ICommandHandler)() As T
             Return DirectCast(EditorCompletionCommandHandler, T)
         End Function
