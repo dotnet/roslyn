@@ -397,7 +397,6 @@ public struct S
         [Fact]
         public void ReadOnlyStructExpressionProperty()
         {
-            // TODO(rigibson): this syntax needs to change to `public int P readonly => i;`
             var csharp = @"
 public struct S
 {
