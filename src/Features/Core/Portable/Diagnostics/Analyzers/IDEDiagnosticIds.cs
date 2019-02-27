@@ -105,6 +105,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string MakeLocalFunctionStaticDiagnosticId = "IDE0062";
         public const string UseSimpleUsingStatementDiagnosticId = "IDE0063";
 
+        public const string MakeStructFieldsWritable = "IDE0064";
+
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

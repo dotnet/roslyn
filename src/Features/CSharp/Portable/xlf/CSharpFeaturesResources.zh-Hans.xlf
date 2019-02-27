@@ -127,6 +127,11 @@
         <target state="translated">对可访问性修饰符排序</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="new">Unseal class '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">可简化“If”语句</target>

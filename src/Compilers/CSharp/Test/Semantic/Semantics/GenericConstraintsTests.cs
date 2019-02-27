@@ -699,9 +699,9 @@ public class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (2,14): error CS0644: 'Child' cannot derive from special class 'Enum'
+                // (2,22): error CS0644: 'Child' cannot derive from special class 'Enum'
                 // public class Child : System.Enum
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Child").WithArguments("Child", "System.Enum").WithLocation(2, 14),
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "System.Enum").WithArguments("Child", "System.Enum").WithLocation(2, 22),
                 // (20,9): error CS0311: The type 'Child' cannot be used as type parameter 'T' in the generic type or method 'Test.M<T>(T)'. There is no implicit reference conversion from 'Child' to 'System.Enum'.
                 //         M(new Child());     // invalid
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("Test.M<T>(T)", "System.Enum", "T", "Child").WithLocation(20, 9));

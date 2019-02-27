@@ -210,6 +210,7 @@ csharp_style_expression_bodied_properties = true:warning
             // Wait for CodingConventions library events to propagate to the workspace
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);
@@ -233,6 +234,7 @@ csharp_style_expression_bodied_properties = true:warning
             // Wait for CodingConventions library events to propagate to the workspace
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);

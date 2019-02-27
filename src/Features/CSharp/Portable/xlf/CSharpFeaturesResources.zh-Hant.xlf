@@ -127,6 +127,11 @@
         <target state="translated">排序協助工具修飾詞</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="new">Unseal class '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">'if' 陳述式可簡化</target>

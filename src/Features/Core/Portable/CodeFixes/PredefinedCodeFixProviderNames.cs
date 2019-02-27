@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string Suppression = nameof(Suppression);
         public const string AddOverloads = nameof(AddOverloads);
         public const string AddNew = nameof(AddNew);
+        public const string UnsealClass = nameof(UnsealClass);
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
         public const string UseExplicitTypeForConst = nameof(UseExplicitTypeForConst);
@@ -65,5 +66,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string UseObjectInitializer = nameof(UseObjectInitializer);
         public const string UseThrowExpression = nameof(UseThrowExpression);
         public const string PreferFrameworkType = nameof(PreferFrameworkType);
+        public const string MakeStructFieldsWritable = nameof(MakeStructFieldsWritable);
     }
 }

@@ -1,29 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if DEBUG
-#if false // https://github.com/dotnet/roslyn/issues/33476
-#define VALIDATE_CHECKSUM
-#endif
-#endif
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if VALIDATE_CHECKSUM
 using System.Diagnostics;
-using System.Text;
-using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
-using Microsoft.CodeAnalysis.Remote.Shared;
-#endif
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -531,6 +522,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
                 compilationOptions, parseOptions,
                 documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission)
+                .WithOutputRefFilePath(projectInfo.OutputRefFilePath)
                 .WithHasAllInformation(projectInfo.HasAllInformation)
                 .WithDefaultNamespace(projectInfo.DefaultNamespace);
         }
@@ -635,64 +627,31 @@ namespace Microsoft.CodeAnalysis.Remote
             return builder.ToImmutableAndFree();
         }
 
-        private async Task ValidateChecksumAsync(Checksum givenSolutionChecksum, Solution solution)
+        private async Task ValidateChecksumAsync(Checksum checksumFromRequest, Solution incrementalSolutionBuilt)
         {
-#if VALIDATE_CHECKSUM
-            var currentSolutionChecksum = await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false);
-
-            if (givenSolutionChecksum == currentSolutionChecksum)
+#if DEBUG
+            var currentSolutionChecksum = await incrementalSolutionBuilt.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
+            if (checksumFromRequest == currentSolutionChecksum)
             {
                 return;
             }
 
-            var map = await solution.GetAssetMapAsync(_cancellationToken).ConfigureAwait(false);
-            await RemoveDuplicateChecksumsAsync(givenSolutionChecksum, map).ConfigureAwait(false);
+            var solutionFromScratch = await CreateSolutionFromScratchAsync(checksumFromRequest).ConfigureAwait(false);
 
-            foreach (var kv in map.Where(kv => kv.Value is ChecksumWithChildren).ToList())
+            await TestUtils.AssertChecksumsAsync(_assetService, checksumFromRequest, solutionFromScratch, incrementalSolutionBuilt).ConfigureAwait(false);
+
+            async Task<Solution> CreateSolutionFromScratchAsync(Checksum checksum)
             {
-                map.Remove(kv.Key);
+                var solutionInfo = await CreateSolutionInfoAsync(checksum).ConfigureAwait(false);
+                var workspace = new TemporaryWorkspace(solutionInfo);
+
+                return workspace.CurrentSolution;
             }
-
-            var sb = new StringBuilder();
-            foreach (var kv in map)
-            {
-                sb.AppendLine($"{kv.Key.ToString()}, {kv.Value.ToString()}");
-            }
-
-            Logger.Log(FunctionId.SolutionCreator_AssetDifferences, sb.ToString());
-
-            Debug.Fail("Differences detected in solution checksum: " + sb.ToString());
 #else
 
             // have this to avoid error on async
             await Task.CompletedTask.ConfigureAwait(false);
 #endif
         }
-
-#if VALIDATE_CHECKSUM
-        private async Task RemoveDuplicateChecksumsAsync(Checksum givenSolutionChecksum, Dictionary<Checksum, object> map)
-        {
-            var solutionChecksums = await _assetService.GetAssetAsync<SolutionStateChecksums>(givenSolutionChecksum, _cancellationToken).ConfigureAwait(false);
-            map.RemoveChecksums(solutionChecksums);
-
-            foreach (var projectChecksum in solutionChecksums.Projects)
-            {
-                var projectChecksums = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, _cancellationToken).ConfigureAwait(false);
-                map.RemoveChecksums(projectChecksums);
-
-                foreach (var documentChecksum in projectChecksums.Documents)
-                {
-                    var documentChecksums = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, _cancellationToken).ConfigureAwait(false);
-                    map.RemoveChecksums(documentChecksums);
-                }
-
-                foreach (var documentChecksum in projectChecksums.AdditionalDocuments)
-                {
-                    var documentChecksums = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, _cancellationToken).ConfigureAwait(false);
-                    map.RemoveChecksums(documentChecksums);
-                }
-            }
-        }
-#endif
     }
 }
