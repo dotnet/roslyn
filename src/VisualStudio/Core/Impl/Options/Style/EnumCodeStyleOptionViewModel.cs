@@ -40,11 +40,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             T[] enumValues,
             string[] previews,
             AbstractOptionPreviewViewModel info,
-            OptionSet options,
+            OptionStore optionStore,
             string groupName,
             List<CodeStylePreference> preferences)
             : this((IOption)option, language, description, enumValues, previews, info,
-                   options, groupName, preferences)
+                   optionStore, groupName, preferences)
         {
         }
 
@@ -54,11 +54,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             T[] enumValues,
             string[] previews,
             AbstractOptionPreviewViewModel info,
-            OptionSet options,
+            OptionStore optionStore,
             string groupName,
             List<CodeStylePreference> preferences)
             : this(option, language: null, description, enumValues, previews, info,
-                   options, groupName, preferences)
+                   optionStore, groupName, preferences)
         {
         }
 
@@ -69,10 +69,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             T[] enumValues,
             string[] previews,
             AbstractOptionPreviewViewModel info,
-            OptionSet options,
+            OptionStore optionStore,
             string groupName,
             List<CodeStylePreference> preferences)
-            : base(option, description, info, options, groupName, preferences)
+            : base(option, description, info, groupName, preferences)
         {
             Debug.Assert(preferences.Count == enumValues.Length);
             Debug.Assert(previews.Length == enumValues.Length);
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _enumValues = enumValues.ToImmutableArray();
             _previews = previews.ToImmutableArray();
 
-            var codeStyleOption = (CodeStyleOption<T>)options.GetOption(new OptionKey(option, language));
+            var codeStyleOption = (CodeStyleOption<T>)optionStore.GetOption(new OptionKey(option, language));
 
             var enumIndex = _enumValues.IndexOf(codeStyleOption.Value);
             if (enumIndex < 0 || enumIndex >= Preferences.Count)

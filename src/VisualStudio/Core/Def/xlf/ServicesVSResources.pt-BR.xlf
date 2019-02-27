@@ -57,6 +57,11 @@
         <target state="translated">Calculando dependentes...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Classifications">
+        <source>Classifications</source>
+        <target state="new">Classifications</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
         <source>Colorize regular expressions</source>
         <target state="translated">Colorir expressões regulares</target>
@@ -230,6 +235,11 @@
       <trans-unit id="Unused_value_is_explicitly_assigned_to_discard">
         <source>Unused value is explicitly assigned to discard</source>
         <target state="translated">O valor não utilizado é explicitamente atribuído ao descarte</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
+        <source>Use enhanced colors for C# and Basic</source>
+        <target state="new">Use enhanced colors for C# and Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
