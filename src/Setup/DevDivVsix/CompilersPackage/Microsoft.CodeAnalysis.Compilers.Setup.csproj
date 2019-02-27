@@ -200,9 +200,5 @@ folder InstallDir:\MSBuild\Current\Bin\Roslyn\zh-Hant
     </ItemGroup>
   </Target>
 
-<<<<<<< HEAD
-  <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers\CompilerArtifacts.targets"/>
-=======
   <Import Project="..\..\..\NuGet\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets"/>
->>>>>>> dotnet/master
 </Project>
