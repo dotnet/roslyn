@@ -1280,14 +1280,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)type != null)
             {
                 bool isTrackableStructType = EmptyStructTypeCache.IsTrackableStructType(type);
+                var constructor = (node as BoundObjectCreationExpression)?.Constructor;
+                bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
+
                 if (!type.IsValueType || isTrackableStructType)
                 {
                     slot = GetOrCreateObjectCreationPlaceholderSlot(node);
                     if (slot > 0 && isTrackableStructType)
                     {
                         this.State[slot] = NullableAnnotation.NotNullable;
-                        var constructor = (node as BoundObjectCreationExpression)?.Constructor;
-                        bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
                         var tupleType = constructor?.ContainingType as TupleTypeSymbol;
                         if ((object)tupleType != null && !isDefaultValueTypeConstructor)
                         {
@@ -1304,9 +1305,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (type.IsNullableType() && arguments.Length == 0)
+                else if (type.IsNullableType() && isDefaultValueTypeConstructor)
                 {
-                    // a nullable value type created with zero arguments is by definition null
+                    // a nullable value type created with its default constructor is by definition null
                     resultAnnotation = NullableAnnotation.Nullable;
                 }
             }
