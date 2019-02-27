@@ -9,7 +9,6 @@ using System.Linq;
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 {
     using CorePointsToAnalysisData = DictionaryAnalysisData<AnalysisEntity, PointsToAbstractValue>;
-    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
 
     public partial class PointsToAnalysis : ForwardDataFlowAnalysis<PointsToAnalysisData, PointsToAnalysisContext, PointsToAnalysisResult, PointsToBlockAnalysisResult, PointsToAbstractValue>
     {
@@ -104,7 +103,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
                         void stopTrackingAnalysisDataForEntity(AnalysisEntity entity)
                         {
-                            resetAbstractValue(entity, forwardEdgeAnalysisData);
+                            if (entity.IsChildOrInstanceMember)
+                            {
+                                resetAbstractValue(entity, forwardEdgeAnalysisData);
+                            }
                         }
                     }
                 }

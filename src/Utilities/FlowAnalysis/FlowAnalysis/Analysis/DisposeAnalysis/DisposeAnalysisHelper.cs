@@ -15,8 +15,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Analyzer.Utilities
 {
-    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
-
     /// <summary>
     /// Helper for DisposeAnalysis.
     /// </summary>

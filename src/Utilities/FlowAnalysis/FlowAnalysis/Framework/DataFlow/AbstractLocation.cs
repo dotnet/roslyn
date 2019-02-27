@@ -12,8 +12,6 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
-    using PointsToAnalysisResult = DataFlowAnalysisResult<PointsToBlockAnalysisResult, PointsToAbstractValue>;
-
     /// <summary>
     /// <para>
     /// Represents an abstract analysis location.
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     /// <para>
     /// An analysis location can be created for one of the following cases:
     ///     1. An allocation or an object creation operation (<see cref="CreateAllocationLocation(IOperation, ITypeSymbol, PointsToAnalysisContext)"/>).
-    ///     2. Location for the implicit 'this' or 'Me' instance being analyzed (<see cref="CreateThisOrMeLocation(INamedTypeSymbol)"/>).
+    ///     2. Location for the implicit 'this' or 'Me' instance being analyzed (<see cref="CreateThisOrMeLocation(INamedTypeSymbol, ImmutableStack{IOperation})"/>).
     ///     3. Location created for certain symbols which do not have a declaration in executable code, i.e. no <see cref="IOperation"/> for declaration (such as parameter symbols, member symbols, etc. - <see cref="CreateSymbolLocation(ISymbol, ImmutableStack{IOperation})"/>/>).
     /// </para>
     /// </summary>
@@ -57,8 +55,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => Create(creation, analysisContext.InterproceduralAnalysisDataOpt?.CallStack, analysisEntityOpt: null, symbolOpt: null, locationType: locationType);
         public static AbstractLocation CreateAnalysisEntityDefaultLocation(AnalysisEntity analysisEntity)
             => Create(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: analysisEntity, symbolOpt: null, locationType: analysisEntity.Type);
-        public static AbstractLocation CreateThisOrMeLocation(INamedTypeSymbol namedTypeSymbol)
-            => Create(creationOpt: null, creationCallStackOpt: null, analysisEntityOpt: null, symbolOpt: namedTypeSymbol, locationType: namedTypeSymbol);
+        public static AbstractLocation CreateThisOrMeLocation(INamedTypeSymbol namedTypeSymbol, ImmutableStack<IOperation> creationCallStackOpt)
+            => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: namedTypeSymbol, locationType: namedTypeSymbol);
         public static AbstractLocation CreateSymbolLocation(ISymbol symbol, ImmutableStack<IOperation> creationCallStackOpt)
             => Create(creationOpt: null, creationCallStackOpt: creationCallStackOpt, analysisEntityOpt: null, symbolOpt: symbol, locationType: symbol.GetMemerOrLocalOrParameterType());
 

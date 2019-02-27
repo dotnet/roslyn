@@ -76,15 +76,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
                 }
             }
 
-            private void SetAbstractValue(IEnumerable<AbstractLocation> locations, ParameterValidationAbstractValue value)
+            protected override void SetAbstractValueForAssignment(IOperation target, IOperation assignedValueOperation, ParameterValidationAbstractValue assignedValue, bool mayBeAssignment = false)
             {
-                foreach (var location in locations)
-                {
-                    SetAbstractValue(location, value);
-                }
+                // We are only tracking default parameter locations.
             }
 
-            protected override void SetAbstractValueForAssignment(IOperation target, IOperation assignedValueOperation, ParameterValidationAbstractValue assignedValue, bool mayBeAssignment = false)
+            protected override void SetAbstractValueForTupleElementAssignment(AnalysisEntity tupleElementEntity, IOperation assignedValueOperation, ParameterValidationAbstractValue assignedValue)
             {
                 // We are only tracking default parameter locations.
             }
@@ -106,10 +103,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
             private static bool HasValidatedNotNullAttribute(IParameterSymbol parameter)
                 => parameter.GetAttributes().Any(attr => attr.AttributeClass.Name.Equals("ValidatedNotNullAttribute", StringComparison.OrdinalIgnoreCase));
 
-            protected override void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, PointsToAbstractValue pointsToAbstractValue)
+            protected override void EscapeValueForParameterPointsToLocationOnExit(IParameterSymbol parameter, AnalysisEntity analysisEntity, ImmutableHashSet<AbstractLocation> escapedLocations)
             {
                 // Mark parameters as validated if they are non-null at all non-exception return paths and null at one of the unhandled throw operations.
-                var notValidatedLocations = pointsToAbstractValue.Locations.Where(IsNotOrMaybeValidatedLocation);
+                var notValidatedLocations = escapedLocations.Where(IsNotOrMaybeValidatedLocation);
                 if (notValidatedLocations.Any())
                 {
                     if (TryGetNullAbstractValueAtCurrentBlockEntry(analysisEntity, out NullAbstractValue nullAbstractValue) &&

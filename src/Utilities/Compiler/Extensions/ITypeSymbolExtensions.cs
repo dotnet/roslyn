@@ -182,6 +182,11 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsNullableOfBoolean(this ITypeSymbol typeSymbol)
             => typeSymbol.IsNullableValueType() && ((INamedTypeSymbol)typeSymbol).TypeArguments[0].SpecialType == SpecialType.System_Boolean;
 
+#if HAS_IOPERATION
+        public static ITypeSymbol GetUnderlyingValueTupleTypeOrThis(this ITypeSymbol typeSymbol)
+            => (typeSymbol as INamedTypeSymbol)?.TupleUnderlyingType ?? typeSymbol;
+#endif
+
         public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
         {
             return typeSymbol.Accept(MinimalAccessibilityVisitor.Instance);
