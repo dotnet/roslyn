@@ -3299,38 +3299,70 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             var symbolDef = symbol.OriginalDefinition;
             var symbolDefContainer = symbolDef.ContainingType;
-            while (true)
+            if (symbolDefContainer.IsTupleType)
             {
-                if (containingType.OriginalDefinition.Equals(symbolDefContainer, TypeCompareKind.AllIgnoreOptions))
+                return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
+            }
+            if (symbolDefContainer.IsAnonymousType)
+            {
+                int? memberIndex = symbol.Kind == SymbolKind.Property ? symbol.MemberIndexOpt : null;
+                if (!memberIndex.HasValue)
                 {
-                    if (symbolDefContainer.IsTupleType)
-                    {
-                        return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
-                    }
-                    if (symbolDefContainer.IsAnonymousType)
-                    {
-                        int? memberIndex = symbol.Kind == SymbolKind.Property ? symbol.MemberIndexOpt : null;
-                        if (!memberIndex.HasValue)
-                        {
-                            break;
-                        }
-                        return AnonymousTypeManager.GetAnonymousTypeProperty(containingType, memberIndex.GetValueOrDefault());
-                    }
-                    var result = symbolDef.SymbolAsMember(containingType);
-                    if (result is MethodSymbol resultMethod && resultMethod.IsGenericMethod)
-                    {
-                        return resultMethod.Construct(((MethodSymbol)symbol).TypeArguments);
-                    }
+                    return symbol;
+                }
+                return AnonymousTypeManager.GetAnonymousTypeProperty(containingType, memberIndex.GetValueOrDefault());
+            }
+            if (!symbolDefContainer.IsGenericType)
+            {
+                Debug.Assert(symbol.ContainingType.IsDefinition);
+                return symbol;
+            }
+            if (symbolDefContainer.IsInterface)
+            {
+                if (tryAsMemberOfSingleType(containingType, out Symbol result))
+                {
                     return result;
                 }
-                containingType = containingType.BaseTypeNoUseSiteDiagnostics;
-                if (containingType is null)
+                foreach (var @interface in containingType.AllInterfacesNoUseSiteDiagnostics)
                 {
-                    break;
+                    if (tryAsMemberOfSingleType(@interface, out result))
+                    {
+                        return result;
+                    }
                 }
             }
-            // https://github.com/dotnet/roslyn/issues/29967 Handle other cases such as interfaces.
+            else
+            {
+                while (true)
+                {
+                    if (tryAsMemberOfSingleType(containingType, out Symbol result))
+                    {
+                        return result;
+                    }
+                    containingType = containingType.BaseTypeNoUseSiteDiagnostics;
+                    if ((object)containingType == null)
+                    {
+                        break;
+                    }
+                }
+            }
+            Debug.Assert(false); // If this assert fails, add an appropriate test.
             return symbol;
+
+            bool tryAsMemberOfSingleType(NamedTypeSymbol singleType, out Symbol result)
+            {
+                if (!singleType.OriginalDefinition.Equals(symbolDefContainer, TypeCompareKind.AllIgnoreOptions))
+                {
+                    result = null;
+                    return false;
+                }
+                result = symbolDef.SymbolAsMember(singleType);
+                if (result is MethodSymbol resultMethod && resultMethod.IsGenericMethod)
+                {
+                    result = resultMethod.Construct(((MethodSymbol)symbol).TypeArguments);
+                }
+                return true;
+            }
         }
 
         private static Symbol AsMemberOfTupleType(TupleTypeSymbol tupleType, Symbol symbol)

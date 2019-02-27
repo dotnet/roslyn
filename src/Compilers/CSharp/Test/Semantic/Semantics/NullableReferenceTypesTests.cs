@@ -80265,6 +80265,24 @@ class Program
         }
 
         [Fact]
+        [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
+        [WorkItem(33394, "https://github.com/dotnet/roslyn/issues/33394")]
+        public void ImplicitConstructor_03()
+        {
+            var source =
+@"class C
+{
+    C(string s) { }
+    static C Empty = new C(null); // warning
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,28): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static C Empty = new C(null); // warning
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 28));
+        }
+
+        [Fact]
         [WorkItem(25868, "https://github.com/dotnet/roslyn/issues/25868")]
         public void ByRefTarget_01()
         {
@@ -81081,6 +81099,269 @@ class Program
                 // (9,13): error CS8031: Async lambda expression converted to a 'Task' returning delegate cannot return a value. Did you intend to return 'Task<T>'?
                 //             return (null, string.Empty);
                 Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequiredLambda, "return").WithLocation(9, 13));
+        }
+
+        [Fact]
+        [WorkItem(29967, "https://github.com/dotnet/roslyn/issues/29967")]
+        public void InterfaceProperties_01()
+        {
+            var source =
+@"interface IA<T>
+{
+    T A { get; }
+}
+interface IB<T> : IA<T>
+{
+    T B { get; }
+}
+class Program
+{
+    static IB<T> CreateB<T>(T t)
+    {
+        throw null!;
+    }
+    static void F1<T>(T x1)
+    {
+        if (x1 == null) return;
+        var y1  = CreateB(x1);
+        y1.A.ToString(); // 1
+        y1.B.ToString(); // 2
+    }
+    static void F2<T>() where T : class
+    {
+        T x2 = null; // 3
+        var y2 = CreateB(x2);
+        y2.ToString();
+        y2.A.ToString(); // 4
+        y2.B.ToString(); // 5
+    }
+    static void F3<T>() where T : class, new()
+    {
+        T? x3 = new T();
+        var y3  = CreateB(x3);
+        y3.A.ToString();
+        y3.B.ToString();
+    }
+    static void F4<T>() where T : struct
+    {
+        T? x4 = null;
+        var y4  = CreateB(x4);
+        _ = y4.A.Value; // 6
+        _ = y4.B.Value; // 7
+    }
+    static void F5<T>() where T : struct
+    {
+        T? x5 = new T();
+        var y5  = CreateB(x5);
+        _ = y5.A.Value; // 8
+        _ = y5.B.Value; // 9
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         y1.A.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1.A").WithLocation(19, 9),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         y1.B.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1.B").WithLocation(20, 9),
+                // (24,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x2 = null; // 3
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(24, 16),
+                // (27,9): warning CS8602: Possible dereference of a null reference.
+                //         y2.A.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2.A").WithLocation(27, 9),
+                // (28,9): warning CS8602: Possible dereference of a null reference.
+                //         y2.B.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2.B").WithLocation(28, 9),
+                // (41,13): warning CS8629: Nullable value type may be null.
+                //         _ = y4.A.Value; // 6
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y4.A.Value").WithLocation(41, 13),
+                // (42,13): warning CS8629: Nullable value type may be null.
+                //         _ = y4.B.Value; // 7
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y4.B.Value").WithLocation(42, 13),
+                // (48,13): warning CS8629: Nullable value type may be null.
+                //         _ = y5.A.Value; // 8
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y5.A.Value").WithLocation(48, 13),
+                // (49,13): warning CS8629: Nullable value type may be null.
+                //         _ = y5.B.Value; // 9
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y5.B.Value").WithLocation(49, 13));
+        }
+
+        [Fact]
+        [WorkItem(29967, "https://github.com/dotnet/roslyn/issues/29967")]
+        public void InterfaceProperties_02()
+        {
+            var source =
+@"interface IA<T>
+{
+    T A { get; }
+}
+interface IB<T>
+{
+    T B { get; }
+}
+interface IC<T, U> : IA<T>, IB<U>
+{
+}
+class Program
+{
+    static IC<T, U> CreateC<T, U>(T t, U u)
+    {
+        throw null!;
+    }
+    static void F<T, U>()
+        where T : class, new()
+        where U : class
+    {
+        T? x = new T();
+        T y = null; // 1
+        var xy = CreateC(x, y);
+        xy.A.ToString();
+        xy.B.ToString(); // 2
+        var yx = CreateC(y, x);
+        yx.A.ToString(); // 3
+        yx.B.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (23,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(23, 15),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         xy.B.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "xy.B").WithLocation(26, 9),
+                // (28,9): warning CS8602: Possible dereference of a null reference.
+                //         yx.A.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "yx.A").WithLocation(28, 9));
+        }
+
+        [Fact]
+        [WorkItem(29967, "https://github.com/dotnet/roslyn/issues/29967")]
+        public void InterfaceMethods_01()
+        {
+            var source =
+@"interface IA<T>
+{
+    void A(T t);
+}
+interface IB<T> : IA<T>
+{
+    void B(T t);
+}
+class Program
+{
+    static IB<T> CreateB<T>(T t)
+    {
+        throw null!;
+    }
+    static void F1<T>(T x1)
+    {
+        if (x1 == null) return;
+        T y1 = default; // 1
+        var ix1 = CreateB(x1);
+        var iy1  = CreateB(y1); // 2
+        ix1.A(y1); // 3
+        ix1.B(y1); // 4
+        iy1.A(x1);
+        iy1.B(x1);
+    }
+    static void F2<T>() where T : class, new()
+    {
+        T x2 = null; // 5
+        T? y2 = new T();
+        var ix2 = CreateB(x2);
+        var iy2  = CreateB(y2);
+        ix2.A(y2);
+        ix2.B(y2);
+        iy2.A(x2); // 6
+        iy2.B(x2); // 7
+    }
+    static void F3<T>() where T : struct
+    {
+        T? x3 = null;
+        T? y3 = new T();
+        var ix3 = CreateB(x3);
+        var iy3  = CreateB(y3);
+        ix3.A(y3);
+        ix3.B(y3);
+        iy3.A(x3);
+        iy3.B(x3);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (18,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T y1 = default; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(18, 16),
+                // (20,28): warning CS8604: Possible null reference argument for parameter 't' in 'IB<T> Program.CreateB<T>(T t)'.
+                //         var iy1  = CreateB(y1); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("t", "IB<T> Program.CreateB<T>(T t)").WithLocation(20, 28),
+                // (21,15): warning CS8604: Possible null reference argument for parameter 't' in 'void IA<T>.A(T t)'.
+                //         ix1.A(y1); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("t", "void IA<T>.A(T t)").WithLocation(21, 15),
+                // (22,15): warning CS8604: Possible null reference argument for parameter 't' in 'void IB<T>.B(T t)'.
+                //         ix1.B(y1); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y1").WithArguments("t", "void IB<T>.B(T t)").WithLocation(22, 15),
+                // (28,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x2 = null; // 5
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(28, 16),
+                // (34,15): warning CS8604: Possible null reference argument for parameter 't' in 'void IA<T>.A(T t)'.
+                //         iy2.A(x2); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("t", "void IA<T>.A(T t)").WithLocation(34, 15),
+                // (35,15): warning CS8604: Possible null reference argument for parameter 't' in 'void IB<T>.B(T t)'.
+                //         iy2.B(x2); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("t", "void IB<T>.B(T t)").WithLocation(35, 15));
+        }
+
+        [Fact]
+        [WorkItem(29967, "https://github.com/dotnet/roslyn/issues/29967")]
+        public void InterfaceMethods_02()
+        {
+            var source =
+@"interface IA
+{
+    T A<T>(T u);
+}
+interface IB<T>
+{
+    T B<U>(U u);
+}
+interface IC<T> : IA, IB<T>
+{
+}
+class Program
+{
+    static IC<T> CreateC<T>(T t)
+    {
+        throw null!;
+    }
+    static void F<T, U>()
+        where T : class, new()
+        where U : class
+    {
+        T? x = new T();
+        T y = null; // 1
+        var ix = CreateC(x);
+        var iy = CreateC(y);
+        ix.A(y).ToString(); // 2
+        ix.B(y).ToString();
+        iy.A(x).ToString();
+        iy.B(x).ToString(); // 3
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (23,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T y = null; // 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(23, 15),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         ix.A(y).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "ix.A(y)").WithLocation(26, 9),
+                // (29,9): warning CS8602: Possible dereference of a null reference.
+                //         iy.B(x).ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "iy.B(x)").WithLocation(29, 9));
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33347")]
