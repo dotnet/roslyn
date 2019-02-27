@@ -561,5 +561,90 @@ public struct S1
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ReadOnlyFieldLikeEvent()
+        {
+            var csharp = @"
+using System;
+
+public struct S1
+{
+    public readonly event Action<EventArgs> OnFoo;
+    public void M() { OnFoo?.Invoke(new EventArgs()); }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (6,45): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly event Action<EventArgs> OnFoo;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "OnFoo").WithArguments("readonly").WithLocation(6, 45));
+        }
+
+        [Fact]
+        public void ReadOnlyEventExplicitAddRemove()
+        {
+            var csharp = @"
+using System;
+
+public struct S1
+{
+    public readonly event Action<EventArgs> OnFoo
+    {
+        add {}
+        remove {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStaticEvent()
+        {
+            var csharp = @"
+using System;
+
+public struct S1
+{
+    public static readonly event Action<EventArgs> OnFoo
+    {
+        add {}
+        remove {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (6,52): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly event Action<EventArgs> OnFoo
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "OnFoo").WithArguments("readonly").WithLocation(6, 52));
+        }
+
+        [Fact]
+        public void ReadOnlyEventReadOnlyAccessors()
+        {
+            var csharp = @"
+using System;
+
+public struct S1
+{
+    public event Action<EventArgs> OnFoo
+    {
+        readonly add {}
+        readonly remove {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         readonly add {}
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "readonly").WithLocation(8, 9),
+                // (9,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         readonly remove {}
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "readonly").WithLocation(9, 9));
+        }
     }
 }

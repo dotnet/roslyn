@@ -114,7 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? propertySyntax.ExpressionBody
                 : ((IndexerDeclarationSyntax)syntax).ExpressionBody;
             bool hasExpressionBody = arrowExpression != null;
-
             bool hasInitializer = !isIndexer && propertySyntax.Initializer != null;
 
             bool notRegularProperty = (!IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
