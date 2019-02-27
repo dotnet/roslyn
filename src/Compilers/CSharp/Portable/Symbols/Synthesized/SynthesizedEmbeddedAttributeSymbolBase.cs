@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// 2) It derives from System.Attribute
     /// 3) It has Microsoft.CodeAnalysis.EmbeddedAttribute
     /// 4) It has System.Runtime.CompilerServices.CompilerGeneratedAttribute
-    /// 5) It has a parameter-less constructor
     /// </summary>
     internal abstract class SynthesizedEmbeddedAttributeSymbolBase : NamedTypeSymbol
     {
@@ -28,10 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly NamedTypeSymbol _baseType;
         private readonly NamespaceSymbol _namespace;
         private readonly ModuleSymbol _module;
-
-        /// <summary>
-        /// When implemented by a more derived type, gets a list of constructors to synthesize for the attribute
-        /// </summary>
 
         public SynthesizedEmbeddedAttributeSymbolBase(
             AttributeDescription description,
