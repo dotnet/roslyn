@@ -81,6 +81,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return TaintedDataAnalysisDomainInstance.Merge(value1, value2);
             }
 
+            protected override void UpdateValuesForAnalysisData(TaintedDataAnalysisData targetAnalysisData)
+            {
+                UpdateValuesForAnalysisData(targetAnalysisData.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData);
+            }
+
             protected override void ResetCurrentAnalysisData()
             {
                 this.CurrentAnalysisData.Reset(this.ValueDomain.UnknownOrMayBeValue);
@@ -94,6 +99,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             protected override TaintedDataAnalysisData GetExitBlockOutputData(TaintedDataAnalysisResult analysisResult)
             {
                 return new TaintedDataAnalysisData(analysisResult.ExitBlockOutput.Data);
+            }
+
+            protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(TaintedDataAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+            {
+                base.ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             }
 
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)

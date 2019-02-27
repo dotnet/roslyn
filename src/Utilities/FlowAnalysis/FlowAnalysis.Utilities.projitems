@@ -11,6 +11,7 @@
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowConditionKindExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IOperationExtensions_FlowAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\SetCopyAbstractValuePredicateKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\PointsToAnalysis\PointsToAnalysisResult.cs" />
@@ -97,13 +98,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\PredicateValueKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\SetAbstractDomain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\StackGuard.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\ThrowBranchWithExceptionType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\ThrownExceptionInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)BranchWithInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\AnalyzerOptionsExtensions_FlowAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\EditorConfigOptionNames_FlowAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BasicBlockExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowConditionKindExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowRegionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowGraphExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\DisposeAnalysisKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SingleThreadedConcurrentDictionary.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(ExcludeInternalFlowAnalyses)' != 'true'">

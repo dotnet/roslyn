@@ -75,12 +75,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
             protected override PropertySetAnalysisData MergeAnalysisData(PropertySetAnalysisData value1, PropertySetAnalysisData value2)
                 => PropertySetAnalysisDomainInstance.Merge(value1, value2);
+            protected override void UpdateValuesForAnalysisData(PropertySetAnalysisData targetAnalysisData)
+                => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
             protected override PropertySetAnalysisData GetClonedAnalysisData(PropertySetAnalysisData analysisData)
                 => GetClonedAnalysisDataHelper(analysisData);
             public override PropertySetAnalysisData GetEmptyAnalysisData()
                 => GetEmptyAnalysisDataHelper();
             protected override PropertySetAnalysisData GetExitBlockOutputData(PropertySetAnalysisResult analysisResult)
                 => GetClonedAnalysisDataHelper(analysisResult.ExitBlockOutput.Data);
+            protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(PropertySetAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+                => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException, CurrentAnalysisData);
             protected override bool Equals(PropertySetAnalysisData value1, PropertySetAnalysisData value2)
                 => EqualsHelper(value1, value2);
 

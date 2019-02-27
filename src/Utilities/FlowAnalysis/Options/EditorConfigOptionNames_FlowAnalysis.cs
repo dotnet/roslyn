@@ -29,6 +29,12 @@ namespace Analyzer.Utilities
         /// </summary>
         public const string MaxInterproceduralLambdaOrLocalFunctionCallChain = "max_interprocedural_lambda_or_local_function_call_chain";
 
+        /// <summary>
+        /// String option to configure dispose analysis kind, primarily for CA2000 (DisposeObjectsBeforeLosingScope).
+        /// Allowed option values: Fields from DisposeAnalysisKind enum>.
+        /// </summary>
+        public const string DisposeAnalysisKind = "dispose_analysis_kind";
+
         #endregion
     }
 }

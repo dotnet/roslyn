@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             bool predicateAnalysis,
+            bool exceptionPathsAnalysis,
             CopyAnalysisResult copyAnalysisResultOpt,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<TAnalysisContext, TAnalysisResult> getOrComputeAnalysisResult,
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisConfiguration = interproceduralAnalysisConfig;
             PessimisticAnalysis = pessimisticAnalysis;
             PredicateAnalysis = predicateAnalysis;
+            ExceptionPathsAnalysis = exceptionPathsAnalysis;
             CopyAnalysisResultOpt = copyAnalysisResultOpt;
             PointsToAnalysisResultOpt = pointsToAnalysisResultOpt;
             GetOrComputeAnalysisResult = getOrComputeAnalysisResult;
@@ -64,6 +66,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public InterproceduralAnalysisConfiguration InterproceduralAnalysisConfiguration { get; }
         public bool PessimisticAnalysis { get; }
         public bool PredicateAnalysis { get; }
+        public bool ExceptionPathsAnalysis { get; }
         public CopyAnalysisResult CopyAnalysisResultOpt { get; }
         public PointsToAnalysisResult PointsToAnalysisResultOpt { get; }
         public Func<TAnalysisContext, TAnalysisResult> GetOrComputeAnalysisResult { get; }
@@ -133,6 +136,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             builder.Add(InterproceduralAnalysisConfiguration.GetHashCode());
             builder.Add(PessimisticAnalysis.GetHashCode());
             builder.Add(PredicateAnalysis.GetHashCode());
+            builder.Add(ExceptionPathsAnalysis.GetHashCode());
             builder.Add(CopyAnalysisResultOpt.GetHashCodeOrDefault());
             builder.Add(PointsToAnalysisResultOpt.GetHashCodeOrDefault());
             builder.Add(InterproceduralAnalysisDataOpt.GetHashCodeOrDefault());

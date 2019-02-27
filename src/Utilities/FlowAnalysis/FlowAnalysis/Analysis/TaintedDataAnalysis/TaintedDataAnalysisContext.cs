@@ -39,6 +39,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                   interproceduralAnalysisConfig,
                   pessimisticAnalysis,
                   predicateAnalysis: false,
+                  exceptionPathsAnalysis: false,
                   copyAnalysisResultOpt: null,
                   pointsToAnalysisResultOpt: pointsToAnalysisResult,
                   getOrComputeAnalysisResult: getOrComputeAnalysisResult,

@@ -179,12 +179,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ParameterValidationAnalys
 
             protected override ParameterValidationAnalysisData MergeAnalysisData(ParameterValidationAnalysisData value1, ParameterValidationAnalysisData value2)
                 => ParameterValidationAnalysisDomainInstance.Merge(value1, value2);
+            protected override void UpdateValuesForAnalysisData(ParameterValidationAnalysisData targetAnalysisData)
+                => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
             protected override ParameterValidationAnalysisData GetClonedAnalysisData(ParameterValidationAnalysisData analysisData)
                 => GetClonedAnalysisDataHelper(analysisData);
             public override ParameterValidationAnalysisData GetEmptyAnalysisData()
                 => GetEmptyAnalysisDataHelper();
             protected override ParameterValidationAnalysisData GetExitBlockOutputData(ParameterValidationAnalysisResult analysisResult)
                 => GetClonedAnalysisDataHelper(analysisResult.ExitBlockOutput.Data);
+            protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(ParameterValidationAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+                => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException, CurrentAnalysisData);
             protected override bool Equals(ParameterValidationAnalysisData value1, ParameterValidationAnalysisData value2)
                 => EqualsHelper(value1, value2);
 

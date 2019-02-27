@@ -93,20 +93,8 @@ namespace Analyzer.Utilities
             IMethodSymbol containingMethod,
             AnalyzerOptions analyzerOptions,
             DiagnosticDescriptor rule,
-            CancellationToken cancellationToken,
-            out DisposeAnalysisResult disposeAnalysisResult,
-            out PointsToAnalysisResult pointsToAnalysisResult)
-        {
-            return TryGetOrComputeResult(operationBlocks, containingMethod, analyzerOptions, rule, trackInstanceFields: false,
-                cancellationToken: cancellationToken, disposeAnalysisResult: out disposeAnalysisResult, pointsToAnalysisResult: out pointsToAnalysisResult);
-        }
-
-        public bool TryGetOrComputeResult(
-            ImmutableArray<IOperation> operationBlocks,
-            IMethodSymbol containingMethod,
-            AnalyzerOptions analyzerOptions,
-            DiagnosticDescriptor rule,
             bool trackInstanceFields,
+            bool trackExceptionPaths,
             CancellationToken cancellationToken,
             out DisposeAnalysisResult disposeAnalysisResult,
             out PointsToAnalysisResult pointsToAnalysisResult)
@@ -119,7 +107,8 @@ namespace Analyzer.Utilities
                     var cfg = topmostBlock.GetEnclosingControlFlowGraph();
 
                     disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
-                        analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields, cancellationToken, out pointsToAnalysisResult);
+                        analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
+                        trackExceptionPaths, cancellationToken, out pointsToAnalysisResult);
                     return true;
                 }
             }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Analyzer.Utilities.Extensions;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly ImmutableDictionary<IOperation, PredicateValueKind> _predicateValueKindMap;
         private readonly ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> _interproceduralResultsMap;
         private readonly TAbstractAnalysisValue _defaultUnknownValue;
+        private readonly object _analysisDataForUnhandledThrowOperationsOpt;
 
         public DataFlowAnalysisResult(
             ImmutableDictionary<BasicBlock, TBlockAnalysisResult> basicBlockStateMap,
@@ -31,7 +33,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
             TBlockAnalysisResult entryBlockOutput,
             TBlockAnalysisResult exitBlockOutput,
+            TBlockAnalysisResult exceptionPathsExitBlockOutputOpt,
             TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt,
+            object analysisDataForUnhandledThrowOperationsOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
         {
@@ -49,16 +53,31 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             _interproceduralResultsMap = interproceduralResultsMap;
             EntryBlockOutput = entryBlockOutput;
             ExitBlockOutput = exitBlockOutput;
+            ExceptionPathsExitBlockOutputOpt = exceptionPathsExitBlockOutputOpt;
             MergedStateForUnhandledThrowOperationsOpt = mergedStateForUnhandledThrowOperationsOpt;
+            _analysisDataForUnhandledThrowOperationsOpt = analysisDataForUnhandledThrowOperationsOpt;
             ControlFlowGraph = cfg;
             _defaultUnknownValue = defaultUnknownValue;
         }
 
         protected DataFlowAnalysisResult(DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> other)
             : this(other._basicBlockStateMap, other._operationStateMap, other._predicateValueKindMap, other.ReturnValueAndPredicateKindOpt,
-                   other._interproceduralResultsMap, other.EntryBlockOutput, other.ExitBlockOutput, other.MergedStateForUnhandledThrowOperationsOpt,
-                   other.ControlFlowGraph, other._defaultUnknownValue)
+                   other._interproceduralResultsMap, other.EntryBlockOutput, other.ExitBlockOutput, other.ExceptionPathsExitBlockOutputOpt,
+                   other.MergedStateForUnhandledThrowOperationsOpt, other._analysisDataForUnhandledThrowOperationsOpt, other.ControlFlowGraph, other._defaultUnknownValue)
         {
+        }
+
+        internal DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue> With(
+            TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt,
+            object analysisDataForUnhandledThrowOperations)
+        {
+            Debug.Assert(mergedStateForUnhandledThrowOperationsOpt != null);
+            Debug.Assert(analysisDataForUnhandledThrowOperations != null);
+
+            return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(
+                _basicBlockStateMap, _operationStateMap, _predicateValueKindMap, ReturnValueAndPredicateKindOpt,
+                _interproceduralResultsMap, EntryBlockOutput, ExitBlockOutput, ExceptionPathsExitBlockOutputOpt, mergedStateForUnhandledThrowOperationsOpt,
+                analysisDataForUnhandledThrowOperations, ControlFlowGraph, _defaultUnknownValue);
         }
 
 #pragma warning disable CA1043 // Use Integral Or String Argument For Indexers
@@ -118,6 +137,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public (TAbstractAnalysisValue Value, PredicateValueKind PredicateValueKind)? ReturnValueAndPredicateKindOpt { get; }
         public TBlockAnalysisResult EntryBlockOutput { get; }
         public TBlockAnalysisResult ExitBlockOutput { get; }
+        public TBlockAnalysisResult ExceptionPathsExitBlockOutputOpt { get; }
+
+        object IDataFlowAnalysisResult<TAbstractAnalysisValue>.AnalysisDataForUnhandledThrowOperationsOpt
+            => _analysisDataForUnhandledThrowOperationsOpt;
+
         public TBlockAnalysisResult MergedStateForUnhandledThrowOperationsOpt { get; }
         public PredicateValueKind GetPredicateKind(IOperation operation) => _predicateValueKindMap.TryGetValue(operation, out var valueKind) ? valueKind : PredicateValueKind.Unknown;
     }

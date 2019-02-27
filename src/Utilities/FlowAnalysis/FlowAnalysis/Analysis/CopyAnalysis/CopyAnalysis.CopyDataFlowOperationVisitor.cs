@@ -382,12 +382,70 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override CopyAnalysisData MergeAnalysisData(CopyAnalysisData value1, CopyAnalysisData value2)
                 => AnalysisDomain.Merge(value1, value2);
+
+            protected override void UpdateValuesForAnalysisData(CopyAnalysisData targetAnalysisData)
+            {
+                targetAnalysisData.AssertValidCopyAnalysisData();
+
+                // We need to trim the copy values to only include the entities that are existing keys in targetAnalysisData.
+                var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                var builder = ArrayBuilder<AnalysisEntity>.GetInstance(targetAnalysisData.CoreAnalysisData.Count);
+                try
+                {
+                    builder.AddRange(targetAnalysisData.CoreAnalysisData.Keys);
+                    for (int i = 0; i < builder.Count; i++)
+                    {
+                        var key = builder[i];
+                        if (!processedEntities.Add(key))
+                        {
+                            continue;
+                        }
+
+                        if (CurrentAnalysisData.TryGetValue(key, out var newValue))
+                        {
+                            var existingValue = targetAnalysisData[key];
+                            if (newValue.AnalysisEntities.Count == 1)
+                            {
+                                if (existingValue.AnalysisEntities.Count == 1)
+                                {
+                                    continue;
+                                }
+                            }
+                            else if (newValue.AnalysisEntities.Count > 1)
+                            {
+                                var entitiesToExclude = newValue.AnalysisEntities.Where(e => !targetAnalysisData.HasAbstractValue(e));
+                                if (entitiesToExclude.Any())
+                                {
+                                    newValue = newValue.WithEntitiesRemoved(entitiesToExclude);
+                                }
+                            }
+
+                            if (newValue != existingValue)
+                            {
+                                SetAbstractValue(targetAnalysisData, key, newValue, TryGetAddressSharedCopyValue);
+                            }
+
+                            processedEntities.AddRange(newValue.AnalysisEntities);
+                        }
+                    }
+
+                    targetAnalysisData.AssertValidCopyAnalysisData();
+                }
+                finally
+                {
+                    processedEntities.Free();
+                    builder.Free();
+                }
+            }
+
             protected override CopyAnalysisData GetClonedAnalysisData(CopyAnalysisData analysisData)
                 => (CopyAnalysisData)analysisData.Clone();
             public override CopyAnalysisData GetEmptyAnalysisData()
                 => new CopyAnalysisData();
             protected override CopyAnalysisData GetExitBlockOutputData(CopyAnalysisResult analysisResult)
                 => new CopyAnalysisData(analysisResult.ExitBlockOutput.Data);
+            protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(CopyAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+                => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             protected override bool Equals(CopyAnalysisData value1, CopyAnalysisData value2)
                 => value1.Equals(value2);
 
@@ -463,6 +521,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 {
                     return null;
                 }
+
+                copyAnalysisData.AssertValidCopyAnalysisData(TryGetAddressSharedCopyValue);
 
                 // Filter out all the local symbol and flow capture entities from the returned analysis data.
                 var entitiesToFilterBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
