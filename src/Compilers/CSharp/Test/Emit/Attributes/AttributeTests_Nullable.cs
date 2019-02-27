@@ -1690,7 +1690,7 @@ public class B<T> :
         }
 
         [Fact]
-        public void Field_Exists()
+        public void NullableFlags_Field_Exists()
         {
             var source =
 @"public class C
@@ -1707,14 +1707,14 @@ public class B<T> :
 
                 var nullable = GetNullableAttribute(attributes);
 
-                var field = nullable.AttributeClass.GetField("nullableFlags");
+                var field = nullable.AttributeClass.GetField("NullableFlags");
                 Assert.NotNull(field);
                 Assert.Equal("System.Byte[]", field.Type.ToTestDisplayString());
             });
         }
 
         [Fact]
-        public void Field_Contains_ConstuctorArugments_SingleByteConstructor()
+        public void NullableFlags_Field_Contains_ConstructorArguments_SingleByteConstructor()
         {
             var source =
 @"
@@ -1728,7 +1728,7 @@ public class C
     public static void Main()
     {
         var attribute = typeof(C).GetMethod(""F"").GetParameters()[0].GetCustomAttributes(true).Single(a => a.GetType().Name == ""NullableAttribute"");
-        var field = attribute.GetType().GetField(""nullableFlags"");
+        var field = attribute.GetType().GetField(""NullableFlags"");
         byte[] flags = (byte[])field.GetValue(attribute);
 
         Console.Write($""{{ {string.Join("","", flags)} }}"");
@@ -1750,7 +1750,7 @@ public class C
         }
 
         [Fact]
-        public void Field_Contains_ConstuctorArugments_ByteArrayConstructor()
+        public void NullableFlags_Field_Contains_ConstructorArguments_ByteArrayConstructor()
         {
             var source =
 @"
@@ -1764,7 +1764,7 @@ public class C
     public static void Main()
     {
         var attribute = typeof(C).GetMethod(""F"").GetParameters()[0].GetCustomAttributes(true).Single(a => a.GetType().Name == ""NullableAttribute"");
-        var field = attribute.GetType().GetField(""nullableFlags"");
+        var field = attribute.GetType().GetField(""NullableFlags"");
         byte[] flags = (byte[])field.GetValue(attribute);
 
         System.Console.Write($""{{ {string.Join("","", flags)} }}"");

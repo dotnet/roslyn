@@ -14,29 +14,35 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
 
-    internal class SynthesizedEmbeddedNullableAttributeSymbol : SynthesizedEmbeddedAttributeSymbol
+    internal sealed class SynthesizedEmbeddedNullableAttributeSymbol : SynthesizedEmbeddedAttributeSymbolBase
     {
         private readonly ImmutableArray<FieldSymbol> _fields;
 
-        private readonly TypeSymbolWithAnnotations _byteType;
+        private readonly ImmutableArray<MethodSymbol> _constructors;
+
+        private readonly TypeSymbol _byteTypeSymbol;
+
+        private const string NullableFlagsFieldName = "NullableFlags";
 
         public SynthesizedEmbeddedNullableAttributeSymbol(
           CSharpCompilation compilation,
           DiagnosticBag diagnostics)
-            : base(AttributeDescription.NullableAttribute, compilation, diagnostics, generateDefaultConstructors: false)
+            : base(AttributeDescription.NullableAttribute, compilation, diagnostics)
         {
-            _byteType = TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte));
-            Binder.ReportUseSiteDiagnostics(_byteType.TypeSymbol, diagnostics, Location.None);
+            var byteType = TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte));
+            _byteTypeSymbol = byteType.TypeSymbol;
+            Binder.ReportUseSiteDiagnostics(_byteTypeSymbol, diagnostics, Location.None);
+
             var byteArrayType = TypeSymbolWithAnnotations.Create(
                 ArrayTypeSymbol.CreateSZArray(
-                    _byteType.TypeSymbol.ContainingAssembly,
-                    _byteType));
+                    _byteTypeSymbol.ContainingAssembly,
+                    byteType));
 
             _fields = ImmutableArray.Create<FieldSymbol>(
                 new SynthesizedFieldSymbol(
                     this,
                     byteArrayType.TypeSymbol,
-                    "nullableFlags",
+                    NullableFlagsFieldName,
                     isPublic: true,
                     isReadOnly: true,
                     isStatic: false));
@@ -44,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _constructors = ImmutableArray.Create<MethodSymbol>(
                 new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
                     this,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, _byteType, 0, RefKind.None)),
+                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, byteType, 0, RefKind.None)),
                     GenerateSingleByteConstructorBody
                     ),
                 new SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
@@ -59,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => _fields;
+
+        public override ImmutableArray<MethodSymbol> Constructors => _constructors;
 
         private void GenerateByteArrayConstructorBody(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, ImmutableArray<ParameterSymbol> parameters)
         {
@@ -83,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             factory.This(),
                             _fields.Single()),
                         factory.Array(
-                            _byteType.TypeSymbol,
+                            _byteTypeSymbol,
                             ImmutableArray.Create<BoundExpression>(
                                 factory.Parameter(parameters.Single())
                             )
@@ -93,11 +101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             );
         }
 
-        internal sealed class SynthesizedEmbeddedAttributeConstructorWithBodySymbol : SynthesizedInstanceConstructor
+        private sealed class SynthesizedEmbeddedAttributeConstructorWithBodySymbol : SynthesizedInstanceConstructor
         {
-            ImmutableArray<ParameterSymbol> _parameters;
+            private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-            readonly Action<SyntheticBoundNodeFactory, ArrayBuilder<BoundStatement>, ImmutableArray<ParameterSymbol>> _getConstructorBody;
+            private readonly Action<SyntheticBoundNodeFactory, ArrayBuilder<BoundStatement>, ImmutableArray<ParameterSymbol>> _getConstructorBody;
 
             internal SynthesizedEmbeddedAttributeConstructorWithBodySymbol(
                 NamedTypeSymbol containingType,

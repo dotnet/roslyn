@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
-        private SynthesizedEmbeddedAttributeSymbol _lazyNullableAttribute;
+        private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             DiagnosticBag diagnostics,
             AttributeDescription description)
         {
-            if ((object)symbol == null)
+            if (symbol is null)
             {
                 AddDiagnosticsForExistingAttribute(description, diagnostics);
                 symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, diagnostics);
@@ -313,10 +313,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         private void CreateEmbeddedNullableAttributeIfNeeded(
-            ref SynthesizedEmbeddedAttributeSymbol symbol,
+            ref SynthesizedEmbeddedNullableAttributeSymbol symbol,
             DiagnosticBag diagnostics)
         {
-            if ((object)symbol == null)
+            if (symbol is null)
             {
                 AddDiagnosticsForExistingAttribute(AttributeDescription.NullableAttribute, diagnostics);
                 symbol = new SynthesizedEmbeddedNullableAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
