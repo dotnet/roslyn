@@ -140,12 +140,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // Check if the item matches the filter text typed so far.
-                    var matchesFilterText = ItemManager.MatchesFilterText(helper, currentItem, filterText, model.Trigger.Kind, filterReason, recentItems);
+                    var matchesFilterText = ItemManager.MatchesFilterText(helper, currentItem, filterText, model.Trigger.Kind, filterReason, recentItems, includeMatchSpans: false, out _);
 
                     if (matchesFilterText)
                     {
-                        filterResults.Add(new FilterResult(
-                            currentItem, filterText, matchedFilterText: true));
+                        filterResults.Add(new FilterResult(currentItem, matchedFilterText: true));
                     }
                     else
                     {
@@ -166,8 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         if (shouldKeepItem)
                         {
-                            filterResults.Add(new FilterResult(
-                                currentItem, filterText, matchedFilterText: false));
+                            filterResults.Add(new FilterResult(currentItem, matchedFilterText: false));
                         }
                     }
                 }
@@ -184,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // ourselves.
                 if (model.Trigger.Kind == CompletionTriggerKind.Deletion)
                 {
-                    return HandleDeletionTrigger(model, filterReason, filterResults);
+                    return HandleDeletionTrigger(model, filterReason, filterResults, filterText);
                 }
 
                 return HandleNormalFiltering(
@@ -285,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             private Model HandleDeletionTrigger(
-                Model model, CompletionFilterReason filterReason, List<FilterResult> filterResults)
+                Model model, CompletionFilterReason filterReason, List<FilterResult> filterResults, string filterText)
             {
                 if (filterReason == CompletionFilterReason.Insertion &&
                     !filterResults.Any(r => r.MatchedFilterText))
@@ -304,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 foreach (var currentFilterResult in filterResults.Where(r => r.MatchedFilterText))
                 {
                     if (bestFilterResult == null ||
-                        ItemManager.IsBetterDeletionMatch(currentFilterResult, bestFilterResult.Value))
+                        ItemManager.IsBetterDeletionMatch(currentFilterResult, bestFilterResult.Value, filterText))
                     {
                         // We had no best result yet, so this is now our best result.
                         bestFilterResult = currentFilterResult;

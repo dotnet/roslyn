@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -62,9 +63,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 MarkupTestFile.GetSpan(wordMarkup, word, wordMatchSpan)
 
                 Dim item = CompletionItem.Create(word)
-                Assert.True(helper.MatchesPattern(item.FilterText, pattern, culture), $"Expected item {word} does not match {pattern}")
-
-                Dim highlightedSpans = helper.GetHighlightedSpans(item.FilterText, pattern, culture)
+                Dim highlightedSpans = ImmutableArray(Of TextSpan).Empty
+                Assert.True(helper.MatchesPattern(item.FilterText, pattern, culture, includeMatchSpans:=True, highlightedSpans), $"Expected item {word} does not match {pattern}")
                 Assert.NotEmpty(highlightedSpans)
                 Assert.Equal(1, highlightedSpans.Length)
                 Assert.Equal(wordMatchSpan, highlightedSpans(0))
@@ -77,9 +77,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim helper = New CompletionHelper(isCaseSensitive:=True)
             For Each word In wordsToNotMatch
                 Dim item = CompletionItem.Create(word)
-                Assert.False(helper.MatchesPattern(item.FilterText, pattern, culture), $"Unexpected item {word} matches {pattern}")
-
-                Dim highlightedSpans = helper.GetHighlightedSpans(item.FilterText, pattern, culture)
+                Dim highlightedSpans = ImmutableArray(Of TextSpan).Empty
+                Assert.False(helper.MatchesPattern(item.FilterText, pattern, culture, includeMatchSpans:=True, highlightedSpans), $"Unexpected item {word} matches {pattern}")
                 Assert.Empty(highlightedSpans)
             Next
         End Sub

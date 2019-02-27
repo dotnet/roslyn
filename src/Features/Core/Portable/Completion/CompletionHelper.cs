@@ -30,11 +30,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 .GetCompletionHelper(document);
         }
 
-        public ImmutableArray<TextSpan> GetHighlightedSpans(
-                string text, string pattern, CultureInfo culture)
+        public ImmutableArray<TextSpan> GetHighlightedSpans(string text, string pattern, CultureInfo culture)
         {
-            var match = GetMatch(text, pattern, includeMatchSpans: true, culture: culture);
-            return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
+            MatchesPattern(text, pattern, culture, includeMatchSpans: true, out var matchedSpans);
+            return matchedSpans;
         }
 
         /// <summary>
@@ -42,15 +41,14 @@ namespace Microsoft.CodeAnalysis.Completion
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
-        public bool MatchesPattern(string text, string pattern, CultureInfo culture)
-            => GetMatch(text, pattern, culture) != null;
+        public bool MatchesPattern(string text, string pattern, CultureInfo culture, bool includeMatchSpans, out ImmutableArray<TextSpan> matchedSpans)
+        {
+            var match = GetMatch(text, pattern, culture, includeMatchSpans);
+            matchedSpans = (includeMatchSpans && match != null) ? match.Value.MatchedSpans : ImmutableArray<TextSpan>.Empty;
+            return match != null;
+        }
 
-        private PatternMatch? GetMatch(string text, string pattern, CultureInfo culture)
-            => GetMatch(text, pattern, includeMatchSpans: false, culture: culture);
-
-        private PatternMatch? GetMatch(
-            string completionItemText, string pattern,
-            bool includeMatchSpans, CultureInfo culture)
+        private PatternMatch? GetMatch(string completionItemText, string pattern, CultureInfo culture, bool includeMatchSpans)
         {
             // If the item has a dot in it (i.e. for something like enum completion), then attempt
             // to match what the user wrote against the last portion of the name.  That way if they
@@ -136,8 +134,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public int CompareItems(CompletionItem item1, CompletionItem item2, string pattern, CultureInfo culture)
         {
-            var match1 = GetMatch(item1.FilterText, pattern, culture);
-            var match2 = GetMatch(item2.FilterText, pattern, culture);
+            var match1 = GetMatch(item1.FilterText, pattern, culture, includeMatchSpans: false);
+            var match2 = GetMatch(item2.FilterText, pattern, culture, includeMatchSpans: false);
 
             if (match1 != null && match2 != null)
             {

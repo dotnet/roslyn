@@ -9,13 +9,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
     {
         public readonly CompletionItem CompletionItem;
         public readonly bool MatchedFilterText;
-        public readonly string FilterText;
 
-        public FilterResult(CompletionItem completionItem, string filterText, bool matchedFilterText)
+        public FilterResult(CompletionItem completionItem, bool matchedFilterText)
         {
             CompletionItem = completionItem;
             MatchedFilterText = matchedFilterText;
-            FilterText = filterText;
         }
     }
 }
