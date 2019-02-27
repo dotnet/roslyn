@@ -4547,6 +4547,42 @@ class C
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuggestionMode(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void M()
+    {    
+        $$
+    }
+}
+                              </Document>)
+
+                state.ToggleSuggestionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.SendTypeChars("s")
+                Await state.AssertCompletionSession()
+                Assert.True(state.HasSuggestedItem())
+                Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
+
+                state.ToggleSuggestionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Assert.False(state.HasSuggestedItem())
+                ' We want to soft select if we were already in soft select mode.
+                Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
+
+                state.ToggleSuggestionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Assert.True(state.HasSuggestedItem())
+                Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestTabAfterOverride(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>

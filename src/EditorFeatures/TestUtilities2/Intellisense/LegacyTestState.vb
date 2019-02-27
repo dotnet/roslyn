@@ -90,6 +90,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendSelectAll(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
+        Public Overrides Sub ToggleSuggestionMode()
+            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of ToggleCompletionModeCommandArgs))
+            MyBase.ToggleSuggestionMode(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
+        End Sub
+
         Protected Overrides Function GetHandler(Of T As VSCommanding.ICommandHandler)() As T
             Return DirectCast(DirectCast(CompletionCommandHandler, VSCommanding.ICommandHandler), T)
         End Function
@@ -118,13 +123,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Public Overrides Function HasSuggestedItem() As Boolean
-            Return CurrentCompletionPresenterSession.SuggestionModeItem IsNot Nothing
+            ' SuggestionModeItem is always not null but is displayed only when SuggestionMode = True
+            Return CurrentCompletionPresenterSession.SuggestionMode
         End Function
 
         Public Overrides Function IsSoftSelected() As Boolean
             Return CurrentCompletionPresenterSession.IsSoftSelected
         End Function
-
 
         Public Overrides Sub SendCommitUniqueCompletionListItem()
             Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of CommitUniqueCompletionListItemCommandArgs))

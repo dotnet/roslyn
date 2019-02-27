@@ -62,6 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 hasSuggestedItemOptions = false;
             }
 
+            hasSuggestedItemOptions |= data.DisplaySuggestionItem;
+
             var filterText = session.ApplicableToSpan.GetText(data.Snapshot);
             var reason = data.Trigger.Reason;
 
