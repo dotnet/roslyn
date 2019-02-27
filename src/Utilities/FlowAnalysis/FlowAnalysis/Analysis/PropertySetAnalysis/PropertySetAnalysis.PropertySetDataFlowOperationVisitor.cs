@@ -117,17 +117,17 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     abstractValue = PropertySetAbstractValue.GetInstance(constructorMapper.PropertyAbstractValues);
                 }
-                else if (constructorMapper.MapFromNullAbstractValue != null)
+                else if (constructorMapper.MapFromPointsToAbstractValue != null)
                 {
-                    ArrayBuilder<NullAbstractValue> builder = ArrayBuilder<NullAbstractValue>.GetInstance();
+                    ArrayBuilder<PointsToAbstractValue> builder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
                     try
                     {
                         foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
-                            builder.Add(this.GetNullAbstractValue(argumentOperation));
+                            builder.Add(this.GetPointsToAbstractValue(argumentOperation));
                         }
 
-                        abstractValue = constructorMapper.MapFromNullAbstractValue(operation.Constructor, builder);
+                        abstractValue = constructorMapper.MapFromPointsToAbstractValue(operation.Constructor, builder);
                     }
                     finally
                     {
@@ -137,21 +137,21 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 else if (constructorMapper.MapFromValueContentAbstractValue != null)
                 {
                     Debug.Assert(this.DataFlowAnalysisContext.ValueContentAnalysisResultOpt != null);
-                    ArrayBuilder<NullAbstractValue> nullBuilder = ArrayBuilder<NullAbstractValue>.GetInstance();
+                    ArrayBuilder<PointsToAbstractValue> pointsToBuilder = ArrayBuilder<PointsToAbstractValue>.GetInstance();
                     ArrayBuilder<ValueContentAbstractValue> valueContentBuilder = ArrayBuilder<ValueContentAbstractValue>.GetInstance();
                     try
                     {
                         foreach (IArgumentOperation argumentOperation in operation.Arguments)
                         {
-                            nullBuilder.Add(this.GetNullAbstractValue(argumentOperation));
+                            pointsToBuilder.Add(this.GetPointsToAbstractValue(argumentOperation));
                             valueContentBuilder.Add(this.GetValueContentAbstractValue(argumentOperation));
                         }
 
-                        abstractValue = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, valueContentBuilder, nullBuilder);
+                        abstractValue = constructorMapper.MapFromValueContentAbstractValue(operation.Constructor, valueContentBuilder, pointsToBuilder);
                     }
                     finally
                     {
-                        nullBuilder.Free();
+                        pointsToBuilder.Free();
                         valueContentBuilder.Free();
                     }
                 }
@@ -178,10 +178,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     PropertySetAbstractValueKind propertySetAbstractValueKind;
 
-                    if (propertyMapper.MapFromNullAbstractValue != null)
+                    if (propertyMapper.MapFromPointsToAbstractValue != null)
                     {
-                        propertySetAbstractValueKind = propertyMapper.MapFromNullAbstractValue(
-                            this.GetNullAbstractValue(operation.Value));
+                        propertySetAbstractValueKind = propertyMapper.MapFromPointsToAbstractValue(
+                            this.GetPointsToAbstractValue(operation.Value));
                     }
                     else if (propertyMapper.MapFromValueContentAbstractValue != null)
                     {
