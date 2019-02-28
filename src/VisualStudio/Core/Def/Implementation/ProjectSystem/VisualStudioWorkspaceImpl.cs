@@ -1089,8 +1089,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void ApplyDocumentInfoChanged(DocumentId id, DocumentInfo updatedInfo)
         {
-            // TODO: Do we need an undo transaction here?
-
             var document = CurrentSolution.GetDocument(id);
             if (document.Name != updatedInfo.Name)
             {
@@ -1101,12 +1099,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectItemForDocument.Save();
                 projectItemForDocument.Name = updatedInfo.Name;
             }
+            else
+            {
+                throw new InvalidOperationException("Unexpected kind of DocumentInfo change.");
+            }
 
-            // TODO: There are other kinds of DocumentInfo changes. Should we support them?
-
-            // TODO: Every place that throws on an unexpected ApplyChangesKind 
-            // will trigger when we issue the following event:
-            // base.ApplyDocumentInfoChanged(id, info);
+            // Visual Studio will perform the file rename, which will cause the workspace's
+            // current solution to update and will fire the necessary workspace changed events.
         }
 
         private string GetPreferredExtension(DocumentId documentId, SourceCodeKind sourceCodeKind)
