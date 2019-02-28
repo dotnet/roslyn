@@ -74229,8 +74229,14 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31502: Recognize Nullable<T> constructors.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8629: Nullable value type may be null.
+                //         _ = x.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(6, 13),
+                // (10,13): warning CS8629: Nullable value type may be null.
+                //         _ = z.Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "z").WithLocation(10, 13)
+                );
         }
 
         [Fact]

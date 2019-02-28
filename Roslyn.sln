@@ -280,6 +280,7 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.Setup", "src\VisualStudio\IntegrationTest\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{600AF682-E097-407B-AD85-EE3CED37E680} = {600AF682-E097-407B-AD85-EE3CED37E680}
+		{A486D7DE-F614-409D-BB41-0FFDF582E35C} = {A486D7DE-F614-409D-BB41-0FFDF582E35C}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.IntegrationTests", "src\VisualStudio\IntegrationTest\IntegrationTests\Microsoft.VisualStudio.LanguageServices.IntegrationTests.csproj", "{E5A55C16-A5B9-4874-9043-A5266DC02F58}"
