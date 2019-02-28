@@ -16,10 +16,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
     [Guid(Guids.CSharpOptionPageCodeStyleIdString)]
     internal class CodeStylePage : AbstractOptionPage
     {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
             return new GridOptionPreviewControl(
                 serviceProvider,
+                optionStore,
                 (o, s) => new StyleViewModel(o, s),
                 GetEditorConfigOptions(),
                 LanguageNames.CSharp);
