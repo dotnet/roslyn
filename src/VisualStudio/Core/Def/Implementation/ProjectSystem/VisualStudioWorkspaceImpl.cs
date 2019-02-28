@@ -138,6 +138,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _openFileTrackerOpt?.QueueCheckForFilesBeingOpen(newFileNames);
         }
 
+        public void ProcessQueuedWorkOnUIThread()
+        {
+            _openFileTrackerOpt?.ProcessQueuedWorkOnUIThread();
+        }
+
         internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectSystemName)
         {
             lock (_gate)
