@@ -377,7 +377,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// <summary>
             /// Queues a new task to check for files being open for these file names.
             /// </summary>
-            public void CheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
+            public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
             {
                 _foregroundAffinitization.ThisCanBeCalledOnAnyThread();
 
@@ -419,18 +419,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (shouldStartTask)
                 {
-                    var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(CheckForFilesBeingOpen));
+                    var asyncToken = _asyncOperationListener.BeginAsyncOperation(nameof(QueueCheckForFilesBeingOpen));
 
                     Task.Run(async () =>
                     {
                         await _foregroundAffinitization.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                        CheckForFilesBeingOpenOnUIThread();
+                        ProcessQueuedWorkOnUIThread();
                     }).CompletesAsyncOperation(asyncToken);
                 }
             }
 
-            private void CheckForFilesBeingOpenOnUIThread()
+            private void ProcessQueuedWorkOnUIThread()
             {
                 _foregroundAffinitization.AssertIsForeground();
 
