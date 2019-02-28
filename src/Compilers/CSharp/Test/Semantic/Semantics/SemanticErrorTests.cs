@@ -1474,9 +1474,9 @@ class D
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,21): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                // (6,29): error CS0029: Cannot implicitly convert type 'bool' to 'int'
                 //         int[] arr = new int[m];    // Invalid
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new int[m]").WithArguments("bool", "int"));
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "m").WithArguments("bool", "int").WithLocation(6, 29));
         }
 
         [Fact]
@@ -8982,8 +8982,9 @@ enum Number
 }
 ";
             CreateCompilation(text).VerifyDiagnostics(
-                // (6,20): error CS0266: Cannot implicitly convert type 'Number' to 'int'. An explicit conversion exists (are you missing a cast?)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[Number.One][]").WithArguments("Number", "int"));
+                // (6,28): error CS0266: Cannot implicitly convert type 'Number' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         var cube = new int[Number.One][];
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "Number.One").WithArguments("Number", "int").WithLocation(6, 28));
         }
 
         [WorkItem(541718, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541718")]
@@ -9007,9 +9008,16 @@ class C1
 }
 ";
             CreateCompilation(text).
-                VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[x]").WithArguments("double", "int"),
-                                  Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[y]").WithArguments("float", "int"),
-                                  Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new int[z]").WithArguments("decimal", "int"));
+                VerifyDiagnostics(                
+                    // (7,30): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         int[] arr4 = new int[x];// Invalid
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("double", "int").WithLocation(7, 30),
+                    // (10,30): error CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         int[] arr5 = new int[y];// Invalid
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "y").WithArguments("float", "int").WithLocation(10, 30),
+                    // (13,30): error CS0266: Cannot implicitly convert type 'decimal' to 'int'. An explicit conversion exists (are you missing a cast?)
+                    //         int[] arr6 = new int[z];// Invalid
+                    Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "z").WithArguments("decimal", "int").WithLocation(13, 30));
         }
 
         [Fact]

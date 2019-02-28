@@ -1086,21 +1086,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var invalidDimensions = ArrayBuilder<BoundExpression>.GetInstance();
 
-                typeSyntax.VisitTypeSyntaxes(type =>
+                typeSyntax.VisitRankSpecifiers((rankSpecifier, args) =>
                 {
-                    if (type is ArrayTypeSyntax arrayTypeSyntax)
+                    foreach (var expressionSyntax in rankSpecifier.Sizes)
                     {
-                        foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
-                        foreach (var expressionSyntax in rankSpecifier.Sizes)
+                        var size = args.binder.BindArrayDimension(expressionSyntax, args.diagnostics);
+                        if (size != null)
                         {
-                            var size = BindArrayDimension(expressionSyntax, typeSyntax, diagnostics);
-                            if (size != null)
-                            {
-                                invalidDimensions.Add(size);
-                            }
+                            args.invalidDimensions.Add(size);
                         }
                     }
-                });
+                }, (binder: this, invalidDimensions: invalidDimensions, diagnostics: diagnostics));
 
                 boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, dimensionsOpt: invalidDimensions.ToImmutableAndFree(), type: declTypeOpt.TypeSymbol);
             }

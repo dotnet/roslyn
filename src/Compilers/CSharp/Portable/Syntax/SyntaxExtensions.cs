@@ -389,41 +389,57 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Visits all the subTypeSyntaxes of a typeSyntax in depth first order, invoking an action on each one in turn, before finally invoking the action on the passed in TypeSyntax
+        /// Visits all the ArrayRankSpecifiers of a typeSyntax, invoking an action on each one in turn
         /// </summary>
         /// <param name="type"></param>
         /// <param name="action"></param>
-        internal static void VisitTypeSyntaxes(this TypeSyntax type, Action<TypeSyntax> action)
+        /// <param name="argument">The argument that is passed to the action whenever it is invoked</param>
+        internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, TArg argument)
         {
             switch (type)
             {
                 case ArrayTypeSyntax arrayTypeSyntax:
-                    arrayTypeSyntax.ElementType.VisitTypeSyntaxes(action);
+                    arrayTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
+                    foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
+                    {
+                        action(rankSpecifier, argument);
+                    }
                     break;
                 case NullableTypeSyntax nullableTypeSyntax:
-                    nullableTypeSyntax.ElementType.VisitTypeSyntaxes(action);
+                    nullableTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
                     break;
                 case PointerTypeSyntax pointerTypeSyntax:
-                    pointerTypeSyntax.ElementType.VisitTypeSyntaxes(action);
+                    pointerTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
                     break;
                 case TupleTypeSyntax tupleTypeSyntax:
                     foreach (var element in tupleTypeSyntax.Elements)
                     {
-                        element.Type.VisitTypeSyntaxes(action);
+                        element.Type.VisitRankSpecifiers(action, argument);
                     }
                     break;
                 case RefTypeSyntax refTypeSyntax:
-                    refTypeSyntax.Type.VisitTypeSyntaxes(action);
+                    refTypeSyntax.Type.VisitRankSpecifiers(action, argument);
                     break;
                 case GenericNameSyntax genericNameSyntax:
                     foreach (var typeArgument in genericNameSyntax.TypeArgumentList.Arguments)
                     {
-                        typeArgument.VisitTypeSyntaxes(action);
+                        typeArgument.VisitRankSpecifiers(action, argument);
                     }
                     break;
+                case QualifiedNameSyntax qualifiedNameSyntax:
+                    qualifiedNameSyntax.Right.VisitRankSpecifiers(action, argument);
+                    break;
+                case IdentifierNameSyntax _:
+                    break;
+                case OmittedTypeArgumentSyntax _:
+                    break;
+                case PredefinedTypeSyntax _:
+                    break;
+                case AliasQualifiedNameSyntax _:
+                    break;
+                default:
+                    throw ExceptionUtilities.Unreachable;
             }
-
-            action(type);
         }
     }
 }

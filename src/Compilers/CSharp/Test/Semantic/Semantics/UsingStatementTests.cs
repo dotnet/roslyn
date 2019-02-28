@@ -1323,6 +1323,7 @@ class C
 
             var typeInfo = model.GetSymbolInfo(usingStatement.Declaration.Type);
 
+            // the type info uses the type inferred for the first declared local
             Assert.Equal(((LocalSymbol)model.GetDeclaredSymbol(usingStatement.Declaration.Variables.First())).Type.TypeSymbol, typeInfo.Symbol);
         }
 

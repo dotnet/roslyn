@@ -2323,6 +2323,7 @@ class C
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var typeInfo = model.GetSymbolInfo(expr);
+            // the type info uses the type inferred for the first declared local
             Assert.Equal("System.IO.StreamWriter", typeInfo.Symbol.ToTestDisplayString());
         }
 

@@ -13873,226 +13873,105 @@ public class X
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
-            compilation.VerifyDiagnostics(
-                // (10,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x1, x1] _1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x1, x1]").WithArguments("bool", "int").WithLocation(10, 9),
-                // (10,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x1, x1] _1;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x1, x1]").WithArguments("bool", "int").WithLocation(10, 9),
+            int[] exclude = new int[] { (int)ErrorCode.ERR_NoImplicitConv, (int)ErrorCode.WRN_UnreferencedVar };
+
+            compilation.GetDiagnostics().Where(d => !exclude.Contains(d.Code)).Verify(
                 // (10,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[true is var x1, x1] _1;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x1, x1]").WithLocation(10, 12),
-                // (10,33): warning CS0168: The variable '_1' is declared but never used
-                //         int[true is var x1, x1] _1;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_1").WithArguments("_1").WithLocation(10, 33),
-                // (12,13): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //             int[true is var x1, x1] _2;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x1, x1]").WithArguments("bool", "int").WithLocation(12, 13),
                 // (12,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //             int[true is var x1, x1] _2;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x1, x1]").WithLocation(12, 16),
                 // (12,29): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int[true is var x1, x1] _2;
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x1").WithArguments("x1").WithLocation(12, 29),
-                // (12,37): warning CS0168: The variable '_2' is declared but never used
-                //             int[true is var x1, x1] _2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_2").WithArguments("_2").WithLocation(12, 37),
-                // (14,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x1, x1] _3;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x1, x1]").WithArguments("bool", "int").WithLocation(14, 9),
                 // (14,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[true is var x1, x1] _3;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x1, x1]").WithLocation(14, 12),
                 // (14,25): error CS0128: A local variable or function named 'x1' is already defined in this scope
                 //         int[true is var x1, x1] _3;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(14, 25),
-                // (14,33): warning CS0168: The variable '_3' is declared but never used
-                //         int[true is var x1, x1] _3;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_3").WithArguments("_3").WithLocation(14, 33),
-                // (19,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[x2, true is var x2] _4;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[x2, true is var x2]").WithArguments("bool", "int").WithLocation(19, 9),
                 // (19,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[x2, true is var x2] _4;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[x2, true is var x2]").WithLocation(19, 12),
                 // (19,13): error CS0841: Cannot use local variable 'x2' before it is declared
                 //         int[x2, true is var x2] _4;
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x2").WithArguments("x2").WithLocation(19, 13),
-                // (19,33): warning CS0168: The variable '_4' is declared but never used
-                //         int[x2, true is var x2] _4;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_4").WithArguments("_4").WithLocation(19, 33),
-                // (24,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x3, x3] _5;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x3, x3]").WithArguments("bool", "int").WithLocation(24, 9),
                 // (24,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[true is var x3, x3] _5;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x3, x3]").WithLocation(24, 12),
                 // (24,25): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //         int[true is var x3, x3] _5;
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(24, 25),
-                // (24,33): warning CS0168: The variable '_5' is declared but never used
-                //         int[true is var x3, x3] _5;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_5").WithArguments("_5").WithLocation(24, 33),
+                // (29,13): warning CS0219: The variable 'x4' is assigned but its value is never used
+                //         var x4 = 11;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x4").WithArguments("x4").WithLocation(29, 13),
                 // (30,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[x4] _6;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[x4]").WithLocation(30, 12),
-                // (30,17): warning CS0168: The variable '_6' is declared but never used
-                //         int[x4] _6;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_6").WithArguments("_6").WithLocation(30, 17),
                 // (31,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[true is var x4, x4] _7;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x4, x4]").WithLocation(31, 12),
                 // (31,25): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //         int[true is var x4, x4] _7;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(31, 25),
-                // (31,33): warning CS0168: The variable '_7' is declared but never used
-                //         int[true is var x4, x4] _7;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_7").WithArguments("_7").WithLocation(31, 33),
-                // (36,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x5, x5] _8;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x5, x5]").WithArguments("bool", "int").WithLocation(36, 9),
-                // (36,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x5, x5] _8;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x5, x5]").WithArguments("bool", "int").WithLocation(36, 9),
                 // (36,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[true is var x5, x5] _8;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x5, x5]").WithLocation(36, 12),
-                // (36,33): warning CS0168: The variable '_8' is declared but never used
-                //         int[true is var x5, x5] _8;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_8").WithArguments("_8").WithLocation(36, 33),
                 // (37,13): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //         var x5 = 11;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(37, 13),
                 // (37,13): warning CS0219: The variable 'x5' is assigned but its value is never used
                 //         var x5 = 11;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(37, 13),
-                // (38,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[x5] _9;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[x5]").WithArguments("bool", "int").WithLocation(38, 9),
                 // (38,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[x5] _9;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[x5]").WithLocation(38, 12),
-                // (38,17): warning CS0168: The variable '_9' is declared but never used
-                //         int[x5] _9;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_9").WithArguments("_9").WithLocation(38, 17),
-                // (43,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x6, x6, false is var x6, x6] _10;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x6, x6, false is var x6, x6]").WithArguments("bool", "int").WithLocation(43, 9),
-                // (43,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x6, x6, false is var x6, x6] _10;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x6, x6, false is var x6, x6]").WithArguments("bool", "int").WithLocation(43, 9),
-                // (43,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x6, x6, false is var x6, x6] _10;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x6, x6, false is var x6, x6]").WithArguments("bool", "int").WithLocation(43, 9),
                 // (43,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[true is var x6, x6, false is var x6, x6] _10;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x6, x6, false is var x6, x6]").WithLocation(43, 12),
                 // (43,46): error CS0128: A local variable or function named 'x6' is already defined in this scope
                 //         int[true is var x6, x6, false is var x6, x6] _10;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x6").WithArguments("x6").WithLocation(43, 46),
-                // (43,54): warning CS0168: The variable '_10' is declared but never used
-                //         int[true is var x6, x6, false is var x6, x6] _10;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_10").WithArguments("_10").WithLocation(43, 54),
                 // (49,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //             int[true is var x7, x7] _11;
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int[true is var x7, x7] _11;").WithLocation(49, 13),
-                // (49,13): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //             int[true is var x7, x7] _11;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x7, x7]").WithArguments("bool", "int").WithLocation(49, 13),
-                // (49,13): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //             int[true is var x7, x7] _11;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x7, x7]").WithArguments("bool", "int").WithLocation(49, 13),
                 // (49,16): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //             int[true is var x7, x7] _11;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x7, x7]").WithLocation(49, 16),
-                // (49,37): warning CS0168: The variable '_11' is declared but never used
-                //             int[true is var x7, x7] _11;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_11").WithArguments("_11").WithLocation(49, 37),
                 // (57,25): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //                         int[true is var x8, x8] _12;
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int[true is var x8, x8] _12;").WithLocation(57, 25),
-                // (57,25): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //                         int[true is var x8, x8] _12;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x8, x8]").WithArguments("bool", "int").WithLocation(57, 25),
-                // (57,25): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //                         int[true is var x8, x8] _12;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x8, x8]").WithArguments("bool", "int").WithLocation(57, 25),
                 // (57,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //                         int[true is var x8, x8] _12;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x8, x8]").WithLocation(57, 28),
-                // (57,49): warning CS0168: The variable '_12' is declared but never used
-                //                         int[true is var x8, x8] _12;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_12").WithArguments("_12").WithLocation(57, 49),
                 // (63,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[x9] _13;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[x9]").WithLocation(63, 12),
                 // (63,13): error CS0841: Cannot use local variable 'x9' before it is declared
                 //         int[x9] _13;
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x9").WithArguments("x9").WithLocation(63, 13),
-                // (63,17): warning CS0168: The variable '_13' is declared but never used
-                //         int[x9] _13;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_13").WithArguments("_13").WithLocation(63, 17),
-                // (64,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x9, x9] _13;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x9, x9]").WithArguments("bool", "int").WithLocation(64, 9),
-                // (64,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x9, x9] _13;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x9, x9]").WithArguments("bool", "int").WithLocation(64, 9),
                 // (64,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[true is var x9, x9] _13;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x9, x9]").WithLocation(64, 12),
                 // (64,33): error CS0128: A local variable or function named '_13' is already defined in this scope
                 //         int[true is var x9, x9] _13;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "_13").WithArguments("_13").WithLocation(64, 33),
-                // (64,33): warning CS0168: The variable '_13' is declared but never used
-                //         int[true is var x9, x9] _13;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_13").WithArguments("_13").WithLocation(64, 33),
-                // (69,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x10, x10] _14;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x10, x10]").WithArguments("bool", "int").WithLocation(69, 9),
-                // (69,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x10, x10] _14;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x10, x10]").WithArguments("bool", "int").WithLocation(69, 9),
                 // (69,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[true is var x10, x10] _14;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x10, x10]").WithLocation(69, 12),
-                // (69,35): warning CS0168: The variable '_14' is declared but never used
-                //         int[true is var x10, x10] _14;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_14").WithArguments("_14").WithLocation(69, 35),
-                // (70,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[x10] _15;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[x10]").WithArguments("bool", "int").WithLocation(70, 9),
                 // (70,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[x10] _15;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[x10]").WithLocation(70, 12),
-                // (70,18): warning CS0168: The variable '_15' is declared but never used
-                //         int[x10] _15;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_15").WithArguments("_15").WithLocation(70, 18),
-                // (75,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x11, x11] x11;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x11, x11]").WithArguments("bool", "int").WithLocation(75, 9),
-                // (75,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[true is var x11, x11] x11;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[true is var x11, x11]").WithArguments("bool", "int").WithLocation(75, 9),
                 // (75,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[true is var x11, x11] x11;
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[true is var x11, x11]").WithLocation(75, 12),
                 // (75,35): error CS0128: A local variable or function named 'x11' is already defined in this scope
                 //         int[true is var x11, x11] x11;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x11").WithArguments("x11").WithLocation(75, 35),
-                // (75,35): warning CS0168: The variable 'x11' is declared but never used
-                //         int[true is var x11, x11] x11;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x11").WithArguments("x11").WithLocation(75, 35),
-                // (76,9): error CS0029: Cannot implicitly convert type 'bool' to 'int'
-                //         int[x11] _16;
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "int[x11]").WithArguments("bool", "int").WithLocation(76, 9),
                 // (76,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[x11] _16;
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[x11]").WithLocation(76, 12),
-                // (76,18): warning CS0168: The variable '_16' is declared but never used
-                //         int[x11] _16;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_16").WithArguments("_16").WithLocation(76, 18)
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[x11]").WithLocation(76, 12)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -14159,7 +14038,7 @@ public class X
             var x11Decl2 = GetVariableDeclarations(tree, "x11").Single();
             Assert.Equal(2, x11Ref.Length);
             VerifyModelForDeclarationOrVarSimplePattern(model, x11Decl, x11Ref[0], x11Ref[1]);
-            VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(model, x11Decl2);
+            VerifyModelForDuplicateVariableDeclarationInSameScope(model, x11Decl2);
         }
     }
 }

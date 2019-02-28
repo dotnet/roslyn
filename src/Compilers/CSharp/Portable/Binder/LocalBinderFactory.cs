@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// The LocalBinderFactory is used to build up the map of all Binders within a method body, and the associated
     /// CSharpSyntaxNode. To do so it traverses all the statements, handling blocks and other
-    /// statements that create scopes. For efficiency reasons, it does not traverse into
+    /// statements that create scopes. For efficiency reasons, it does not traverse into all
     /// expressions. This means that blocks within lambdas and queries are not created. 
     /// Blocks within lambdas are bound by their own LocalBinderFactory when they are 
     /// analyzed.
@@ -687,25 +687,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
-            var invalidDimensions = ArrayBuilder<ExpressionSyntax>.GetInstance();
-            node.Declaration.Type.VisitTypeSyntaxes(type =>
+            node.Declaration.Type.VisitRankSpecifiers((rankSpecifier, localBinderFactory) =>
             {
-                if (type is ArrayTypeSyntax arrayType)
+                foreach (var size in rankSpecifier.Sizes)
                 {
-                    foreach (var rankSpecifier in arrayType.RankSpecifiers)
-                    foreach (var size in rankSpecifier.Sizes)
+                    if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
                     {
-                        if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
-                        {
-                            invalidDimensions.AddRange(rankSpecifier.Sizes);
-                        }
+                        localBinderFactory.Visit(size);
                     }
                 }
-            });
-            foreach (var dimension in invalidDimensions)
-            {
-                Visit(dimension);
-            }
+            }, this);
+
             foreach (VariableDeclaratorSyntax decl in node.Declaration.Variables)
             {
                 Visit(decl);

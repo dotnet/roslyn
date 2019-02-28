@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        protected static void VerifyModelForDeclarationOrVarPatternDuplicateInSameScope(SemanticModel model, VariableDeclaratorSyntax declarator)
+        protected static void VerifyModelForDuplicateVariableDeclarationInSameScope(SemanticModel model, VariableDeclaratorSyntax declarator)
         {
             var symbol = model.GetDeclaredSymbol(declarator);
             Assert.Equal(declarator.Identifier.ValueText, symbol.Name);

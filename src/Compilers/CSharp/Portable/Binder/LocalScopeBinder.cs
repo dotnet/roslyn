@@ -205,20 +205,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Binder localDeclarationBinder = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
                             var decl = (LocalDeclarationStatementSyntax)innerStatement;
 
-                            decl.Declaration.Type.VisitTypeSyntaxes(type =>
+                            decl.Declaration.Type.VisitRankSpecifiers((rankSpecifier, args) =>
                             {
-                                if (type is ArrayTypeSyntax arrayTypeSyntax)
+                                foreach (var expression in rankSpecifier.Sizes)
                                 {
-                                    foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
-                                    foreach (var expression in rankSpecifier.Sizes)
+                                    if (expression.Kind() != SyntaxKind.OmittedArraySizeExpression)
                                     {
-                                        if (expression.Kind() != SyntaxKind.OmittedArraySizeExpression)
-                                        {
-                                            ExpressionVariableFinder.FindExpressionVariables(this, locals, expression, enclosingBinder.GetBinder(expression) ?? enclosingBinder);
-                                        }
+                                        ExpressionVariableFinder.FindExpressionVariables(args.localScopeBinder, args.locals, expression, args.localDeclarationBinder);
                                     }
                                 }
-                            });
+                            }, (localScopeBinder: this, locals: locals, localDeclarationBinder: localDeclarationBinder));
 
                             LocalDeclarationKind kind;
                             if (decl.IsConst)

@@ -33118,9 +33118,18 @@ public class Cls
                 // (8,36): error CS0128: A local variable or function named 'x2' is already defined in this scope
                 //         int[Test1(out int x2), x2] x2;
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(8, 36),
+                // (6,13): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         int x1 = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(6, 13),
+                // (7,27): warning CS0168: The variable 'x1' is declared but never used
+                //         int[Test1(out int x1), x1] _1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x1").WithArguments("x1").WithLocation(7, 27),
                 // (7,36): warning CS0168: The variable '_1' is declared but never used
                 //         int[Test1(out int x1), x1] _1;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "_1").WithArguments("_1").WithLocation(7, 36),
+                // (8,27): warning CS0168: The variable 'x2' is declared but never used
+                //         int[Test1(out int x2), x2] x2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x2").WithArguments("x2").WithLocation(8, 27),
                 // (8,36): warning CS0168: The variable 'x2' is declared but never used
                 //         int[Test1(out int x2), x2] x2;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x2").WithArguments("x2").WithLocation(8, 36)
@@ -33136,7 +33145,7 @@ public class Cls
 
             var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
             var x2Ref = GetReferences(tree, "x2").Single();
-            VerifyModelForOutVar(model, x2Decl, x2Ref);
+            VerifyModelForOutVarInNotExecutableCode(model, x2Decl, x2Ref);
         }
 
         [Fact]

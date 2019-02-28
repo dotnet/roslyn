@@ -2815,7 +2815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayRankSpecifierSyntax firstRankSpecifier = node.Type.RankSpecifiers[0];
             foreach (var arg in firstRankSpecifier.Sizes)
             {
-                var size = BindArrayDimension(arg, node, diagnostics);
+                var size = BindArrayDimension(arg, diagnostics);
                 if (size != null)
                 {
                     sizes.Add(size);
@@ -2850,7 +2850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : BindArrayCreationWithInitializer(diagnostics, node, node.Initializer, type, arraySizes);
         }
 
-        private BoundExpression BindArrayDimension(ExpressionSyntax dimension, SyntaxNode node, DiagnosticBag diagnostics)
+        private BoundExpression BindArrayDimension(ExpressionSyntax dimension, DiagnosticBag diagnostics)
         {
             // These make the parse tree nicer, but they shouldn't actually appear in the bound tree.
             if (dimension.Kind() != SyntaxKind.OmittedArraySizeExpression)
@@ -2858,7 +2858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var size = BindValue(dimension, diagnostics, BindValueKind.RValue);
                 if (!size.HasAnyErrors)
                 {
-                    size = ConvertToArrayIndex(size, node, diagnostics, allowIndexAndRange: false);
+                    size = ConvertToArrayIndex(size, dimension, diagnostics, allowIndexAndRange: false);
                     if (IsNegativeConstantForArraySize(size))
                     {
                         Error(diagnostics, ErrorCode.ERR_NegativeArraySize, dimension);
