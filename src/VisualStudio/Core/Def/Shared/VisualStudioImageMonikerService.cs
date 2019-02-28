@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Shared
         }
 
         private ImageCompositionLayer CreateLayer(
-            ImageMoniker imageMoniker, 
+            ImageMoniker imageMoniker,
             int virtualWidth = 16,
             int virtualYOffset = 0,
             int virtualXOffset = 0)

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             TExpressionSyntax,
             TStatementSyntax,
             TObjectCreationExpressionSyntax,
-            TVariableDeclaratorSyntax, 
+            TVariableDeclaratorSyntax,
             TExpressionStatementSyntax>
         where TExpressionSyntax : SyntaxNode
         where TStatementSyntax : SyntaxNode
@@ -127,9 +127,9 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
             }
 
             var addMethods = _semanticModel.LookupSymbols(
-                _objectCreationExpression.SpanStart, 
-                container: type, 
-                name: WellKnownMemberNames.CollectionInitializerAddMethodName, 
+                _objectCreationExpression.SpanStart,
+                container: type,
+                name: WellKnownMemberNames.CollectionInitializerAddMethodName,
                 includeReducedExtensionMethods: true);
 
             return addMethods.Any(m => m is IMethodSymbol methodSymbol && methodSymbol.Parameters.Any());

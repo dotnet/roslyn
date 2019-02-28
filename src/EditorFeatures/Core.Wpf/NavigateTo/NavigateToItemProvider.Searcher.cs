@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 var matchedSpans = result.NameMatchSpans.SelectAsArray(t => t.ToSpan());
 
-                var patternMatch = new PatternMatch(GetPatternMatchKind(result.MatchKind), 
+                var patternMatch = new PatternMatch(GetPatternMatchKind(result.MatchKind),
                     punctuationStripped: true, result.IsCaseSensitive, matchedSpans);
 
                 var navigateToItem = new NavigateToItem(

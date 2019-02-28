@@ -66,6 +66,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             if (visualStudioWorkspace.Services.GetLanguageServices(visualStudioProject.Language).GetService<ICommandLineParserService>() != null)
             {
                 _visualStudioProjectOptionsProcessor = new VisualStudioProjectOptionsProcessor(_visualStudioProject, visualStudioWorkspace.Services);
+                _visualStudioWorkspace.AddProjectRuleSetFileToInternalMaps(
+                    visualStudioProject,
+                    () => _visualStudioProjectOptionsProcessor.EffectiveRuleSetFilePath);
             }
 
             // We don't have a SVsShellDebugger service in unit tests, in that case we can't implement ENC. We're OK
@@ -133,9 +136,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             }
         }
 
+        public string DefaultNamespace
+        {
+            get => _visualStudioProject.DefaultNamespace;
+            private set => _visualStudioProject.DefaultNamespace = value;
+        }
+
         public void SetProperty(string name, string value)
         {
-            // TODO
+            if (name == AdditionalPropertyNames.RootNamespace)
+            {
+                // Right now VB doesn't have the concept of "default namespace". But we conjure one in workspace 
+                // by assigning the value of the project's root namespace to it. So various feature can choose to 
+                // use it for their own purpose.
+                // In the future, we might consider officially exposing "default namespace" for VB project 
+                // (e.g. through a <defaultnamespace> msbuild property)
+                DefaultNamespace = value;
+            }
         }
 
         public void AddMetadataReference(string referencePath, MetadataReferenceProperties properties)
@@ -171,6 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         public void RemoveSourceFile(string filePath)
         {
             _visualStudioProject.RemoveSourceFile(filePath);
+            _projectCodeModel.OnSourceFileRemoved(filePath);
         }
 
         public void AddAdditionalFile(string filePath, bool isInCurrentContext = true)
@@ -227,9 +245,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             scope.Dispose();
         }
 
+        public void ReorderSourceFiles(IEnumerable<string> filePaths)
+        {
+            _visualStudioProject.ReorderSourceFiles(filePaths.ToImmutableArrayOrEmpty());
+        }
+
         internal VisualStudioProject GetProject_TestOnly()
         {
             return _visualStudioProject;
+        }
+
+        public void AddAnalyzerConfigFile(string filePath)
+        {
+            // TODO: implement. Right now this exists to provide a stub for the project system work to be implemented against.
+        }
+
+        public void RemoveAnalyzerConfigFile(string filePath)
+        {
+            // TODO: implement. Right now this exists to provide a stub for the project system work to be implemented against.
         }
     }
 }

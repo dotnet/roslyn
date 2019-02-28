@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
             return TestWorkspace.IsWorkspaceElement(initialMarkup)
                 ? TestWorkspace.Create(initialMarkup)
                 : TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions);
-        } 
+        }
 
         protected string ProjectRootPath
-            => PathUtilities.IsUnixLikePlatform 
-            ? @"/ProjectA/" 
+            => PathUtilities.IsUnixLikePlatform
+            ? @"/ProjectA/"
             : @"C:\ProjectA\";
 
         protected string ProjectFilePath
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                                 annotations = n.AsToken().GetAnnotations(WarningAnnotation.Kind);
                             }
 
-                            return annotations.Any(annotation => 
+                            return annotations.Any(annotation =>
                                 WarningAnnotation.GetDescription(annotation) == FeaturesResources.Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning);
                         }));
 
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.SyncNamespa
                     }
                 }
             }
-            
+
             async Task<Tuple<Solution, Solution>> TestOperationAsync(TestParameters parameters, TestWorkspace workspace)
             {
                 var (actions, _) = await GetCodeActionsAsync(workspace, parameters);

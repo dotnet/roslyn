@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 // so we're caught in the middle doing this.
                 shell.LoadPackage(Guids.FSharpPackageId, out var unused);
             }
-            
+
             return visualStudioProject;
         }
     }

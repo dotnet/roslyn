@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                                 var statement = array[i];
                                 if (!(statement is LocalDeclarationStatementSyntax localDeclarationStatement &&
                                     TryProcessLocalDeclarationStatement(localDeclarationStatement)))
-                                {                                 
+                                {
                                     // If this one is a local function declaration or has an empty initializer, stop processing.
                                     statementsCannotBeConverted = array.Skip(i).ToArray();
                                     break;

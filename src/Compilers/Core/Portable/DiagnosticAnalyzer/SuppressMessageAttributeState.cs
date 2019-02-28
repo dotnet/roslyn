@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 { "resource", TargetScope.Resource },
                 { "type", TargetScope.Type },
                 { "member", TargetScope.Member },
-                { "namespaceandchildren", TargetScope.NamespaceAndChildren }
+                { "namespaceanddescendants", TargetScope.NamespaceAndDescendants }
             };
 
         private static bool TryGetTargetScope(SuppressMessageInfo info, out TargetScope scope)
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 // In other words, only apply suppression to the immediately containing namespace declaration and not to its children or parents.
                                 return isImmediatelyContainingSymbol;
 
-                            case TargetScope.NamespaceAndChildren:
+                            case TargetScope.NamespaceAndDescendants:
                                 return true;
                         }
                     }
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return results;
                     }
 
-                case TargetScope.NamespaceAndChildren:
+                case TargetScope.NamespaceAndDescendants:
                     return ResolveTargetSymbols(compilation, target, TargetScope.Namespace);
 
                 default:
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Resource,
             Type,
             Member,
-            NamespaceAndChildren
+            NamespaceAndDescendants
         }
     }
 }

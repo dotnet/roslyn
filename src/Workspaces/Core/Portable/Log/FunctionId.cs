@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Workspace_TryGetDocumentFromInProgressSolution,
         Workspace_Solution_LinkedFileDiffMergingSession,
         Workspace_Solution_LinkedFileDiffMergingSession_LinkedFileGroup,
+        Workspace_Solution_Info,
 
         EndConstruct_DoStatement,
         EndConstruct_XmlCData,
@@ -246,6 +247,12 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TemporaryStorageServiceFactory_WriteText,
         TemporaryStorageServiceFactory_ReadStream,
         TemporaryStorageServiceFactory_WriteStream,
+
+        PullMembersUpWarning_ChangeTargetToAbstract,
+        PullMembersUpWarning_ChangeOriginToPublic,
+        PullMembersUpWarning_ChangeOriginToNonStatic,
+        PullMembersUpWarning_UserProceedToFinish,
+        PullMembersUpWarning_UserGoBack,
 
         // currently no-one uses these
         SmartTags_RefreshSession,
@@ -438,5 +445,11 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SyntaxTreeIndex_Precalculate_Create,
         SymbolTreeInfo_Create,
         SymbolTreeInfo_TryLoadOrCreate,
+        CommandHandler_GoToImplementation,
+        GraphQuery_ImplementedBy,
+        GraphQuery_Implements,
+        GraphQuery_IsCalledBy,
+        GraphQuery_IsUsedBy,
+        GraphQuery_Overrides,
     }
 }

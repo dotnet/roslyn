@@ -223,7 +223,7 @@ End Module")
 
         private static void RunCompilerOutput(TempFile file, string expectedOutput)
         {
-            if (!CoreClrShim.IsRunningOnCoreClr)
+            if (RuntimeHostInfo.IsDesktopRuntime)
             {
                 var result = ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
                 Assert.Equal(expectedOutput.Trim(), result.Output.Trim());
@@ -253,7 +253,7 @@ End Module")
         {
             var newTempDir = _tempDirectory.CreateDirectory(new string('a', 100 - _tempDirectory.Path.Length));
             await ApplyEnvironmentVariables(
-                new[] { new KeyValuePair<string, string>("TMPDIR", newTempDir.Path)},
+                new[] { new KeyValuePair<string, string>("TMPDIR", newTempDir.Path) },
                 async () =>
             {
                 using (var serverData = ServerUtil.CreateServer())

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This is the absolute "bottom" state of the data flow lattice. C# does not specify a
-        /// difference beteween unreachable states, so there can only be one. This is the state used
+        /// difference between unreachable states, so there can only be one. This is the state used
         /// for unreachable code, like statements after a "return" or "throw" statement.
         /// </summary>
         protected abstract TLocalState UnreachableState();
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// The "Join" operation is used when two separate control flow paths converge at a single
-        /// statment. This operation is used to combine the if/else paths of a conditional, or two
+        /// statement. This operation is used to combine the if/else paths of a conditional, or two
         /// "goto" statements to the same label, for example.
         /// 
         /// According to convention, Join moves "up" the lattice, so the following equations must hold:

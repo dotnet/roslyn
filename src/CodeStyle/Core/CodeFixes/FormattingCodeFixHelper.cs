@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
 #if CODE_STYLE
             var formattedRoot = Formatter.Format(root, formatterState, new[] { spanToFormat }, options, Formatter.GetDefaultFormattingRules(formatterState), cancellationToken);
 #else
-            var formattedRoot = await Formatter.FormatAsync(root, spanToFormat, formatterState, options, cancellationToken).ConfigureAwait(false);
+            var formattedRoot = Formatter.Format(root, spanToFormat, formatterState, options, cancellationToken);
 #endif
 
             return syntaxTree.WithRootAndOptions(formattedRoot, syntaxTree.Options);

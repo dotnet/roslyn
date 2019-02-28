@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -57,7 +58,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
   </Rules>
 </RuleSet>
 ";
-            
+
             using (var ruleSetFile = new DisposableFile())
             using (var environment = new TestEnvironment())
             using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
@@ -70,6 +71,29 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 project.SetOptions($"/ruleset:{ruleSetFile.Path}");
                 var ca1012DiagnosticOption = environment.Workspace.CurrentSolution.Projects.Single().CompilationOptions.SpecificDiagnosticOptions["CA1012"];
                 Assert.Equal(expected: ReportDiagnostic.Error, actual: ca1012DiagnosticOption);
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RuleSet_PathCanBeFound()
+        {
+            using (var ruleSetFile = new DisposableFile())
+            using (var environment = new TestEnvironment())
+            {
+                ProjectId projectId;
+
+                using (var project = CSharpHelpers.CreateCSharpCPSProject(environment, "Test"))
+                {
+                    project.SetOptions($"/ruleset:{ruleSetFile.Path}");
+
+                    projectId = project.Id;
+
+                    Assert.Equal(ruleSetFile.Path, environment.Workspace.TryGetRuleSetPathForProject(projectId));
+                }
+
+                // Ensure it's still not available after we disposed the project
+                Assert.Null(environment.Workspace.TryGetRuleSetPathForProject(projectId));
             }
         }
     }

@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override TypeSymbolWithAnnotations ReturnType
         {
-            get { return TypeSymbolWithAnnotations.Create(nonNullTypesContext: ContainingSymbol, _returnType); }
+            get { return TypeSymbolWithAnnotations.Create(_returnType); }
         }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             resultType = (object)submissionReturnTypeOpt == null
                 ? compilation.GetSpecialType(SpecialType.System_Object)
                 : compilation.GetTypeByReflectionType(submissionReturnTypeOpt, diagnostics);
-            returnType = taskT.Construct(nonNullTypesContext: containingType, resultType);
+            returnType = taskT.Construct(resultType);
         }
     }
 }

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                         }
 
                         return true;
-                   }
+                    }
                 }
             }
 

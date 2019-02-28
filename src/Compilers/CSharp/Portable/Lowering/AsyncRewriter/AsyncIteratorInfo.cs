@@ -15,17 +15,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Stores the current/yielded value
         internal FieldSymbol CurrentField { get; }
 
+        // Whether the state machine is in dispose mode
+        internal FieldSymbol DisposeModeField { get; }
+
         // Method to fulfill the promise with a result: `void ManualResetValueTaskSourceCore<T>.SetResult(T result)`
         internal MethodSymbol SetResultMethod { get; }
 
         // Method to fulfill the promise with an exception: `void ManualResetValueTaskSourceCore<T>.SetException(Exception error)`
         internal MethodSymbol SetExceptionMethod { get; }
 
-        public AsyncIteratorInfo(FieldSymbol promiseOfValueOrEndField, FieldSymbol currentField,
+        public AsyncIteratorInfo(FieldSymbol promiseOfValueOrEndField, FieldSymbol currentField, FieldSymbol disposeModeField,
             MethodSymbol setResultMethod, MethodSymbol setExceptionMethod)
         {
             PromiseOfValueOrEndField = promiseOfValueOrEndField;
             CurrentField = currentField;
+            DisposeModeField = disposeModeField;
             SetResultMethod = setResultMethod;
             SetExceptionMethod = setExceptionMethod;
         }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Execution
     internal interface IReferenceSerializationService : IWorkspaceService
     {
         Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken);
-        Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken);
+        Checksum CreateChecksum(AnalyzerReference reference, bool usePathFromAssembly, CancellationToken cancellationToken);
 
         void WriteTo(Encoding encoding, ObjectWriter writer, CancellationToken cancellationToken);
         void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken);

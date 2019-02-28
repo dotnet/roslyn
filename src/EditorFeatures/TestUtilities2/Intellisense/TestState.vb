@@ -1,32 +1,25 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.ComponentModel.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
+Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.BraceCompletion
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Microsoft.VisualStudio.Text.Operations
 Imports Roslyn.Utilities
 Imports CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
-Imports Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
@@ -37,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
         Friend ReadOnly FormatCommandHandler As FormatCommandHandler
+        Friend ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Friend ReadOnly CompletionCommandHandler As CompletionCommandHandler
         Friend ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
         Private ReadOnly SessionTestState As IIntelliSenseTestState
@@ -84,6 +78,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.FormatCommandHandler = If(includeFormatCommandHandler,
                 GetExportedValue(Of FormatCommandHandler)(),
                 Nothing)
+
+            Me.CompleteStatementCommandHandler = If(includeFormatCommandHandler,
+                GetExportedValues(Of VSCommanding.ICommandHandler)().OfType(Of CompleteStatementCommandHandler)().SingleOrDefault(),
+                Nothing)
         End Sub
 
         Private Shared Function CombineExcludedTypes(excludedTypes As IList(Of Type), includeFormatCommandHandler As Boolean) As IList(Of Type)
@@ -94,6 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If Not includeFormatCommandHandler Then
                 result.Add(GetType(FormatCommandHandler))
+                result.Add(GetType(CompleteStatementCommandHandler))
             End If
 
             If excludedTypes IsNot Nothing Then
@@ -453,16 +452,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
             Dim formatHandler = DirectCast(FormatCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
             Dim compHandler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+            Dim completeStatementHandler = DirectCast(CompleteStatementCommandHandler, IChainedCommandHandler(Of TypeCharCommandArgs))
+
+            If formatHandler IsNot Nothing AndAlso completeStatementHandler IsNot Nothing Then
+                Dim wrappedFinalHandler = finalHandler
+                finalHandler =
+                    Sub()
+                        completeStatementHandler.ExecuteCommand(args, wrappedFinalHandler, context)
+                    End Sub
+            End If
+
+            Dim mainHandler =
+                Sub()
+                    sigHelpHandler.ExecuteCommand(args, Sub() compHandler.ExecuteCommand(args, finalHandler, context), context)
+                End Sub
 
             If formatHandler Is Nothing Then
-                sigHelpHandler.ExecuteCommand(
-                    args, Sub() compHandler.ExecuteCommand(
-                                    args, finalHandler, context), context)
+                mainHandler()
             Else
-                formatHandler.ExecuteCommand(
-                    args, Sub() sigHelpHandler.ExecuteCommand(
-                                    args, Sub() compHandler.ExecuteCommand(
-                                                    args, finalHandler, context), context), context)
+                formatHandler.ExecuteCommand(args, mainHandler, context)
             End If
         End Sub
 

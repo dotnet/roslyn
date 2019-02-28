@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
                 }
 
                 // map spans to right locations using SpanMapper for documents such as cshtml and etc
-                return await FixUpDescriptors(solution, descriptors, cancellationToken);
+                return await FixUpDescriptors(solution, descriptors, cancellationToken).ConfigureAwait(false);
             }
         }
 

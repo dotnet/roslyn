@@ -267,12 +267,12 @@ Class Program
                s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
-        Return EqualityComparer(Of Program).Default.Equals(program1, program2)
+    Public Shared Operator =(left As Program, right As Program) As Boolean
+        Return EqualityComparer(Of Program).Default.Equals(left, right)
     End Operator
 
-    Public Shared Operator <>(program1 As Program, program2 As Program) As Boolean
-        Return Not program1 = program2
+    Public Shared Operator <>(left As Program, right As Program) As Boolean
+        Return Not left = right
     End Operator
 End Class",
 chosenSymbols:=Nothing,
@@ -289,7 +289,7 @@ Class Program
     Public s As String
     [||]
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
+    Public Shared Operator =(left As Program, right As Program) As Boolean
         Return True
     End Operator
 End Class",
@@ -305,7 +305,7 @@ Class Program
                s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
+    Public Shared Operator =(left As Program, right As Program) As Boolean
         Return True
     End Operator
 End Class",
@@ -338,12 +338,12 @@ Structure Program
         Return s = program.s
     End Function
 
-    Public Shared Operator =(program1 As Program, program2 As Program) As Boolean
-        Return program1.Equals(program2)
+    Public Shared Operator =(left As Program, right As Program) As Boolean
+        Return left.Equals(right)
     End Operator
 
-    Public Shared Operator <>(program1 As Program, program2 As Program) As Boolean
-        Return Not program1 = program2
+    Public Shared Operator <>(left As Program, right As Program) As Boolean
+        Return Not left = right
     End Operator
 End Structure",
 chosenSymbols:=Nothing,

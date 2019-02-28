@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
             var cancellationToken = context.CancellationToken;
             var document = context.Document;
 
-            var (_, _, elementName) = await TryGetArgumentInfo(document, span, cancellationToken);
+            var (_, _, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
 
             if (elementName == null)
             {
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.NameTupleElement
 
         private async Task<Document> AddNamedElementAsync(Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var (root, argument, elementName) = await TryGetArgumentInfo(document, span, cancellationToken);
+            var (root, argument, elementName) = await TryGetArgumentInfo(document, span, cancellationToken).ConfigureAwait(false);
 
             var newArgument = WithName(argument, elementName).WithTriviaFrom(argument);
             var newRoot = root.ReplaceNode(argument, newArgument);

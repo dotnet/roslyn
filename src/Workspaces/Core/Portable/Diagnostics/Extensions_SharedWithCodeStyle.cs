@@ -23,24 +23,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             switch (reportDiagnostic)
             {
-            case ReportDiagnostic.Error:
-                return DiagnosticSeverity.Error;
+                case ReportDiagnostic.Error:
+                    return DiagnosticSeverity.Error;
 
-            case ReportDiagnostic.Warn:
-                return DiagnosticSeverity.Warning;
+                case ReportDiagnostic.Warn:
+                    return DiagnosticSeverity.Warning;
 
-            case ReportDiagnostic.Info:
-                return DiagnosticSeverity.Info;
+                case ReportDiagnostic.Info:
+                    return DiagnosticSeverity.Info;
 
-            case ReportDiagnostic.Hidden:
-                return DiagnosticSeverity.Hidden;
+                case ReportDiagnostic.Hidden:
+                    return DiagnosticSeverity.Hidden;
 
-            case ReportDiagnostic.Suppress:
-            case ReportDiagnostic.Default:
-                return null;
+                case ReportDiagnostic.Suppress:
+                case ReportDiagnostic.Default:
+                    return null;
 
-            default:
-                throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);
             }
         }
 
@@ -79,20 +79,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             switch (diagnosticSeverity)
             {
-            case DiagnosticSeverity.Hidden:
-                return ReportDiagnostic.Hidden;
+                case DiagnosticSeverity.Hidden:
+                    return ReportDiagnostic.Hidden;
 
-            case DiagnosticSeverity.Info:
-                return ReportDiagnostic.Info;
+                case DiagnosticSeverity.Info:
+                    return ReportDiagnostic.Info;
 
-            case DiagnosticSeverity.Warning:
-                return ReportDiagnostic.Warn;
+                case DiagnosticSeverity.Warning:
+                    return ReportDiagnostic.Warn;
 
-            case DiagnosticSeverity.Error:
-                return ReportDiagnostic.Error;
+                case DiagnosticSeverity.Error:
+                    return ReportDiagnostic.Error;
 
-            default:
-                throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity);
             }
         }
     }

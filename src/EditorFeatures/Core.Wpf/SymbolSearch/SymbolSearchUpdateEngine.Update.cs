@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
                     // We retrieved bytes from the server, but we couldn't make a DB
-                   // out of it.  That's very bad.  Just trying again one minute later
+                    // out of it.  That's very bad.  Just trying again one minute later
                     // isn't going to help.  We need to wait until there is good data
                     // on the server for us to download.
                     var failureDelay = _service._delayService.CatastrophicFailureDelay;

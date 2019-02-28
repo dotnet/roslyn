@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                 document, originalNodes,
                 (semanticModel, defaultExpression) => defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, options, semanticModel, cancellationToken),
                 (_, currentRoot, defaultExpression) => currentRoot.ReplaceNode(
-                    defaultExpression, 
+                    defaultExpression,
                     SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression).WithTriviaFrom(defaultExpression)),
                 cancellationToken).ConfigureAwait(false);
         }

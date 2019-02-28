@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 Debug.Assert(comparison != null);
                 Debug.Assert(operand != null);
                 Debug.Assert(localStatement.IsKind(SyntaxKind.LocalDeclarationStatement));
-                Debug.Assert(enclosingBlock.IsKind(SyntaxKind.Block));
+                Debug.Assert(enclosingBlock.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection));
 
                 _semanticModel = semanticModel;
                 _comparison = comparison;
@@ -227,9 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                             return CheckStatement(statement);
                     }
 
-                    // We shouldn't normally get here but if we do, it's
-                    // either an error in the code or an unhandled case.
-                    Debug.Assert(false, "unhandled case.");
+                    // Bail out for error cases and unhandled cases.
                     break;
                 }
 

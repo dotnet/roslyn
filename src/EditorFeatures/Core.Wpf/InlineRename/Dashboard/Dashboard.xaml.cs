@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 _model.Session.Commit();
                 _textView.VisualElement.Focus();
             }
-            catch(NotSupportedException ex)
+            catch (NotSupportedException ex)
             {
                 // Session.Commit can throw if it can't commit
                 // rename operation.

@@ -13,8 +13,8 @@ namespace Roslyn.VisualStudio.IntegrationTests
     [CaptureTestName]
     public abstract class AbstractIntegrationTest : IAsyncLifetime, IDisposable
     {
-        protected readonly string ProjectName = "TestProj";
-        protected readonly string SolutionName = "TestSolution";
+        protected const string ProjectName = "TestProj";
+        protected const string SolutionName = "TestSolution";
 
         private readonly MessageFilter _messageFilter;
         private readonly VisualStudioInstanceFactory _instanceFactory;
@@ -47,6 +47,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             try
             {
                 _visualStudioContext = await _instanceFactory.GetNewOrUsedInstanceAsync(SharedIntegrationHostFixture.RequiredPackageIds).ConfigureAwait(false);
+                _visualStudioContext.Instance.ActivateMainWindow();
             }
             catch
             {

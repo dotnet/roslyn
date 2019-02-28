@@ -86,6 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         public static readonly CodeStyleOption<ExpressionBodyPreference> WhenOnSingleLineWithSilentEnforcement =
             new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption.Silent);
 
+        public static readonly CodeStyleOption<PreferBracesPreference> UseBracesWithSilentEnforcement =
+            new CodeStyleOption<PreferBracesPreference>(PreferBracesPreference.Always, NotificationOption.Silent);
+
         public static readonly Option<CodeStyleOption<ExpressionBodyPreference>> PreferExpressionBodiedConstructors = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionBodiedMembers, nameof(PreferExpressionBodiedConstructors),
             defaultValue: NeverWithSilentEnforcement,
@@ -156,11 +159,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                     GetExpressionBodyPreferenceEditorConfigString),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedLambdas)}")});
 
-        public static readonly Option<CodeStyleOption<bool>> PreferBraces = CreateOption(
-            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferBraces),
-            defaultValue: CodeStyleOptions.TrueWithSilentEnforcement,
+        public static readonly Option<CodeStyleOption<ExpressionBodyPreference>> PreferExpressionBodiedLocalFunctions = CreateOption(
+            CSharpCodeStyleOptionGroups.ExpressionBodiedMembers, nameof(PreferExpressionBodiedLocalFunctions),
+            defaultValue: NeverWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_braces"),
+                new EditorConfigStorageLocation<CodeStyleOption<ExpressionBodyPreference>>(
+                    "csharp_style_expression_bodied_local_functions",
+                    s => ParseExpressionBodyPreference(s, NeverWithSilentEnforcement),
+                    GetExpressionBodyPreferenceEditorConfigString),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferExpressionBodiedLocalFunctions)}")});
+
+        public static readonly Option<CodeStyleOption<PreferBracesPreference>> PreferBraces = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferBraces),
+            defaultValue: UseBracesWithSilentEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                new EditorConfigStorageLocation<CodeStyleOption<PreferBracesPreference>>(
+                    "csharp_prefer_braces",
+                    s => ParsePreferBracesPreference(s, UseBracesWithSilentEnforcement),
+                    GetPreferBracesPreferenceEditorConfigString),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferBraces)}")});
 
         public static readonly Option<CodeStyleOption<bool>> PreferSimpleDefaultExpression = CreateOption(
@@ -189,6 +205,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForStringCodeStyleOption("csharp_preferred_modifier_order"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredModifierOrder)}")});
+
+        public static readonly Option<CodeStyleOption<bool>> PreferStaticLocalFunction = CreateOption(
+            CSharpCodeStyleOptionGroups.Modifier, nameof(PreferStaticLocalFunction),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_static_local_function"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferStaticLocalFunction)}")});
+
+        public static readonly Option<CodeStyleOption<bool>> PreferSimpleUsingStatement = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferSimpleUsingStatement),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_simple_using_statement"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferSimpleUsingStatement)}")});
 
         public static readonly Option<CodeStyleOption<bool>> PreferLocalOverAnonymousFunction = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferLocalOverAnonymousFunction),
@@ -230,7 +260,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferConditionalDelegateCall;
             yield return PreferPatternMatchingOverAsWithNullCheck;
             yield return PreferPatternMatchingOverIsWithCastCheck;
-            yield return PreferBraces;
             yield return PreferSimpleDefaultExpression;
             yield return PreferLocalOverAnonymousFunction;
             yield return PreferIndexOperator;

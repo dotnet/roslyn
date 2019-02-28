@@ -364,12 +364,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         {
             switch (ch)
             {
-                case '+': case '-':
-                case 'i': case 'I':
-                case 'm': case 'M':
-                case 'n': case 'N':
-                case 's': case 'S':
-                case 'x': case 'X':
+                case '+':
+                case '-':
+                case 'i':
+                case 'I':
+                case 'm':
+                case 'M':
+                case 'n':
+                case 'N':
+                case 's':
+                case 'S':
+                case 'x':
+                case 'X':
                     return true;
                 default:
                     return false;

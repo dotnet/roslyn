@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     DiagnosticSeverity.Hidden,
                     isEnabledByDefault: true,
                     customTags: DiagnosticCustomTags.Create(isUnneccessary, isConfigurable, customTags));
-        
+
         public sealed override void Initialize(AnalysisContext context)
         {
             // Code style analyzers should not run on generated code.

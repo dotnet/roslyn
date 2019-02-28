@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        public AbstractRadioButtonViewModel(string description, string preview, AbstractOptionPreviewViewModel info, OptionSet options, bool isChecked, string group)
+        public AbstractRadioButtonViewModel(string description, string preview, AbstractOptionPreviewViewModel info, bool isChecked, string group)
         {
             Description = description;
             this.Preview = preview;

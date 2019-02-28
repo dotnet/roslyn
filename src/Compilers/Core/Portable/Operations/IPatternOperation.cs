@@ -15,6 +15,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </remarks>
     public interface IPatternOperation : IOperation
     {
+        /// <summary>
+        /// The input type to the pattern-matching operation.
+        /// </summary>
+        ITypeSymbol InputType { get; }
     }
 }
 

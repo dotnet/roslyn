@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     type;
                 if (!extraAnnotations.IsDefault)
                 {
-                    type =  NullableTypeDecoder.TransformType(type, defaultTransformFlag: 0, extraAnnotations);
+                    type = NullableTypeDecoder.TransformType(type, defaultTransformFlag: 0, extraAnnotations);
                 }
 
                 _lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;

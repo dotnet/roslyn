@@ -17,10 +17,6 @@ namespace Microsoft.DiaSymReader
         void DefineKickoffMethod(int kickoffMethod);
         void DefineCatchHandlerILOffset(int catchHandlerOffset);
 
-        void DefineAsyncStepInfo(
-            int count,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] yieldOffsets,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] breakpointOffset,
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] breakpointMethod);
+        unsafe void DefineAsyncStepInfo(int count, int* yieldOffsets, int* breakpointOffset, int* breakpointMethod);
     }
 }

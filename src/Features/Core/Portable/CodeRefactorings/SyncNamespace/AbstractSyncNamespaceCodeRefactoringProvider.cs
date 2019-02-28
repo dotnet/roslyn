@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             var document = context.Document;
             var textSpan = context.Span;
             var cancellationToken = context.CancellationToken;
-            
+
             var state = await State.CreateAsync(this, document, textSpan, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
@@ -31,95 +31,69 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace
             // No move file action if rootnamespace isn't a prefix of current declared namespace
             if (state.RelativeDeclaredNamespace != null)
             {
+                // These code actions try to move file to a new location based on declared namespace
+                // and the default namespace of the project. The new location is a list of folders
+                // determined by the relateive part of the declared namespace compare to the default namespace.
+                // 
+                // For example, if he default namespace is `A.B.C`, file path is 
+                // "[project root dir]\Class1.cs" and declared namespace in the file is
+                // `A.B.C.D.E`, then this action will move the file to [project root dir]\D\E\Class1.cs". .
+                // 
+                // We also try to use existing folders as target if possible, using the same example above,
+                // if folder "[project root dir]\D.E\" already exist, we will also offer to move file to 
+                // "[project root dir]\D.E\Class1.cs".
                 context.RegisterRefactorings(MoveFileCodeAction.Create(state));
             }
 
             // No change namespace action if we can't construct a valid namespace from rootnamespace and folder names.
             if (state.TargetNamespace != null)
             {
+                // This code action tries to change the name of the namespace declaration to 
+                // match the folder hierarchy of the document. The new namespace is constructed 
+                // by concatenating the default namespace of the project and all the folders in 
+                // the file path up to the project root.
+                // 
+                // For example, if he default namespace is `A.B.C`, file path is 
+                // "[project root dir]\D\E\F\Class1.cs" and declared namespace in the file is
+                // `Foo.Bar.Baz`, then this action will change the namespace declaration
+                // to `A.B.C.D.E.F`. 
+                // 
+                // Note that it also handles the case where the target namespace or declared namespace 
+                // is global namespace, i.e. default namespace is "" and the file is located at project 
+                // root directory, and no namespace declaration in the document, respectively.
+
                 var service = document.GetLanguageService<IChangeNamespaceService>();
-                var solutionChangeAction = new SolutionChangeAction(ChangeNamespaceActionTitle(state), token => service.ChangeNamespaceAsync(state.Solution, state.DocumentIds, state.DeclaredNamespace, state.TargetNamespace, token));
+
+                var solutionChangeAction = new ChangeNamespaceCodeAction(
+                    state.TargetNamespace.Length == 0
+                        ? FeaturesResources.Change_to_global_namespace
+                        : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace),
+                    token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, token));
+
                 context.RegisterRefactoring(solutionChangeAction);
-            }            
+            }
         }
 
         /// <summary>
-        /// Determine if this refactoring should be triggered based on current cursor position and if there's any partial 
-        /// type declarations. It should only be triggered if the cursor is:
-        ///     (1) in the name of only namespace declaration
-        ///     (2) in the name of first declaration in global namespace if there's no namespace declaration in this document.
+        /// Try to get the node that can be used to trigger the refactoring based on current cursor position. 
         /// </summary>
         /// <returns>
-        /// If the refactoring should be triggered, then returns the only namespace declaration node in the document (of type 
-        /// <typeparamref name="TNamespaceDeclarationSyntax"/>) or the compilation unit node (of type <typeparamref name="TCompilationUnitSyntax"/>)
-        /// if no namespace declaration in the document. Otherwise, return null.
+        /// (1) a node of type <typeparamref name="TNamespaceDeclarationSyntax"/> node, if curosr in the name and it's the 
+        /// only namespace declaration in the document.
+        /// (2) a node of type <typeparamref name="TCompilationUnitSyntax"/> node, if the cursor is in the name of first 
+        /// declaration in global namespace and there's no namespace declaration in this document.
+        /// (3) otherwise, null.
         /// </returns>
-        protected abstract Task<SyntaxNode> TryGetApplicableInvocationNode(Document document, int position, CancellationToken cancellationToken);
+        protected abstract Task<SyntaxNode> TryGetApplicableInvocationNodeAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 
         protected abstract string EscapeIdentifier(string identifier);
 
-        protected abstract SyntaxList<TMemberDeclarationSyntax> GetMemberDeclarationsInContainer(SyntaxNode compilationUnitOrNamespaceDecl);
-
-        protected async Task<bool> ContainsPartialTypeWithMultipleDeclarationsAsync(
-            Document document, SyntaxNode compilationUnitOrNamespaceDecl, CancellationToken cancellationToken)
+        private class ChangeNamespaceCodeAction : SolutionChangeAction
         {
-            var memberDecls = GetMemberDeclarationsInContainer(compilationUnitOrNamespaceDecl);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
-
-            foreach (var memberDecl in memberDecls)
+            public ChangeNamespaceCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution) :
+                base(title, createChangedSolution)
             {
-                var memberSymbol = semanticModel.GetDeclaredSymbol(memberDecl, cancellationToken);
-
-                // Simplify the check by assuming no multiple partial declarations in one document
-                if (memberSymbol is ITypeSymbol typeSymbol
-                    && typeSymbol.DeclaringSyntaxReferences.Length > 1
-                    && semanticFacts.IsPartial(typeSymbol, cancellationToken))
-                {
-                    return true;
-                }
             }
-            return false;
-        }
-
-        private static string ChangeNamespaceActionTitle(State state)
-            => state.TargetNamespace.Length == 0
-                ? FeaturesResources.Change_to_global_namespace
-                : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace);
-
-        /// <summary>
-        /// Try get the relative namespace for <paramref name="namespace"/> based on <paramref name="relativeTo"/>,
-        /// if <paramref name="relativeTo"/> is the containing namespace of <paramref name="namespace"/>.
-        /// For example:
-        /// - If <paramref name="relativeTo"/> is "A.B" and <paramref name="namespace"/> is "A.B.C.D", then
-        /// the relative namespace is "C.D".
-        /// - If <paramref name="relativeTo"/> is "A.B" and <paramref name="namespace"/> is also "A.B", then
-        /// the relative namespace is "".
-        /// - If <paramref name="relativeTo"/> is "" then the relative namespace us <paramref name="namespace"/>.
-        /// </summary>
-        private static string GetRelativeNamespace(string relativeTo, string @namespace, ISyntaxFactsService syntaxFacts)
-        {
-            Debug.Assert(relativeTo != null && @namespace != null);
-
-            if (syntaxFacts.StringComparer.Equals(@namespace, relativeTo))
-            {
-                return string.Empty;
-            }
-            else if (relativeTo.Length == 0)
-            {
-                return @namespace;
-            }
-            else if (relativeTo.Length >= @namespace.Length)
-            {
-                return null;
-            }
-
-            var containingText = relativeTo + ".";
-            var namespacePrefix = @namespace.Substring(0, containingText.Length);
-
-            return syntaxFacts.StringComparer.Equals(containingText, namespacePrefix)
-                ? @namespace.Substring(relativeTo.Length + 1)
-                : null;
         }
     }
 }

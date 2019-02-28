@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 {
+    [Export(typeof(VisualStudioExperimentationService))]
     [ExportWorkspaceService(typeof(IExperimentationService), ServiceLayer.Host), Shared]
     internal class VisualStudioExperimentationService : ForegroundThreadAffinitizedObject, IExperimentationService
     {
@@ -29,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             {
                 try
                 {
-                    experimentationServiceOpt = await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsExperimentationService));
+                    experimentationServiceOpt = await ((IAsyncServiceProvider)serviceProvider).GetServiceAsync(typeof(SVsExperimentationService)).ConfigureAwait(false);
                     if (experimentationServiceOpt != null)
                     {
                         isCachedFlightEnabledInfo = experimentationServiceOpt.GetType().GetMethod(

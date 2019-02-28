@@ -11,13 +11,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             private readonly TypeSymbolWithAnnotations _type;
             private readonly Symbol _symbol;
+            private readonly bool _isNullableEnabled;
 
-            private NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type, Symbol symbol)
+            private NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type)
             {
-                Debug.Assert(type.IsNull != (symbol is null));
-                Debug.Assert(!(symbol is TypeSymbol));
+                Debug.Assert(!type.IsNull);
                 _type = type;
+                _symbol = null;
+                _isNullableEnabled = false; // Not meaningful for a TypeSymbolWithAnnotations, it already baked the fact into its content.
+            }
+
+            private NamespaceOrTypeOrAliasSymbolWithAnnotations(Symbol symbol, bool isNullableEnabled)
+            {
+                Debug.Assert(!(symbol is TypeSymbol));
+                _type = default;
                 _symbol = symbol;
+                _isNullableEnabled = isNullableEnabled;
             }
 
             internal TypeSymbolWithAnnotations Type => _type;
@@ -27,7 +36,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal NamespaceOrTypeSymbol NamespaceOrTypeSymbol => Symbol as NamespaceOrTypeSymbol;
             internal bool IsDefault => _type.IsNull && _symbol is null;
 
-            internal static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateUnannotated(INonNullTypesContext nonNullTypesContext, Symbol symbol)
+            internal bool IsNullableEnabled
+            {
+                get
+                {
+                    Debug.Assert(_symbol?.Kind == SymbolKind.Alias); // Not meaningful to use this property otherwise
+                    return _isNullableEnabled;
+                }
+            }
+
+            internal static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateUnannotated(bool isNullableEnabled, Symbol symbol)
             {
                 if (symbol is null)
                 {
@@ -35,13 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 var type = symbol as TypeSymbol;
                 return type is null ?
-                    new NamespaceOrTypeOrAliasSymbolWithAnnotations(default, symbol) :
-                    new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.Create(nonNullTypesContext, type), null);
+                    new NamespaceOrTypeOrAliasSymbolWithAnnotations(symbol, isNullableEnabled) :
+                    new NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations.Create(isNullableEnabled, type));
             }
 
             public static implicit operator NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type)
             {
-                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(type, null);
+                return new NamespaceOrTypeOrAliasSymbolWithAnnotations(type);
             }
         }
     }

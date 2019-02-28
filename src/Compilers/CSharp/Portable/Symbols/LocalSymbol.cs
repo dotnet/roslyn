@@ -155,14 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
         /// <summary>
         /// Returns value 'Local' of the <see cref="SymbolKind"/>
         /// </summary>

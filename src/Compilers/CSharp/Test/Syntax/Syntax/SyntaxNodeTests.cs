@@ -2672,8 +2672,8 @@ int b
         [WorkItem(22924, "https://github.com/dotnet/roslyn/issues/22924")]
         public void TestRemoveFirstParameterEOLParameterSyntaxTrailingTrivia_KeepEndOfLine()
         {
-                // EOL should be found on ParameterSyntax TrailingTrivia
-                var inputText = @"
+            // EOL should be found on ParameterSyntax TrailingTrivia
+            var inputText = @"
 class C
 {
 void M(

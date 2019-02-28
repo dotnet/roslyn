@@ -384,9 +384,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
                 method,
                 this.Conversions,
+                includeNullability: false,
                 this.Compilation,
                 diagnosticsBuilder,
-                warningsBuilderOpt: null,
+                nullabilityDiagnosticsBuilderOpt: null,
                 ref useSiteDiagnosticsBuilder);
 
             if (!constraintsSatisfied)
@@ -536,11 +537,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var effectiveParameters = GetEffectiveParametersInNormalForm(
-                constructor, 
-                arguments.Arguments.Count, 
-                argumentAnalysis.ArgsToParamsOpt, 
-                arguments.RefKinds, 
-                isMethodGroupConversion: false, 
+                constructor,
+                arguments.Arguments.Count,
+                argumentAnalysis.ArgsToParamsOpt,
+                arguments.RefKinds,
+                isMethodGroupConversion: false,
                 allowRefOmittedArguments: false);
 
             return IsApplicable(
@@ -574,11 +575,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var effectiveParameters = GetEffectiveParametersInExpandedForm(
-                constructor, 
-                arguments.Arguments.Count, 
-                argumentAnalysis.ArgsToParamsOpt, 
-                arguments.RefKinds, 
-                isMethodGroupConversion: false, 
+                constructor,
+                arguments.Arguments.Count,
+                argumentAnalysis.ArgsToParamsOpt,
+                arguments.RefKinds,
+                isMethodGroupConversion: false,
                 allowRefOmittedArguments: false);
 
             // A vararg ctor is never applicable in its expanded form because
@@ -821,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
         {
-            if (overridden.ContainingType == overrider.ContainingType ||
+            if (TypeSymbol.Equals(overridden.ContainingType, overrider.ContainingType, TypeCompareKind.ConsiderEverything2) ||
                 !MemberSignatureComparer.SloppyOverrideComparer.Equals(overridden, overrider))
             {
                 // Easy out.
@@ -850,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Don't search beyond the overridden member.
-                if (current.ContainingType == overridden.ContainingType)
+                if (TypeSymbol.Equals(current.ContainingType, overridden.ContainingType, TypeCompareKind.ConsiderEverything2))
                 {
                     return false;
                 }
@@ -1558,8 +1559,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                    ref useSiteDiagnostics,
                                                    out okToDowngradeToNeither);
 
-                var type1Normalized = type1.NormalizeTaskTypes(Compilation);
-                var type2Normalized = type2.NormalizeTaskTypes(Compilation);
+                var type1Normalized = type1;
+                var type2Normalized = type2;
+
+                // Normalizing task types can cause attributes to be bound on the type,
+                // and attribute arguments may call overloaded methods in error cases.
+                // To avoid a stack overflow, we must not normalize task types within attribute arguments.
+                if (!_binder.InAttributeArgument)
+                {
+                    type1Normalized = type1.NormalizeTaskTypes(Compilation);
+                    type2Normalized = type2.NormalizeTaskTypes(Compilation);
+                }
 
                 if (r == BetterResult.Neither)
                 {
@@ -1655,6 +1665,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We might have got out of the loop above early and allSame isn't completely calculated.
             // We need to ensure that we are not going to skip over the next 'if' because of that.
+            // One way we can break out of the above loop early is when the corresponding method parameters have identical types
+            // but different ref kinds. See RefOmittedComCall_OverloadResolution_MultipleArguments_ErrorCases for an example.
             if (allSame && m1ParametersUsedIncludingExpansionAndOptional == m2ParametersUsedIncludingExpansionAndOptional)
             {
                 // Complete comparison for the remaining parameter types
@@ -1673,11 +1685,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
                     var type1 = GetParameterType(parameter1, m1.Result);
-                    var type1Normalized = type1.NormalizeTaskTypes(Compilation);
 
                     var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
                     var type2 = GetParameterType(parameter2, m2.Result);
-                    var type2Normalized = type2.NormalizeTaskTypes(Compilation);
+
+                    var type1Normalized = type1;
+                    var type2Normalized = type2;
+                    if (!_binder.InAttributeArgument)
+                    {
+                        type1Normalized = type1.NormalizeTaskTypes(Compilation);
+                        type2Normalized = type2.NormalizeTaskTypes(Compilation);
+                    }
 
                     if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                     {
@@ -2549,7 +2567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // A shortcut, a delegate or an expression tree cannot satisfy other rules.
                 return BetterResult.Neither;
             }
-            else if (type2.GetDelegateType() != null)
+            else if ((object)type2.GetDelegateType() != null)
             {
                 // A shortcut, a delegate or an expression tree cannot satisfy other rules.
                 return BetterResult.Neither;
@@ -2861,10 +2879,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static RefKind GetEffectiveParameterRefKind(
-            ParameterSymbol parameter, 
+            ParameterSymbol parameter,
             RefKind argRefKind,
             bool isMethodGroupConversion,
-            bool allowRefOmittedArguments, 
+            bool allowRefOmittedArguments,
             Binder binder,
             ref bool hasAnyRefOmittedArgument)
         {
@@ -3188,7 +3206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameterTypes = leastOverriddenMember.GetParameterTypes();
                     for (int i = 0; i < parameterTypes.Length; i++)
                     {
-                        if (!parameterTypes[i].TypeSymbol.CheckAllConstraints(Conversions))
+                        if (!parameterTypes[i].TypeSymbol.CheckAllConstraints(Compilation, Conversions))
                         {
                             return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ConstructedParameterFailedConstraintsCheck(i));
                         }
@@ -3250,7 +3268,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
                 args,
-                out _,
                 ref useSiteDiagnostics);
 
             if (inferenceResult.Success)

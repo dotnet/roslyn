@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     internal class IndentUserSettingsFormattingRule : BaseFormattingRule
     {
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             var bracePair = node.GetBracePair();
 

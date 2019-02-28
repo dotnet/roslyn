@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
-                : base(FeaturesResources.Use_explicitly_provided_tuple_name, 
-                       createChangedDocument, 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(FeaturesResources.Use_explicitly_provided_tuple_name,
+                       createChangedDocument,
                        FeaturesResources.Use_explicitly_provided_tuple_name)
             {
             }

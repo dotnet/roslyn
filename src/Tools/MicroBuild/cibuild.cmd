@@ -1,1 +1,0 @@
-REM stub file (remove once netci.groovy is updated)

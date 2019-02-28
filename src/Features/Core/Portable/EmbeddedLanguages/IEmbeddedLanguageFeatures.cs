@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 
@@ -23,7 +24,12 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         AbstractBuiltInCodeStyleDiagnosticAnalyzer DiagnosticAnalyzer { get; }
 
         /// <summary>
-        /// An optional completion provider that can provide completion items.
+        /// An optional completion provider that can provide completion items for this
+        /// specific embedded language.
+        /// 
+        /// <see cref="EmbeddedLanguageCompletionProvider"/> will aggregate all these
+        /// individual providers and expose them as one single completion provider to
+        /// the rest of Roslyn.
         /// </summary>
         CompletionProvider CompletionProvider { get; }
     }

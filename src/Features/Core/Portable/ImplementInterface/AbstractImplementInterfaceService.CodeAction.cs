@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     foreach (var unimplementedInterfaceMember in unimplementedInterfaceMembers)
                     {
                         var member = GenerateMember(
-                            compilation, unimplementedInterfaceMember, implementedVisibleMembers, 
+                            compilation, unimplementedInterfaceMember, implementedVisibleMembers,
                             propertyGenerationBehavior, cancellationToken);
                         if (member != null)
                         {
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             var explicitImplementationCast = generator.CastExpression(
                                 explicitlyImplementedProperty.ContainingType,
                                 generator.ThisExpression());
-                            
+
                             through = generator.MemberAccessExpression(explicitImplementationCast,
                                 generator.IdentifierName(explicitlyImplementedProperty.Name));
 

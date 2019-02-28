@@ -114,10 +114,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.GetCurrentSignature();
         }
 
-        public void InvokeNavigateTo(string text)
+        public void InvokeNavigateTo(params object[] keys)
         {
             _instance.ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
-            NavigateToSendKeys(text);
+            NavigateToSendKeys(keys);
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigateTo);
         }
 
@@ -184,10 +184,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
             => _editorInProc.PressDialogButton(dialogAutomationName, buttonAutomationName);
 
-        public void DialogSendKeys(string dialogAutomationName, string keys)
+        public void DialogSendKeys(string dialogAutomationName, params object[] keys)
             => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
 
-        public void FormatDocument() {
+        public void FormatDocument()
+        {
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
         }
@@ -198,7 +199,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             VisualStudioInstance.Dte.ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
         }
 
-        public void FormatSelection() {
+        public void FormatSelection()
+        {
             VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
         }
@@ -216,9 +218,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void Undo()
             => _editorInProc.Undo();
 
-        public void NavigateToSendKeys(string keys)
+        public void NavigateToSendKeys(params object[] keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
-            
+
         public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
             _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
@@ -229,7 +231,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _editorInProc.GetErrorTags();
 
         public List<string> GetF1Keyword()
-            => _editorInProc.GetF1Keywords();        
+            => _editorInProc.GetF1Keywords();
 
         public void ExpandProjectNavBar()
         {
@@ -288,7 +290,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SelectProjectNavbarItem(string item)
         {
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigationBar);
-             _editorInProc.SelectNavBarItem(0, item);
+            _editorInProc.SelectNavBarItem(0, item);
         }
 
         public void SelectTypeNavBarItem(string item)

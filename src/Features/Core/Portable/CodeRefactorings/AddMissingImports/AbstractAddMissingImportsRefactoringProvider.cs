@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
                 CodeActionTitle,
                 cancellationToken => AddMissingImports(document, textSpan, cancellationToken));
             context.RegisterRefactoring(addImportsCodeAction);
-    }
+        }
 
         private async Task<Solution> AddMissingImports(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {

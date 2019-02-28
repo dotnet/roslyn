@@ -162,7 +162,7 @@ class Module1
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_01()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -220,7 +220,7 @@ class Module1
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_02()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -306,7 +306,7 @@ class CL3
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_01()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -379,7 +379,7 @@ class CL3
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_02()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -452,7 +452,7 @@ class CL3
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_03()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -525,7 +525,7 @@ class CL3
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_04()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -1135,7 +1135,7 @@ CL3.P
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_03()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -1238,7 +1238,7 @@ Get Overridden");
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_04()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -1310,7 +1310,7 @@ class CL3
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_05()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -1374,7 +1374,7 @@ class Module1
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void ConstructedTypesEquality_02()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit CL1`1<T1>
        extends[mscorlib] System.Object
@@ -1471,7 +1471,7 @@ class Module1
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void RetargetingModifiedTypeArgument_01()
-        { 
+        {
             var ilSource = @"
 .class public auto ansi beforefieldinit Test1
        extends[mscorlib] System.Object
@@ -1532,7 +1532,7 @@ class Module1
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_01()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -1571,7 +1571,7 @@ interface ITest4<T, U>
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_02()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -1610,7 +1610,7 @@ interface ITest4<T, U>
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_03()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -1642,7 +1642,7 @@ interface ITest4<T, U>
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_04()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -1681,7 +1681,7 @@ interface ITest4<T, U>
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_05()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -1723,7 +1723,7 @@ interface ITest4<T, U>
 
         [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         public void TypeUnification_06()
-        { 
+        {
             var ilSource = @"
 .class interface public abstract auto ansi ITest0`1<T>
 {
@@ -2253,7 +2253,7 @@ class CL3 : CL2
 Overridden");
         }
 
-        [ConditionalFact(typeof(ClrOnly),typeof(DesktopOnly))]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
         [WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_04()
@@ -2276,7 +2276,7 @@ class CL2 : CL1
         return c;
     }
 }";
-            var compilation = CreateCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll }, 
+            var compilation = CreateCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll },
                                                             options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
@@ -2330,7 +2330,7 @@ class CL3 : I1
             Assert.Equal("System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(U?) CL3.I1.Test<U>(System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(U?) c)", test.ToTestDisplayString());
             Assert.Equal("System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(T?) I1.Test<T>(System.ValueType modopt(System.Runtime.CompilerServices.IsBoxed) modopt(T?) x)", test.ExplicitInterfaceImplementations[0].ToTestDisplayString());
 
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
 @"CL2.Test
 CL3.Test");
         }
@@ -2591,12 +2591,12 @@ class CL3
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<PropertySymbol>("Test");
-            Assert.Equal("dynamic modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL2.Test { get; set; }", 
+            Assert.Equal("dynamic modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL2.Test { get; set; }",
                          test2.ToTestDisplayString());
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             var test3 = cl3.GetMember<PropertySymbol>("Test");
-            Assert.Equal("System.Object modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL3.Test { get; set; }", 
+            Assert.Equal("System.Object modopt(System.Runtime.CompilerServices.IsConst) [] modopt(System.Runtime.CompilerServices.IsConst) CL3.Test { get; set; }",
                          test3.ToTestDisplayString());
 
             CompileAndVerify(compilation, expectedOutput: @"Set Overridden2
@@ -2807,7 +2807,7 @@ class CL3 : CL1
             Assert.Equal("event System.Action<System.Object modopt(System.Runtime.CompilerServices.IsConst) []> CL3.Test",
                          test3.ToTestDisplayString());
 
-            CompileAndVerify(compilation, expectedOutput: 
+            CompileAndVerify(compilation, expectedOutput:
 @"Alice and Bob
 Charlie");
         }

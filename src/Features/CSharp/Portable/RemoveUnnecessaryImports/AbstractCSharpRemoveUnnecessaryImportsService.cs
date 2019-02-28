@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
             var spans = new List<TextSpan>();
             AddFormattingSpans(newRoot, spans, cancellationToken);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return await Formatter.FormatAsync(newRoot, spans, document.Project.Solution.Workspace, options, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return Formatter.Format(newRoot, spans, document.Project.Solution.Workspace, options, cancellationToken: cancellationToken);
         }
 
         private void AddFormattingSpans(

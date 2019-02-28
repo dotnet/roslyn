@@ -834,17 +834,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.SuppressNullableWarningExpression:
-                    {
-                        var innerExpression = ((BoundSuppressNullableWarningExpression)sourceExpression).Expression;
-                        var innerConversion = ClassifyImplicitBuiltInConversionFromExpression(innerExpression, innerExpression.Type, destination, ref useSiteDiagnostics);
-                        if (innerConversion.Exists)
-                        {
-                            return innerConversion;
-                        }
-                        break;
-                    }
-
                 case BoundKind.ExpressionWithNullability:
                     {
                         var innerExpression = ((BoundExpressionWithNullability)sourceExpression).Expression;
@@ -1915,7 +1904,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteDiagnostics,
                 ConversionKind.ImplicitTupleLiteral,
-                (ConversionsBase conversions, BoundExpression s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitConversionFromExpression(s, d.TypeSymbol, ref u),
+                (ConversionsBase conversions, BoundExpression s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a)
+                    => conversions.ClassifyImplicitConversionFromExpression(s, d.TypeSymbol, ref u),
                 arg: false);
         }
 
@@ -2619,7 +2609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             NamedTypeSymbol typeSymbol = source.OriginalDefinition;
-            if (typeSymbol != destination.OriginalDefinition)
+            if (!TypeSymbol.Equals(typeSymbol, destination.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 return ThreeState.False;
             }
@@ -2979,7 +2969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (var type = t.EffectiveBaseClass(ref useSiteDiagnostics); (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
                 {
-                    if (type == source)
+                    if (TypeSymbol.Equals(type, source, TypeCompareKind.ConsiderEverything2))
                     {
                         return true;
                     }
@@ -3038,7 +3028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (source.OriginalDefinition != destination.OriginalDefinition)
+            if (!TypeSymbol.Equals(source.OriginalDefinition, destination.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
             {
                 return false;
             }

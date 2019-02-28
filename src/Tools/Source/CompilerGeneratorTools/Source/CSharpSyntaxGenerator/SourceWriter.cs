@@ -140,7 +140,7 @@ namespace CSharpSyntaxGenerator
                         WriteLine();
                         WriteComment(field.PropertyComment, "    ");
 
-                        if (IsSeparatedNodeList(field.Type) || 
+                        if (IsSeparatedNodeList(field.Type) ||
                             IsNodeList(field.Type))
                         {
                             WriteLine("    public abstract {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get; }}",
@@ -307,7 +307,7 @@ namespace CSharpSyntaxGenerator
             {
                 var field = nodeFields[i];
                 string type = GetFieldType(field, green: true);
-                
+
                 Write(", {0} {1}", type, CamelCase(field.Name));
             }
 
@@ -743,7 +743,7 @@ namespace CSharpSyntaxGenerator
                 }
                 WriteLine("          break;");
                 WriteLine("        default:");
-                WriteLine("          throw new ArgumentException(\"kind\");");
+                WriteLine("          throw new ArgumentException(nameof(kind));");
                 WriteLine("      }");
             }
 
@@ -779,7 +779,7 @@ namespace CSharpSyntaxGenerator
                     }
                     WriteLine("          break;");
                     WriteLine("        default:");
-                    WriteLine("          throw new ArgumentException(\"{0}\");", pname);
+                    WriteLine("          throw new ArgumentException(nameof({0}));", pname);
                     WriteLine("      }");
                     if (IsOptional(field))
                     {
@@ -1747,7 +1747,7 @@ namespace CSharpSyntaxGenerator
                 }
                 WriteLine("          break;");
                 WriteLine("        default:");
-                WriteLine("          throw new ArgumentException(\"kind\");");
+                WriteLine("          throw new ArgumentException(nameof(kind));");
                 WriteLine("      }");
             }
 
@@ -1773,7 +1773,7 @@ namespace CSharpSyntaxGenerator
                         }
                         WriteLine("          break;");
                         WriteLine("        default:");
-                        WriteLine("          throw new ArgumentException(\"{0}\");", pname);
+                        WriteLine("          throw new ArgumentException(nameof({0}));", pname);
                         WriteLine("      }");
                     }
                 }

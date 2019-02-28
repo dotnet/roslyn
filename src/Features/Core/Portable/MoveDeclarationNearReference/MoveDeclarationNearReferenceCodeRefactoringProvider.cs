@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             }
 
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
-            if (!await service.CanMoveDeclarationNearReferenceAsync(
-                    document, statement, cancellationToken))
+            if (!await service.CanMoveDeclarationNearReferenceAsync(document, statement, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
@@ -80,7 +79,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
             var statement = await GetLocalDeclarationStatementAsync(document, span, cancellationToken).ConfigureAwait(false);
             var service = document.GetLanguageService<IMoveDeclarationNearReferenceService>();
 
-            return await service.MoveDeclarationNearReferenceAsync(document, statement, cancellationToken);
+            return await service.MoveDeclarationNearReferenceAsync(document, statement, cancellationToken).ConfigureAwait(false);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // of the function where the enumerable is returned.
             if (localFuncSymbol.IsIterator)
             {
-                PendingBranches.Add(new PendingBranch(null, this.State));
+                PendingBranches.Add(new PendingBranch(null, this.State, null));
             }
 
             VisitAlways(localFunc.Body);
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = VariableType(id.Symbol).TypeSymbol;
 
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
-            
+
             if (EmptyStructTypeCache.IsTrackableStructType(type))
             {
                 foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(type))

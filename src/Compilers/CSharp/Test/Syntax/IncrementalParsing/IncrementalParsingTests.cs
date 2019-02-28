@@ -2381,7 +2381,7 @@ newText.ToString());
             startTree.GetDiagnostics().Verify();
 
             var newText = oldText.WithInsertAt(
-                oldText.Length, 
+                oldText.Length,
                 @"System.Console.WriteLine(false)
 ");
 

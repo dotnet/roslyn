@@ -1168,7 +1168,7 @@ Imports System
         <Fact, WorkItem(3380, "DevDiv_Projects/Roslyn")>
         Public Sub BC30046ERR_ParamArrayWithOptArgs()
             CreateCompilationWithMscorlib40(<compilation name="ERR_ParamArrayWithOptArgs">
-                                              <file name="a.vb"><![CDATA[
+                                                <file name="a.vb"><![CDATA[
                 Class C1
                     Shared Sub Main()
                     End Sub
@@ -1176,7 +1176,7 @@ Imports System
                     End Sub
                 End Class
             ]]></file>
-                                          </compilation>).VerifyDiagnostics(
+                                            </compilation>).VerifyDiagnostics(
                                           Diagnostic(ERRID.ERR_ParamArrayWithOptArgs, "s"))
 
         End Sub

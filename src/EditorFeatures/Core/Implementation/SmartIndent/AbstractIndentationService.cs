@@ -14,13 +14,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
-    internal abstract partial class AbstractIndentationService<TSyntaxRoot> 
+    internal abstract partial class AbstractIndentationService<TSyntaxRoot>
         : ISynchronousIndentationService, IBlankLineIndentationService
         where TSyntaxRoot : SyntaxNode, ICompilationUnitSyntax
     {
-        protected abstract IFormattingRule GetSpecializedIndentationFormattingRule();
+        protected abstract AbstractFormattingRule GetSpecializedIndentationFormattingRule();
 
-        private IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position)
+        private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             return formattingRules;
         }
 
-        public IndentationResult? GetDesiredIndentation(
-            Document document, int lineNumber, CancellationToken cancellationToken)
+        public virtual IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
         {
             var indenter = GetIndenter(document, lineNumber, cancellationToken);
 
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
         private AbstractIndenter GetIndenter(Document document, int lineNumber, CancellationToken cancellationToken)
         {
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
 
             var sourceText = root.SyntaxTree.GetText(cancellationToken);
@@ -83,6 +82,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         }
 
         protected abstract AbstractIndenter GetIndenter(
-            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
+            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
     }
 }

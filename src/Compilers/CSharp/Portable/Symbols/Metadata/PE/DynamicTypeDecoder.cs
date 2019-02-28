@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // Construct a new namedType, if required.
-            bool containerIsChanged = (newContainingType != containingType);
+            bool containerIsChanged = (!TypeSymbol.Equals(newContainingType, containingType, TypeCompareKind.ConsiderEverything2));
 
             if (containerIsChanged || transformedTypeArguments != typeArguments)
             {
@@ -271,8 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             var underlying = tupleType.TupleUnderlyingType;
             var transformedUnderlying = TransformNamedType(underlying, isContaining);
-            
-            if (transformedUnderlying == null)
+
+            if ((object)transformedUnderlying == null)
             {
                 // Bail, something is wrong with the flags.
                 // the dynamic transformation should be ignored.
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // Note, modifiers are not involved, this is behavior of the native compiler.
                 transformedTypeArgsBuilder.Add(typeArg.WithTypeAndModifiers(transformedTypeArg, typeArg.CustomModifiers));
-                anyTransformed |= transformedTypeArg != typeArg.TypeSymbol;
+                anyTransformed |= !TypeSymbol.Equals(transformedTypeArg, typeArg.TypeSymbol, TypeCompareKind.ConsiderEverything2);
             }
 
             if (!anyTransformed)
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
 
-            return transformedElementType == arrayType.ElementType.TypeSymbol ?
+            return TypeSymbol.Equals(transformedElementType, arrayType.ElementType.TypeSymbol, TypeCompareKind.ConsiderEverything2) ?
                 arrayType :
                 arrayType.IsSZArray ?
                     ArrayTypeSymbol.CreateSZArray(_containingAssembly, arrayType.ElementType.WithTypeAndModifiers(transformedElementType, arrayType.ElementType.CustomModifiers)) :
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
 
-            return transformedPointedAtType == pointerType.PointedAtType.TypeSymbol ?
+            return TypeSymbol.Equals(transformedPointedAtType, pointerType.PointedAtType.TypeSymbol, TypeCompareKind.ConsiderEverything2) ?
                 pointerType :
                 new PointerTypeSymbol(pointerType.PointedAtType.WithTypeAndModifiers(transformedPointedAtType, pointerType.PointedAtType.CustomModifiers));
         }

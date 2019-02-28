@@ -70,13 +70,13 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
         public async Task<Document> MoveDeclarationNearReferenceAsync(
             Document document, SyntaxNode localDeclarationStatement, CancellationToken cancellationToken)
         {
-            var state = await ComputeStateAsync(document, localDeclarationStatement, cancellationToken);
+            var state = await ComputeStateAsync(document, localDeclarationStatement, cancellationToken).ConfigureAwait(false);
             if (state == null)
             {
                 return document;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var editor = new SyntaxEditor(root, document.Project.Solution.Workspace);
 
             var crossesMeaningfulBlock = CrossesMeaningfulBlock(state);
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.MoveDeclarationNearReference
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             syntaxFacts.GetPartsOfAssignmentStatement(
-                state.FirstStatementAffectedInInnermostBlock, 
+                state.FirstStatementAffectedInInnermostBlock,
                 out var left, out var operatorToken, out var right);
 
             return state.DeclarationStatement.ReplaceNode(

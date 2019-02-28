@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var generator = document.GetLanguageService<SyntaxGenerator>();

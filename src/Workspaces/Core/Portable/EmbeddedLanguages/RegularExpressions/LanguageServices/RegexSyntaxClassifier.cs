@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         }
 
         public override void AddClassifications(
-            Workspace workspace, SyntaxToken token, SemanticModel semanticModel, 
+            Workspace workspace, SyntaxToken token, SemanticModel semanticModel,
             ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             if (_info.StringLiteralTokenKind != token.RawKind)

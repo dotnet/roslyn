@@ -2,11 +2,15 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
 
         private async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (semanticModel is null)
             {
                 return ImmutableArray<Diagnostic>.Empty;
@@ -150,15 +154,69 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var orderedTextInserts = allTextChanges.Where(change => change.Span.IsEmpty)
                 .OrderBy(change => change.NewText);
 
-            var text = await document.GetTextAsync(cancellationToken);
+            // Capture each location where we are inserting imports as well as the total
+            // length of the text we are inserting so that we can format the span afterwards.
+            var insertSpans = allTextChanges
+                .GroupBy(change => change.Span)
+                .Select(changes => new TextSpan(changes.Key.Start, changes.Sum(change => change.NewText.Length)));
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var newText = text.WithChanges(orderedTextInserts);
             var newDocument = newProject.GetDocument(document.Id).WithText(newText);
+
+            // When imports are added to a code file that has no previous imports, extra
+            // newlines are generated between each import because the fix is expecting to
+            // separate the imports from the rest of the code file. We need to format the
+            // imports to remove these extra newlines.
+            return await CleanUpNewLinesAsync(newDocument, insertSpans, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<Document> CleanUpNewLinesAsync(Document document, IEnumerable<TextSpan> insertSpans, CancellationToken cancellationToken)
+        {
+            var languageFormatter = document.GetLanguageService<ISyntaxFormattingService>();
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+            var newDocument = document;
+
+            // Since imports can be added at both the CompilationUnit and the Namespace level,
+            // format each span individually so that we can retain each newline that was intended
+            // to separate the import section from the other content.
+            foreach (var insertSpan in insertSpans)
+            {
+                newDocument = await CleanUpNewLinesAsync(newDocument, insertSpan, languageFormatter, options, cancellationToken).ConfigureAwait(false);
+            }
 
             return newDocument;
         }
 
+        private async Task<Document> CleanUpNewLinesAsync(Document document, TextSpan insertSpan, ISyntaxFormattingService languageFormatter, OptionSet options, CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var textChanges = languageFormatter.Format(root, new[] { insertSpan }, options, new[] { new CleanUpNewLinesFormatter(text) }, cancellationToken).GetTextChanges();
+
+            // If there are no changes then, do less work.
+            if (textChanges.Count == 0)
+            {
+                return document;
+            }
+
+            // The last text change should include where the insert span ends
+            Debug.Assert(textChanges.Last().Span.IntersectsWith(insertSpan.End));
+
+            // If there are changes then, this was a case where there were no
+            // previous imports statements. We need to retain the final extra
+            // newline because that separates the imports section from the rest
+            // of the code.
+            textChanges.RemoveAt(textChanges.Count - 1);
+
+            var newText = text.WithChanges(textChanges);
+            return document.WithText(newText);
+        }
+
         private async Task<(ProjectChanges, IEnumerable<TextChange>)> GetChangesForCodeActionAsync(
-            Document document, 
+            Document document,
             CodeAction codeAction,
             ProgressTracker progressTracker,
             IDocumentTextDifferencingService textDiffingService,
@@ -174,6 +232,32 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var projectChanges = newDocument.Project.GetChanges(document.Project);
 
             return (projectChanges, textChanges);
+        }
+
+        private sealed class CleanUpNewLinesFormatter : AbstractFormattingRule
+        {
+            private readonly SourceText _text;
+
+            public CleanUpNewLinesFormatter(SourceText text)
+            {
+                _text = text;
+            }
+
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
+            {
+                // Since we know the general shape of these new import statements, we simply look for where
+                // tokens are not on the same line and force them to only be separated by a single newline.
+
+                _text.GetLineAndOffset(previousToken.Span.Start, out int previousLine, out _);
+                _text.GetLineAndOffset(currentToken.Span.Start, out int currentLine, out _);
+
+                if (previousLine != currentLine)
+                {
+                    return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
+                }
+
+                return null;
+            }
         }
     }
 }

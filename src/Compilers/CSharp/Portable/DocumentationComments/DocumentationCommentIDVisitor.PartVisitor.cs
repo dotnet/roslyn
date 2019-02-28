@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     builder.Append("``");
                 }
-                else 
+                else
                 {
                     Debug.Assert(containingSymbol is NamedTypeSymbol);
 
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Special case: dev11 treats types instances of the declaring type in the parameter list
                     // (and return type, for conversions) as constructed with its own type parameters.
-                    if (!_inParameterOrReturnType && symbol == symbol.ConstructedFrom)
+                    if (!_inParameterOrReturnType && TypeSymbol.Equals(symbol, symbol.ConstructedFrom, TypeCompareKind.ConsiderEverything2))
                     {
                         builder.Append('`');
                         builder.Append(symbol.Arity);

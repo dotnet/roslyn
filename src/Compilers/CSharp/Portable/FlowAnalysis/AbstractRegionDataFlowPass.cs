@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -10,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     // Note: this code has a copy-and-paste sibling in AbstractRegionDataFlowPass.
     // Any fix to one should be applied to the other.
-    internal class AbstractRegionDataFlowPass : DefiniteAssignmentPass
+    internal abstract class AbstractRegionDataFlowPass : DefiniteAssignmentPass
     {
         internal AbstractRegionDataFlowPass(
             CSharpCompilation compilation,

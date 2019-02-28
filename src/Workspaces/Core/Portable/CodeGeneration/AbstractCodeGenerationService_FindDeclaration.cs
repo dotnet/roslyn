@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             CancellationToken cancellationToken)
         {
             var option = options ?? CodeGenerationOptions.Default;
-            var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, option, cancellationToken);
+            var (declaration, _) = await FindMostRelevantDeclarationAsync(solution, namespaceOrType, option, cancellationToken).ConfigureAwait(false);
             return declaration;
         }
 

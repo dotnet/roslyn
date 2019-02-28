@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.ParseOptions == null ? SourceCodeKind.Regular : this.ParseOptions.Kind;
+                return this.ParseOptions == null ? this.Attributes.SourceCodeKind : this.ParseOptions.Kind;
             }
         }
 
