@@ -1173,10 +1173,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                TypeSymbolWithAnnotations result = VisitRvalueWithState(expr);
+                var result = VisitRvalueWithState(expr);
                 if (_returnTypesOpt != null)
                 {
-                    _returnTypesOpt.Add((node, result));
+                    _returnTypesOpt.Add((node, result.ToTypeSymbolWithAnnotations()));
                 }
             }
 
