@@ -278,10 +278,10 @@
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>true</UsingToolXUnit>
     <!-- 
-       During the transition period from Microsoft.Net.Compilers to Microsoft.Net.Compilers.Toolset
-       we are always doing custom importing here.
+      When using a bootstrap builder we don't want to use the Microsoft.Net.Compilers.Toolset package but
+      rather explicitly override it. 
     -->
-    <UsingToolMicrosoftNetCompilers>false</UsingToolMicrosoftNetCompilers>
+    <UsingToolMicrosoftNetCompilers Condition="'$(BootstrapBuildPath)' == ''">true</UsingToolMicrosoftNetCompilers>
   </PropertyGroup>
   <PropertyGroup>
     <RestoreSources>
