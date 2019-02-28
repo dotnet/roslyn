@@ -131,6 +131,14 @@
   <Import Project="Bootstrap.props" Condition="'$(BootstrapBuildPath)' != ''" />
 
   <!--
+     During the transition period from Microsoft.Net.Compilers to Microsoft.Net.Compilers.Toolset
+     we need our own PackageReference
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="$(MicrosoftNetCompilersToolsetVersion)" Condition="'$(BootstrapBuildPath)' == ''" PrivateAssets="all" IsImplicitlyDefined="true" />
+  </ItemGroup>
+
+  <!--
     Analyzers
   -->
   <ItemGroup>
@@ -188,7 +196,7 @@
     <!-- C# specific settings -->
     <When Condition="'$(Language)' == 'C#'">
       <PropertyGroup>
-        <LangVersion>7.3</LangVersion>
+        <LangVersion>8.0</LangVersion>
         <WarningLevel>4</WarningLevel>
         <ErrorReport>prompt</ErrorReport>
 
