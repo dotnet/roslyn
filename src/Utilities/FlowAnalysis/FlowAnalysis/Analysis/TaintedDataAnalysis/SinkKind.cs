@@ -13,5 +13,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         Regex,
         Ldap,
         Redirect,
+        XPath,
     }
 }

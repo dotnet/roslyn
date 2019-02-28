@@ -260,5 +260,13 @@ namespace Analyzer.Utilities
         public const string SystemDirectoryServicesActiveDirectoryADSearcher = "System.DirectoryServices.ActiveDirectory.ADSearcher";
         public const string SystemDirectoryServicesDirectorySearcher = "System.DirectoryServices.DirectorySearcher";
         public const string SystemDirectoryDirectoryEntry = "System.DirectoryServices.DirectoryEntry";
+        public const string SystemWebUIPageTheme = "System.Web.UI.PageTheme";
+        public const string SystemWebUITemplateControl = "System.Web.UI.TemplateControl";
+        public const string SystemWebUIWebControlsXmlDataSource = "System.Web.UI.WebControls.XmlDataSource";
+        public const string SystemWebUIXPathBinder = "System.Web.UI.XPathBinder";
+        public const string SystemXmlSchemaXmlSchemaXPath = "System.Xml.Schema.XmlSchemaXPath";
+        public const string SystemXmlXmlNode = "System.Xml.XmlNode";
+        public const string SystemXmlXPathXPathExpression = "System.Xml.XPath.XPathExpression";
+        public const string SystemXmlXPathXPathNavigator = "System.Xml.XPath.XPathNavigator";
     }
 }
