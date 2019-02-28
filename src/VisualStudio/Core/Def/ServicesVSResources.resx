@@ -1192,4 +1192,7 @@ I agree to all of the foregoing:</value>
   <data name="Prefer_simple_using_statement" xml:space="preserve">
     <value>Prefer simple 'using' statement</value>
   </data>
+  <data name="Show_completion_list" xml:space="preserve">
+    <value>Show completion list</value>
+  </data>
 </root>
