@@ -2100,14 +2100,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
-            if (node.LeftOperand != null)
+            if (node.LeftOperandOpt != null)
             {
-                VisitRvalue(node.LeftOperand);
+                VisitRvalue(node.LeftOperandOpt);
             }
 
-            if (node.RightOperand != null)
+            if (node.RightOperandOpt != null)
             {
-                VisitRvalue(node.RightOperand);
+                VisitRvalue(node.RightOperandOpt);
             }
 
             return null;

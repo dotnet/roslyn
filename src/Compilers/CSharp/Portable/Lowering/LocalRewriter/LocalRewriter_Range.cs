@@ -18,13 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool needLifting = false;
             var F = _factory;
 
-            var left = node.LeftOperand;
+            var left = node.LeftOperandOpt;
             if (left != null)
             {
                 left = tryOptimizeOperand(left);
             }
 
-            var right = node.RightOperand;
+            var right = node.RightOperandOpt;
             if (right != null)
             {
                 right = tryOptimizeOperand(right);
