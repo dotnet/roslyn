@@ -35,20 +35,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         private static bool _firstLaunch = true;
 
-        static VisualStudioInstanceFactory()
-        {
-            var majorVsProductVersion = VsProductVersion.Split('.')[0];
-
-            if (int.Parse(majorVsProductVersion) < 15)
-            {
-                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
-            }
-        }
-
         public VisualStudioInstanceFactory()
         {
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
             AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
+
+            var majorVsProductVersion = VsProductVersion.Split('.')[0];
+            if (int.Parse(majorVsProductVersion) < 15)
+            {
+                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
+            }
         }
 
         private static void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
