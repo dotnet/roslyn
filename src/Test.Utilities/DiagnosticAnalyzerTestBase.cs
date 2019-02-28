@@ -386,6 +386,8 @@ namespace Test.Utilities
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlLinq)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeSerialization)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, parseOptions)
                 .GetProject(projectId);

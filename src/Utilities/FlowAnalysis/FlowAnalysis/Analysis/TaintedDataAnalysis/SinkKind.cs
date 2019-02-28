@@ -15,5 +15,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         Redirect,
         XPath,
         Xml,
+        Xaml,
     }
 }

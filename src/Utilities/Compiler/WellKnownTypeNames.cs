@@ -275,5 +275,6 @@ namespace Analyzer.Utilities
         public const string SystemXmlXmlEntity = "System.Xml.XmlEntity";
         public const string SystemXmlXmlNotation = "System.Xml.XmlNotation";
         public const string SystemXmlXmlTextWriter = "System.Xml.XmlTextWriter";
+        public const string SystemWindowsMarkupXamlReader = "System.Windows.Markup.XamlReader";
     }
 }
