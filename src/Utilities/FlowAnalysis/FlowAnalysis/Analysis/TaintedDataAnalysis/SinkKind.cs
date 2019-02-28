@@ -14,5 +14,6 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
         Ldap,
         Redirect,
         XPath,
+        Xml,
     }
 }

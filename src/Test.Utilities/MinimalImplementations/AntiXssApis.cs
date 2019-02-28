@@ -7,26 +7,49 @@ namespace Test.Utilities.MinimalImplementations
         public const string CSharp = @"
 namespace Microsoft.Security.Application
 {
+    public static class AntiXss
+    {
+        public static string XmlAttributeEncode(string input)
+        {
+            return input;
+        }
+
+        public static string XmlEncode(string input)
+        {
+            return input;
+        }
+    }
+
     public static class Encoder
     {
         public static string LdapDistinguishedNameEncode(string input)
         {
-            return null;
+            return input;
         }
 
         public static string LdapDistinguishedNameEncode(string input, bool useInitialCharacterRules, bool useFinalCharacterRule)
         {
-            return null;
+            return input;
         }
 
         public static string LdapEncode(string input)
         {
-            return null;
+            return input;
         }
 
         public static string LdapFilterEncode(string input)
         {
-            return null;
+            return input;
+        }
+
+        public static string XmlAttributeEncode(string input)
+        {
+            return input;
+        }
+
+        public static string XmlEncode(string input)
+        {
+            return input;
         }
     }
 }";
