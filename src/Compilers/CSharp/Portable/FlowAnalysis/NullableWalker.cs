@@ -58,15 +58,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             public readonly TypeWithState RValueType;
             public readonly TypeWithAnnotations LValueType;
+            public readonly int Slot;
 
-            public VisitResult(TypeWithState rValueType, TypeWithAnnotations lValueType)
+            public VisitResult(TypeWithState rValueType, TypeWithAnnotations lValueType, int slot)
             {
                 RValueType = rValueType;
                 LValueType = lValueType;
+                Slot = slot;
             }
 
             private string GetDebuggerDisplay() =>
-                $"RValueType={RValueType.GetDebuggerDisplay()}, LValueType={LValueType.GetDebuggerDisplay()}";
+                $"RValueType={RValueType.GetDebuggerDisplay()}, LValueType={LValueType.GetDebuggerDisplay()}, Slot={Slot}";
         }
 
         /// <summary>
@@ -139,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get => _visitResult.RValueType;
             set
             {
-                SetResult(rvalueType: value, lvalueType: value.ToTypeWithAnnotations());
+                SetResult(rvalueType: value, lvalueType: value.ToTypeWithAnnotations(), slot: -1);
             }
         }
 
@@ -148,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void UseRvalueOnly()
         {
-            ResultType = ResultType;
+            SetResult(rvalueType: _visitResult.RValueType, _visitResult.Slot);
         }
 
         private TypeWithAnnotations LvalueResultType
@@ -156,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get => _visitResult.LValueType;
             set
             {
-                SetResult(rvalueType: value.ToTypeWithState(), lvalueType: value);
+                SetResult(rvalueType: value.ToTypeWithState(), lvalueType: value, slot: -1);
             }
         }
 
@@ -165,12 +167,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void UseLvalueOnly()
         {
-            LvalueResultType = LvalueResultType;
+            SetResult(lvalueType: _visitResult.LValueType, _visitResult.Slot);
         }
 
-        private void SetResult(TypeWithState rvalueType, TypeWithAnnotations lvalueType)
+        private void SetResult(TypeWithState rvalueType, TypeWithAnnotations lvalueType, int slot)
         {
-            _visitResult = new VisitResult(rvalueType, lvalueType);
+            _visitResult = new VisitResult(rvalueType, lvalueType, slot);
+        }
+
+        private void SetResult(TypeWithState rvalueType, int slot)
+        {
+            SetResult(rvalueType, lvalueType: rvalueType.ToTypeWithAnnotations(), slot);
+        }
+
+        private void SetResult(TypeWithAnnotations lvalueType, int slot)
+        {
+            SetResult(rvalueType: lvalueType.ToTypeWithState(), lvalueType, slot);
         }
 
         /// <summary>
@@ -1352,7 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var local = node.LocalSymbol;
             int slot = GetOrCreateSlot(local);
             var type = GetDeclaredLocalResult(local);
-            SetResult(GetAdjustedResult(type, slot), type);
+            SetResult(GetAdjustedResult(type, slot), type, slot);
             return null;
         }
 
@@ -1400,7 +1412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool wasReachable = this.State.Reachable;
             ResultType = _invalidType;
             _ = base.VisitExpressionWithoutStackGuard(node);
-            TypeWithState resultType = ResultType;
+            TypeWithState resultType = _visitResult.RValueType;
 
 #if DEBUG
             // Verify Visit method set _result.
@@ -1410,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.IsSuppressed || node.HasAnyErrors || !wasReachable)
             {
                 resultType = resultType.WithNotNullState();
-                SetResult(resultType, LvalueResultType);
+                SetResult(resultType, LvalueResultType, _visitResult.Slot);
             }
 
             _callbackOpt?.Invoke(node, resultType.ToTypeWithAnnotations());
@@ -1529,7 +1541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitObjectCreationInitializer(null, slot, initializerOpt);
             }
 
-            ResultType = new TypeWithState(type, resultState);
+            SetResult(rvalueType: new TypeWithState(type, resultState), slot: slot);
         }
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
@@ -4359,9 +4371,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitThisOrBaseReference(BoundExpression node)
         {
+            int slot = MakeSlot(node);
             var rvalueResult = new TypeWithState(node.Type, NullableFlowState.NotNull);
             var lvalueResult = TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
-            SetResult(rvalueResult, lvalueResult);
+            SetResult(rvalueResult, lvalueResult, slot);
         }
 
         public override BoundNode VisitParameter(BoundParameter node)
@@ -4369,7 +4382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameter = node.ParameterSymbol;
             int slot = GetOrCreateSlot(parameter);
             var type = GetDeclaredParameterResult(parameter);
-            SetResult(GetAdjustedResult(type, slot), type);
+            SetResult(GetAdjustedResult(type, slot), type, slot);
             return null;
         }
 
@@ -4402,8 +4415,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rightType = VisitRefExpression(right, leftLValueType);
                 }
 
-                TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightType, MakeSlot(right));
-                SetResult(new TypeWithState(leftLValueType.Type, rightType.State), leftLValueType);
+                int leftSlot = MakeSlot(left);
+                int rightSlot = MakeSlot(right);
+                TrackNullableStateForAssignment(right, leftLValueType, leftSlot, rightType, rightSlot);
+                SetResult(new TypeWithState(leftLValueType.Type, rightType.State), leftLValueType, leftSlot);
             }
 
             return null;
@@ -4493,9 +4508,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             var parameter = parameters[i + offset];
+                            int targetSlot = MakeSlot(variable.Expression);
                             VisitArgumentConversion(
                                 variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
-                                new VisitResult(variable.Type.ToTypeWithState(), variable.Type), extensionMethodThisArgument: false);
+                                new VisitResult(variable.Type.ToTypeWithState(), variable.Type, targetSlot), extensionMethodThisArgument: false);
                         }
                     }
                 }
@@ -4938,12 +4954,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var type = member.GetTypeOrReturnType();
             var resultType = type.ToTypeWithState();
+            int slot = -1;
 
             // We are supposed to track information for the node. Use whatever we managed to
             // accumulate so far.
             if (PossiblyNullableType(resultType.Type))
             {
-                int slot = MakeMemberSlot(receiverOpt, member);
+                slot = MakeMemberSlot(receiverOpt, member);
                 if (slot > 0 && slot < this.State.Capacity)
                 {
                     var state = this.State[slot];
@@ -4962,7 +4979,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            SetResult(resultType, type);
+            SetResult(resultType, type, slot);
         }
 
         private SpecialMember? GetNullableOfTMember(Symbol member)
@@ -5694,7 +5711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = TypeWithAnnotations.Create(node.Type);
             var rValueType = new TypeWithState(node.Type, NullableFlowState.MaybeNull);
-            SetResult(rValueType, result);
+            SetResult(rValueType, result, slot: -1);
             return null;
         }
 
