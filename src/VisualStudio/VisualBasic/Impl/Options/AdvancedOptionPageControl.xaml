@@ -117,6 +117,14 @@
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
                 </StackPanel>
             </GroupBox>
+            
+            <GroupBox x:Uid="ClassificationsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Classifications}">
+                <StackPanel>
+                    <CheckBox x:Name="Use_enhanced_colors"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Use_enhanced_colors_for_C_and_Basic}" />
+                </StackPanel>
+            </GroupBox>
 
             <GroupBox x:Uid="ExtractMethodGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
