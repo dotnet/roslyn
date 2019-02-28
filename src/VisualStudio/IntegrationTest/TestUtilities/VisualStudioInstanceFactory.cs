@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     baseFileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}";
                 }
 
-                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
+                Directory.CreateDirectory(logDir);
 
                 var exception = eventArgs.Exception;
                 File.WriteAllText(
@@ -82,6 +82,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
                 EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
+
+                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
             }
             finally
             {
