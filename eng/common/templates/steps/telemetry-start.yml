@@ -201,6 +201,7 @@ steps:
     MaxRetries: ${{ parameters.maxRetries }}
     RetryDelay: ${{ parameters.retryDelay }}
   condition: and(always(), eq(variables['Agent.Os'], 'Windows_NT'))
+  displayName: Send Windows Job Start Telemetry
 - powershell: |
     # Basic retry loop to harden against server flakiness
     $retryCount = 0

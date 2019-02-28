@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
@@ -11,17 +12,29 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
     internal class RegexEmbeddedLanguageFeatures : RegexEmbeddedLanguage, IEmbeddedLanguageFeatures
     {
+        private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
+
         public IDocumentHighlightsService DocumentHighlightsService { get; }
         public ImmutableArray<AbstractBuiltInCodeStyleDiagnosticAnalyzer> DiagnosticAnalyzers { get; }
 
         // No CodeFixProvider for any regex diagnostics.
         public SyntaxEditorBasedCodeFixProvider CodeFixProvider => null;
+        public CompletionProvider CompletionProvider { get; }
 
-        public RegexEmbeddedLanguageFeatures(EmbeddedLanguageInfo info) : base(info)
+        public RegexEmbeddedLanguageFeatures(
+            AbstractEmbeddedLanguageFeaturesProvider provider,
+            EmbeddedLanguageInfo info) : base(info)
         {
+            _provider = provider;
+
             DocumentHighlightsService = new RegexDocumentHighlightsService(this);
             DiagnosticAnalyzers = ImmutableArray.Create<AbstractBuiltInCodeStyleDiagnosticAnalyzer>(
                 new RegexDiagnosticAnalyzer(info));
+
+            CompletionProvider = new RegexEmbeddedCompletionProvider(this);
         }
+
+        public string EscapeText(string text, SyntaxToken token)
+            => _provider.EscapeText(text, token);
     }
 }

@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 nameof(HighlightRelatedRegexComponentsUnderCursor),
                 defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.HighlightRelatedRegexComponentsUnderCursor"));
+
+        public static PerLanguageOption<bool> ProvideRegexCompletions =
+            new PerLanguageOption<bool>(
+                nameof(RegexFeatureOptions),
+                nameof(ProvideRegexCompletions),
+                defaultValue: true,
+                storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ProvideRegexCompletions"));
     }
 
     [ExportOptionProvider, Shared]

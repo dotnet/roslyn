@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
@@ -19,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal partial class AdvancedOptionPageControl : AbstractOptionPageControl
     {
-        public AdvancedOptionPageControl(IServiceProvider serviceProvider) : base(serviceProvider)
+        public AdvancedOptionPageControl(OptionStore optionStore) : base(optionStore)
         {
             InitializeComponent();
 
@@ -65,11 +64,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Colorize_regular_expressions, RegexFeatureOptions.ColorizeRegexPatterns, LanguageNames.CSharp);
             BindToOption(Report_invalid_regular_expressions, RegexFeatureOptions.ReportInvalidRegexPatterns, LanguageNames.CSharp);
             BindToOption(Highlight_related_regular_expression_components_under_cursor, RegexFeatureOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
+            BindToOption(Show_completion_list, RegexFeatureOptions.ProvideRegexCompletions, LanguageNames.CSharp);
 
             BindToOption(Detect_and_offer_editor_features_for_likely_JSON_strings, JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, LanguageNames.CSharp);
             BindToOption(Colorize_JSON_strings, JsonFeatureOptions.ColorizeJsonPatterns, LanguageNames.CSharp);
             BindToOption(Report_invalid_JSON_strings, JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.CSharp);
             BindToOption(Highlight_related_JSON_components_under_cursor, JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.CSharp);
+
+            BindToOption(Use_enhanced_colors, FeatureOnOffOptions.UseEnhancedColors);
         }
     }
 }

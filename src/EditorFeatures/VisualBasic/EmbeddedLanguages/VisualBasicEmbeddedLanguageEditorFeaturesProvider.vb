@@ -20,5 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
         Friend Overrides Sub AddComment(editor As SyntaxEditor, stringLiteral As SyntaxToken, commentContents As String)
             EmbeddedLanguageUtilities.AddComment(editor, stringLiteral, commentContents)
         End Sub
+
+        Friend Overrides Function EscapeText(text As String, token As SyntaxToken) As String
+            Return EmbeddedLanguageUtilities.EscapeText(text, token)
+        End Function
     End Class
 End Namespace

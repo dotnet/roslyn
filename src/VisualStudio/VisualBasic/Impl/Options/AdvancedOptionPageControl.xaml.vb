@@ -12,11 +12,12 @@ Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Friend Class AdvancedOptionPageControl
-        Public Sub New(serviceProvider As IServiceProvider)
-            MyBase.New(serviceProvider)
+        Public Sub New(optionStore As OptionStore)
+            MyBase.New(optionStore)
 
             InitializeComponent()
 
@@ -62,11 +63,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Colorize_regular_expressions, RegexFeatureOptions.ColorizeRegexPatterns, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_regular_expressions, RegexFeatureOptions.ReportInvalidRegexPatterns, LanguageNames.VisualBasic)
             BindToOption(Highlight_related_regular_expression_components_under_cursor, RegexFeatureOptions.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.VisualBasic)
+            BindToOption(Show_completion_list, RegexFeatureOptions.ProvideRegexCompletions, LanguageNames.VisualBasic)
 
             BindToOption(Detect_and_offer_editor_features_for_likely_JSON_strings, JsonFeatureOptions.DetectAndOfferEditorFeaturesForProbableJsonStrings, LanguageNames.VisualBasic)
             BindToOption(Colorize_JSON_strings, JsonFeatureOptions.ColorizeJsonPatterns, LanguageNames.VisualBasic)
             BindToOption(Report_invalid_JSON_strings, JsonFeatureOptions.ReportInvalidJsonPatterns, LanguageNames.VisualBasic)
             BindToOption(Highlight_related_JSON_components_under_cursor, JsonFeatureOptions.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.VisualBasic)
+
+            BindToOption(Use_enhanced_colors, FeatureOnOffOptions.UseEnhancedColors)
         End Sub
     End Class
 End Namespace

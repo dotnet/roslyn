@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
@@ -19,5 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages
 
         internal override void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents)
             => EmbeddedLanguageUtilities.AddComment(editor, stringLiteral, commentContents);
+
+        internal override string EscapeText(string text, SyntaxToken token)
+            => EmbeddedLanguageUtilities.EscapeText(text, token);
     }
 }

@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// </summary>
     internal partial class FallbackEmbeddedLanguage : IEmbeddedLanguage
     {
+        public ISyntaxClassifier Classifier { get; }
+
         public FallbackEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
             Classifier = new FallbackSyntaxClassifier(info);
         }
-
-        public ISyntaxClassifier Classifier { get; }
     }
 }

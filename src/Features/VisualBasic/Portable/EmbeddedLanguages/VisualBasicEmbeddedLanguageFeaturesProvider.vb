@@ -5,7 +5,6 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
     <ExportLanguageService(GetType(IEmbeddedLanguageFeaturesProvider), LanguageNames.VisualBasic), [Shared]>
@@ -21,5 +20,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
         Friend Overrides Sub AddComment(editor As SyntaxEditor, stringLiteral As SyntaxToken, commentContents As String)
             EmbeddedLanguageUtilities.AddComment(editor, stringLiteral, commentContents)
         End Sub
+
+        Friend Overrides Function EscapeText(text As String, token As SyntaxToken) As String
+            Return EmbeddedLanguageUtilities.EscapeText(text, token)
+        End Function
     End Class
 End Namespace

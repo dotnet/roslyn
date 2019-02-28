@@ -15,5 +15,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
                                                    WithPrependedLeadingTrivia(leadingBlankLines.AddRange(trivia))
             editor.ReplaceNode(containingStatement, newStatement)
         End Sub
+
+        Public Function EscapeText(text As String, token As SyntaxToken) As String
+            ' VB has no need to escape any regex characters that would be passed in through this API.
+            Return text
+        End Function
     End Module
 End Namespace

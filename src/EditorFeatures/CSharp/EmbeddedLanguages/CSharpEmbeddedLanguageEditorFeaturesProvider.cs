@@ -21,5 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.EmbeddedLanguages
 
         internal override void AddComment(SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents)
             => EmbeddedLanguageUtilities.AddComment(editor, stringLiteral, commentContents);
+
+        internal override string EscapeText(string text, SyntaxToken token)
+            => EmbeddedLanguageUtilities.EscapeText(text, token);
     }
 }
