@@ -174,6 +174,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Overloads Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
 
+        Public MustOverride Overloads Sub ToggleSuggestionMode()
+
         Public Overloads Sub SendTypeCharsToSpecificViewAndBuffer(typeChars As String, view As IWpfTextView, buffer As ITextBuffer)
             For Each ch In typeChars
                 Dim localCh = ch
