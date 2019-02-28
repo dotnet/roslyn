@@ -36,14 +36,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             /// </summary>
             private ImmutableArray<CodeActionOperation> RenameFileToMatchTypeName()
             {
-                var oldDocument = SemanticDocument.Document;
-                var newDocumentId = DocumentId.CreateNewId(oldDocument.Project.Id, FileName);
+                var documentId = SemanticDocument.Document.Id;
+                var oldSolution = SemanticDocument.Document.Project.Solution;
+                var newSolution = oldSolution.WithDocumentName(documentId, FileName);
 
                 return ImmutableArray.Create<CodeActionOperation>(
-                    new RenameDocumentOperation(
-                        oldDocument.Id, newDocumentId,
-                        FileName, SemanticDocument.Text),
-                    new OpenDocumentOperation(newDocumentId, activateIfAlreadyOpen: true));
+                    new ApplyChangesOperation(newSolution));
             }
         }
     }
