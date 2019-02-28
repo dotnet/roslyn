@@ -11,6 +11,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.SuggestionMode
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Tags
+Imports Microsoft.CodeAnalysis.Completion.Providers
+Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     <ExportLanguageServiceFactory(GetType(CompletionService), LanguageNames.VisualBasic), [Shared]>
@@ -40,8 +42,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New CompletionListTagCompletionProvider(),
             New OverrideCompletionProvider(),
             New XmlDocCommentCompletionProvider(),
-            New InternalsVisibleToCompletionProvider()
-        )
+            New InternalsVisibleToCompletionProvider(),
+            New EmbeddedLanguageCompletionProvider(VisualBasicEmbeddedLanguageFeaturesProvider.Instance))
 
         Private ReadOnly _workspace As Workspace
 

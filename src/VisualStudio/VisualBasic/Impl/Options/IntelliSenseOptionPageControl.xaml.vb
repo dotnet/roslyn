@@ -9,12 +9,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     Partial Friend Class IntelliSenseOptionPageControl
         Inherits AbstractOptionPageControl
 
-        Public Sub New(serviceProvider As IServiceProvider)
-            MyBase.New(serviceProvider)
+        Public Sub New(optionStore As OptionStore)
+            MyBase.New(optionStore)
             InitializeComponent()
 
             BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
-            Show_completion_list_after_a_character_is_deleted.IsChecked = Me.OptionService.GetOption(
+            Show_completion_list_after_a_character_is_deleted.IsChecked = Me.OptionStore.GetOption(
                 CompletionOptions.TriggerOnDeletion, LanguageNames.VisualBasic) <> False
 
             BindToOption(Show_completion_item_filters, CompletionOptions.ShowCompletionItemFilters, LanguageNames.VisualBasic)
@@ -30,15 +30,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Sub
 
         Private Sub Show_completion_list_after_a_character_is_deleted_Checked(sender As Object, e As RoutedEventArgs)
-            Me.OptionService.SetOptions(
-                Me.OptionService.GetOptions().WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.VisualBasic, value:=True))
+            Me.OptionStore.SetOption(CompletionOptions.TriggerOnDeletion, LanguageNames.VisualBasic, value:=True)
         End Sub
 
         Private Sub Show_completion_list_after_a_character_is_deleted_Unchecked(sender As Object, e As RoutedEventArgs)
-            Me.OptionService.SetOptions(
-                Me.OptionService.GetOptions().WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.VisualBasic, value:=False))
+            Me.OptionStore.SetOption(CompletionOptions.TriggerOnDeletion, LanguageNames.VisualBasic, value:=False)
         End Sub
     End Class
 End Namespace
