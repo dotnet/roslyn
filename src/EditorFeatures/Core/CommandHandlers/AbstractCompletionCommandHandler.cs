@@ -299,8 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
-            AssertIsForeground();
-            return GetCommandStateWorker(args, nextHandler);
+            return nextHandler();
         }
 
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
@@ -316,8 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public VSCommanding.CommandState GetCommandState(UpKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
-            AssertIsForeground();
-            return GetCommandStateWorker(args, nextHandler);
+            return nextHandler();
         }
 
         public void ExecuteCommand(UpKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
@@ -333,8 +331,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         public VSCommanding.CommandState GetCommandState(DownKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
-            AssertIsForeground();
-            return GetCommandStateWorker(args, nextHandler);
+            return nextHandler();
         }
 
         public void ExecuteCommand(DownKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
