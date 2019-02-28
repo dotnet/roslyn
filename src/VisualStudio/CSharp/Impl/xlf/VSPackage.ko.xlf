@@ -77,7 +77,8 @@ When generating property;
 prefer throwing properties;
 prefer auto properties;
 regex;
-regular expression;</source>
+regular expression;
+Use enhanced colors;</source>
         <target state="needs-review-translation">닫힌 파일에 대한 진단 표시;
 정규식 색 지정; 
 커서 아래의 관련 구성 요소 강조; 

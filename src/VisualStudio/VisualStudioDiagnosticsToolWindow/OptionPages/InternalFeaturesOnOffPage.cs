@@ -16,15 +16,15 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     [Guid(Guids.RoslynOptionPageFeatureManagerFeaturesIdString)]
     internal class InternalFeaturesOnOffPage : AbstractOptionPage
     {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            return new InternalFeaturesOptionsControl(nameof(InternalFeatureOnOffOptions), serviceProvider);
+            return new InternalFeaturesOptionsControl(nameof(InternalFeatureOnOffOptions), optionStore);
         }
 
         internal class InternalFeaturesOptionsControl : InternalOptionsControl
         {
-            public InternalFeaturesOptionsControl(string featureOptionName, IServiceProvider serviceProvider)
-                : base(featureOptionName, serviceProvider)
+            public InternalFeaturesOptionsControl(string featureOptionName, OptionStore optionStore)
+                : base(featureOptionName, optionStore)
             {
             }
 

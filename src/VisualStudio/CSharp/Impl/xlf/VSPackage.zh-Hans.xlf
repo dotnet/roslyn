@@ -77,7 +77,8 @@ When generating property;
 prefer throwing properties;
 prefer auto properties;
 regex;
-regular expression;</source>
+regular expression;
+Use enhanced colors;</source>
         <target state="needs-review-translation">显示已关闭文件的诊断;
 为正则表达式着色;
 突出显示光标下的相关组件;
