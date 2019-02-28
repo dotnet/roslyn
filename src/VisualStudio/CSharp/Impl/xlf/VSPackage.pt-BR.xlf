@@ -75,8 +75,11 @@ with other members of the same kind;
 at the end;
 When generating property;
 prefer throwing properties;
-prefer auto properties;</source>
-        <target state="translated">Mostrar diagnósticos para arquivos fechados;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="needs-review-translation">Mostrar diagnósticos para arquivos fechados;
 Colorir a expressão regular; 
 Destacar os componentes relacionados sob o cursor; 
 Relatório inválidas expressões regulares;

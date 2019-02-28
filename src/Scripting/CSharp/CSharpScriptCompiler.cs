@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting
                     mainTypeName: null,
                     scriptClassName: submissionTypeName,
                     usings: script.Options.Imports,
-                    optimizationLevel: OptimizationLevel.Debug, // TODO
-                    checkOverflow: false,                       // TODO
-                    allowUnsafe: true,                          // TODO
+                    optimizationLevel: script.Options.OptimizationLevel,
+                    checkOverflow: script.Options.CheckOverflow,
+                    allowUnsafe: script.Options.AllowUnsafe,
                     platform: Platform.AnyCpu,
-                    warningLevel: 4,
+                    warningLevel: script.Options.WarningLevel,
                     xmlReferenceResolver: null, // don't support XML file references in interactive (permissions & doc comment includes)
                     sourceReferenceResolver: script.Options.SourceResolver,
                     metadataReferenceResolver: script.Options.MetadataResolver,

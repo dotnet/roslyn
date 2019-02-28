@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
@@ -20,7 +21,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19530"), Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
         public void NavigateTo()
         {
             using (var telemetry = VisualStudio.EnableTestTelemetryChannel())
@@ -37,8 +38,7 @@ class FirstClass
                 VisualStudio.SolutionExplorer.AddFile(project, "test2.cs", open: true, contents: @"
 ");
 
-                VisualStudio.Editor.InvokeNavigateTo("FirstMethod");
-                VisualStudio.Editor.NavigateToSendKeys("{ENTER}");
+                VisualStudio.Editor.InvokeNavigateTo("FirstMethod", VirtualKey.Enter);
                 VisualStudio.Editor.WaitForActiveView("test1.cs");
                 Assert.Equal("FirstMethod", VisualStudio.Editor.GetSelectedText());
 
@@ -47,8 +47,7 @@ class FirstClass
                 VisualStudio.SolutionExplorer.AddProject(vbProject, WellKnownProjectTemplates.ClassLibrary, LanguageNames.VisualBasic);
                 VisualStudio.SolutionExplorer.AddFile(vbProject, "vbfile.vb", open: true);
 
-                VisualStudio.Editor.InvokeNavigateTo("FirstClass");
-                VisualStudio.Editor.NavigateToSendKeys("{ENTER}");
+                VisualStudio.Editor.InvokeNavigateTo("FirstClass", VirtualKey.Enter);
                 VisualStudio.Editor.WaitForActiveView("test1.cs");
                 Assert.Equal("FirstClass", VisualStudio.Editor.GetSelectedText());
                 telemetry.VerifyFired("vs/ide/vbcs/navigateto/search", "vs/platform/goto/launch");
