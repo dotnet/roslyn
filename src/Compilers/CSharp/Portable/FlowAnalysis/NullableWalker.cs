@@ -130,6 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Force the inference of the LValueResultType from ResultType.
+        /// </summary>
+        private void UseRvalueOnly()
+        {
+            ResultType = ResultType;
+        }
+
         private TypeSymbolWithAnnotations LvalueResultType
         {
             get => _visitResult.LValueType;
@@ -137,6 +145,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SetResult(resultType: value.ToTypeWithState(), lvalueType: value);
             }
+        }
+
+        /// <summary>
+        /// Force the inference of the ResultType from LValueResultType.
+        /// </summary>
+        private void UseLvalueOnly()
+        {
+            LvalueResultType = LvalueResultType;
         }
 
         private void SetResult(TypeWithState resultType, TypeSymbolWithAnnotations lvalueType)
@@ -455,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
         {
             symbol = GetBackingFieldIfStructProperty(symbol);
-            if ((object)symbol == null)
+            if (symbol is null)
             {
                 return -1;
             }
@@ -605,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Visit(node);
             Unsplit();
-            ResultType = ResultType; // drop lvalue part
+            UseRvalueOnly(); // drop lvalue part
         }
 
         private TypeWithState VisitRvalueWithState(BoundExpression node)
@@ -1434,7 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _placeholderLocalsOpt.TryGetValue(node, out placeholder);
             }
 
-            if ((object)placeholder == null)
+            if (placeholder is null)
             {
                 placeholder = new ObjectCreationPlaceholderLocal(_symbol, node);
                 _placeholderLocalsOpt.Add(node, placeholder);
@@ -2632,7 +2648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Visit(argument);
                         // No Unsplit
-                        ResultType = ResultType; // force use of flow result
+                        UseRvalueOnly(); // force use of flow result
                     }
                     else
                     {
@@ -2645,7 +2661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Visit(argument);
 
                     // We'll want to use the l-value type, rather than the result type, for method re-inference
-                    LvalueResultType = LvalueResultType;
+                    UseLvalueOnly();
                     break;
             }
 
@@ -3241,7 +3257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)symbol != null);
 
             var containingType = type as NamedTypeSymbol;
-            if ((object)containingType == null || containingType.IsErrorType() || symbol is ErrorMethodSymbol)
+            if (containingType is null || containingType.IsErrorType() || symbol is ErrorMethodSymbol)
             {
                 return symbol;
             }
@@ -3281,7 +3297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
                 containingType = containingType.BaseTypeNoUseSiteDiagnostics;
-                if ((object)containingType == null)
+                if (containingType is null)
                 {
                     break;
                 }
@@ -3430,7 +3446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var arguments = node.Arguments;
             ImmutableArray<TypeWithState> elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalueWithState(a), this);
-            ImmutableArray<TypeSymbolWithAnnotations> elementTypesWithAnnotations = elementTypes.SelectAsArray((a, w) => a.ToTypeSymbolWithAnnotations(), this);
+            ImmutableArray<TypeSymbolWithAnnotations> elementTypesWithAnnotations = elementTypes.SelectAsArray(a => a.ToTypeSymbolWithAnnotations());
             var tupleOpt = (TupleTypeSymbol)node.Type;
             if (tupleOpt is null)
             {
@@ -4401,7 +4417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 TypeWithState resultOfIncrementType;
-                if ((object)incrementOperator == null)
+                if (incrementOperator is null)
                 {
                     resultOfIncrementType = resultOfOperandConversionType;
                 }
@@ -4918,7 +4934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(node.Kind);
                 }
 
-                Debug.Assert((object)trueFalseOperator == null || ((object)logicalOperator != null && left != null));
+                Debug.Assert(trueFalseOperator is null || ((object)logicalOperator != null && left != null));
 
                 if ((object)trueFalseOperator != null)
                 {
@@ -4961,7 +4977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var result = base.VisitAwaitExpression(node);
             CheckPossibleNullReceiver(node.Expression);
-            if (node.Type.IsValueType || node.HasErrors || (object)node.AwaitableInfo.GetResult == null)
+            if (node.Type.IsValueType || node.HasErrors || node.AwaitableInfo.GetResult is null)
             {
                 SetNotNullResult(node);
             }
@@ -5058,28 +5074,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (type.CanContainNull())
             {
-                var operandType = argumentType;
                 switch (node.Conversion.Kind)
                 {
                     case ConversionKind.Identity:
-                        // Inherit nullability from the operand
-                        resultState = operandType.State;
-                        break;
-
                     case ConversionKind.ImplicitReference:
-                        // Inherit nullability from the operand
-                        resultState = operandType.State;
-                        break;
-
                     case ConversionKind.Boxing:
-                        // Inherit nullability from the operand
-                        resultState = operandType.State;
-                        break;
-
                     case ConversionKind.ImplicitNullable:
-                        // conversion of a value of type `X` to the type `Nullable<X>`
-                        // conversion of a value of type `int?` to the type `long?`
-                        resultState = operandType.State;
+                        resultState = argumentType.State;
                         break;
 
                     default:
@@ -5114,7 +5115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
         {
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
-            Debug.Assert((object)node.Type == null);
+            Debug.Assert(node.Type is null);
             SetNotNullResult(node);
             return null;
         }
@@ -5293,7 +5294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             var result = base.VisitStackAllocArrayCreation(node);
-            Debug.Assert((object)node.Type == null || node.Type.IsPointerType() || node.Type.IsRefLikeType);
+            Debug.Assert(node.Type is null || node.Type.IsPointerType() || node.Type.IsRefLikeType);
             SetNotNullResult(node);
             return result;
         }
@@ -5313,8 +5314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableAnnotation nullableAnnotation = (object)node.Type != null && !node.Type.IsValueType ?
                 InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
                 NullableAnnotation.Unknown;
-            var result = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
-            LvalueResultType = result;
+            LvalueResultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
             return null;
         }
 
@@ -5323,18 +5323,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!this.IsConditionalState);
             if (receiverOpt != null && this.State.Reachable)
             {
-                var resultType = ResultType.Type;
-                if (resultType is null)
+                var resultTypeSymbol = ResultType.Type;
+                if (resultTypeSymbol is null)
                 {
                     return;
                 }
 #if DEBUG
-                Debug.Assert(receiverOpt.Type is null || AreCloseEnough(receiverOpt.Type, resultType));
+                Debug.Assert(receiverOpt.Type is null || AreCloseEnough(receiverOpt.Type, resultTypeSymbol));
 #endif
                 if (ResultType.MaybeNull)
                 {
-                    bool isValueType = resultType.IsValueType;
-                    if (isValueType && (!checkNullableValueType || !resultType.IsNullableTypeOrTypeParameter() || resultType.GetNullableUnderlyingType().IsErrorType()))
+                    bool isValueType = resultTypeSymbol.IsValueType;
+                    if (isValueType && (!checkNullableValueType || !resultTypeSymbol.IsNullableTypeOrTypeParameter() || resultTypeSymbol.GetNullableUnderlyingType().IsErrorType()))
                     {
                         return;
                     }

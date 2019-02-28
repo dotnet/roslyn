@@ -38351,6 +38351,9 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (5,9): warning CS8653: A default expression introduces a null value when 'T1' is a non-nullable reference type.
+                //         default(T1).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T1)").WithArguments("T1").WithLocation(5, 9),
                 // (5,9): warning CS8602: Possible dereference of a null reference.
                 //         default(T1).ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T1)").WithLocation(5, 9),
@@ -65919,7 +65922,7 @@ class Outer
     void M0<T>(T x0, T y0)
     {
         if (y0 == null) return;
-        (x0 ?? y0)?.ToString();
+        (x0 ?? y0).ToString();
     }
 }
 ";
@@ -77949,8 +77952,9 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33344")]
+        [Fact]
         [WorkItem(32575, "https://github.com/dotnet/roslyn/issues/32575")]
+        [WorkItem(33344, "https://github.com/dotnet/roslyn/issues/33344")]
         public void BestType_DifferentTupleNullability_11()
         {
             var source =
@@ -77959,23 +77963,19 @@ class Program
     static void F<T, U>(T t, U u)
         where U : class
     {
-        var x = new[] { (t, u), default }[0]/*T:(T t, U? u)*/;
+        var x = new[] { (t, u), default }[0]/*T:(T t, U u)*/; // should be (T t, U? u)
         x.Item1.ToString(); // 1
         x.Item2.ToString(); // 2
-        var y = new[] { default, (t, u) }[0]/*T:(T t, U? u)*/;
+        var y = new[] { default, (t, u) }[0]/*T:(T t, U u)*/; // should be (T t, U? u)
         y.Item1.ToString(); // 3
         y.Item2.ToString(); // 4
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32575: Not handling default for U.
             comp.VerifyDiagnostics(
-                // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         x.Item1.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Item1").WithLocation(7, 9),
-                // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         y.Item1.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Item1").WithLocation(10, 9));
+                // https://github.com/dotnet/roslyn/issues/32575: Not handling default for U.
+                // SHOULD BE 4 diagnostics.
+                );
             comp.VerifyTypes();
         }
 
