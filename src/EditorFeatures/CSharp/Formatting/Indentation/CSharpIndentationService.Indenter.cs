@@ -222,8 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                                 return GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language));
                             }
 
-                            // default case
-                            return GetDefaultIndentationFromToken(token);
+                            goto default;
                         }
 
                     case SyntaxKind.CloseBracketToken:
@@ -237,8 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                                 return GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart));
                             }
 
-                            // default case
-                            return GetDefaultIndentationFromToken(token);
+                            goto default;
                         }
 
                     case SyntaxKind.XmlTextLiteralToken:
@@ -258,8 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                                 return GetDefaultIndentationFromToken(token.Parent.GetFirstToken(includeZeroWidth: true));
                             }
 
-                            // default case
-                            return GetDefaultIndentationFromToken(token);
+                            goto default;
                         }
 
                     default:
