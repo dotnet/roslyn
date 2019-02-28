@@ -11762,8 +11762,8 @@ class C
     void Test1()
     {
         string? x1 = null;
-        string? y1 = x1; 
-        string z1 = x1; 
+        string? y1 = x1;
+        string z1 = x1;
     }
 
     void Test2()
@@ -12104,7 +12104,7 @@ struct S2
 
             c.VerifyDiagnostics(
                 // (12,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         string z1 = x1; 
+                //         string z1 = x1;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1").WithLocation(12, 21),
                 // (24,21): error CS0165: Use of unassigned local variable 'x3'
                 //         string z3 = x3;
@@ -12486,7 +12486,6 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-
                 // (7,11): warning CS8620: Nullability of reference types in argument of type 'I<object?>' doesn't match target type 'I<object>' for parameter 'x' in 'void C.G(I<object> x, params I<object?>[] y)'.
                 //         G(y);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("I<object?>", "I<object>", "x", "void C.G(I<object> x, params I<object?>[] y)").WithLocation(7, 11),
@@ -15490,7 +15489,7 @@ class C
     {
         T t = new T();
         M(out t!);
-        t.ToString();
+        t.ToString(); // no warning
     }
     void M<T>(out T t) => throw null!;
 }
@@ -23905,7 +23904,7 @@ public class B<T>
             var source =
 @"class C
 {
-    static T F<T>(T x, T y) => throw null;
+    static T F<T>(T x, T y) => throw null!;
     static void G0(B<object>.INone x0, B<object?>.INone y0)
     {
         var z0 = A.BON/*T:B<object>.INone!*/;
@@ -23965,9 +23964,6 @@ public class B<T>
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
             comp.VerifyDiagnostics(
-                // (3,38): warning CS8597: Possible null value.
-                //     static T F<T>(T x, T y) => throw null;
-                Diagnostic(ErrorCode.WRN_PossibleNull, "null").WithLocation(3, 38),
                 // (9,26): warning CS8619: Nullability of reference types in value of type 'B<object?>.INone' doesn't match target type 'B<object>.INone'.
                 //         o = (new[] { x0, y0 })[0]/*T:B<object!>.INone!*/; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y0").WithArguments("B<object?>.INone", "B<object>.INone").WithLocation(9, 26),
@@ -35950,6 +35946,7 @@ class C
     {
         M4().P1 = null;
         var x4 = M4().P1 ?? """";
+        M4().P1.ToString();
     }
 }
 
@@ -36408,6 +36405,7 @@ class C
     void Test4()
     {
         var x4 = M4() ?? """";
+        M4().ToString();
     }
 
     [System.Runtime.CompilerServices.NonNullTypes(false)]
@@ -37944,7 +37942,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a").WithArguments("List<string>", "List<string?>", "d", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(10, 36));
         }
 
-        [Fact(Skip = "PROTOTYPE(ngafter): pending integration with jcouv's suppress nullability")]
+        [Fact]
         public void SuppressNullableWarning_Ref_WithUnassignedLocals()
         {
             var source =
@@ -37986,12 +37984,6 @@ class C
                 // (15,22): warning CS8620: Argument of type 'List<string?>' cannot be used as an input of type 'List<string>' for parameter 'b' in 'void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)' due to differences in the nullability of reference types.
                 //         F(ref b, ref c, ref d, ref a);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "c").WithArguments("List<string?>", "List<string>", "b", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(15, 22),
-                // (15,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         F(ref b, ref c, ref d, ref a);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c").WithLocation(15, 22),
-                // (15,22): warning CS8624: Argument of type 'List<string?>' cannot be used as an output of type 'List<string>' for parameter 'b' in 'void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)' due to differences in the nullability of reference types.
-                //         F(ref b, ref c, ref d, ref a);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput, "c").WithArguments("List<string?>", "List<string>", "b", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(15, 22),
                 // (15,29): error CS0165: Use of unassigned local variable 'd'
                 //         F(ref b, ref c, ref d, ref a);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "d").WithArguments("d").WithLocation(15, 29),
@@ -38001,12 +37993,6 @@ class C
                 // (15,36): warning CS8620: Argument of type 'List<string>' cannot be used as an input of type 'List<string?>' for parameter 'd' in 'void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)' due to differences in the nullability of reference types.
                 //         F(ref b, ref c, ref d, ref a);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a").WithArguments("List<string>", "List<string?>", "d", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(15, 36),
-                // (15,36): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         F(ref b, ref c, ref d, ref a);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "a").WithLocation(15, 36),
-                // (15,36): warning CS8624: Argument of type 'List<string>' cannot be used as an output of type 'List<string?>' for parameter 'd' in 'void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)' due to differences in the nullability of reference types.
-                //         F(ref b, ref c, ref d, ref a);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgumentForOutput, "a").WithArguments("List<string>", "List<string?>", "d", "void C.F(ref List<string> a, ref List<string>? b, ref List<string?> c, ref List<string?>? d)").WithLocation(15, 36),
                 // (23,15): error CS0165: Use of unassigned local variable 'b'
                 //         F(ref b!, ref c!, ref d!, ref a!);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(23, 15),
@@ -38335,7 +38321,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(ngafter): pending integration with jcouv's suppress nullability")]
+        [Fact]
         public void SuppressNullableWarning_TypeParameters_01()
         {
             var source =
@@ -38383,7 +38369,7 @@ class C
                 );
         }
 
-        [Fact(Skip = "PROTOTYPE(ngafter): pending integration with jcouv's suppress nullability")]
+        [Fact]
         public void SuppressNullableWarning_TypeParameters_02()
         {
             var source =
@@ -39111,24 +39097,31 @@ class C
     {
         if (x1 is string y1)
         {
-            x1?.ToString(); // 1
-            y1?.ToString(); // 2
+            x1.ToString();
+            x1?.ToString();
+            y1.ToString();
+            y1?.ToString();
         }
-        x1?.ToString(); // 3
+        x1.ToString();
     }
     static void F2(object? x2)
     {
         if (x2 is string y2)
         {
-            x2?.ToString(); // 4
-            y2?.ToString(); // 5
+            x2.ToString();
+            x2?.ToString();
+            y2.ToString();
+            y2?.ToString();
         }
-        x2?.ToString();
+        x2.ToString(); // 1
     }
 }";
             // https://github.com/dotnet/roslyn/issues/30952: `is` declaration does not set not nullable for declared local.
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (23,9): warning CS8602: Possible dereference of a null reference.
+                //         x2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(23, 9));
         }
 
         [Fact]
@@ -40787,6 +40780,22 @@ class C
     static T M4<T>() where T: C?
     {
         return null; // 4
+    }
+    static T M5<T>() where T: class?
+    {
+        return (T)null!;
+    }
+    static T M6<T>() where T: C?
+    {
+        return (T)null!;
+    }
+    static T M7<T>() where T: class?
+    {
+        return null!;
+    }
+    static T M8<T>() where T: C?
+    {
+        return null!;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -43302,7 +43311,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         y.F.ToString(); // 1
@@ -43407,14 +43415,15 @@ class Program
         if (x.G != null) return;
         C y = x;
         x.F.ToString();
-        x.G.ToString(); // 1
-        y.F.ToString(); // 2
-        y.G.ToString(); // 1, 2
+        x.G.ToString(); // missing warning; see below
+        y.F.ToString();
+        y.G.ToString(); // missing warning; see below
     }
 }";
+            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null
+            // two warnings should appear once 32703 is fixed.
+
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null (see // 1).
-            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment (see // 2).
             comp.VerifyDiagnostics();
         }
 
@@ -46966,10 +46975,13 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            // Missing diagnostic at `// 1`
             // https://github.com/dotnet/roslyn/issues/29972: Should report WRN_NullReferenceReceiver using Enumerable.GetEnumerator.
+
             comp.VerifyDiagnostics(
                 // (13,27): warning CS8602: Possible dereference of a null reference.
-                //         foreach (var y in (IEnumerable?)e)
+                //         foreach (var y in (IEnumerable?)e) // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(IEnumerable?)e").WithLocation(13, 27)
                 );
         }
@@ -62072,12 +62084,11 @@ class C
         z = x[x = null]; // 1
         z = x[x.F]; // 2
         z = x[x.F];
-        y[y = null] = 1; // 4
+        y[y = null] = 1; // 3
         y[y.F] = 2; // 4
         y[y.F] = 3;
     }
 }";
-            // PROTOTYPE(ngafter): these diagnostics are messed up.  Look at the second-to-last one.
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/30598: Should report two warnings for x[x.F] and y[y.F].
             comp.VerifyDiagnostics(

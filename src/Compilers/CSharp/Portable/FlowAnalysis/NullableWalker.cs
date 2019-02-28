@@ -667,6 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (conversion.Kind == ConversionKind.UnsetConversionKind)
                     conversion = this._conversions.ClassifyImplicitConversionFromType(valueType.Type, targetType.TypeSymbol, ref useSiteDiagnostics);
+
                 if (conversion.IsImplicit && !conversion.IsDynamic)
                 {
                     // For type parameters that cannot be annotated, the analysis must report those
@@ -1211,7 +1212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     valueType = type.ToTypeWithState();
                 }
 
-                type = _variableTypes[local] = valueType.ToTypeSymbolWithAnnotations();
+                type = valueType.ToTypeSymbolWithAnnotations();
+                _variableTypes[local] = type;
             }
 
             TrackNullableStateForAssignment(initializer, type, slot, valueType, MakeSlot(initializer));
@@ -1235,7 +1237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.IsSuppressed || node.HasAnyErrors || !wasReachable)
             {
-                var result = resultType.WithNonNullState();
+                var result = resultType.WithNotNullState();
                 SetResult(result, LvalueResultType);
             }
             return null;
@@ -2306,7 +2308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Visit(operand);
                     if (node.HasErrors)
                     {
-                        ResultType = ResultType.WithNonNullState();
+                        ResultType = ResultType.WithNotNullState();
                     }
 
                     resultWithAnnotation = ResultType.ToTypeSymbolWithAnnotations();
@@ -2861,7 +2863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            parameterWithState = parameterWithState.WithNonNullState();
+                            parameterWithState = parameterWithState.WithNotNullState();
                         }
 
                         // Set nullable state of argument to parameter type.
@@ -3839,7 +3841,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.ExplicitNullable:
-                    resultState = operandType.State;
                     if (operandType.Type?.IsNullableType() == true && !targetType.IsNullableType())
                     {
                         // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
@@ -4062,9 +4063,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitThisOrBaseReference(BoundExpression node)
         {
-            var RvalueResult = new TypeWithState(node.Type, NullableFlowState.NotNull);
-            var LvalueResult = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.NotNullable);
-            SetResult(RvalueResult, LvalueResult);
+            var rvalueResult = new TypeWithState(node.Type, NullableFlowState.NotNull);
+            var lvalueResult = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.NotNullable);
+            SetResult(rvalueResult, lvalueResult);
         }
 
         public override BoundNode VisitParameter(BoundParameter node)

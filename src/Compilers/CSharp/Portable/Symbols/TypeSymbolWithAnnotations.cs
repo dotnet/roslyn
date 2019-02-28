@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeWithState(TypeSymbol type, NullableFlowState state) => (Type, State) = (type, state);
         public void Deconstruct(out TypeSymbol type, out NullableFlowState state) => (type, state) = (Type, State);
         public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
-        public TypeWithState WithNonNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
+        public TypeWithState WithNotNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
         public TypeSymbolWithAnnotations ToTypeSymbolWithAnnotations()
         {
             NullableAnnotation annotation = (this.State == NullableFlowState.NotNull)
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Join nullable annotations from distinct branches during flow analysis.
+        /// Join nullable flow states from distinct branches during flow analysis.
         /// </summary>
         public static NullableFlowState JoinForFlowAnalysisBranches(this NullableFlowState selfState, NullableFlowState otherState)
         {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Meet two nullable annotations from distinct states for the meet (union) operation in flow analysis.
+        /// Meet two nullable flow states from distinct states for the meet (union) operation in flow analysis.
         /// </summary>
         public static NullableFlowState MeetForFlowAnalysisFinally(this NullableFlowState selfState, NullableFlowState otherState)
         {
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Is this System.Nullable`1 type, or its substitution.
         /// </summary>
-        public bool IsNullableType() => TypeSymbol?.IsNullableType() == true;
+        public bool IsNullableType() => TypeSymbol.IsNullableType();
 
         /// <summary>
         /// The list of custom modifiers, if any, associated with the <see cref="TypeSymbol"/>.
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsErrorType() => TypeSymbol.IsErrorType();
         public bool IsUnsafe() => TypeSymbol.IsUnsafe();
         public bool IsStatic => _extensions.IsStatic(_defaultType);
-        public bool IsNullableTypeOrTypeParameter() => TypeSymbol?.IsNullableTypeOrTypeParameter() == true;
+        public bool IsNullableTypeOrTypeParameter() => TypeSymbol.IsNullableTypeOrTypeParameter();
         public bool IsVoid => _extensions.IsVoid(_defaultType);
         public bool IsSZArray() => _extensions.IsSZArray(_defaultType);
         public TypeSymbolWithAnnotations GetNullableUnderlyingType() =>
@@ -608,10 +608,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!HasType)
             {
-                return !other.HasType;
+                if (other.HasType || NullableAnnotation != other.NullableAnnotation)
+                    return false;
             }
-
-            if (!other.HasType || !TypeSymbolEquals(other, comparison))
+            else if (!other.HasType || !TypeSymbolEquals(other, comparison))
             {
                 return false;
             }
@@ -623,10 +623,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if ((comparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0)
+            var thisAnnotation = NullableAnnotation;
+            var otherAnnotation = other.NullableAnnotation;
+            if (!HasType)
             {
-                var thisAnnotation = NullableAnnotation;
-                var otherAnnotation = other.NullableAnnotation;
+                return thisAnnotation == otherAnnotation;
+            }
+            else if ((comparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0)
+            {
                 if (otherAnnotation != thisAnnotation && (!TypeSymbol.IsValueType || TypeSymbol.IsNullableType()))
                 {
                     if (thisAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.Unknown)
