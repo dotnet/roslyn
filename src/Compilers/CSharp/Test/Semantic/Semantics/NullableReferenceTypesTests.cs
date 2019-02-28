@@ -80249,7 +80249,7 @@ class Program
 
         [Fact]
         [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
-        public void ImplicitConstructor_02()
+        public void ImplicitStaticConstructor_01()
         {
             var source =
 @"#pragma warning disable 414
@@ -80267,7 +80267,7 @@ class Program
         [Fact]
         [WorkItem(26628, "https://github.com/dotnet/roslyn/issues/26628")]
         [WorkItem(33394, "https://github.com/dotnet/roslyn/issues/33394")]
-        public void ImplicitConstructor_03()
+        public void ImplicitStaticConstructor_02()
         {
             var source =
 @"class C
@@ -81342,7 +81342,7 @@ class Program
         where U : class
     {
         T? x = new T();
-        T y = null; // 1
+        U y = null; // 1
         var ix = CreateC(x);
         var iy = CreateC(y);
         ix.A(y).ToString(); // 2
@@ -81354,7 +81354,7 @@ class Program
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (23,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         T y = null; // 1
+                //         U y = null; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(23, 15),
                 // (26,9): warning CS8602: Possible dereference of a null reference.
                 //         ix.A(y).ToString(); // 2
