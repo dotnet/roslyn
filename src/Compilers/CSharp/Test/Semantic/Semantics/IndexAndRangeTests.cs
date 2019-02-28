@@ -144,6 +144,28 @@ namespace System
         }
 
         [Fact]
+        public void StringIndexers()
+        {
+            // The string type in our standard references don't have indexers for string or range
+            var comp = CreateCompilationWithIndexAndRange(@"
+class C
+{
+    public void M(string s)
+    {
+        var x = s[^0];
+        var y = s[1..];
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,19): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         var x = s[^0];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(6, 19),
+                // (7,19): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         var y = s[1..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "1..").WithArguments("1", "System.Range", "int").WithLocation(7, 19));
+        }
+
+        [Fact]
         [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
         public void FromEndIllegalRef()
         {

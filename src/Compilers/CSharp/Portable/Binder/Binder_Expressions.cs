@@ -1979,25 +1979,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // fallback member, usable in any situation. However, if any of the other members
                 // are available and applicable, we will prefer that.
 
-                WellKnownMember? wmOpt = null;
+                WellKnownMember? memberOpt = null;
                 if (node.LeftOperand is null && node.RightOperand is null)
                 {
-                    wmOpt = WellKnownMember.System_Range__get_All;
+                    memberOpt = WellKnownMember.System_Range__get_All;
                 }
                 else if (node.LeftOperand is null)
                 {
-                    wmOpt = WellKnownMember.System_Range__EndAt;
+                    memberOpt = WellKnownMember.System_Range__EndAt;
                 }
                 else if (node.RightOperand is null)
                 {
-                    wmOpt = WellKnownMember.System_Range__StartAt;
+                    memberOpt = WellKnownMember.System_Range__StartAt;
                 }
 
-                if (!(wmOpt is null))
+                if (!(memberOpt is null))
                 {
                     symbolOpt = (MethodSymbol)GetWellKnownTypeMember(
                         Compilation,
-                        wmOpt.GetValueOrDefault(),
+                        memberOpt.GetValueOrDefault(),
                         diagnostics,
                         syntax: node,
                         isOptional: true);

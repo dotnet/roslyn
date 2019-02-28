@@ -83,12 +83,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sideeffects = ArrayBuilder<BoundExpression>.GetInstance();
             var locals = ArrayBuilder<LocalSymbol>.GetInstance();
 
-            // if (left.HasValue && right.HasValue)
-            //    makeRange(left.GetValueOrDefault(), right.GetValueOrDefault())
+            // makeRange(left.GetValueOrDefault(), right.GetValueOrDefault())
             BoundExpression condition = null;
             left = getIndexFromPossibleNullable(left);
             right = getIndexFromPossibleNullable(right);
             var rangeExpr = MakeRangeExpression(node.MethodOpt, left, right);
+
+            Debug.Assert(condition != null);
+
+            if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
+            {
+                return BadExpression(node.Syntax, node.Type, node);
+            }
+
+            // new Nullable(makeRange(left.GetValueOrDefault(), right.GetValueOrDefault()))
+            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeExpr);
+
+            // default
+            BoundExpression alternative = new BoundDefaultExpression(node.Syntax, constantValueOpt: null, node.Type);
+
+            // left.HasValue && right.HasValue
+            //     ? new Nullable(makeRange(left.GetValueOrDefault(), right.GetValueOrDefault()))
+            //     : default
+            BoundExpression conditionalExpression = RewriteConditionalOperator(
+                syntax: node.Syntax,
+                rewrittenCondition: condition,
+                rewrittenConsequence: consequence,
+                rewrittenAlternative: alternative,
+                constantValueOpt: null,
+                rewrittenType: node.Type,
+                isRef: false);
+
+            return new BoundSequence(
+                syntax: node.Syntax,
+                locals: locals.ToImmutableAndFree(),
+                sideEffects: sideeffects.ToImmutableAndFree(),
+                value: conditionalExpression,
+                type: node.Type);
+
             BoundExpression getIndexFromPossibleNullable(BoundExpression arg)
             {
                 if (arg is null)
@@ -117,36 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return tempOperand;
                 }
             }
-
-            Debug.Assert(condition != null);
-
-            if (!TryGetNullableMethod(node.Syntax, node.Type, SpecialMember.System_Nullable_T__ctor, out MethodSymbol nullableCtor))
-            {
-                return BadExpression(node.Syntax, node.Type, node);
-            }
-
-            // new Nullable(method(left.GetValueOrDefault(), right.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, binderOpt: null, rangeExpr);
-
-            // default
-            BoundExpression alternative = new BoundDefaultExpression(node.Syntax, constantValueOpt: null, node.Type);
-
-            // left.HasValue && right.HasValue ? new Nullable(method(left.GetValueOrDefault(), right.GetValueOrDefault())) : default
-            BoundExpression conditionalExpression = RewriteConditionalOperator(
-                syntax: node.Syntax,
-                rewrittenCondition: condition,
-                rewrittenConsequence: consequence,
-                rewrittenAlternative: alternative,
-                constantValueOpt: null,
-                rewrittenType: node.Type,
-                isRef: false);
-
-            return new BoundSequence(
-                syntax: node.Syntax,
-                locals: locals.ToImmutableAndFree(),
-                sideEffects: sideeffects.ToImmutableAndFree(),
-                value: conditionalExpression,
-                type: node.Type);
         }
 
         private BoundExpression MakeRangeExpression(
@@ -155,23 +157,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression right)
         {
             var F = _factory;
+            // The construction method may vary based on what well-known
+            // members were available during binding. Depending on which member
+            // is chosen we need to change our adjust our calling node.
             switch (constructionMethod.MethodKind)
             {
                 case MethodKind.Constructor:
-                    // The constructor can always be used to construct a range, but if
-                    // any of the arguments are missing then we need to construct replacement
-                    // Indexes
+                    // Represents Range..ctor(Index left, Index right)
+                    // The constructor can always be used to construct a range,
+                    // but if any of the arguments are missing then we need to
+                    // construct replacement Indexes
                     left = left ?? newIndexZero(fromEnd: false);
                     right = right ?? newIndexZero(fromEnd: true);
 
                     return F.New(constructionMethod, ImmutableArray.Create(left, right));
 
                 case MethodKind.Ordinary:
+                    // Represents either Range.StartAt or Range.EndAt, which
+                    // means that the `..` expression is missing an argument on
+                    // either the left or the right (i.e., `x..` or `..x`)
                     Debug.Assert(left is null ^ right is null);
+                    Debug.Assert(constructionMethod.MetadataName == "StartAt" ||
+                                 constructionMethod.MetadataName == "EndAt");
+                    Debug.Assert(constructionMethod.IsStatic);
                     var arg = left ?? right;
                     return F.StaticCall(constructionMethod, ImmutableArray.Create(arg));
 
                 case MethodKind.PropertyGet:
+                    // The only property is Range.All, so the expression must
+                    // be `..` with both arguments missing
+                    Debug.Assert(constructionMethod.MetadataName == "get_All");
+                    Debug.Assert(constructionMethod.IsStatic);
                     Debug.Assert(left is null && right is null);
                     return F.StaticCall(constructionMethod, ImmutableArray<BoundExpression>.Empty);
 
