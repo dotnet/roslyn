@@ -644,7 +644,7 @@ class C
 
             TestAnonymousTypePropertySymbol(model,
                                 tree.FindNodeOrTokenByKind(SyntaxKind.AnonymousObjectMemberDeclarator, 2).AsNode(),
-                                "System.String? <anonymous type: System.Int32 a, System.String b>.b { get; }");
+                                "System.String <anonymous type: System.Int32 a, System.String b>.b { get; }");
         }
 
         [Fact]
@@ -665,7 +665,7 @@ class C
 
             TestAnonymousTypePropertySymbol(model,
                                             tree.FindNodeOrTokenByKind(SyntaxKind.AnonymousObjectMemberDeclarator, 1).AsNode(),
-                                            "error? <anonymous type: error a, System.Int32 $1, System.Int32 b, error c>.a { get; }");
+                                            "error <anonymous type: error a, System.Int32 $1, System.Int32 b, error c>.a { get; }");
 
             TestAnonymousTypePropertySymbol(model,
                                             tree.FindNodeOrTokenByKind(SyntaxKind.AnonymousObjectMemberDeclarator, 2).AsNode(),
@@ -677,7 +677,7 @@ class C
 
             TestAnonymousTypePropertySymbol(model,
                                             tree.FindNodeOrTokenByKind(SyntaxKind.AnonymousObjectMemberDeclarator, 4).AsNode(),
-                                            "error? <anonymous type: error a, System.Int32 $1, System.Int32 b, error c>.c { get; }");
+                                            "error <anonymous type: error a, System.Int32 $1, System.Int32 b, error c>.c { get; }");
         }
 
         private void TestAnonymousTypePropertySymbol(SemanticModel model, SyntaxNode node, string name)

@@ -1070,7 +1070,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             new CSharpRequiredLanguageVersion(requiredVersion));
             }
 
-            var info = feature.GetFeatureAvailabilityDiagnosticInfo(this.Options);
+            var info = feature.GetFeatureAvailabilityDiagnosticInfoOpt(this.Options);
             if (info != null)
             {
                 if (forceWarning)

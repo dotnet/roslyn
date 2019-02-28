@@ -553,5 +553,26 @@ class C
 }",
 assertCaretPosition: true);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        [Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        [WorkItem(18104, "https://github.com/dotnet/roslyn/issues/18104")]
+        public void CompleteStatementTriggersCompletion()
+        {
+            SetUpEditor(@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        Main$$
+    }
+}");
+
+            VisualStudio.Editor.SendKeys("(ar");
+            VisualStudio.Editor.Verify.CurrentLineText("Main(ar$$)", assertCaretPosition: true);
+
+            VisualStudio.Editor.SendKeys(";");
+            VisualStudio.Editor.Verify.CurrentLineText("Main(args);$$", assertCaretPosition: true);
+        }
     }
 }

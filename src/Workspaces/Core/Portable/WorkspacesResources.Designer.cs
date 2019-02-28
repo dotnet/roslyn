@@ -1810,6 +1810,69 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Base Type.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_BaseType {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_BaseType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Construct.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Construct {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Construct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Declare.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Declare {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Declare", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Import {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Import", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_Qualify {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_Qualify", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Argument.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_TypeArgument {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Constraint.
+        /// </summary>
+        internal static string TypeOrNamespaceUsageInfo_TypeConstraint {
+            get {
+                return ResourceManager.GetString("TypeOrNamespaceUsageInfo_TypeConstraint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Types.
         /// </summary>
         internal static string Types {
@@ -1927,11 +1990,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to NameOnly.
+        ///   Looks up a localized string similar to Name.
         /// </summary>
-        internal static string ValueUsageInfo_NameOnly {
+        internal static string ValueUsageInfo_Name {
             get {
-                return ResourceManager.GetString("ValueUsageInfo_NameOnly", resourceCulture);
+                return ResourceManager.GetString("ValueUsageInfo_Name", resourceCulture);
             }
         }
         

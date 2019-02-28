@@ -481,6 +481,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     return true;
                 }
 
+                if (ReplacementBreaksSystemObjectMethodResolution(currentOriginalNode, currentReplacedNode, previousOriginalNode, previousReplacedNode))
+                {
+                    return true;
+                }
+
                 return !ImplicitConversionsAreCompatible(originalExpression, newExpression);
             }
             else if (currentOriginalNode is TForEachStatementSyntax originalForEachStatement)
@@ -519,6 +524,43 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Determine if removing the cast could cause the semantics of System.Object method call to change.
+        /// E.g. Dim b = CStr(1).GetType() is necessary, but the GetType method symbol info resolves to the same with or without the cast.
+        /// </summary>
+        private bool ReplacementBreaksSystemObjectMethodResolution(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode previousOriginalNode, SyntaxNode previousReplacedNode)
+        {
+            if (previousOriginalNode != null && previousReplacedNode != null)
+            {
+                var originalExpressionSymbol = this.OriginalSemanticModel.GetSymbolInfo(currentOriginalNode).Symbol;
+                var replacedExpressionSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(currentReplacedNode).Symbol;
+
+                if (IsSymbolSystemObjectInstanceMethod(originalExpressionSymbol) && IsSymbolSystemObjectInstanceMethod(replacedExpressionSymbol))
+                {
+                    var previousOriginalType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode).Type;
+                    var previousReplacedType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode).Type;
+                    if (previousReplacedType != null && previousOriginalType != null)
+                    {
+                        return !previousReplacedType.InheritsFromOrEquals(previousOriginalType);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines if the symbol is a non-overridable, non static method on System.Object (e.g. GetType)
+        /// </summary>
+        private static bool IsSymbolSystemObjectInstanceMethod(ISymbol symbol)
+        {
+            return symbol != null
+                && symbol.IsKind(SymbolKind.Method)
+                && symbol.ContainingType.SpecialType == SpecialType.System_Object
+                && !symbol.IsOverridable()
+                && !symbol.IsStaticType();
         }
 
         private bool ReplacementBreaksAttribute(TAttributeSyntax attribute, TAttributeSyntax newAttribute)
