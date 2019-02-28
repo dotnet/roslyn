@@ -550,7 +550,6 @@ class Program
         [Fact]
         public void TestNameofIndexerName()
         {
-            var t = typeof(NameofTests);
             var source = @"using System.Linq;
 class C
 {
