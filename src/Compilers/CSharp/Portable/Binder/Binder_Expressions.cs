@@ -2230,7 +2230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var underlyingExpr = BindCastCore(node, operand, underlyingTargetType, wasCompilerGenerated: false, diagnostics: bag);
                 if (underlyingExpr.HasErrors || bag.HasAnyErrors())
                 {
-                    Error(diagnostics, GetErrorCode(underlyingExpr.ConstantValue), node, operand.Type, targetType.TypeSymbol);
+                    Error(diagnostics, getErrorCode(bag), node, operand.Type, targetType.TypeSymbol);
 
                     return new BoundConversion(
                         node,
@@ -2260,11 +2260,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bag.Free();
             }
 
-            ErrorCode GetErrorCode(ConstantValue constantValue)
+            ErrorCode getErrorCode(DiagnosticBag diagnostic)
             {
-                if (constantValue == ConstantValue.Bad)
+                int code = diagnostic.AsEnumerable().LastOrDefault().Code;
+                if (Enum.TryParse(code.ToString(), out ErrorCode error))
                 {
-                    return ErrorCode.ERR_ConstOutOfRangeChecked;
+                    return error;
                 }
                 else
                 {

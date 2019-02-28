@@ -1663,10 +1663,12 @@ class A
 }
 ";
 
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(template,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 6, Column = 34 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_ConstOutOfRangeChecked, Line = 8, Column = 34 });
+            CreateCompilation(template)
+                .VerifyDiagnostics(
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.MinValue").WithArguments("double", "int?").WithLocation(6, 34),
+                    Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "(int?)double.MaxValue").WithArguments("double", "int?").WithLocation(8, 34));
         }
+
         // Note that the errors for Int64 and UInt64 are not
         // exactly the same as for Int32, etc. above, but the
         // differences match the native compiler.
