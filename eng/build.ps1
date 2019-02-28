@@ -46,6 +46,9 @@ param (
     [string]$officialBuildId = "",
     [string]$officialSkipApplyOptimizationData = "",
     [string]$officialSkipTests = "",
+    [string]$officialSourceBranchName = "",
+    [string]$officialIbcSourceBranchName = "",
+    [string]$officialIbcDropId = "",
 
     # Test actions
     [switch]$test32,
@@ -100,6 +103,11 @@ function Print-Usage() {
     Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
     Write-Host "  -officialSkipTests <bool>                   Pass 'true' to not run tests"
     Write-Host "  -officialSkipApplyOptimizationData <bool>   Pass 'true' to not apply optimization data"
+    Write-Host "  -officialSourceBranchName <string>          The source branch name"
+    Write-Host "  -officialIbcDropId <string>                 IBC data drop to use (e.g. '20190210.1/935479/1')."
+    Write-Host "                                              'default' for the most recent available for the branch."
+    Write-Host "  -officialIbcSourceBranchName <string>       IBC source branch (e.g. 'master-vs-deps')"
+    Write-Host "                                              'default' to select branch based on eng/config/PublishData.json."
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -133,6 +141,9 @@ function Process-Arguments() {
 
     OfficialBuildOnly "officialSkipTests"
     OfficialBuildOnly "officialSkipApplyOptimizationData"
+    OfficialBuildOnly "officialSourceBranchName"
+    OfficialBuildOnly "officialIbcDropId"
+    OfficialBuildOnly "officialIbcSourceBranchName"
 
     if ($officialBuildId) {
         $script:useGlobalNuGetCache = $false
@@ -192,10 +203,14 @@ function BuildSolution() {
     $toolsetBuildProj = InitializeToolset
     $quietRestore = !$ci
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
+    $ibcSourceBranchName = GetIbcSourceBranchName
+    $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
 
-    # Do not set these properties to true explicitly, since that would override values set in projects.
+    # Do not set this property to true explicitly, since that would override values set in projects.
     $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
-    $suppressPartialNgenOptimization = if (!$applyOptimizationData) { "/p:ApplyPartialNgenOptimization=false" } else { "" }
+
+    # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
+    $ibcDir = Join-Path $RepoRoot ".o%5c"
 
     # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
     # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
@@ -221,13 +236,70 @@ function BuildSolution() {
         /p:QuietRestoreBinaryLog=$binaryLog `
         /p:TestTargetFrameworks=$testTargetFrameworks `
         /p:TreatWarningsAsErrors=true `
-        $suppressPartialNgenOptimization `
+        /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
+        /p:VisualStudioIbcDropId=$ibcDropId `
+        /p:EnablePartialNgenOptimization=$applyOptimizationData `
+        /p:IbcOptimizationDataDir=$ibcDir `
         $suppressExtensionDeployment `
         @properties
 }
 
+
+# Get the branch that produced the IBC data this build is going to consume.
+# IBC data are only merged in official built, but we want to test some of the logic in CI builds as well.
+function GetIbcSourceBranchName() {
+    if (Test-Path variable:global:_IbcSourceBranchName) {
+      return $global:_IbcSourceBranchName
+    }
+
+    function calculate {
+        $fallback = "master-vs-deps"
+
+        if (!$officialIbcSourceBranchName) {
+            return $fallback
+        }  
+
+        if ($officialIbcSourceBranchName -ne "default") {
+            return $officialIbcSourceBranchName
+        }
+
+        $branchData = GetBranchPublishData $officialSourceBranchName
+        if ($branchData -eq $null) {
+            Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'." -ForegroundColor Yellow
+            Write-Host "Override by setting IbcSourceBranchName build variable." -ForegroundColor Yellow
+            return $fallback
+        }
+
+        if (Get-Member -InputObject $branchData -Name "ibcSourceBranch") {
+            return $branchData.ibcSourceBranch 
+        }
+
+        return $officialSourceBranchName
+    }
+
+    return $global:_IbcSourceBranchName = calculate
+}
+
 # Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
-function Set-OptProfVariables() {
+function SetVisualStudioBootstrapperBuildArgs() {
+    $fallbackBranch = "master-vs-deps"
+
+    $branchName = if ($officialSourceBranchName) { $officialSourceBranchName } else { $fallbackBranch }
+    $branchData = GetBranchPublishData $branchName
+
+    if ($branchData -eq $null) {
+        Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. " -ForegroundColor Yellow
+        $branchData = GetBranchPublishData $fallbackBranch
+    }
+
+    # VS branch name is e.g. "lab/d16.0stg", "rel/d15.9", "lab/ml", etc.
+    $vsBranchSimpleName = $branchData.vsBranch.Split('/')[-1]
+    $vsMajorVersion = $branchData.vsMajorVersion
+    $vsChannel = "int.$vsBranchSimpleName"
+
+    Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"        
+    Write-Host "##vso[task.setvariable variable=VisualStudio.ChannelName;]$vsChannel"
+
     $insertionDir = Join-Path $VSSetupDir "Insertion"
     $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
     Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
@@ -444,7 +516,7 @@ try {
     }
 
     if ($ci -and $build -and $msbuildEngine -eq "vs") {
-        Set-OptProfVariables
+        SetVisualStudioBootstrapperBuildArgs
     }
 
     if ($testDesktop -or $testVsi -or $testIOperation) {

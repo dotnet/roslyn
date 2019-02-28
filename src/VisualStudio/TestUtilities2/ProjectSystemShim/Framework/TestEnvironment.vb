@@ -182,7 +182,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                         Return _fileChangeEx
 
                     Case Else
-                        Return Nothing
+                        Throw New Exception($"{NameOf(MockServiceProvider)} does not implement {serviceType.FullName}.")
                 End Select
             End Function
 
@@ -246,6 +246,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 Throw New NotImplementedException()
             End Function
         End Class
+
+        Friend Sub RaiseFileChange(path As String)
+            ' Ensure we've pushed everything to the file change watcher
+            Dim fileChangeProvider = ExportProvider.GetExportedValue(Of FileChangeWatcherProvider)
+            Dim mockFileChangeService = DirectCast(ServiceProvider.GetService(GetType(SVsFileChangeEx)), MockVsFileChangeEx)
+            fileChangeProvider.TrySetFileChangeService_TestOnly(mockFileChangeService)
+            fileChangeProvider.Watcher.WaitForQueue_TestOnly()
+            mockFileChangeService.FireUpdate(path)
+        End Sub
 
         Private Class MockVsSmartOpenScope
             Implements IVsSmartOpenScope
