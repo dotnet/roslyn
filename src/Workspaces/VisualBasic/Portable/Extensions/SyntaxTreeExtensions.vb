@@ -278,7 +278,7 @@ recurse:
 
                 For i = fieldIndex To members.Count - 1
                     Dim member = members(i)
-                    If IsSelected(textSpan, member, allowPartialSelection) Then
+                    If IsSelectedFieldOrProperty(textSpan, member, allowPartialSelection) Then
                         selectedMembers.Add(member)
                     End If
                 Next
@@ -289,7 +289,12 @@ recurse:
             End Try
         End Function
 
-        Private Function IsSelected(textSpan As TextSpan, member As StatementSyntax, allowPartialSelection As Boolean) As Boolean
+        Private Function IsSelectedFieldOrProperty(textSpan As TextSpan, member As StatementSyntax, allowPartialSelection As Boolean) As Boolean
+            If Not member.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.PropertyStatement) Then
+                Return False
+            End If
+
+            ' first, check if entire member is selected
             If textSpan.Contains(member.Span) Then
                 Return True
             End If
@@ -298,6 +303,7 @@ recurse:
                 Return False
             End If
 
+            ' next, check if identifier is at lease partially selected
             If member.IsKind(SyntaxKind.FieldDeclaration) Then
                 Dim fieldDeclaration = DirectCast(member, FieldDeclarationSyntax)
                 For Each declarator In fieldDeclaration.Declarators

@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 for (var i = fieldIndex; i < members.Count; i++)
                 {
                     var member = members[i];
-                    if (IsSelected(textSpan, member, allowPartialSelection))
+                    if (IsSelectedFieldOrProperty(member))
                     {
                         selectedMembers.Add(member);
                     }
@@ -565,38 +565,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 selectedMembers.Free();
             }
-        }
 
-        private static bool IsSelected(TextSpan textSpan, MemberDeclarationSyntax member, bool allowPartialSelection)
-        {
-            // first, check if entire member is selected
-            if (textSpan.Contains(member.Span))
+            bool IsSelectedFieldOrProperty(MemberDeclarationSyntax member)
             {
-                return true;
-            }
+                if (!member.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.PropertyDeclaration))
+                {
+                    return false;
+                }
 
-            if (!allowPartialSelection)
-            {
-                return false;
-            }
+                // first, check if entire member is selected
+                if (textSpan.Contains(member.Span))
+                {
+                    return true;
+                }
 
-            // next, check if identifier part of member is selected
-            switch (member.Kind())
-            {
-                case SyntaxKind.FieldDeclaration:
-                    var variables = ((FieldDeclarationSyntax)member).Declaration.Variables;
-                    foreach (var variable in variables)
-                    {
-                        if (textSpan.OverlapsWith(variable.Identifier.Span))
+                if (!allowPartialSelection)
+                {
+                    return false;
+                }
+
+                // next, check if identifier is at least partially selected
+                switch (member.Kind())
+                {
+                    case SyntaxKind.FieldDeclaration:
+                        var variables = ((FieldDeclarationSyntax)member).Declaration.Variables;
+                        foreach (var variable in variables)
                         {
-                            return true;
+                            if (textSpan.OverlapsWith(variable.Identifier.Span))
+                            {
+                                return true;
+                            }
                         }
-                    }
-                    return false;
-                case SyntaxKind.PropertyDeclaration:
-                    return textSpan.OverlapsWith(((PropertyDeclarationSyntax)member).Identifier.Span);
-                default:
-                    return false;
+                        return false;
+                    case SyntaxKind.PropertyDeclaration:
+                        return textSpan.OverlapsWith(((PropertyDeclarationSyntax)member).Identifier.Span);
+                    default:
+                        return false;
+                }
             }
         }
 
