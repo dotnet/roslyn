@@ -29046,9 +29046,21 @@ struct S1
                 // (11,17): error CS0165: Use of unassigned local variable 'y1'
                 //         S1 z1 = y1;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(11, 17),
+                // (12,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x1 = z1.F3;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z1.F3").WithLocation(12, 14),
+                // (13,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x1 = z1.F3 ?? x1;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z1.F3 ?? x1").WithLocation(13, 14),
                 // (25,18): error CS0165: Use of unassigned local variable 'y2'
                 //             z2 = y2;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(25, 18),
+                // (26,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             x2 = z2.F3;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z2.F3").WithLocation(26, 18),
+                // (27,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             x2 = z2.F3 ?? x2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z2.F3 ?? x2").WithLocation(27, 18),
                 // (34,19): error CS0170: Use of possibly unassigned field 'F3'
                 //         CL1? z3 = y3.F3;
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y3.F3").WithArguments("F3").WithLocation(34, 19),
@@ -29079,9 +29091,21 @@ struct S1
                 // (59,14): error CS0165: Use of unassigned local variable 'y6'
                 //         z6 = y6;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y6").WithArguments("y6").WithLocation(59, 14),
+                // (60,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x6 = z6.F3;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z6.F3").WithLocation(60, 14),
+                // (61,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x6 = z6.F3 ?? x6;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z6.F3 ?? x6").WithLocation(61, 14),
                 // (68,29): error CS0165: Use of unassigned local variable 'y7'
                 //         var z7 = new { F3 = y7 };
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y7").WithArguments("y7").WithLocation(68, 29),
+                // (69,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x7 = z7.F3.F3;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z7.F3.F3").WithLocation(69, 14),
+                // (70,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x7 = z7.F3.F3 ?? x7;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "z7.F3.F3 ?? x7").WithLocation(70, 14),
                 // (81,18): error CS0170: Use of possibly unassigned field 'F3'
                 //             z8 = y8.F3;
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "y8.F3").WithArguments("F3").WithLocation(81, 18),
@@ -49907,10 +49931,9 @@ class Program
         }
 
         [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
         public void StructProperty_Cycle_Default()
         {
-            // Nullability of Next.F is treated as object!, even for default instances, because only
-            // auto -properties are tracked (see https://github.com/dotnet/roslyn/issues/29619).
             var source =
 @"#pragma warning disable 649
 struct S
@@ -49929,9 +49952,9 @@ class Program
         S x = default;
         S y = x;
         x.F/*T:object?*/.ToString(); // 1
-        x.Next.F/*T:object!*/.ToString(); // 2
-        y.F/*T:object?*/.ToString(); // 3
-        y.Next.F/*T:object!*/.ToString(); // 4
+        x.Next.F/*T:object!*/.ToString();
+        y.F/*T:object?*/.ToString(); // 2
+        y.Next.F/*T:object!*/.ToString();
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -49940,9 +49963,38 @@ class Program
                 //         x.F/*T:object?*/.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.F").WithLocation(17, 9),
                 // (19,9): warning CS8602: Dereference of a possibly null reference.
-                //         y.F/*T:object?*/.ToString(); // 3
+                //         y.F/*T:object?*/.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(19, 9));
             comp.VerifyTypes();
+        }
+
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void StructProperty_Cycle()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+    internal S P
+    {
+        get { return this; }
+        set { this = value; }
+    }
+}
+class Program
+{
+    static void M(S s)
+    {
+        s.F = 2;
+        for (int i = 0; i < 3; i++)
+        {
+            s.P = s;
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         // `default` expression in a split state.
@@ -50413,8 +50465,6 @@ class C
 }";
 
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), targetFramework: TargetFramework.Mscorlib46);
-            // NullableWalker.VisitTupleExpression tracks tuple elements but not
-            // other (unexpected) fields of tuples (see y.F1.ToString()).
             comp.VerifyDiagnostics(
                 // (27,11): error CS0070: The event '(object, object).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object, object)')
                 //         y.E2?.Invoke().ToString(); // 3
@@ -50422,6 +50472,9 @@ class C
                 // (32,11): error CS0070: The event '(object, object).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object, object)')
                 //         z.E2?.Invoke().ToString();
                 Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object, object).E2", "(object, object)").WithLocation(32, 11),
+                // (25,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.F1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F1").WithLocation(25, 9),
                 // (26,9): warning CS8602: Dereference of a possibly null reference.
                 //         y.P1.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.P1").WithLocation(26, 9),
@@ -55290,8 +55343,8 @@ class Program
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "b.A.F").WithLocation(26, 13));
         }
 
-        // https://github.com/dotnet/roslyn/issues/29619: Handle struct properties that are not auto-properties.
-        [Fact(Skip = "Struct property not auto-property")]
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
         public void ModifyMembers_StructPropertyExplicitAccessors()
         {
             var source =
@@ -55309,7 +55362,7 @@ class C
         object o;
         o = F.P; // 1
         F.P = new object();
-        o = F.P; // 2
+        o = F.P;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -55336,7 +55389,7 @@ class C
         object o;
         o = F.P; // 1
         F.P = new object();
-        o = F.P; // 2
+        o = F.P;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
@@ -55400,9 +55453,9 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "P").WithLocation(8, 13));
         }
 
-        // https://github.com/dotnet/roslyn/issues/29619: Handle struct properties that are not auto-properties.
-        [Fact(Skip = "Struct property not auto-property")]
-        public void ModifyMembers_StructPropertyNoBackingField()
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void ModifyMembers_StructPropertyNoBackingField_01()
         {
             var source =
 @"#pragma warning disable 0649
@@ -55418,14 +55471,46 @@ class C
         object o;
         o = F.P; // 1
         F.P = new object();
-        o = F.P; // 2
+        o = F.P;
     }
 }";
-            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (12,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = F.P; // 1
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "F.P").WithLocation(12, 13));
+        }
+
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
+        public void ModifyMembers_StructPropertyNoBackingField_02()
+        {
+            var source =
+@"struct S<T>
+{
+    internal T P => throw null!;
+}
+class Program
+{
+    static S<T> Create<T>(T t)
+    {
+        return new S<T>();
+    }
+    static void F<T>() where T : class, new()
+    {
+        T? x = null;
+        var sx = Create(x);
+        sx.P.ToString();
+        T? y = new T();
+        var sy = Create(y);
+        sy.P.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         sx.P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "sx.P").WithLocation(15, 9));
         }
 
         // Calling a method should reset the state for members.
@@ -57455,8 +57540,8 @@ class C
         }
 
         // Valid struct since the property is not backed by a field.
-        // https://github.com/dotnet/roslyn/issues/29619: Handle struct properties that are not auto-properties.
-        [Fact(Skip = "Struct property not auto-property")]
+        [Fact]
+        [WorkItem(29619, "https://github.com/dotnet/roslyn/issues/29619")]
         public void Members_PropertyCycle_Struct()
         {
             var source =
@@ -57480,7 +57565,7 @@ class C
     {
         s.P.F.ToString(); // 1
         if (s.P.F == null) return;
-        s.P.F.ToString(); // 2
+        s.P.F.ToString();
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());

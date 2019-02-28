@@ -639,11 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var propAccess = (BoundPropertyAccess)expr;
                         var propSymbol = propAccess.PropertySymbol;
-                        member = GetBackingFieldIfStructProperty(propSymbol);
-                        if (member is null)
-                        {
-                            return false;
-                        }
+                        member = propSymbol;
                         if (propSymbol.IsStatic)
                         {
                             return true;
@@ -659,38 +655,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (object)receiver != null &&
                 receiver.Kind != BoundKind.TypeExpression &&
                 (object)receiver.Type != null;
-        }
-
-        // https://github.com/dotnet/roslyn/issues/29619 Use backing field for struct property
-        // for now, to avoid cycles if the struct type contains a property of the struct type.
-        // Remove this and populate struct members lazily to match classes.
-        private Symbol GetBackingFieldIfStructProperty(Symbol symbol)
-        {
-            if (symbol.Kind == SymbolKind.Property && !symbol.ContainingType.IsNullableType())
-            {
-                var property = (PropertySymbol)symbol;
-                var containingType = property.ContainingType;
-                if (containingType.TypeKind == TypeKind.Struct)
-                {
-                    // https://github.com/dotnet/roslyn/issues/29619 Relying on field name
-                    // will not work for properties declared in other languages.
-                    var fieldName = GeneratedNames.MakeBackingFieldName(property.Name);
-                    return _emptyStructTypeCache.GetStructFields(containingType, includeStatic: symbol.IsStatic).FirstOrDefault(f => f.Name == fieldName);
-                }
-            }
-            return symbol;
-        }
-
-        // https://github.com/dotnet/roslyn/issues/29619 Temporary, until we're using
-        // properties on structs directly.
-        protected override int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
-        {
-            symbol = GetBackingFieldIfStructProperty(symbol);
-            if (symbol is null)
-            {
-                return -1;
-            }
-            return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty);
         }
 
         protected override int MakeSlot(BoundExpression node)
@@ -986,8 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations targetType,
             int targetSlot,
             TypeWithState valueType,
-            int valueSlot = -1,
-            bool skipAnalyzedNullabilityUpdate = false)
+            int valueSlot = -1)
         {
             Debug.Assert(!IsConditionalState);
 
@@ -1086,11 +1049,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 skipSlot = targetSlot;
             }
 
-            // https://github.com/dotnet/roslyn/issues/29619 Handle properties not backed by fields.
-            // See ModifyMembers_StructPropertyNoBackingField and PropertyCycle_Struct tests.
-            foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
+            if (!isDefaultValue && valueSlot > 0)
             {
-                InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, skipSlot);
+                InheritNullableStateOfTrackableType(targetSlot, valueSlot, skipSlot);
+            }
+            else
+            {
+                foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(targetType))
+                {
+                    InheritNullableStateOfMember(targetSlot, valueSlot, field, isDefaultValue: isDefaultValue, skipSlot);
+                }
             }
         }
 
@@ -1700,6 +1668,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void SetNotNullResult(BoundExpression node)
         {
             SetResultType(node, TypeWithState.Create(node.Type, NullableFlowState.NotNull));
+        }
+
+        protected override bool IsEmptyStructType(TypeSymbol type)
+        {
+            if (_emptyStructTypeCache.IsEmptyStructType(type))
+            {
+                if (type.SpecialType != SpecialType.None)
+                {
+                    return true;
+                }
+            }
+            // We could return true if there are no properties but that check
+            // might be more expensive than any performance improvement
+            // from skipping types with no fields or properties.
+            return false;
         }
 
         private int GetOrCreatePlaceholderSlot(BoundExpression node)
@@ -3281,7 +3264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Set nullable state of argument to parameter type.
-                        TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argumentNoConversion), parameterWithState, skipAnalyzedNullabilityUpdate: true);
+                        TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argumentNoConversion), parameterWithState);
 
                         SetResultType(argumentNoConversion, parameterWithState);
                     }
