@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // and in named tuples there could be fields that differ only by name
             return (object)other != null &&
                 _tupleElementIndex == other._tupleElementIndex &&
-                _containingTuple == other._containingTuple;
+                TypeSymbol.Equals(_containingTuple, other._containingTuple, TypeCompareKind.ConsiderEverything2);
         }
     }
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_underlyingField.ContainingType != _containingTuple.TupleUnderlyingType)
+                if (!TypeSymbol.Equals(_underlyingField.ContainingType, _containingTuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything2))
                 {
                     return null;
                 }
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_underlyingField.ContainingType != _containingTuple.TupleUnderlyingType)
+                if (!TypeSymbol.Equals(_underlyingField.ContainingType, _containingTuple.TupleUnderlyingType, TypeCompareKind.ConsiderEverything2))
                 {
                     return null;
                 }

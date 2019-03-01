@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return result;
                 }
             }
-            
+
             var negative = isNegative(value);
 
             var nonNegativeValue = negative

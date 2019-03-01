@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 builder.ToImmutableAndFree(),
                 checkLength: false);
             Debug.Assert((object)dynamicType != null);
-            Debug.Assert(dynamicType != type);
+            Debug.Assert(!TypeSymbol.Equals(dynamicType, type, TypeCompareKind.ConsiderEverything2));
             return dynamicType;
         }
     }

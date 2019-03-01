@@ -743,7 +743,7 @@ namespace CSharpSyntaxGenerator
                 }
                 WriteLine("          break;");
                 WriteLine("        default:");
-                WriteLine("          throw new ArgumentException(\"kind\");");
+                WriteLine("          throw new ArgumentException(nameof(kind));");
                 WriteLine("      }");
             }
 
@@ -779,7 +779,7 @@ namespace CSharpSyntaxGenerator
                     }
                     WriteLine("          break;");
                     WriteLine("        default:");
-                    WriteLine("          throw new ArgumentException(\"{0}\");", pname);
+                    WriteLine("          throw new ArgumentException(nameof({0}));", pname);
                     WriteLine("      }");
                     if (IsOptional(field))
                     {
@@ -1747,7 +1747,7 @@ namespace CSharpSyntaxGenerator
                 }
                 WriteLine("          break;");
                 WriteLine("        default:");
-                WriteLine("          throw new ArgumentException(\"kind\");");
+                WriteLine("          throw new ArgumentException(nameof(kind));");
                 WriteLine("      }");
             }
 
@@ -1773,7 +1773,7 @@ namespace CSharpSyntaxGenerator
                         }
                         WriteLine("          break;");
                         WriteLine("        default:");
-                        WriteLine("          throw new ArgumentException(\"{0}\");", pname);
+                        WriteLine("          throw new ArgumentException(nameof({0}));", pname);
                         WriteLine("      }");
                     }
                 }

@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each v In node.Locals
                 If Me.PreserveOriginalLocals OrElse Not Me.Proxies.ContainsKey(v) Then
                     Dim vType = VisitType(v.Type)
-                    If vType = v.Type Then
+                    If TypeSymbol.Equals(vType, v.Type, TypeCompareKind.ConsiderEverything) Then
 
                         Dim replacement As LocalSymbol = Nothing
                         Dim wasReplaced As Boolean = False
@@ -460,7 +460,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each v In origLocals
                 If Not Me.Proxies.ContainsKey(v) Then
                     Dim vType = VisitType(v.Type)
-                    If vType = v.Type Then
+                    If TypeSymbol.Equals(vType, v.Type, TypeCompareKind.ConsiderEverything) Then
                         newLocals.Add(v)
                     Else
                         Dim replacement = CreateReplacementLocalOrReturnSelf(v, vType)

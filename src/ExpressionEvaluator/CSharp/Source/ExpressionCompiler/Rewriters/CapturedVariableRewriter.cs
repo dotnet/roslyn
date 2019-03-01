@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 if (variable != null)
                 {
                     var result = variable.ToBoundExpression(node.Syntax);
-                    Debug.Assert(node.Type == result.Type);
+                    Debug.Assert(TypeSymbol.Equals(node.Type, result.Type, TypeCompareKind.ConsiderEverything2));
                     return result;
                 }
             }

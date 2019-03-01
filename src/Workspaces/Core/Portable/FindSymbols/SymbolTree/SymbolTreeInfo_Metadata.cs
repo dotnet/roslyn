@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -146,11 +147,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33131", AllowCaptures = false)]
         public static Checksum GetMetadataChecksum(
             Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
         {
             // We can reuse the index for any given reference as long as it hasn't changed.
             // So our checksum is just the checksum for the PEReference itself.
+            // First see if the value is already in the cache, to avoid an allocation if possible.
+            if (ChecksumCache.TryGetValue(reference, out var cached))
+            {
+                return cached;
+            }
+
+            // Break things up to the fast path above and this slow path where we allocate a closure.
+            return GetMetadataChecksumSlow(solution, reference, cancellationToken);
+        }
+
+        private static Checksum GetMetadataChecksumSlow(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken)
+        {
             return ChecksumCache.GetOrCreate(reference, _ =>
             {
                 var serializer = solution.Workspace.Services.GetService<ISerializerService>();

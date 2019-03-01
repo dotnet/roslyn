@@ -14,12 +14,12 @@
       </trans-unit>
       <trans-unit id="CSharp_Coding_Conventions">
         <source>C# Coding Conventions</source>
-        <target state="new">C# Coding Conventions</target>
+        <target state="translated">Convenções de Codificação em C#</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_Formatting_Rules">
         <source>C# Formatting Rules</source>
-        <target state="new">C# Formatting Rules</target>
+        <target state="translated">Regras de Formatação de C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Discard">
@@ -32,9 +32,14 @@
         <target state="translated">Formatar Configurações do Documento (Experimento)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Event_Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="new">Generate Event Subscription</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
-        <target state="translated">Em operadores relacionais:  &lt;   &gt;   &lt;=   &gt;=    is   as   ==   !=</target>
+        <target state="translated">Em operadores relacionais:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note />
       </trans-unit>
       <trans-unit id="Perform_additional_code_cleanup_during_formatting">
@@ -49,7 +54,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="translated">Remover usos desnecessários</target>
+        <target state="translated">Remover Usos Desnecessários</target>
         <note />
       </trans-unit>
       <trans-unit id="Sort_usings">
@@ -59,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Surround_With">
         <source>Surround With</source>
-        <target state="translated">Circundar com</target>
+        <target state="translated">Envolver com</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_Snippet">
@@ -537,6 +542,11 @@
         <target state="translated">Em outro lugar</target>
         <note />
       </trans-unit>
+      <trans-unit id="When_on_multiple_lines">
+        <source>When on multiple lines</source>
+        <target state="new">When on multiple lines</target>
+        <note />
+      </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">
         <source>When variable type is apparent</source>
         <target state="translated">Quando o tipo de variável é aparente</target>
@@ -594,7 +604,7 @@
       </trans-unit>
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
-        <target state="translated">preferências de tipo predefinidas:</target>
+        <target state="translated">Preferências de tipo predefinidas:</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_string_literals_on_enter">
@@ -729,7 +739,7 @@
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'string.Format' calls</source>
-        <target state="translated">Relatar espaços reservados inválidos em chamadas 'string.Format'</target>
+        <target state="translated">Relatar espaços reservados inválidos em chamadas 'String.Format'</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_using_directive_groups">
@@ -742,11 +752,6 @@
         <target state="translated">Mostrar s_ugestões de nomes</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_Event_Subscription">
-        <source>Generate Event Subscription</source>
-        <target state="translated">Gerar Assinatura de Evento</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">
         <source>In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</source>
         <target state="translated">Em operadores aritméticos:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |</target>
@@ -754,7 +759,7 @@
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  &amp;&amp;   ||   ??</source>
-        <target state="translated">Em outros operadores binários:  &amp;&amp;   ||   ??</target>
+        <target state="translated">Em outros operadores binários:  &amp;&amp; || ??</target>
         <note />
       </trans-unit>
     </body>

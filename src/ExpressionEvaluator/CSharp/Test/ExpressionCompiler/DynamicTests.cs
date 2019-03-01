@@ -744,8 +744,8 @@ class Generic<T>
             });
         }
 
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         [WorkItem(1087216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1087216")]
-        [Fact]
         public void ComplexDynamicType()
         {
             var source =
@@ -840,7 +840,7 @@ public class Outer<T, U>
             });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void DynamicAliases()
         {
             var source =

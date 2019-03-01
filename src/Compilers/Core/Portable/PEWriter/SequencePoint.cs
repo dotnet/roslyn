@@ -8,22 +8,24 @@ namespace Microsoft.Cci
 {
     [SuppressMessage("Performance", "CA1067", Justification = "Equality not actually implemented")]
     [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
-    internal struct SequencePoint
+    internal readonly struct SequencePoint
     {
+        public const int HiddenLine = 0xfeefee;
+
         public readonly int Offset;
         public readonly int StartLine;
-        public readonly int StartColumn;
         public readonly int EndLine;
-        public readonly int EndColumn;
+        public readonly ushort StartColumn;
+        public readonly ushort EndColumn;
         public readonly DebugSourceDocument Document;
 
         public SequencePoint(
             DebugSourceDocument document,
             int offset,
             int startLine,
-            int startColumn,
+            ushort startColumn,
             int endLine,
-            int endColumn)
+            ushort endColumn)
         {
             Debug.Assert(document != null);
 
@@ -35,7 +37,7 @@ namespace Microsoft.Cci
             Document = document;
         }
 
-        public bool IsHidden => StartLine == 0xfeefee;
+        public bool IsHidden => StartLine == HiddenLine;
 
         public override int GetHashCode()
         {

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool CanUnify(TypeSymbol t1, TypeSymbol t2)
         {
-            if (t1 == t2)
+            if (TypeSymbol.Equals(t1, t2, TypeCompareKind.ConsiderEverything2))
             {
                 return true;
             }
@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private static bool CanUnifyHelper(TypeSymbolWithAnnotations t1, TypeSymbolWithAnnotations t2, ref MutableTypeMap substitution)
         {
-            if (t1.IsNull || t2.IsNull)
+            if (!t1.HasType || !t2.HasType)
             {
                 return t1.IsSameAs(t2);
             }
 
-            if (t1.TypeSymbol == t2.TypeSymbol && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
+            if (TypeSymbol.Equals(t1.TypeSymbol, t2.TypeSymbol, TypeCompareKind.ConsiderEverything2) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
             {
                 return true;
             }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If one of the types is a type parameter, then the substitution could make them equal.
-            if (t1.TypeSymbol == t2.TypeSymbol && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
+            if (TypeSymbol.Equals(t1.TypeSymbol, t2.TypeSymbol, TypeCompareKind.ConsiderEverything2) && t1.CustomModifiers.SequenceEqual(t2.CustomModifiers))
             {
                 return true;
             }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!nt1.IsGenericType)
                         {
-                            return !nt2.IsGenericType && nt1 == nt2;
+                            return !nt2.IsGenericType && TypeSymbol.Equals(nt1, nt2, TypeCompareKind.ConsiderEverything2);
                         }
                         else if (!nt2.IsGenericType)
                         {
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         int arity = nt1.Arity;
 
-                        if (nt2.Arity != arity || nt2.OriginalDefinition != nt1.OriginalDefinition)
+                        if (nt2.Arity != arity || !TypeSymbol.Equals(nt2.OriginalDefinition, nt1.OriginalDefinition, TypeCompareKind.ConsiderEverything2))
                         {
                             return false;
                         }
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 case SymbolKind.TypeParameter:
-                    return type == typeParam;
+                    return TypeSymbol.Equals(type, typeParam, TypeCompareKind.ConsiderEverything2);
                 default:
                     return false;
             }

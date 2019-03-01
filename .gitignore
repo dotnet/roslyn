@@ -23,6 +23,9 @@ x64/
 # Enable "build/" folder in the NuGet Packages folder since NuGet packages use it for MSBuild targets
 !packages/*/build/
 
+# Debug artifacts
+launchSettings.json
+
 # Prevent accidental re-checkin of NuGet.exe
 NuGet.exe
 
@@ -188,3 +191,6 @@ $RECYCLE.BIN/
 
 # JetBrains Rider
 .idea/
+
+# WPF temp projects
+*wpftmp.*

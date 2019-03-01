@@ -202,6 +202,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// True if this is the top-level binder for a local function or lambda
+        /// (including implicit lambdas from query expressions).
+        /// </summary>
+        internal virtual bool IsNestedFunctionBinder => false;
+
+        /// <summary>
         /// The member containing the binding context.  Note that for the purposes of the compiler,
         /// a lambda expression is considered a "member" of its enclosing method, field, or lambda.
         /// </summary>
@@ -344,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal virtual Imports GetImports(ConsList<Symbol> basesBeingResolved)
+        internal virtual Imports GetImports(ConsList<TypeSymbol> basesBeingResolved)
         {
             return _next.GetImports(basesBeingResolved);
         }
@@ -646,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConsList<Symbol> basesBeingResolved = null)
+            ConsList<TypeSymbol> basesBeingResolved = null)
         {
             if (this.Flags.Includes(BinderFlags.IgnoreAccessibility))
             {

@@ -4,7 +4,10 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+
+#if !CODE_STYLE
 using Microsoft.CodeAnalysis.Options;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -12,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
     {
         internal const string Name = "CSharp Token Based Formatting Rule";
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
         {
             ////////////////////////////////////////////////////
             // brace related operations
@@ -62,10 +65,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                             !currentToken.IsParenInParenthesizedExpression() &&
                             !currentToken.IsCommaInInitializerExpression() &&
                             !currentToken.IsCommaInAnyArgumentsList() &&
+                            !currentToken.IsCommaInTupleExpression() &&
                             !currentToken.IsParenInArgumentList() &&
                             !currentToken.IsDotInMemberAccess() &&
                             !currentToken.IsCloseParenInStatement() &&
-                            !currentToken.IsEqualsTokenInAutoPropertyInitializers())
+                            !currentToken.IsEqualsTokenInAutoPropertyInitializers() &&
+                            !currentToken.IsColonInCasePatternSwitchLabel() && // no newline required before colon in pattern-switch-label (ex: `case {<pattern>}:`)
+                            !currentToken.IsColonInSwitchExpressionArm())  // no newline required before colon in switch-expression-arm (ex: `{<pattern>}: expression`)
                         {
                             return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                         }
@@ -88,6 +94,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (previousToken.IsCommaInInitializerExpression())
             {
                 return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+            }
+
+            // , * in switch expression arm
+            // ```
+            // e switch
+            // {
+            //     pattern1: expression1, // newline with minimum of 1 line (each arm must be on its own line)
+            //     pattern2: expression2 ...
+            // ```
+            if (previousToken.IsCommaInSwitchExpression())
+            {
+                return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
+            }
+
+            // , * in property sub-pattern
+            // ```
+            // e is
+            // {
+            //     property1: pattern1, // newline so the next line should be indented same as this one
+            //     property2: pattern2, property3: pattern3, ... // but with minimum 0 lines so each property isn't forced to its own line
+            // ```
+            if (previousToken.IsCommaInPropertyPatternClause())
+            {
+                return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
 
             // else * except else if case
@@ -159,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return nextOperation.Invoke();
         }
 
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
+        public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustSpacesOperation nextOperation)
         {
             //////////////////////////////////////////////////////
             // ";" related operations
@@ -281,7 +311,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                                                SyntaxKind.DefaultSwitchLabel,
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,
-                                               SyntaxKind.NameColon))
+                                               SyntaxKind.NameColon,
+                                               SyntaxKindEx.SwitchExpressionArm))
                 {
                     return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
@@ -386,8 +417,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            // ! *
-            if (previousToken.Kind() == SyntaxKind.ExclamationToken)
+            // ! *, except where ! is the suppress nullable warning operator
+            if (previousToken.Kind() == SyntaxKind.ExclamationToken
+                && previousToken.Parent.Kind() != SyntaxKindEx.SuppressNullableWarningExpression)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

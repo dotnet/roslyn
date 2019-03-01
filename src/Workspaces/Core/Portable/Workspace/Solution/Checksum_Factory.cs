@@ -6,6 +6,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -15,6 +16,7 @@ namespace Microsoft.CodeAnalysis
     // all these are just helper methods
     internal partial class Checksum
     {
+<<<<<<< HEAD
         public static Checksum Create(string val)
             => Create(new MemoryStream(Encoding.UTF8.GetBytes(val)));
 
@@ -25,12 +27,19 @@ namespace Microsoft.CodeAnalysis
                 return ComputeChecksum(stream, hash);
             }
         }
+=======
+        private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
+            new ObjectPool<IncrementalHash>(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA1), size: 20);
+>>>>>>> upstream/master
 
-        private static Checksum ComputeChecksum(Stream stream, IncrementalHash hash)
+        public static Checksum Create(Stream stream)
         {
+            using (var pooledHash = s_incrementalHashPool.GetPooledObject())
             using (var pooledBuffer = SharedPools.ByteArray.GetPooledObject())
             {
                 stream.Seek(0, SeekOrigin.Begin);
+
+                var hash = pooledHash.Object;
 
                 var buffer = pooledBuffer.Object;
                 var bufferLength = buffer.Length;
@@ -46,7 +55,18 @@ namespace Microsoft.CodeAnalysis
                 while (bytesRead > 0);
 
                 var bytes = hash.GetHashAndReset();
-                return new Checksum(bytes);
+
+                // if bytes array is bigger than certain size, checksum
+                // will truncate it to predetermined size. for more detail,
+                // see the Checksum type
+                //
+                // the truncation can happen since different hash algorithm or 
+                // same algorithm on different platform can have different hash size
+                // which might be bigger than the Checksum HashSize.
+                //
+                // hash algorithm used here should remain functionally correct even
+                // after the truncation
+                return Checksum.From(bytes);
             }
         }
 

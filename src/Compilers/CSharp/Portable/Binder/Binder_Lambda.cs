@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var type in types)
                 {
                     // UNDONE: Where do we report improper use of pointer types?
-                    if (!type.IsNull && type.IsStatic)
+                    if (type.HasType && type.IsStatic)
                     {
                         Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, syntax, type.TypeSymbol);
                     }
@@ -239,6 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!names.IsDefault)
             {
                 var binder = new LocalScopeBinder(this);
+                bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions);
                 var pNames = PooledHashSet<string>.GetInstance();
 
                 for (int i = 0; i < lambda.ParameterCount; i++)
@@ -255,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, lambda.ParameterLocation(i), name);
                     }
-                    else
+                    else if (!allowShadowingNames)
                     {
                         binder.ValidateLambdaParameterNameConflictsInScope(lambda.ParameterLocation(i), name, diagnostics);
                     }

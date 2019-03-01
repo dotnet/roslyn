@@ -63,5 +63,39 @@ $"Class C
 End Class", parameters:=Nothing,
             Diagnostic(IDEDiagnosticIds.UnusedParameterDiagnosticId))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function ParameterOfMethodThatHandlesEvent() As Task
+            Await TestDiagnosticMissingAsync(
+$"Public Class C
+    Public Event E(p As Integer)
+    Dim WithEvents field As New C
+
+    Public Sub M([|p|] As Integer) Handles field.E
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function Parameter_ConditionalDirective() As Task
+            Await TestDiagnosticMissingAsync(
+$"Public Class C
+    Public Sub M([|p|] As Integer)
+#If DEBUG Then
+        System.Console.WriteLine(p)
+#End If
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(32851, "https://github.com/dotnet/roslyn/issues/32851")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)>
+        Public Async Function Parameter_Unused_SpecialNames() As Task
+            Await TestDiagnosticMissingAsync(
+$"Class C
+    [|Sub M(_0 As Integer, _1 As Char, _3 As C)|]
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

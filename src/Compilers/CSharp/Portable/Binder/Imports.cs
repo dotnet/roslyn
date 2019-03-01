@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static Imports FromSyntax(
             CSharpSyntaxNode declarationSyntax,
             InContainerBinder binder,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             bool inUsing)
         {
             SyntaxList<UsingDirectiveSyntax> usingDirectives;
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var typeSymbol = (TypeSymbol)@using.NamespaceOrType;
                     var location = @using.UsingDirective?.Name.Location ?? NoLocation.Singleton;
-                    typeSymbol.CheckAllConstraints(conversions, location, semanticDiagnostics);
+                    typeSymbol.CheckAllConstraints(_compilation, conversions, location, semanticDiagnostics);
                 }
             }
 
@@ -623,7 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResult result,
             string name,
             int arity,
-            ConsList<Symbol> basesBeingResolved,
+            ConsList<TypeSymbol> basesBeingResolved,
             LookupOptions options,
             bool diagnose,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)

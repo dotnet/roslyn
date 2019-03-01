@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly AwaitableInfo _awaitableInfo;
 
-        public IMethodSymbol GetAwaiterMethod => _awaitableInfo.GetAwaiter;
+        public IMethodSymbol GetAwaiterMethod => _awaitableInfo?.GetAwaiter;
 
-        public IPropertySymbol IsCompletedProperty => _awaitableInfo.IsCompleted;
+        public IPropertySymbol IsCompletedProperty => _awaitableInfo?.IsCompleted;
 
-        public IMethodSymbol GetResultMethod => _awaitableInfo.GetResult;
+        public IMethodSymbol GetResultMethod => _awaitableInfo?.GetResult;
 
-        public bool IsDynamic => _awaitableInfo.IsDynamic;
+        public bool IsDynamic => _awaitableInfo?.IsDynamic == true;
 
         internal AwaitExpressionInfo(AwaitableInfo awaitableInfo)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool Equals(object obj)
         {
-            return obj is AwaitExpressionInfo && Equals((AwaitExpressionInfo)obj);
+            return obj is AwaitExpressionInfo otherAwait && Equals(otherAwait);
         }
 
         public bool Equals(AwaitExpressionInfo other)
@@ -41,6 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override int GetHashCode()
         {
+            if (_awaitableInfo is null)
+            {
+                return 0;
+            }
             return Hash.Combine(GetAwaiterMethod, Hash.Combine(IsCompletedProperty, GetResultMethod.GetHashCode()));
         }
     }

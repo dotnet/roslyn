@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (seen == null)
                 {
                     // Don't allocate until we see at least one interface.
-                    seen = new HashSet<NamedTypeSymbol>();
+                    seen = new HashSet<NamedTypeSymbol>(TypeSymbol.EqualsCLRSignatureComparer);
                 }
                 if (seen.Add(@interface))
                 {

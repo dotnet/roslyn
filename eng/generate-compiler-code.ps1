@@ -8,13 +8,13 @@ param ([string]$configuration = "Debug",
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
-function Run-Tool($tool, $toolArgs) {
-    $toolName = Split-Path -leaf $tool
-    Write-Host "Running $toolName"
-    Exec-Console $tool $toolArgs
+function Run-Tool($projectFilePath, $toolArgs) {
+    $toolName = Split-Path -leaf $projectFilePath
+    Write-Host "Running $toolName $toolArgs"
+    Exec-Console $dotnet "run -p $projectFilePath $toolArgs"
 }
 
-function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxTool, $errorFactsTool, $generatedDir, $generatedTestDir) {
+function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxProject, $errorFactsProject, $generatedDir, $generatedTestDir) {
     $syntaxFilePath = Join-Path $languageDir "Syntax\Syntax.xml"
     $syntaxTestFilePath = Join-Path $generatedTestDir "Syntax.Test.xml.Generated.$($languageSuffix)"
     $boundFilePath = Join-Path $languageDir "BoundTree\BoundNodes.xml"
@@ -25,10 +25,10 @@ function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxTool,
 
     Create-Directory $generatedDir
     Create-Directory $generatedTestDir
-    Run-Tool $syntaxTool "`"$syntaxFilePath`" `"$generatedDir`""
-    Run-Tool $syntaxTool "`"$syntaxFilePath`" `"$syntaxTestFilePath`" /test"
-    Run-Tool $boundTreeGenerator "$language `"$boundFilePath`" `"$boundGeneratedFilePath`""
-    Run-Tool $errorFactsTool "`"$errorFilePath`" `"$errorGeneratedFilePath`""
+    Run-Tool $syntaxProject "`"$syntaxFilePath`" `"$generatedDir`""
+    Run-Tool $syntaxProject "`"$syntaxFilePath`" `"$syntaxTestFilePath`" /test"
+    Run-Tool $boundTreeGenProject "$language `"$boundFilePath`" `"$boundGeneratedFilePath`""
+    Run-Tool $errorFactsProject "`"$errorFilePath`" `"$errorGeneratedFilePath`""
 }
 
 # Test the contents of our generated files to ensure they are equal.  Compares our checked
@@ -69,7 +69,7 @@ function Run-GetTextCore($generatedDir) {
     $syntaxTextFilePath = Join-Path $generatedDir "Syntax.xml.GetText.Generated.vb"
 
     Create-Directory $generatedDir
-    Run-Tool $basicSyntaxGenerator "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext"
+    Run-Tool $basicSyntaxProject "`"$syntaxFilePath`" `"$syntaxTextFilePath`" /gettext"
 }
 
 function Run-GetText() {
@@ -84,58 +84,32 @@ function Run-GetText() {
     }
 }
 
-# Build all of the tools that we need to generate the syntax trees and ensure
-# they are in a published / runnable state.
-function Build-Tools() {
-    $list = @(
-        'boundTreeGenerator;BoundTreeGenerator;BoundTreeGenerator\CompilersBoundTreeGenerator.csproj',
-        'csharpErrorFactsGenerator;CSharpErrorFactsGenerator;CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj',
-        'csharpSyntaxGenerator;CSharpSyntaxGenerator;CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj',
-        'basicErrorFactsGenerator;VBErrorFactsGenerator;VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj',
-        'basicSyntaxGenerator;VBSyntaxGenerator;VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj')
-
-    $dotnet = Ensure-DotnetSdk
-    $tfm = "netcoreapp2.1"
-    $rid = "win-x64"
-
-    Push-Location (Join-Path $RepoRoot 'src\Tools\Source\CompilerGeneratorTools\Source')
-    try {
-        foreach ($item in $list) { 
-            $all = $item.Split(';')
-            $varName = $all[0]
-            $exeName = $all[1]
-            $proj = $all[2]
-            $fileName = [IO.Path]::GetFileNameWithoutExtension($proj)
-            Write-Host "Building $fileName"
-            Restore-Project $proj
-            Exec-Command $dotnet "publish /p:Configuration=$configuration /p:RuntimeIdentifier=$rid /v:m `"$proj`"" | Out-Null
-
-            $exePath = GetProjectOutputBinary "$exeName.exe" -configuration:$configuration -projectName:$fileName -tfm:$tfm -rid:$rid -published:$true
-            if (-not (Test-Path $exePath)) {
-                throw "Did not find exe after build: $exePath"
-            }
-
-            Set-Variable -Name $varName -Value $exePath -Scope Script
-        }
-    }
-    finally {
-        Pop-Location
-    }
+function Get-ToolPath($projectRelativePath) {
+    $p = Join-Path 'src\Tools\Source\CompilerGeneratorTools\Source' $projectRelativePath
+    $p = Join-Path $RepoRoot $p
+    return $p
 }
 
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
+    Push-Location $RepoRoot
 
-    Build-Tools
+    $dotnet = Ensure-DotnetSdk
+    $boundTreeGenProject = Get-ToolPath 'BoundTreeGenerator\CompilersBoundTreeGenerator.csproj'
 
     $csharpDir = Join-Path $RepoRoot "src\Compilers\CSharp\Portable"
     $csharpTestDir = Join-Path $RepoRoot "src\Compilers\CSharp\Test\Syntax"
+    $csharpSyntaxProject = Get-ToolPath 'CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj'
+    $csharpErrorFactsProject = Get-ToolPath 'CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj'
     $basicDir = Join-Path $RepoRoot "src\Compilers\VisualBasic\Portable"
     $basicTestDir = Join-Path $RepoRoot "src\Compilers\VisualBasic\Test\Syntax"
-    $generationTempDir = Join-Path $TempDir "Generated"
+    $basicSyntaxProject = Get-ToolPath 'VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj'
+    $basicErrorFactsProject = Get-ToolPath 'VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj'
+    $generationTempDir = Join-Path $RepoRoot "artifacts\log\$configuration\Generated"
 
-    Run-Language "CSharp" "cs" $csharpDir $csharpTestDir $csharpSyntaxGenerator $csharpErrorFactsGenerator
-    Run-Language "VB" "vb" $basicDir $basicTestDir $basicSyntaxGenerator $basicErrorFactsGenerator
+
+    Run-Language "CSharp" "cs" $csharpDir $csharpTestDir $csharpSyntaxProject $csharpErrorFactsProject
+    Run-Language "VB" "vb" $basicDir $basicTestDir $basicSyntaxProject $basicErrorFactsProject 
     Run-GetText
 
     exit 0
@@ -143,4 +117,7 @@ try {
 catch {
     Write-Host $_
     exit 1
+}
+finally {
+    Pop-Location
 }

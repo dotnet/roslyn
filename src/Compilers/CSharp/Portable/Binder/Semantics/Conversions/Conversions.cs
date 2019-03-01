@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // An interpolated string expression may be converted to the types
             // System.IFormattable and System.FormattableString
-            return (destination == Compilation.GetWellKnownType(WellKnownType.System_IFormattable) ||
-                    destination == Compilation.GetWellKnownType(WellKnownType.System_FormattableString))
+            return (TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_IFormattable), TypeCompareKind.ConsiderEverything2) ||
+                    TypeSymbol.Equals(destination, Compilation.GetWellKnownType(WellKnownType.System_FormattableString), TypeCompareKind.ConsiderEverything2))
                 ? Conversion.InterpolatedString : Conversion.NoConversion;
         }
 
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (sourceExpression.Syntax.IsVariableDeclarationInitialization())
             {
                 Debug.Assert((object)sourceExpression.Type == null);
-                Debug.Assert(sourceExpression.ElementType != null);
+                Debug.Assert((object)sourceExpression.ElementType != null);
 
                 var sourceAsPointer = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(sourceExpression.ElementType));
                 var pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     var spanType = _binder.GetWellKnownType(WellKnownType.System_Span_T, ref useSiteDiagnostics);
-                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsByRefLikeType)
+                    if (spanType.TypeKind == TypeKind.Struct && spanType.IsRefLikeType)
                     {
                         var spanType_T = spanType.Construct(sourceExpression.ElementType);
                         var spanConversion = ClassifyImplicitConversionFromType(spanType_T, destination, ref useSiteDiagnostics);

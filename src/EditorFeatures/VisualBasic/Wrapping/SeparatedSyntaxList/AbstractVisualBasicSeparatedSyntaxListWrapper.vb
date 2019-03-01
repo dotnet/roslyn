@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping.SeparatedSyntaxList
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.SeparatedSyntaxList
     Friend MustInherit Class AbstractVisualBasicSeparatedSyntaxListWrapper(
         Of TListSyntax As SyntaxNode, TListItemSyntax As SyntaxNode)
         Inherits AbstractSeparatedSyntaxListWrapper(Of TListSyntax, TListItemSyntax)
@@ -17,11 +17,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editor.Wrapping.SeparatedSyntaxList
         Private Class IndentationService
             Inherits VisualBasicIndentationService
 
-            Protected Overrides Function GetSpecializedIndentationFormattingRule() As IFormattingRule
+            Protected Overrides Function GetSpecializedIndentationFormattingRule() As AbstractFormattingRule
                 ' Override default indentation behavior.  The special indentation rule tries to 
                 ' align parameters.  But that's what we're actually trying to control, so we need
                 ' to remove this.
-                Return New NoOpFormattingRule()
+                Return NoOpFormattingRule.Instance
             End Function
         End Class
     End Class

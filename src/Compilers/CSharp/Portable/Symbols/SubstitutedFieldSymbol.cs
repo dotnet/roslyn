@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            if (_lazyType.IsNull)
+            if (_lazyType.IsDefault)
             {
                 _lazyType.InterlockedInitialize(_containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.GetFieldType(fieldsBeingBound)));
             }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var other = obj as SubstitutedFieldSymbol;
-            return (object)other != null && _containingType == other._containingType && OriginalDefinition == other.OriginalDefinition;
+            return (object)other != null && TypeSymbol.Equals(_containingType, other._containingType, TypeCompareKind.ConsiderEverything2) && OriginalDefinition == other.OriginalDefinition;
         }
 
         public override int GetHashCode()

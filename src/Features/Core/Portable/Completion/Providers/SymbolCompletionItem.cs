@@ -240,6 +240,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return text;
         }
 
+        // COMPAT OVERLOAD: This is used by IntelliCode.
+        public static CompletionItem CreateWithSymbolId(
+            string displayText,
+            IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
+            int contextPosition,
+            string sortText = null,
+            string insertionText = null,
+            string filterText = null,
+            SupportedPlatformData supportedPlatforms = null,
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableArray<string> tags = default)
+        {
+            return CreateWithSymbolId(
+                displayText,
+                displayTextSuffix: null,
+                symbols,
+                rules,
+                contextPosition,
+                sortText,
+                insertionText,
+                filterText,
+                supportedPlatforms,
+                properties,
+                tags);
+        }
+
         public static CompletionItem CreateWithSymbolId(
             string displayText,
             string displayTextSuffix,

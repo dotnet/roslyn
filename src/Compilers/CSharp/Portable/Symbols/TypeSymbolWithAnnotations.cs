@@ -20,6 +20,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Nullable,     // Explicitly set by flow analysis
     }
 
+    /// <summary>
+    /// The nullable state of an rvalue computed in <see cref="NullableWalker"/>.
+    /// When in doubt we conservatively use <see cref="NullableFlowState.NotNull"/>
+    /// to minimize diagnostics.
+    /// </summary>
+    internal enum NullableFlowState : byte
+    {
+        NotNull,
+        MaybeNull
+    }
+
+    /// <summary>
+    /// A type and its corresponding flow state resulting from evaluating an rvalue expression.
+    /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
+    internal readonly struct TypeWithState
+    {
+        public TypeSymbol Type { get; }
+        public NullableFlowState State { get; }
+        public bool HasNullType => Type is null;
+        public bool MaybeNull => State == NullableFlowState.MaybeNull;
+        public bool NotNull => State == NullableFlowState.NotNull;
+        public static TypeWithState ForType(TypeSymbol type) => new TypeWithState(type, type?.CanContainNull() == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
+        public TypeWithState(TypeSymbol type, NullableFlowState state) => (Type, State) = (type, state);
+        public void Deconstruct(out TypeSymbol type, out NullableFlowState state) => (type, state) = (Type, State);
+        public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
+        public TypeWithState WithNotNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
+        public TypeSymbolWithAnnotations ToTypeSymbolWithAnnotations()
+        {
+            NullableAnnotation annotation = (this.State == NullableFlowState.NotNull)
+                ? NullableAnnotation.NotNullable : NullableAnnotation.Nullable;
+            return TypeSymbolWithAnnotations.Create(this.Type, annotation);
+        }
+    }
+
     internal static class NullableAnnotationExtensions
     {
         public static bool IsAnyNullable(this NullableAnnotation annotation)
@@ -32,34 +67,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return annotation == NullableAnnotation.NotAnnotated || annotation == NullableAnnotation.NotNullable;
         }
 
+        public static bool IsSpeakable(this NullableAnnotation annotation)
+        {
+            return annotation == NullableAnnotation.Unknown ||
+                annotation == NullableAnnotation.NotAnnotated ||
+                annotation == NullableAnnotation.Annotated;
+        }
+
+        /// <summary>
+        /// This method projects nullable annotations onto a smaller set that can be expressed in source.
+        /// </summary>
+        public static NullableAnnotation AsSpeakable(this NullableAnnotation annotation, TypeSymbol type)
+        {
+            if (type is null && annotation == NullableAnnotation.Unknown)
+            {
+                return default;
+            }
+
+            Debug.Assert((object)type != null);
+            switch (annotation)
+            {
+                case NullableAnnotation.Unknown:
+                case NullableAnnotation.NotAnnotated:
+                case NullableAnnotation.Annotated:
+                    return annotation;
+
+                case NullableAnnotation.Nullable:
+                    if (type.IsTypeParameterDisallowingAnnotation())
+                    {
+                        return NullableAnnotation.NotAnnotated;
+                    }
+                    return NullableAnnotation.Annotated;
+
+                case NullableAnnotation.NotNullable:
+                    // Example of unspeakable types:
+                    // - an unconstrained T which was null-tested already
+                    // - a nullable value type which was null-tested already
+                    // Note this projection is lossy for such types (we forget about the non-nullable state)
+                    return NullableAnnotation.NotAnnotated;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(annotation);
+            }
+        }
+
         /// <summary>
         /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
+        /// This uses the covariant merging rules.
         /// </summary>
         public static NullableAnnotation JoinForFixingLowerBounds(this NullableAnnotation a, NullableAnnotation b)
         {
-            if (a == b)
+            if (a == NullableAnnotation.Nullable || b == NullableAnnotation.Nullable)
             {
-                return a;
+                return NullableAnnotation.Nullable;
             }
 
-            if (a.IsAnyNullable() && b.IsAnyNullable())
+            if (a == NullableAnnotation.Annotated || b == NullableAnnotation.Annotated)
             {
                 return NullableAnnotation.Annotated;
-            }
-
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
-            // If either candidate is nullable - result is nullable
-            // Otherwise - result is "oblivious". 
-
-            if (a.IsAnyNullable())
-            {
-                Debug.Assert(!b.IsAnyNullable());
-                return a;
-            }
-
-            if (b.IsAnyNullable())
-            {
-                return b;
             }
 
             if (a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown)
@@ -67,92 +132,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.Unknown;
             }
 
-            Debug.Assert((a == NullableAnnotation.NotAnnotated && b == NullableAnnotation.NotNullable) ||
-                (b == NullableAnnotation.NotAnnotated && a == NullableAnnotation.NotNullable));
-            return NullableAnnotation.NotAnnotated; // It is reasonable to settle on this value because the difference in annotations is either
-                                                    // not significant for the type, or candidate corresponding to this value is possibly a 
-                                                    // nullable reference type type parameter and nullable should win. 
+            if (a == NullableAnnotation.NotNullable || b == NullableAnnotation.NotNullable)
+            {
+                return NullableAnnotation.NotNullable;
+            }
+
+            return NullableAnnotation.NotAnnotated;
         }
 
         /// <summary>
-        /// Join nullable annotations from distinct branches during flow analysis.
+        /// Join nullable flow states from distinct branches during flow analysis.
         /// </summary>
-        public static NullableAnnotation JoinForFlowAnalysisBranches<T>(this NullableAnnotation selfAnnotation, NullableAnnotation otherAnnotation, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter)
+        public static NullableFlowState JoinForFlowAnalysisBranches(this NullableFlowState selfState, NullableFlowState otherState)
         {
-            if (selfAnnotation == otherAnnotation)
-            {
-                return selfAnnotation;
-            }
-
-            if (selfAnnotation.IsAnyNullable() || otherAnnotation.IsAnyNullable())
-            {
-                return selfAnnotation == NullableAnnotation.Annotated || otherAnnotation == NullableAnnotation.Annotated ?
-                            NullableAnnotation.Annotated : NullableAnnotation.Nullable;
-            }
-            else if (selfAnnotation == NullableAnnotation.Unknown)
-            {
-                if (otherAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.NotNullable)
-                {
-                    return NullableAnnotation.Unknown;
-                }
-                else
-                {
-                    Debug.Assert(otherAnnotation == NullableAnnotation.NotAnnotated);
-                    if (isPossiblyNullableReferenceTypeTypeParameter(type))
-                    {
-                        return otherAnnotation;
-                    }
-                    else
-                    {
-                        return NullableAnnotation.Unknown;
-                    }
-                }
-            }
-            else if (otherAnnotation == NullableAnnotation.Unknown)
-            {
-                if (selfAnnotation == NullableAnnotation.NotNullable)
-                {
-                    return NullableAnnotation.Unknown;
-                }
-                else
-                {
-                    Debug.Assert(selfAnnotation == NullableAnnotation.NotAnnotated);
-                    if (isPossiblyNullableReferenceTypeTypeParameter(type))
-                    {
-                        return selfAnnotation;
-                    }
-                    else
-                    {
-                        return NullableAnnotation.Unknown;
-                    }
-                }
-            }
-            else
-            {
-                return selfAnnotation == NullableAnnotation.NotAnnotated || otherAnnotation == NullableAnnotation.NotAnnotated ?
-                            NullableAnnotation.NotAnnotated : NullableAnnotation.NotNullable;
-            }
+            return (selfState == NullableFlowState.MaybeNull || otherState == NullableFlowState.MaybeNull)
+                ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
         }
 
         /// <summary>
         /// Meet two nullable annotations for computing the nullable annotation of a type parameter from upper bounds.
+        /// This uses the contravariant merging rules.
         /// </summary>
         public static NullableAnnotation MeetForFixingUpperBounds(this NullableAnnotation a, NullableAnnotation b)
         {
-            if (a == b)
-            {
-                return a;
-            }
-
-            if (a.IsAnyNullable() && b.IsAnyNullable())
-            {
-                return NullableAnnotation.Annotated;
-            }
-
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
-            // If either candidate is not nullable - result is not nullable
-            // Otherwise - result is "oblivious". 
-
             if (a == NullableAnnotation.NotNullable || b == NullableAnnotation.NotNullable)
             {
                 return NullableAnnotation.NotNullable;
@@ -163,89 +165,78 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NullableAnnotation.NotAnnotated;
             }
 
-            Debug.Assert(a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown);
-            return NullableAnnotation.Unknown;
-        }
-
-        /// <summary>
-        /// Meet two nullable annotations from distinct states for the meet (union) operation in flow analysis.
-        /// </summary>
-        public static NullableAnnotation MeetForFlowAnalysisFinally(this NullableAnnotation selfAnnotation, NullableAnnotation otherAnnotation)
-        {
-            if (selfAnnotation == otherAnnotation)
-            {
-                return selfAnnotation;
-            }
-
-            if (selfAnnotation.IsAnyNotNullable() || otherAnnotation.IsAnyNotNullable())
-            {
-                return selfAnnotation == NullableAnnotation.NotNullable || otherAnnotation == NullableAnnotation.NotNullable ?
-                            NullableAnnotation.NotNullable : NullableAnnotation.NotAnnotated;
-            }
-            else if (selfAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.Unknown)
+            if (a == NullableAnnotation.Unknown || b == NullableAnnotation.Unknown)
             {
                 return NullableAnnotation.Unknown;
             }
-            else
+
+            if (a == NullableAnnotation.Nullable || b == NullableAnnotation.Nullable)
             {
-                return selfAnnotation == NullableAnnotation.Nullable || otherAnnotation == NullableAnnotation.Nullable ?
-                            NullableAnnotation.Nullable : NullableAnnotation.Annotated;
+                return NullableAnnotation.Nullable;
             }
+
+            return NullableAnnotation.Annotated;
+        }
+
+        /// <summary>
+        /// Meet two nullable flow states from distinct states for the meet (union) operation in flow analysis.
+        /// </summary>
+        public static NullableFlowState MeetForFlowAnalysisFinally(this NullableFlowState selfState, NullableFlowState otherState)
+        {
+            return (selfState == NullableFlowState.NotNull || otherState == NullableFlowState.NotNull)
+                ? NullableFlowState.NotNull : NullableFlowState.MaybeNull;
         }
 
         /// <summary>
         /// Check that two nullable annotations are "compatible", which means they could be the same. Return the
-        /// nullable annotation to be used as a result. Also returns through <paramref name="hadNullabilityMismatch"/>
-        /// whether the caller should report a warning because there was an actual mismatch (e.g. nullable vs non-nullable).
+        /// nullable annotation to be used as a result.
+        /// This uses the invariant merging rules.
         /// </summary>
-        public static NullableAnnotation EnsureCompatible<T>(this NullableAnnotation a, NullableAnnotation b, T type, Func<T, bool> isPossiblyNullableReferenceTypeTypeParameter, out bool hadNullabilityMismatch)
+        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b)
         {
-            hadNullabilityMismatch = false;
-            if (a == b)
+            Debug.Assert(a.IsSpeakable());
+            Debug.Assert(b.IsSpeakable());
+
+            if (a == NullableAnnotation.NotAnnotated || b == NullableAnnotation.NotAnnotated)
             {
-                return a;
+                return NullableAnnotation.NotAnnotated;
             }
 
-            if (a.IsAnyNullable() && b.IsAnyNullable())
+            if (a == NullableAnnotation.Annotated || b == NullableAnnotation.Annotated)
             {
                 return NullableAnnotation.Annotated;
             }
 
-            // If nullability on both sides matches - result is that nullability (trivial cases like these are handled above)
-            // If either candidate is "oblivious" - result is the nullability of the other candidate
-            // Otherwise - we declare a mismatch and result is not nullable. 
+            return NullableAnnotation.Unknown;
+        }
 
-            if (a == NullableAnnotation.Unknown)
+        /// <summary>
+        /// Check that two nullable annotations are "compatible", which means they could be the same. Return the
+        /// nullable annotation to be used as a result. This method can handle unspeakable types (for merging tuple types).
+        /// </summary>
+        public static NullableAnnotation EnsureCompatibleForTuples(this NullableAnnotation a, NullableAnnotation b)
+        {
+            if (a == NullableAnnotation.NotNullable || b == NullableAnnotation.NotNullable)
             {
-                return b;
+                return NullableAnnotation.NotNullable;
             }
 
-            if (b == NullableAnnotation.Unknown)
+            if (a == NullableAnnotation.NotAnnotated || b == NullableAnnotation.NotAnnotated)
             {
-                return a;
+                return NullableAnnotation.NotAnnotated;
             }
 
-            // At this point we know that either nullability of both sides is significantly different NotNullable vs. Nullable,
-            // or we are dealing with different flavors of not nullable for both candidates
-            if ((a == NullableAnnotation.NotAnnotated && b == NullableAnnotation.NotNullable) ||
-                (b == NullableAnnotation.NotAnnotated && a == NullableAnnotation.NotNullable))
+            if (a == NullableAnnotation.Nullable || b == NullableAnnotation.Nullable)
             {
-                if (!isPossiblyNullableReferenceTypeTypeParameter(type))
-                {
-                    // For this type both not nullable annotations are equivalent and therefore match.
-                    return NullableAnnotation.NotAnnotated;
-                }
-
-                // We are dealing with different flavors of not nullable for a possibly nullable reference type parameter,
-                // we don't have a reliable way to merge them since one of them can actually represent a nullable type.
-            }
-            else
-            {
-                Debug.Assert(a.IsAnyNullable() != b.IsAnyNullable());
+                return NullableAnnotation.Nullable;
             }
 
-            hadNullabilityMismatch = true;
-            return NullableAnnotation.NotAnnotated;
+            if (a == NullableAnnotation.Annotated || b == NullableAnnotation.Annotated)
+            {
+                return NullableAnnotation.Annotated;
+            }
+
+            return NullableAnnotation.Unknown;
         }
     }
 
@@ -273,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// <summary>
             /// True if the fields of the builder are unset.
             /// </summary>
-            internal bool IsNull => _defaultType is null;
+            internal bool IsDefault => _defaultType is null && _nullableAnnotation == 0 && (_extensions == null || _extensions == Extensions.Default);
 
             /// <summary>
             /// Set the fields of the builder.
@@ -302,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// </summary>
             internal TypeSymbolWithAnnotations ToType()
             {
-                return (object)_defaultType == null ?
+                return IsDefault ?
                     default :
                     new TypeSymbolWithAnnotations(_defaultType, _nullableAnnotation, _extensions);
             }
@@ -325,13 +316,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeSymbolWithAnnotations(TypeSymbol defaultType, NullableAnnotation nullableAnnotation, Extensions extensions)
         {
-            Debug.Assert((object)defaultType != null);
-            Debug.Assert(!defaultType.IsNullableType() || (nullableAnnotation != NullableAnnotation.Unknown && nullableAnnotation != NullableAnnotation.NotAnnotated));
+            Debug.Assert(defaultType?.IsNullableType() != true || (nullableAnnotation != NullableAnnotation.Unknown && nullableAnnotation != NullableAnnotation.NotAnnotated));
             Debug.Assert(extensions != null);
 
             _defaultType = defaultType;
             NullableAnnotation = nullableAnnotation;
             _extensions = extensions;
+        }
+
+        public TypeSymbolWithAnnotations AsSpeakable()
+        {
+            if (!HasType)
+            {
+                return default;
+            }
+
+            TypeSymbol typeSymbol = this.TypeSymbol;
+            var annotation = this.NullableAnnotation;
+            var speakableAnnotation = annotation.AsSpeakable(typeSymbol);
+
+            if (annotation == speakableAnnotation)
+            {
+                return this;
+            }
+
+            return Create(typeSymbol, speakableAnnotation, this.CustomModifiers);
         }
 
         public override string ToString() => TypeSymbol.ToString();
@@ -362,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, NullableAnnotation nullableAnnotation = NullableAnnotation.Unknown, ImmutableArray<CustomModifier> customModifiers = default)
         {
-            if (typeSymbol is null)
+            if (typeSymbol is null && nullableAnnotation == 0)
             {
                 return default;
             }
@@ -371,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case NullableAnnotation.Unknown:
                 case NullableAnnotation.NotAnnotated:
-                    if (typeSymbol.IsNullableType())
+                    if (typeSymbol?.IsNullableType() == true)
                     {
                         // int?, T? where T : struct (add annotation)
                         nullableAnnotation = NullableAnnotation.Annotated;
@@ -382,14 +391,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return CreateNonLazyType(typeSymbol, nullableAnnotation, customModifiers.NullToEmpty());
         }
 
-        internal bool IsPossiblyNullableReferenceTypeTypeParameter()
+        internal bool IsPossiblyNullableTypeTypeParameter()
         {
-            return NullableAnnotation == NullableAnnotation.NotAnnotated && TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter();
+            return NullableAnnotation == NullableAnnotation.NotAnnotated &&
+                (TypeSymbol?.IsPossiblyNullableReferenceTypeTypeParameter() == true ||
+                 TypeSymbol?.IsNullableTypeOrTypeParameter() == true);
         }
 
         internal NullableAnnotation GetValueNullableAnnotation()
         {
-            if (IsPossiblyNullableReferenceTypeTypeParameter())
+            if (IsPossiblyNullableTypeTypeParameter())
             {
                 return NullableAnnotation.Nullable;
             }
@@ -403,25 +414,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return NullableAnnotation;
         }
 
-        internal bool? ValueCanBeNull()
+        internal bool CanBeAssignedNull
         {
-            switch (NullableAnnotation)
+            get
             {
-                case NullableAnnotation.Unknown:
-                    return null;
+                switch (NullableAnnotation)
+                {
+                    case NullableAnnotation.Unknown:
+                        return true;
 
-                case NullableAnnotation.Annotated:
-                case NullableAnnotation.Nullable:
-                    return true;
+                    case NullableAnnotation.Annotated:
+                    case NullableAnnotation.Nullable:
+                        return true;
 
-                case NullableAnnotation.NotNullable:
-                    return false;
+                    case NullableAnnotation.NotNullable:
+                        return false;
 
-                case NullableAnnotation.NotAnnotated:
-                    return TypeSymbol.IsPossiblyNullableReferenceTypeTypeParameter();
+                    case NullableAnnotation.NotAnnotated:
+                        return TypeSymbol.IsNullableType();
 
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(NullableAnnotation);
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(NullableAnnotation);
+                }
             }
         }
 
@@ -442,9 +456,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// True if the fields are unset.
+        /// True if the fields are unset. Appropriate when detecting if a lazily-initialized variable has been initialized.
         /// </summary>
-        internal bool IsNull => _defaultType is null;
+        internal bool IsDefault => _defaultType is null && this.NullableAnnotation == 0 && (_extensions == null || _extensions == Extensions.Default);
+
+        /// <summary>
+        /// True if the type is not null.
+        /// </summary>
+        internal bool HasType => !(_defaultType is null);
 
         public TypeSymbolWithAnnotations SetIsAnnotated(CSharpCompilation compilation)
         {
@@ -474,26 +493,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Merges top-level and nested nullability from an otherwise identical type.
-        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict
-        /// merging nullability and warning should be reported by the caller.
         /// </summary>
-        internal TypeSymbolWithAnnotations MergeNullability(TypeSymbolWithAnnotations other, VarianceKind variance, out bool hadNullabilityMismatch)
+        internal TypeSymbolWithAnnotations MergeNullability(TypeSymbolWithAnnotations other, VarianceKind variance)
         {
+            Debug.Assert(this.NullableAnnotation.IsSpeakable());
+            Debug.Assert(other.NullableAnnotation.IsSpeakable());
+
             TypeSymbol typeSymbol = other.TypeSymbol;
-            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(typeSymbol, NullableAnnotation, other.NullableAnnotation, variance, out bool hadTopLevelMismatch);
-            TypeSymbol type = TypeSymbol.MergeNullability(typeSymbol, variance, out bool hadNestedMismatch);
+            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(this.NullableAnnotation, other.NullableAnnotation, variance);
+            TypeSymbol type = TypeSymbol.MergeNullability(typeSymbol, variance);
             Debug.Assert((object)type != null);
-            hadNullabilityMismatch = hadTopLevelMismatch | hadNestedMismatch;
             return Create(type, nullableAnnotation, CustomModifiers);
         }
 
         /// <summary>
         /// Merges nullability.
-        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict.
         /// </summary>
-        private static NullableAnnotation MergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b, VarianceKind variance, out bool hadNullabilityMismatch)
+        private static NullableAnnotation MergeNullableAnnotation(NullableAnnotation a, NullableAnnotation b, VarianceKind variance)
         {
-            hadNullabilityMismatch = false;
+            Debug.Assert(a.IsSpeakable());
+            Debug.Assert(b.IsSpeakable());
+
             switch (variance)
             {
                 case VarianceKind.In:
@@ -501,13 +521,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case VarianceKind.Out:
                     return a.JoinForFixingLowerBounds(b);
                 case VarianceKind.None:
-                    return a.EnsureCompatible(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate, out hadNullabilityMismatch);
+                    return a.EnsureCompatible(b);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(variance);
             }
         }
-
-        private readonly static Func<TypeSymbol, bool> _IsPossiblyNullableReferenceTypeTypeParameterDelegate = type => type.IsPossiblyNullableReferenceTypeTypeParameter();
 
         public TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) =>
             _extensions.WithModifiers(this, customModifiers);
@@ -554,19 +572,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public string ToDisplayString(SymbolDisplayFormat format = null)
         {
-            var str = TypeSymbol.ToDisplayString(format);
+            var str = !HasType ? "<null>" : TypeSymbol.ToDisplayString(format);
             if (format != null)
             {
                 if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
                     !IsNullableType() && !IsValueType &&
                     (NullableAnnotation == NullableAnnotation.Annotated ||
-                     (NullableAnnotation == NullableAnnotation.Nullable && !TypeSymbol.IsUnconstrainedTypeParameter())))
+                     (NullableAnnotation == NullableAnnotation.Nullable && !TypeSymbol.IsTypeParameterDisallowingAnnotation())))
                 {
                     return str + "?";
                 }
                 else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                     !IsValueType &&
-                    NullableAnnotation.IsAnyNotNullable() && !TypeSymbol.IsUnconstrainedTypeParameter())
+                    NullableAnnotation.IsAnyNotNullable() && !TypeSymbol.IsTypeParameterDisallowingAnnotation())
                 {
                     return str + "!";
                 }
@@ -574,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return str;
         }
 
-        internal string GetDebuggerDisplay() => _defaultType is null ? "null" : ToDisplayString(DebuggerDisplayFormat);
+        internal string GetDebuggerDisplay() => !this.HasType ? "<null>" : ToDisplayString(DebuggerDisplayFormat);
 
         string IFormattable.ToString(string format, IFormatProvider formatProvider)
         {
@@ -588,7 +606,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            if (other.IsNull || !TypeSymbolEquals(other, comparison))
+            if (!HasType)
+            {
+                if (other.HasType || NullableAnnotation != other.NullableAnnotation)
+                    return false;
+            }
+            else if (!other.HasType || !TypeSymbolEquals(other, comparison))
             {
                 return false;
             }
@@ -600,11 +623,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if ((comparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0)
+            var thisAnnotation = NullableAnnotation;
+            var otherAnnotation = other.NullableAnnotation;
+            if (!HasType)
             {
-                var thisAnnotation = NullableAnnotation;
-                var otherAnnotation = other.NullableAnnotation;
-                if (otherAnnotation != thisAnnotation)
+                return thisAnnotation == otherAnnotation;
+            }
+            else if ((comparison & TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) == 0)
+            {
+                if (otherAnnotation != thisAnnotation && (!TypeSymbol.IsValueType || TypeSymbol.IsNullableType()))
                 {
                     if (thisAnnotation == NullableAnnotation.Unknown || otherAnnotation == NullableAnnotation.Unknown)
                     {
@@ -653,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override int GetHashCode(TypeSymbolWithAnnotations obj)
             {
-                if (obj.IsNull)
+                if (!obj.HasType)
                 {
                     return 0;
                 }
@@ -662,9 +689,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override bool Equals(TypeSymbolWithAnnotations x, TypeSymbolWithAnnotations y)
             {
-                if (x.IsNull)
+                if (!x.HasType)
                 {
-                    return y.IsNull;
+                    return !y.HasType;
                 }
                 return x.Equals(y, TypeCompareKind.ConsiderEverything);
             }
@@ -679,9 +706,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    Symbol.GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, owner, ref checkedTypes);
         }
 
-        public void CheckAllConstraints(ConversionsBase conversions, Location location, DiagnosticBag diagnostics)
+        public void CheckAllConstraints(CSharpCompilation compilation, ConversionsBase conversions, Location location, DiagnosticBag diagnostics)
         {
-            TypeSymbol.CheckAllConstraints(conversions, location, diagnostics);
+            TypeSymbol.CheckAllConstraints(compilation, conversions, location, diagnostics);
         }
 
         public bool IsAtLeastAsVisibleAs(Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -747,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (NullableAnnotation != NullableAnnotation.Unknown)
             {
-                if (!typeSymbol.IsUnconstrainedTypeParameter())
+                if (!typeSymbol.IsTypeParameterDisallowingAnnotation())
                 {
                     newAnnotation = NullableAnnotation;
                 }
@@ -936,6 +963,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this;
         }
 
+        public TypeSymbolWithAnnotations SetSpeakableNullabilityForReferenceTypes()
+        {
+            if (!HasType)
+            {
+                return default;
+            }
+
+            var newTypeSymbol = TypeSymbol.SetSpeakableNullabilityForReferenceTypes();
+
+            if (!NullableAnnotation.IsSpeakable())
+            {
+                if (newTypeSymbol.IsValueType)
+                {
+                    return Create(newTypeSymbol, customModifiers: CustomModifiers);
+                }
+
+                return CreateNonLazyType(newTypeSymbol, NullableAnnotation.AsSpeakable(newTypeSymbol), CustomModifiers);
+            }
+
+            if ((object)newTypeSymbol != TypeSymbol)
+            {
+                return WithTypeAndModifiers(newTypeSymbol, CustomModifiers);
+            }
+
+            return this;
+        }
+
 #pragma warning disable CS0809
         [Obsolete("Unsupported", error: true)]
         public override bool Equals(object other)
@@ -949,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override int GetHashCode()
 #pragma warning restore CS0809
         {
-            if (IsNull)
+            if (!HasType)
             {
                 return 0;
             }
@@ -1284,6 +1338,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return type.TypeSymbolEqualsCore(other, comparison);
             }
+        }
+
+        /// <summary>
+        /// Compute the flow state resulting from reading from an lvalue.
+        /// </summary>
+        internal TypeWithState ToTypeWithState()
+        {
+            // This operation reflects reading from an lvalue, which produces an rvalue.
+            // Reading from a variable of a type parameter (that could be substituted with a nullable type), but which
+            // cannot itself be annotated (because it isn't known to be a reference type), may yield a null value
+            // even though the type parameter isn't annotated.
+            return new TypeWithState(
+                this.TypeSymbol,
+                IsPossiblyNullableTypeTypeParameter() || this.NullableAnnotation.IsAnyNullable() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
         }
     }
 }

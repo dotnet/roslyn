@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
 
         Protected Function TestAllWrappingCasesAsync(
             input As String,
-            options As Dictionary(Of OptionKey, Object),
+            options As IDictionary(Of OptionKey, Object),
             ParamArray outputs As String()) As Task
 
             Dim parameters = New TestParameters(options:=options)

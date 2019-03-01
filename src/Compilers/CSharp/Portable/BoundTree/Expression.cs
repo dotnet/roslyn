@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return objectInitializerExpression.Initializers;
             }
 
-            var collectionInitializerExpresion = objectOrCollectionInitializer as BoundCollectionInitializerExpression;
-            if (collectionInitializerExpresion != null)
+            var collectionInitializerExpression = objectOrCollectionInitializer as BoundCollectionInitializerExpression;
+            if (collectionInitializerExpression != null)
             {
-                return collectionInitializerExpresion.Initializers;
+                return collectionInitializerExpression.Initializers;
             }
 
             return ImmutableArray<BoundExpression>.Empty;
