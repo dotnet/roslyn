@@ -11,9 +11,9 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
     [Guid(Guids.RoslynOptionPageExperimentationIdString)]
     internal class ExperimentationPage : AbstractOptionPage
     {
-        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)
+        protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider, OptionStore optionStore)
         {
-            return new InternalOptionsControl(nameof(ExperimentationOptions), serviceProvider);
+            return new InternalOptionsControl(nameof(ExperimentationOptions), optionStore);
         }
     }
 }
