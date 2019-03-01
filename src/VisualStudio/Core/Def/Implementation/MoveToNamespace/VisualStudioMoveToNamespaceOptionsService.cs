@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             ISyntaxFactsService syntaxFactsService,
             INotificationService notificationService,
             string defaultNamespace,
+            ImmutableArray<string> availableNamespaces,
             CancellationToken cancellationToken)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -38,7 +40,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
             var viewModel = new MoveToNamespaceDialogViewModel(
                 _glyphService,
-                defaultNamespace);
+                defaultNamespace,
+                availableNamespaces);
 
             var dialog = new MoveToNamespaceDialog(viewModel);
             var result = dialog.ShowModal();

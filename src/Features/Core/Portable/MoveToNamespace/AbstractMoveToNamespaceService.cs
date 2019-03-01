@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         internal abstract Task<ImmutableArray<MoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
         internal abstract Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
         public abstract Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
-        public abstract MoveToNamespaceOptionsResult GetOptions(Document document, string defaultNamespace, CancellationToken cancellationToken);
+        public abstract Task<MoveToNamespaceOptionsResult> GetOptionsAsync(Document document, string defaultNamespace, CancellationToken cancellationToken);
     }
 
     internal abstract class AbstractMoveToNamespaceService<TCompilationSyntax, TNamespaceDeclarationSyntax>
@@ -108,19 +109,22 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return new MoveToNamespaceResult(changedSolution, analysisResult.Document.Id);
         }
 
-        public override MoveToNamespaceOptionsResult GetOptions(
+        public override async Task<MoveToNamespaceOptionsResult> GetOptionsAsync(
             Document document,
             string defaultNamespace,
             CancellationToken cancellationToken)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var namespaces = compilation.Assembly.NamespaceNames.Where(s => !string.IsNullOrEmpty(s));
 
-            return _moveToNamespaceOptionsService.GetChangeNamespaceOptionsAsync(
+            return await _moveToNamespaceOptionsService.GetChangeNamespaceOptionsAsync(
                 syntaxFactsService,
                 notificationService,
                 defaultNamespace,
-                cancellationToken).WaitAndGetResult(cancellationToken);
+                namespaces.ToImmutableArray(),
+                cancellationToken).ConfigureAwait(false);
         }
     }
 }

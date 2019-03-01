@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -22,10 +23,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
-            return _changeNamespaceService.GetOptions(
+            return _changeNamespaceService.GetOptionsAsync(
                 _moveToNamespaceAnalysisResult.Document,
                 _moveToNamespaceAnalysisResult.OriginalNamespace,
-                cancellationToken);
+                cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
