@@ -1090,6 +1090,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         protected override void ApplyDocumentInfoChanged(DocumentId id, DocumentInfo updatedInfo)
         {
             var document = CurrentSolution.GetDocument(id);
+
+            FailIfDocumentInfoChangesNotSupported(document, updatedInfo);
+
             if (document.Name != updatedInfo.Name)
             {
                 GetProjectData(updatedInfo.Id.ProjectId, out var _, out var project);
@@ -1107,9 +1110,41 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // necessary workspace changed events.
                 projectItemForDocument.Name = uniqueName;
             }
-            else
+        }
+
+        /// <summary>
+        /// The VisualStudioWorkspace currently supports only a subset of DocumentInfo changes.
+        /// </summary>
+        private void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
+        {
+            if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
             {
-                throw new InvalidOperationException("Unexpected kind of DocumentInfo change.");
+                throw new InvalidOperationException(
+                    $"Unexpected DocumentInfo change to {nameof(document.SourceCodeKind)}.");
+            }
+
+            if (document.FilePath != updatedInfo.FilePath)
+            {
+                throw new InvalidOperationException(
+                    $"Unexpected DocumentInfo change to {nameof(document.FilePath)}.");
+            }
+
+            if (document.Id != updatedInfo.Id)
+            {
+                throw new InvalidOperationException(
+                    $"Unexpected DocumentInfo change to {nameof(document.Id)}.");
+            }
+
+            if (document.Folders != updatedInfo.Folders)
+            {
+                throw new InvalidOperationException(
+                    $"Unexpected DocumentInfo change to {nameof(document.Folders)}.");
+            }
+
+            if (document.State.Attributes.IsGenerated != updatedInfo.IsGenerated)
+            {
+                throw new InvalidOperationException(
+                    $"Unexpected DocumentInfo change to {nameof(document.State.Attributes.IsGenerated)}.");
             }
         }
 
