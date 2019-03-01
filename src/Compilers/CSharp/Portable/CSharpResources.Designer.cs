@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to To use &apos;@$&apos; instead of &apos;$@&apos; for an interpolated verbatim string, please use language version {0} or greater..
+        ///   Looks up a localized string similar to To use &apos;@$&apos; instead of &apos;$@&apos; for an interpolated verbatim string, please use language version &apos;{0}&apos; or greater..
         /// </summary>
         internal static string ERR_AltInterpolatedVerbatimStringsNotAvailable {
             get {
@@ -3418,7 +3418,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The modifier &apos;{0}&apos; is not valid for this item in C# {1}. Please use language version {2} or greater..
+        ///   Looks up a localized string similar to The modifier &apos;{0}&apos; is not valid for this item in C# {1}. Please use language version &apos;{2}&apos; or greater..
         /// </summary>
         internal static string ERR_DefaultInterfaceImplementationModifier {
             get {
@@ -6379,7 +6379,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos; because feature &apos;{3}&apos; is not available in C# {4}. Please use language version {5} or greater..
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos; because feature &apos;{3}&apos; is not available in C# {4}. Please use language version &apos;{5}&apos; or greater..
         /// </summary>
         internal static string ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember {
             get {
@@ -7702,7 +7702,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid &apos;{0}&apos; value: &apos;{1}&apos; for C# {2}. Please use language version {3} or greater..
+        ///   Looks up a localized string similar to Invalid &apos;{0}&apos; value: &apos;{1}&apos; for C# {2}. Please use language version &apos;{3}&apos; or greater..
         /// </summary>
         internal static string ERR_NullableOptionNotAvailable {
             get {
