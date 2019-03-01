@@ -111,7 +111,7 @@ class C
         MyString s = ""abcdef"";
         Console.WriteLine(s[^2..]);
     }
-}" + StringWithIndexers, expectedOutput: "ef");
+}" + TestSources.StringWithIndexers, expectedOutput: "ef");
         }
 
         [Fact]
@@ -126,7 +126,7 @@ class C
         MyString s = ""abcdef"";
         Console.WriteLine(s[^4..^1]);
     }
-}" + StringWithIndexers, expectedOutput: "cde");
+}" + TestSources.StringWithIndexers, expectedOutput: "cde");
         }
 
         [Fact]
@@ -146,7 +146,7 @@ class C
         Console.WriteLine(s[new Index(1, false)]);
         Console.WriteLine(s[new Index(1, false), ^1]);
     }
-}" + StringWithIndexers);
+}" + TestSources.StringWithIndexers);
             comp.VerifyDiagnostics(
                 // (13,27): error CS1501: No overload for method 'this' takes 2 arguments
                 //         Console.WriteLine(s[new Index(1, false), ^1]);
@@ -196,7 +196,7 @@ class C
         Console.WriteLine(s[new Index(1, false)]);
         Console.WriteLine(s[^1]);
     }
-}" + StringWithIndexers, expectedOutput: @"b
+}" + TestSources.StringWithIndexers, expectedOutput: @"b
 f");
             verifier.VerifyIL("C.M", @"
 {
@@ -232,7 +232,7 @@ class C
         Console.WriteLine(result);
     }
     public static string M(MyString s) => s[1..3];
-}" + StringWithIndexers, expectedOutput: "bc");
+}" + TestSources.StringWithIndexers, expectedOutput: "bc");
             verifier.VerifyIL("C.M", @"
 {
   // Code size       25 (0x19)
@@ -262,7 +262,7 @@ class C
         Console.WriteLine(result);
     }
     public static string M(MyString s) => s[1..];
-}" + StringWithIndexers, expectedOutput: "bcdef");
+}" + TestSources.StringWithIndexers, expectedOutput: "bcdef");
         }
 
         [Fact]
@@ -279,7 +279,7 @@ class C
         Console.WriteLine(result);
     }
     public static string M(MyString s) => s[..^2];
-}" + StringWithIndexers, expectedOutput: "abcd");
+}" + TestSources.StringWithIndexers, expectedOutput: "abcd");
         }
 
         [Fact]
@@ -1547,41 +1547,6 @@ partial class Program
         {
             return ""default"";
         }
-    }
-}";
-
-        // The references we use for System.String do not have an indexer for
-        // System.Index and System.Range, so this wrapper mimics the behavior
-        private const string StringWithIndexers = @"
-internal readonly struct MyString
-{
-    private readonly string _s;
-    public MyString(string s)
-    {
-        _s = s;
-    }
-    public static implicit operator MyString(string s) => new MyString(s);
-    public static implicit operator string(MyString m) => m._s;
-
-    public int Length => _s.Length;
-
-    public char this[int index] => _s[index];
-
-    public char this[Index index]
-    {
-        get
-        {
-            int actualIndex = index.GetOffset(Length);
-            return this[actualIndex];
-        }
-    }
-
-    public string this[Range range] => Substring(range);
-
-    public string Substring(Range range)
-    {
-        (int start, int length) = range.GetOffsetAndLength(Length);
-        return _s.Substring(start, length);
     }
 }";
     }
