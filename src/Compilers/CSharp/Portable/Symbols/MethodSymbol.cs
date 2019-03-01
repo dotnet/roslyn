@@ -297,6 +297,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ExplicitInterfaceImplementations.Any(); }
         }
 
+        // PROTOTYPE: this should become public API
+        /// <summary>
+        /// Indicates whether the method is readonly, i.e.
+        /// whether 'this' is readonly in the scope of the method.
+        /// </summary>
+        internal abstract bool IsReadOnly { get; }
+
         /// <summary>
         /// Returns interface methods explicitly implemented by this method.
         /// </summary>

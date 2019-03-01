@@ -143,6 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsReadOnly => false;
+
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) { throw ExceptionUtilities.Unreachable; }
 
         #endregion
