@@ -263,12 +263,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Value;
             }
 
-            if (!options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Value)
-            {
-                return false;
-            }
-            // If they want "var" whenever possible, then use "var".
-            return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value;
+            // If they want "var" whenever possible, then use "var" even if the type is apparent.
+            return options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Value && options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Value;
         }
 
         private static DeclarationExpressionSyntax GetDeclarationExpression(
