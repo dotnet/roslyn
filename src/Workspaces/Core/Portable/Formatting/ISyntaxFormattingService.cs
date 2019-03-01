@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         : ILanguageService
 #endif
     {
-        IEnumerable<IFormattingRule> GetDefaultFormattingRules();
-        IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken);
+        IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules();
+        IFormattingResult Format(SyntaxNode node, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken);
     }
 }

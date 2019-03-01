@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.MetadataAsSource
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.DocumentationComments
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -19,16 +18,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
     Friend Class VisualBasicMetadataAsSourceService
         Inherits AbstractMetadataAsSourceService
 
-        Private ReadOnly _memberSeparationRule As IFormattingRule = New FormattingRule()
+        Private ReadOnly _memberSeparationRule As AbstractFormattingRule = New FormattingRule()
 
         Public Sub New(languageServices As HostLanguageServices)
             MyBase.New(languageServices.GetService(Of ICodeGenerationService)())
         End Sub
 
-        Protected Overrides Async Function AddAssemblyInfoRegionAsync(document As Document, symbol As ISymbol, cancellationToken As CancellationToken) As Task(Of Document)
+        Protected Overrides Async Function AddAssemblyInfoRegionAsync(document As Document, symbolCompilation As Compilation, symbol As ISymbol, cancellationToken As CancellationToken) As Task(Of Document)
             Dim assemblyInfo = MetadataAsSourceHelpers.GetAssemblyInfo(symbol.ContainingAssembly)
-            Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
-            Dim assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(compilation, symbol.ContainingAssembly)
+            Dim assemblyPath = MetadataAsSourceHelpers.GetAssemblyDisplay(symbolCompilation, symbol.ContainingAssembly)
 
             Dim regionTrivia = SyntaxFactory.RegionDirectiveTrivia(
                     SyntaxFactory.Token(SyntaxKind.HashToken),
@@ -60,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
             Return document.WithSyntaxRoot(newSyntaxRoot)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)
+        Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of AbstractFormattingRule)
             Return _memberSeparationRule.Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
 
@@ -72,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
         End Function
 
         Private Class FormattingRule
-            Inherits AbstractFormattingRule
+            Inherits CompatAbstractMetadataFormattingRule
 
             Protected Overrides Function GetAdjustNewLinesOperationBetweenMembersAndUsings(token1 As SyntaxToken, token2 As SyntaxToken) As AdjustNewLinesOperation
                 If token1.Kind = SyntaxKind.None OrElse token2.Kind = SyntaxKind.None Then
@@ -108,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MetadataAsSource
                 Return FormattingOperations.CreateAdjustNewLinesOperation(GetNumberOfLines(triviaList) + 1, AdjustNewLinesOption.ForceLines)
             End Function
 
-            Public Overrides Sub AddAnchorIndentationOperations(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, nextOperation As NextAction(Of AnchorIndentationOperation))
+            Public Overrides Sub AddAnchorIndentationOperationsSlow(list As List(Of AnchorIndentationOperation), node As SyntaxNode, optionSet As OptionSet, ByRef nextOperation As NextAnchorIndentationOperationAction)
                 Return
             End Sub
 

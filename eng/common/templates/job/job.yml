@@ -41,17 +41,10 @@ parameters:
   enablePublishTestResults: false
 
   # Optional: enable sending telemetry
-  #           if 'true', these "variables" must be specified in the variables object or as part of the queue matrix
-  #             _HelixBuildConfig - differentiate between Debug, Release, other
-  #             _HelixType - Example: build/product/
-  #             _HelixSource - Example: official/dotnet/arcade/$(Build.SourceBranch)
   enableTelemetry: false
 
-  # Optional: If specified, then automatically derive "_HelixSource" variable for telemetry
+  # Optional: define the helix repo for telemeetry (example: 'dotnet/arcade')
   helixRepo: ''
-
-  # Optional: Define the type for helix telemetry (must end in '/')
-  helixType: build/product/
 
   # Required: name of the job
   name: ''
@@ -115,29 +108,24 @@ jobs:
         - name: ${{ pair.key }}
           value: ${{ pair.value }}
 
-  # Add additional variables
-  - ${{ if and(ne(parameters.helixRepo, ''), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notIn(variables['Build.Reason'], 'PullRequest')) }}:
-    - name: _HelixSource
-      value: official/${{ parameters.helixRepo }}/$(Build.SourceBranch)
-  - ${{ if and(ne(parameters.helixRepo, ''), or(ne(parameters.runAsPublic, 'false'), eq(variables['System.TeamProject'], 'public'), in(variables['Build.Reason'], 'PullRequest'))) }}:
-    - name: _HelixSource
-      value: pr/${{ parameters.helixRepo }}/$(Build.SourceBranch)
-  - name: _HelixType
-    value: ${{ parameters.helixType }}
-  - name: _HelixBuildConfig
-    value: $(_BuildConfig)
+  # DotNet-HelixApi-Access provides 'HelixApiAccessToken' for internal builds
+  - ${{ if and(eq(parameters.enableTelemetry, 'true'), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+    - group: DotNet-HelixApi-Access
 
   ${{ if ne(parameters.workspace, '') }}:
     workspace: ${{ parameters.workspace }}
 
   steps:
   - ${{ if eq(parameters.enableTelemetry, 'true') }}:
-    - template: /eng/common/templates/steps/telemetry-start.yml
-      parameters:
-        buildConfig: $(_HelixBuildConfig)
-        helixSource: $(_HelixSource)
-        helixType: $(_HelixType)
+    # Telemetry tasks are built from https://github.com/dotnet/arcade-extensions
+    - task: sendStartTelemetry@0
+      displayName: 'Send Helix Start Telemetry'
+      inputs:
+        helixRepo: ${{ parameters.helixRepo }}
+        buildConfig: $(_BuildConfig)
         runAsPublic: ${{ parameters.runAsPublic }}
+      continueOnError: ${{ parameters.continueOnError }}
+      condition: always()
 
   - ${{ if eq(parameters.enableMicrobuild, 'true') }}:
     - ${{ if and(eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
@@ -165,11 +153,15 @@ jobs:
           TeamName: $(_TeamName)
 
   - ${{ if eq(parameters.enableTelemetry, 'true') }}:
-    - template: /eng/common/templates/steps/telemetry-end.yml
+    # Telemetry tasks are built from https://github.com/dotnet/arcade-extensions
+    - task: sendEndTelemetry@0
+      displayName: 'Send Helix End Telemetry'
+      continueOnError: ${{ parameters.continueOnError }}
+      condition: always()
 
   - ${{ if eq(parameters.enablePublishBuildArtifacts, 'true') }}:
     - task: PublishBuildArtifacts@1
-      displayName: Publish Logs to VSTS
+      displayName: Publish Logs
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(_BuildConfig)'
         PublishLocation: Container

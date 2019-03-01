@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsNullableTypeOrTypeParameter(this TypeSymbol type)
         {
+            if (type is null)
+            {
+                return false;
+            }
+
             if (type.TypeKind == TypeKind.TypeParameter)
             {
                 var constraintTypes = ((TypeParameterSymbol)type).ConstraintTypesNoUseSiteDiagnostics;
@@ -586,8 +591,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// completes without the predicate returning true for any type, this method returns null.
         /// </summary>
         public static TypeSymbol VisitType<T>(
-            // https://github.com/dotnet/roslyn/issues/30059: If TypeSymbolWithAnnotations
-            // is a struct, use a single type argument and a single predicate.
             this TypeSymbolWithAnnotations typeWithAnnotationsOpt,
             TypeSymbol typeOpt,
             Func<TypeSymbolWithAnnotations, T, bool, bool> typeWithAnnotationsPredicateOpt,
@@ -595,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             T arg,
             bool canDigThroughNullable = false)
         {
-            Debug.Assert(typeWithAnnotationsOpt.IsNull != (typeOpt is null));
+            Debug.Assert(typeWithAnnotationsOpt.HasType == (typeOpt is null));
 
             // In order to handle extremely "deep" types like "int[][][][][][][][][]...[]"
             // or int*****************...* we implement manual tail recursion rather than 
@@ -633,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                if (!typeWithAnnotationsOpt.IsNull && typeWithAnnotationsPredicateOpt != null)
+                if (typeWithAnnotationsOpt.HasType && typeWithAnnotationsPredicateOpt != null)
                 {
                     if (typeWithAnnotationsPredicateOpt(typeWithAnnotationsOpt, arg, isNestedNamedType))
                     {

@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyReturnType.IsNull)
+                if (_lazyReturnType.IsDefault)
                 {
                     var returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnType);
                     _lazyReturnType.InterlockedInitialize(returnType);

@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyPragmaWarningStateMap == null)
             {
                 // Create the warning state map on demand.
-                Interlocked.CompareExchange(ref _lazyPragmaWarningStateMap, new CSharpPragmaWarningStateMap(this), null);
+                Interlocked.CompareExchange(ref _lazyPragmaWarningStateMap, new CSharpPragmaWarningStateMap(this, IsGeneratedCode()), null);
             }
 
             return _lazyPragmaWarningStateMap.GetWarningState(id, position);
@@ -603,15 +603,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_lazyNullableDirectiveMap == null)
             {
                 // Create the #nullable directive map on demand.
-                Interlocked.CompareExchange(ref _lazyNullableDirectiveMap, NullableDirectiveMap.Create(this), null);
+                Interlocked.CompareExchange(ref _lazyNullableDirectiveMap, NullableDirectiveMap.Create(this, IsGeneratedCode()), null);
             }
 
             return _lazyNullableDirectiveMap.GetDirectiveState(position);
         }
 
+        internal bool IsGeneratedCode()
+        {
+            if (_lazyIsGeneratedCode == ThreeState.Unknown)
+            {
+                // Create the generated code status on demand
+                bool isGenerated = GeneratedCodeUtilities.IsGeneratedCode(
+                           this,
+                           isComment: trivia => trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia,
+                           cancellationToken: default);
+
+                _lazyIsGeneratedCode = isGenerated.ToThreeState();
+            }
+
+            return _lazyIsGeneratedCode == ThreeState.True;
+        }
+
         private CSharpLineDirectiveMap _lazyLineDirectiveMap;
         private CSharpPragmaWarningStateMap _lazyPragmaWarningStateMap;
         private NullableDirectiveMap _lazyNullableDirectiveMap;
+        private ThreeState _lazyIsGeneratedCode = ThreeState.Unknown;
 
         private LinePosition GetLinePosition(int position)
         {
