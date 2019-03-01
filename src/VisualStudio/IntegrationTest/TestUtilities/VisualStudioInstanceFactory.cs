@@ -324,6 +324,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable roaming settings to avoid interference from the online user profile
                 Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"").WaitForExit();
 
+                // Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
+                // custom handler or fail silently and continue testing.
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Text Editor\" \"Report Exceptions\" dword 0").WaitForExit();
+
                 _firstLaunch = false;
             }
 
