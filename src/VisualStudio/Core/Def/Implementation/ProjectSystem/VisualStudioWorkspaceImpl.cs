@@ -1097,7 +1097,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 // Must save the document first for things like Breakpoints to be preserved.
                 projectItemForDocument.Save();
-                projectItemForDocument.Name = updatedInfo.Name;
+
+                var uniqueName = projectItemForDocument.Collection.GetUniqueName(
+                    Path.GetFileNameWithoutExtension(updatedInfo.Name),
+                    Path.GetExtension(updatedInfo.Name));
+
+                projectItemForDocument.Name = uniqueName;
             }
             else
             {
