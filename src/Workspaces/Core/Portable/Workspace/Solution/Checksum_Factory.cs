@@ -16,21 +16,11 @@ namespace Microsoft.CodeAnalysis
     // all these are just helper methods
     internal partial class Checksum
     {
-<<<<<<< HEAD
-        public static Checksum Create(string val)
-            => Create(new MemoryStream(Encoding.UTF8.GetBytes(val)));
-
-        public static Checksum Create(Stream stream)
-        {
-            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
-            {
-                return ComputeChecksum(stream, hash);
-            }
-        }
-=======
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
             new ObjectPool<IncrementalHash>(() => IncrementalHash.CreateHash(HashAlgorithmName.SHA1), size: 20);
->>>>>>> upstream/master
+
+        public static Checksum Create(string val)
+            => Create(new MemoryStream(Encoding.UTF8.GetBytes(val)));
 
         public static Checksum Create(Stream stream)
         {
