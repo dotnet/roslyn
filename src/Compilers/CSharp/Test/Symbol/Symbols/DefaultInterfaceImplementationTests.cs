@@ -1514,6 +1514,292 @@ class Test2 : I2
         }
 
         [Fact]
+        public void MethodImplementation_111()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I1<string?>
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I2", "I1<System.String>", "I1<System.String?>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2, I1<string?>
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementation_112()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I1<string?>, I2
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I1<System.String?>", "I2", "I1<System.String>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[0].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I1<string?>, I2
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementation_113()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I1<string?>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I3
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2, I3
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementation_114()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I1<string?>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I3, I2
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I3", "I1<System.String?>", "I2", "I1<System.String>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I3, I2
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
         public void PropertyImplementation_101()
         {
             var source1 =
@@ -26490,6 +26776,1085 @@ I2.I1.M2
         }
 
         [Fact]
+        public void MethodImplementationInDerived_15()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1(); 
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string>.M1() 
+    {
+    }
+}
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 15),
+                // (2,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 19)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics(
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 15),
+                // (2,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 19)
+                );
+
+            test1 = compilation3.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_16()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1(); 
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string>.M1() 
+    {
+    }
+}
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3, I1<string>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                // (2,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(2, 7),
+                // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 15),
+                // (2,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 19),
+                // (2,23): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string>").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 23)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>", "I1<System.String>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics(
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                // (2,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(2, 7),
+                // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 15),
+                // (2,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 19),
+                // (2,23): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string>").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 23)
+                );
+
+            test1 = compilation3.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>", "I1<System.String>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_17()
+        {
+            var source1 =
+@"
+public interface I1<T>
+{
+    void M1(); 
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string>.M1() 
+    {
+    }
+}
+
+#nullable enable
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+#nullable enable
+class Test1 : I2, I3, I1<string>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (3,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(3, 7),
+                // (3,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(3, 7),
+                // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(3, 15),
+                // (3,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(3, 19),
+                // (3,23): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string>").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(3, 23)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>", "I1<System.String>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics(
+                // (3,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(3, 7),
+                // (3,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(3, 7),
+                // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(3, 15),
+                // (3,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(3, 19),
+                // (3,23): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string>").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(3, 23)
+                );
+
+            test1 = compilation3.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>", "I1<System.String>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_18()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1(); 
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string>.M1() 
+    {
+    }
+}
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I3, I1<string?>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                // (4,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(4, 15),
+                // (4,23): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string?>").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(4, 23)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics(
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                // (4,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(4, 15),
+                // (4,23): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string?>").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(4, 23)
+                );
+
+            test1 = compilation3.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_19()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1(); 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I2, I1<string?>
+{
+    void I1<string>.M1() 
+    {
+    }
+
+    void I1<string?>.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I3
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (13,18): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "I3").WithArguments("I1<string?>", "I3").WithLocation(13, 18),
+                // (13,18): error CS8646: 'I1<string>.M1()' is explicitly implemented more than once.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string>.M1()").WithLocation(13, 18),
+                // (13,18): error CS8646: 'I1<string?>.M1()' is explicitly implemented more than once.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string?>.M1()").WithLocation(13, 18)
+                );
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I3
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                // (4,15): error CS0535: 'Test1' does not implement interface member 'I1<string>.M1()'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15),
+                // (4,15): error CS0535: 'Test1' does not implement interface member 'I1<string?>.M1()'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1<string?>.M1()").WithLocation(4, 15)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I3", "I2", "I1<System.String>", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_20()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+        System.Console.WriteLine(""I3.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I3
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I3.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I3.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2, I3
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                    // (4,15): warning CS8644: 'Test1' does not implement interface member 'I1<string>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                    // class Test1 : I2, I3
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I3.M1
+I3.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_21()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+        System.Console.WriteLine(""I3.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I3, I2
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I3", "I1<System.String?>", "I2", "I1<System.String>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I3.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I3.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I3, I2
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7),
+                    // (4,19): warning CS8644: 'Test1' does not implement interface member 'I1<string>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                    // class Test1 : I3, I2
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 19)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I3.M1
+I3.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_22()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2<T> : I1<T>
+{
+    void I1<T>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+
+public interface I3 : I2<string>
+{
+}
+
+public interface I4 : I2<string?>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I3, I4
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I3", "I2<System.String>", "I1<System.String>", "I4", "I2<System.String?>", "I1<System.String?>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I2<System.String?>.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I2<System.String?>.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[5].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I2<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I3, I4
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string?>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I3, I4
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_23()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2<T> : I1<T>
+{
+    void I1<T>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+
+public interface I3 : I2<string>
+{
+}
+
+public interface I4 : I2<string?>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I4, I3
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I4", "I2<System.String?>", "I1<System.String?>", "I3", "I2<System.String>", "I1<System.String>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I2<System.String>.I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I2<System.String>.I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[5].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I2<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I4, I3
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I4, I3
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_24()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1();
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string?>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (11,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
+                //     void I1<string?>.M1() 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<string?>").WithLocation(11, 10)
+                );
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I2", "I1<System.String>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I2.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics();
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_25()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1();
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I1<string?>
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2, I1<string?>
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                    // (4,19): warning CS8644: 'Test1' does not implement interface member 'I1<string?>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                    // class Test1 : I2, I1<string?>
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I1<string?>").WithArguments("Test1", "I1<string?>.M1()").WithLocation(4, 19)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_26()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1();
+}
+
+public interface I2 : I1<string?>
+{
+    void I1<string>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I1<string?>
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (11,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
+                //     void I1<string>.M1() 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<string>").WithLocation(11, 10)
+                );
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation2.VerifyDiagnostics();
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_27()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1();
+}
+
+public interface I2<T>: I1<T>
+{
+    void I1<T>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+
+public interface I3<T> : I1<T>
+{
+    void I1<T>.M1() 
+    {
+        System.Console.WriteLine(""I3.M1"");
+    } 
+}
+
+public interface I4 : I2<string?>, I3<string?>
+{
+    void I1<string?>.M1() 
+    {
+        System.Console.WriteLine(""I4.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2<string>, I3<string>, I4
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I2<System.String>", "I3<System.String>", "I1<System.String>", "I4", "I2<System.String?>", "I3<System.String?>", "I1<System.String?>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I4.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I4.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[6].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I2<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2<string>, I3<string>, I4
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string?>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2<string>, I3<string>, I4
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I3<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2<string>, I3<string>, I4
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I3<string?>", "Test1").WithLocation(4, 7),
+                    // (4,15): warning CS8644: 'Test1' does not implement interface member 'I1<string>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                    // class Test1 : I2<string>, I3<string>, I4
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2<string>").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"
+I4.M1
+I4.M1
+",
+                    verify: VerifyOnCoreClr);
+            }
+        }
+
+        [Fact]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
         public void PropertyImplementationInDerived_01()
         {
@@ -28267,6 +29632,90 @@ class Test1 : I1
 ";
 
             ValidatePropertyImplementationInDerived_01(source1, source2);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_16()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    int M1 {get; set;} 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I2, I1<string?>
+{
+    int I1<string>.M1 
+    {
+        get => throw null!;
+        set => throw null!;
+    }
+
+    int I1<string?>.M1 
+    {
+        get => throw null!;
+        set => throw null!;
+    }
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I3
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (13,18): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "I3").WithArguments("I1<string?>", "I3").WithLocation(13, 18),
+                // (13,18): error CS8646: 'I1<string>.M1' is explicitly implemented more than once.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string>.M1").WithLocation(13, 18),
+                // (13,18): error CS8646: 'I1<string?>.M1' is explicitly implemented more than once.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string?>.M1").WithLocation(13, 18),
+                // (21,21): error CS0102: The type 'I3' already contains a definition for 'I1<System.String>.M1'
+                //     int I1<string?>.M1 
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M1").WithArguments("I3", "I1<System.String>.M1").WithLocation(21, 21)
+                );
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I3
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                // (4,15): error CS0535: 'Test1' does not implement interface member 'I1<string>.M1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1<string>.M1").WithLocation(4, 15),
+                // (4,15): error CS0535: 'Test1' does not implement interface member 'I1<string?>.M1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1<string?>.M1").WithLocation(4, 15)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I3", "I2", "I1<System.String>", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
         }
 
         [Fact]
