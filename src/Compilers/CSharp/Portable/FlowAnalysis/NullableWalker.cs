@@ -4701,11 +4701,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializer = ((BoundAddressOfOperator)initializer).Operand;
             }
 
-            this.VisitRvalue(initializer);
+            var initializerType = this.VisitRvalueWithResult(initializer);
 
-            if (initializer.Kind == BoundKind.AddressOfOperator)
+            if (node.Expression.Kind == BoundKind.AddressOfOperator)
             {
-                _analyzedNullabilityMap[initializer] = TypeSymbolWithAnnotations.Create(initializer.Type);
+                _analyzedNullabilityMap[node.Expression] = initializerType;
             }
 
             SetResult(node);
