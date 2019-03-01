@@ -400,6 +400,7 @@ $"Class C
 End Class")
         End Function
 
+        <WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)>
         Public Async Function MultipleRedundantAssignment_WithLeadingAndTrailingComment() As Task
             Await TestInRegularAndScriptAsync(

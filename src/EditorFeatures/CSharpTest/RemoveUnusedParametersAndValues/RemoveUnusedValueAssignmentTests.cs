@@ -6610,6 +6610,7 @@ class C
 }", options: PreferUnusedLocal);
         }
 
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeclarationPatternInSwitchCase_WithTrivia_PreferDiscard()
         {
@@ -6642,6 +6643,7 @@ class C
 }", options: PreferDiscard);
         }
 
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
         public async Task DeclarationPatternInSwitchCase_WithTrivia_PreferUnusedLocal()
         {
