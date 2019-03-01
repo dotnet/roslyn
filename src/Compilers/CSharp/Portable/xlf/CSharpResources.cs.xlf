@@ -2653,8 +2653,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
-        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)</source>
-        <target state="translated">'{0} nemá předdefinovanou velikost. Operátor sizeof jde proto použít jenom v kontextu unsafe (zvažte možnost použití operátoru System.Runtime.InteropServices.Marshal.SizeOf).</target>
+        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
+        <target state="needs-review-translation">'{0} nemá předdefinovanou velikost. Operátor sizeof jde proto použít jenom v kontextu unsafe (zvažte možnost použití operátoru System.Runtime.InteropServices.Marshal.SizeOf).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">

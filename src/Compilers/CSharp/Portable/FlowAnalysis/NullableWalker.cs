@@ -1296,17 +1296,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int slot = -1;
             TypeSymbol type = node.Type;
+            NullableAnnotation resultAnnotation = NullableAnnotation.NotNullable;
             if ((object)type != null)
             {
                 bool isTrackableStructType = EmptyStructTypeCache.IsTrackableStructType(type);
+                var constructor = (node as BoundObjectCreationExpression)?.Constructor;
+                bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
+
                 if (!type.IsValueType || isTrackableStructType)
                 {
                     slot = GetOrCreateObjectCreationPlaceholderSlot(node);
                     if (slot > 0 && isTrackableStructType)
                     {
                         this.State[slot] = NullableAnnotation.NotNullable;
-                        var constructor = (node as BoundObjectCreationExpression)?.Constructor;
-                        bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
                         var tupleType = constructor?.ContainingType as TupleTypeSymbol;
                         if ((object)tupleType != null && !isDefaultValueTypeConstructor)
                         {
@@ -1323,6 +1325,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+                else if (type.IsNullableType() && isDefaultValueTypeConstructor)
+                {
+                    // a nullable value type created with its default constructor is by definition null
+                    resultAnnotation = NullableAnnotation.Nullable;
+                }
             }
 
             if (initializerOpt != null)
@@ -1330,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitObjectCreationInitializer(null, slot, initializerOpt);
             }
 
-            ResultType = TypeSymbolWithAnnotations.Create(type, NullableAnnotation.NotNullable);
+            ResultType = TypeSymbolWithAnnotations.Create(type, resultAnnotation);
         }
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)

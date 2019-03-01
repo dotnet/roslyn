@@ -88,6 +88,20 @@ namespace System
     }
 }";
 
+        [Fact, WorkItem(33537, "https://github.com/dotnet/roslyn/issues/33537")]
+        public void SuppressOnNullLiteralInAs()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public static void Main()
+    {
+        var x = null! as object;
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(26654, "https://github.com/dotnet/roslyn/issues/26654")]
         public void SuppressNullableWarning_DeclarationExpression()
         {
@@ -74772,8 +74786,14 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31502: Recognize Nullable<T> constructors.
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8629: Nullable value type may be null.
+                //         _ = x.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x.Value").WithLocation(6, 13),
+                // (10,13): warning CS8629: Nullable value type may be null.
+                //         _ = z.Value; // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "z.Value").WithLocation(10, 13)
+                );
         }
 
         [Fact]

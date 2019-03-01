@@ -68,10 +68,9 @@
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-63011-01</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
     <MicrosoftNetFrameworkReferenceAssembliesVersion>1.0.0-alpha-004</MicrosoftNetFrameworkReferenceAssembliesVersion>
-    <MicrosoftNetCompilersVersion>3.0.0-beta2-19068-12</MicrosoftNetCompilersVersion>
+    <MicrosoftNetCompilersToolsetVersion>3.1.0-beta1-19127-06</MicrosoftNetCompilersToolsetVersion>
     <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
     <MicrosoftNetCoreILAsmVersion>2.0.0</MicrosoftNetCoreILAsmVersion>
-    <MicrosoftNETCoreCompilersVersion>3.0.0-beta2-19068-12</MicrosoftNETCoreCompilersVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.0</MicrosoftNETCorePlatformsVersion>
     <MicrosoftNETCoreRuntimeCoreCLRVersion>2.0.0</MicrosoftNETCoreRuntimeCoreCLRVersion>
     <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/1764 -->
@@ -279,8 +278,8 @@
     <UsingToolXliff>true</UsingToolXliff>
     <UsingToolXUnit>true</UsingToolXUnit>
     <!-- 
-      Use compilers in Microsoft.NET.Compilers package unless we are building with bootstrapped compilers.
-      Allows to dogfood the latest compiler features.
+      When using a bootstrap builder we don't want to use the Microsoft.Net.Compilers.Toolset package but
+      rather explicitly override it. 
     -->
     <UsingToolMicrosoftNetCompilers Condition="'$(BootstrapBuildPath)' == ''">true</UsingToolMicrosoftNetCompilers>
   </PropertyGroup>
