@@ -90,6 +90,68 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void TestCleared()
+        {
+            using (var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic))
+            {
+                var set = new ManualResetEvent(false);
+                var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
+                var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
+
+                var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
+
+                var source1 = new TestDiagnosticUpdateSource(support: false, diagnosticData: null);
+                diagnosticService.Register(source1);
+
+                var source2 = new TestDiagnosticUpdateSource(support: false, diagnosticData: null);
+                diagnosticService.Register(source2);
+
+                diagnosticService.DiagnosticsUpdated += MarkSet;
+
+                // add bunch of data to the service for both sources
+                RaiseDiagnosticEvent(set, source1, workspace, document.Project.Id, document.Id, Tuple.Create(workspace, document));
+                RaiseDiagnosticEvent(set, source1, workspace, document.Project.Id, document.Id, Tuple.Create(workspace, document.Project, document));
+                RaiseDiagnosticEvent(set, source1, workspace, document2.Project.Id, document2.Id, Tuple.Create(workspace, document2));
+
+                RaiseDiagnosticEvent(set, source2, workspace, document.Project.Id, null, Tuple.Create(workspace, document.Project));
+                RaiseDiagnosticEvent(set, source2, workspace, null, null, Tuple.Create(workspace));
+
+                // confirm data is there.
+                var data1 = diagnosticService.GetDiagnostics(workspace, null, null, null, false, CancellationToken.None);
+                Assert.Equal(5, data1.Count());
+
+                diagnosticService.DiagnosticsUpdated -= MarkSet;
+
+                // confirm clear for a source
+                set.Reset();
+                var count = 0;
+                diagnosticService.DiagnosticsUpdated += MarkCalled;
+
+                source1.RaiseClearedEvent();
+
+                set.WaitOne();
+
+                // confirm there are 2 data left
+                var data2 = diagnosticService.GetDiagnostics(workspace, null, null, null, false, CancellationToken.None);
+                Assert.Equal(2, data2.Count());
+
+                void MarkCalled(object sender, DiagnosticsUpdatedArgs args)
+                {
+                    // event is serialized. no concurrent call
+                    if (++count == 3)
+                    {
+                        set.Set();
+                    }
+                }
+
+                void MarkSet(object sender, DiagnosticsUpdatedArgs args)
+                {
+                    set.Set();
+                }
+            }
+        }
+
         private static DiagnosticData RaiseDiagnosticEvent(ManualResetEvent set, TestDiagnosticUpdateSource source, TestWorkspace workspace, ProjectId project, DocumentId document, object id)
         {
             set.Reset();
@@ -126,6 +188,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public bool SupportGetDiagnostics { get { return _support; } }
             public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+            public event EventHandler Cleared;
 
             public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
             {
@@ -135,6 +198,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             public void RaiseUpdateEvent(DiagnosticsUpdatedArgs args)
             {
                 DiagnosticsUpdated?.Invoke(this, args);
+            }
+
+            public void RaiseClearedEvent()
+            {
+                Cleared?.Invoke(this, EventArgs.Empty);
             }
         }
     }
