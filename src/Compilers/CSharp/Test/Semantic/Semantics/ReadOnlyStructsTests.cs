@@ -250,6 +250,8 @@ public class Program
                 );
         }
 
+        // PROTOTYPE: readonly members features should require C# 8.0 or greater
+
         [Fact]
         public void ReadOnlyStructMethod()
         {
