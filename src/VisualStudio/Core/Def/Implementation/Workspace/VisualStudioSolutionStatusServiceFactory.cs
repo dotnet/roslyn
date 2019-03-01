@@ -64,6 +64,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     await System.Threading.Tasks.Task.Delay(_workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_DelayInMS)).ConfigureAwait(false);
                 }
 
+                if (await IsFullyLoadedAsync(solution, cancellationToken).ConfigureAwait(false))
+                {
+                    // already fully loaded
+                    return;
+                }
+
                 var taskCompletionSource = new TaskCompletionSource<object>();
 
                 KnownUIContexts.SolutionExistsAndFullyLoadedContext.WhenActivated(() => taskCompletionSource.SetResult(null));

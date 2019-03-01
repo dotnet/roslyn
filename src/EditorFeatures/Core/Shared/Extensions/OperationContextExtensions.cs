@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 if (service != null)
                 {
                     // UIThreadOperation always called from UI thread.
+                    // at some point, we should consider moving all Wait to IThreadingContext Run 
                     service.WaitForAsync(solution, scope.Context.UserCancellationToken).Wait(context.UserCancellationToken);
                 }
 
