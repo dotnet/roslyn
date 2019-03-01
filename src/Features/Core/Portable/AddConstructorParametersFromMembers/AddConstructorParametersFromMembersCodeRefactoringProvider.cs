@@ -56,9 +56,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
         private IEnumerable<CodeAction> CreateCodeActions(Document document, State state)
         {
-            var lastParameter = state.ConstructorToAddTo.Parameters.Last();
-            if (!lastParameter.IsOptional)
+            var parameters = state.ConstructorToAddTo.Parameters;
+            if (parameters.Length == 0 ||
+                (parameters.Length > 0 && !parameters.Last().IsOptional))
             {
+                // return a code action to add required parameters
                 yield return new AddConstructorParametersCodeAction(this, document, state, state.MissingParameters);
             }
 
@@ -71,6 +73,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 isOptional: true,
                 hasDefaultValue: true));
 
+            // return a code action to add optional parameters
             yield return new AddConstructorParametersCodeAction(this, document, state, missingParameters);
         }
     }
