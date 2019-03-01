@@ -383,6 +383,35 @@ $@"class C
 
         [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLinesWhereBlankLineIsNotEmpty()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        [|var|] x = o as string;
+         
+        //suffix comment
+        if (x != null)
+        {
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        //suffix comment
+        if (o is string x)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestRemoveNewLines2()
         {
             await TestInRegularAndScriptAsync(
