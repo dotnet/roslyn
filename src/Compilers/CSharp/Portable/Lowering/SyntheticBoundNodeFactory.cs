@@ -587,9 +587,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public BoundObjectCreationExpression New(MethodSymbol ctor, params BoundExpression[] args)
-        {
-            return new BoundObjectCreationExpression(Syntax, ctor, null, args) { WasCompilerGenerated = true };
-        }
+            => New(ctor, args.ToImmutableArray());
+
+        public BoundObjectCreationExpression New(MethodSymbol ctor, ImmutableArray<BoundExpression> args)
+            => new BoundObjectCreationExpression(Syntax, ctor, binderOpt: null, args) { WasCompilerGenerated = true };
 
         public BoundObjectCreationExpression New(WellKnownMember wm, ImmutableArray<BoundExpression> args)
         {
@@ -632,6 +633,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(null, method, args);
         }
 
+        public BoundExpression StaticCall(MethodSymbol method, ImmutableArray<BoundExpression> args)
+            => Call(null, method, args);
+
         public BoundExpression StaticCall(WellKnownMember method, params BoundExpression[] args)
         {
             MethodSymbol methodSymbol = WellKnownMethod(method);
@@ -667,6 +671,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Call(receiver, method, ImmutableArray.Create<BoundExpression>(args));
         }
+
+        public BoundCall Call(BoundExpression receiver, WellKnownMember method, BoundExpression arg0)
+            => Call(receiver, WellKnownMethod(method), ImmutableArray.Create(arg0));
 
         public BoundCall Call(BoundExpression receiver, MethodSymbol method, ImmutableArray<BoundExpression> args)
         {
