@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             foreach (var firstStatement in firstStatementTracker.FirstStatements)
             {
+                //each statement that is now at the top of its block or switch section
+                //should have no blank lines preceding it
                 editor.ReplaceNode(firstStatement, (fs, gen) =>
                     fs.WithLeadingTrivia(fs.GetLeadingTrivia().WithoutLeadingBlankLines()));
             }
@@ -120,14 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         private class FirstStatementTracker
         {
-            private readonly Collection<StatementSyntax> _removed;
-            public ICollection<StatementSyntax> FirstStatements { get; }
-
-            public FirstStatementTracker()
-            {
-                _removed = new Collection<StatementSyntax>();
-                FirstStatements = new Collection<StatementSyntax>();
-            }
+            private HashSet<StatementSyntax> _removed = new HashSet<StatementSyntax>();
+            public HashSet<StatementSyntax> FirstStatements { get; } = new HashSet<StatementSyntax>();
 
             private bool WasFirst(StatementSyntax statementToRemove)
             {
@@ -145,22 +141,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return false;
             }
 
-            private StatementSyntax FindFirstUnremovedSuccessor(StatementSyntax statement)
+            private bool TryFindFirstUnremovedSuccessor(StatementSyntax statement, out StatementSyntax result)
             {
-                var unremovedSuccessor = statement;
+                result = statement;
                 do
                 {
-                    unremovedSuccessor = unremovedSuccessor.GetNextStatement();
-                } while (_removed.Contains(unremovedSuccessor));
+                    result = result.GetNextStatement();
+                } while (_removed.Contains(result));
 
-                return unremovedSuccessor;
+                return result != null;
             }
 
-            private void MakeFirstUnremovedSuccessorFirst(StatementSyntax item)
+            private void MakeFirstUnremovedSuccessorFirst(StatementSyntax statement)
             {
-                var firstUnremovedSuccessor = FindFirstUnremovedSuccessor(item);
-
-                if (firstUnremovedSuccessor != null)
+                if (TryFindFirstUnremovedSuccessor(statement, out var firstUnremovedSuccessor))
                 {
                     FirstStatements.Add(firstUnremovedSuccessor);
                 }
