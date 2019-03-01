@@ -132,6 +132,43 @@ $@"class C
 }");
         }
 
+        [WorkItem(33345, "https://github.com/dotnet/roslyn/issues/33345")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestRemoveNewLinesInSwitchStatement()
+        {
+            await TestInRegularAndScriptAsync(
+                @"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                [|var|] x = o as string;
+
+                //a comment
+                if (x != null)
+                {
+                }
+        }
+    }
+}",
+                @"class C
+{
+    void M()
+    {
+        switch (o)
+        {
+            default:
+                //a comment
+                if (o is string x)
+                {
+                }
+        }
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestMissingOnNonDeclaration()
         {
