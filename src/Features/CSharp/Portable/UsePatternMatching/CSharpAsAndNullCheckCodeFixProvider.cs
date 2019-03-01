@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             foreach (var firstStatement in firstStatementTracker.FirstStatements)
             {
-                //each statement that is now at the top of its block or switch section
-                //should have no blank lines preceding it
+                // each statement that is now at the top of its block or switch section
+                // should have no blank lines preceding it
                 editor.ReplaceNode(firstStatement, (fs, gen) =>
                     fs.WithLeadingTrivia(fs.GetLeadingTrivia().WithoutLeadingBlankLines()));
             }
