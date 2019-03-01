@@ -14,24 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     internal static class StatementSyntaxExtensions
     {
         public static bool IsFirstStatementInEnclosingBlock(this StatementSyntax statement)
-        {
-            if (!(statement.Parent is BlockSyntax enclosingBlock))
-            {
-                return false;
-            }
-
-            return statement == enclosingBlock.Statements.First();
-        }
+            => statement.Parent is BlockSyntax block && block.Statements.First() == statement;
 
         public static bool IsFirstStatementInSwitchSection(this StatementSyntax statement)
-        {
-            if (!(statement.Parent is SwitchSectionSyntax enclosingSwitchSection))
-            {
-                return false;
-            }
-
-            return statement == enclosingSwitchSection.Statements.First();
-        }
+            => statement.Parent is SwitchSectionSyntax block && block.Statements.First() == statement;
 
         public static StatementSyntax GetPreviousStatement(this StatementSyntax statement)
         {

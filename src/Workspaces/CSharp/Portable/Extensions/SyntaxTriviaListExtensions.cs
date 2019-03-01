@@ -52,33 +52,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static ImmutableArray<ImmutableArray<SyntaxTrivia>> BreakIntoLines(this SyntaxTriviaList triviaList)
         {
-            var result = ImmutableArray.Create<ImmutableArray<SyntaxTrivia>>();
-            var currentLine = ImmutableArray.Create<SyntaxTrivia>();
+            var result = ArrayBuilder<ImmutableArray<SyntaxTrivia>>.GetInstance();
+            var currentLine = ArrayBuilder<SyntaxTrivia>.GetInstance();
             foreach (var trivia in triviaList)
             {
-                currentLine = currentLine.Add(trivia);
+                currentLine.Add(trivia);
                 if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                 {
-                    result = result.Add(currentLine);
-                    currentLine = ImmutableArray.Create<SyntaxTrivia>();
+                    result.Add(currentLine.ToImmutableAndFree());
+                    currentLine = ArrayBuilder<SyntaxTrivia>.GetInstance();
                 }
             }
 
-            if (currentLine.Length > 0)
+            if (currentLine.Count > 0)
             {
-                result = result.Add(currentLine);
+                result.Add(currentLine.ToImmutableAndFree());
             }
 
-            return result;
+            return result.ToImmutableAndFree();
         }
 
-        public static IEnumerable<SyntaxTrivia> SkipInitialBlankLines(this SyntaxTriviaList triviaList)
+        public static SyntaxTriviaList WithoutLeadingBlankLines(this SyntaxTriviaList triviaList)
         {
-            return triviaList.BreakIntoLines()
+            return new SyntaxTriviaList(triviaList.BreakIntoLines()
                 .SkipWhile(l => l.All(t =>
                     t.Kind() == SyntaxKind.EndOfLineTrivia ||
                     t.Kind() == SyntaxKind.WhitespaceTrivia))
-                .SelectMany(l => l);
+                .SelectMany(l => l));
         }
 
         /// <summary>

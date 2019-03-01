@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             foreach (var firstStatement in firstStatementTracker.FirstStatements)
             {
                 editor.ReplaceNode(firstStatement, (fs, gen) =>
-                    fs.WithLeadingTrivia(fs.GetLeadingTrivia().SkipInitialBlankLines()));
+                    fs.WithLeadingTrivia(fs.GetLeadingTrivia().WithoutLeadingBlankLines()));
             }
 
             return Task.CompletedTask;
