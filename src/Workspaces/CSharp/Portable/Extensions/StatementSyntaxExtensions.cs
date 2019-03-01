@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool IsFirstStatementInEnclosingBlock(this StatementSyntax statement)
         {
-            var enclosingBlock = statement.Ancestors().OfType<BlockSyntax>().FirstOrDefault();
-            if (enclosingBlock == null)
+            if (!(statement.Parent is BlockSyntax enclosingBlock))
             {
                 return false;
             }
@@ -26,8 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsFirstStatementInSwitchSection(this StatementSyntax statement)
         {
-            var enclosingSwitchSection = statement.Ancestors().OfType<SwitchSectionSyntax>().FirstOrDefault();
-            if (enclosingSwitchSection == null)
+            if (!(statement.Parent is SwitchSectionSyntax enclosingSwitchSection))
             {
                 return false;
             }

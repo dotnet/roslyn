@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -48,28 +50,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
         }
 
-        private static IEnumerable<List<SyntaxTrivia>> GetLines(this SyntaxTriviaList triviaList)
+        private static ImmutableArray<ImmutableArray<SyntaxTrivia>> BreakIntoLines(this SyntaxTriviaList triviaList)
         {
-            var currentLine = new List<SyntaxTrivia>();
+            var result = ImmutableArray.Create<ImmutableArray<SyntaxTrivia>>();
+            var currentLine = ImmutableArray.Create<SyntaxTrivia>();
             foreach (var trivia in triviaList)
             {
-                currentLine.Add(trivia);
+                currentLine = currentLine.Add(trivia);
                 if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                 {
-                    yield return currentLine;
-                    currentLine = new List<SyntaxTrivia>();
+                    result = result.Add(currentLine);
+                    currentLine = ImmutableArray.Create<SyntaxTrivia>();
                 }
             }
 
-            if (currentLine.Count > 0)
+            if (currentLine.Length > 0)
             {
-                yield return currentLine;
+                result = result.Add(currentLine);
             }
+
+            return result;
         }
 
-        public static IEnumerable<SyntaxTrivia> SkipInitialWhiteLines(this SyntaxTriviaList triviaList)
+        public static IEnumerable<SyntaxTrivia> SkipInitialBlankLines(this SyntaxTriviaList triviaList)
         {
-            return triviaList.GetLines()
+            return triviaList.BreakIntoLines()
                 .SkipWhile(l => l.All(t =>
                     t.Kind() == SyntaxKind.EndOfLineTrivia ||
                     t.Kind() == SyntaxKind.WhitespaceTrivia))

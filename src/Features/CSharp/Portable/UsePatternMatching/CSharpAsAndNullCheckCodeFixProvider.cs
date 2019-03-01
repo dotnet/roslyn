@@ -39,27 +39,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var declaratorLocations = new HashSet<Location>();
-            var firstTracker = new FirstTracker<StatementSyntax>(
-                s => s.GetNextStatement(),
-                s => s.IsFirstStatementInEnclosingBlock() || s.IsFirstStatementInSwitchSection());
+            var firstStatementTracker = new FirstStatementTracker();
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (declaratorLocations.Add(diagnostic.AdditionalLocations[0]))
                 {
-                    AddEdits(editor, diagnostic, cancellationToken, (s, opt) =>
-                    {
-                        editor.RemoveNode(s, opt);
-                        firstTracker.Remove(s);
-                    });
+                    AddEdits(editor, diagnostic, firstStatementTracker, cancellationToken);
                 }
             }
 
-            foreach (var firstStatement in firstTracker.Firsts)
+            foreach (var firstStatement in firstStatementTracker.FirstStatements)
             {
                 editor.ReplaceNode(firstStatement, (fs, gen) =>
-                    fs.WithLeadingTrivia(fs.GetLeadingTrivia().SkipInitialWhiteLines()));
+                    fs.WithLeadingTrivia(fs.GetLeadingTrivia().SkipInitialBlankLines()));
             }
 
             return Task.CompletedTask;
@@ -68,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private static void AddEdits(
             SyntaxEditor editor,
             Diagnostic diagnostic,
-            CancellationToken cancellationToken,
-            Action<StatementSyntax,SyntaxRemoveOptions> removeStatement)
+            FirstStatementTracker firstStatementTracker,
+            CancellationToken cancellationToken)
         {
             var declaratorLocation = diagnostic.AdditionalLocations[0];
             var comparisonLocation = diagnostic.AdditionalLocations[1];
@@ -105,7 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     localDeclaration.GetNextStatement(),
                     (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
 
-                removeStatement(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                editor.RemoveNode(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                firstStatementTracker.RemoveStatement(localDeclaration);
             }
             else
             {
@@ -123,43 +118,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
         }
 
-        private class FirstTracker<T> where T : class
+        private class FirstStatementTracker
         {
-            private readonly Func<T, T> _getNext;
-            private readonly Func<T, bool> _isFirst;
-            private readonly Collection<T> _removed;
-            public ICollection<T> Firsts { get; }
+            private readonly Collection<StatementSyntax> _removed;
+            public ICollection<StatementSyntax> FirstStatements { get; }
 
-            public FirstTracker(Func<T,T> getNext, Func<T,bool> isFirst)
+            public FirstStatementTracker()
             {
-                _getNext = getNext;
-                _isFirst = isFirst;
-                _removed = new Collection<T>();
-                Firsts = new Collection<T>();
+                _removed = new Collection<StatementSyntax>();
+                FirstStatements = new Collection<StatementSyntax>();
             }
 
-            private void MakeNextFirst(T item)
+            private bool WasFirst(StatementSyntax statementToRemove)
             {
-                var next = item;
+                if (statementToRemove.IsFirstStatementInEnclosingBlock() || statementToRemove.IsFirstStatementInSwitchSection())
+                {
+                    return true;
+                }
+
+                bool wasMadeFirstByRemovalOfPredecessor = FirstStatements.Remove(statementToRemove);
+                if (wasMadeFirstByRemovalOfPredecessor)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            private StatementSyntax FindFirstUnremovedSuccessor(StatementSyntax statement)
+            {
+                var unremovedSuccessor = statement;
                 do
                 {
-                    next = _getNext(next);
-                } while (_removed.Contains(next));
+                    unremovedSuccessor = unremovedSuccessor.GetNextStatement();
+                } while (_removed.Contains(unremovedSuccessor));
 
-                if (next != null)
+                return unremovedSuccessor;
+            }
+
+            private void MakeFirstUnremovedSuccessorFirst(StatementSyntax item)
+            {
+                var firstUnremovedSuccessor = FindFirstUnremovedSuccessor(item);
+
+                if (firstUnremovedSuccessor != null)
                 {
-                    Firsts.Add(next);
+                    FirstStatements.Add(firstUnremovedSuccessor);
                 }
             }
 
-            public void Remove(T item)
+            public void RemoveStatement(StatementSyntax statement)
             {
-                if (_isFirst(item) || Firsts.Remove(item))
+                if (WasFirst(statement))
                 {
-                    MakeNextFirst(item);
+                    MakeFirstUnremovedSuccessorFirst(statement);
                 }
 
-                _removed.Add(item);
+                _removed.Add(statement);
             }
         }
     }
