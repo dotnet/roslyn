@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Nullability TopLevelNullability
         {
             // PROTOTYPE(nullable-api): handle default! and lower-language versions
-            get => Nullability.MayBeNull;
+            get => Type.IsValueType && !Type.IsNullableType() ? Nullability.NotNull : Nullability.MayBeNull;
             set { }
         }
     }

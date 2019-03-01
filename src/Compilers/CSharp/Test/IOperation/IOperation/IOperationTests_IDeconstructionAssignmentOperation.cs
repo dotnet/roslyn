@@ -620,6 +620,8 @@ class C
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
+            VerifyOperationTreeForTest<BlockSyntax>(source, "");
+
             string expectedFlowGraph = @"
 Block[B0] - Entry
     Statements (0)

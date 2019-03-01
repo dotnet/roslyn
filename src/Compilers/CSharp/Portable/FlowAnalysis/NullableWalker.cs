@@ -82,21 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> _returnTypesOpt;
 
         /// <summary>
-        /// An optional callback for callers to receive notification of the inferred type and nullability
-        /// of each expression in the method. Since the walker may require multiple passes, the callback
-        /// may be invoked multiple times for a single expression, potentially with different nullability
-        /// each time. The last call for each expression will include the final inferred type and nullability.
-        /// </summary>
-        private readonly Action<BoundExpression, TypeSymbolWithAnnotations> _callbackOpt;
-
-        /// <summary>
         /// Invalid type, used only to catch Visit methods that do not set
         /// _result.Type. See VisitExpressionWithoutStackGuard.
         /// </summary>
         private static readonly TypeSymbolWithAnnotations _invalidType = TypeSymbolWithAnnotations.Create(ErrorTypeSymbol.UnknownResultType);
 
         private readonly bool _ownsAnalyzedNullabilityMap = false;
-        private readonly PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> _analyzedNullabilityMap = PooledDictionary<BoundExpression, TypeSymbolWithAnnotations>.GetInstance();
+        private readonly PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> _analyzedNullabilityMap;
 
         private TypeSymbolWithAnnotations _resultType;
 
@@ -137,26 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypesOpt,
             VariableState initialState,
-            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
-            : this(compilation, method, useMethodSignatureReturnType, useMethodSignatureParameterTypes, methodSignatureOpt, node, returnTypesOpt, initialState, PooledDictionary<BoundExpression, TypeSymbolWithAnnotations>.GetInstance(), callbackOpt)
-        {
-            _ownsAnalyzedNullabilityMap = true;
-        }
-
-        private NullableWalker(
-            CSharpCompilation compilation,
-            MethodSymbol method,
-            bool useMethodSignatureReturnType,
-            bool useMethodSignatureParameterTypes,
-            MethodSymbol methodSignatureOpt,
-            BoundNode node,
-            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypesOpt,
-            VariableState initialState,
-            PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> analyzedNullabilityMap,
-            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
+            PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> analyzedNullabilityMap = null)
             : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
         {
-            _callbackOpt = callbackOpt;
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             Debug.Assert(!_binder.Conversions.IncludeNullability);
             _conversions = (Conversions)_binder.Conversions.WithNullability(true);
@@ -164,7 +139,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
             _returnTypesOpt = returnTypesOpt;
+
+            if (analyzedNullabilityMap == null)
+            {
+                analyzedNullabilityMap = PooledDictionary<BoundExpression, TypeSymbolWithAnnotations>.GetInstance();
+                _ownsAnalyzedNullabilityMap = true;
+            }
             _analyzedNullabilityMap = analyzedNullabilityMap;
+
             if (initialState != null)
             {
                 var variableBySlot = initialState.VariableBySlot;
@@ -214,8 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             MethodSymbol method,
             BoundNode node,
-            DiagnosticBag diagnostics,
-            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt = null)
+            DiagnosticBag diagnostics)
         {
             if (method.IsImplicitlyDeclared)
             {
@@ -229,8 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useMethodSignatureParameterTypes: false,
                 methodSignatureOpt: null,
                 returnTypes: null,
-                initialState: null,
-                callbackOpt);
+                initialState: null);
             walker?.Free();
         }
 
@@ -249,9 +229,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useMethodSignatureParameterTypes: false,
                 methodSignatureOpt: null,
                 returnTypes: null,
-                initialState: null,
-                callbackOpt: null);
-            return Rewrite(walker, node);
+                initialState: null);
+            var analyzedNullabilities = walker._analyzedNullabilityMap.ToImmutableDictionary();
+            walker.Free();
+            return Rewrite(analyzedNullabilities, node);
         }
 
         internal static void Analyze(
@@ -260,30 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             MethodSymbol delegateInvokeMethod,
             ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypes,
-            VariableState initialState)
-        {
-            NullableWalker walker = Analyze(
-                compilation,
-                lambda.Symbol,
-                lambda.Body,
-                diagnostics,
-                useMethodSignatureReturnType: true,
-                useMethodSignatureParameterTypes: !lambda.UnboundLambda.HasExplicitlyTypedParameterList,
-                methodSignatureOpt: delegateInvokeMethod,
-                returnTypes,
-                initialState,
-                callbackOpt: null);
-            walker?.Free();
-        }
-
-        private static void Analyze(
-            CSharpCompilation compilation,
-            BoundLambda lambda,
-            DiagnosticBag diagnostics,
-            MethodSymbol delegateInvokeMethod,
-            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState,
-            PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> analyzedNullabilityMap)
+            PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> analyzedNullabilityMap = null)
         {
             NullableWalker walker = Analyze(
                 compilation,
@@ -295,8 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodSignatureOpt: delegateInvokeMethod,
                 returnTypes,
                 initialState,
-                analyzedNullabilityMap,
-                callbackOpt: null);
+                analyzedNullabilityMap);
             walker?.Free();
         }
 
@@ -310,28 +268,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol methodSignatureOpt,
             ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState,
-            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
-        {
-            return Analyze(compilation, method, node, diagnostics, useMethodSignatureReturnType, useMethodSignatureParameterTypes, methodSignatureOpt, returnTypes, initialState, analyzedNullabilityMapOpt: null, callbackOpt);
-        }
-
-        private static NullableWalker Analyze(
-            CSharpCompilation compilation,
-            MethodSymbol method,
-            BoundNode node,
-            DiagnosticBag diagnostics,
-            bool useMethodSignatureReturnType,
-            bool useMethodSignatureParameterTypes,
-            MethodSymbol methodSignatureOpt,
-            ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypes,
-            VariableState initialState,
-            PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> analyzedNullabilityMapOpt,
-            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
+            PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> analyzedNullabilityMapOpt = null)
         {
             Debug.Assert(diagnostics != null);
-            var walker = analyzedNullabilityMapOpt == null ?
-                new NullableWalker(compilation, method, useMethodSignatureReturnType, useMethodSignatureParameterTypes, methodSignatureOpt, node, returnTypes, initialState, callbackOpt) :
-                new NullableWalker(compilation, method, useMethodSignatureReturnType, useMethodSignatureParameterTypes, methodSignatureOpt, node, returnTypes, initialState, analyzedNullabilityMapOpt, callbackOpt);
+            var walker = new NullableWalker(
+                compilation,
+                method,
+                useMethodSignatureReturnType,
+                useMethodSignatureParameterTypes,
+                methodSignatureOpt,
+                node,
+                returnTypes,
+                initialState,
+                analyzedNullabilityMapOpt);
+
             try
             {
                 bool badRegion = false;
@@ -350,16 +300,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
             {
                 ex.AddAnError(diagnostics);
+                walker.Free();
                 return null;
             }
         }
 
         private static BoundNode Rewrite(
-            NullableWalker walker,
+            ImmutableDictionary<BoundExpression, TypeSymbolWithAnnotations> analyzedNullabilityMap,
             BoundNode node)
         {
-            var rewriter = new NullabilityRewriter(walker._analyzedNullabilityMap.ToImmutableDictionary());
-            walker.Free();
+            var rewriter = new NullabilityRewriter(analyzedNullabilityMap);
             return rewriter.Visit(node);
         }
 
@@ -652,6 +602,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void VisitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
+        {
+            foreach (var node in nodes)
+            {
+                Visit(node);
+            }
+        }
+
         protected override void VisitLvalue(BoundLocal node)
         {
             // If we're getting here, we came through abstract pass and we want to record the type of the lvalue
@@ -696,10 +654,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _analyzedNullabilityMap[node] = _resultType;
-            if (_callbackOpt != null)
-            {
-                _callbackOpt(node, _resultType);
-            }
         }
 
         private TypeSymbolWithAnnotations VisitRvalueWithResult(BoundExpression node)
@@ -1196,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitPattern(BoundPattern pattern)
         {
             Visit(pattern);
-            base.VisitPattern(pattern);
+            Split();
         }
 
         public override BoundNode VisitConstantPattern(BoundConstantPattern node)
@@ -1219,10 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitITuplePattern(BoundITuplePattern node)
         {
-            foreach (var subpattern in node.Subpatterns)
-            {
-                Visit(subpattern);
-            }
+            VisitAll(node.Subpatterns);
             return null;
         }
 
@@ -1231,17 +1182,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.DeclaredType);
             if (!node.Deconstruction.IsDefault)
             {
-                foreach (var subpattern in node.Deconstruction)
-                {
-                    Visit(subpattern);
-                }
+                VisitAll(node.Deconstruction);
             }
             if (!node.Properties.IsDefault)
             {
-                foreach (var subpattern in node.Properties)
-                {
-                    Visit(subpattern);
-                }
+                VisitAll(node.Properties);
             }
             Visit(node.VariableAccess);
             return null;
@@ -1266,7 +1211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NullableAnnotation whenTrue = NullableAnnotation.Unknown; // the pattern tells us the expression (1) is null, (2) isn't null, or (3) we don't know.
             NullableAnnotation whenFalse = NullableAnnotation.Unknown;
-            NullableAnnotation patternNullability;
             switch (pattern.Kind)
             {
                 case BoundKind.ConstantPattern:
@@ -1279,23 +1223,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case true:
                             whenTrue = NullableAnnotation.Nullable;
                             whenFalse = NullableAnnotation.NotNullable;
-                            patternNullability = NullableAnnotation.Nullable;
                             break;
                         case false:
                             whenTrue = NullableAnnotation.NotNullable;
                             whenFalse = expressionResultType.NullableAnnotation;
-                            patternNullability = NullableAnnotation.NotNullable;
-                            break;
-
-                        default:
-                            patternNullability = NullableAnnotation.Unknown;
                             break;
                     }
 
                     // We visit the pattern because there could be children in error scenarios, but the top
                     // level nullability should be the value we just computed.
                     Visit(constantPattern.Value);
-                    _analyzedNullabilityMap[constantPattern.Value] = TypeSymbolWithAnnotations.Create(constantPattern.ConvertedType, patternNullability);
+                    _analyzedNullabilityMap[constantPattern.Value] = TypeSymbolWithAnnotations.Create(constantPattern.ConvertedType, whenTrue);
 
                     break;
                 case BoundKind.DeclarationPattern:
@@ -1447,10 +1385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.ArgumentsOpt.IsDefault)
             {
-                foreach (var argument in node.ArgumentsOpt)
-                {
-                    Visit(argument);
-                }
+                VisitAll(node.ArgumentsOpt);
             }
 
             var initializer = node.InitializerOpt;
@@ -1485,6 +1420,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
             _resultType = _invalidType;
             var result = base.VisitExpressionWithoutStackGuard(node);
+            // PROTOTYPE(nullable-api): consider replacing all manual accesses with an explicit method, that can assert that nothing gets updated and changes type, and
+            // can skip the map for elements that don't need it (such as array/object/collection initializers)
             _analyzedNullabilityMap[node] = _resultType;
 #if DEBUG
             // Verify Visit method set _result.
@@ -1492,10 +1429,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)resultType.TypeSymbol != _invalidType.TypeSymbol);
             Debug.Assert(AreCloseEnough(resultType.TypeSymbol, node.Type));
 #endif
-            if (_callbackOpt != null)
-            {
-                _callbackOpt(node, _resultType);
-            }
             return result;
         }
 
@@ -1872,7 +1805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var walker = new NullableWalker(compilation, method: null,
                 useMethodSignatureReturnType: false, useMethodSignatureParameterTypes: false, methodSignatureOpt: null,
-                node, returnTypesOpt: null, initialState: null, callbackOpt: null);
+                node, returnTypesOpt: null, initialState: null);
 
             int n = returns.Count;
             var expressions = ArrayBuilder<BoundExpression>.GetInstance();
@@ -2051,7 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _resultType = InferResultNullability(binary, leftType, rightType);
 
                 // For nested binary operators, this can be the only time they're visited due to explicit stack used in AbstractFlowPass.VisitBinaryOperator,
-                // so we need to set the flow-analysed type here.
+                // so we need to set the flow-analyzed type here.
                 _analyzedNullabilityMap[binary] = _resultType;
 
                 BinaryOperatorKind op = binary.OperatorKind.Operator();
@@ -4509,8 +4442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodSignatureOpt: null,
                     returnTypes: null,
                     initialState: GetVariableState(),
-                    analyzedNullabilityMapOpt: _analyzedNullabilityMap,
-                    callbackOpt: _callbackOpt)?.Free();
+                    analyzedNullabilityMapOpt: _analyzedNullabilityMap)?.Free();
             }
             _resultType = _invalidType;
             return null;
@@ -4771,9 +4703,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.VisitRvalue(initializer);
 
-            if (node.Expression.Kind == BoundKind.AddressOfOperator)
+            if (initializer.Kind == BoundKind.AddressOfOperator)
             {
-                _analyzedNullabilityMap[node.Expression] = TypeSymbolWithAnnotations.Create(node.Expression.Type);
+                _analyzedNullabilityMap[initializer] = TypeSymbolWithAnnotations.Create(initializer.Type);
             }
 
             SetResult(node);

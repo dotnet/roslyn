@@ -40,7 +40,7 @@
       "src\\NuGet\\Microsoft.Net.Compilers\\Microsoft.Net.Compilers.Package.csproj",
       "src\\Test\\PdbUtilities\\Roslyn.Test.PdbUtilities.csproj",
       "src\\Test\\Utilities\\Portable\\Roslyn.Test.Utilities.csproj",
-      "src\\Tools\\CompilerBenchmarks\\CompilerBenchmarks.csproj",
+      "src\\Tools\\AnalyzerRunner\\AnalyzerRunner.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\BoundTreeGenerator\\CompilersBoundTreeGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpErrorFactsGenerator\\CSharpErrorFactsGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpSyntaxGenerator\\CSharpSyntaxGenerator.csproj",

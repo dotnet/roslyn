@@ -13,14 +13,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class NullableWalker
     {
 #if DEBUG
-        private sealed class DebugVerifier : BoundTreeWalker, IDisposable
+        private sealed class DebugVerifier : BoundTreeWalker
         {
             private static ImmutableArray<BoundKind> s_skippedExpression = ImmutableArray.Create(BoundKind.ArrayInitialization, BoundKind.ObjectInitializerExpression, BoundKind.CollectionInitializerExpression, BoundKind.DynamicCollectionElementInitializer);
             private readonly PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> _topLevelNullabilityMap;
             private readonly HashSet<BoundExpression> _visitedNodes = new HashSet<BoundExpression>();
             private int _recursionDepth;
 
-            public DebugVerifier(PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> analyzedNullabilityMap)
+            private DebugVerifier(PooledDictionary<BoundExpression, TypeSymbolWithAnnotations> analyzedNullabilityMap)
             {
                 _topLevelNullabilityMap = PooledDictionary<BoundExpression, TypeSymbolWithAnnotations>.GetInstance();
                 foreach (var (key, value) in analyzedNullabilityMap)
@@ -40,7 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 verifier.Visit(node);
                 // Can't just remove nodes from _topLevelNullabilityMap because nodes can be reused.
                 Debug.Assert(verifier._topLevelNullabilityMap.Count == verifier._visitedNodes.Count);
-                verifier.Dispose();
+                verifier.Free();
+            }
+
+            private void Free()
+            {
+                _topLevelNullabilityMap.Free();
             }
 
             protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
@@ -56,26 +61,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitExpressionWithStackGuard(ref _recursionDepth, expr);
                 }
                 return base.Visit(node);
-            }
-
-            private bool _disposedValue = false;
-
-            void Dispose(bool disposing)
-            {
-                if (!_disposedValue)
-                {
-                    if (disposing)
-                    {
-                        _topLevelNullabilityMap.Free();
-                    }
-
-                    _disposedValue = true;
-                }
-            }
-
-            public void Dispose()
-            {
-                Dispose(true);
             }
 
             public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
@@ -224,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void VerifyNode(BoundNode node, bool overrideSkippedExpression = false)
             {
-                if (node is BoundExpression expression && (!s_skippedExpression.Contains(expression.Kind) || overrideSkippedExpression))
+                if (node is BoundExpression expression && (overrideSkippedExpression || !s_skippedExpression.Contains(expression.Kind)))
                 {
                     Debug.Assert(_topLevelNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
                     TypeSymbol.Equals(expression.Type, _topLevelNullabilityMap[expression].TypeSymbol, TypeCompareKind.ConsiderEverything | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
