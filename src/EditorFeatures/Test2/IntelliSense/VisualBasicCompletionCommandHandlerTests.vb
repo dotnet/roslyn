@@ -527,7 +527,7 @@ End Class
                 ' Caret was intended to be moved out of the span. 
                 ' Therefore, we should cancel the completion And move the caret.
                 Await state.AssertNoCompletionSession()
-                ' We do not check for the current line because the test infrastructure does not handle moving the caret down.
+                Assert.Contains("    End Sub", state.GetLineFromCurrentCaretPosition().GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
