@@ -328,7 +328,7 @@ class Program
         var x = [|@$""hello""|];
     }
 }",
-                expected: LanguageVersion.CSharp8,
+                expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
         #endregion
@@ -449,7 +449,7 @@ class C
         [Fact]
         public async Task ListAllSuggestions_CSharp8()
         {
-            var version8 = LanguageVersion.CSharp8.ToDisplayString();
+            var versionPreview = LanguageVersion.Preview.ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>
@@ -470,8 +470,8 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, version8),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, version8)
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, versionPreview),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, versionPreview)
     });
         }
 
