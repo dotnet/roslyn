@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var declaratorLocations = new HashSet<Location>();
-            var firstStatementTracker = new FirstStatementTracker();
+            var firstStatementTracker = new FirstStatementTracker(unused:false);
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -120,10 +120,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             }
         }
 
-        private class FirstStatementTracker
+        private readonly struct FirstStatementTracker
         {
-            private HashSet<StatementSyntax> _removed = new HashSet<StatementSyntax>();
-            public HashSet<StatementSyntax> FirstStatements { get; } = new HashSet<StatementSyntax>();
+            private readonly HashSet<StatementSyntax> _removed ;
+            public readonly HashSet<StatementSyntax> FirstStatements;
+
+            public FirstStatementTracker(bool unused)
+            {
+                _removed = new HashSet<StatementSyntax>();
+                FirstStatements = new HashSet<StatementSyntax>();
+            }
 
             private bool WasFirst(StatementSyntax statementToRemove)
             {
