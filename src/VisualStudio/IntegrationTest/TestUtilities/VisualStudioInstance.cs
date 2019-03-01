@@ -92,6 +92,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             SupportedPackageIds = supportedPackageIds;
             InstallationPath = installationPath;
 
+            if (System.Diagnostics.Debugger.IsAttached)
+            {
+                // If a Visual Studio debugger is attached to the test process, attach it to the instance running
+                // integration tests as well.
+                var debuggerHostDte = GetDebuggerHostDte();
+                int targetProcessId = Process.GetCurrentProcess().Id;
+                var localProcess = debuggerHostDte?.Debugger.LocalProcesses.OfType<EnvDTE80.Process2>().FirstOrDefault(p => p.ProcessID == hostProcess.Id);
+                if (localProcess != null)
+                {
+                    localProcess.Attach2("Managed");
+                }
+            }
+
             StartRemoteIntegrationService(dte);
 
             _integrationServiceChannel = new IpcClientChannel(GetIpcClientChannelName(HostProcess), sinkProvider: null);
@@ -237,6 +250,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 CloseHostProcess();
             }
+        }
+
+        private static DTE GetDebuggerHostDte()
+        {
+            var currentProcessId = Process.GetCurrentProcess().Id;
+            foreach (var process in Process.GetProcessesByName("devenv"))
+            {
+                var dte = IntegrationHelper.TryLocateDteForProcess(process);
+                if (dte?.Debugger?.DebuggedProcesses?.OfType<EnvDTE.Process>().Any(p => p.ProcessID == currentProcessId) ?? false)
+                {
+                    return dte;
+                }
+            }
+
+            return null;
         }
 
         private void CloseHostProcess()

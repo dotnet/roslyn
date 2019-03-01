@@ -247,6 +247,11 @@
         <target state="translated">选择成员:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_completion_list">
+        <source>Show completion list</source>
+        <target state="new">Show completion list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">未使用的值会显式分配给未使用的本地函数</target>

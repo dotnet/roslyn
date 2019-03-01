@@ -99,7 +99,6 @@ function Build {
     /p:PerformanceTest=$performanceTest `
     /p:Sign=$sign `
     /p:Publish=$publish `
-    /p:ContinuousIntegrationBuild=$ci `
     @properties
 }
 
