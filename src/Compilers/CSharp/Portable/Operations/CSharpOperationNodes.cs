@@ -1837,12 +1837,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         protected override IOperation CreateLeftOperand()
         {
-            return _operationFactory.Create(_rangeExpression.LeftOperand);
+            return _operationFactory.Create(_rangeExpression.LeftOperandOpt);
         }
 
         protected override IOperation CreateRightOperand()
         {
-            return _operationFactory.Create(_rangeExpression.RightOperand);
+            return _operationFactory.Create(_rangeExpression.RightOperandOpt);
         }
     }
 }

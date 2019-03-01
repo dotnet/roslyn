@@ -88,6 +88,20 @@ namespace System
     }
 }";
 
+        [Fact, WorkItem(33537, "https://github.com/dotnet/roslyn/issues/33537")]
+        public void SuppressOnNullLiteralInAs()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    public static void Main()
+    {
+        var x = null! as object;
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(26654, "https://github.com/dotnet/roslyn/issues/26654")]
         public void SuppressNullableWarning_DeclarationExpression()
         {

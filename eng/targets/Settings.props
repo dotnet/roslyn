@@ -131,14 +131,6 @@
   <Import Project="Bootstrap.props" Condition="'$(BootstrapBuildPath)' != ''" />
 
   <!--
-     During the transition period from Microsoft.Net.Compilers to Microsoft.Net.Compilers.Toolset
-     we need our own PackageReference
-  -->
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="$(MicrosoftNetCompilersToolsetVersion)" Condition="'$(BootstrapBuildPath)' == ''" PrivateAssets="all" IsImplicitlyDefined="true" />
-  </ItemGroup>
-
-  <!--
     Analyzers
   -->
   <ItemGroup>

@@ -4651,19 +4651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, node.Indexer, node.ArgsToParamsOpt, node.Expanded);
 
-            // https://github.com/dotnet/roslyn/issues/30620 remove before shipping dev16
-            TypeWithState type;
-            if (node.Arguments.Length == 1 &&
-                TypeSymbol.Equals(node.Arguments[0].Type, compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
-            {
-                type = new TypeWithState(node.Type, NullableFlowState.NotNull);
-            }
-            else
-            {
-                type = indexer.Type.ToTypeWithState();
-            }
-
-            SetResult(type, indexer.Type);
+            LvalueResultType = node.Indexer.Type;
         }
 
         public override BoundNode VisitEventAccess(BoundEventAccess node)
