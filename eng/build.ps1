@@ -63,33 +63,6 @@ param (
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
-Add-Type -AssemblyName 'System.Drawing'
-Add-Type -AssemblyName 'System.Windows.Forms'
-function screenshot($path) {
-    $width = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width
-    $height = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height
-
-    $bitmap = New-Object System.Drawing.Bitmap $width, $height
-    try {
-        $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-        try {
-            $graphics.CopyFromScreen( `
-                [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.X, `
-                [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Y, `
-                0, `
-                0, `
-                $bitmap.Size, `
-                [System.Drawing.CopyPixelOperation]::SourceCopy)
-        } finally {
-            $graphics.Dispose()
-        }
-
-        $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
-    } finally {
-        $bitmap.Dispose()
-    }
-}
-
 function Print-Usage() {
     Write-Host "Common settings:"
     Write-Host "  -configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
@@ -532,19 +505,11 @@ try {
     if ($ci) {
         List-Processes
         Prepare-TempDir
-    }
-
-    if ($ci) {
-        query user
-        query session
-        $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-        $isAdmin = $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-        Write-Host "Current session is administrator: $isAdmin"
 
         if ($testVsi) {
-            $screenshotPath = (Join-Path $LogDir "image.png")
+            $screenshotPath = (Join-Path $LogDir "StartingBuild.png")
             try {
-                screenshot $screenshotPath
+                Capture-Screenshot $screenshotPath
             }
             catch {
                 Write-Host "Screenshot failed; attempting to connect to the console"
@@ -553,6 +518,7 @@ try {
                 $quserItems = ((quser $env:USERNAME | select -Skip 1) -split '\s+')
                 $sessionid = $quserItems[2]
                 if ($sessionid -eq 'Disc') {
+                    # When the session isn't connected, the third value is 'Disc' instead of the ID
                     $sessionid = $quserItems[1]
                 }
 
@@ -564,23 +530,20 @@ try {
                         # ignore
                     }
 
-                    $disconnected = $false
-                    for ($iter = 0; ($iter -lt 20) -and (-not $disconnected); $iter++) {
-                        Start-Sleep -Seconds 1
-                        query user
-                        $quserItems = ((quser $env:USERNAME | select -Skip 1) -split '\s+')
-                        $disconnected = $quserItems[3] -ne 'Active'
-                    }
+                    # Disconnection is asynchronous, so wait a few seconds for it to complete
+                    Start-Sleep -Seconds 3
+                    query user
                 }
 
                 Write-Host "tscon $sessionid /dest:console"
                 tscon $sessionid /dest:console
 
+                # Connection is asynchronous, so wait a few seconds for it to complete
                 Start-Sleep 3
                 query user
-                query session
 
-                screenshot $screenshotPath
+                # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
+                Capture-Screenshot $screenshotPath
             }
         }
     }
