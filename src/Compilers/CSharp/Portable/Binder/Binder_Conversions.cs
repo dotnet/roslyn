@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceTuple.Type,
                         sourceTuple.Arguments,
                         sourceTuple.Type, // same type to keep original element names 
-                        sourceTuple.HasErrors);
+                        sourceTuple.HasErrors).WithSuppression(sourceTuple.IsSuppressed);
                 }
 
                 // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),

@@ -1,6 +1,24 @@
 #!/usr/bin/env bash
 
 source="${BASH_SOURCE[0]}"
+darcVersion="1.1.0-beta.19120.2"
+
+while [[ $# > 0 ]]; do
+  opt="$(echo "$1" | awk '{print tolower($0)}')"
+  case "$opt" in
+    --darcversion)
+      darcVersion=$2
+      shift
+      ;;
+    *)
+      echo "Invalid argument: $1"
+      usage
+      exit 1
+      ;;
+  esac
+
+  shift
+done
 
 # resolve $source until the file is no longer a symlink
 while [[ -h "$source" ]]; do
@@ -27,12 +45,11 @@ function InstallDarcCli {
     echo $($dotnet_root/dotnet tool uninstall $darc_cli_package_name -g)
   fi
 
-  ReadGlobalVersion "Microsoft.DotNet.Arcade.Sdk"
-  local toolset_version=$_ReadGlobalVersion
+  local arcadeServicesSource="https://dotnetfeed.blob.core.windows.net/dotnet-arcade/index.json"
 
   echo "Installing Darc CLI version $toolset_version..."
   echo "You may need to restart your command shell if this is the first dotnet tool you have installed."
-  echo $($dotnet_root/dotnet tool install $darc_cli_package_name --version $toolset_version -v $verbosity -g)
+  echo $($dotnet_root/dotnet tool install $darc_cli_package_name --version $darcVersion --add-source "$arcadeServicesSource" -v $verbosity -g)
 }
 
 InstallDarcCli

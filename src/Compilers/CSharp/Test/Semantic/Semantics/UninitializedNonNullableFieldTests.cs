@@ -42,12 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 // (3,16): warning CS0649: Field 'C<T>.F1' is never assigned to, and will always have its default value 
                 //     internal T F1;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("C<T>.F1", "").WithLocation(3, 16),
-                // (5,21): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // (5,21): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //     internal T F3 = default;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(5, 21),
-                // (6,21): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(5, 21),
+                // (6,21): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //     internal T F4 = default(T);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T)").WithLocation(6, 21));
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(6, 21));
         }
 
         [Fact]

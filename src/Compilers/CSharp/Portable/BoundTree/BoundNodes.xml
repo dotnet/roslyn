@@ -344,8 +344,8 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <Field Name="LeftOperand" Type="BoundExpression" Null="allow"/>
-    <Field Name="RightOperand" Type="BoundExpression" Null="allow"/>
+    <Field Name="LeftOperandOpt" Type="BoundExpression" Null="allow"/>
+    <Field Name="RightOperandOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 

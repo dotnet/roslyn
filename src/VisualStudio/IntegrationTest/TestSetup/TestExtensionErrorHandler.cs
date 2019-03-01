@@ -12,6 +12,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
     public class TestExtensionErrorHandler : IExtensionErrorHandler
     {
         public void HandleError(object sender, Exception exception)
-            => FatalError.Report(exception);
+        {
+            if (exception is ArgumentOutOfRangeException argumentOutOfRangeException
+                && argumentOutOfRangeException.ParamName == "index"
+                && argumentOutOfRangeException.StackTrace.Contains("Microsoft.NodejsTools.Repl.ReplOutputClassifier.GetClassificationSpans"))
+            {
+                // Known issue https://github.com/Microsoft/nodejstools/issues/2138
+                return;
+            }
+
+            FatalError.Report(exception);
+        }
     }
 }
