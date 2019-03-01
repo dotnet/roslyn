@@ -13,6 +13,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class StatementSyntaxExtensions
     {
+        public static bool IsFirstStatementInEnclosingBlock(this StatementSyntax statement)
+        {
+            var enclosingBlock = statement.Ancestors().OfType<BlockSyntax>().FirstOrDefault();
+            if (enclosingBlock == null)
+            {
+                return false;
+            }
+
+            return statement == enclosingBlock.Statements.First();
+        }
+
+        public static bool IsFirstStatementInSwitchSection(this StatementSyntax statement)
+        {
+            var enclosingSwitchSection = statement.Ancestors().OfType<SwitchSectionSyntax>().FirstOrDefault();
+            if (enclosingSwitchSection == null)
+            {
+                return false;
+            }
+
+            return statement == enclosingSwitchSection.Statements.First();
+        }
+
         public static StatementSyntax GetPreviousStatement(this StatementSyntax statement)
         {
             if (statement != null)

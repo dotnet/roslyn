@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -38,14 +39,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var declaratorLocations = new HashSet<Location>();
+            var firstTracker = new FirstTracker<StatementSyntax>(
+                s => s.GetNextStatement(),
+                s => s.IsFirstStatementInEnclosingBlock() || s.IsFirstStatementInSwitchSection());
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (declaratorLocations.Add(diagnostic.AdditionalLocations[0]))
                 {
-                    AddEdits(editor, diagnostic, cancellationToken);
+                    AddEdits(editor, diagnostic, cancellationToken, (s, opt) =>
+                    {
+                        editor.RemoveNode(s, opt);
+                        firstTracker.Remove(s);
+                    });
                 }
+            }
+
+            foreach (var firstStatement in firstTracker.Firsts)
+            {
+                editor.ReplaceNode(firstStatement, (fs, gen) =>
+                    fs.WithLeadingTrivia(fs.GetLeadingTrivia().SkipInitialWhiteLines()));
             }
 
             return Task.CompletedTask;
@@ -54,7 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private static void AddEdits(
             SyntaxEditor editor,
             Diagnostic diagnostic,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            Action<StatementSyntax,SyntaxRemoveOptions> removeStatement)
         {
             var declaratorLocation = diagnostic.AdditionalLocations[0];
             var comparisonLocation = diagnostic.AdditionalLocations[1];
@@ -89,9 +104,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 editor.ReplaceNode(
                     localDeclaration.GetNextStatement(),
                     (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
+
+                removeStatement(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+            }
+            else
+            {
+                editor.RemoveNode(declarator, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             }
 
-            editor.RemoveNode(declarator, SyntaxRemoveOptions.KeepUnbalancedDirectives);
             editor.ReplaceNode(comparison, isExpression.WithTriviaFrom(comparison));
         }
 
@@ -100,6 +120,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_pattern_matching, createChangedDocument)
             {
+            }
+        }
+
+        private class FirstTracker<T> where T : class
+        {
+            private readonly Func<T, T> _getNext;
+            private readonly Func<T, bool> _isFirst;
+            private readonly Collection<T> _removed;
+            public ICollection<T> Firsts { get; }
+
+            public FirstTracker(Func<T,T> getNext, Func<T,bool> isFirst)
+            {
+                _getNext = getNext;
+                _isFirst = isFirst;
+                _removed = new Collection<T>();
+                Firsts = new Collection<T>();
+            }
+
+            private void MakeNextFirst(T item)
+            {
+                var next = item;
+                do
+                {
+                    next = _getNext(next);
+                } while (_removed.Contains(next));
+
+                if (next != null)
+                {
+                    Firsts.Add(next);
+                }
+            }
+
+            public void Remove(T item)
+            {
+                if (_isFirst(item) || Firsts.Remove(item))
+                {
+                    MakeNextFirst(item);
+                }
+
+                _removed.Add(item);
             }
         }
     }

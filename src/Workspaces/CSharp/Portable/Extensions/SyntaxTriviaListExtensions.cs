@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Roslyn.Utilities;
@@ -45,6 +46,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)
         {
             return triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
+        }
+
+        private static IEnumerable<List<SyntaxTrivia>> GetLines(this SyntaxTriviaList triviaList)
+        {
+            var currentLine = new List<SyntaxTrivia>();
+            foreach (var trivia in triviaList)
+            {
+                currentLine.Add(trivia);
+                if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+                {
+                    yield return currentLine;
+                    currentLine = new List<SyntaxTrivia>();
+                }
+            }
+
+            if (currentLine.Count > 0)
+            {
+                yield return currentLine;
+            }
+        }
+
+        public static IEnumerable<SyntaxTrivia> SkipInitialWhiteLines(this SyntaxTriviaList triviaList)
+        {
+            return triviaList.GetLines()
+                .SkipWhile(l => l.All(t =>
+                    t.Kind() == SyntaxKind.EndOfLineTrivia ||
+                    t.Kind() == SyntaxKind.WhitespaceTrivia))
+                .SelectMany(l => l);
         }
 
         /// <summary>
