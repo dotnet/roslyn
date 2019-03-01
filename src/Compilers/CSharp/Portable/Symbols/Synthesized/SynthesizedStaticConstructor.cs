@@ -278,6 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsReadOnly => false;
+
         public sealed override bool IsImplicitlyDeclared
         {
             get
