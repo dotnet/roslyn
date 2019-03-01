@@ -57,6 +57,15 @@
         <target state="new">Keyword - Control</target>
         <note />
       </trans-unit>
+      <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
+        <source>Operation is not ready for "0" yet.
+
+See_task_center_for_more_detail.</source>
+        <target state="new">Operation is not ready for "0" yet.
+
+See_task_center_for_more_detail.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="new">Operator - Overloaded</target>
