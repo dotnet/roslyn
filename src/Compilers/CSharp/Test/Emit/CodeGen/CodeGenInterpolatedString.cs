@@ -38,10 +38,6 @@ class C
             var token2 = interpolatedStrings[1].StringStartToken;
             Assert.Equal("$@\"", token2.Text);
             Assert.Equal("$@\"", token2.ValueText);
-
-            var token3 = SyntaxFactory.Token(SyntaxKind.InterpolatedVerbatimStringStartToken);
-            Assert.Equal("$@\"", token3.Text);
-            Assert.Equal("$@\"", token3.ValueText);
         }
 
         [Fact]
