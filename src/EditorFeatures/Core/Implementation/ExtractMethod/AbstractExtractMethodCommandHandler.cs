@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 _renameService.ActiveSession.Commit();
             }
 
-            using (context.OperationContext.WaitForDocumentAndAddScope(document, allowCancellation: true, EditorFeaturesResources.Applying_Extract_Method_refactoring))
+            using (context.OperationContext.WaitForLatestAndAddScope(document, allowCancellation: true, EditorFeaturesResources.Applying_Extract_Method_refactoring))
             {
                 return Execute(args.SubjectBuffer, args.TextView, context.OperationContext);
             }

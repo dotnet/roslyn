@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 {
     internal static class ExperimentationOptions
     {
-        internal const string LocalRegistryPath = @"Roslyn\Internal\Experiement\";
+        internal const string LocalRegistryPath = @"Roslyn\Internal\Experiment\";
 
         public static readonly Option<bool> SolutionStatusService_ForceDelay = new Option<bool>(nameof(ExperimentationOptions), nameof(SolutionStatusService_ForceDelay), defaultValue: false,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "SolutionStatusService_ForceDelay"));

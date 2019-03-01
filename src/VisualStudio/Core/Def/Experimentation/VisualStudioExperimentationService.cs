@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                 catch
                 {
                     // featureFlags can throw if given name is in incorrect format which can happen for us
-                    // since we use this for experiementation service as well
+                    // since we use this for experimentation service as well
                 }
 
                 try

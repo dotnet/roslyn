@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 var experimentationService = vsWorkspace.Services.GetService<IExperimentationService>();
                 if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.PartialLoadMode))
                 {
-                    // don't enable partial load mode for ones that are not in experiement yet
+                    // don't enable partial load mode for ones that are not in experiment yet
                     return SolutionStatusService.Default;
                 }
 

@@ -4,29 +4,34 @@ using System;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static class OperationContextExtensions
     {
         /// <summary>
-        /// Wait until given document is fully loaded and then add scope
+        /// Wait until document gets no more updates from workspace. and once document reached its latest state
         /// </summary>
-        public static IUIThreadOperationScope WaitForDocumentAndAddScope(
+        public static IUIThreadOperationScope WaitForLatestAndAddScope(
             this IUIThreadOperationContext context, Document document, bool allowCancellation, string description)
         {
-            return WaitAndAddScope(context, document.Project.Solution, document.Name, allowCancellation, description);
+            return WaitForLatestAndAddScope(context, document.Project.Solution, document.Name, allowCancellation, description);
         }
 
-        public static IUIThreadOperationScope WaitForProjectAndAddScope(
+        public static IUIThreadOperationScope WaitForLatestAndAddScope(
             this IUIThreadOperationContext context, Project project, bool allowCancellation, string description)
         {
-            return WaitAndAddScope(context, project.Solution, project.Name, allowCancellation, description);
+            return WaitForLatestAndAddScope(context, project.Solution, project.Name, allowCancellation, description);
         }
 
-        private static IUIThreadOperationScope WaitAndAddScope(
+        private static IUIThreadOperationScope WaitForLatestAndAddScope(
             this IUIThreadOperationContext context, Solution solution, string name, bool allowCancellation, string description)
         {
+#if DEBUG
+            System.Diagnostics.Debug.Assert(!TaskExtensions.IsThreadPoolThread(System.Threading.Thread.CurrentThread));
+#endif
+
             IUIThreadOperationScope scope = null;
 
             try
@@ -40,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 {
                     // UIThreadOperation always called from UI thread.
                     // at some point, we should consider moving all Wait to IThreadingContext Run 
-                    service.WaitForAsync(solution, scope.Context.UserCancellationToken).Wait(context.UserCancellationToken);
+                    service.WaitForAsync(solution, context.UserCancellationToken).Wait(context.UserCancellationToken);
                 }
 
                 // now set description and cancellation as asked
