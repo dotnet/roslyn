@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor
     {
-        private void AddConstantValue(ITypeSymbol type, object constantValue, bool preferNumericValueOrExpandedFlagsForEnum, bool allowDefaultLiteral)
+        private void AddConstantValue(ITypeSymbol type, object constantValue, bool preferNumericValueOrExpandedFlagsForEnum = false)
         {
             if (constantValue != null)
             {
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 AddKeyword(SyntaxKind.DefaultKeyword);
-                if (!allowDefaultLiteral)
+                if (!format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral))
                 {
                     AddPunctuation(SyntaxKind.OpenParenToken);
                     type.Accept(this.NotFirstVisitor);

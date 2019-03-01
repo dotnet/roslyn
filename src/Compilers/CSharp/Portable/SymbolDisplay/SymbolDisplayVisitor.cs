@@ -227,11 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddPunctuation(SyntaxKind.EqualsToken);
                 AddSpace();
 
-                AddConstantValue(
-                    symbol.Type,
-                    symbol.ConstantValue,
-                    preferNumericValueOrExpandedFlagsForEnum: false,
-                    allowDefaultLiteral: format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral));
+                AddConstantValue(symbol.Type, symbol.ConstantValue);
             }
         }
 
