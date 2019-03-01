@@ -1102,15 +1102,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     Path.GetFileNameWithoutExtension(updatedInfo.Name),
                     Path.GetExtension(updatedInfo.Name));
 
+                // By setting this property, Visual Studio will perform the file rename, which 
+                // will cause the workspace's current solution to update and will fire the 
+                // necessary workspace changed events.
                 projectItemForDocument.Name = uniqueName;
             }
             else
             {
                 throw new InvalidOperationException("Unexpected kind of DocumentInfo change.");
             }
-
-            // Visual Studio will perform the file rename, which will cause the workspace's
-            // current solution to update and will fire the necessary workspace changed events.
         }
 
         private string GetPreferredExtension(DocumentId documentId, SourceCodeKind sourceCodeKind)
