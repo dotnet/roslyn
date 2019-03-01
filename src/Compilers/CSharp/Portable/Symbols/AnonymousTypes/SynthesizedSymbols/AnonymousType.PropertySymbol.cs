@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert((object)container != null);
                 Debug.Assert((object)field != null);
-                Debug.Assert(!fieldType.IsNull);
+                Debug.Assert(fieldType.HasType);
                 Debug.Assert(index >= 0);
                 Debug.Assert(!locations.IsDefault);
 
