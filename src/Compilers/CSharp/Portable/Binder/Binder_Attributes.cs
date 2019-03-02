@@ -242,7 +242,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
                         }
-
                     }
                 }
             }
