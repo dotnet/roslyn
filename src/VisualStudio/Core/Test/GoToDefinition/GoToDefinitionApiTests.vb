@@ -2,6 +2,7 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
@@ -44,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                     symbolInfo.Symbol, document.Project,
                     {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)},
                     thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False,
-                    cancellationToken:=CancellationToken.None)
+                    symbolicNavigationServices:=Nothing, cancellationToken:=CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using

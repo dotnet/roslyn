@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTests
         Friend Sub Test(workspaceDefinition As XElement,
                                         expectedResult As Boolean,
-                                        executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)), Boolean))
+                                        executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)), IEnumerable(Of Lazy(Of ISymbolicNavigationService)), Boolean))
             Using workspace = TestWorkspace.Create(
                     workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProviderFactory.CreateExportProvider())
                 Dim solution = workspace.CurrentSolution
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim presenterCalled As Boolean = False
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
                 Dim presenters = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)}
-                Dim actualResult = executeOnDocument(document, cursorPosition, presenters)
+                Dim actualResult = executeOnDocument(document, cursorPosition, presenters, Nothing)
 
                 Assert.Equal(expectedResult, actualResult)
 
@@ -104,10 +104,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
         Private Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
-                Function(document As Document, cursorPosition As Integer, presenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)))
+                Function(document As Document, cursorPosition As Integer,
+                         presenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)),
+                         symbolicNavigationServices As IEnumerable(Of Lazy(Of ISymbolicNavigationService)))
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(presenters), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(presenters))
+                        DirectCast(New CSharpGoToDefinitionService(presenters, symbolicNavigationServices), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(presenters, symbolicNavigationServices))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)

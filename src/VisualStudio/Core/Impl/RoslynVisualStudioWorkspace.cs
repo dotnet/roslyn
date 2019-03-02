@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -29,16 +30,19 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly IEnumerable<Lazy<ISymbolicNavigationService>> _symbolicNavigationServices;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
-            [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
+            [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider,
+            [ImportMany] IEnumerable<Lazy<ISymbolicNavigationService>> symbolicNavigationServices)
             : base(exportProvider, asyncServiceProvider)
         {
             _streamingPresenters = streamingPresenters;
+            _symbolicNavigationServices = symbolicNavigationServices;
 
             foreach (var providerFactory in documentOptionsProviderFactories)
             {
@@ -115,7 +119,8 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return GoToDefinitionHelpers.TryGoToDefinition(
                 searchSymbol, searchProject,
-                _streamingPresenters, cancellationToken);
+                _streamingPresenters, _symbolicNavigationServices,
+                cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
