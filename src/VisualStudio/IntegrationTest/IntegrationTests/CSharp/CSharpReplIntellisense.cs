@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public override async Task InitializeAsync()
         {
             await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
+            VisualStudio.Editor.SetUseSuggestionMode(true);
         }
 
         [WpfFact]
@@ -71,14 +71,14 @@ Del<C, System");
         [WpfFact]
         public void VerifyNoCrashOnEnter()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
             VisualStudio.SendKeys.Send("#help", VirtualKey.Enter, VirtualKey.Enter);
         }
 
         [WpfFact]
         public void VerifyCorrectIntellisenseSelectionOnEnter()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
             VisualStudio.SendKeys.Send("TimeSpan.FromMin");
             VisualStudio.SendKeys.Send(VirtualKey.Enter, "(0d)", VirtualKey.Enter);
             VisualStudio.InteractiveWindow.WaitForReplOutput("[00:00:00]");

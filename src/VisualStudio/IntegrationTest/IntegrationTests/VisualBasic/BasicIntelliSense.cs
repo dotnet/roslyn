@@ -29,7 +29,7 @@ Module Module1
     End Sub
 End Module");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.SendKeys.Send("dim q as lis(");
             VisualStudio.Editor.Verify.CompletionItemsExist("Of");
@@ -128,7 +128,7 @@ Module Module1
     End Sub
 End Module");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.SendKeys.Send("dim");
             VisualStudio.Editor.Verify.CompletionItemsExist("Dim", "ReDim");
@@ -183,7 +183,7 @@ Module Module1
     End Sub
 End Module");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.SendKeys.Send("dim q as ");
             VisualStudio.Editor.Verify.CompletionItemsExist("_AppDomain");
@@ -204,7 +204,7 @@ End Module", actualText);
             SetUpEditor(@"
 Imports$$");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.SendKeys.Send(' ');
             VisualStudio.Editor.Verify.CompletionItemsExist("Microsoft", "System");
@@ -223,7 +223,7 @@ Module Module1
     End Function
 End Module");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.SendKeys.Send('M');
             VisualStudio.Editor.Verify.CompletionItemsExist("M");
@@ -244,7 +244,7 @@ assertCaretPosition: true);
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.SendKeys.Send("Nam Foo");
             VisualStudio.Editor.Verify.CurrentLineText("Namespace Foo$$", assertCaretPosition: true);
@@ -270,7 +270,7 @@ Public Class Bar
 
 End Class");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.SendKeys.Send(" UF");
             VisualStudio.Editor.Verify.CompletionItemsExist("UFoo");

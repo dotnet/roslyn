@@ -87,7 +87,7 @@ public static class NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpace()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.Editor.SendKeys("nam Goo", VirtualKey.Enter);
             VisualStudio.Editor.SendKeys('{', VirtualKey.Enter, '}', VirtualKey.Up, VirtualKey.Enter);
@@ -108,13 +108,13 @@ public static class NavigateTo
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.Editor.SendKeys("nam Goo");
             VisualStudio.Editor.Verify.CurrentLineText("namespace Goo$$", assertCaretPosition: true);
 
             ClearEditor();
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
+            VisualStudio.Editor.SetUseSuggestionMode(true);
 
             VisualStudio.Editor.SendKeys("nam Goo");
             VisualStudio.Editor.Verify.CurrentLineText("nam Goo$$", assertCaretPosition: true);
@@ -193,7 +193,7 @@ class Class1
     }
 }");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.Editor.SendKeys("Mai(");
 
@@ -211,7 +211,7 @@ class Class1
     $$
 }");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.Editor.SendKeys(
                 '{',
@@ -244,7 +244,7 @@ class Class1
     }
 }");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.Editor.SendKeys(
                 'M',
@@ -270,7 +270,7 @@ class Class1
     $$
 }");
 
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
 
             VisualStudio.Editor.SendKeys("int P { g{");
 
