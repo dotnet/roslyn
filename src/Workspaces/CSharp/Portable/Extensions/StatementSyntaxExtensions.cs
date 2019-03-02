@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             => statement.Parent is BlockSyntax block && block.Statements.First() == statement;
 
         public static bool IsFirstStatementInSwitchSection(this StatementSyntax statement)
-            => statement.Parent is SwitchSectionSyntax block && block.Statements.First() == statement;
+            => statement.Parent is SwitchSectionSyntax switchSection && switchSection.Statements.First() == statement;
 
         public static StatementSyntax GetPreviousStatement(this StatementSyntax statement)
         {

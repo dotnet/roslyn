@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
         private readonly struct FirstStatementTracker
         {
-            private readonly HashSet<StatementSyntax> _removed ;
+            private readonly HashSet<StatementSyntax> _removed;
             public readonly HashSet<StatementSyntax> FirstStatements;
 
             public FirstStatementTracker(bool unused)
