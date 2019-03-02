@@ -572,6 +572,13 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_IsReadOnly As Boolean Implements ITypeSymbol.IsReadOnly
+            Get
+                ' VB does not have readonly structures
+                Return False
+            End Get
+        End Property
+
 #End Region
 
 #Region "Interface checks"
