@@ -1169,7 +1169,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_returnTypesOpt == null &&
                 TryGetReturnType(out TypeSymbolWithAnnotations returnType))
             {
-                VisitOptionalImplicitConversion(expr, returnType, useLegacyWarnings: false, AssignmentKind.Return);
+                if (node.RefKind == RefKind.None)
+                {
+                    VisitOptionalImplicitConversion(expr, returnType, useLegacyWarnings: false, AssignmentKind.Return);
+                }
+                else
+                {
+                    // return ref expr;
+                    VisitRefExpression(expr, returnType);
+                }
             }
             else
             {
@@ -1181,6 +1189,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        private TypeWithState VisitRefExpression(BoundExpression expr, TypeSymbolWithAnnotations destinationType)
+        {
+            Visit(expr);
+            TypeWithState resultType = ResultType;
+            if (!expr.IsSuppressed && RemoveConversion(expr, includeExplicitConversions: false).expression.Kind != BoundKind.ThrowExpression)
+            {
+                var lvalueResultType = LvalueResultType;
+                if (IsNullabilityMismatch(lvalueResultType, destinationType))
+                {
+                    ReportNullabilityMismatchInAssignment(expr.Syntax, lvalueResultType, destinationType);
+                }
+
+                if (resultType.MaybeNull && !destinationType.CanBeAssignedNull)
+                {
+                    ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
+                }
+            }
+            return resultType;
         }
 
         private bool TryGetReturnType(out TypeSymbolWithAnnotations type)
@@ -1238,18 +1266,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool inferredType = node.DeclaredType.InferredType;
             TypeSymbolWithAnnotations type = local.Type;
-            TypeWithState valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, AssignmentKind.Assignment);
-
-            if (inferredType)
+            TypeWithState valueType;
+            if (local.IsRef)
             {
-                if (valueType.HasNullType)
-                {
-                    Debug.Assert(type.IsErrorType());
-                    valueType = type.ToTypeWithState();
-                }
+                valueType = VisitRefExpression(initializer, type);
+            }
+            else
+            {
+                valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, AssignmentKind.Assignment);
 
-                type = valueType.ToTypeSymbolWithAnnotations();
-                _variableTypes[local] = type;
+                if (inferredType)
+                {
+                    if (valueType.HasNullType)
+                    {
+                        Debug.Assert(type.IsErrorType());
+                        valueType = type.ToTypeWithState();
+                    }
+
+                    type = valueType.ToTypeSymbolWithAnnotations();
+                    _variableTypes[local] = type;
+                }
             }
 
             TrackNullableStateForAssignment(initializer, type, slot, valueType, MakeSlot(initializer));
@@ -4171,7 +4207,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                TypeWithState rightType = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left), AssignmentKind.Assignment);
+                TypeWithState rightType;
+                if (!node.IsRef)
+                {
+                    rightType = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left), AssignmentKind.Assignment);
+                }
+                else
+                {
+                    rightType = VisitRefExpression(right, leftLValueType);
+                }
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightType, MakeSlot(right));
                 SetResult(new TypeWithState(leftLValueType.TypeSymbol, rightType.State), leftLValueType);
             }
@@ -4780,33 +4824,52 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
             // declare and assign all iteration variables
+            TypeSymbolWithAnnotations sourceType = node.EnumeratorInfoOpt?.ElementType ?? default;
+            TypeWithState sourceState = sourceType.ToTypeWithState();
             foreach (var iterationVariable in node.IterationVariables)
             {
-                TypeWithState sourceType = node.EnumeratorInfoOpt?.ElementType.ToTypeWithState() ?? default;
                 var state = NullableFlowState.NotNull;
-                if (!sourceType.HasNullType)
+                if (!sourceState.HasNullType)
                 {
                     TypeSymbolWithAnnotations destinationType = iterationVariable.Type;
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    Conversion conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.Type, destinationType.TypeSymbol, ref useSiteDiagnostics);
-                    TypeWithState result = ApplyConversion(
-                        node.IterationVariableType,
-                        operandOpt: null,
-                        conversion,
-                        destinationType,
-                        sourceType,
-                        checkConversion: false,
-                        fromExplicitCast: false,
-                        useLegacyWarnings: false,
-                        AssignmentKind.Assignment,
-                        reportTopLevelWarnings: false,
-                        reportRemainingWarnings: false);
-                    if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsAnyNotNullable() && result.MaybeNull)
-                    {
-                        ReportNonSafetyDiagnostic(node.IterationVariableType.Syntax);
-                    }
 
-                    state = result.State;
+                    if (iterationVariable.IsRef)
+                    {
+                        // foreach (ref DestinationType variable in collection)
+                        if (IsNullabilityMismatch(sourceType, destinationType))
+                        {
+                            var foreachSyntax = (ForEachStatementSyntax)node.Syntax;
+                            ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
+                        }
+                        state = sourceType.ToTypeWithState().State;
+                    }
+                    else
+                    {
+                        // foreach (DestinationType variable in collection)
+                        // foreach (var variable in collection)
+                        // foreach (var (..., ...) in collection)
+                        // and asynchronous variants
+                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        Conversion conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.TypeSymbol, destinationType.TypeSymbol, ref useSiteDiagnostics);
+                        TypeWithState result = ApplyConversion(
+                            node.IterationVariableType,
+                            operandOpt: null,
+                            conversion,
+                            destinationType,
+                            sourceState,
+                            checkConversion: false,
+                            fromExplicitCast: false,
+                            useLegacyWarnings: false,
+                            AssignmentKind.Assignment,
+                            reportTopLevelWarnings: false,
+                            reportRemainingWarnings: false);
+                        if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsAnyNotNullable() && result.MaybeNull)
+                        {
+                            ReportNonSafetyDiagnostic(node.IterationVariableType.Syntax);
+                        }
+
+                        state = result.State;
+                    }
                 }
 
                 int slot = GetOrCreateSlot(iterationVariable);
