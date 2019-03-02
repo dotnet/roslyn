@@ -213,6 +213,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     {
                         view.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, mappedSpan.Start.Position + adjustedNewText.Length));
                     }
+                    else
+                    {
+                        view.Caret.EnsureVisible();
+                    }
                 }
 
                 includesCommitCharacter = change.IncludesCommitCharacter;
