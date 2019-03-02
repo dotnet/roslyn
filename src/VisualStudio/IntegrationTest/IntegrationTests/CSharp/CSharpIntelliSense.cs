@@ -248,7 +248,9 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        // 🐛 This should work with async completion, but currently does not.
+        [ConditionalWpfFact(typeof(LegacyCompletionCondition)), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33823, "https://github.com/dotnet/roslyn/issues/33823")]
         public void CommitOnShiftEnter()
         {
             SetUpEditor(@"
@@ -272,6 +274,36 @@ class Class1
     void Main(string[] args)
     {
         Main$$
+    }
+}",
+assertCaretPosition: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void LineBreakOnShiftEnter()
+        {
+            SetUpEditor(@"
+class Class1
+{
+    void Main(string[] args)
+    {
+        $$
+    }
+}");
+
+            VisualStudio.Editor.SetUseSuggestionMode(true);
+
+            VisualStudio.Editor.SendKeys(
+                'M',
+                Shift(VirtualKey.Enter));
+
+            VisualStudio.Editor.Verify.TextContains(@"
+class Class1
+{
+    void Main(string[] args)
+    {
+        M
+$$
     }
 }",
 assertCaretPosition: true);
