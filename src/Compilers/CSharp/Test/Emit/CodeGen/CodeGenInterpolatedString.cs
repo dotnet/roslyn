@@ -38,6 +38,12 @@ class C
             var token2 = interpolatedStrings[1].StringStartToken;
             Assert.Equal("$@\"", token2.Text);
             Assert.Equal("$@\"", token2.ValueText);
+
+            foreach (var token in tree.GetRoot().DescendantTokens().Where(t => t.Kind() != SyntaxKind.EndOfFileToken))
+            {
+                Assert.False(string.IsNullOrEmpty(token.Text));
+                Assert.False(string.IsNullOrEmpty(token.ValueText));
+            }
         }
 
         [Fact]
