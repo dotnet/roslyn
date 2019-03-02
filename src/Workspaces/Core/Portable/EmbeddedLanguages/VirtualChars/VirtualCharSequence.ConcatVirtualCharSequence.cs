@@ -1,12 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
-
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract partial class VirtualCharSequence
     {
+        /// <summary>
+        /// Implementation of <see cref="VirtualCharSequence"/> that represents the
+        /// concatenation of two sequences.
+        /// </summary>
         private class ConcatVirtualCharSequence : VirtualCharSequence
         {
             private readonly VirtualCharSequence _first;

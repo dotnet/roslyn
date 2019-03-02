@@ -6,6 +6,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract partial class VirtualCharSequence
     {
+        /// <summary>
+        /// Thin wrapper over an actual <see cref="ImmutableArray{VirtualChar}"/>.
+        /// This will be the common construct we generate when getting the
+        /// <see cref="VirtualCharSequence"/> for a string token that has escapes in it.
+        /// </summary>
         private class ImmutableArrayVirtualCharSequence : VirtualCharSequence
         {
             private readonly ImmutableArray<VirtualChar> _data;
