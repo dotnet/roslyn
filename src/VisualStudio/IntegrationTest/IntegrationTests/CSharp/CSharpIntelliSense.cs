@@ -330,26 +330,31 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [ConditionalWpfFact(typeof(LegacyCompletionCondition)), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33822, "https://github.com/dotnet/roslyn/issues/33822")]
         public void EnsureTheCaretIsVisibleAfterALongEdit()
         {
-            SetUpEditor(@"
+            var visibleColumns = VisualStudio.Editor.GetVisibleColumnCount();
+            var variableName = new string('a', (int)(0.75 * visibleColumns));
+            SetUpEditor($@"
 public class Program
-{
+{{
     static void Main(string[] args)
-    {
-        var aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa = 0;
-        aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa = $$
-    }
-}");
+    {{
+        var {variableName} = 0;
+        {variableName} = $$
+    }}
+}}");
 
+            Assert.True(variableName.Length > 0);
             VisualStudio.Editor.SendKeys(
                 VirtualKey.Delete,
                 "aaa",
                 VirtualKey.Tab);
             var actualText = VisualStudio.Editor.GetText();
-            Assert.Contains("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", actualText);
+            Assert.Contains($"{variableName} = {variableName}", actualText);
             Assert.True(VisualStudio.Editor.IsCaretOnScreen());
+            Assert.True(VisualStudio.Editor.GetCaretColumn() > visibleColumns, "This test is inconclusive if the view didn't need to move to keep the caret on screen.");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
