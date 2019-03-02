@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -156,6 +158,20 @@ class Class1
 
             VisualStudio.Editor.SendKeys("<s");
             VisualStudio.Editor.Verify.CompletionItemsExist("see", "seealso", "summary");
+
+            if (LegacyCompletionCondition.Instance.ShouldSkip)
+            {
+                // 🐛 Workaround for https://github.com/dotnet/roslyn/issues/33824
+                var completionItems = VisualStudio.Editor.GetCompletionItems();
+                var targetIndex = Array.IndexOf(completionItems, "see");
+                var currentIndex = Array.IndexOf(completionItems, VisualStudio.Editor.GetCurrentCompletionItem());
+                if (currentIndex != targetIndex)
+                {
+                    var key = currentIndex < targetIndex ? VirtualKey.Down : VirtualKey.Up;
+                    var keys = Enumerable.Repeat(key, Math.Abs(currentIndex - targetIndex)).Cast<object>().ToArray();
+                    VisualStudio.Editor.SendKeys(keys);
+                }
+            }
 
             VisualStudio.Editor.SendKeys(VirtualKey.Enter);
             VisualStudio.Editor.Verify.CurrentLineText("///<see cref=\"$$\"/>", assertCaretPosition: true);
