@@ -51,9 +51,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             => new ConcatVirtualCharSequence(this, other);
 
         public VirtualCharSequence GetSubSequence(TextSpan span)
-            => span.Length == 1
-                ? (VirtualCharSequence)new SingleVirtualCharSequence(this[span.Start])
-                : new SubSequenceVirtualCharSequence(this, span);
+            => span.IsEmpty
+                ? Empty
+                : span.Length == 1
+                    ? (VirtualCharSequence)new SingleVirtualCharSequence(this[span.Start])
+                    : new SubSequenceVirtualCharSequence(this, span);
 
         public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
             => new ImmutableArrayVirtualCharSequence(virtualChars);

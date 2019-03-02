@@ -6,6 +6,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract partial class VirtualCharSequence
     {
+        /// <summary>
+        /// Represents a <see cref="VirtualCharSequence"/> efficiently on top of
+        /// a single character.  Useful for that common case, as well as when getting
+        /// a single char subsequence of another sequence.
+        /// </summary>
         private class SingleVirtualCharSequence : VirtualCharSequence
         {
             private readonly VirtualChar _ch;

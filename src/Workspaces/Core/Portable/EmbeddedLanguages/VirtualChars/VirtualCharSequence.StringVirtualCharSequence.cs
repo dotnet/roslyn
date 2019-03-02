@@ -6,13 +6,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract partial class VirtualCharSequence
     {
+        /// <summary>
+        /// Represents a <see cref="VirtualCharSequence"/> on top of a normal
+        /// string.  This is the common case of the type of the sequence we would
+        /// create for a normal string token without any escapes in it.  Importantly
+        /// </summary>
         private class StringVirtualCharSequence : VirtualCharSequence
         {
             private readonly int _firstVirtualCharPosition;
 
             /// <summary>
             /// The underlying string that we're returning virtual chars from.
-            /// Note the chars we return may be from a subsection of this string.
+            /// Note the chars we return will normally be from a subsection of this string.
+            /// i.e. the _underlyingData will be something like:  "abc" (including the quotes).
+            /// The <see cref="_underlyingDataSpan"/> will snip out the quotes, leaving just
+            /// "abc"
             /// </summary>
             private readonly string _underlyingData;
 

@@ -7,6 +7,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract partial class VirtualCharSequence
     {
+        /// <summary>
+        /// Represents a subsequence of some other sequence.  Useful for cases
+        /// like the regex lexer which might consume snip out part of the full
+        /// seqeunce of characters in the string token.  This allows for a single
+        /// alloc to represent that, instead of needing to copy all the chars
+        /// over.
+        /// </summary>
         private class SubSequenceVirtualCharSequence : VirtualCharSequence
         {
             private readonly VirtualCharSequence _sequence;
