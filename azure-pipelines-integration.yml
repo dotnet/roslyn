@@ -20,7 +20,7 @@ pr:
 
 jobs:
 - job: Windows_VisualStudio_Integration_Tests
-  pool: dotnet-external-temp-vs2017
+  pool: dotnet-external-vs2019-preview
   strategy:
     maxParallel: 2
     matrix:
