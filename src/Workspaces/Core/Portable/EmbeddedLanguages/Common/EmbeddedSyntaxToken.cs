@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             Value = value;
         }
 
-        public bool IsMissing => VirtualChars.IsEmpty();
+        public bool IsMissing => VirtualChars.IsEmpty;
 
         public EmbeddedSyntaxToken<TSyntaxKind> AddDiagnosticIfNone(EmbeddedDiagnostic diagnostic)
             => Diagnostics.Length > 0 ? this : WithDiagnostics(ImmutableArray.Create(diagnostic));

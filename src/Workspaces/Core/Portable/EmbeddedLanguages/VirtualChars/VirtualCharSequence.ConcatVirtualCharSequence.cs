@@ -11,7 +11,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         {
             private readonly VirtualCharSequence _first;
             private readonly VirtualCharSequence _second;
-            private string _string;
 
             public ConcatVirtualCharSequence(VirtualCharSequence first, VirtualCharSequence second)
             {
@@ -25,26 +24,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             public override int Length { get; }
 
-            public override string CreateString()
-            {
-                if (_string == null)
-                {
-                    _string = _first.CreateString() + _second.CreateString();
-                }
-
-                return _string;
-            }
-
-            public override VirtualCharSequence GetSubSequence(TextSpan span)
-            {
-                var temp = ArrayBuilder<VirtualChar>.GetInstance();
-                for (var i = span.Start; i < span.End; i++)
-                {
-                    temp.Add(this[i]);
-                }
-
-                return Create(temp.ToImmutableAndFree());
-            }
+            protected override string CreateStringWorker()
+                => _first.CreateString() + _second.CreateString();
         }
     }
 }

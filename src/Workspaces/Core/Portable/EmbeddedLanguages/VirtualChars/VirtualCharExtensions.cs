@@ -8,11 +8,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal static class VirtualCharExtensions
     {
-        public static bool IsEmpty(this VirtualCharSequence sequence)
-            => sequence.Length == 0;
 
-        public static VirtualChar Last(this VirtualCharSequence sequence)
-            => sequence[sequence.Length - 1];
 
         public static string CreateString(this ImmutableArray<VirtualChar> chars)
             => CreateString(chars, new TextSpan(0, chars.Length));

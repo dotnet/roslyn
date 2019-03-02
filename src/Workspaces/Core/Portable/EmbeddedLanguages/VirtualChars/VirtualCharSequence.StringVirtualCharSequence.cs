@@ -6,30 +6,37 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract partial class VirtualCharSequence
     {
-        private class StringVirtualCharSequence : AbstractVirtualCharSequence<string>
+        private class StringVirtualCharSequence : VirtualCharSequence
         {
-            private readonly int _position;
+            private readonly int _firstVirtualCharPosition;
 
-            public StringVirtualCharSequence(
-                string underlyingData, int position, TextSpan underlyingDataSpan)
-                : base(underlyingData, underlyingDataSpan, underlyingData.Length)
+            /// <summary>
+            /// The underlying string that we're returning virtual chars from.
+            /// Note the chars we return may be from a subsection of this string.
+            /// </summary>
+            private readonly string _underlyingData;
+
+            /// <summary>
+            /// The subsection of <see cref="_underlyingData"/> that we're producing virtual chars from.
+            /// </summary>
+            private readonly TextSpan _underlyingDataSpan;
+
+            public StringVirtualCharSequence(int firstVirtualCharPosition, string data, TextSpan dataSpan)
             {
-                _position = position;
+                _firstVirtualCharPosition = firstVirtualCharPosition;
+                _underlyingData = data;
+                _underlyingDataSpan = dataSpan;
             }
+
+            public override int Length => _underlyingDataSpan.Length;
 
             public override VirtualChar this[int index]
                 => new VirtualChar(
-                    UnderlyingData[UnderlyingDataSpan.Start + index],
-                    new TextSpan(_position + index, length: 1));
+                    _underlyingData[_underlyingDataSpan.Start + index],
+                    new TextSpan(_firstVirtualCharPosition + index, length: 1));
 
-            public override VirtualCharSequence GetSubSequence(TextSpan span)
-                => Create(
-                    UnderlyingData,
-                    _position + span.Start,
-                    new TextSpan(UnderlyingDataSpan.Start + span.Start, span.Length));
-
-            public override string CreateString()
-                => UnderlyingData.Substring(UnderlyingDataSpan.Start, UnderlyingDataSpan.Length);
+            protected override string CreateStringWorker()
+                => _underlyingData.Substring(_underlyingDataSpan.Start, _underlyingDataSpan.Length);
         }
     }
 }

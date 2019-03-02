@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 _captureNames = ArrayBuilder<string>.GetInstance();
                 _autoNumber = 1;
 
-                _captureNumberToSpan.Add(0, text.IsEmpty() ? default : GetSpan(text));
+                _captureNumberToSpan.Add(0, text.IsEmpty ? default : GetSpan(text));
             }
 
             public static (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             public override int Length => 1;
 
-            public override string CreateString() => _ch.Char.ToString();
+            protected override string CreateStringWorker() => _ch.Char.ToString();
         }
     }
 }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
 
-        public ImmutableArray<VirtualChar> GetSubPatternToCurrentPos(int start)
+        public VirtualCharSequence GetSubPatternToCurrentPos(int start)
             => GetSubPattern(start, Position);
 
         public VirtualCharSequence GetSubPattern(int start, int end)

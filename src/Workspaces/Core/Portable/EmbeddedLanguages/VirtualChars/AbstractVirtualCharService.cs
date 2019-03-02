@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// how normal VB literals and c# verbatim string literals work.
         /// </summary>
         /// <param name="startDelimiter">The start characters string.  " in VB and @" in C#</param>
-        protected static ImmutableArray<VirtualChar> TryConvertSimpleDoubleQuoteString(
+        protected static VirtualCharSequence TryConvertSimpleDoubleQuoteString(
             SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
             Debug.Assert(!token.ContainsDiagnostics);
@@ -133,34 +133,59 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var endIndexExclusive = tokenText.Length - endDelimiter.Length;
 
             var result = ArrayBuilder<VirtualChar>.GetInstance();
-
             var offset = token.SpanStart;
-            for (var index = startIndexInclusive; index < endIndexExclusive;)
+            try
             {
-                if (tokenText[index] == '"' &&
-                    tokenText[index + 1] == '"')
+                for (var index = startIndexInclusive; index < endIndexExclusive;)
                 {
-                    result.Add(new VirtualChar('"', new TextSpan(offset + index, 2)));
-                    index += 2;
-                }
-                else if (escapeBraces &&
-                         (tokenText[index] == '{' || tokenText[index] == '}'))
-                {
-                    if (!TryAddBraceEscape(result, tokenText, offset, index))
+                    if (tokenText[index] == '"' &&
+                        tokenText[index + 1] == '"')
                     {
-                        return default;
+                        result.Add(new VirtualChar('"', new TextSpan(offset + index, 2)));
+                        index += 2;
                     }
+                    else if (escapeBraces &&
+                             (tokenText[index] == '{' || tokenText[index] == '}'))
+                    {
+                        if (!TryAddBraceEscape(result, tokenText, offset, index))
+                        {
+                            return default;
+                        }
 
-                    index += result.Last().Span.Length;
+                        index += result.Last().Span.Length;
+                    }
+                    else
+                    {
+                        result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
+                        index++;
+                    }
                 }
-                else
-                {
-                    result.Add(new VirtualChar(tokenText[index], new TextSpan(offset + index, 1)));
-                    index++;
-                }
+
+                return CreateVirtualCharSequence(
+                    tokenText, startIndexInclusive, endIndexExclusive, result, offset);
+            }
+            finally
+            {
+                result.Free();
+            }
+        }
+
+        protected static VirtualCharSequence CreateVirtualCharSequence(
+            string tokenText, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<VirtualChar> result, int offset)
+        {
+            // Check if we actually needed to create any special virtual chars.
+            // if not, we can avoid the entire array allocation and just wrap
+            // the text of the token and pass that back.
+
+            var textLength = endIndexExclusive - startIndexInclusive;
+            if (textLength == result.Count)
+            {
+                return VirtualCharSequence.Create(
+                    offset + startIndexInclusive, tokenText,
+                    TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
             }
 
-            return result.ToImmutableAndFree();
+            return VirtualCharSequence.Create(result.ToImmutableAndFree());
         }
     }
 }

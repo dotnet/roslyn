@@ -1,29 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract partial class VirtualCharSequence
     {
-        private class ImmutableArrayVirtualCharSequence
-            : AbstractVirtualCharSequence<ImmutableArray<VirtualChar>>
+        private class ImmutableArrayVirtualCharSequence : VirtualCharSequence
         {
-            public ImmutableArrayVirtualCharSequence(
-                ImmutableArray<VirtualChar> underlyingData, TextSpan underlyingDataSpan)
-                : base(underlyingData, underlyingDataSpan, underlyingData.Length)
+            private readonly ImmutableArray<VirtualChar> _data;
+
+            public ImmutableArrayVirtualCharSequence(ImmutableArray<VirtualChar> array)
             {
+                _data = array;
             }
 
-            public override VirtualChar this[int index]
-                => UnderlyingData[UnderlyingDataSpan.Start + index];
+            public override int Length => _data.Length;
+            public override VirtualChar this[int index] => _data[index];
 
-            public override VirtualCharSequence GetSubSequence(TextSpan span)
-                => Create(UnderlyingData, new TextSpan(UnderlyingDataSpan.Start + span.Start, span.Length));
-
-            public override string CreateString()
-                => UnderlyingData.CreateString(UnderlyingDataSpan);
+            protected override string CreateStringWorker()
+                => _data.CreateString();
         }
     }
 }
