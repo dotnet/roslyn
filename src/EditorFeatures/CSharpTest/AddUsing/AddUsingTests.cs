@@ -68,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
             Workspace workspace, TestParameters parameters)
         {
             var outOfProcess = (bool)parameters.fixProviderData;
-            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
-                                                 .WithChangedOption(RemoteFeatureOptions.AddImportEnabled, outOfProcess);
+            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess);
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
