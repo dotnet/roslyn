@@ -525,22 +525,22 @@ try {
                 if ($quserItems[1] -eq 'console') {
                     Write-Host "Disconnecting from console before attempting reconnection"
                     try {
-                        Exec-Command tsdiscon
+                        tsdiscon
                     } catch {
                         # ignore
                     }
 
                     # Disconnection is asynchronous, so wait a few seconds for it to complete
                     Start-Sleep -Seconds 3
-                    Exec-Command query user
+                    query user
                 }
 
                 Write-Host "tscon $sessionid /dest:console"
-                Exec-Command tscon $sessionid /dest:console
+                tscon $sessionid /dest:console
 
                 # Connection is asynchronous, so wait a few seconds for it to complete
                 Start-Sleep 3
-                Exec-Command query user
+                query user
 
                 # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
                 Capture-Screenshot $screenshotPath
