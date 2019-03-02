@@ -904,7 +904,7 @@ class TestClass
 
                         // Better to compare LocationTypeOpt to INamedTypeSymbol, but for this demonstration, just using MetadataName.
                         PropertySetAbstractValueKind kind;
-                        if (argumentPointsToAbstractValues[1].Locations.Any(l => 
+                        if (argumentPointsToAbstractValues[1].Locations.Any(l =>
                                 l.LocationTypeOpt != null
                                 && l.LocationTypeOpt.MetadataName == "BitArray"))
                         {

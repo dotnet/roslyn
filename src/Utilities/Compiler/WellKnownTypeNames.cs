@@ -260,5 +260,8 @@ namespace Analyzer.Utilities
         public const string SystemDirectoryServicesActiveDirectoryADSearcher = "System.DirectoryServices.ActiveDirectory.ADSearcher";
         public const string SystemDirectoryServicesDirectorySearcher = "System.DirectoryServices.DirectorySearcher";
         public const string SystemDirectoryDirectoryEntry = "System.DirectoryServices.DirectoryEntry";
+        public const string SystemWebScriptSerializationJavaScriptSerializer = "System.Web.Script.Serialization.JavaScriptSerializer";
+        public const string SystemWebScriptSerializationJavaScriptTypeResolver = "System.Web.Script.Serialization.JavaScriptTypeResolver";
+        public const string SystemWebScriptSerializationSimpleTypeResolver = "System.Web.Script.Serialization.SimpleTypeResolver";
     }
 }
