@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal static class VirtualCharExtensions
     {
-
-
         public static string CreateString(this ImmutableArray<VirtualChar> chars)
             => CreateString(chars, new TextSpan(0, chars.Length));
 
