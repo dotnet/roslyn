@@ -99,7 +99,7 @@ public static class NavigateTo
             VisualStudio.Editor.Verify.CurrentLineText("System.Console.WriteLine();$$", assertCaretPosition: true);
             VisualStudio.Editor.SendKeys(VirtualKey.Home, Shift(VirtualKey.End), VirtualKey.Delete);
 
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
+            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.Space, ShiftState.Ctrl | ShiftState.Alt));
 
             VisualStudio.Editor.SendKeys("System.Console.writeline();");
             VisualStudio.Editor.Verify.CurrentLineText("System.Console.writeline();$$", assertCaretPosition: true);

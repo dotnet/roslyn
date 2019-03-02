@@ -242,6 +242,22 @@ assertCaretPosition: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CtrlAltSpace()
+        {
+            VisualStudio.Editor.SetUseSuggestionMode(false);
+
+            VisualStudio.SendKeys.Send("Nam Foo");
+            VisualStudio.Editor.Verify.CurrentLineText("Namespace Foo$$", assertCaretPosition: true);
+
+            ClearEditor();
+
+            VisualStudio.Editor.SendKeys(new KeyPress(VirtualKey.Space, ShiftState.Ctrl | ShiftState.Alt));
+
+            VisualStudio.SendKeys.Send("Nam Foo");
+            VisualStudio.Editor.Verify.CurrentLineText("Nam Foo$$", assertCaretPosition: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void CtrlAltSpaceOption()
         {
             VisualStudio.Editor.SetUseSuggestionMode(false);
