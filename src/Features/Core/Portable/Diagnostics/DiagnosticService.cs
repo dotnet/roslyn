@@ -55,11 +55,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private void RaiseDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs args)
+        private void RaiseDiagnosticsUpdated(IDiagnosticUpdateSource source, DiagnosticsUpdatedArgs args)
         {
-            Contract.ThrowIfNull(sender);
-            var source = (IDiagnosticUpdateSource)sender;
-
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
             if (!RequireRunningEventTasks(source, ev))
             {
@@ -75,15 +72,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return;
                 }
 
-                ev.RaiseEvent(handler => handler(sender, args));
+                ev.RaiseEvent(handler => handler(source, args));
             }).CompletesAsyncOperation(eventToken);
         }
 
-        private void RaiseDiagnosticsCleared(object sender)
+        private void RaiseDiagnosticsCleared(IDiagnosticUpdateSource source)
         {
-            Contract.ThrowIfNull(sender);
-            var source = (IDiagnosticUpdateSource)sender;
-
             var ev = _eventMap.GetEventHandlers<EventHandler<DiagnosticsUpdatedArgs>>(DiagnosticsUpdatedEventName);
             if (!RequireRunningEventTasks(source, ev))
             {
@@ -96,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 using (var pooledObject = SharedPools.Default<List<DiagnosticsUpdatedArgs>>().GetPooledObject())
                 {
                     var removed = pooledObject.Object;
-                    if (!ClearDiagnosticsFromDataMapFor(source, removed))
+                    if (!ClearDiagnosticsReportedBySource(source, removed))
                     {
                         // there is no change, nothing to raise events for.
                         return;
@@ -104,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     foreach (var args in removed)
                     {
-                        ev.RaiseEvent(handler => handler(sender, args));
+                        ev.RaiseEvent(handler => handler(source, args));
                     }
                 }
             }).CompletesAsyncOperation(eventToken);
@@ -181,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private bool ClearDiagnosticsFromDataMapFor(IDiagnosticUpdateSource source, List<DiagnosticsUpdatedArgs> removed)
+        private bool ClearDiagnosticsReportedBySource(IDiagnosticUpdateSource source, List<DiagnosticsUpdatedArgs> removed)
         {
             // we expect source who uses this ability to have small number of diagnostics.
             lock (_gate)
@@ -214,13 +208,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AssertIfNull(e.Diagnostics);
 
             // all events are serialized by async event handler
-            RaiseDiagnosticsUpdated(sender, e);
+            RaiseDiagnosticsUpdated((IDiagnosticUpdateSource)sender, e);
         }
 
         private void OnCleared(object sender, EventArgs e)
         {
             // all events are serialized by async event handler
-            RaiseDiagnosticsCleared(sender);
+            RaiseDiagnosticsCleared((IDiagnosticUpdateSource)sender);
         }
 
         public IEnumerable<DiagnosticData> GetDiagnostics(

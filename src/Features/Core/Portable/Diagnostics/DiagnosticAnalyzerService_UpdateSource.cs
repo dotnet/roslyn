@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        public event EventHandler Cleared
+        public event EventHandler DiagnosticsCleared
         {
             add
             {
