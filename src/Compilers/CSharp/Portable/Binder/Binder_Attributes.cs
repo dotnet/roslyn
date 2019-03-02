@@ -164,6 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
             }
 
+            if (!(attributeConstructor is null))
+            {
+                CheckArgumentNullability(attributeConstructor, analyzedArguments, diagnostics);
+            }
+
             var constructorArguments = analyzedArguments.ConstructorArguments;
             ImmutableArray<BoundExpression> boundConstructorArguments = constructorArguments.Arguments.ToImmutableAndFree();
             ImmutableArray<string> boundConstructorArgumentNamesOpt = constructorArguments.GetNames();
@@ -172,6 +177,75 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt,
                 boundNamedArguments, resultKind, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
+        }
+
+        private void CheckArgumentNullability(MethodSymbol attributeConstructor, AnalyzedAttributeArguments arguments, DiagnosticBag diagnostics)
+        {
+            // Check constructor arguments
+            for (int i = 0; i < attributeConstructor.ParameterCount && i < arguments.ConstructorArguments.Arguments.Count; i++)
+            {
+                var parameter = attributeConstructor.Parameters[i];
+                var argument = arguments.ConstructorArguments.Argument(i);
+                reportPossibleNullabilityMismatch(parameter.Type, argument);
+            }
+
+            // Check assignments
+            for (int i = 0; i < arguments.NamedArguments.Length; i++)
+            {
+                var assignment = arguments.NamedArguments[i] as BoundAssignmentOperator;
+                TypeSymbolWithAnnotations assignmentType;
+                switch (assignment.Left)
+                {
+                    case BoundPropertyAccess propertyAccess:
+                        assignmentType = propertyAccess.PropertySymbol.Type;
+                        break;
+                    case BoundFieldAccess fieldAccess:
+                        assignmentType = fieldAccess.FieldSymbol.Type;
+                        break;
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
+
+                reportPossibleNullabilityMismatch(assignmentType, assignment.Right);
+            }
+
+            void reportPossibleNullabilityMismatch(TypeSymbolWithAnnotations destination, BoundExpression sourceExpression)
+            {
+                if (IsNullableEnabled(sourceExpression.SyntaxTree, sourceExpression.Syntax.SpanStart))
+                {
+                    if (destination.NullableAnnotation == NullableAnnotation.NotAnnotated &&
+                        sourceExpression.ConstantValue == ConstantValue.Null)
+                    {
+                        // passing null to a non-nullable parameter
+                        diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, sourceExpression.Syntax.GetLocation());
+                    }
+                    else if (sourceExpression.Type is ArrayTypeSymbol sourceArrayType &&
+                             destination.TypeSymbol is ArrayTypeSymbol destArrayType)
+                    {
+                        if (sourceArrayType.ElementType.NullableAnnotation == NullableAnnotation.Annotated &&
+                            destArrayType.ElementType.NullableAnnotation == NullableAnnotation.NotAnnotated)
+                        {
+                            // passing an array of nullable to an array of non-nullable
+                            diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax.GetLocation(), sourceExpression.Type, destination.TypeSymbol);
+                        }
+                        else if (sourceArrayType.ElementType.NullableAnnotation == NullableAnnotation.NotAnnotated &&
+                                sourceExpression is BoundArrayCreation arrayCreation &&
+                                !(arrayCreation.InitializerOpt is null))
+                        {
+                            foreach (var initExpr in arrayCreation.InitializerOpt.Initializers)
+                            {
+                                if (initExpr.ConstantValue == ConstantValue.Null)
+                                {
+                                    // we found null in a non null array initializer, so warn and stop looking further
+                                    diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, initExpr.Syntax.GetLocation());
+                                    return;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
         }
 
         private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, DiagnosticBag diagnostics)
