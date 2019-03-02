@@ -217,7 +217,9 @@ class Class1
             VisualStudio.Editor.Verify.CurrentParameter("args", "");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        // 🐛 The async completion controller in 16.0 Preview 4 fails to account for brace completion sessions.
+        [ConditionalWpfFact(typeof(LegacyCompletionCondition)), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33825, "https://github.com/dotnet/roslyn/issues/33825")]
         public void CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion()
         {
             SetUpEditor(@"
