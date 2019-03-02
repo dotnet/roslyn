@@ -20,17 +20,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic))
             {
-                var set = new ManualResetEvent(false);
+                var mutex = new ManualResetEvent(false);
                 var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
 
                 var source = new TestDiagnosticUpdateSource(false, null);
                 var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
                 diagnosticService.Register(source);
 
-                diagnosticService.DiagnosticsUpdated += (s, o) => { set.Set(); };
+                diagnosticService.DiagnosticsUpdated += (s, o) => { mutex.Set(); };
 
                 var id = Tuple.Create(workspace, document);
-                var diagnostic = RaiseDiagnosticEvent(set, source, workspace, document.Project.Id, document.Id, id);
+                var diagnostic = RaiseDiagnosticEvent(mutex, source, workspace, document.Project.Id, document.Id, id);
 
                 var data1 = diagnosticService.GetDiagnostics(workspace, null, null, null, false, CancellationToken.None);
                 Assert.Equal(diagnostic, data1.Single());
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         {
             using (var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic))
             {
-                var set = new ManualResetEvent(false);
+                var mutex = new ManualResetEvent(false);
                 var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
                 var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
 
@@ -59,19 +59,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
                 diagnosticService.Register(source);
 
-                diagnosticService.DiagnosticsUpdated += (s, o) => { set.Set(); };
+                diagnosticService.DiagnosticsUpdated += (s, o) => { mutex.Set(); };
 
                 var id = Tuple.Create(workspace, document);
-                RaiseDiagnosticEvent(set, source, workspace, document.Project.Id, document.Id, id);
+                RaiseDiagnosticEvent(mutex, source, workspace, document.Project.Id, document.Id, id);
 
                 var id2 = Tuple.Create(workspace, document.Project, document);
-                RaiseDiagnosticEvent(set, source, workspace, document.Project.Id, document.Id, id2);
+                RaiseDiagnosticEvent(mutex, source, workspace, document.Project.Id, document.Id, id2);
 
-                RaiseDiagnosticEvent(set, source, workspace, document2.Project.Id, document2.Id, Tuple.Create(workspace, document2));
+                RaiseDiagnosticEvent(mutex, source, workspace, document2.Project.Id, document2.Id, Tuple.Create(workspace, document2));
 
                 var id3 = Tuple.Create(workspace, document.Project);
-                RaiseDiagnosticEvent(set, source, workspace, document.Project.Id, null, id3);
-                RaiseDiagnosticEvent(set, source, workspace, null, null, Tuple.Create(workspace));
+                RaiseDiagnosticEvent(mutex, source, workspace, document.Project.Id, null, id3);
+                RaiseDiagnosticEvent(mutex, source, workspace, null, null, Tuple.Create(workspace));
 
                 var data1 = diagnosticService.GetDiagnostics(workspace, null, null, null, false, CancellationToken.None);
                 Assert.Equal(5, data1.Count());
@@ -90,13 +90,75 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        public void TestCleared()
+        {
+            using (var workspace = new TestWorkspace(TestExportProvider.ExportProviderWithCSharpAndVisualBasic))
+            {
+                var mutex = new ManualResetEvent(false);
+                var document = workspace.CurrentSolution.AddProject("TestProject", "TestProject", LanguageNames.CSharp).AddDocument("TestDocument", string.Empty);
+                var document2 = document.Project.AddDocument("TestDocument2", string.Empty);
+
+                var diagnosticService = new DiagnosticService(AsynchronousOperationListenerProvider.NullProvider);
+
+                var source1 = new TestDiagnosticUpdateSource(support: false, diagnosticData: null);
+                diagnosticService.Register(source1);
+
+                var source2 = new TestDiagnosticUpdateSource(support: false, diagnosticData: null);
+                diagnosticService.Register(source2);
+
+                diagnosticService.DiagnosticsUpdated += MarkSet;
+
+                // add bunch of data to the service for both sources
+                RaiseDiagnosticEvent(mutex, source1, workspace, document.Project.Id, document.Id, Tuple.Create(workspace, document));
+                RaiseDiagnosticEvent(mutex, source1, workspace, document.Project.Id, document.Id, Tuple.Create(workspace, document.Project, document));
+                RaiseDiagnosticEvent(mutex, source1, workspace, document2.Project.Id, document2.Id, Tuple.Create(workspace, document2));
+
+                RaiseDiagnosticEvent(mutex, source2, workspace, document.Project.Id, null, Tuple.Create(workspace, document.Project));
+                RaiseDiagnosticEvent(mutex, source2, workspace, null, null, Tuple.Create(workspace));
+
+                // confirm data is there.
+                var data1 = diagnosticService.GetDiagnostics(workspace, null, null, null, false, CancellationToken.None);
+                Assert.Equal(5, data1.Count());
+
+                diagnosticService.DiagnosticsUpdated -= MarkSet;
+
+                // confirm clear for a source
+                mutex.Reset();
+                var count = 0;
+                diagnosticService.DiagnosticsUpdated += MarkCalled;
+
+                source1.RaiseDiagnosticsClearedEvent();
+
+                mutex.WaitOne();
+
+                // confirm there are 2 data left
+                var data2 = diagnosticService.GetDiagnostics(workspace, null, null, null, false, CancellationToken.None);
+                Assert.Equal(2, data2.Count());
+
+                void MarkCalled(object sender, DiagnosticsUpdatedArgs args)
+                {
+                    // event is serialized. no concurrent call
+                    if (++count == 3)
+                    {
+                        mutex.Set();
+                    }
+                }
+
+                void MarkSet(object sender, DiagnosticsUpdatedArgs args)
+                {
+                    mutex.Set();
+                }
+            }
+        }
+
         private static DiagnosticData RaiseDiagnosticEvent(ManualResetEvent set, TestDiagnosticUpdateSource source, TestWorkspace workspace, ProjectId project, DocumentId document, object id)
         {
             set.Reset();
 
             var diagnostic = CreateDiagnosticData(workspace, project, document);
 
-            source.RaiseUpdateEvent(
+            source.RaiseDiagnosticsUpdatedEvent(
                 DiagnosticsUpdatedArgs.DiagnosticsCreated(id, workspace, workspace.CurrentSolution, project, document, ImmutableArray.Create(diagnostic)));
 
             set.WaitOne();
@@ -126,15 +188,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             public bool SupportGetDiagnostics { get { return _support; } }
             public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+            public event EventHandler DiagnosticsCleared;
 
             public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
             {
                 return _support ? _diagnosticData : ImmutableArray<DiagnosticData>.Empty;
             }
 
-            public void RaiseUpdateEvent(DiagnosticsUpdatedArgs args)
+            public void RaiseDiagnosticsUpdatedEvent(DiagnosticsUpdatedArgs args)
             {
                 DiagnosticsUpdated?.Invoke(this, args);
+            }
+
+            public void RaiseDiagnosticsClearedEvent()
+            {
+                DiagnosticsCleared?.Invoke(this, EventArgs.Empty);
             }
         }
     }

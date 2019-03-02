@@ -444,7 +444,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return additionalProperties == null
                 ? properties
                 : properties.AddRange(additionalProperties);
-            throw new NotImplementedException();
         }
 
         /// <summary>
