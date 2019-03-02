@@ -185,6 +185,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Regex:
                 case SinkKind.Ldap:
                 case SinkKind.Redirect:
+                case SinkKind.XPath:
+                case SinkKind.Xml:
+                case SinkKind.Xaml:
                     return WebInputSources.SourceInfos;
 
                 case SinkKind.InformationDisclosure:
@@ -201,6 +204,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             switch (sinkKind)
             {
                 case SinkKind.Sql:
+                case SinkKind.XPath:
                     return PrimitiveTypeConverterSanitizers.SanitizerInfos;
 
                 case SinkKind.Xss:
@@ -209,12 +213,16 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 case SinkKind.Ldap:
                     return LdapSanitizers.SanitizerInfos;
 
+                case SinkKind.Xml:
+                    return PrimitiveTypeConverterSanitizers.SanitizerInfos.Union(XmlSanitizers.SanitizerInfos);
+
                 case SinkKind.Dll:
                 case SinkKind.InformationDisclosure:
                 case SinkKind.FilePathInjection:
                 case SinkKind.ProcessCommand:
                 case SinkKind.Regex:
                 case SinkKind.Redirect:
+                case SinkKind.Xaml:
                     return ImmutableHashSet<SanitizerInfo>.Empty;
 
                 default:
@@ -251,6 +259,15 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 
                 case SinkKind.Redirect:
                     return RedirectSinks.SinkInfos;
+
+                case SinkKind.XPath:
+                    return XPathSinks.SinkInfos;
+
+                case SinkKind.Xml:
+                    return XmlSinks.SinkInfos;
+
+                case SinkKind.Xaml:
+                    return XamlSinks.SinkInfos;
 
                 default:
                     Debug.Fail($"Unhandled SinkKind {sinkKind}");

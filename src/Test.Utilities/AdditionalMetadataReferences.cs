@@ -22,7 +22,8 @@ namespace Test.Utilities
         internal static readonly MetadataReference SystemXmlLinq = MetadataReference.CreateFromFile(typeof(System.Xml.Linq.XAttribute).Assembly.Location);
         internal static readonly MetadataReference TestReferenceAssembly = MetadataReference.CreateFromFile(typeof(OtherDll.OtherDllStaticMethods).Assembly.Location);
         internal static readonly MetadataReference SystemDirectoryServices = MetadataReference.CreateFromFile(typeof(System.DirectoryServices.DirectoryEntry).Assembly.Location);
-
+        internal static readonly MetadataReference SystemXaml = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlReader).Assembly.Location);
+        internal static readonly MetadataReference PresentationFramework = MetadataReference.CreateFromFile(typeof(System.Windows.Markup.XamlReader).Assembly.Location);
         private static MetadataReference s_systemRuntimeFacadeRef;
         public static MetadataReference SystemRuntimeFacadeRef
         {
