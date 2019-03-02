@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_lazyType.IsNull)
+                if (_lazyType.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
                     var binder = this.CreateBinderForTypeAndParameters();
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!_lazyType.IsNull)
+                if (!_lazyType.IsDefault)
                 {
                     return _lazyType.DefaultType.IsPointerType();
                 }

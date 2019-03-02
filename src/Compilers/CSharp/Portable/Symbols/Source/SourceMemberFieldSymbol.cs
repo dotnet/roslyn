@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!_lazyType.IsNull)
+                if (!_lazyType.IsDefault)
                 {
                     Debug.Assert(_lazyType.DefaultType.IsPointerType() ==
                         IsPointerFieldSyntactically());
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if (!_lazyType.IsNull)
+            if (!_lazyType.IsDefault)
             {
                 return _lazyType.ToType();
             }
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     bool isVar;
                     type = binder.BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar);
 
-                    Debug.Assert(!type.IsNull || isVar);
+                    Debug.Assert(type.HasType || isVar);
 
                     if (isVar)
                     {
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                         }
 
-                        if (type.IsNull)
+                        if (!type.HasType)
                         {
                             type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
                         }

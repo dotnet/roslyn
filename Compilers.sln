@@ -160,6 +160,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompilerBenchmarks", "src\T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildBoss", "src\Tools\BuildBoss\BuildBoss.csproj", "{8A02AFAF-F622-4E3E-9E1A-8CFDACC7C7E1}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Microsoft.Net.Compilers.Toolset.Package.csproj", "{6D407402-CC4A-4125-9B00-C70562A636A5}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
@@ -435,6 +437,10 @@ Global
 		{8A02AFAF-F622-4E3E-9E1A-8CFDACC7C7E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A02AFAF-F622-4E3E-9E1A-8CFDACC7C7E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A02AFAF-F622-4E3E-9E1A-8CFDACC7C7E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D407402-CC4A-4125-9B00-C70562A636A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D407402-CC4A-4125-9B00-C70562A636A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D407402-CC4A-4125-9B00-C70562A636A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D407402-CC4A-4125-9B00-C70562A636A5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -508,6 +514,7 @@ Global
 		{2483917E-7024-4D10-99C6-2BEF338FF53B} = {274B96B7-F815-47E3-9CA4-4024A57A478F}
 		{B446E771-AB52-41C9-ACFC-FDF8EACAF291} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{8A02AFAF-F622-4E3E-9E1A-8CFDACC7C7E1} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
+		{6D407402-CC4A-4125-9B00-C70562A636A5} = {274B96B7-F815-47E3-9CA4-4024A57A478F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6F599E08-A9EA-4FAA-897F-5D824B0210E6}

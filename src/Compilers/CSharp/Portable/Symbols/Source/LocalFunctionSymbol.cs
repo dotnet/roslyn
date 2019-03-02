@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void ComputeReturnType()
         {
-            if (!_lazyReturnType.IsNull)
+            if (!_lazyReturnType.IsDefault)
             {
                 return;
             }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if (!_lazyReturnType.IsNull)
+                if (!_lazyReturnType.IsDefault)
                 {
                     diagnostics.Free();
                     return;

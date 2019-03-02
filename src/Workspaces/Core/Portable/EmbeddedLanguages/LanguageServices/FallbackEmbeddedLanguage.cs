@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
@@ -9,11 +10,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     /// </summary>
     internal partial class FallbackEmbeddedLanguage : IEmbeddedLanguage
     {
+        public ISyntaxClassifier Classifier { get; }
+
         public FallbackEmbeddedLanguage(EmbeddedLanguageInfo info)
         {
             Classifier = new FallbackSyntaxClassifier(info);
         }
-
-        public ISyntaxClassifier Classifier { get; }
     }
 }

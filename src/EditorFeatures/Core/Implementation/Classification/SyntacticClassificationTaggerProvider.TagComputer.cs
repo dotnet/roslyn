@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             // way, when we call into the actual classification service, it should be very quick for the 
             // it to get the tree if it needs it.
             private readonly object _gate = new object();
-            private ITextSnapshot _lastParsedSnapshot;
-            private Document _lastParsedDocument;
+            private ITextSnapshot _lastProcessedSnapshot;
+            private Document _lastProcessedDocument;
 
             private Workspace _workspace;
             private CancellationTokenSource _reportChangeCancellationSource;
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 lock (_gate)
                 {
-                    _lastParsedDocument = null;
+                    _lastProcessedDocument = null;
                 }
             }
 
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     var document = workspace.CurrentSolution.GetDocument(documentId);
                     if (document != null)
                     {
-                        EnqueueParseSnapshotTask(document);
+                        EnqueueProcessSnapshotAsync(document);
                     }
                 }
             }
@@ -176,31 +176,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private void EnqueueParseSnapshotTask(Document newDocument)
+            private void EnqueueProcessSnapshotAsync(Document newDocument)
             {
-                // When renaming a file's extension through VS when it's opened in editor, 
-                // the content type might change and the content type changed event can be 
-                // raised before the renaming propagate through VS workspace. As a result, 
-                // the document we got (based on the buffer) could still be the one in the workspace
-                // before rename happened. This would cause us problem if the document is supported 
-                // by workspace but not a roslyn language (e.g. xaml, F#, etc.), since none of the roslyn 
-                // language services would be available.
-                //
-                // If this is the case, we will not parse the snapshot. It's OK to ignore the request
-                // because when the buffer eventually get associated with the correct document in roslyn
-                // workspace, we will be invoked again.
-                //
-                // For example, if you open a xaml from from a WPF project in designer view,
-                // and then rename file extension from .xaml to .cs, then the document we received
-                // here would still belong to the special "-xaml" project.
-
-                if (newDocument != null && newDocument.SupportsSyntaxTree)
+                if (newDocument != null)
                 {
-                    _workQueue.EnqueueBackgroundTask(c => this.EnqueueParseSnapshotWorkerAsync(newDocument, c), GetType() + ".EnqueueParseSnapshotTask.1", CancellationToken.None);
+                    _workQueue.EnqueueBackgroundTask(c => this.EnqueueProcessSnapshotWorkerAsync(newDocument, c), GetType() + ".EnqueueParseSnapshotTask.1", CancellationToken.None);
                 }
             }
 
-            private async Task EnqueueParseSnapshotWorkerAsync(Document document, CancellationToken cancellationToken)
+            private async Task EnqueueProcessSnapshotWorkerAsync(Document document, CancellationToken cancellationToken)
             {
                 // we will enqueue new one soon, cancel pending refresh right away
                 _reportChangeCancellationSource.Cancel();
@@ -216,11 +200,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
 
                 // preemptively parse file in background so that when we are called from tagger from UI thread, we have tree ready.
-                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                // F#/typescript and other languages that doesn't support syntax tree will return null here.
+                _ = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
                 lock (_gate)
                 {
-                    _lastParsedSnapshot = snapshot;
-                    _lastParsedDocument = document;
+                    _lastProcessedSnapshot = snapshot;
+                    _lastProcessedDocument = document;
                 }
 
                 _reportChangeCancellationSource = new CancellationTokenSource();
@@ -238,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 lock (_gate)
                 {
-                    var snapshot = _lastParsedSnapshot;
+                    var snapshot = _lastProcessedSnapshot;
                     if (snapshot.Version.ReiteratedVersionNumber != changeSpan.Snapshot.Version.ReiteratedVersionNumber)
                     {
                         // wait for next call
@@ -309,8 +295,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 lock (_gate)
                 {
-                    lastSnapshot = _lastParsedSnapshot;
-                    lastDocument = _lastParsedDocument;
+                    lastSnapshot = _lastProcessedSnapshot;
+                    lastDocument = _lastProcessedDocument;
                 }
 
                 if (lastDocument == null)
@@ -448,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 if (_workspace != null && _workspace == args.Solution.Workspace)
                 {
-                    ParseIfThisDocument(args.Solution, args.NewActiveContextDocumentId);
+                    ProcessIfThisDocument(args.Solution, args.NewActiveContextDocumentId);
                 }
             }
 
@@ -456,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             {
                 if (_workspace != null)
                 {
-                    ParseIfThisDocument(args.Document.Project.Solution, args.Document.Id);
+                    ProcessIfThisDocument(args.Document.Project.Solution, args.Document.Id);
                 }
             }
 
@@ -485,13 +471,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                             // make sure in case of parse config change, we re-colorize whole document. not just edited section.
                             var configChanged = !object.Equals(oldProject.ParseOptions, newProject.ParseOptions);
-                            EnqueueParseSnapshotTask(newProject.GetDocument(documentId));
+                            EnqueueProcessSnapshotAsync(newProject.GetDocument(documentId));
                             break;
                         }
 
                     case WorkspaceChangeKind.DocumentChanged:
                         {
-                            ParseIfThisDocument(args.NewSolution, args.DocumentId);
+                            ProcessIfThisDocument(args.NewSolution, args.DocumentId);
                             break;
                         }
                 }
@@ -507,7 +493,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private async Task UpdateLastParsedDocumentAsync(Solution newSolution, CancellationToken cancellationToken)
             {
                 // lastParsedDocument only updated in the same sequential queue so don't need lock to use it
-                var lastDocument = Volatile.Read(ref _lastParsedDocument);
+                var lastDocument = Volatile.Read(ref _lastProcessedDocument);
                 if (lastDocument == null)
                 {
                     return;
@@ -549,7 +535,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     // update document to new snapshot with same content
                     lock (_gate)
                     {
-                        _lastParsedDocument = document;
+                        _lastProcessedDocument = document;
                     }
                 }
                 else
@@ -559,18 +545,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                     // or some other workspace change (say a SolutionChanged) caused a text edit to happen and we didn't process
                     // it directly. In that case, requeue a parse. This might be a redundant parse in the linked file case
                     // since we might also get a DocumentChanged event for our ID. It's fine.
-                    ParseIfThisDocument(newSolution, document.Id);
+                    ProcessIfThisDocument(newSolution, document.Id);
                 }
             }
 
-            private void ParseIfThisDocument(Solution newSolution, DocumentId documentId)
+            private void ProcessIfThisDocument(Solution newSolution, DocumentId documentId)
             {
                 if (_workspace != null)
                 {
                     var openDocumentId = _workspace.GetDocumentIdInCurrentContext(_subjectBuffer.AsTextContainer());
                     if (openDocumentId == documentId)
                     {
-                        EnqueueParseSnapshotTask(newSolution.GetDocument(documentId));
+                        EnqueueProcessSnapshotAsync(newSolution.GetDocument(documentId));
                     }
                 }
             }

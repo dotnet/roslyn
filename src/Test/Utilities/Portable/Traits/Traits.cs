@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
+            public const string CodeActionsMakeStructFieldsWritable = "CodeActions.MakeStructFieldsWritable";
             public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
             public const string CodeActionsMakeMethodSynchronous = "CodeActions.MakeMethodSynchronous";
@@ -138,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSplitIntoNestedIfStatements = "CodeActions.SplitIntoNestedIfStatements";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsSyncNamespace = "CodeActions.SyncNamespace";
+            public const string CodeActionsUnsealClass = "CodeActions.UnsealClass";
             public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";

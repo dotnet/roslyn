@@ -28,12 +28,15 @@ phases:
             SecretsFilter: 'MaestroAccessToken'
           condition: ${{ parameters.condition }}
           continueOnError: ${{ parameters.continueOnError }}
-        - script: eng\common\publishbuildassets.cmd
-            /p:ManifestsPath='$(Build.StagingDirectory)/Download/AssetManifests'
-            /p:BuildAssetRegistryToken=$(MaestroAccessToken)
-            /p:MaestroApiEndpoint=https://maestro-prod.westus2.cloudapp.azure.com
-            /p:Configuration=$(_BuildConfig)
+        - task: PowerShell@2
           displayName: Publish Build Assets
+          inputs:
+            filePath: eng\common\sdk-task.ps1
+            arguments: -task PublishBuildAssets -restore -msbuildEngine dotnet
+              /p:ManifestsPath='$(Build.StagingDirectory)/Download/AssetManifests'
+              /p:BuildAssetRegistryToken=$(MaestroAccessToken)
+              /p:MaestroApiEndpoint=https://maestro-prod.westus2.cloudapp.azure.com
+              /p:Configuration=$(_BuildConfig)
           condition: ${{ parameters.condition }}
           continueOnError: ${{ parameters.continueOnError }}
         - task: PublishBuildArtifacts@1

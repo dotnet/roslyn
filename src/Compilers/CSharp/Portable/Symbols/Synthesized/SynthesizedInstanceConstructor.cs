@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -286,11 +287,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var block = factory.Block(
-                factory.ExpressionStatement(baseConstructorCall),
-                factory.Return());
+            var statements = ArrayBuilder<BoundStatement>.GetInstance();
+            statements.Add(factory.ExpressionStatement(baseConstructorCall));
+            GenerateMethodBodyStatements(factory, statements, diagnostics);
+            statements.Add(factory.Return());
+
+            var block = factory.Block(statements.ToImmutableAndFree());
 
             factory.CloseMethod(block);
         }
+
+        protected virtual void GenerateMethodBodyStatements(SyntheticBoundNodeFactory factory, ArrayBuilder<BoundStatement> statements, DiagnosticBag diagnostics)
+        {
+            // overridden in a derived class to add extra statements to the body of the generated constructor
+        }
+
     }
 }
