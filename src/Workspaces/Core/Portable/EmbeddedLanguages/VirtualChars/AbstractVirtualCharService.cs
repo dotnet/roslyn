@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                     TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
             }
 
-            return VirtualCharSequence.Create(result.ToImmutableAndFree());
+            return VirtualCharSequence.Create(result.ToImmutable());
         }
     }
 }

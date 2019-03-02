@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Xunit
@@ -34,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
         Private Sub TestFailure(stringText As String)
             Dim token = GetStringToken(stringText)
             Dim virtualChars = VisualBasicVirtualCharService.Instance.TryConvertToVirtualChars(token)
-            Assert.True(virtualChars.IsDefault)
+            Assert.Null(virtualChars)
         End Sub
 
         <Fact>
@@ -45,6 +46,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
         <Fact>
         Public Sub TestSimpleString()
             Test("""a""", "['a',[1,2]]")
+        End Sub
+
+        <Fact>
+        Public Sub TestSimpleMultiCharString()
+            Test("""abc""", "['a',[1,2]]['b',[2,3]]['c',[3,4]]")
         End Sub
 
         <Fact>
@@ -72,8 +78,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Test("$""a""""b""", "['a',[2,3]]['""',[3,5]]['b',[5,6]]")
         End Sub
 
-        Private Function ConvertToString(virtualChars As ImmutableArray(Of VirtualChar)) As String
-            Return String.Join("", virtualChars.Select(AddressOf ConvertToString))
+        Private Function ConvertToString(virtualChars As VirtualCharSequence) As String
+            Dim strings = ArrayBuilder(Of String).GetInstance()
+            For Each ch In virtualChars
+                strings.Add(ConvertToString(ch))
+            Next
+
+            Return String.Join("", strings.ToImmutableAndFree())
         End Function
 
         Private Function ConvertToString(vc As VirtualChar) As String
