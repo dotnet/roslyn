@@ -391,8 +391,10 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
             // at declaration, then we also add a new variable declaration statement without initializer for this local.
 
             var nodeReplacementMap = PooledDictionary<SyntaxNode, SyntaxNode>.GetInstance();
-            var nodesToRemove = PooledDictionary<SyntaxNode, bool>.GetInstance();
-            var nodesToAdd = PooledHashSet<(TLocalDeclarationStatementSyntax, SyntaxNode)>.GetInstance();
+            var nodesToRemove = PooledHashSet<SyntaxNode>.GetInstance();
+            var nodesToAdd = PooledHashSet<(TLocalDeclarationStatementSyntax declarationStatement, SyntaxNode node)>.GetInstance();
+            // Indicates if the node's trivia was processed.
+            var processedNodes = PooledHashSet<SyntaxNode>.GetInstance();
             var candidateDeclarationStatementsForRemoval = PooledHashSet<TLocalDeclarationStatementSyntax>.GetInstance();
             var hasAnyUnusedLocalAssignment = false;
 
@@ -418,7 +420,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             // For example, "int a = 0;"
                             var variableDeclarator = node.FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
                             Debug.Assert(variableDeclarator != null);
-                            nodesToRemove[variableDeclarator] = false;
+                            nodesToRemove.Add(variableDeclarator);
 
                             // Local declaration statement containing the declarator might be a candidate for removal if all its variables get marked for removal.
                             candidateDeclarationStatementsForRemoval.Add(variableDeclarator.GetAncestor<TLocalDeclarationStatementSyntax>());
@@ -430,7 +432,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             {
                                 // For example, C# increment operation "a++;"
                                 Debug.Assert(node.Parent.Parent is TExpressionStatementSyntax);
-                                nodesToRemove[node.Parent.Parent] = false;
+                                nodesToRemove.Add(node.Parent.Parent);
                             }
                             else
                             {
@@ -439,12 +441,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                                 if (node.Parent is TStatementSyntax)
                                 {
                                     // For example, VB simple assignment statement "a = 0"
-                                    nodesToRemove[node.Parent] = false;
+                                    nodesToRemove.Add(node.Parent);
                                 }
                                 else if (node.Parent is TExpressionSyntax && node.Parent.Parent is TExpressionStatementSyntax)
                                 {
                                     // For example, C# simple assignment statement "a = 0;"
-                                    nodesToRemove[node.Parent.Parent] = false;
+                                    nodesToRemove.Add(node.Parent.Parent);
                                 }
                                 else
                                 {
@@ -522,17 +524,14 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                     // we can remove the entire local declaration statement.
                     if (ShouldRemoveStatement(localDeclarationStatement, out var variables))
                     {
-                        nodesToRemove[localDeclarationStatement] = false;
-                        foreach (var key in variables)
-                        {
-                            nodesToRemove.Remove(key);
-                        }
+                        nodesToRemove.Add(localDeclarationStatement);
+                        nodesToRemove.RemoveRange(variables);
                     }
                 }
 
                 foreach (var nodeToAdd in nodesToAdd)
                 {
-                    InsertLocalDeclarationStatement(nodeToAdd.Item1, nodeToAdd.Item2);
+                    InsertLocalDeclarationStatement(nodeToAdd.declarationStatement, nodeToAdd.node);
                 }
 
                 if (hasAnyUnusedLocalAssignment)
@@ -557,11 +556,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 {
                     var removeOptions = SyntaxGenerator.DefaultRemoveOptions;
                     // If the leading trivia was not added to a new node, process it now.
-                    if (!node.Value)
+                    if (!processedNodes.Contains(node))
                     {
                         // Don't keep trivia if the node is part of a multiple declaration statement.
                         // e.g. int x = 0, y = 0, z = 0; any white space left behind can cause problems if the declaration gets split apart.
-                        var containingDeclaration = node.Key.GetAncestor<TLocalDeclarationStatementSyntax>();
+                        var containingDeclaration = node.GetAncestor<TLocalDeclarationStatementSyntax>();
                         if (containingDeclaration != null && candidateDeclarationStatementsForRemoval.Contains(containingDeclaration))
                         {
                             removeOptions = SyntaxRemoveOptions.KeepNoTrivia;
@@ -571,7 +570,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                             removeOptions |= SyntaxRemoveOptions.KeepLeadingTrivia;
                         }
                     }
-                    editor.RemoveNode(node.Key, removeOptions);
+                    editor.RemoveNode(node, removeOptions);
                 }
 
                 foreach (var kvp in nodeReplacementMap)
@@ -584,6 +583,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 nodeReplacementMap.Free();
                 nodesToRemove.Free();
                 nodesToAdd.Free();
+                processedNodes.Free();
             }
 
             return;
@@ -621,11 +621,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 else if (insertionNode is TStatementSyntax)
                 {
                     // If the insertion node is being removed, keep the leading trivia with the new declaration.
-                    if (nodesToRemove.TryGetValue(insertionNode, out var isProcessed) && !isProcessed)
+                    if (nodesToRemove.Contains(insertionNode) && !processedNodes.Contains(insertionNode))
                     {
                         declarationStatement = declarationStatement.WithLeadingTrivia(insertionNode.GetLeadingTrivia());
                         // Mark the node as processed so that the trivia only gets added once.
-                        nodesToRemove[insertionNode] = true;
+                        processedNodes.Add(insertionNode);
                     }
                     editor.InsertBefore(insertionNode, declarationStatement);
                 }
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues
                 variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(localDeclarationStatement);
                 foreach (var variable in variables)
                 {
-                    if (!nodesToRemove.ContainsKey(variable))
+                    if (!nodesToRemove.Contains(variable))
                     {
                         return false;
                     }
