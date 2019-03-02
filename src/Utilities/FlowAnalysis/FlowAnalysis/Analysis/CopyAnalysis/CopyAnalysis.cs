@@ -42,14 +42,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = true,
-            bool performPointsToAnalysis = true)
+            bool performPointsToAnalysis = true,
+            bool exceptionPathsAnalysis = false)
         {
             var pointsToAnalysisResultOpt = performPointsToAnalysis ?
                 PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
-                    cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis: false) :
+                    cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis: false, exceptionPathsAnalysis) :
                 null;
             var analysisContext = CopyAnalysisContext.Create(CopyAbstractValueDomain.Default, wellKnownTypeProvider,
-                cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, pointsToAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
+                cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 

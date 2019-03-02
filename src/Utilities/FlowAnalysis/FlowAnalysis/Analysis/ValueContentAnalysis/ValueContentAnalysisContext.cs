@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             ControlFlowGraph parentControlFlowGraphOpt,
             InterproceduralValueContentAnalysisData interproceduralAnalysisDataOpt)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig,
-                  pessimisticAnalysis, predicateAnalysis: true, copyAnalysisResultOpt: copyAnalysisResultOpt,
+                  pessimisticAnalysis, predicateAnalysis: true, exceptionPathsAnalysis: false, copyAnalysisResultOpt: copyAnalysisResultOpt,
                   pointsToAnalysisResultOpt: pointsToAnalysisResultOpt,
                   getOrComputeAnalysisResult: getOrComputeAnalysisResult,
                   parentControlFlowGraphOpt: parentControlFlowGraphOpt,

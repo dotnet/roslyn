@@ -32,12 +32,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             CancellationToken cancellationToken,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             bool pessimisticAnalysis = true,
-            bool performCopyAnalysis = true)
+            bool performCopyAnalysis = true,
+            bool exceptionPathsAnalysis = false)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
             return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
-                out var _, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis);
+                out var _, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
         }
 
         public static PointsToAnalysisResult GetOrComputeResult(
@@ -46,10 +47,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = true,
-            bool performCopyAnalysis = true)
+            bool performCopyAnalysis = true,
+            bool exceptionPathsAnalysis = false)
         {
             return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
-                out var _, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis);
+                out var _, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
         }
 
         public static PointsToAnalysisResult GetOrComputeResult(
@@ -59,14 +61,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             out CopyAnalysisResult copyAnalysisResultOpt,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis = true,
-            bool performCopyAnalysis = true)
+            bool performCopyAnalysis = true,
+            bool exceptionPathsAnalysis = false)
         {
             copyAnalysisResultOpt = performCopyAnalysis ?
                 CopyAnalysis.CopyAnalysis.GetOrComputeResult(
-                    cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, pessimisticAnalysis) :
+                    cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, pessimisticAnalysis, performPointsToAnalysis: true, exceptionPathsAnalysis) :
                 null;
             var analysisContext = PointsToAnalysisContext.Create(PointsToAbstractValueDomain.Default, wellKnownTypeProvider, cfg,
-                owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
+                owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, copyAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 

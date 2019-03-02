@@ -130,12 +130,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 => ValueContentAnalysisDomain.Instance.Merge(value1, value2);
             protected override ValueContentAnalysisData MergeAnalysisDataForBackEdge(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
                 => ValueContentAnalysisDomain.Instance.MergeAnalysisDataForBackEdge(value1, value2);
+            protected override void UpdateValuesForAnalysisData(ValueContentAnalysisData targetAnalysisData)
+                => UpdateValuesForAnalysisData(targetAnalysisData.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData);
             protected override ValueContentAnalysisData GetClonedAnalysisData(ValueContentAnalysisData analysisData)
                 => (ValueContentAnalysisData)analysisData.Clone();
             public override ValueContentAnalysisData GetEmptyAnalysisData()
                 => new ValueContentAnalysisData();
             protected override ValueContentAnalysisData GetExitBlockOutputData(ValueContentAnalysisResult analysisResult)
                 => new ValueContentAnalysisData(analysisResult.ExitBlockOutput.Data);
+            protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(ValueContentAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+                => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             protected override bool Equals(ValueContentAnalysisData value1, ValueContentAnalysisData value2)
                 => value1.Equals(value2);
             protected override void ApplyInterproceduralAnalysisResultCore(ValueContentAnalysisData resultData)

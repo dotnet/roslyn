@@ -424,7 +424,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 if (!ShouldBeTracked(key))
                 {
                     Debug.Assert(!targetAnalysisData.HasAbstractValue(key));
-                    Debug.Assert(!ShouldBeTracked(key));
                     Debug.Assert(!sourceAnalysisData.HasAbstractValue(key));
                     return;
                 }
@@ -496,12 +495,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 => _pointsToAnalysisDomain.Merge(value1, value2);
             protected override PointsToAnalysisData MergeAnalysisDataForBackEdge(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => _pointsToAnalysisDomain.MergeAnalysisDataForBackEdge(value1, value2, GetChildAnalysisEntities, ResetAbstractValueIfTracked);
+            protected override void UpdateValuesForAnalysisData(PointsToAnalysisData targetAnalysisData)
+                => UpdateValuesForAnalysisData(targetAnalysisData.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData);
             protected override PointsToAnalysisData GetClonedAnalysisData(PointsToAnalysisData analysisData)
                 => (PointsToAnalysisData)analysisData.Clone();
             public override PointsToAnalysisData GetEmptyAnalysisData()
                 => new PointsToAnalysisData();
             protected override PointsToAnalysisData GetExitBlockOutputData(PointsToAnalysisResult analysisResult)
                 => new PointsToAnalysisData(analysisResult.ExitBlockOutput.Data);
+            protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(PointsToAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+                => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             protected override bool Equals(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => value1.Equals(value2);
 

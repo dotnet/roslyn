@@ -167,6 +167,31 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
+        protected override TAnalysisData GetMergedAnalysisDataForPossibleThrowingOperation(TAnalysisData existingDataOpt, IOperation operation)
+        {
+            var entitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            try
+            {
+                // Get tracked entities.
+                AddTrackedEntities(entitiesBuilder);
+
+                // Only non-child entities are tracked for now.
+                var resultAnalysisData = GetTrimmedCurrentAnalysisData(entitiesBuilder.Where(e => !e.IsChildOrInstanceMember && HasAbstractValue(e)));
+                if (existingDataOpt != null)
+                {
+                    var mergedAnalysisData = MergeAnalysisData(resultAnalysisData, existingDataOpt);
+                    resultAnalysisData.Dispose();
+                    resultAnalysisData = mergedAnalysisData;
+                }
+
+                return resultAnalysisData;
+            }
+            finally
+            {
+                entitiesBuilder.Free();
+            }
+        }
+
         #region Helper methods to handle initialization/assignment operations
         protected override void SetAbstractValueForArrayElementInitializer(IArrayCreationOperation arrayCreation, ImmutableArray<AbstractIndex> indices, ITypeSymbol elementType, IOperation initializer, TAbstractAnalysisValue value)
         {
@@ -661,6 +686,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AnalysisEntity, TAbstractAnalysisValue> analysisData)
             => new DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue>(analysisData);
+
+        protected void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(
+            DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> coreDataAtException,
+            DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> coreCurrentAnalysisData,
+            ThrownExceptionInfo throwBranchWithExceptionType)
+        {
+            Func<AnalysisEntity, bool> predicateOpt = null;
+            if (throwBranchWithExceptionType.IsDefaultExceptionForExceptionsPathAnalysis)
+            {
+                // Only tracking non-child analysis entities for exceptions path analysis for now.
+                Debug.Assert(throwBranchWithExceptionType.ExceptionType.Equals(WellKnownTypeProvider.Exception));
+                predicateOpt = e => !e.IsChildOrInstanceMember;
+            }
+
+            base.ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(coreDataAtException, coreCurrentAnalysisData, predicateOpt);
+        }
 
         #region Visitor methods
 
