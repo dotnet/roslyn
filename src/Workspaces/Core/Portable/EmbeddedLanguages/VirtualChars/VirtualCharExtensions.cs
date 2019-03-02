@@ -2,18 +2,29 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal static class VirtualCharExtensions
     {
+        public static bool IsEmpty(this VirtualCharSequence sequence)
+            => sequence.Length == 0;
+
+        public static VirtualChar Last(this VirtualCharSequence sequence)
+            => sequence[sequence.Length - 1];
+
         public static string CreateString(this ImmutableArray<VirtualChar> chars)
+            => CreateString(chars, new TextSpan(0, chars.Length));
+
+        public static string CreateString(
+            this ImmutableArray<VirtualChar> chars, TextSpan span)
         {
             var builder = PooledStringBuilder.GetInstance();
 
-            foreach (var vc in chars)
+            for (var i = span.Start; i < span.End; i++)
             {
-                builder.Builder.Append(vc.Char);
+                builder.Builder.Append(chars[i].Char);
             }
 
             return builder.ToStringAndFree();

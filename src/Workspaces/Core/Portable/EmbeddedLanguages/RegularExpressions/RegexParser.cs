@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private int _recursionDepth;
 
         private RegexParser(
-            ImmutableArray<VirtualChar> text, RegexOptions options,
+            VirtualCharSequence text, RegexOptions options,
             ImmutableDictionary<string, TextSpan> captureNamesToSpan,
             ImmutableDictionary<int, TextSpan> captureNumbersToSpan) : this()
         {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// and list of diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-        public static RegexTree TryParse(ImmutableArray<VirtualChar> text, RegexOptions options)
+        public static RegexTree TryParse(VirtualCharSequence text, RegexOptions options)
         {
             try
             {

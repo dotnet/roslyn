@@ -37,10 +37,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// </summary>
     internal struct RegexLexer
     {
-        public readonly ImmutableArray<VirtualChar> Text;
+        public readonly VirtualCharSequence Text;
         public int Position;
 
-        public RegexLexer(ImmutableArray<VirtualChar> text) : this()
+        public RegexLexer(VirtualCharSequence text) : this()
         {
             Text = text;
         }
@@ -50,29 +50,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public ImmutableArray<VirtualChar> GetSubPatternToCurrentPos(int start)
             => GetSubPattern(start, Position);
 
-        public ImmutableArray<VirtualChar> GetSubPattern(int start, int end)
-        {
-            var result = ArrayBuilder<VirtualChar>.GetInstance(end - start);
-            for (var i = start; i < end; i++)
-            {
-                result.Add(Text[i]);
-            }
-
-            return result.ToImmutableAndFree();
-        }
+        public VirtualCharSequence GetSubPattern(int start, int end)
+            => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
         {
             var trivia = ScanLeadingTrivia(allowTrivia, options);
             if (Position == Text.Length)
             {
-                return CreateToken(RegexKind.EndOfFile, trivia, ImmutableArray<VirtualChar>.Empty);
+                return CreateToken(RegexKind.EndOfFile, trivia, VirtualCharSequence.Empty);
             }
 
             var ch = this.CurrentChar;
             Position++;
 
-            return CreateToken(GetKind(ch), trivia, ImmutableArray.Create(ch));
+            return CreateToken(GetKind(ch), trivia, VirtualCharSequence.Create(ch));
         }
 
         private static RegexKind GetKind(char ch)

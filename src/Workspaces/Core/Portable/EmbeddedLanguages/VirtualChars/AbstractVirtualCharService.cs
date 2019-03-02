@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
         protected abstract bool IsStringLiteralToken(SyntaxToken token);
-        protected abstract ImmutableArray<VirtualChar> TryConvertToVirtualCharsWorker(SyntaxToken token);
+        protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
 
         protected static bool TryAddBraceEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             return false;
         }
 
-        public ImmutableArray<VirtualChar> TryConvertToVirtualChars(SyntaxToken token)
+        public VirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)
         {
             // We don't process any strings that contain diagnostics in it.  That means that we can 
             // trust that all the string's contents (most importantly, the escape sequences) are well
             // formed.
             if (token.ContainsDiagnostics)
             {
-                return default;
+                return null;
             }
 
             var result = TryConvertToVirtualCharsWorker(token);
@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         }
 
         [Conditional("DEBUG")]
-        private void CheckInvariants(SyntaxToken token, ImmutableArray<VirtualChar> result)
+        private void CheckInvariants(SyntaxToken token, VirtualCharSequence result)
         {
             // Do some invariant checking to make sure we processed the string token the same
             // way the C# and VB compilers did.
-            if (!result.IsDefault)
+            if (result != null)
             {
                 // Ensure that we properly broke up the token into a sequence of characters that
                 // matches what the compiler did.
