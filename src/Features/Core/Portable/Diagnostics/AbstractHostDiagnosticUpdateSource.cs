@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         public void RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs args)
         {

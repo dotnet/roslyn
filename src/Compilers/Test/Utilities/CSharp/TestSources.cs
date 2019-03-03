@@ -368,5 +368,22 @@ namespace System
         }
     }
 }";
+
+        public const string GetSubArray = @"
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static T[] GetSubArray<T>(T[] array, Range range)
+        {
+            Type elementType = array.GetType().GetElementType();
+            var (offset, length) = range.GetOffsetAndLength(array.Length);
+
+            T[] newArray = (T[])Array.CreateInstance(elementType, length);
+            Array.Copy(array, offset, newArray, 0, length);
+            return newArray;
+        }
+    }
+}";
     }
 }

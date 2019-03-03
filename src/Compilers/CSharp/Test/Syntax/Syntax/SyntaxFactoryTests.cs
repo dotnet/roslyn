@@ -15,6 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class SyntaxFactoryTests : CSharpTestBase
     {
+        [Fact, WorkItem(33713, "https://github.com/dotnet/roslyn/issues/33713")]
+        public void AlternateVerbatimString()
+        {
+            var token = SyntaxFactory.Token(SyntaxKind.InterpolatedVerbatimStringStartToken);
+            Assert.Equal("$@\"", token.Text);
+            Assert.Equal("$@\"", token.ValueText);
+        }
+
         [Fact]
         public void SyntaxTree()
         {

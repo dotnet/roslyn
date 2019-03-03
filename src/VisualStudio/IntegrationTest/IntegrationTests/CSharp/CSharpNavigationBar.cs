@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -31,6 +32,12 @@ struct S
         public CSharpNavigationBar(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(CSharpNavigationBar))
         {
+        }
+
+        public override async Task DisposeAsync()
+        {
+            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "C#", "True");
+            await base.DisposeAsync();
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
@@ -72,7 +79,7 @@ struct S
 
             VerifyLeftSelected("S");
             VerifyRightSelected("Goo()");
-            VisualStudio.Editor.Verify.CurrentLineText("$$struct S", assertCaretPosition: true, trimWhitespace: true);
+            VisualStudio.Editor.Verify.CurrentLineText("struct $$S", assertCaretPosition: true, trimWhitespace: true);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]

@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                         var args = new WorkspaceChangeEventArgs(kind, oldSolution, newSolution, projectId, documentId);
                         ev.RaiseEvent(handler => handler(this, args));
                     }
-                }, "Workspace.WorkspaceChanged");
+                }, WorkspaceChangeEventName);
             }
             else
             {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var args = new DocumentEventArgs(document);
                     ev.RaiseEvent(handler => handler(this, args));
-                }, "Workspace.WorkspaceChanged");
+                }, DocumentOpenedEventName);
             }
             else
             {
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     var args = new DocumentEventArgs(document);
                     ev.RaiseEvent(handler => handler(this, args));
-                }, "Workspace.DocumentClosed");
+                }, DocumentClosedEventName);
             }
             else
             {

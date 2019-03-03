@@ -141,7 +141,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             var result = await solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
                 new object[] { name, ignoreCase, criteria }, cancellationToken).ConfigureAwait(false);
 
@@ -165,7 +164,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
                 new object[] { project.Id, name, ignoreCase, criteria }, cancellationToken).ConfigureAwait(false);
 
@@ -184,7 +182,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
             var result = await solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithPatternAsync),
                 new object[] { pattern, criteria }, cancellationToken).ConfigureAwait(false);
 
@@ -208,7 +205,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var result = await project.Solution.TryRunCodeAnalysisRemoteAsync<IList<SerializableSymbolAndProjectId>>(
-                RemoteFeatureOptions.SymbolFinderEnabled,
                 nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
                 new object[] { project.Id, pattern, criteria }, cancellationToken).ConfigureAwait(false);
 
