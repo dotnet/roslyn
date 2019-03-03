@@ -465,7 +465,7 @@ namespace N { }
 
             CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
                 // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
-                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "[System.Obsolete]").WithLocation(1, 1));
         }
     }
 }
