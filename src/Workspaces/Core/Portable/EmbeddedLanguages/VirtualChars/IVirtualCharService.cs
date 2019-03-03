@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// escapes this may be a multi character span.  i.e. 'c' -> '\u0063'
         ///
         /// If the token is not a string literal token, or the string literal has any diagnostics on
-        /// it, then <see langword="null"/> will be returned.   Additionally, because a
+        /// it, then <see langword="default"/> will be returned.   Additionally, because a
         /// VirtualChar can only represent a single char, while some escape sequences represent
-        /// multiple chars, <see langword="null"/> will also be returned in those cases. All
+        /// multiple chars, <see langword="default"/> will also be returned in those cases. All
         /// these cases could be relaxed in the future.  But they greatly simplify the
         /// implementation.
         ///
