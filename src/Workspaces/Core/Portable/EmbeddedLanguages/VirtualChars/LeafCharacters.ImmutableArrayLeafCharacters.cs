@@ -13,15 +13,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// </summary>
         private class ImmutableArrayLeafCharacters : LeafCharacters
         {
-            private readonly ImmutableArray<VirtualChar> _data;
+            private readonly ImmutableArray<VirtualChar> _array;
 
             public ImmutableArrayLeafCharacters(ImmutableArray<VirtualChar> array)
-            {
-                _data = array;
-            }
+                => _array = array;
 
-            public override int Length => _data.Length;
-            public override VirtualChar this[int index] => _data[index];
+            public override int Length => _array.Length;
+            public override VirtualChar this[int index] => _array[index];
         }
     }
 }
