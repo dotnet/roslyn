@@ -2,81 +2,100 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     /// <summary>
-    /// Represents the individual characters that raw string token represents (i.e. with escapes collapsed).  
-    /// The difference between this and the result from token.ValueText is that for each collapsed character
-    /// returned the original span of text in the original token can be found.  i.e. if you had the
-    /// following in C#:
-    ///
-    /// "G\u006fo"
-    ///
-    /// Then you'd get back:
-    ///
-    /// 'G' -> [0, 1) 'o' -> [1, 7) 'o' -> [7, 1)
-    ///
-    /// This allows for embedded language processing that can refer back to the users' original code
-    /// instead of the escaped value we're processing.
+    /// Represents a subsequence of some other sequence.  Useful for cases
+    /// like the regex lexer which might consume snip out part of the full
+    /// seqeunce of characters in the string token.  This allows for a single
+    /// alloc to represent that, instead of needing to copy all the chars
+    /// over.
     /// </summary>
-    internal abstract partial class VirtualCharSequence
+    internal partial struct VirtualCharSequence
     {
-        public static readonly SubSequenceVirtualCharSequence Empty
-            = Create(ImmutableArray<VirtualChar>.Empty).GetSubSequence(default);
+        public static readonly VirtualCharSequence Empty
+            = LeafVirtualCharSequence.Create(ImmutableArray<VirtualChar>.Empty).GetSubSequence(default);
 
-        protected VirtualCharSequence()
+        public readonly LeafVirtualCharSequence LeafSequence;
+        public readonly TextSpan Span;
+
+        public VirtualCharSequence(LeafVirtualCharSequence sequence, TextSpan span)
         {
+            if (span.Start > sequence.Length)
+            {
+                throw new ArgumentException();
+            }
+
+            if (span.End > sequence.Length)
+            {
+                throw new ArgumentException();
+            }
+
+            LeafSequence = sequence;
+            Span = span;
         }
 
-        public abstract int Length { get; }
+        public int Length => Span.Length;
 
-        public abstract VirtualChar this[int index] { get; }
+        public VirtualChar this[int index] => LeafSequence[Span.Start + index];
 
-        public static LeafVirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
-            => new ImmutableArrayVirtualCharSequence(virtualChars);
+        //protected override string CreateStringWorker()
+        //    => UnderlyingSequence.CreateString().Substring(Span.Start, Span.Length);
 
-        public static LeafVirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData, TextSpan underlyingDataSpan)
-            => new StringVirtualCharSequence(firstVirtualCharPosition, underlyingData, underlyingDataSpan);
+        public bool IsEmpty => Length == 0;
 
-        //public bool IsEmpty => Length == 0;
+        public VirtualChar First() => this[0];
 
-        //public VirtualChar First() => this[0];
+        public Enumerator GetEnumerator()
+            => new Enumerator(this);
 
-        //public VirtualChar? FirstOrNullable(Func<VirtualChar, bool> predicate)
-        //{
-        //    foreach (var ch in this)
-        //    {
-        //        if (predicate(ch))
-        //        {
-        //            return ch;
-        //        }
-        //    }
+        public VirtualChar? FirstOrNullable(Func<VirtualChar, bool> predicate)
+        {
+            foreach (var ch in this)
+            {
+                if (predicate(ch))
+                {
+                    return ch;
+                }
+            }
 
-        //    return null;
-        //}
+            return null;
+        }
 
-        //public VirtualChar Last()
-        //    => this[this.Length - 1];
+        public VirtualChar Last()
+            => this[this.Length - 1];
 
-        //public bool Contains(VirtualChar @char)
-        //    => IndexOf(@char) >= 0;
+        public bool Contains(VirtualChar @char)
+            => IndexOf(@char) >= 0;
 
-        //public int IndexOf(VirtualChar @char)
-        //{
-        //    int index = 0;
-        //    foreach (var ch in this)
-        //    {
-        //        if (ch == @char)
-        //        {
-        //            return index;
-        //        }
+        public int IndexOf(VirtualChar @char)
+        {
+            int index = 0;
+            foreach (var ch in this)
+            {
+                if (ch == @char)
+                {
+                    return index;
+                }
 
-        //        index++;
-        //    }
+                index++;
+            }
 
-        //    return -1;
-        //}
+            return -1;
+        }
+
+        public string CreateString()
+        {
+            var builder = PooledStringBuilder.GetInstance();
+            foreach (var ch in this)
+            {
+                builder.Builder.Append(ch.Char);
+            }
+
+            return builder.ToStringAndFree();
+        }
     }
 }

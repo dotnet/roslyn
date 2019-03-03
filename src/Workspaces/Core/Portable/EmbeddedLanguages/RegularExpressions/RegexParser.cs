@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     ImmutableDictionary<int, TextSpan>.Empty).ParseTree();
 
                 var (captureNames, captureNumbers) = CaptureInfoAnalyzer.Analyze(
-                    text.GetFullSubSequence(), tree1.Root, options);
+                    text.GetFullSequence(), tree1.Root, options);
 
                 var tree2 = new RegexParser(
                     text, options, captureNames, captureNumbers).ParseTree();
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 return startTextNode;
             }
 
-            Debug.Assert(startTextNode.TextToken.VirtualChars.UnderlyingSequence == lastTextNode.TextToken.VirtualChars.UnderlyingSequence);
+            Debug.Assert(startTextNode.TextToken.VirtualChars.LeafSequence == lastTextNode.TextToken.VirtualChars.LeafSequence);
             // Merge two text tokens token if there is no intermediary trivia.
             return new RegexTextNode(CreateToken(
                 RegexKind.TextToken, startTextNode.TextToken.LeadingTrivia,

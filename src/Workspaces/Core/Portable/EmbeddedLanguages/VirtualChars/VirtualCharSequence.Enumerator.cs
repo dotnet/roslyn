@@ -2,14 +2,14 @@
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
-    internal partial struct SubSequenceVirtualCharSequence
+    internal partial struct VirtualCharSequence
     {
         public struct Enumerator
         {
-            private readonly SubSequenceVirtualCharSequence _virtualCharSequence;
+            private readonly VirtualCharSequence _virtualCharSequence;
             private int _position;
 
-            public Enumerator(SubSequenceVirtualCharSequence virtualCharSequence)
+            public Enumerator(VirtualCharSequence virtualCharSequence)
             {
                 _virtualCharSequence = virtualCharSequence;
                 _position = -1;

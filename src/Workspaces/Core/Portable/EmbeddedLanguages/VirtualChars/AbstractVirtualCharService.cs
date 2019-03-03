@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 if (IsStringLiteralToken(token))
                 {
                     var expectedValueText = token.ValueText;
-                    var actualValueText = result.GetFullSubSequence().CreateString();
+                    var actualValueText = result.GetFullSequence().CreateString();
                     Debug.Assert(expectedValueText == actualValueText);
                 }
 
@@ -180,12 +180,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var textLength = endIndexExclusive - startIndexInclusive;
             if (textLength == result.Count)
             {
-                return VirtualCharSequence.Create(
+                return LeafVirtualCharSequence.Create(
                     offset + startIndexInclusive, tokenText,
                     TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
             }
 
-            return VirtualCharSequence.Create(result.ToImmutable());
+            return LeafVirtualCharSequence.Create(result.ToImmutable());
         }
     }
 }

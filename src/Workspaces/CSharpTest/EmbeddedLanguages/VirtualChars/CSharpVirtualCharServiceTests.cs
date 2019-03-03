@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
         {
             var token = GetStringToken(stringText, allowFailure: false);
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-            var actual = ConvertToString(virtualChars.GetFullSubSequence());
+            var actual = ConvertToString(virtualChars.GetFullSequence());
             Assert.Equal(expected, actual);
         }
 
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             Test("@\"a\"\"a\"", @"['a',[2,3]]['\u0022',[3,5]]['a',[5,6]]");
         }
 
-        private string ConvertToString(SubSequenceVirtualCharSequence virtualChars)
+        private string ConvertToString(VirtualCharSequence virtualChars)
         {
             var strings = ArrayBuilder<string>.GetInstance();
             foreach (var ch in virtualChars)

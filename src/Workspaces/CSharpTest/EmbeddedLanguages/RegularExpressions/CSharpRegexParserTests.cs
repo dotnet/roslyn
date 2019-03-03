@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
         }
 
-        private (SyntaxToken, RegexTree, SubSequenceVirtualCharSequence) JustParseTree(
+        private (SyntaxToken, RegexTree, VirtualCharSequence) JustParseTree(
             string stringText, RegexOptions options, bool conversionFailureOk)
         {
             var token = GetStringToken(stringText);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
 
             var tree = RegexParser.TryParse(allChars, options);
-            return (token, tree, allChars.GetFullSubSequence());
+            return (token, tree, allChars.GetFullSequence());
         }
 
         private (RegexTree, SourceText) TryParseTree(
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
             if (tree == null)
             {
-                Assert.Null(allChars.UnderlyingSequence);
+                Assert.Null(allChars.LeafSequence);
                 return default;
             }
 
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
                 trivia.Kind.ToString(),
                 trivia.VirtualChars.CreateString());
 
-        private void CheckInvariants(RegexTree tree, SubSequenceVirtualCharSequence allChars)
+        private void CheckInvariants(RegexTree tree, VirtualCharSequence allChars)
         {
             var root = tree.Root;
             var position = 0;
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             Assert.Equal(allChars.Length, position);
         }
 
-        private void CheckInvariants(RegexNode node, ref int position, SubSequenceVirtualCharSequence allChars)
+        private void CheckInvariants(RegexNode node, ref int position, VirtualCharSequence allChars)
         {
             foreach (var child in node)
             {
@@ -275,13 +275,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
         }
 
-        private void CheckInvariants(RegexToken token, ref int position, SubSequenceVirtualCharSequence allChars)
+        private void CheckInvariants(RegexToken token, ref int position, VirtualCharSequence allChars)
         {
             CheckInvariants(token.LeadingTrivia, ref position, allChars);
             CheckCharacters(token.VirtualChars, ref position, allChars);
         }
 
-        private void CheckInvariants(ImmutableArray<RegexTrivia> leadingTrivia, ref int position, SubSequenceVirtualCharSequence allChars)
+        private void CheckInvariants(ImmutableArray<RegexTrivia> leadingTrivia, ref int position, VirtualCharSequence allChars)
         {
             foreach (var trivia in leadingTrivia)
             {
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
         }
 
-        private void CheckInvariants(RegexTrivia trivia, ref int position, SubSequenceVirtualCharSequence allChars)
+        private void CheckInvariants(RegexTrivia trivia, ref int position, VirtualCharSequence allChars)
         {
             switch (trivia.Kind)
             {
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             CheckCharacters(trivia.VirtualChars, ref position, allChars);
         }
 
-        private static void CheckCharacters(SubSequenceVirtualCharSequence virtualChars, ref int position, SubSequenceVirtualCharSequence allChars)
+        private static void CheckCharacters(VirtualCharSequence virtualChars, ref int position, VirtualCharSequence allChars)
         {
             for (var i = 0; i < virtualChars.Length; i++)
             {

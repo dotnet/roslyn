@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
 
-        public SubSequenceVirtualCharSequence GetSubPatternToCurrentPos(int start)
+        public VirtualCharSequence GetSubPatternToCurrentPos(int start)
             => GetSubPattern(start, Position);
 
-        public SubSequenceVirtualCharSequence GetSubPattern(int start, int end)
+        public VirtualCharSequence GetSubPattern(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
