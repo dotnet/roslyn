@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         public bool IsDefault => _leafCharacters == null;
         public bool IsEmpty => Length == 0;
+        public bool IsDefaultOrEmpty => IsDefault || IsEmpty;
 
         public VirtualCharSequence GetSubSequence(TextSpan span)
            => new VirtualCharSequence(

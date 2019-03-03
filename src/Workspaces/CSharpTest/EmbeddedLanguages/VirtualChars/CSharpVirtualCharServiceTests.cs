@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
             }
 
             var virtualChars = CSharpVirtualCharService.Instance.TryConvertToVirtualChars(token);
-            Assert.Null(virtualChars);
+            Assert.True(virtualChars.IsDefault);
         }
 
         [Fact]

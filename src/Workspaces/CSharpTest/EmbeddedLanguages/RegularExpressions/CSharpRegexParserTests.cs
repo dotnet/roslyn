@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((
 (((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((""", RegexOptions.None, conversionFailureOk: false);
             Assert.False(token.IsMissing);
-            Assert.False(chars.IsEmpty);
+            Assert.False(chars.IsDefaultOrEmpty);
             Assert.Null(tree);
         }
     }
