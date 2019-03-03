@@ -111,14 +111,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
         {
             var token = GetStringToken(stringText);
             var allChars = _service.TryConvertToVirtualChars(token);
-            if (allChars == null)
+            if (allChars.IsDefault)
             {
                 Assert.True(conversionFailureOk, "Failed to convert text to token.");
                 return (token, null, default);
             }
 
             var tree = RegexParser.TryParse(allChars, options);
-            return (token, tree, allChars.GetFullSequence());
+            return (token, tree, allChars);
         }
 
         private (RegexTree, SourceText) TryParseTree(
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             var (token, tree, allChars) = JustParseTree(stringText, options, conversionFailureOk);
             if (tree == null)
             {
-                Assert.Null(allChars.LeafSequence);
+                Assert.True(allChars.IsDefault);
                 return default;
             }
 

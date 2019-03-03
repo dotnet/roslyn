@@ -4,14 +4,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
-    internal abstract partial class LeafVirtualCharSequence
+    internal abstract partial class LeafCharacters
     {
         /// <summary>
-        /// Represents a <see cref="LeafVirtualCharSequence"/> on top of a normal
+        /// Represents a <see cref="LeafCharacters"/> on top of a normal
         /// string.  This is the common case of the type of the sequence we would
-        /// create for a normal string token without any escapes in it.  Importantly
+        /// create for a normal string token without any escapes in it.
         /// </summary>
-        private class StringVirtualCharSequence : LeafVirtualCharSequence
+        private class StringLeafCharacters : LeafCharacters
         {
             private readonly int _firstVirtualCharPosition;
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             /// </summary>
             private readonly TextSpan _underlyingDataSpan;
 
-            public StringVirtualCharSequence(int firstVirtualCharPosition, string data, TextSpan dataSpan)
+            public StringLeafCharacters(int firstVirtualCharPosition, string data, TextSpan dataSpan)
             {
                 _firstVirtualCharPosition = firstVirtualCharPosition;
                 _underlyingData = data;
@@ -42,9 +42,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 => new VirtualChar(
                     _underlyingData[_underlyingDataSpan.Start + index],
                     new TextSpan(_firstVirtualCharPosition + index, length: 1));
-
-            //protected override string CreateStringWorker()
-            //    => _underlyingData.Substring(_underlyingDataSpan.Start, _underlyingDataSpan.Length);
         }
     }
 }

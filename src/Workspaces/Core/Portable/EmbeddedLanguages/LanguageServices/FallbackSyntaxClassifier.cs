@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
                 }
 
                 var virtualChars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-                if (virtualChars == null)
+                if (virtualChars.IsDefault)
                 {
                     return;
                 }

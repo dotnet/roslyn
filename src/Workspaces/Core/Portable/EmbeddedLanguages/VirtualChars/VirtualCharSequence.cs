@@ -2,27 +2,43 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     /// <summary>
-    /// Represents a subsequence of some other sequence.  Useful for cases
-    /// like the regex lexer which might consume snip out part of the full
-    /// seqeunce of characters in the string token.  This allows for a single
-    /// alloc to represent that, instead of needing to copy all the chars
-    /// over.
+    /// Represents the individual characters that raw string token represents (i.e. with escapes collapsed).  
+    /// The difference between this and the result from token.ValueText is that for each collapsed character
+    /// returned the original span of text in the original token can be found.  i.e. if you had the
+    /// following in C#:
+    ///
+    /// "G\u006fo"
+    ///
+    /// Then you'd get back:
+    ///
+    /// 'G' -> [0, 1) 'o' -> [1, 7) 'o' -> [7, 1)
+    ///
+    /// This allows for embedded language processing that can refer back to the users' original code
+    /// instead of the escaped value we're processing.
     /// </summary>
     internal partial struct VirtualCharSequence
     {
         public static readonly VirtualCharSequence Empty
-            = LeafVirtualCharSequence.Create(ImmutableArray<VirtualChar>.Empty).GetSubSequence(default);
+            = LeafCharacters.Create(ImmutableArray<VirtualChar>.Empty).GetFullSequence();
 
-        public readonly LeafVirtualCharSequence LeafSequence;
-        public readonly TextSpan Span;
+        /// <summary>
+        /// The actual characters that this <see cref="VirtualCharSequence"/> is a portion of.
+        /// </summary>
+        private readonly LeafCharacters _leafCharacters;
 
-        public VirtualCharSequence(LeafVirtualCharSequence sequence, TextSpan span)
+        /// <summary>
+        /// The portion of <see cref="_leafCharacters"/> that is being exposed.
+        /// </summary>
+        private readonly TextSpan _span;
+
+        public VirtualCharSequence(LeafCharacters sequence, TextSpan span)
         {
             if (span.Start > sequence.Length)
             {
@@ -34,20 +50,22 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 throw new ArgumentException();
             }
 
-            LeafSequence = sequence;
-            Span = span;
+            _leafCharacters = sequence;
+            _span = span;
         }
 
-        public int Length => Span.Length;
+        public int Length => _span.Length;
+        public VirtualChar this[int index] => _leafCharacters[_span.Start + index];
 
-        public VirtualChar this[int index] => LeafSequence[Span.Start + index];
-
-        //protected override string CreateStringWorker()
-        //    => UnderlyingSequence.CreateString().Substring(Span.Start, Span.Length);
-
+        public bool IsDefault => _leafCharacters == null;
         public bool IsEmpty => Length == 0;
 
+        public VirtualCharSequence GetSubSequence(TextSpan span)
+           => new VirtualCharSequence(
+               _leafCharacters, new TextSpan(_span.Start + span.Start, span.Length));
+
         public VirtualChar First() => this[0];
+        public VirtualChar Last() => this[this.Length - 1];
 
         public Enumerator GetEnumerator()
             => new Enumerator(this);
@@ -64,9 +82,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             return null;
         }
-
-        public VirtualChar Last()
-            => this[this.Length - 1];
 
         public bool Contains(VirtualChar @char)
             => IndexOf(@char) >= 0;
@@ -96,6 +111,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             }
 
             return builder.ToStringAndFree();
+        }
+
+        [Conditional("DEBUG")]
+        public void AssertAdjacentTo(VirtualCharSequence virtualChars)
+        {
+            Debug.Assert(_leafCharacters == virtualChars._leafCharacters);
+            Debug.Assert(_span.End == virtualChars._span.Start);
+        }
+
+        /// <summary>
+        /// Combines two <see cref="VirtualCharSequence"/>s, producing a final
+        /// sequence that points at the same underlying data, but spans from the 
+        /// start of <paramref name="chars1"/> to the end of <paramref name="chars2"/>.
+        /// </summary>  
+        public static VirtualCharSequence FromBounds(
+            VirtualCharSequence chars1, VirtualCharSequence chars2)
+        {
+            Debug.Assert(chars1._leafCharacters == chars2._leafCharacters);
+            return new VirtualCharSequence(
+                chars1._leafCharacters,
+                TextSpan.FromBounds(chars1._span.Start, chars2._span.End));
         }
     }
 }

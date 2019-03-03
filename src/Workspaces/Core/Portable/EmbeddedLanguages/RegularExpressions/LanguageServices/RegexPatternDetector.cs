@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             var chars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-            return chars == null ? null : RegexParser.TryParse(chars, options);
+            return RegexParser.TryParse(chars, options);
         }
 
         private bool AnalyzeStringLiteral(

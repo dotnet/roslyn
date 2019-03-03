@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
 
         protected EmbeddedSyntaxTree(
-            LeafVirtualCharSequence text,
+            VirtualCharSequence text,
             TCompilationUnitSyntax root,
             ImmutableArray<EmbeddedDiagnostic> diagnostics)
         {
-            Text = text.GetFullSequence();
+            Text = text;
             Root = root;
             Diagnostics = diagnostics;
         }

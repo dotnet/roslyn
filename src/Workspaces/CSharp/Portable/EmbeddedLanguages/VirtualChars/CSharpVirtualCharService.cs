@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
         protected override bool IsStringLiteralToken(SyntaxToken token)
             => token.Kind() == SyntaxKind.StringLiteralToken;
 
-        protected override LeafVirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token)
+        protected override LeafCharacters TryConvertToLeafCharacters(SyntaxToken token)
         {
             // C# preprocessor directives can contain string literals.  However, these string
             // literals do not behave like normal literals.  Because they are used for paths (i.e.
@@ -80,10 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             return false;
         }
 
-        private LeafVirtualCharSequence TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
+        private LeafCharacters TryConvertVerbatimStringToVirtualChars(SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
             => TryConvertSimpleDoubleQuoteString(token, startDelimiter, endDelimiter, escapeBraces);
 
-        private LeafVirtualCharSequence TryConvertStringToVirtualChars(
+        private LeafCharacters TryConvertStringToVirtualChars(
             SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
             var tokenText = token.Text;

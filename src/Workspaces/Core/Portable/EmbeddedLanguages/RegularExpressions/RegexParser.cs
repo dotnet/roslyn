@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private int _recursionDepth;
 
         private RegexParser(
-            LeafVirtualCharSequence text, RegexOptions options,
+            VirtualCharSequence text, RegexOptions options,
             ImmutableDictionary<string, TextSpan> captureNamesToSpan,
             ImmutableDictionary<int, TextSpan> captureNumbersToSpan) : this()
         {
@@ -123,8 +122,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// and list of diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-        public static RegexTree TryParse(LeafVirtualCharSequence text, RegexOptions options)
+        public static RegexTree TryParse(VirtualCharSequence text, RegexOptions options)
         {
+            if (text.IsDefault)
+            {
+                return null;
+            }
+
             try
             {
                 // Parse the tree once, to figure out the capture groups.  These are needed
@@ -138,8 +142,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                     ImmutableDictionary<string, TextSpan>.Empty,
                     ImmutableDictionary<int, TextSpan>.Empty).ParseTree();
 
-                var (captureNames, captureNumbers) = CaptureInfoAnalyzer.Analyze(
-                    text.GetFullSequence(), tree1.Root, options);
+                var (captureNames, captureNumbers) = CaptureInfoAnalyzer.Analyze(text, tree1.Root, options);
 
                 var tree2 = new RegexParser(
                     text, options, captureNames, captureNumbers).ParseTree();
@@ -261,6 +264,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 builder.Add(ParsePrimaryExpressionAndQuantifiers(last));
             }
 
+            // We wil commonly get tons of text nodes in a row.  For example, the
+            // regex `abc` will be three text nodes in a row.  To help save on memory
+            // try to merge that into one single text node.
             var sequence = ArrayBuilder<RegexExpressionNode>.GetInstance();
             MergeTextNodes(builder, sequence);
             builder.Free();
@@ -270,72 +276,89 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private void MergeTextNodes(ArrayBuilder<RegexExpressionNode> list, ArrayBuilder<RegexExpressionNode> final)
         {
+            // Iterate all the nodes in the sequence we have, adding them directly to
+            // `final` if they are not text nodes.  If they are text nodes, we attempt
+            // to keep merging them with any following text nodes as long as well.
             for (int index = 0; index < list.Count;)
             {
                 var current = list[index];
                 if (current.Kind != RegexKind.Text)
                 {
+                    // Not a text node.  Just add as-is, and move to the next node.
                     index++;
                     final.Add(current);
                     continue;
                 }
 
-                final.Add(MergeAdjacentTextNodes(list, ref index));
+                // Got a text node.  Try to combine it with all following nodes.
+                index = MergeAndAddAdjacentTextNodes(list, final, index);
             }
         }
 
-        private RegexTextNode MergeAdjacentTextNodes(
-            ArrayBuilder<RegexExpressionNode> list, ref int index)
+        private int MergeAndAddAdjacentTextNodes(
+            ArrayBuilder<RegexExpressionNode> list,
+            ArrayBuilder<RegexExpressionNode> final,
+            int index)
         {
             var startIndex = index;
             var startTextNode = (RegexTextNode)list[startIndex];
-            index++;
 
+            // Keep walking forward as long as we hit text nodes and we can 
+            // merge that text node with the previous text node.
+            index++;
             var lastTextNode = startTextNode;
             for (; index < list.Count; index++)
             {
                 var currentNode = list[index];
                 if (!CanMerge(lastTextNode, currentNode))
                 {
+                    // Hit something we couldn't merge with our last text node
+                    // Break out and merge what we have so far.  'index' will
+                    // be pointing at the right node for our caller.
                     break;
                 }
 
                 lastTextNode = (RegexTextNode)currentNode;
             }
 
-            if (startTextNode == lastTextNode)
+            // If didn't have multiple text nodes in a row.  Just return the
+            // starting node.  Otherwise, create one text node that has a token
+            // that spans from the start of the first node to the end of the last node.
+            final.Add(startTextNode == lastTextNode
+                ? startTextNode
+                : new RegexTextNode(CreateToken(
+                    RegexKind.TextToken, startTextNode.TextToken.LeadingTrivia,
+                    VirtualCharSequence.FromBounds(
+                        startTextNode.TextToken.VirtualChars,
+                        lastTextNode.TextToken.VirtualChars))));
+
+            return index;
+
+            // Local functions
+            bool CanMerge(RegexTextNode lastNode, RegexExpressionNode next)
             {
-                return startTextNode;
-            }
-
-            Debug.Assert(startTextNode.TextToken.VirtualChars.LeafSequence == lastTextNode.TextToken.VirtualChars.LeafSequence);
-            // Merge two text tokens token if there is no intermediary trivia.
-            return new RegexTextNode(CreateToken(
-                RegexKind.TextToken, startTextNode.TextToken.LeadingTrivia,
-                _lexer.Text.GetSubSequence(TextSpan.FromBounds(
-                    startTextNode.TextToken.VirtualChars.Span.Start,
-                    lastTextNode.TextToken.VirtualChars.Span.End))));
-        }
-
-        private bool CanMerge(RegexTextNode lastNode, RegexExpressionNode next)
-        {
-            if (next.Kind == RegexKind.Text)
-            {
-                var lastTextToken = lastNode.TextToken;
-                var nextTextToken = ((RegexTextNode)next).TextToken;
-
-                if (lastTextToken.Diagnostics.Length == 0 &&
-                    nextTextToken.Diagnostics.Length == 0 &&
-                    lastTextToken.Value == null &&
-                    nextTextToken.Value == null &&
-                    nextTextToken.LeadingTrivia.Length == 0)
+                if (next.Kind == RegexKind.Text)
                 {
-                    Debug.Assert(lastTextToken.VirtualChars.Span.End == nextTextToken.VirtualChars.Span.Start);
-                    return true;
-                }
-            }
+                    var lastTextToken = lastNode.TextToken;
+                    var nextTextToken = ((RegexTextNode)next).TextToken;
 
-            return false;
+                    // Can't merge if the next text node has leading trivia. Also, conservatively 
+                    // don't allow merging if there are diagnostics or values for these tokens.  
+                    // We might be able to support that, but it's easier to not do anything that 
+                    // might break an expectation someone might have downstream.                    /
+                    if (lastTextToken.Diagnostics.Length == 0 &&
+                        nextTextToken.Diagnostics.Length == 0 &&
+                        lastTextToken.Value == null &&
+                        nextTextToken.Value == null &&
+                        nextTextToken.LeadingTrivia.Length == 0)
+                    {
+                        lastTextToken.VirtualChars.AssertAdjacentTo(nextTextToken.VirtualChars);
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
 
         private bool ShouldConsumeSequenceElement(bool consumeCloseParen)
@@ -1250,6 +1273,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 ParseCharacterClassComponents(builder);
             }
 
+            // We wil commonly get tons of text nodes in a row.  For example, the
+            // regex `[abc]` will be three text nodes in a row.  To help save on memory
+            // try to merge that into one single text node.
             var contents = ArrayBuilder<RegexExpressionNode>.GetInstance();
             MergeTextNodes(builder, contents);
             builder.Free();

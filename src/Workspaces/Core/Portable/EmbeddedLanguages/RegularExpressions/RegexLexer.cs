@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
-    using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
 
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
@@ -37,10 +36,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// </summary>
     internal struct RegexLexer
     {
-        public readonly LeafVirtualCharSequence Text;
+        public readonly VirtualCharSequence Text;
         public int Position;
 
-        public RegexLexer(LeafVirtualCharSequence text) : this()
+        public RegexLexer(VirtualCharSequence text) : this()
         {
             Text = text;
         }

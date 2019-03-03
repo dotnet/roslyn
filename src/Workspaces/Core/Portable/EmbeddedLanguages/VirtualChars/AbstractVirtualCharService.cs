@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
         protected abstract bool IsStringLiteralToken(SyntaxToken token);
-        protected abstract LeafVirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
+        protected abstract LeafCharacters TryConvertToLeafCharacters(SyntaxToken token);
 
         protected static bool TryAddBraceEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
@@ -31,25 +31,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             return false;
         }
 
-        public LeafVirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)
+        public VirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)
         {
             // We don't process any strings that contain diagnostics in it.  That means that we can 
             // trust that all the string's contents (most importantly, the escape sequences) are well
             // formed.
             if (token.ContainsDiagnostics)
             {
-                return null;
+                return default;
             }
 
-            var result = TryConvertToVirtualCharsWorker(token);
+            var result = TryConvertToLeafCharacters(token);
 
             CheckInvariants(token, result);
 
-            return result;
+            return result == null ? default : result.GetFullSequence();
         }
 
         [Conditional("DEBUG")]
-        private void CheckInvariants(SyntaxToken token, LeafVirtualCharSequence result)
+        private void CheckInvariants(SyntaxToken token, LeafCharacters result)
         {
             // Do some invariant checking to make sure we processed the string token the same
             // way the C# and VB compilers did.
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// how normal VB literals and c# verbatim string literals work.
         /// </summary>
         /// <param name="startDelimiter">The start characters string.  " in VB and @" in C#</param>
-        protected static LeafVirtualCharSequence TryConvertSimpleDoubleQuoteString(
+        protected static LeafCharacters TryConvertSimpleDoubleQuoteString(
             SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
             Debug.Assert(!token.ContainsDiagnostics);
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             }
         }
 
-        protected static LeafVirtualCharSequence CreateVirtualCharSequence(
+        protected static LeafCharacters CreateVirtualCharSequence(
             string tokenText, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<VirtualChar> result, int offset)
         {
             // Check if we actually needed to create any special virtual chars.
@@ -180,12 +180,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var textLength = endIndexExclusive - startIndexInclusive;
             if (textLength == result.Count)
             {
-                return LeafVirtualCharSequence.Create(
+                return LeafCharacters.Create(
                     offset + startIndexInclusive, tokenText,
                     TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
             }
 
-            return LeafVirtualCharSequence.Create(result.ToImmutable());
+            return LeafCharacters.Create(result.ToImmutable());
         }
     }
 }

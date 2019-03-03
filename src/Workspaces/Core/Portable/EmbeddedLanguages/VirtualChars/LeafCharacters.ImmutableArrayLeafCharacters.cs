@@ -4,27 +4,24 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
-    internal abstract partial class LeafVirtualCharSequence
+    internal abstract partial class LeafCharacters
     {
         /// <summary>
         /// Thin wrapper over an actual <see cref="ImmutableArray{VirtualChar}"/>.
         /// This will be the common construct we generate when getting the
-        /// <see cref="LeafVirtualCharSequence"/> for a string token that has escapes in it.
+        /// <see cref="LeafCharacters"/> for a string token that has escapes in it.
         /// </summary>
-        private class ImmutableArrayVirtualCharSequence : LeafVirtualCharSequence
+        private class ImmutableArrayLeafCharacters : LeafCharacters
         {
             private readonly ImmutableArray<VirtualChar> _data;
 
-            public ImmutableArrayVirtualCharSequence(ImmutableArray<VirtualChar> array)
+            public ImmutableArrayLeafCharacters(ImmutableArray<VirtualChar> array)
             {
                 _data = array;
             }
 
             public override int Length => _data.Length;
             public override VirtualChar this[int index] => _data[index];
-
-            //protected override string CreateStringWorker()
-            //    => _data.CreateString();
         }
     }
 }
