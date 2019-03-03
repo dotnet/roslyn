@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             if (allChars.IsDefault)
             {
                 Assert.True(conversionFailureOk, "Failed to convert text to token.");
-                return (token, null, default);
+                return (token, null, allChars);
             }
 
             var tree = RegexParser.TryParse(allChars, options);
