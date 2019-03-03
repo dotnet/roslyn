@@ -33,14 +33,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
                 }
 
                 var virtualChars = _info.VirtualCharService.TryConvertToVirtualChars(token);
-                if (virtualChars.IsDefault)
+                if (virtualChars.IsDefaultOrEmpty)
                 {
                     return;
                 }
 
-                for (int i = 0, n = virtualChars.Length; i < n; i++)
+                foreach (var vc in virtualChars)
                 {
-                    var vc = virtualChars[i];
                     if (vc.Span.Length > 1)
                     {
                         result.Add(new ClassifiedSpan(ClassificationTypeNames.StringEscapeCharacter, vc.Span));
