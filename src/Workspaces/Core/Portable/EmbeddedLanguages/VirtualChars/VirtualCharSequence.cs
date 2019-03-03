@@ -47,17 +47,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             return _string;
         }
-        //public VirtualCharSequence Concat(VirtualCharSequence other)
-        //    => new ConcatVirtualCharSequence(this, other);
 
         public static LeafVirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
             => new ImmutableArrayVirtualCharSequence(virtualChars);
 
         public static LeafVirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData, TextSpan underlyingDataSpan)
             => new StringVirtualCharSequence(firstVirtualCharPosition, underlyingData, underlyingDataSpan);
-
-        //public static VirtualCharSequence Create(VirtualChar ch)
-        //    => new SingleVirtualCharSequence(ch);
 
         public Enumerator GetEnumerator()
             => new Enumerator(this);
