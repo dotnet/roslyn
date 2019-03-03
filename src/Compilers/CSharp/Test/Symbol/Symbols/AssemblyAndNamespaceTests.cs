@@ -452,7 +452,8 @@ public namespace NS // CS1671
 }
 ";
             CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public"));
+                // (2,1): error CS1671: A namespace declaration cannot have modifiers or attributes
+                Diagnostic(ErrorCode.ERR_BadModifiersOnNamespace, "public").WithLocation(2, 1));
         }
 
         [Fact]
