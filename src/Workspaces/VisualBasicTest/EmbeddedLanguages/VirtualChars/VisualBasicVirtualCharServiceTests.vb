@@ -27,14 +27,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
         Private Sub Test(stringText As String, expected As String)
             Dim token = GetStringToken(stringText)
             Dim virtualChars = VisualBasicVirtualCharService.Instance.TryConvertToVirtualChars(token)
-            Dim actual = ConvertToString(virtualChars.GetFullSubSequence())
+            Dim actual = ConvertToString(virtualChars)
             Assert.Equal(expected, actual)
         End Sub
 
         Private Sub TestFailure(stringText As String)
             Dim token = GetStringToken(stringText)
             Dim virtualChars = VisualBasicVirtualCharService.Instance.TryConvertToVirtualChars(token)
-            Assert.Null(virtualChars)
+            Assert.True(virtualChars.IsDefault)
         End Sub
 
         <Fact>
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.Virtual
             Test("$""a""""b""", "['a',[2,3]]['""',[3,5]]['b',[5,6]]")
         End Sub
 
-        Private Function ConvertToString(virtualChars As SubSequenceVirtualCharSequence) As String
+        Private Function ConvertToString(virtualChars As VirtualCharSequence) As String
             Dim strings = ArrayBuilder(Of String).GetInstance()
             For Each ch In virtualChars
                 strings.Add(ConvertToString(ch))
