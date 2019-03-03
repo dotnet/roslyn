@@ -10,7 +10,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Array__get_Length,
         System_Array__Empty,
-        System_Array__Copy,
 
         System_Convert__ToBooleanDecimal,
         System_Convert__ToBooleanInt32,
@@ -145,6 +144,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__GetObjectValueObject,
         System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle,
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
+        System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,
@@ -414,7 +414,6 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
 
         System_String__Format_IFormatProvider,
-        System_String__Substring,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
@@ -447,11 +446,11 @@ namespace Microsoft.CodeAnalysis
         System_Math__TruncateDouble,
 
         System_Index__ctor,
-        System_Index__IsFromEnd,
-        System_Index__Value,
-        System_Range__Start,
-        System_Range__End,
+        System_Index__GetOffset,
         System_Range__ctor,
+        System_Range__StartAt,
+        System_Range__EndAt,
+        System_Range__get_All,
 
         System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
 

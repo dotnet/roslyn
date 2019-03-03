@@ -1698,6 +1698,39 @@ class DisposableEnumerator
         }
 
         [Fact]
+        public void TestForEachPatternDisposableIgnoredForCSharp7_3()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+ref struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+    public void Dispose() { System.Console.WriteLine(""Done with DisposableEnumerator""); }
+}";
+            var compilation = CompileAndVerify(source, parseOptions: TestOptions.Regular7_3, expectedOutput: @"
+1
+2
+3");
+        }
+
+        [Fact]
         public void TestForEachNested()
         {
             var source = @"

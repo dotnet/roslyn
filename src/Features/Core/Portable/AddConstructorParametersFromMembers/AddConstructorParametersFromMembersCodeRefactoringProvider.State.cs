@@ -77,9 +77,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             /// <summary>
             /// Try to find a constructor in <paramref name="containingType"/> whose parameters is the subset of <paramref name="parameters"/> by comparing name.
             /// If multiple constructors meet the condition, the one with more parameters will be returned.
-            /// It will not consider those constructors as potential candidates if:
-            /// 1. Constructor with empty parameter list.
-            /// 2. Constructor's parameter list contains 'ref' or 'params'
+            /// It will not consider those constructors as potential candidates if the constructor's parameter list 
+            /// contains 'ref' or 'params'
             /// </summary>
             private IMethodSymbol GetDelegatedConstructorBasedOnParameterNames(
                 INamedTypeSymbol containingType,
@@ -87,18 +86,22 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 var parameterNames = parameters.SelectAsArray(p => p.Name);
                 return containingType.InstanceConstructors
-                    .Where(constructor => AreParametersContainedInConstructor(constructor, parameterNames))
+                    .Where(constructor => IsApplicableConstructor(constructor, parameterNames))
                     .OrderByDescending(constructor => constructor.Parameters.Length)
                     .FirstOrDefault();
             }
 
-            private bool AreParametersContainedInConstructor(
+            private bool IsApplicableConstructor(
                 IMethodSymbol constructor,
                 ImmutableArray<string> parametersName)
             {
                 var constructorParams = constructor.Parameters;
-                return constructorParams.Length > 0
-                    && constructorParams.All(parameter => parameter.RefKind == RefKind.None)
+                if (constructorParams.Length == 0)
+                {
+                    return !constructor.IsImplicitlyDeclared;
+                }
+
+                return constructorParams.All(parameter => parameter.RefKind == RefKind.None)
                     && !constructorParams.Any(p => p.IsParams)
                     && parametersName.Except(constructorParams.Select(p => p.Name)).Any();
             }

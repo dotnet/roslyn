@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         public bool SupportGetDiagnostics => false;
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         public ImmutableArray<DiagnosticData> GetDiagnostics(Workspace workspace, ProjectId projectId, DocumentId documentId, object id, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)
         {
