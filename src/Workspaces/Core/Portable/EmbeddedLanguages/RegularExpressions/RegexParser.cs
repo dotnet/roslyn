@@ -689,7 +689,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private TextSpan GetTokenStartPositionSpan(RegexToken token)
         {
             return token.Kind == RegexKind.EndOfFile
-                ? new TextSpan(_lexer.Text[_lexer.Text.Length - 1].Span.End, 0)
+                ? new TextSpan(_lexer.Text.Last().Span.End, 0)
                 : new TextSpan(token.VirtualChars[0].Span.Start, 0);
         }
 

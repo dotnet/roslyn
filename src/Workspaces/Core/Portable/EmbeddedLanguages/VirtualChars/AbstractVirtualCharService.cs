@@ -42,25 +42,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             }
 
             var result = TryConvertToLeafCharacters(token);
+            var sequence = result == null ? default : result.GetFullSequence();
+            CheckInvariants(token, sequence);
 
-            CheckInvariants(token, result);
-
-            return result == null ? default : result.GetFullSequence();
+            return sequence;
         }
 
         [Conditional("DEBUG")]
-        private void CheckInvariants(SyntaxToken token, LeafCharacters result)
+        private void CheckInvariants(SyntaxToken token, VirtualCharSequence result)
         {
             // Do some invariant checking to make sure we processed the string token the same
             // way the C# and VB compilers did.
-            if (result != null)
+            if (!result.IsDefault)
             {
                 // Ensure that we properly broke up the token into a sequence of characters that
                 // matches what the compiler did.
                 if (IsStringLiteralToken(token))
                 {
                     var expectedValueText = token.ValueText;
-                    var actualValueText = result.GetFullSequence().CreateString();
+                    var actualValueText = result.CreateString();
                     Debug.Assert(expectedValueText == actualValueText);
                 }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                         currentVC = nextVC;
                     }
 
-                    var lastVC = result[result.Length - 1];
+                    var lastVC = result.Last();
 
                     if (IsStringLiteralToken(token))
                     {
