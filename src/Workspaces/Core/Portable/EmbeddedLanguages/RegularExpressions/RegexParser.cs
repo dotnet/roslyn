@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         private int _recursionDepth;
 
         private RegexParser(
-            VirtualCharSequence text, RegexOptions options,
+            LeafVirtualCharSequence text, RegexOptions options,
             ImmutableDictionary<string, TextSpan> captureNamesToSpan,
             ImmutableDictionary<int, TextSpan> captureNumbersToSpan) : this()
         {
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// and list of diagnostics.  Parsing should always succeed, except in the case of the stack 
         /// overflowing.
         /// </summary>
-        public static RegexTree TryParse(VirtualCharSequence text, RegexOptions options)
+        public static RegexTree TryParse(LeafVirtualCharSequence text, RegexOptions options)
         {
             try
             {
@@ -253,48 +253,88 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private RegexSequenceNode ParseSequence(bool consumeCloseParen)
         {
-            var list = ArrayBuilder<RegexExpressionNode>.GetInstance();
-
+            var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
             while (ShouldConsumeSequenceElement(consumeCloseParen))
             {
-                var last = list.Count == 0 ? null : list.Last();
-                list.Add(ParsePrimaryExpressionAndQuantifiers(last));
-
-                TryMergeLastTwoNodes(list);
+                var last = builder.Count == 0 ? null : builder.Last();
+                builder.Add(ParsePrimaryExpressionAndQuantifiers(last));
             }
 
-            return new RegexSequenceNode(list.ToImmutableAndFree());
+            var sequence = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            MergeTextNodes(builder, sequence);
+            builder.Free();
+
+            return new RegexSequenceNode(sequence.ToImmutableAndFree());
         }
 
-        private void TryMergeLastTwoNodes(ArrayBuilder<RegexExpressionNode> list)
+        private void MergeTextNodes(ArrayBuilder<RegexExpressionNode> list, ArrayBuilder<RegexExpressionNode> final)
         {
-            if (list.Count >= 2)
+            for (int index = 0; index < list.Count;)
             {
-                var last = list[list.Count - 2];
-                var next = list[list.Count - 1];
-
-                if (last?.Kind == RegexKind.Text && next?.Kind == RegexKind.Text)
+                var current = list[index];
+                if (current.Kind != RegexKind.Text)
                 {
-                    var lastTextToken = ((RegexTextNode)last).TextToken;
-                    var nextTextToken = ((RegexTextNode)next).TextToken;
+                    index++;
+                    final.Add(current);
+                    continue;
+                }
 
-                    if (lastTextToken.Diagnostics.Length == 0 &&
-                        nextTextToken.Diagnostics.Length == 0 &&
-                        lastTextToken.Value == null &&
-                        nextTextToken.Value == null &&
-                        nextTextToken.LeadingTrivia.Length == 0)
-                    {
-                        // Merge two text tokens token if there is no intermediary trivia.
-                        var merged = new RegexTextNode(CreateToken(
-                            RegexKind.TextToken, lastTextToken.LeadingTrivia,
-                            lastTextToken.VirtualChars.Concat(nextTextToken.VirtualChars)));
+                final.Add(MergeAdjacentTextNodes(list, ref index));
+            }
+        }
 
-                        list.RemoveLast();
-                        list.RemoveLast();
-                        list.Add(merged);
-                    }
+        private RegexTextNode MergeAdjacentTextNodes(
+            ArrayBuilder<RegexExpressionNode> list, ref int index)
+        {
+            var startIndex = index;
+            var startTextNode = (RegexTextNode)list[startIndex];
+            index++;
+
+            var lastTextNode = startTextNode;
+            for (; index < list.Count; index++)
+            {
+                var currentNode = list[index];
+                if (!CanMerge(lastTextNode, currentNode))
+                {
+                    break;
+                }
+
+                lastTextNode = (RegexTextNode)currentNode;
+            }
+
+            if (startTextNode == lastTextNode)
+            {
+                return startTextNode;
+            }
+
+            Debug.Assert(startTextNode.TextToken.VirtualChars.UnderlyingSequence == lastTextNode.TextToken.VirtualChars.UnderlyingSequence);
+            // Merge two text tokens token if there is no intermediary trivia.
+            return new RegexTextNode(CreateToken(
+                RegexKind.TextToken, startTextNode.TextToken.LeadingTrivia,
+                _lexer.Text.GetSubSequence(TextSpan.FromBounds(
+                    startTextNode.TextToken.VirtualChars.Span.Start,
+                    lastTextNode.TextToken.VirtualChars.Span.End))));
+        }
+
+        private bool CanMerge(RegexTextNode lastNode, RegexExpressionNode next)
+        {
+            if (next.Kind == RegexKind.Text)
+            {
+                var lastTextToken = lastNode.TextToken;
+                var nextTextToken = ((RegexTextNode)next).TextToken;
+
+                if (lastTextToken.Diagnostics.Length == 0 &&
+                    nextTextToken.Diagnostics.Length == 0 &&
+                    lastTextToken.Value == null &&
+                    nextTextToken.Value == null &&
+                    nextTextToken.LeadingTrivia.Length == 0)
+                {
+                    Debug.Assert(lastTextToken.VirtualChars.Span.End == nextTextToken.VirtualChars.Span.Start);
+                    return true;
                 }
             }
+
+            return false;
         }
 
         private bool ShouldConsumeSequenceElement(bool consumeCloseParen)
@@ -1194,21 +1234,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             // trivia is not allowed anywhere in a character class
             ConsumeCurrentToken(allowTrivia: false);
 
-            var contents = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
             while (_currentToken.Kind != RegexKind.EndOfFile)
             {
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
 
-                if (_currentToken.Kind == RegexKind.CloseBracketToken && contents.Count > 0)
+                if (_currentToken.Kind == RegexKind.CloseBracketToken && builder.Count > 0)
                 {
                     // Allow trivia after the character class, and whatever is next in the sequence.
                     closeBracketToken = ConsumeCurrentToken(allowTrivia: true);
                     break;
                 }
 
-                ParseCharacterClassComponents(contents);
-                TryMergeLastTwoNodes(contents);
+                ParseCharacterClassComponents(builder);
             }
+
+            var contents = ArrayBuilder<RegexExpressionNode>.GetInstance();
+            MergeTextNodes(builder, contents);
+            builder.Free();
 
             if (closeBracketToken.IsMissing)
             {

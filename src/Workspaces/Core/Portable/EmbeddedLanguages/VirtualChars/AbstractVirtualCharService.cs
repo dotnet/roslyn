@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
         protected abstract bool IsStringLiteralToken(SyntaxToken token);
-        protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
+        protected abstract LeafVirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
 
         protected static bool TryAddBraceEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             return false;
         }
 
-        public VirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)
+        public LeafVirtualCharSequence TryConvertToVirtualChars(SyntaxToken token)
         {
             // We don't process any strings that contain diagnostics in it.  That means that we can 
             // trust that all the string's contents (most importantly, the escape sequences) are well
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// how normal VB literals and c# verbatim string literals work.
         /// </summary>
         /// <param name="startDelimiter">The start characters string.  " in VB and @" in C#</param>
-        protected static VirtualCharSequence TryConvertSimpleDoubleQuoteString(
+        protected static LeafVirtualCharSequence TryConvertSimpleDoubleQuoteString(
             SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
             Debug.Assert(!token.ContainsDiagnostics);
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             }
         }
 
-        protected static VirtualCharSequence CreateVirtualCharSequence(
+        protected static LeafVirtualCharSequence CreateVirtualCharSequence(
             string tokenText, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<VirtualChar> result, int offset)
         {
             // Check if we actually needed to create any special virtual chars.

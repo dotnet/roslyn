@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// This will be the common construct we generate when getting the
         /// <see cref="VirtualCharSequence"/> for a string token that has escapes in it.
         /// </summary>
-        private class ImmutableArrayVirtualCharSequence : VirtualCharSequence
+        private class ImmutableArrayVirtualCharSequence : LeafVirtualCharSequence
         {
             private readonly ImmutableArray<VirtualChar> _data;
 

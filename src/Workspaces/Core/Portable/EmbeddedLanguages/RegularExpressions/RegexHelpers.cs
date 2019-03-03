@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public static bool HasOption(RegexOptions options, RegexOptions val)
             => (options & val) != 0;
 
-        public static RegexToken CreateToken(RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, VirtualCharSequence virtualChars)
+        public static RegexToken CreateToken(RegexKind kind, ImmutableArray<RegexTrivia> leadingTrivia, SubSequenceVirtualCharSequence virtualChars)
             => new RegexToken(kind, leadingTrivia, virtualChars, ImmutableArray<RegexTrivia>.Empty, ImmutableArray<EmbeddedDiagnostic>.Empty, value: null);
 
         public static RegexToken CreateMissingToken(RegexKind kind)

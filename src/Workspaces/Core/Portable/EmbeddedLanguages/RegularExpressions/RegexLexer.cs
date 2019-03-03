@@ -37,20 +37,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     /// </summary>
     internal struct RegexLexer
     {
-        public readonly VirtualCharSequence Text;
+        public readonly LeafVirtualCharSequence Text;
         public int Position;
 
-        public RegexLexer(VirtualCharSequence text) : this()
+        public RegexLexer(LeafVirtualCharSequence text) : this()
         {
             Text = text;
         }
 
         public VirtualChar CurrentChar => Position < Text.Length ? Text[Position] : new VirtualChar((char)0, default);
 
-        public VirtualCharSequence GetSubPatternToCurrentPos(int start)
+        public SubSequenceVirtualCharSequence GetSubPatternToCurrentPos(int start)
             => GetSubPattern(start, Position);
 
-        public VirtualCharSequence GetSubPattern(int start, int end)
+        public SubSequenceVirtualCharSequence GetSubPattern(int start, int end)
             => Text.GetSubSequence(TextSpan.FromBounds(start, end));
 
         public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             var ch = this.CurrentChar;
             Position++;
 
-            return CreateToken(GetKind(ch), trivia, VirtualCharSequence.Create(ch));
+            return CreateToken(GetKind(ch), trivia, Text.GetSubSequence(new TextSpan(Position - 1, 1)));
         }
 
         private static RegexKind GetKind(char ch)

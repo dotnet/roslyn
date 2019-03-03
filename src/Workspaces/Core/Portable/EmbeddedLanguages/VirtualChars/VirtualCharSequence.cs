@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// </summary>
     internal abstract partial class VirtualCharSequence
     {
-        public static readonly VirtualCharSequence Empty
-            = Create(ImmutableArray<VirtualChar>.Empty);
+        public static readonly SubSequenceVirtualCharSequence Empty
+            = Create(ImmutableArray<VirtualChar>.Empty).GetSubSequence(default);
 
         private string _string;
 
@@ -47,24 +47,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
             return _string;
         }
-        public VirtualCharSequence Concat(VirtualCharSequence other)
-            => new ConcatVirtualCharSequence(this, other);
+        //public VirtualCharSequence Concat(VirtualCharSequence other)
+        //    => new ConcatVirtualCharSequence(this, other);
 
-        public VirtualCharSequence GetSubSequence(TextSpan span)
-            => span.IsEmpty
-                ? Empty
-                : span.Length == 1
-                    ? (VirtualCharSequence)new SingleVirtualCharSequence(this[span.Start])
-                    : new SubSequenceVirtualCharSequence(this, span);
-
-        public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
+        public static LeafVirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
             => new ImmutableArrayVirtualCharSequence(virtualChars);
 
-        public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData, TextSpan underlyingDataSpan)
+        public static LeafVirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData, TextSpan underlyingDataSpan)
             => new StringVirtualCharSequence(firstVirtualCharPosition, underlyingData, underlyingDataSpan);
 
-        public static VirtualCharSequence Create(VirtualChar ch)
-            => new SingleVirtualCharSequence(ch);
+        //public static VirtualCharSequence Create(VirtualChar ch)
+        //    => new SingleVirtualCharSequence(ch);
 
         public Enumerator GetEnumerator()
             => new Enumerator(this);

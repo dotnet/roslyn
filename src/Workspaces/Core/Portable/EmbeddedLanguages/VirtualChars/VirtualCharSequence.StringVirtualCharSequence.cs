@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// string.  This is the common case of the type of the sequence we would
         /// create for a normal string token without any escapes in it.  Importantly
         /// </summary>
-        private class StringVirtualCharSequence : VirtualCharSequence
+        private class StringVirtualCharSequence : LeafVirtualCharSequence
         {
             private readonly int _firstVirtualCharPosition;
 

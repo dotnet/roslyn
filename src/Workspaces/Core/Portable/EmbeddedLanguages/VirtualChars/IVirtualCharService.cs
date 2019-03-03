@@ -52,6 +52,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// cref="SyntaxToken.Text"/> of the token between the quotes maps to each character in the
         /// token's <see cref="SyntaxToken.ValueText"/>.
         /// </summary>
-        VirtualCharSequence TryConvertToVirtualChars(SyntaxToken token);
+        LeafVirtualCharSequence TryConvertToVirtualChars(SyntaxToken token);
     }
 }
