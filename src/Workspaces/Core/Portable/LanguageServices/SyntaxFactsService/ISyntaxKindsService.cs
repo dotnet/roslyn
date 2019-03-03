@@ -12,11 +12,28 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     {
         int DotToken { get; }
         int QuestionToken { get; }
+
+        int IfKeyword { get; }
+
+        /// <summary>
+        /// A short-circuiting logical 'and'. In C#, 'LogicalAndExpression'. In VB, 'AndAlsoExpression'.
+        /// </summary>
+        int LogicalAndExpression { get; }
+
+        /// <summary>
+        /// A short-circuiting logical 'or'. In C#, 'LogicalOrExpression'. In VB, 'OrElseExpression'.
+        /// </summary>
+        int LogicalOrExpression { get; }
     }
 
     internal abstract class AbstractSyntaxKindsService : ISyntaxKindsService
     {
         public abstract int DotToken { get; }
         public abstract int QuestionToken { get; }
+
+        public abstract int IfKeyword { get; }
+
+        public abstract int LogicalAndExpression { get; }
+        public abstract int LogicalOrExpression { get; }
     }
 }

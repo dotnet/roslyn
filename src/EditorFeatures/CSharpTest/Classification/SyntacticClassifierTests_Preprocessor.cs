@@ -1017,8 +1017,8 @@ aeu";
         {
             await TestInMethodAsync(
                 code: @"switch (1) { case int _: }",
-                expected: Classifications(Keyword("switch"), Punctuation.OpenParen, Number("1"), Punctuation.CloseParen,
-                    Punctuation.OpenCurly, Keyword("case"), Keyword("int"), Keyword("_"), Punctuation.Colon, Punctuation.CloseCurly));
+                expected: Classifications(ControlKeyword("switch"), Punctuation.OpenParen, Number("1"), Punctuation.CloseParen,
+                    Punctuation.OpenCurly, ControlKeyword("case"), Keyword("int"), Keyword("_"), Punctuation.Colon, Punctuation.CloseCurly));
         }
 
         [Fact]
@@ -1026,7 +1026,7 @@ aeu";
         {
             await TestInMethodAsync(
                 code: @"var (x, _) = (1, 2);",
-                expected: Classifications(Identifier("var"), Punctuation.OpenParen, Identifier("x"), Punctuation.Comma,
+                expected: Classifications(Identifier("var"), Punctuation.OpenParen, Local("x"), Punctuation.Comma,
                     Keyword("_"), Punctuation.CloseParen, Operators.Equals, Punctuation.OpenParen, Number("1"),
                     Punctuation.Comma, Number("2"), Punctuation.CloseParen, Punctuation.Semicolon));
         }

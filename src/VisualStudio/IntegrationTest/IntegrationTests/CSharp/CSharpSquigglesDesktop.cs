@@ -15,13 +15,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19091"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public override void VerifySyntaxErrorSquiggles()
         {
             base.VerifySyntaxErrorSquiggles();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19091"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         public override void VerifySemanticErrorSquiggles()
         {
             base.VerifySemanticErrorSquiggles();

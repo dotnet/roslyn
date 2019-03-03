@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 #endif
     internal class CSharpSyntaxFormattingService : AbstractSyntaxFormattingService
     {
-        private readonly ImmutableList<IFormattingRule> _rules;
+        private readonly ImmutableList<AbstractFormattingRule> _rules;
 
 #if !CODE_STYLE
         [ImportingConstructor]
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 #endif
         public CSharpSyntaxFormattingService()
         {
-            _rules = ImmutableList.Create<IFormattingRule>(
+            _rules = ImmutableList.Create<AbstractFormattingRule>(
                 new WrappingFormattingRule(),
                 new SpacingFormattingRule(),
                 new NewLineUserSettingFormattingRule(),
@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 new AnchorIndentationFormattingRule(),
                 new QueryExpressionFormattingRule(),
                 new TokenBasedFormattingRule(),
-                new DefaultOperationProvider());
+                DefaultOperationProvider.Instance);
         }
 
-        public override IEnumerable<IFormattingRule> GetDefaultFormattingRules()
+        public override IEnumerable<AbstractFormattingRule> GetDefaultFormattingRules()
         {
             return _rules;
         }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return new AggregatedFormattingResult(node, results, formattingSpans);
         }
 
-        protected override AbstractFormattingResult Format(SyntaxNode node, OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
+        protected override AbstractFormattingResult Format(SyntaxNode node, OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken token1, SyntaxToken token2, CancellationToken cancellationToken)
         {
             return new CSharpFormatEngine(node, optionSet, formattingRules, token1, token2).Format(cancellationToken);
         }

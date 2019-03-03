@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -10,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal partial class IntelliSenseOptionPageControl : AbstractOptionPageControl
     {
-        public IntelliSenseOptionPageControl(IServiceProvider serviceProvider) : base(serviceProvider)
+        public IntelliSenseOptionPageControl(OptionStore optionStore) : base(optionStore)
         {
             InitializeComponent();
 
@@ -18,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);
 
             BindToOption(Show_completion_list_after_a_character_is_typed, CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp);
-            Show_completion_list_after_a_character_is_deleted.IsChecked = this.OptionService.GetOption(
+            Show_completion_list_after_a_character_is_deleted.IsChecked = this.OptionStore.GetOption(
                 CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp) == true;
             Show_completion_list_after_a_character_is_deleted.IsEnabled = Show_completion_list_after_a_character_is_typed.IsChecked == true;
 
@@ -47,16 +46,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private void Show_completion_list_after_a_character_is_deleted_Checked(object sender, RoutedEventArgs e)
         {
-            this.OptionService.SetOptions(
-                this.OptionService.GetOptions().WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, value: true));
+            this.OptionStore.SetOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, value: true);
         }
 
         private void Show_completion_list_after_a_character_is_deleted_Unchecked(object sender, RoutedEventArgs e)
         {
-            this.OptionService.SetOptions(
-                this.OptionService.GetOptions().WithChangedOption(
-                    CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, value: false));
+            this.OptionStore.SetOption(CompletionOptions.TriggerOnDeletion, LanguageNames.CSharp, value: false);
         }
     }
 }

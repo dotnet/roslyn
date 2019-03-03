@@ -15,13 +15,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18996"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         public override void ErrorList()
         {
             base.ErrorList();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/18996"), Trait(Traits.Feature, Traits.Features.ErrorList)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ErrorList)]
         public override void ErrorLevelWarning()
         {
             base.ErrorLevelWarning();

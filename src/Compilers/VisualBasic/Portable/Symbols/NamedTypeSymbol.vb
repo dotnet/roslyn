@@ -1283,11 +1283,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Do
                         levelsOfNesting += 1
                         typeToCheck = DirectCast(typeToCheck, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(TupleTypeSymbol.RestPosition - 1)
-                    Loop While typeToCheck.OriginalDefinition = Me.OriginalDefinition AndAlso Not typeToCheck.IsDefinition
+                    Loop While TypeSymbol.Equals(typeToCheck.OriginalDefinition, Me.OriginalDefinition, TypeCompareKind.ConsiderEverything) AndAlso Not typeToCheck.IsDefinition
 
                     If typeToCheck.IsTupleType Then
                         Dim underlying = typeToCheck.TupleUnderlyingType
-                        If underlying.Arity = TupleTypeSymbol.RestPosition AndAlso underlying.OriginalDefinition <> Me.OriginalDefinition Then
+                        If underlying.Arity = TupleTypeSymbol.RestPosition AndAlso Not TypeSymbol.Equals(underlying.OriginalDefinition, Me.OriginalDefinition, TypeCompareKind.ConsiderEverything) Then
                             tupleCardinality = 0
                             Return False
                         End If

@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     internal T F3 = default;
     internal T F4 = default(T);
 }";
-            // https://github.com/dotnet/roslyn/issues/29849 Missing warnings for possible null-assignment to F3 and F4
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (1,16): warning CS8618: Non-nullable field 'F1' is uninitialized.
@@ -42,8 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(1, 16),
                 // (3,16): warning CS0649: Field 'C<T>.F1' is never assigned to, and will always have its default value 
                 //     internal T F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("C<T>.F1", "").WithLocation(3, 16)
-                );
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("C<T>.F1", "").WithLocation(3, 16),
+                // (5,21): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                //     internal T F3 = default;
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(5, 21),
+                // (6,21): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                //     internal T F4 = default(T);
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(6, 21));
         }
 
         [Fact]

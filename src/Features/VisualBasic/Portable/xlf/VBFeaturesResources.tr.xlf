@@ -12,6 +12,11 @@
         <target state="new">Add Await and 'ConfigureAwait(false)'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_Obsolete">
+        <source>Add &lt;Obsolete&gt;</source>
+        <target state="new">Add &lt;Obsolete&gt;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_missing_Imports">
         <source>Add missing Imports</source>
         <target state="new">Add missing Imports</target>
@@ -66,6 +71,11 @@
         <source>Introduce 'Using' statement</source>
         <target state="new">Introduce 'Using' statement</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="new">Make '{0}' inheritable</target>
+        <note />
       </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>

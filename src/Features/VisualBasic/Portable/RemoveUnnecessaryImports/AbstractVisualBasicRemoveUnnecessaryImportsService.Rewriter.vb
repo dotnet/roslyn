@@ -50,13 +50,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                         oldImports(i) = Nothing
 
                         Dim leadingTrivia = oldImport.GetLeadingTrivia()
-                        If leadingTrivia.Any(Function(t) Not t.IsWhitespaceOrEndOfLine()) Then
+                        If ShouldPreserveTrivia(leadingTrivia) Then
                             ' This import had trivia we want to preserve. If we're the last import,
                             ' then copy this trivia out so that our caller can place it on the next token.
                             ' If there is any import following us, then place it on that.
                             If i < oldImports.Count - 1 Then
-                                Dim nextImport = oldImports(i + 1)
-                                oldImports(i + 1) = nextImport.WithPrependedLeadingTrivia(leadingTrivia)
+                                Dim nextIndex = i + 1
+                                Dim nextImport = oldImports(nextIndex)
+
+                                If ShouldPreserveTrivia(nextImport.GetLeadingTrivia()) Then
+                                    ' If we need to preserve the next trivia too then, prepend
+                                    ' the two together.
+                                    oldImports(nextIndex) = nextImport.WithPrependedLeadingTrivia(leadingTrivia)
+                                Else
+                                    ' Otherwise, replace the next trivia with this trivia that we
+                                    ' want to preserve.
+                                    oldImports(nextIndex) = nextImport.WithLeadingTrivia(leadingTrivia)
+                                End If
                             Else
                                 remainingTrivia = leadingTrivia
                             End If
@@ -88,6 +98,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryImports
                 End If
 
                 Return compilationUnit.WithImports(newImports)
+            End Function
+
+            Private Function ShouldPreserveTrivia(trivia As SyntaxTriviaList) As Boolean
+                Return trivia.Any(Function(t) Not t.IsWhitespaceOrEndOfLine())
             End Function
 
             Private Function FilterLeadingTrivia(importStatement As SyntaxNode) As SyntaxTriviaList

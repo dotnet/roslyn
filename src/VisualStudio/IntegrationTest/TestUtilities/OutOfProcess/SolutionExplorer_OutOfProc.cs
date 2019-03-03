@@ -43,7 +43,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.OpenSolution(path, saveExistingSolutionIfExists);
 
         public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
-            => _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+        {
+            _inProc.AddProject(projectName.Name, projectTemplate, languageName);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
+        public void AddCustomProject(ProjectUtils.Project projectName, string projectFileExtension, string projectFileContent)
+        {
+            _inProc.AddCustomProject(projectName.Name, projectFileExtension, projectFileContent);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
 
         public void AddProjectReference(ProjectUtils.Project fromProjectName, ProjectUtils.ProjectReference toProjectName)
         {
@@ -118,6 +127,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
+        public void RenameFileViaDTE(ProjectUtils.Project project, string oldFileName, string newFileName)
+        {
+            // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
+            _inProc.RenameFileViaDTE(project.Name, oldFileName, newFileName);
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
+
         public void CloseFile(ProjectUtils.Project project, string fileName, bool saveFile)
             => _inProc.CloseFile(project.Name, fileName, saveFile);
 
@@ -127,8 +143,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ReloadProject(ProjectUtils.Project project)
             => _inProc.ReloadProject(project.RelativePath);
 
-        public void RestoreNuGetPackages()
-            => _inProc.RestoreNuGetPackages();
+        public void RestoreNuGetPackages(ProjectUtils.Project project)
+            => _inProc.RestoreNuGetPackages(project.Name);
 
         public void SaveAll()
             => _inProc.SaveAll();

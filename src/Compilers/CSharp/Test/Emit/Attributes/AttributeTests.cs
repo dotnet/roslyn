@@ -6581,7 +6581,7 @@ class C
         }
 
         [Fact]
-        public void AttributeDiagnosticsForEachArgument()
+        public void AttributeDiagnosticsForEachArgument01()
         {
             var source = @"using System;
 public class A : Attribute 
@@ -6593,12 +6593,41 @@ public class A : Attribute
 class C<T, U> { public enum E {} }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                // [A(new object[] { default(E), default(E) })]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 31),
                 // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(new object[] { default(E), default(E) })]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19));
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19),
+                // (7,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 31)
+                );
+        }
+
+        [Fact]
+        public void AttributeDiagnosticsForEachArgument02()
+        {
+            var source = @"using System;
+public class A : Attribute 
+{
+  public A(object[] a, object[] b) {}
+}
+
+[A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+class C<T, U> { public enum E {} }";
+            // Note that we suppress further errors once we have reported a bad attribute argument.
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,19): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 19),
+                // (7,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 31),
+                // (7,60): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 60),
+                // (7,72): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(new object[] { default(E), default(E) }, new object[] { default(E), default(E) })]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "default(E)").WithLocation(7, 72)
+                );
         }
 
         [Fact]
@@ -8949,6 +8978,40 @@ namespace a
                 // (22,4): error CS0181: Attribute constructor parameter 'Fx' has type 'Class1.CommandAttribute.FxCommand', which is not a valid attribute parameter type
                 // 		[Command(UserInfo)]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Command").WithArguments("Fx", "a.Class1.CommandAttribute.FxCommand").WithLocation(22, 4));
+        }
+
+        [Fact, WorkItem(33388, "https://github.com/dotnet/roslyn/issues/33388")]
+        public void AttributeCrashRepro_33388()
+        {
+            string source = @"
+using System;
+
+public static class C
+{
+    public static int M(object obj) => 42;
+    public static int M(C2 c2) => 42;
+}
+
+public class RecAttribute : Attribute
+{
+    public RecAttribute(int i)
+    {
+        this.i = i;
+    }
+
+    private int i;
+}
+
+[Rec(C.M(null))]
+public class C2
+{
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (20,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [Rec(C.M(null))]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(null)").WithLocation(20, 6));
         }
 
         #endregion

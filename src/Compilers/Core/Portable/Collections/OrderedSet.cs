@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
-    internal sealed class OrderedSet<T> : IEnumerable<T>, IReadOnlySet<T>
+    internal sealed class OrderedSet<T> : IEnumerable<T>, IReadOnlySet<T>, IReadOnlyList<T>, IOrderedReadOnlySet<T>
     {
         private readonly HashSet<T> _set;
         private readonly ArrayBuilder<T> _list;
@@ -49,6 +49,14 @@ namespace Microsoft.CodeAnalysis.Collections
             get
             {
                 return _list.Count;
+            }
+        }
+
+        public T this[int index]
+        {
+            get
+            {
+                return _list[index];
             }
         }
 

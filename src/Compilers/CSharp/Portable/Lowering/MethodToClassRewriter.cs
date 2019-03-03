@@ -151,15 +151,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return node.Update(newLocals, newSideEffects, newValue, newType);
         }
 
-        public override BoundNode VisitSwitchStatement(BoundSwitchStatement node)
-        {
-            var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
-            var newInnerLocals = RewriteLocals(node.InnerLocals);
-            BoundExpression boundExpression = (BoundExpression)this.Visit(node.Expression);
-            ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, newInnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality);
-        }
-
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
             var newOuterLocals = RewriteLocals(node.OuterLocals);
@@ -189,8 +180,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            // Using statements have been lowered away before the lambda and async rewriters
-            throw ExceptionUtilities.Unreachable;
+            var newLocals = RewriteLocals(node.Locals);
+            BoundMultipleLocalDeclarations declarationsOpt = (BoundMultipleLocalDeclarations)this.Visit(node.DeclarationsOpt);
+            BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
+            BoundStatement body = (BoundStatement)this.Visit(node.Body);
+            Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
+            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, node.AwaitOpt, node.DisposeMethodOpt);
         }
 
         private Conversion RewriteConversion(Conversion conversion)

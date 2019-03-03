@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void ComputeReturnType()
         {
-            if (!_lazyReturnType.IsNull)
+            if (!_lazyReturnType.IsDefault)
             {
                 return;
             }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if (!_lazyReturnType.IsNull)
+                if (!_lazyReturnType.IsDefault)
                 {
                     diagnostics.Free();
                     return;
@@ -285,6 +285,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     firstParam.Modifiers.Any(SyntaxKind.ThisKeyword);
             }
         }
+
+        // Replace with IsStatic after fixing https://github.com/dotnet/roslyn/issues/27719.
+        internal bool IsStaticLocalFunction => _syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
 
         internal override TypeSymbol IteratorElementType
         {

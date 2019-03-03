@@ -65,13 +65,22 @@ namespace Microsoft.CodeAnalysis
         Text = 25,
         /// <summary>The name of a type parameter.</summary>
         TypeParameterName = 26,
-        /// <summary>The name of a query range variable..</summary>
-        RangeVariableName = 27
+        /// <summary>The name of a query range variable.</summary>
+        RangeVariableName = 27,
+        /// <summary>The name of an enum member.</summary>
+        EnumMemberName = 28,
+        /// <summary>The name of a reduced extension method.</summary>
+        /// <remarks>
+        /// When an extension method is in it's non-reduced form it will be will be marked as MethodName.
+        /// </remarks>
+        ExtensionMethodName = 29,
+        /// <summary>The name of a field or local constant.</summary>
+        ConstantName = 30,
     }
 
     internal static class InternalSymbolDisplayPartKind
     {
-        private const SymbolDisplayPartKind @base = SymbolDisplayPartKind.RangeVariableName + 1;
+        private const SymbolDisplayPartKind @base = SymbolDisplayPartKind.ConstantName + 1;
         public const SymbolDisplayPartKind Arity = @base + 0;
         public const SymbolDisplayPartKind Other = @base + 1;
     }
@@ -80,7 +89,7 @@ namespace Microsoft.CodeAnalysis
     {
         internal static bool IsValid(this SymbolDisplayPartKind value)
         {
-            return (value >= SymbolDisplayPartKind.AliasName && value <= SymbolDisplayPartKind.RangeVariableName) ||
+            return (value >= SymbolDisplayPartKind.AliasName && value <= SymbolDisplayPartKind.ConstantName) ||
                 (value >= InternalSymbolDisplayPartKind.Arity && value <= InternalSymbolDisplayPartKind.Other);
         }
     }

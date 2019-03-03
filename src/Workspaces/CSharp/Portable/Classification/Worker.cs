@@ -98,6 +98,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 if (type != null)
                 {
                     AddClassification(span, type);
+
+                    // Additionally classify static symbols
+                    if (token.Kind() == SyntaxKind.IdentifierToken
+                        && ClassificationHelpers.IsStaticallyDeclared(token))
+                    {
+                        AddClassification(span, ClassificationTypeNames.StaticSymbol);
+                    }
                 }
             }
 

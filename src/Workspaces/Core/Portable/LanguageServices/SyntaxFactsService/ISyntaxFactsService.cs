@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetRightSideOfDot(SyntaxNode node);
 
         bool IsRightSideOfQualifiedName(SyntaxNode node);
+        bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);
 
         bool IsNameOfMemberAccessExpression(SyntaxNode node);
         bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
@@ -220,8 +221,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsParenthesizedExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfParenthesizedExpression(SyntaxNode node);
 
-        bool IsIfStatement(SyntaxNode node);
-
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
@@ -234,6 +233,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsSimpleArgument(SyntaxNode node);
         bool IsArgument(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
+        bool IsTypeArgumentList(SyntaxNode node);
+        bool IsTypeConstraint(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);
@@ -261,6 +262,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsLockStatement(SyntaxNode node);
         bool IsUsingStatement(SyntaxNode node);
         bool IsStatement(SyntaxNode node);
+        bool IsExecutableStatement(SyntaxNode node);
         bool IsParameter(SyntaxNode node);
         bool IsVariableDeclarator(SyntaxNode node);
         bool IsDeconstructionAssignment(SyntaxNode node);
@@ -320,6 +322,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsInNamespaceOrTypeContext(SyntaxNode node);
 
+        bool IsBaseTypeList(SyntaxNode node);
+
         bool IsAnonymousFunction(SyntaxNode n);
 
         bool IsInConstantContext(SyntaxNode node);
@@ -328,9 +332,25 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsTopLevelNodeWithMembers(SyntaxNode node);
         bool HasIncompleteParentMember(SyntaxNode node);
 
+        /// <summary>
+        /// A block that has no semantics other than introducing a new scope. That is only C# BlockSyntax.
+        /// </summary>
+        bool IsScopeBlock(SyntaxNode node);
+
+        /// <summary>
+        /// A node that contains a list of statements. In C#, this is BlockSyntax and SwitchSectionSyntax.
+        /// In VB, this includes all block statements such as a MultiLineIfBlockSyntax.
+        /// </summary>
         bool IsExecutableBlock(SyntaxNode node);
         SyntaxList<SyntaxNode> GetExecutableBlockStatements(SyntaxNode node);
         SyntaxNode FindInnermostCommonExecutableBlock(IEnumerable<SyntaxNode> nodes);
+
+        /// <summary>
+        /// A node that can host a list of statements or a single statement. In addition to
+        /// every "executable block", this also includes C# embedded statement owners.
+        /// </summary>
+        bool IsStatementContainer(SyntaxNode node);
+        IReadOnlyList<SyntaxNode> GetStatementContainerStatements(SyntaxNode node);
 
         bool AreEquivalent(SyntaxToken token1, SyntaxToken token2);
         bool AreEquivalent(SyntaxNode node1, SyntaxNode node2);
@@ -383,6 +403,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// that arguments name.
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
+
+        bool IsNameOfSubpattern(SyntaxNode node);
+        bool IsPropertyPatternClause(SyntaxNode node);
 
         ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
         bool IsOnTypeHeader(SyntaxNode root, int position);

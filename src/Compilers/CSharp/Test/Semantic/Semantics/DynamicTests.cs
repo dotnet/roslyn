@@ -972,7 +972,7 @@ public class C
             TestOperatorKinds(source);
         }
 
-        [Fact, WorkItem(27800, "https://github.com/dotnet/roslyn/issues/27800")]
+        [Fact, WorkItem(27800, "https://github.com/dotnet/roslyn/issues/27800"), WorkItem(32068, "https://github.com/dotnet/roslyn/issues/32068")]
         public void TestDynamicCompoundOperatorOrdering()
         {
             CompileAndVerify(@"
@@ -990,6 +990,12 @@ class DynamicTest
         }
     }
 
+    public event EventHandler<object> Event
+    {
+        add { Console.WriteLine(""add_Event""); }
+        remove { Console.WriteLine(""remove_Event""); }
+    }
+
     static dynamic GetDynamic()
     {
         Console.WriteLine(""GetDynamic"");
@@ -1002,12 +1008,22 @@ class DynamicTest
         return 1;
     }
 
+    static EventHandler<object> GetHandler()
+    {
+        Console.WriteLine(""GetHandler"");
+        return (object o1, object o2) => {};
+    }
+
     public static void Main()
     {
         Console.WriteLine(""Compound Add"");
         GetDynamic().Property += GetInt();
         Console.WriteLine(""Compound And"");
         GetDynamic().Property &= GetInt();
+        Console.WriteLine(""Compound Add Event"");
+        GetDynamic().Event += GetHandler();
+        Console.WriteLine(""Compound Remove Event"");
+        GetDynamic().Event -= GetHandler();
     }
 }", targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: @"
 Compound Add
@@ -1020,6 +1036,14 @@ GetDynamic
 get_Property
 GetInt
 set_Property
+Compound Add Event
+GetDynamic
+GetHandler
+add_Event
+Compound Remove Event
+GetDynamic
+GetHandler
+remove_Event
 ");
         }
 

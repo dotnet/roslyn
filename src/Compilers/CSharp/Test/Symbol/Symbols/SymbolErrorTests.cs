@@ -881,6 +881,59 @@ interface i1
         }
 
         [Fact]
+        public void CS0065ERR_EventNeedsBothAccessors_Interface05()
+        {
+            var text = @"
+public interface I2 { }
+
+public interface I1
+{
+    event System.Action I2.P10;
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
+                // (6,31): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(6, 31),
+                // (6,28): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(6, 28),
+                // (6,28): error CS0065: 'I1.P10': event property must have both add and remove accessors
+                //     event System.Action I2.P10;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(6, 28));
+        }
+
+        [Fact]
+        public void CS0065ERR_EventNeedsBothAccessors_Interface06()
+        {
+            var text = @"
+public interface I2 { }
+
+public interface I1
+{
+    event System.Action I2.
+P10;
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I2.
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(6, 27),
+                // (7,4): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                // P10;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(7, 4),
+                // (7,1): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
+                // P10;
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(7, 1),
+                // (7,1): error CS0065: 'I1.P10': event property must have both add and remove accessors
+                // P10;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P10").WithArguments("I1.P10").WithLocation(7, 1));
+        }
+
+        [Fact]
         public void CS0066ERR_EventNotDelegate()
         {
             var text = @"
@@ -1884,6 +1937,9 @@ public class C : I, J
 }
 ");
             compilation.VerifyDiagnostics(
+                // (13,14): error CS8646: 'I.this[int]' is explicitly implemented more than once.
+                // public class C : I, J
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C").WithArguments("I.this[int]").WithLocation(13, 14),
                 // (16,19): error CS0111: Type 'C' already defines a member called 'this' with the same parameter types
                 //     int AliasForI.this[int x] { get { return 0; } set { } } //CS0111
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "this").WithArguments("this", "C"));
@@ -8122,12 +8178,12 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,18): error CS0509: 'clz': cannot derive from sealed type 'stx'
+                // (7,24): error CS0509: 'clz': cannot derive from sealed type 'stx'
                 //     public class clz : stx { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "clz").WithArguments("NS.clz", "NS.stx").WithLocation(7, 18),
-                // (6,18): error CS0509: 'cly': cannot derive from sealed type 'clx'
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "stx").WithArguments("NS.clz", "NS.stx").WithLocation(7, 24),
+                // (6,24): error CS0509: 'cly': cannot derive from sealed type 'clx'
                 //     public class cly : clx {}
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "cly").WithArguments("NS.cly", "NS.clx").WithLocation(6, 18));
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "clx").WithArguments("NS.cly", "NS.clx").WithLocation(6, 24));
         }
 
         [Fact]
@@ -8143,15 +8199,15 @@ namespace N2
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,11): error CS0509: 'E': cannot derive from sealed type 'int'
+                // (6,15): error CS0509: 'E': cannot derive from sealed type 'int'
                 //     class E : int { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "E").WithArguments("N2.E", "int").WithLocation(6, 11),
-                // (4,11): error CS0509: 'C': cannot derive from sealed type 'E'
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "int").WithArguments("N2.E", "int").WithLocation(6, 15),
+                // (4,15): error CS0509: 'C': cannot derive from sealed type 'E'
                 //     class C : N1.E { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "C").WithArguments("N2.C", "N1.E").WithLocation(4, 11),
-                // (5,11): error CS0509: 'D': cannot derive from sealed type 'int'
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "N1.E").WithArguments("N2.C", "N1.E").WithLocation(4, 15),
+                // (5,15): error CS0509: 'D': cannot derive from sealed type 'int'
                 //     class D : System.Int32 { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "D").WithArguments("N2.D", "int").WithLocation(5, 11));
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "System.Int32").WithArguments("N2.D", "int").WithLocation(5, 15));
         }
 
         [Fact]
@@ -11152,21 +11208,21 @@ namespace N
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,11): error CS0644: 'D' cannot derive from special class 'ValueType'
+                // (5,15): error CS0644: 'D' cannot derive from special class 'ValueType'
                 //     class D : ValueType { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "D").WithArguments("N.D", "System.ValueType").WithLocation(5, 11),
-                // (6,11): error CS0644: 'E' cannot derive from special class 'Delegate'
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "ValueType").WithArguments("N.D", "System.ValueType").WithLocation(5, 15),
+                // (6,15): error CS0644: 'E' cannot derive from special class 'Delegate'
                 //     class E : Delegate { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "E").WithArguments("N.E", "System.Delegate").WithLocation(6, 11),
-                // (4,11): error CS0644: 'C' cannot derive from special class 'Enum'
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Delegate").WithArguments("N.E", "System.Delegate").WithLocation(6, 15),
+                // (4,15): error CS0644: 'C' cannot derive from special class 'Enum'
                 //     class C : Enum { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "C").WithArguments("N.C", "System.Enum").WithLocation(4, 11),
-                // (8,18): error CS0644: 'G' cannot derive from special class 'Array'
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Enum").WithArguments("N.C", "System.Enum").WithLocation(4, 15),
+                // (8,22): error CS0644: 'G' cannot derive from special class 'Array'
                 //     static class G : Array { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "G").WithArguments("N.G", "System.Array").WithLocation(8, 18),
-                // (7,18): error CS0644: 'F' cannot derive from special class 'MulticastDelegate'
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Array").WithArguments("N.G", "System.Array").WithLocation(8, 22),
+                // (7,22): error CS0644: 'F' cannot derive from special class 'MulticastDelegate'
                 //     static class F : MulticastDelegate { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "F").WithArguments("N.F", "System.MulticastDelegate").WithLocation(7, 18));
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "MulticastDelegate").WithArguments("N.F", "System.MulticastDelegate").WithLocation(7, 22));
         }
 
         [Fact]
