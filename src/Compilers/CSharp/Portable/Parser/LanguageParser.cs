@@ -603,8 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // incomplete members must be processed before we add any nodes to the body:
                                 AddIncompleteMembers(ref pendingIncompleteMembers, ref body);
 
-                                body.Members.Add(_syntaxFactory.GlobalStatement(
-                                    attributeLists: default, modifiers: default, ParseUsingStatement()));
+                                body.Members.Add(_syntaxFactory.GlobalStatement(ParseUsingStatement()));
                                 seen = NamespaceParts.MembersAndStatements;
                             }
                             else
@@ -2135,16 +2134,14 @@ tryAgain:
                         case SyntaxKind.UnsafeKeyword:
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBraceToken)
                             {
-                                return _syntaxFactory.GlobalStatement(
-                                    attributeLists: default, modifiers: default, ParseUnsafeStatement());
+                                return _syntaxFactory.GlobalStatement(ParseUnsafeStatement());
                             }
                             break;
 
                         case SyntaxKind.FixedKeyword:
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
                             {
-                                return _syntaxFactory.GlobalStatement(
-                                    attributeLists: default, modifiers: default, ParseFixedStatement());
+                                return _syntaxFactory.GlobalStatement(ParseFixedStatement());
                             }
                             break;
 
@@ -2153,16 +2150,14 @@ tryAgain:
                             {
                                 case SyntaxKind.OpenParenToken:
                                 case SyntaxKind.OpenBraceToken:
-                                    return _syntaxFactory.GlobalStatement(
-                                        attributeLists: default, modifiers: default, ParseExpressionStatement());
+                                    return _syntaxFactory.GlobalStatement(ParseExpressionStatement());
                             }
                             break;
 
                         case SyntaxKind.NewKeyword:
                             if (IsPossibleNewExpression())
                             {
-                                return _syntaxFactory.GlobalStatement(
-                                    attributeLists: default, modifiers: default, ParseExpressionStatement());
+                                return _syntaxFactory.GlobalStatement(ParseExpressionStatement());
                             }
                             break;
                     }
@@ -2262,8 +2257,7 @@ tryAgain:
                     _termState = saveTerm;
                     if (statement != null)
                     {
-                        return _syntaxFactory.GlobalStatement(
-                            attributeLists: default, modifiers: default, statement);
+                        return _syntaxFactory.GlobalStatement(statement);
                     }
                 }
 
