@@ -18,7 +18,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         [WpfFact]
         public void VerifyHostCommandsCompletionList()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
             VisualStudio.InteractiveWindow.InsertCode("#");
             VisualStudio.InteractiveWindow.InvokeCompletionList();
 
