@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
         {
             Debug.Assert(!leadingTrivia.IsDefault);
-            Debug.Assert(virtualChars != null);
+            // Debug.Assert(virtualChars != null);
             Debug.Assert(!trailingTrivia.IsDefault);
             Debug.Assert(!diagnostics.IsDefault);
             Kind = kind;

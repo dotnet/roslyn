@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static readonly SubSequenceVirtualCharSequence Empty
             = Create(ImmutableArray<VirtualChar>.Empty).GetSubSequence(default);
 
-        private string _string;
-
         protected VirtualCharSequence()
         {
         }
@@ -36,64 +34,49 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
         public abstract VirtualChar this[int index] { get; }
 
-        protected abstract string CreateStringWorker();
-
-        public string CreateString()
-        {
-            if (_string == null)
-            {
-                _string = CreateStringWorker();
-            }
-
-            return _string;
-        }
-
         public static LeafVirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
             => new ImmutableArrayVirtualCharSequence(virtualChars);
 
         public static LeafVirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData, TextSpan underlyingDataSpan)
             => new StringVirtualCharSequence(firstVirtualCharPosition, underlyingData, underlyingDataSpan);
 
-        public Enumerator GetEnumerator()
-            => new Enumerator(this);
+        //public bool IsEmpty => Length == 0;
 
-        public bool IsEmpty => Length == 0;
+        //public VirtualChar First() => this[0];
 
-        public VirtualChar First() => this[0];
+        //public VirtualChar? FirstOrNullable(Func<VirtualChar, bool> predicate)
+        //{
+        //    foreach (var ch in this)
+        //    {
+        //        if (predicate(ch))
+        //        {
+        //            return ch;
+        //        }
+        //    }
 
-        public VirtualChar? FirstOrNullable(Func<VirtualChar, bool> predicate)
-        {
-            foreach (var ch in this)
-            {
-                if (predicate(ch))
-                {
-                    return ch;
-                }
-            }
+        //    return null;
+        //}
 
-            return null;
-        }
+        //public VirtualChar Last()
+        //    => this[this.Length - 1];
 
-        public VirtualChar Last()
-            => this[this.Length - 1];
+        //public bool Contains(VirtualChar @char)
+        //    => IndexOf(@char) >= 0;
 
-        public bool Contains(VirtualChar @char)
-            => IndexOf(@char) >= 0;
+        //public int IndexOf(VirtualChar @char)
+        //{
+        //    int index = 0;
+        //    foreach (var ch in this)
+        //    {
+        //        if (ch == @char)
+        //        {
+        //            return index;
+        //        }
 
-        public int IndexOf(VirtualChar @char)
-        {
-            int index = 0;
-            foreach (var ch in this)
-            {
-                if (ch == @char)
-                {
-                    return index;
-                }
+        //        index++;
+        //    }
 
-                index++;
-            }
-
-            return -1;
-        }
+        //    return -1;
+        //}
     }
 }

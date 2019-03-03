@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         }
 
         [Conditional("DEBUG")]
-        private void CheckInvariants(SyntaxToken token, VirtualCharSequence result)
+        private void CheckInvariants(SyntaxToken token, LeafVirtualCharSequence result)
         {
             // Do some invariant checking to make sure we processed the string token the same
             // way the C# and VB compilers did.
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 if (IsStringLiteralToken(token))
                 {
                     var expectedValueText = token.ValueText;
-                    var actualValueText = result.CreateString();
+                    var actualValueText = result.GetFullSubSequence().CreateString();
                     Debug.Assert(expectedValueText == actualValueText);
                 }
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                         currentVC = nextVC;
                     }
 
-                    var lastVC = result.Last();
+                    var lastVC = result[result.Length - 1];
 
                     if (IsStringLiteralToken(token))
                     {

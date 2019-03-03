@@ -43,8 +43,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                     _underlyingData[_underlyingDataSpan.Start + index],
                     new TextSpan(_firstVirtualCharPosition + index, length: 1));
 
-            protected override string CreateStringWorker()
-                => _underlyingData.Substring(_underlyingDataSpan.Start, _underlyingDataSpan.Length);
+            //protected override string CreateStringWorker()
+            //    => _underlyingData.Substring(_underlyingDataSpan.Start, _underlyingDataSpan.Length);
         }
     }
 }

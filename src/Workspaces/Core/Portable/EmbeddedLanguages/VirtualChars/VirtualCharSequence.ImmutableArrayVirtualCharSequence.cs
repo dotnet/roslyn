@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             public override int Length => _data.Length;
             public override VirtualChar this[int index] => _data[index];
 
-            protected override string CreateStringWorker()
-                => _data.CreateString();
+            //protected override string CreateStringWorker()
+            //    => _data.CreateString();
         }
     }
 }

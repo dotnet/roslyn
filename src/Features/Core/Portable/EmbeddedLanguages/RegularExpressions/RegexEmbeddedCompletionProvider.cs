@@ -167,7 +167,8 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
         /// Produces completions using the previous character to determine which set of
         /// regex items to show.
         /// </summary>
-        private void ProvideCompletionsBasedOffOfPrecedingCharacter(EmbeddedCompletionContext context)
+        private void ProvideCompletionsBasedOffOfPrecedingCharacter(
+            EmbeddedCompletionContext context)
         {
             var previousVirtualCharOpt = context.Tree.Text.FirstOrNullable(vc => vc.Span.Contains(context.Position - 1));
             if (previousVirtualCharOpt == null)

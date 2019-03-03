@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// </summary>
     internal abstract partial class LeafVirtualCharSequence : VirtualCharSequence
     {
+        public SubSequenceVirtualCharSequence GetFullSubSequence()
+            => GetSubSequence(new TextSpan(0, this.Length));
+
         public SubSequenceVirtualCharSequence GetSubSequence(TextSpan span)
            => new SubSequenceVirtualCharSequence(this, span);
     }

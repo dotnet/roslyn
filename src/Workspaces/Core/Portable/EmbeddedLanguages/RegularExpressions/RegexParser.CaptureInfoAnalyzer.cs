@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         /// </summary>
         private struct CaptureInfoAnalyzer
         {
-            private readonly VirtualCharSequence _text;
+            private readonly SubSequenceVirtualCharSequence _text;
             private readonly ImmutableDictionary<int, TextSpan>.Builder _captureNumberToSpan;
             private readonly ImmutableDictionary<string, TextSpan>.Builder _captureNameToSpan;
             private readonly ArrayBuilder<string> _captureNames;
             private int _autoNumber;
 
-            private CaptureInfoAnalyzer(VirtualCharSequence text)
+            private CaptureInfoAnalyzer(SubSequenceVirtualCharSequence text)
             {
                 _text = text;
                 _captureNumberToSpan = ImmutableDictionary.CreateBuilder<int, TextSpan>();
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             }
 
             public static (ImmutableDictionary<string, TextSpan>, ImmutableDictionary<int, TextSpan>) Analyze(
-                VirtualCharSequence text, RegexCompilationUnit root, RegexOptions options)
+                SubSequenceVirtualCharSequence text, RegexCompilationUnit root, RegexOptions options)
             {
                 var analyzer = new CaptureInfoAnalyzer(text);
                 return analyzer.Analyze(root, options);

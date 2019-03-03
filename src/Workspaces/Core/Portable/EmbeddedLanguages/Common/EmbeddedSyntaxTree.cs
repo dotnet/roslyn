@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         where TSyntaxNode : EmbeddedSyntaxNode<TSyntaxKind, TSyntaxNode>
         where TCompilationUnitSyntax : TSyntaxNode
     {
-        public readonly LeafVirtualCharSequence Text;
+        public readonly SubSequenceVirtualCharSequence Text;
         public readonly TCompilationUnitSyntax Root;
         public readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
 
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             TCompilationUnitSyntax root,
             ImmutableArray<EmbeddedDiagnostic> diagnostics)
         {
-            Text = text;
+            Text = text.GetFullSubSequence();
             Root = root;
             Diagnostics = diagnostics;
         }
