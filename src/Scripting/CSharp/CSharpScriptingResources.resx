@@ -141,7 +141,4 @@ Options:
   --                             Indicates that the remaining arguments should not be treated as options.
 ]]></value>
   </data>
-  <data name="CannotSetCSharpLanguageVersion" xml:space="preserve">
-    <value>Cannot set C# LanguageVersion because ParseOptions were already configured for a different language.</value>
-  </data>
 </root>
