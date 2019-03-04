@@ -515,7 +515,19 @@ namespace Analyzer.Utilities.Extensions
             switch (pattern)
             {
                 case IDeclarationPatternOperation declarationPattern:
-                    return ((ILocalSymbol)declarationPattern.DeclaredSymbol).Type;
+                    switch (declarationPattern.DeclaredSymbol)
+                    {
+                        case ILocalSymbol local:
+                            return local.Type;
+
+                        case IDiscardSymbol discard:
+                            return discard.Type;
+
+                        default:
+                            // TODO use the new IOperation API 'IDeclarationPatternOperation.MatchedType' when we move the repo
+                            // to use Microsoft.CodeAnalysis 3.0 or greater.
+                            return null;
+                    }
 
                 case IConstantPatternOperation constantPattern:
                     return constantPattern.Value.Type;

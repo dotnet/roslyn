@@ -64,9 +64,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             protected override void SetAbstractValue(AbstractLocation location, DisposeAbstractValue value)
             {
-                Debug.Assert(location.IsNull || location.LocationTypeOpt.IsDisposable(WellKnownTypeProvider.IDisposable));
-
-                if (!location.IsNull)
+                if (!location.IsNull &&
+                    location.LocationTypeOpt != null &&
+                    !location.LocationTypeOpt.IsValueType &&
+                    location.LocationTypeOpt.IsDisposable(WellKnownTypeProvider.IDisposable))
                 {
                     CurrentAnalysisData[location] = value;
                 }
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     case DisposeMethodKind.DisposeBool:
                     case DisposeMethodKind.DisposeAsync:
                         HandleDisposingOperation(originalOperation, instance);
-                        break;
+                        return value;
 
                     case DisposeMethodKind.Close:
                         // FxCop compat: Calling "this.Close" shouldn't count as disposing the object within the implementation of Dispose.

@@ -47,5 +47,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         }
 
         public bool IsTrackedEntity(AnalysisEntity analysisEntity) => _defaultPointsToValueMapBuilder.ContainsKey(analysisEntity);
+        public bool HasAnyTrackedEntity => _defaultPointsToValueMapBuilder.Count > 0;
     }
 }

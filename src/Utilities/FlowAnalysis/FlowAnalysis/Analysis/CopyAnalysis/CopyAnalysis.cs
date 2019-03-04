@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Threading;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -17,23 +19,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
         private CopyAnalysis(CopyDataFlowOperationVisitor operationVisitor)
             : base(operationVisitor.AnalysisDomain, operationVisitor)
         {
-        }
-
-        public static CopyAnalysisResult GetOrComputeResult(
-            ControlFlowGraph cfg,
-            ISymbol owningSymbol,
-            WellKnownTypeProvider wellKnownTypeProvider,
-            AnalyzerOptions analyzerOptions,
-            DiagnosticDescriptor rule,
-            CancellationToken cancellationToken,
-            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
-            bool pessimisticAnalysis = true,
-            bool performPointsToAnalysis = true)
-        {
-            var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
-            return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
-                interproceduralAnalysisConfig, pessimisticAnalysis, performPointsToAnalysis);
         }
 
         public static CopyAnalysisResult GetOrComputeResult(

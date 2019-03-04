@@ -104,11 +104,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return result;
             }
 
-            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+            protected override void AddTrackedEntities(PointsToAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
             {
+                if (!analysisData.HasAnyAbstractValue &&
+                    (forInterproceduralAnalysis || !_defaultPointsToValueGenerator.HasAnyTrackedEntity))
+                {
+                    return;
+                }
+
                 foreach (var entity in _trackedEntitiesBuilder.AllEntities)
                 {
-                    if (CurrentAnalysisData.HasAbstractValue(entity) ||
+                    if (analysisData.HasAbstractValue(entity) ||
                         !forInterproceduralAnalysis && _defaultPointsToValueGenerator.IsTrackedEntity(entity))
                     {
                         builder.Add(entity);
@@ -120,12 +126,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             protected override bool HasAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.HasAbstractValue(analysisEntity);
 
-            protected override void StopTrackingEntity(AnalysisEntity analysisEntity)
-            {
-                AssertValidPointsToAnalysisData(CurrentAnalysisData);
-                CurrentAnalysisData.RemoveEntries(analysisEntity);
-                AssertValidPointsToAnalysisData(CurrentAnalysisData);
-            }
+            protected override void StopTrackingEntity(AnalysisEntity analysisEntity, PointsToAnalysisData analysisData)
+                => analysisData.RemoveEntries(analysisEntity);
 
             protected override PointsToAbstractValue GetAbstractValue(AnalysisEntity analysisEntity)
             {
@@ -171,6 +173,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
 
             private static void SetAbstractValueCore(PointsToAnalysisData pointsToAnalysisData, AnalysisEntity analysisEntity, PointsToAbstractValue value)
                 => pointsToAnalysisData.SetAbstractValue(analysisEntity, value);
+
+            protected override void SetAbstractValueForTupleElementAssignment(AnalysisEntity tupleElementEntity, IOperation assignedValueOperation, PointsToAbstractValue assignedValue)
+            {
+                if (assignedValue == PointsToAbstractValue.Undefined)
+                {
+                    return;
+                }
+
+                base.SetAbstractValueForTupleElementAssignment(tupleElementEntity, assignedValueOperation, assignedValue);
+            }
 
             protected override void ResetAbstractValue(AnalysisEntity analysisEntity)
             {
@@ -505,6 +517,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 => new PointsToAnalysisData(analysisResult.ExitBlockOutput.Data);
             protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(PointsToAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
                 => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
+            protected override void AssertValidAnalysisData(PointsToAnalysisData analysisData)
+                => AssertValidPointsToAnalysisData(analysisData);
             protected override bool Equals(PointsToAnalysisData value1, PointsToAnalysisData value2)
                 => value1.Equals(value2);
 

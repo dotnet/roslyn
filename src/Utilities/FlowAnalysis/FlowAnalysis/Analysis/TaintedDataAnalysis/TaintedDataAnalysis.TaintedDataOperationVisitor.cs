@@ -43,8 +43,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return builder.ToImmutableArray();
             }
 
-            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
-                => CurrentAnalysisData.AddTrackedEntities(builder);
+            protected override void AddTrackedEntities(TaintedDataAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+                => analysisData.AddTrackedEntities(builder);
 
             protected override bool Equals(TaintedDataAnalysisData value1, TaintedDataAnalysisData value2)
             {
@@ -125,9 +125,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
             }
 
-            protected override void StopTrackingEntity(AnalysisEntity analysisEntity)
+            protected override void StopTrackingEntity(AnalysisEntity analysisEntity, TaintedDataAnalysisData analysisData)
             {
-                this.CurrentAnalysisData.RemoveEntries(analysisEntity);
+                analysisData.RemoveEntries(analysisEntity);
             }
 
             public override TaintedDataAbstractValue DefaultVisit(IOperation operation, object argument)

@@ -170,6 +170,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
+        public bool HasConstantValue
+        {
+            get
+            {
+                switch (SymbolOpt)
+                {
+                    case IFieldSymbol field:
+                        return field.HasConstantValue;
+
+                    case ILocalSymbol local:
+                        return local.HasConstantValue;
+
+                    default:
+                        return false;
+                }
+            }
+        }
+
         public ISymbol SymbolOpt { get; }
         public ImmutableArray<AbstractIndex> Indices { get; }
         public SyntaxNode InstanceReferenceOperationSyntaxOpt { get; }

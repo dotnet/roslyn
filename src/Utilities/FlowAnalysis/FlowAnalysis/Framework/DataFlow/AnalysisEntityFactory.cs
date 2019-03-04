@@ -226,8 +226,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     break;
 
                 case IDeclarationPatternOperation declarationPattern:
-                    symbolOpt = declarationPattern.DeclaredSymbol;
-                    type = ((ILocalSymbol)symbolOpt).Type;
+                    var declaredLocal = declarationPattern.DeclaredSymbol as ILocalSymbol;
+                    symbolOpt = declaredLocal;
+                    type = declaredLocal?.Type;
                     break;
 
                 default:

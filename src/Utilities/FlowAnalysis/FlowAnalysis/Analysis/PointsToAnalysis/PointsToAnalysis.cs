@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using System.Threading;
+using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -21,24 +22,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
         private PointsToAnalysis(PointsToAnalysisDomain analysisDomain, PointsToDataFlowOperationVisitor operationVisitor)
             : base(analysisDomain, operationVisitor)
         {
-        }
-
-        public static PointsToAnalysisResult GetOrComputeResult(
-            ControlFlowGraph cfg,
-            ISymbol owningSymbol,
-            WellKnownTypeProvider wellKnownTypeProvider,
-            AnalyzerOptions analyzerOptions,
-            DiagnosticDescriptor rule,
-            CancellationToken cancellationToken,
-            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
-            bool pessimisticAnalysis = true,
-            bool performCopyAnalysis = true,
-            bool exceptionPathsAnalysis = false)
-        {
-            var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
-                analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
-            return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
-                out var _, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
         }
 
         public static PointsToAnalysisResult GetOrComputeResult(
