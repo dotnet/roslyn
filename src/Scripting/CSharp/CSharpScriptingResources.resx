@@ -124,7 +124,7 @@
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
   </data>
   <data name="InteractiveHelp" xml:space="preserve">
-    <value>Usage: csi [option] ... [script-file.csx] [script-argument] ...
+    <value><![CDATA[Usage: csi [option] ... [script-file.csx] [script-argument] ...
 
 Executes script-file.csx if specified, otherwise launches an interactive REPL (Read Eval Print Loop).
 
@@ -132,14 +132,14 @@ Options:
   /help                          Display this usage message (alternative form: /?)
   /version                       Display the version and exit
   /i                             Drop to REPL after executing the specified script.
-  /r:&lt;file&gt;                      Reference metadata from the specified assembly file (alternative form: /reference)
-  /r:&lt;file list&gt;                 Reference metadata from the specified assembly files (alternative form: /reference)
-  /lib:&lt;path list&gt;               List of directories where to look for libraries specified by #r directive. 
+  /r:<file>                      Reference metadata from the specified assembly file (alternative form: /reference)
+  /r:<file list>                 Reference metadata from the specified assembly files (alternative form: /reference)
+  /lib:<path list>               List of directories where to look for libraries specified by #r directive. 
                                  (alternative forms: /libPath /libPaths)
-  /u:&lt;namespace&gt;                 Define global namespace using (alternative forms: /using, /usings, /import, /imports)
-  @&lt;file&gt;                        Read response file for more options
+  /u:<namespace>                 Define global namespace using (alternative forms: /using, /usings, /import, /imports)
+  @<file>                        Read response file for more options
   --                             Indicates that the remaining arguments should not be treated as options.
-</value>
+]]></value>
   </data>
   <data name="CannotSetCSharpLanguageVersion" xml:space="preserve">
     <value>Cannot set C# LanguageVersion because ParseOptions were already configured for a different language.</value>

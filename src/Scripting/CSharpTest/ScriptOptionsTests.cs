@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
         }
 
         [Fact]
-        public void WithWithLanguageVersion_SameValueTwice_DoesNotCreateNewInstance()
+        public void WithLanguageVersion_SameValueTwice_DoesNotCreateNewInstance()
         {
             var options = ScriptOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
             Assert.Same(options, options.WithLanguageVersion(LanguageVersion.CSharp8));
         }
 
         [Fact]
-        public void WithWithLanguageVersion_NonCSharpParseOptions_Throws()
+        public void WithLanguageVersion_NonCSharpParseOptions_Throws()
         {
             var options = ScriptOptions.Default.WithParseOptions(new VisualBasicParseOptions(kind: SourceCodeKind.Script, languageVersion: VisualBasic.LanguageVersion.Latest));
             Assert.Throws<InvalidOperationException>(() => options.WithLanguageVersion(LanguageVersion.CSharp8));
