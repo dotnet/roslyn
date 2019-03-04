@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static readonly VirtualCharSequence Empty = Create(ImmutableArray<VirtualChar>.Empty);
 
         public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
-            => new ImmutableArrayChunk(virtualChars).GetFullSequence();
+            => new VirtualCharSequence(new ImmutableArrayChunk(virtualChars));
 
         public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData, TextSpan underlyingDataSpan)
-            => new StringChunk(firstVirtualCharPosition, underlyingData, underlyingDataSpan).GetFullSequence();
+            => new VirtualCharSequence(new StringChunk(firstVirtualCharPosition, underlyingData, underlyingDataSpan));
 
         /// <summary>
         /// The actual characters that this <see cref="VirtualCharSequence"/> is a portion of.
@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// The portion of <see cref="_leafCharacters"/> that is being exposed.
         /// </summary>
         private readonly TextSpan _span;
+
+        private VirtualCharSequence(Chunk sequence) : this(sequence, new TextSpan(0, sequence.Length))
+        {
+        }
 
         private VirtualCharSequence(Chunk sequence, TextSpan span)
         {

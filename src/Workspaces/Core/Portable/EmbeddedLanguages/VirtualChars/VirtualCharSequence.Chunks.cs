@@ -12,11 +12,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// is used so we can expose <see cref="VirtualChar"/>s over an <see cref="ImmutableArray{VirtualChar}"/>
         /// or over a <see cref="string"/>.  The latter is especially useful for reducing
         /// memory usage in common cases of string tokens without escapes.
-        /// 
-        /// Note: this type represents tha raw contiguous data for the entire string
-        /// token contents.  Consumers should use <see cref="VirtualCharSequence"/> which 
-        /// allows them to consume portions of this raw data without incurring heap
-        /// allocations.
         /// </summary>
         private abstract partial class Chunk
         {
@@ -25,11 +20,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             }
 
             public abstract int Length { get; }
-
             public abstract VirtualChar this[int index] { get; }
-
-            public VirtualCharSequence GetFullSequence()
-                => new VirtualCharSequence(this, new TextSpan(0, this.Length));
         }
 
         /// <summary>

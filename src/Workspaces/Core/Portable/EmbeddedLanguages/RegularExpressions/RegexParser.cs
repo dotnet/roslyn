@@ -293,49 +293,53 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 // Got a text node.  Try to combine it with all following nodes.
                 index = MergeAndAddAdjacentTextNodes(list, final, index);
             }
-        }
 
-        private int MergeAndAddAdjacentTextNodes(
-            ArrayBuilder<RegexExpressionNode> list,
-            ArrayBuilder<RegexExpressionNode> final,
-            int index)
-        {
-            var startIndex = index;
-            var startTextNode = (RegexTextNode)list[startIndex];
+            return;
 
-            // Keep walking forward as long as we hit text nodes and we can 
-            // merge that text node with the previous text node.
-            index++;
-            var lastTextNode = startTextNode;
-            for (; index < list.Count; index++)
+            // local functions
+
+            static int MergeAndAddAdjacentTextNodes(
+                ArrayBuilder<RegexExpressionNode> list,
+                ArrayBuilder<RegexExpressionNode> final,
+                int index)
             {
-                var currentNode = list[index];
-                if (!CanMerge(lastTextNode, currentNode))
+                var startIndex = index;
+                var startTextNode = (RegexTextNode)list[startIndex];
+
+                // Keep walking forward as long as we hit text nodes and we can 
+                // merge that text node with the previous text node.
+                index++;
+                var lastTextNode = startTextNode;
+                for (; index < list.Count; index++)
                 {
-                    // Hit something we couldn't merge with our last text node
-                    // Break out and merge what we have so far.  'index' will
-                    // be pointing at the right node for our caller.
-                    break;
+                    var currentNode = list[index];
+                    if (!CanMerge(lastTextNode, currentNode))
+                    {
+                        // Hit something we couldn't merge with our last text node
+                        // Break out and merge what we have so far.  'index' will
+                        // be pointing at the right node for our caller.
+                        break;
+                    }
+
+                    lastTextNode = (RegexTextNode)currentNode;
                 }
 
-                lastTextNode = (RegexTextNode)currentNode;
+                // If didn't have multiple text nodes in a row.  Just return the
+                // starting node.  Otherwise, create one text node that has a token
+                // that spans from the start of the first node to the end of the last node.
+                final.Add(startTextNode == lastTextNode
+                    ? startTextNode
+                    : new RegexTextNode(CreateToken(
+                        RegexKind.TextToken, startTextNode.TextToken.LeadingTrivia,
+                        VirtualCharSequence.FromBounds(
+                            startTextNode.TextToken.VirtualChars,
+                            lastTextNode.TextToken.VirtualChars))));
+
+                return index;
             }
 
-            // If didn't have multiple text nodes in a row.  Just return the
-            // starting node.  Otherwise, create one text node that has a token
-            // that spans from the start of the first node to the end of the last node.
-            final.Add(startTextNode == lastTextNode
-                ? startTextNode
-                : new RegexTextNode(CreateToken(
-                    RegexKind.TextToken, startTextNode.TextToken.LeadingTrivia,
-                    VirtualCharSequence.FromBounds(
-                        startTextNode.TextToken.VirtualChars,
-                        lastTextNode.TextToken.VirtualChars))));
-
-            return index;
-
             // Local functions
-            bool CanMerge(RegexTextNode lastNode, RegexExpressionNode next)
+            static bool CanMerge(RegexTextNode lastNode, RegexExpressionNode next)
             {
                 if (next.Kind == RegexKind.Text)
                 {
