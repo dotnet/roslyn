@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 }
 
                 return CreateVirtualCharSequence(
-                    tokenText, startIndexInclusive, endIndexExclusive, result, offset);
+                    tokenText, offset, startIndexInclusive, endIndexExclusive, result);
             }
             finally
             {

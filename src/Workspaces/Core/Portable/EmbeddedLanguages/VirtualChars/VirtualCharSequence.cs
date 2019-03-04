@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
             => new VirtualCharSequence(new ImmutableArrayChunk(virtualChars));
 
-        public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData, TextSpan underlyingDataSpan)
-            => new VirtualCharSequence(new StringChunk(firstVirtualCharPosition, underlyingData, underlyingDataSpan));
+        public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData)
+            => new VirtualCharSequence(new StringChunk(firstVirtualCharPosition, underlyingData));
 
         /// <summary>
         /// The actual characters that this <see cref="VirtualCharSequence"/> is a portion of.
@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         private readonly Chunk _leafCharacters;
 
         /// <summary>
-        /// The portion of <see cref="_leafCharacters"/> that is being exposed.
+        /// The portion of <see cref="_leafCharacters"/> that is being exposed.  This span 
+        /// is `[inclusive, exclusive)`.
         /// </summary>
         private readonly TextSpan _span;
 

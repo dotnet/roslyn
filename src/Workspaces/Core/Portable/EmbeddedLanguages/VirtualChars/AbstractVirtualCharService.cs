@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 }
 
                 return CreateVirtualCharSequence(
-                    tokenText, startIndexInclusive, endIndexExclusive, result, offset);
+                    tokenText, offset, startIndexInclusive, endIndexExclusive, result);
             }
             finally
             {
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         }
 
         protected static VirtualCharSequence CreateVirtualCharSequence(
-            string tokenText, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<VirtualChar> result, int offset)
+            string tokenText, int offset, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<VirtualChar> result)
         {
             // Check if we actually needed to create any special virtual chars.
             // if not, we can avoid the entire array allocation and just wrap
@@ -179,9 +179,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var textLength = endIndexExclusive - startIndexInclusive;
             if (textLength == result.Count)
             {
-                return VirtualCharSequence.Create(
-                    offset + startIndexInclusive, tokenText,
-                    TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
+                var sequence = VirtualCharSequence.Create(offset, tokenText);
+                return sequence.GetSubSequence(TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
             }
 
             return VirtualCharSequence.Create(result.ToImmutable());
