@@ -154,19 +154,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BindAttributeConstructor(node, attributeTypeForBinding, analyzedArguments.ConstructorArguments, diagnostics, ref resultKind, suppressErrors: attributeType.IsErrorType(), useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if ((object)attributeConstructor != null)
-            {
-                ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
-            }
-
-            if (attributeConstructor?.Parameters.Any(p => p.RefKind == RefKind.In) == true)
-            {
-                Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
-            }
-
             if (!(attributeConstructor is null))
             {
-                CheckArgumentNullability(attributeConstructor, analyzedArguments, diagnostics);
+                ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
+
+                if (attributeConstructor.Parameters.Any(p => p.RefKind == RefKind.In) == true)
+                {
+                    Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
+                }
+
+                if (Compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion()) //TODO: needed?
+                {
+                    CheckArgumentNullability(attributeConstructor, analyzedArguments, diagnostics);
+                }
             }
 
             var constructorArguments = analyzedArguments.ConstructorArguments;
@@ -182,17 +182,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckArgumentNullability(MethodSymbol attributeConstructor, AnalyzedAttributeArguments arguments, DiagnosticBag diagnostics)
         {
             // Check constructor arguments
-            for (int i = 0; i < attributeConstructor.ParameterCount && i < arguments.ConstructorArguments.Arguments.Count; i++)
+            for (int i = 0; i < arguments.ConstructorArguments.Arguments.Count; i++)
             {
-                var parameter = attributeConstructor.Parameters[i];
                 var argument = arguments.ConstructorArguments.Argument(i);
-                reportPossibleNullabilityMismatch(parameter.Type, argument);
+                var argName = arguments.ConstructorArguments.Name(i);
+
+                // map the argument back to the correct parameter
+                var parameter = argName == null
+                                ? attributeConstructor.Parameters[i]
+                                : attributeConstructor.Parameters.Single(p => p.Name == argName);
+
+                reportPossibleNullabilityMismatch(parameter.Type, argument, parameter.IsParams);
             }
 
             // Check assignments
-            for (int i = 0; i < arguments.NamedArguments.Length; i++)
+            foreach (BoundAssignmentOperator assignment in arguments.NamedArguments)
             {
-                var assignment = arguments.NamedArguments[i] as BoundAssignmentOperator;
                 TypeSymbolWithAnnotations assignmentType;
                 switch (assignment.Left)
                 {
@@ -203,18 +208,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         assignmentType = fieldAccess.FieldSymbol.Type;
                         break;
                     default:
-                        throw ExceptionUtilities.Unreachable;
+                        continue; 
                 }
 
                 reportPossibleNullabilityMismatch(assignmentType, assignment.Right);
             }
 
-            void reportPossibleNullabilityMismatch(TypeSymbolWithAnnotations destination, BoundExpression sourceExpression)
+            void reportPossibleNullabilityMismatch(TypeSymbolWithAnnotations destination, BoundExpression sourceExpression, bool destinationIsParams = false)
             {
                 if (IsNullableEnabled(sourceExpression.SyntaxTree, sourceExpression.Syntax.SpanStart))
                 {
                     if (destination.NullableAnnotation == NullableAnnotation.NotAnnotated &&
-                        sourceExpression.ConstantValue == ConstantValue.Null)
+                       sourceExpression.ConstantValue == ConstantValue.Null &&
+                       !isSupressed(sourceExpression) &&
+                       !destinationIsParams)
                     {
                         // passing null to a non-nullable parameter
                         diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, sourceExpression.Syntax.GetLocation());
@@ -223,7 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                              destination.TypeSymbol is ArrayTypeSymbol destArrayType)
                     {
                         if (sourceArrayType.ElementType.NullableAnnotation == NullableAnnotation.Annotated &&
-                            destArrayType.ElementType.NullableAnnotation == NullableAnnotation.NotAnnotated)
+                            destArrayType.ElementType.NullableAnnotation == NullableAnnotation.NotAnnotated &&
+                            !isSupressed(sourceExpression))
                         {
                             // passing an array of nullable to an array of non-nullable
                             diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax.GetLocation(), sourceExpression.Type, destination.TypeSymbol);
@@ -234,7 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             foreach (var initExpr in arrayCreation.InitializerOpt.Initializers)
                             {
-                                if (initExpr.ConstantValue == ConstantValue.Null)
+                                if (initExpr.ConstantValue == ConstantValue.Null &&
+                                    !isSupressed(initExpr))
                                 {
                                     // we found null in a non null array initializer, so warn and stop looking further
                                     diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, initExpr.Syntax.GetLocation());
@@ -244,6 +253,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
+            }
+
+            bool isSupressed(BoundExpression sourceExpression)
+            {
+                return sourceExpression.IsSuppressed ||
+                       sourceExpression is BoundConversion conversion &&
+                       conversion.Operand.IsSuppressed;
             }
         }
 
