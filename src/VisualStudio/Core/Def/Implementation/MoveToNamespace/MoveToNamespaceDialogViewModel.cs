@@ -34,24 +34,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         public void OnNamespaceUpdated()
         {
             var isNewNamespace = !AvailableNamespaces.Contains(NamespaceName);
-            var isValidName = !isNewNamespace || true /* ToDo: Determine valid namespace if new*/;
+            var isValidName = !isNewNamespace || IsValidNamespace(NamespaceName);
 
             if (isNewNamespace && isValidName)
             {
                 Icon = KnownMonikers.StatusInformation;
-                Message = "Something about creating a new namespace goes here.";
+                Message = $"'{NamespaceName}' will be created as a new namespace";
                 ShowMessage = true;
             }
             else if (!isValidName)
             {
                 Icon = KnownMonikers.StatusError;
-                Message = "Something about this being an invalid namespace";
+                Message = $"'{NamespaceName}' is not a valid namespace";
                 ShowMessage = true;
             }
             else
             {
                 ShowMessage = false;
             }
+        }
+
+        private static bool IsValidNamespace(string @namespace)
+        {
+            return !@namespace.Contains(" ");
         }
 
         private string _namespaceName;

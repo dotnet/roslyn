@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Windows;
+using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
@@ -21,6 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             : base(helpTopic: "vs.csharp.refactoring.movetonamespace")
         {
             _viewModel = viewModel;
+
+            // Set focus to first tab control when the window is loaded
+            Loaded += (s, e) => MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
 
             InitializeComponent();
             DataContext = viewModel;

@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
+        public CSharpMoveToNamespaceService(
+            [Import(AllowDefault = true)] IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
             : base(moveToNamespaceOptionsService)
         {
         }
