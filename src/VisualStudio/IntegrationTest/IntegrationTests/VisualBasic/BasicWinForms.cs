@@ -49,9 +49,12 @@ End Class");
             VisualStudio.Editor.Verify.CompletionItemDoNotExist("ToString");
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void AddControl()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Trait(Traits.Feature, "Designer")]
+        [IterationData(25)]
+        public void AddControl(int iteration)
         {
+            _ = iteration;
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
@@ -62,9 +65,12 @@ End Class");
             Assert.Contains(@"Friend WithEvents SomeButton As Button", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void ChangeControlProperty()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Trait(Traits.Feature, "Designer")]
+        [IterationData(25)]
+        public void ChangeControlProperty(int iteration)
         {
+            _ = iteration;
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
@@ -75,9 +81,12 @@ End Class");
             Assert.Contains(@"Me.SomeButton.Text = ""NewButtonText""", actualText);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
-        public void ChangeControlPropertyInCode()
+        [WpfTheory, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Trait(Traits.Feature, "Designer")]
+        [IterationData(25)]
+        public void ChangeControlPropertyInCode(int iteration)
         {
+            _ = iteration;
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
