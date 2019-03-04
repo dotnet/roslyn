@@ -481,10 +481,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Note: RValueOnly is checked at the beginning of this method. Since we are here we need more than readable.
                     //"this" is readonly in members of readonly structs, unless we are in a constructor.
-                    if (!thisref.Type.IsValueType ||
-                            (RequiresAssignableVariable(valueKind) &&
-                             thisref.Type.IsReadOnly &&
-                             (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
+
+                    bool isLvalueError = !thisref.Type.IsValueType ||
+                        (RequiresAssignableVariable(valueKind) &&
+                         ContainingMemberOrLambda is MethodSymbol method &&
+                         method.MethodKind != MethodKind.Constructor &&
+                         (method.IsReadOnly || thisref.Type.IsReadOnly));
+
+                    if (isLvalueError)
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                         Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
@@ -2990,7 +2994,7 @@ moreArguments:
                         return true;
                     }
 
-                    if (!IsAnyReadOnly(addressKind) && type.IsReadOnly)
+                    if (!IsAnyReadOnly(addressKind) && (type.IsReadOnly || method.IsReadOnly))
                     {
                         return method.MethodKind == MethodKind.Constructor;
                     }

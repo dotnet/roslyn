@@ -154,6 +154,152 @@ interface I1
             );
         }
 
+        #region wip
+
+        [Fact]
+        public void WriteableInstanceFields_ReadOnlyMethod()
+        {
+            var text = @"
+public struct A
+{
+    public static int s;
+
+    int x;
+
+    readonly void AssignField()
+    {
+        // error
+        this.x = 1;
+
+        A a = default;
+        // OK
+        a.x = 3;
+        // OK
+        s = 5;
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         this.x = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this").WithLocation(11, 9));
+        }
+
+        // TODO: test where readonly method calls readonly method
+
+        [Fact]
+        public void ReadOnlyMethod_CallNormalMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+
+    public readonly void M1()
+    {
+        // should create local copy
+        M2();
+        System.Console.Write(i);
+    }
+
+    void M2()
+    {
+        i = 42;
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        s.M1();
+    }
+}
+";
+
+            // TODO: emit a warning for implicit local copy of 'this'
+            var verifier = CompileAndVerify(csharp, expectedOutput: "1");
+            verifier.VerifyIL("S.M1", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""void S.M2()""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""int S.i""
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyStruct_CallNormalMethodOnField()
+        {
+            var csharp = @"
+public readonly struct S1
+{
+    public readonly S2 s2;
+    public void M1()
+    {
+        s2.M2();
+    }
+}
+
+public struct S2
+{
+    public int i;
+    public void M2()
+    {
+        i = 42;
+    }
+
+    static void Main()
+    {
+        var s1 = new S1();
+        s1.M1();
+        System.Console.Write(s1.s2.i);
+    }
+}
+";
+            CompileAndVerify(csharp, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallNormalMethodOnField()
+        {
+            var csharp = @"
+public struct S1
+{
+    public S2 s2;
+    public readonly void M1()
+    {
+        s2.M2();
+    }
+}
+
+public struct S2
+{
+    public int i;
+    public void M2()
+    {
+        i = 42;
+    }
+
+    static void Main()
+    {
+        var s1 = new S1();
+        s1.M1();
+        System.Console.Write(s1.s2.i);
+    }
+}
+";
+            CompileAndVerify(csharp, expectedOutput: "0");
+        }
+
+        #endregion
+
         private static string ilreadonlyStructWithWriteableFieldIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
        extends [mscorlib]System.Attribute
@@ -268,8 +414,7 @@ public struct S
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();
 
-            var method = (SourceMemberMethodSymbol)comp.GetMember<NamedTypeSymbol>("S").GetMember<MethodSymbol>("M");
-            // PROTOTYPE: add `public abstract bool IsReadOnly` to MethodSymbol and implement in subtypes?
+            var method = comp.GetMember<NamedTypeSymbol>("S").GetMember<MethodSymbol>("M");
             Assert.True(method.IsReadOnly);
         }
 
