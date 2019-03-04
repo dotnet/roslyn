@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
         protected abstract bool IsStringLiteralToken(SyntaxToken token);
-        protected abstract LeafCharacters TryConvertToLeafCharacters(SyntaxToken token);
+        protected abstract VirtualCharSequence TryConvertToVirtualCharsWorker(SyntaxToken token);
 
         protected static bool TryAddBraceEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
@@ -41,11 +41,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
                 return default;
             }
 
-            var result = TryConvertToLeafCharacters(token);
-            var sequence = result == null ? default : result.GetFullSequence();
-            CheckInvariants(token, sequence);
+            var result = TryConvertToVirtualCharsWorker(token);
+            CheckInvariants(token, result);
 
-            return sequence;
+            return result;
         }
 
         [Conditional("DEBUG")]
@@ -104,7 +103,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// how normal VB literals and c# verbatim string literals work.
         /// </summary>
         /// <param name="startDelimiter">The start characters string.  " in VB and @" in C#</param>
-        protected static LeafCharacters TryConvertSimpleDoubleQuoteString(
+        protected static VirtualCharSequence TryConvertSimpleDoubleQuoteString(
             SyntaxToken token, string startDelimiter, string endDelimiter, bool escapeBraces)
         {
             Debug.Assert(!token.ContainsDiagnostics);
@@ -170,7 +169,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             }
         }
 
-        protected static LeafCharacters CreateVirtualCharSequence(
+        protected static VirtualCharSequence CreateVirtualCharSequence(
             string tokenText, int startIndexInclusive, int endIndexExclusive, ArrayBuilder<VirtualChar> result, int offset)
         {
             // Check if we actually needed to create any special virtual chars.
@@ -180,12 +179,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
             var textLength = endIndexExclusive - startIndexInclusive;
             if (textLength == result.Count)
             {
-                return LeafCharacters.Create(
+                return VirtualCharSequence.Create(
                     offset + startIndexInclusive, tokenText,
                     TextSpan.FromBounds(startIndexInclusive, endIndexExclusive));
             }
 
-            return LeafCharacters.Create(result.ToImmutable());
+            return VirtualCharSequence.Create(result.ToImmutable());
         }
     }
 }

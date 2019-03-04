@@ -25,20 +25,25 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     /// </summary>
     internal partial struct VirtualCharSequence
     {
-        public static readonly VirtualCharSequence Empty
-            = LeafCharacters.Create(ImmutableArray<VirtualChar>.Empty).GetFullSequence();
+        public static readonly VirtualCharSequence Empty = Create(ImmutableArray<VirtualChar>.Empty);
+
+        public static VirtualCharSequence Create(ImmutableArray<VirtualChar> virtualChars)
+            => new ImmutableArrayChunk(virtualChars).GetFullSequence();
+
+        public static VirtualCharSequence Create(int firstVirtualCharPosition, string underlyingData, TextSpan underlyingDataSpan)
+            => new StringChunk(firstVirtualCharPosition, underlyingData, underlyingDataSpan).GetFullSequence();
 
         /// <summary>
         /// The actual characters that this <see cref="VirtualCharSequence"/> is a portion of.
         /// </summary>
-        private readonly LeafCharacters _leafCharacters;
+        private readonly Chunk _leafCharacters;
 
         /// <summary>
         /// The portion of <see cref="_leafCharacters"/> that is being exposed.
         /// </summary>
         private readonly TextSpan _span;
 
-        public VirtualCharSequence(LeafCharacters sequence, TextSpan span)
+        private VirtualCharSequence(Chunk sequence, TextSpan span)
         {
             if (span.Start > sequence.Length)
             {

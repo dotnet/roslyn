@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
             Return token.Kind() = SyntaxKind.StringLiteralToken
         End Function
 
-        Protected Overrides Function TryConvertToLeafCharacters(token As SyntaxToken) As LeafCharacters
+        Protected Overrides Function TryConvertToVirtualCharsWorker(token As SyntaxToken) As VirtualCharSequence
             Debug.Assert(Not token.ContainsDiagnostics)
 
             If token.Kind() = SyntaxKind.StringLiteralToken Then
