@@ -57,7 +57,7 @@ class c
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
+        <MemberData(NameOf(AllCompletionImplementations), Skip:="https://github.com/dotnet/roslyn/issues/33852")>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCaretPlacement(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
