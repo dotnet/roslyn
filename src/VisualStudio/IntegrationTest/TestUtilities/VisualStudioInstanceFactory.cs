@@ -324,8 +324,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 // Disable roaming settings to avoid interference from the online user profile
                 Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"").WaitForExit();
 
-                // Disable async completion for 16.0 Preview 3 testing
-                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\WindowManagement\\Options\" UseAsyncCompletion string \"1*System.Int32*-1\"").WaitForExit();
+                // Enable or disable async completion as necessary for integration testing
+                var usingAsyncCompletion = LegacyCompletionCondition.Instance.ShouldSkip;
+                var useAsyncCompletionSetting = usingAsyncCompletion ? 1 : -1;
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\WindowManagement\\Options\" UseAsyncCompletion string \"1*System.Int32*{useAsyncCompletionSetting}\"").WaitForExit();
 
                 // Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
                 // custom handler or fail silently and continue testing.

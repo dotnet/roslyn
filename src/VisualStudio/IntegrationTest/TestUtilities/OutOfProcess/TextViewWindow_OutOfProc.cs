@@ -26,11 +26,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public int GetCaretPosition()
             => _textViewWindowInProc.GetCaretPosition();
 
+        public int GetCaretColumn()
+            => _textViewWindowInProc.GetCaretColumn();
+
         public string[] GetCompletionItems()
         {
             WaitForCompletionSet();
             return _textViewWindowInProc.GetCompletionItems();
         }
+
+        public int GetVisibleColumnCount()
+            => _textViewWindowInProc.GetVisibleColumnCount();
 
         public void PlaceCaret(
             string marker,
