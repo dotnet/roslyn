@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
     ///
     /// 'G' -> [0, 1) 'o' -> [1, 7) 'o' -> [7, 1)
     ///
-    /// This allows for embedded language processing that can refer back to the users' original code
+    /// This allows for embedded language processing that can refer back to the user's original code
     /// instead of the escaped value we're processing.
     /// </summary>
     internal partial struct VirtualCharSequence
