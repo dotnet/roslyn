@@ -630,7 +630,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// See Type::computeManagedType.
         /// </remarks>
-        internal abstract bool IsManagedType { get; }
+        internal bool IsManagedType => ManagedKind == ManagedKind.Managed;
+
+        /// <summary>
+        /// Indicates whether a type is managed or not (i.e. you can take a pointer to it).
+        /// Contains additional cases to help implement FeatureNotAvailable diagnostics.
+        /// </summary>
+        internal abstract ManagedKind ManagedKind { get; }
 
         bool ITypeSymbol.IsUnmanagedType => !IsManagedType;
 
@@ -663,10 +669,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.
-        /// <paramref name="hadNullabilityMismatch"/> is true if there was conflict
-        /// merging nullability and warning should be reported by the caller.
         /// </summary>
-        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch);
+        internal abstract TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance);
 
         /// <summary>
         /// Returns true if the type may contain embedded references

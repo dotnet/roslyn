@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
         private readonly CodeStyleOption<bool> onWithSilent = new CodeStyleOption<bool>(true, NotificationOption.Silent);
 
         private IDictionary<OptionKey, object> ImplicitTypeEverywhere => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task EmptyBlockBody()
@@ -360,7 +360,7 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
-        public async Task CommentNotSupported()
+        public async Task TestCommentsInTheMiddleOfParentheses()
         {
             var text = @"
 class Test
@@ -372,11 +372,21 @@ class Test
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 3, 4 };
+        for (int {|Rename:i|} = 0; i < array.Length; i++) ;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
-        public async Task CommentNotSupported2()
+        public async Task TestCommentsAtBeginningOfParentheses()
         {
             var text = @"
 class Test
@@ -388,11 +398,21 @@ class Test
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 3, 4 };
+        for (int {|Rename:i|} = 0; i < array.Length; i++) ;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
-        public async Task CommentNotSupported3()
+        public async Task TestCommentsAtTheEndOfParentheses()
         {
             var text = @"
 class Test
@@ -404,7 +424,17 @@ class Test
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var array = new int[] { 1, 3, 4 };
+        for (int {|Rename:i|} = 0; i < array.Length; i++) ;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]

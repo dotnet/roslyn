@@ -2,6 +2,7 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,11 +10,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class IndexAndRangeTests : CompilingTestBase
     {
+        private const string RangeCtorSignature = "System.Range..ctor(System.Index start, System.Index end)";
+        private const string RangeStartAtSignature = "System.Range System.Range.StartAt(System.Index start)";
+        private const string RangeEndAtSignature = "System.Range System.Range.EndAt(System.Index end)";
+        private const string RangeAllSignature = "System.Range System.Range.All.get";
+
         [Fact]
         [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
         public void ArrayRangeIllegalRef()
         {
-            var comp = CreateCompilationWithIndexAndRange(@"
+            var comp = CreateEmptyCompilation(@"
+namespace System
+{
+    public struct Int32 { }
+    public struct Boolean { }
+    public class ValueType { }
+    public class String { }
+    public class Object { }
+    public class Void { }
+    public struct Nullable<T> where T : struct
+    {
+    }
+    public struct Index
+    {
+        public Index(int value, bool fromEnd) { }
+        public static implicit operator Index(int value) => default;
+    }
+    public struct Range
+    {
+        public Range(Index start, Index end) { }
+    }
+}
+namespace System.Runtime.CompilerServices
+{
+    public static class RuntimeHelpers
+    {
+        public static T[] GetSubArray<T>(T[] array, Range range) => null;
+    }
+}
 public class C {
     public ref int[] M(int[] arr) {
         ref int[] x = ref arr[0..2];
@@ -24,15 +58,15 @@ public class C {
     void M(in int[] arr) { }
 }");
             comp.VerifyDiagnostics(
-                // (4,27): error CS1510: A ref or out value must be an assignable variable
+                // (32,27): error CS1510: A ref or out value must be an assignable variable
                 //         ref int[] x = ref arr[0..2];
-                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "arr[0..2]").WithLocation(4, 27),
-                // (5,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "arr[0..2]").WithLocation(32, 27),
+                // (33,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         M(in arr[0..2]);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr[0..2]").WithLocation(5, 14),
-                // (7,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr[0..2]").WithLocation(33, 14),
+                // (35,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref arr[0..2];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr[0..2]").WithLocation(7, 20));
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "arr[0..2]").WithLocation(35, 20));
         }
 
         [Fact]
@@ -49,6 +83,86 @@ public class C {
                 // (4,31): error CS0518: Predefined type 'System.Range' is not defined or imported
                 //         ref int[] x = ref arr[0..2];
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0..2").WithArguments("System.Range").WithLocation(4, 31));
+        }
+
+        [Fact]
+        public void ArrayRangeIndexerNoHelper()
+        {
+            var comp = CreateCompilationWithIndex(@"
+namespace System
+{
+    public readonly struct Range
+    {
+        public Range(Index start, Index end) { }
+    }
+}
+public class C {
+    public void M(int[] arr) {
+        var x = arr[0..2];
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (11,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray'
+                //         var x = arr[0..2];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr[0..2]").WithArguments("System.Runtime.CompilerServices.RuntimeHelpers", "GetSubArray").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void ArrayIndexIndexerNoHelper()
+        {
+            const string source = @"
+class C
+{
+    public void M(int[] arr)
+    {
+        var x = arr[^2];
+    }
+}";
+            var comp = CreateCompilation(source + @"
+namespace System
+{
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd) { }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+                //         var x = arr[^2];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr[^2]").WithArguments("System.Index", "GetOffset").WithLocation(6, 17));
+
+            comp = CreateCompilation(source + @"
+namespace System
+{
+    public readonly struct Index
+    {
+        public Index(int value, bool fromEnd) { }
+        public int GetOffset(int length) => 0;
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void StringIndexers()
+        {
+            // The string type in our standard references don't have indexers for string or range
+            var comp = CreateCompilationWithIndexAndRange(@"
+class C
+{
+    public void M(string s)
+    {
+        var x = s[^0];
+        var y = s[1..];
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,19): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         var x = s[^0];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(6, 19),
+                // (7,19): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         var y = s[1..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "1..").WithArguments("1", "System.Range", "int").WithLocation(7, 19));
         }
 
         [Fact]
@@ -98,29 +212,24 @@ public class C {
         }
 
         [Fact]
-        [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
-        public void StringIndexIllegalRef()
+        public void NetStandard20StringNoIndexRangeIndexers()
         {
             var comp = CreateCompilationWithIndexAndRange(@"
-public class C {
-    public ref char M(string s) {
-        ref readonly char x = ref s[^2];
-        M(in s[^2]);
-        M(s[^2]);
-        return ref s[^2];
+public class C
+{
+    public void M(string s)
+    {
+        var x = s[^2];
+        var y = s[0..2];
     }
-    void M(in char c) { }
 }");
             comp.VerifyDiagnostics(
-                // (4,35): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //         ref readonly char x = ref s[^2];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("string.this[int]").WithLocation(4, 35),
-                // (5,14): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //         M(in s[^2]);
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("string.this[int]").WithLocation(5, 14),
-                // (7,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
-                //         return ref s[^2];
-                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "s[^2]").WithArguments("string.this[int]").WithLocation(7, 20));
+                // (6,19): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         var x = s[^2];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^2").WithArguments("1", "System.Index", "int").WithLocation(6, 19),
+                // (7,19): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         var y = s[0..2];
+                Diagnostic(ErrorCode.ERR_BadArgType, "0..2").WithArguments("1", "System.Range", "int").WithLocation(7, 19));
         }
 
         [Fact]
@@ -244,7 +353,7 @@ class Test
             var expression = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("^", expression.OperatorToken.ToFullString());
             Assert.Equal("System.Index", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Index..ctor(System.Int32 value, [System.Boolean fromEnd = false])", model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -265,7 +374,7 @@ class Test
             var expression = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("^", expression.OperatorToken.ToFullString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Index..ctor(System.Int32 value, [System.Boolean fromEnd = false])", model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -308,17 +417,23 @@ public class Test
         [Fact]
         public void IndexExpression_OlderLanguageVersion()
         {
-            var compilation = CreateCompilationWithIndex(@"
+            var expected = new[]
+            {
+                // (6,17): error CS8652: The feature 'index operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         var x = ^1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "^1").WithArguments("index operator").WithLocation(6, 17)
+            };
+            const string source = @"
 class Test
 {
     void M()
     {
         var x = ^1;
     }
-}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
-                // (6,17): error CS8370: Feature 'index operator' is not available in C# 7.3. Please use language version 8.0 or greater.
-                //         var x = ^1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "^1").WithArguments("index operator", "8.0").WithLocation(6, 17));
+}";
+            var compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
+            compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(expected);
+            compilation = CreateCompilationWithIndex(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
@@ -357,7 +472,7 @@ namespace System
 {
     public class Range
     {
-        public static Range Create(Index start, Index end) => default;
+        public Range(Index start, Index end) { }
     }
 }
 class Test
@@ -385,7 +500,7 @@ namespace System
     }
     public readonly struct Range
     {
-        public static Range Create(Index start, Index end) => default;
+        public Range(Index start, Index end) { }
     }
 }
 class Test
@@ -410,17 +525,17 @@ class Test
         }
 
         [Fact]
-        public void RangeExpression_WithoutRangeCreate()
+        public void RangeExpression_WithoutRangeCtor()
         {
             var compilation = CreateCompilationWithIndex(@"
 namespace System
 {
     public readonly struct Range
     {
-        // public static Range Create(Index start, Index end) => default;
-        public static Range FromStart(Index start) => default;
-        public static Range ToEnd(Index end) => default;
-        public static Range All() => default;
+        // public Range(Index start, Index end) => default;
+        public static Range StartAt(Index start) => default;
+        public static Range EndAt(Index end) => default;
+        public static Range All => default;
     }
 }
 class Test
@@ -433,16 +548,35 @@ class Test
         var d = ..;
     }
 }").VerifyDiagnostics(
-                // (16,17): error CS0656: Missing compiler required member 'System.Range.Create'
+                // (16,17): error CS0656: Missing compiler required member 'System.Range..ctor'
                 //         var a = 1..2;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..2").WithArguments("System.Range", "Create").WithLocation(16, 17));
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..2").WithArguments("System.Range", ".ctor").WithLocation(16, 17));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
-            var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(0);
-            Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+            var expressions = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ToArray();
+            Assert.Equal(4, expressions.Length);
+
+            Assert.Equal("System.Range", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
+            Assert.Null(model.GetSymbolInfo(expressions[0]).Symbol);
+            Assert.Equal("System.Int32", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
+
+            Assert.Equal("System.Range", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
+            Assert.Equal(RangeStartAtSignature, model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
+            Assert.Null(expressions[1].RightOperand);
+            Assert.Equal("System.Int32", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
+
+            Assert.Equal("System.Range", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
+            Assert.Equal(RangeEndAtSignature, model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Int32", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
+            Assert.Null(expressions[2].LeftOperand);
+
+            Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
+            Assert.Equal(RangeAllSignature, model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
+            Assert.Null(expressions[3].RightOperand);
+            Assert.Null(expressions[3].LeftOperand);
         }
 
         [Fact]
@@ -466,7 +600,7 @@ namespace System
     }
     public readonly struct Range
     {
-        public static Range Create(Index start, Index end) => default;
+        public Range(Index start, Index end) { }
     }
 }
 class Test
@@ -507,7 +641,7 @@ namespace System
     }
     public readonly struct Range
     {
-        public static Range Create(Index start, Index end) => default;
+        public Range(Index start, Index end) { }
     }
 }
 class Test
@@ -523,16 +657,16 @@ class Test
         }
 
         [Fact]
-        public void RangeExpression_WithoutRangeFromStart()
+        public void RangeExpression_WithoutRangeStartAt()
         {
             var compilation = CreateCompilationWithIndex(@"
 namespace System
 {
     public readonly struct Range
     {
-        public static Range Create(Index start, Index end) => default;
-        // public static Range FromStart(Index start) => default;
-        public static Range ToEnd(Index end) => default;
+        public Range(Index start, Index end) { }
+        // public static Range StartAt(Index start) => default;
+        public static Range EndAt(Index end) => default;
         public static Range All() => default;
     }
 }
@@ -545,30 +679,27 @@ class Test
         var c = ..2;
         var d = ..;
     }
-}").VerifyDiagnostics(
-                // (17,17): error CS0656: Missing compiler required member 'System.Range.FromStart'
-                //         var b = 1..;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "1..").WithArguments("System.Range", "FromStart").WithLocation(17, 17));
+}").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(1);
             Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+            Assert.Equal(RangeCtorSignature, model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
-        public void RangeExpression_WithoutRangeToEnd()
+        public void RangeExpression_WithoutRangeEndAt()
         {
             var compilation = CreateCompilationWithIndex(@"
 namespace System
 {
     public readonly struct Range
     {
-        public static Range Create(Index start, Index end) => default;
-        public static Range FromStart(Index start) => default;
-        // public static Range ToEnd(Index end) => default;
+        public Range(Index start, Index end) { }
+        public static Range StartAt(Index start) => default;
+        // public static Range EndAt(Index end) => default;
         public static Range All() => default;
     }
 }
@@ -581,17 +712,14 @@ class Test
         var c = ..2;
         var d = ..;
     }
-}").VerifyDiagnostics(
-                // (18,17): error CS0656: Missing compiler required member 'System.Range.ToEnd'
-                //         var c = ..2;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..2").WithArguments("System.Range", "ToEnd").WithLocation(18, 17));
+}").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(2);
             Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+            Assert.Equal(RangeCtorSignature, model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -602,9 +730,9 @@ namespace System
 {
     public readonly struct Range
     {
-        public static Range Create(Index start, Index end) => default;
-        public static Range FromStart(Index start) => default;
-        public static Range ToEnd(Index end) => default;
+        public Range(Index start, Index end) { }
+        public static Range StartAt(Index start) => default;
+        public static Range EndAt(Index end) => default;
         // public static Range All() => default;
     }
 }
@@ -617,17 +745,14 @@ class Test
         var c = ..2;
         var d = ..;
     }
-}").VerifyDiagnostics(
-                // (19,17): error CS0656: Missing compiler required member 'System.Range.All'
-                //         var d = ..;
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "..").WithArguments("System.Range", "All").WithLocation(19, 17));
+}").VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var expression = tree.GetRoot().DescendantNodes().OfType<RangeExpressionSyntax>().ElementAt(3);
             Assert.Equal("System.Range", model.GetTypeInfo(expression).Type.ToTestDisplayString());
-            Assert.Null(model.GetSymbolInfo(expression).Symbol);
+            Assert.Equal(RangeCtorSignature, model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -653,22 +778,22 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.Create(System.Index start, System.Index end)", model.GetSymbolInfo(expressions[0]).Symbol.ToTestDisplayString());
+            Assert.Equal(RangeCtorSignature, model.GetSymbolInfo(expressions[0]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.FromStart(System.Index start)", model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
+            Assert.Equal(RangeStartAtSignature, model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[1].RightOperand);
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.ToEnd(System.Index end)", model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
+            Assert.Equal(RangeEndAtSignature, model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
             Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.All()", model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
+            Assert.Equal(RangeAllSignature, model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[3].RightOperand);
             Assert.Null(expressions[3].LeftOperand);
         }
@@ -696,22 +821,22 @@ class Test
             Assert.Equal(4, expressions.Length);
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[0]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.Create(System.Index start, System.Index end)", model.GetSymbolInfo(expressions[0]).Symbol.ToTestDisplayString());
+            Assert.Equal(RangeCtorSignature, model.GetSymbolInfo(expressions[0]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].RightOperand).Type.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[0].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[1]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.FromStart(System.Index start)", model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
+            Assert.Equal(RangeStartAtSignature, model.GetSymbolInfo(expressions[1]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[1].RightOperand);
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[1].LeftOperand).Type.ToTestDisplayString());
 
             Assert.Equal("System.Range?", model.GetTypeInfo(expressions[2]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.ToEnd(System.Index end)", model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
+            Assert.Equal(RangeEndAtSignature, model.GetSymbolInfo(expressions[2]).Symbol.ToTestDisplayString());
             Assert.Equal("System.Index?", model.GetTypeInfo(expressions[2].RightOperand).Type.ToTestDisplayString());
             Assert.Null(expressions[2].LeftOperand);
 
             Assert.Equal("System.Range", model.GetTypeInfo(expressions[3]).Type.ToTestDisplayString());
-            Assert.Equal("System.Range System.Range.All()", model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
+            Assert.Equal(RangeAllSignature, model.GetSymbolInfo(expressions[3]).Symbol.ToTestDisplayString());
             Assert.Null(expressions[3].RightOperand);
             Assert.Null(expressions[3].LeftOperand);
         }
@@ -764,7 +889,7 @@ public class Test
         [Fact]
         public void RangeExpression_OlderLanguageVersion()
         {
-            var compilation = CreateCompilationWithIndexAndRange(@"
+            const string source = @"
 class Test
 {
     void M()
@@ -774,19 +899,25 @@ class Test
         var c = ..2;
         var d = ..;
     }
-}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
-                // (6,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+}";
+            var expected = new[]
+            {
+                // (6,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var a = 1..2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1..2").WithArguments("range operator", "8.0").WithLocation(6, 17),
-                // (7,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1..2").WithArguments("range operator").WithLocation(6, 17),
+                // (7,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var b = 1..;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "1..").WithArguments("range operator", "8.0").WithLocation(7, 17),
-                // (8,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "1..").WithArguments("range operator").WithLocation(7, 17),
+                // (8,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var c = ..2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..2").WithArguments("range operator", "8.0").WithLocation(8, 17),
-                // (9,17): error CS8370: Feature 'range operator' is not available in C# 7.3. Please use language version 8.0 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "..2").WithArguments("range operator").WithLocation(8, 17),
+                // (9,17): error CS8652: The feature 'range operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var d = ..;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "..").WithArguments("range operator", "8.0").WithLocation(9, 17));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "..").WithArguments("range operator").WithLocation(9, 17)
+            };
+            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(expected);
+            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularDefault).VerifyDiagnostics(expected);
+            CreateCompilationWithIndexAndRange(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]

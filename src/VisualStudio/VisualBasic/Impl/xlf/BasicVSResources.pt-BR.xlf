@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
-        <target state="translated">Em operadores relacionais:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</target>
+        <target state="translated">Em operadores relacionais:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Como   É</target>
         <note />
       </trans-unit>
       <trans-unit id="Microsoft_Visual_Basic">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>_Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="translated">_Navegue para o Pesquisador de Objeto para símbolos definido nos metadados</target>
+        <target state="translated">_Navegue para o Pesquisador de Objetos para símbolos definido nos metadados</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_to_Definition">
@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
-        <target state="new">VB Coding Conventions</target>
+        <target state="translated">Convenções do Codificação do VB</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
@@ -299,7 +299,7 @@
       </trans-unit>
       <trans-unit id="In_other_binary_operators">
         <source>In other binary operators:  And   AndAlso   Or   OrElse</source>
-        <target state="translated">Em outros operadores binários:  And   AndAlso   Or   OrElse</target>
+        <target state="translated">Em outros operadores binários: And AndAlso Or OrElse</target>
         <note />
       </trans-unit>
     </body>

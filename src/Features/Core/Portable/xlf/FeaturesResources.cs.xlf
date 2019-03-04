@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_reference_to_0">
         <source>Add reference to '{0}'.</source>
-        <target state="translated">Přidat odkaz na projekt do {0}</target>
+        <target state="translated">Přidat odkaz do {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Actions_can_not_be_empty">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Adding_method_with_explicit_interface_specifier_will_prevernt_the_debug_session_from_continuing">
         <source>Adding a method with an explicit interface specifier will prevent the debug session from continuing.</source>
-        <target state="new">Adding a method with an explicit interface specifier will prevent the debug session from continuing.</target>
+        <target state="translated">Přidání metody s explicitním specifikátorem rozhraní zabrání v pokračování relace ladění.</target>
         <note />
       </trans-unit>
       <trans-unit id="Align_wrapped_arguments">
@@ -59,12 +59,12 @@
       </trans-unit>
       <trans-unit id="Code_Quality">
         <source>Code Quality</source>
-        <target state="new">Code Quality</target>
+        <target state="translated">Kvalita kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
         <source>Convert to LINQ</source>
-        <target state="new">Convert to LINQ</target>
+        <target state="translated">Převést na LINQ</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_to_0">
@@ -74,27 +74,22 @@
       </trans-unit>
       <trans-unit id="Convert_to_class">
         <source>Convert to class</source>
-        <target state="new">Convert to class</target>
+        <target state="translated">Convert to class</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq_call_form">
         <source>Convert to LINQ (call form)</source>
-        <target state="new">Convert to LINQ (call form)</target>
+        <target state="translated">Převést na LINQ (volání formuláře)</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_struct">
         <source>Convert to struct</source>
-        <target state="new">Convert to struct</target>
+        <target state="translated">Convert to struct</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_tuple">
         <source>Convert to tuple</source>
-        <target state="new">Convert to tuple</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_analyze_data_flow_for_0">
-        <source>Failed to analyze data-flow for: {0}</source>
-        <target state="new">Failed to analyze data-flow for: {0}</target>
+        <target state="translated">Convert to tuple</target>
         <note />
       </trans-unit>
       <trans-unit id="Expression_value_is_never_used">
@@ -102,9 +97,14 @@
         <target state="new">Expression value is never used</target>
         <note />
       </trans-unit>
+      <trans-unit id="Failed_to_analyze_data_flow_for_0">
+        <source>Failed to analyze data-flow for: {0}</source>
+        <target state="new">Failed to analyze data-flow for: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_formatting">
         <source>Fix formatting</source>
-        <target state="new">Fix formatting</target>
+        <target state="translated">Opravit formátování</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -135,6 +135,36 @@
       <trans-unit id="Indent_wrapped_parameters">
         <source>Indent wrapped parameters</source>
         <target state="new">Indent wrapped parameters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Local_function_can_be_made_static">
+        <source>Local function can be made static</source>
+        <target state="new">Local function can be made static</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_local_function_static">
+        <source>Make local function 'static'</source>
+        <target state="new">Make local function 'static'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_nested_0_statement">
+        <source>Merge with nested '{0}' statement</source>
+        <target state="new">Merge with nested '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_next_0_statement">
+        <source>Merge with next '{0}' statement</source>
+        <target state="new">Merge with next '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_outer_0_statement">
+        <source>Merge with outer '{0}' statement</source>
+        <target state="new">Merge with outer '{0}' statement</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Merge_with_previous_0_statement">
+        <source>Merge with previous '{0}' statement</source>
+        <target state="new">Merge with previous '{0}' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_file_to_0">
@@ -172,24 +202,29 @@
         <target state="new">Introduce query variable</target>
         <note />
       </trans-unit>
-      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
-        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
-        <target state="new">Private member '{0}' can be removed as the value assigned to it is never read.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Private_member_0_is_unused">
-        <source>Private member '{0}' is unused.</source>
-        <target state="new">Private member '{0}' is unused.</target>
-        <note />
+      <trans-unit id="Make_readonly_fields_writable">
+        <source>Make readonly fields writable</source>
+        <target state="new">Make readonly fields writable</target>
+        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="new">Invert conditional</target>
         <note />
       </trans-unit>
+      <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">
+        <source>Private member '{0}' can be removed as the value assigned to it is never read.</source>
+        <target state="translated">Soukromý člen {0} se může odebrat, jak jeho přiřazená hodnota se nikdy nečte.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Private_member_0_is_unused">
+        <source>Private member '{0}' is unused.</source>
+        <target state="translated">Soukromý člen {0} se nepoužívá.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Modifying_source_file_will_prevent_the_debug_session_from_continuing_due_to_internal_error">
         <source>Modifying source file {0} will prevent the debug session from continuing due to internal error: {1}.</source>
-        <target state="translated">Když se upraví zdrojový soubor {0}, relace ladění nebude moct pokračovat kvůli vnitřní chybě: {1}</target>
+        <target state="translated">Po změně zdrojového souboru {0} nebude moct ladicí relace pokračovat z důvodu interní chyby: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_method_0_can_be_removed_as_it_is_never_invoked">
@@ -224,12 +259,12 @@
       </trans-unit>
       <trans-unit id="Remove_unread_private_members">
         <source>Remove unread private members</source>
-        <target state="new">Remove unread private members</target>
+        <target state="translated">Odebrat nepřečtené soukromé členy</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_member">
         <source>Remove unused member</source>
-        <target state="new">Remove unused member</target>
+        <target state="translated">Odebrat nepoužitý člen</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameter">
@@ -259,12 +294,22 @@
       </trans-unit>
       <trans-unit id="Remove_unused_private_members">
         <source>Remove unused private members</source>
-        <target state="new">Remove unused private members</target>
+        <target state="translated">Odebrat nepoužité soukromé členy</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_0_with_1">
         <source>Replace '{0}' with '{1}' </source>
         <target state="new">Replace '{0}' with '{1}' </target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_into_consecutive_0_statements">
+        <source>Split into consecutive '{0}' statements</source>
+        <target state="new">Split into consecutive '{0}' statements</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_into_nested_0_statements">
+        <source>Split into nested '{0}' statements</source>
+        <target state="new">Split into nested '{0}' statements</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_all_arguments">
@@ -304,7 +349,7 @@
       </trans-unit>
       <trans-unit id="Use_block_body_for_lambda_expressions">
         <source>Use block body for lambda expressions</source>
-        <target state="new">Use block body for lambda expressions</target>
+        <target state="translated">Pro lambda výrazy používat text bloku</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_block_body_for_local_functions">
@@ -329,7 +374,7 @@
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambda_expressions">
         <source>Use expression body for lambda expressions</source>
-        <target state="new">Use expression body for lambda expressions</target>
+        <target state="translated">Používat text výrazu pro lambda výrazy</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_local_functions">
@@ -344,7 +389,12 @@
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">
         <source>Use interpolated verbatim string</source>
-        <target state="new">Use interpolated verbatim string</target>
+        <target state="translated">Použít interpolovaný řetězec doslovného zápisu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Use_simple_using_statement">
+        <source>Use simple 'using' statement</source>
+        <target state="new">Use simple 'using' statement</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -355,6 +405,16 @@
       <trans-unit id="Use_range_operator">
         <source>Use range operator</source>
         <target state="new">Use range operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_to_0_is_never_used">
+        <source>Value assigned to '{0}' is never used</source>
+        <target state="new">Value assigned to '{0}' is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Value_assigned_to_symbol_is_never_used">
+        <source>Value assigned to symbol is never used</source>
+        <target state="new">Value assigned to symbol is never used</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">
@@ -390,16 +450,6 @@
       <trans-unit id="_0_can_be_simplified">
         <source>{0} can be simplified</source>
         <target state="new">{0} can be simplified</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_to_0_is_never_used">
-        <source>Value assigned to '{0}' is never used</source>
-        <target state="new">Value assigned to '{0}' is never used</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Value_assigned_to_symbol_is_never_used">
-        <source>Value assigned to symbol is never used</source>
-        <target state="new">Value assigned to symbol is never used</target>
         <note />
       </trans-unit>
       <trans-unit id="generic_overload">
@@ -614,7 +664,7 @@
       </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
-        <target state="translated">Implementovat rozhraní</target>
+        <target state="translated">Implementujte rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="Loading_context_from_0">
@@ -789,7 +839,7 @@
       </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly</source>
-        <target state="translated">Sestavení</target>
+        <target state="translated">sestavení</target>
         <note />
       </trans-unit>
       <trans-unit id="location_unknown">
@@ -1375,7 +1425,7 @@ Chcete pokračovat?</target>
       </trans-unit>
       <trans-unit id="Pending">
         <source>&lt;Pending&gt;</source>
-        <target state="translated">&lt;Čekající&gt;</target>
+        <target state="translated">&lt;Čeká&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns">
@@ -1460,7 +1510,7 @@ Chcete pokračovat?</target>
       </trans-unit>
       <trans-unit id="Project">
         <source>Project</source>
-        <target state="translated">Projekt</target>
+        <target state="translated">PROJECT</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution">
@@ -1650,7 +1700,7 @@ Chcete pokračovat?</target>
       </trans-unit>
       <trans-unit id="from_0">
         <source>from {0}</source>
-        <target state="translated">z {0}</target>
+        <target state="translated">z: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Find_and_install_latest_version">
@@ -2277,7 +2327,7 @@ Tato verze se používá zde: {2}.</target>
       </trans-unit>
       <trans-unit id="Add_accessibility_modifiers">
         <source>Add accessibility modifiers</source>
-        <target state="translated">Přidat modifikátory dostupnosti</target>
+        <target state="translated">Přidat Modifikátory dostupnosti</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_local_function">
@@ -2422,22 +2472,27 @@ Tato verze se používá zde: {2}.</target>
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_member">
         <source>updating usages in containing member</source>
-        <target state="new">updating usages in containing member</target>
+        <target state="translated">updating usages in containing member</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_project">
         <source>updating usages in containing project</source>
-        <target state="new">updating usages in containing project</target>
+        <target state="translated">updating usages in containing project</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_containing_type">
         <source>updating usages in containing type</source>
-        <target state="new">updating usages in containing type</target>
+        <target state="translated">updating usages in containing type</target>
         <note />
       </trans-unit>
       <trans-unit id="updating_usages_in_dependent_projects">
         <source>updating usages in dependent projects</source>
-        <target state="new">updating usages in dependent projects</target>
+        <target state="translated">updating usages in dependent projects</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="using_statement_can_be_simplified">
+        <source>'using' statement can be simplified</source>
+        <target state="new">'using' statement can be simplified</target>
         <note />
       </trans-unit>
     </body>

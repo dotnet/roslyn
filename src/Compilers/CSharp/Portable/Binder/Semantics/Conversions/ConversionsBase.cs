@@ -834,17 +834,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case BoundKind.SuppressNullableWarningExpression:
-                    {
-                        var innerExpression = ((BoundSuppressNullableWarningExpression)sourceExpression).Expression;
-                        var innerConversion = ClassifyImplicitBuiltInConversionFromExpression(innerExpression, innerExpression.Type, destination, ref useSiteDiagnostics);
-                        if (innerConversion.Exists)
-                        {
-                            return innerConversion;
-                        }
-                        break;
-                    }
-
                 case BoundKind.ExpressionWithNullability:
                     {
                         var innerExpression = ((BoundExpressionWithNullability)sourceExpression).Expression;
@@ -1410,12 +1399,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.IsPossiblyNullableReferenceTypeTypeParameter() && !destination.IsPossiblyNullableReferenceTypeTypeParameter())
+            if (source.IsPossiblyNullableTypeTypeParameter() && !destination.IsPossiblyNullableTypeTypeParameter())
             {
                 return destination.NullableAnnotation.IsAnyNullable();
             }
 
-            if (destination.IsPossiblyNullableReferenceTypeTypeParameter() && !source.IsPossiblyNullableReferenceTypeTypeParameter())
+            if (destination.IsPossiblyNullableTypeTypeParameter() && !source.IsPossiblyNullableTypeTypeParameter())
             {
                 return source.NullableAnnotation.IsAnyNullable();
             }
@@ -1442,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.IsPossiblyNullableReferenceTypeTypeParameter() && !destination.IsPossiblyNullableReferenceTypeTypeParameter())
+            if (source.IsPossiblyNullableTypeTypeParameter() && !destination.IsPossiblyNullableTypeTypeParameter())
             {
                 return false;
             }

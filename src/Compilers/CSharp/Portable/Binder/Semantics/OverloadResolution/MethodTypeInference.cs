@@ -214,7 +214,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> formalParameterRefKinds, // Optional; assume all value if missing.
             ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
                                                       // no arguments per se we cons up some fake arguments.
-            out bool hadNullabilityMismatch,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             Func<BoundExpression, TypeSymbolWithAnnotations> getTypeWithAnnotationOpt = null)
         {
@@ -227,7 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Early out: if the method has no formal parameters then we know that inference will fail.
             if (formalParameterTypes.Length == 0)
             {
-                hadNullabilityMismatch = false;
                 return new MethodTypeInferenceResult(false, default(ImmutableArray<TypeSymbolWithAnnotations>));
 
                 // UNDONE: OPTIMIZATION: We could check to see whether there is a type
@@ -243,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 formalParameterRefKinds,
                 arguments,
                 getTypeWithAnnotationOpt);
-            return inferrer.InferTypeArgs(binder, out hadNullabilityMismatch, ref useSiteDiagnostics);
+            return inferrer.InferTypeArgs(binder, ref useSiteDiagnostics);
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -340,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var fixedType = _fixedResults[i];
 
-                if (fixedType.IsNull)
+                if (!fixedType.HasType)
                 {
                     sb.Append("UNFIXED ");
                 }
@@ -386,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < _methodTypeParameters.Length; i++)
             {
-                if (!_fixedResults[i].IsNull)
+                if (_fixedResults[i].HasType)
                 {
                     if (!_fixedResults[i].IsErrorType())
                     {
@@ -413,12 +411,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsUnfixed(int methodTypeParameterIndex)
         {
             Debug.Assert(ValidIndex(methodTypeParameterIndex));
-            return _fixedResults[methodTypeParameterIndex].IsNull;
+            return !_fixedResults[methodTypeParameterIndex].HasType;
         }
 
         private bool IsUnfixedTypeParameter(TypeSymbolWithAnnotations type)
         {
-            Debug.Assert(!type.IsNull);
+            Debug.Assert(type.HasType);
 
             if (type.TypeKind != TypeKind.TypeParameter) return false;
 
@@ -491,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Phases
         //
 
-        private MethodTypeInferenceResult InferTypeArgs(Binder binder, out bool hadNullabilityMismatch, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private MethodTypeInferenceResult InferTypeArgs(Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: Type inference takes place in phases. Each phase will try to infer type 
             // SPEC: arguments for more type parameters based on the findings of the previous
@@ -499,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: the second phase fixes type parameters to specific types and infers further
             // SPEC: bounds. The second phase may have to be repeated a number of times.
             InferTypeArgsFirstPhase(binder, ref useSiteDiagnostics);
-            bool success = InferTypeArgsSecondPhase(binder, out hadNullabilityMismatch, ref useSiteDiagnostics);
+            bool success = InferTypeArgsSecondPhase(binder, ref useSiteDiagnostics);
             return new MethodTypeInferenceResult(success, GetResults());
         }
 
@@ -601,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The second phase
         //
 
-        private bool InferTypeArgsSecondPhase(Binder binder, out bool hadNullabilityMismatch, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool InferTypeArgsSecondPhase(Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: The second phase proceeds as follows:
             // SPEC: * If no unfixed type parameters exist then type inference succeeds.
@@ -634,11 +632,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   the algorithm must terminate with no more repetitions than the number
             // SPEC:   of type parameters.
 
-            hadNullabilityMismatch = false;
             InitializeDependencies();
             while (true)
             {
-                var res = DoSecondPhase(binder, ref hadNullabilityMismatch, ref useSiteDiagnostics);
+                var res = DoSecondPhase(binder, ref useSiteDiagnostics);
                 Debug.Assert(res != InferenceResult.NoProgress);
                 if (res == InferenceResult.InferenceFailed)
                 {
@@ -652,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private InferenceResult DoSecondPhase(Binder binder, ref bool hadNullabilityMismatch, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private InferenceResult DoSecondPhase(Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: * If no unfixed type parameters exist then type inference succeeds.
             if (AllFixed())
@@ -679,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   type inference fails.
 
             InferenceResult res;
-            res = FixNondependentParameters(ref hadNullabilityMismatch, ref useSiteDiagnostics);
+            res = FixNondependentParameters(ref useSiteDiagnostics);
             if (res != InferenceResult.NoProgress)
             {
                 return res;
@@ -690,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:     o there is at least one type parameter Xj that depends on Xi
             // SPEC:   then each such Xi is fixed. If any fixing operation fails then
             // SPEC:   type inference fails.
-            res = FixDependentParameters(ref hadNullabilityMismatch, ref useSiteDiagnostics);
+            res = FixDependentParameters(ref useSiteDiagnostics);
             if (res != InferenceResult.NoProgress)
             {
                 return res;
@@ -763,27 +760,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private InferenceResult FixNondependentParameters(ref bool hadNullabilityMismatch, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private InferenceResult FixNondependentParameters(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: * Otherwise, if there exists one or more type parameters Xi such that
             // SPEC:     o Xi is unfixed, and
             // SPEC:     o Xi has a non-empty set of bounds, and
             // SPEC:     o Xi does not depend on any Xj
             // SPEC:   then each such Xi is fixed.
-            return FixParameters((inferrer, index) => !inferrer.DependsOnAny(index), ref hadNullabilityMismatch, ref useSiteDiagnostics);
+            return FixParameters((inferrer, index) => !inferrer.DependsOnAny(index), ref useSiteDiagnostics);
         }
 
-        private InferenceResult FixDependentParameters(ref bool hadNullabilityMismatch, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private InferenceResult FixDependentParameters(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // SPEC: * All unfixed type parameters Xi are fixed for which all of the following hold:
             // SPEC:   * There is at least one type parameter Xj that depends on Xi.
             // SPEC:   * Xi has a non-empty set of bounds.
-            return FixParameters((inferrer, index) => inferrer.AnyDependsOn(index), ref hadNullabilityMismatch, ref useSiteDiagnostics);
+            return FixParameters((inferrer, index) => inferrer.AnyDependsOn(index), ref useSiteDiagnostics);
         }
 
         private InferenceResult FixParameters(
             Func<MethodTypeInferrer, int, bool> predicate,
-            ref bool hadNullabilityMismatch,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Dependency is only defined for unfixed parameters. Therefore, fixing
@@ -808,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // help with intellisense.
                 if (needsFixing[param])
                 {
-                    if (!Fix(param, ref hadNullabilityMismatch, ref useSiteDiagnostics))
+                    if (!Fix(param, ref useSiteDiagnostics))
                     {
                         result = InferenceResult.InferenceFailed;
                     }
@@ -1173,7 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void OutputTypeInference(Binder binder, BoundExpression expression, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(expression != null);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(target.HasType);
             // SPEC: An output type inference is made from an expression E to a type T
             // SPEC: in the following way:
 
@@ -1196,7 +1192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * Otherwise, if E is an expression with type U then a lower-bound
             // SPEC:   inference is made from U to T.
             var sourceType = GetTypeWithAnnotations(expression);
-            if (!sourceType.IsNull)
+            if (sourceType.HasType)
             {
                 LowerBoundInference(sourceType, target, ref useSiteDiagnostics);
             }
@@ -1206,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool InferredReturnTypeInference(BoundExpression source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(source != null);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(target.HasType);
             // SPEC: * If E is an anonymous function with inferred return type U and
             // SPEC:   T is a delegate type or expression tree with return type Tb
             // SPEC:   then a lower bound inference is made from U to Tb.
@@ -1222,13 +1218,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types.");
             var returnType = delegateType.DelegateInvokeMethod.ReturnType;
-            if (returnType.IsNull || returnType.SpecialType == SpecialType.System_Void)
+            if (!returnType.HasType || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
             }
 
             var inferredReturnType = InferReturnType(source, delegateType, ref useSiteDiagnostics);
-            if (inferredReturnType.IsNull)
+            if (!inferredReturnType.HasType)
             {
                 return false;
             }
@@ -1265,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          "This method should only be called for valid delegate types");
 
             TypeSymbolWithAnnotations delegateReturnType = delegateInvokeMethod.ReturnType;
-            if (delegateReturnType.IsNull || delegateReturnType.SpecialType == SpecialType.System_Void)
+            if (!delegateReturnType.HasType || delegateReturnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
             }
@@ -1284,7 +1280,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            NullableAnnotation returnIsNullable = NullableAnnotation.Unknown; // https://github.com/dotnet/roslyn/issues/27961 Review this
+            // https://github.com/dotnet/roslyn/issues/33635 : We should preserve the return nullability from the
+            // selected method of the method group, possibly turning oblivious into non-null.
+            NullableAnnotation returnIsNullable = NullableAnnotation.Unknown;
             LowerBoundInference(TypeSymbolWithAnnotations.Create(returnType, returnIsNullable), delegateReturnType, ref useSiteDiagnostics);
 
             return true;
@@ -1328,7 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ExplicitParameterTypeInference(BoundExpression source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(source != null);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(target.HasType);
 
             // SPEC: An explicit type parameter type inference is made from an expression
             // SPEC: E to a type T in the following way.
@@ -1386,8 +1384,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         private void ExactInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: An exact inference from a type U to a type V is made as follows:
 
@@ -1433,8 +1431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ExactTypeParameterInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of bounds
             // SPEC:   for Xi.
@@ -1448,8 +1446,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ExactArrayInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: * Otherwise, if U is an array type UE[...] and V is an array type VE[...]
             // SPEC:   of the same rank then an exact inference from UE to VE is made.
@@ -1494,8 +1492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ExactOrBoundsNullableInference(ExactOrBoundsKind kind, TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             if (source.IsNullableType() && target.IsNullableType())
             {
@@ -1523,8 +1521,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool LowerBoundTupleInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // NOTE: we are losing tuple element names when unwrapping tuple types to underlying types.
             //       that is ok, because we are inferring type parameters used in the matching elements, 
@@ -1550,8 +1548,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ExactConstructedInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: * Otherwise, if V is a constructed type C<V1...Vk> and U is a constructed
             // SPEC:   type C<U1...Uk> then an exact inference 
@@ -1618,8 +1616,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         private void LowerBoundInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: A lower-bound inference from a type U to a type V is made as follows:
 
@@ -1700,8 +1698,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool LowerBoundTypeParameterInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of bounds
             // SPEC:   for Xi.
@@ -1769,7 +1767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arraySource = (ArrayTypeSymbol)source;
             var elementSource = arraySource.ElementType;
             var elementTarget = GetMatchingElementType(arraySource, target, ref useSiteDiagnostics);
-            if (elementTarget.IsNull)
+            if (!elementTarget.HasType)
             {
                 return false;
             }
@@ -2007,8 +2005,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         private void UpperBoundInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: An upper-bound inference from a type U to a type V is made as follows:
 
@@ -2063,8 +2061,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool UpperBoundTypeParameterInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of upper bounds
             // SPEC:   for Xi.
             if (IsUnfixedTypeParameter(target))
@@ -2077,8 +2075,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool UpperBoundArrayInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: * Otherwise, if V is an array type Ve[...] and U is an array
             // SPEC:   type Ue[...] of the same rank, or if V is a one-dimensional array
@@ -2095,7 +2093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arrayTarget = (ArrayTypeSymbol)target.TypeSymbol;
             var elementTarget = arrayTarget.ElementType;
             var elementSource = GetMatchingElementType(arrayTarget, source.TypeSymbol, ref useSiteDiagnostics);
-            if (elementSource.IsNull)
+            if (!elementSource.HasType)
             {
                 return false;
             }
@@ -2119,8 +2117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool UpperBoundConstructedInference(TypeSymbolWithAnnotations sourceWithAnnotations, TypeSymbolWithAnnotations targetWithAnnotations, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!sourceWithAnnotations.IsNull);
-            Debug.Assert(!targetWithAnnotations.IsNull);
+            Debug.Assert(sourceWithAnnotations.HasType);
+            Debug.Assert(targetWithAnnotations.HasType);
             var source = sourceWithAnnotations.TypeSymbol.TupleUnderlyingTypeOrSelf();
             var target = targetWithAnnotations.TypeSymbol.TupleUnderlyingTypeOrSelf();
 
@@ -2297,7 +2295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         // Fixing
         //
-        private bool Fix(int iParam, ref bool hadNullabilityMismatch, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool Fix(int iParam, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(IsUnfixed(iParam));
 
@@ -2305,8 +2303,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lower = _lowerBounds[iParam];
             var upper = _upperBounds[iParam];
 
-            var best = Fix(exact, lower, upper, ref useSiteDiagnostics, _conversions, ref hadNullabilityMismatch);
-            if (best.IsNull)
+            var best = Fix(exact, lower, upper, ref useSiteDiagnostics, _conversions);
+            if (!best.HasType)
             {
                 return false;
             }
@@ -2317,8 +2315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If the first attempt succeeded, the result should be the same as
                 // the second attempt, although perhaps with different nullability.
                 HashSet<DiagnosticInfo> ignoredDiagnostics = null;
-                bool ignoredHadMismatch = false;
-                var withoutNullability = Fix(exact, lower, upper, ref ignoredDiagnostics, _conversions.WithNullability(false), ref ignoredHadMismatch);
+                var withoutNullability = Fix(exact, lower, upper, ref ignoredDiagnostics, _conversions.WithNullability(false));
                 // https://github.com/dotnet/roslyn/issues/27961 Results may differ by tuple names or dynamic.
                 // See NullableReferenceTypesTests.TypeInference_TupleNameDifferences_01 for example.
                 Debug.Assert(best.TypeSymbol.Equals(withoutNullability.TypeSymbol, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
@@ -2335,8 +2332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<TypeSymbolWithAnnotations> lower,
             HashSet<TypeSymbolWithAnnotations> upper,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            ConversionsBase conversions,
-            ref bool hadNullabilityMismatch)
+            ConversionsBase conversions)
         {
             // UNDONE: This method makes a lot of garbage.
 
@@ -2360,18 +2356,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (lower != null)
                 {
                     // Lower bounds represent co-variance.
-                    AddAllCandidates(candidates, lower, VarianceKind.Out, conversions, ref hadNullabilityMismatch);
+                    AddAllCandidates(candidates, lower, VarianceKind.Out, conversions);
                 }
                 if (upper != null)
                 {
                     // Lower bounds represent contra-variance.
-                    AddAllCandidates(candidates, upper, VarianceKind.In, conversions, ref hadNullabilityMismatch);
+                    AddAllCandidates(candidates, upper, VarianceKind.In, conversions);
                 }
             }
             else
             {
                 // Exact bounds represent invariance.
-                AddAllCandidates(candidates, exact, VarianceKind.None, conversions, ref hadNullabilityMismatch);
+                AddAllCandidates(candidates, exact, VarianceKind.None, conversions);
                 if (candidates.Count >= 2)
                 {
                     return default;
@@ -2392,7 +2388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lower != null)
             {
-                MergeOrRemoveCandidates(candidates, lower, initialCandidates, conversions, VarianceKind.Out, ref hadNullabilityMismatch, ref useSiteDiagnostics);
+                MergeOrRemoveCandidates(candidates, lower, initialCandidates, conversions, VarianceKind.Out, ref useSiteDiagnostics);
             }
 
             // SPEC:   For each upper bound U of Xi all types from which there is not an
@@ -2400,7 +2396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (upper != null)
             {
-                MergeOrRemoveCandidates(candidates, upper, initialCandidates, conversions, VarianceKind.In, ref hadNullabilityMismatch, ref useSiteDiagnostics);
+                MergeOrRemoveCandidates(candidates, upper, initialCandidates, conversions, VarianceKind.In, ref useSiteDiagnostics);
             }
 
             initialCandidates.Clear();
@@ -2421,7 +2417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (best.IsNull)
+                if (!best.HasType)
                 {
                     best = candidate;
                 }
@@ -2451,17 +2447,17 @@ OuterBreak:
             return TypeSymbolWithAnnotations.Create(expr.Type);
         }
 
-        internal static TypeSymbolWithAnnotations Merge(TypeSymbolWithAnnotations first, TypeSymbolWithAnnotations second, VarianceKind variance, ConversionsBase conversions, out bool hadNullabilityMismatch)
+        internal static TypeSymbolWithAnnotations Merge(TypeSymbolWithAnnotations first, TypeSymbolWithAnnotations second, VarianceKind variance, ConversionsBase conversions)
         {
             var merged = MergeTupleNames(MergeDynamic(first, second, conversions.CorLibrary), second);
             if (!conversions.IncludeNullability)
             {
-                hadNullabilityMismatch = false;
                 // https://github.com/dotnet/roslyn/issues/30534: Should preserve
                 // distinct "not computed" state from initial binding.
                 return merged.SetUnknownNullabilityForReferenceTypes();
             }
-            return merged.MergeNullability(second, variance, out hadNullabilityMismatch);
+
+            return merged.MergeNullability(second, variance);
         }
 
         /// <summary>
@@ -2748,8 +2744,7 @@ OuterBreak:
                     continue;
                 }
                 Debug.Assert(IsUnfixed(iParam));
-                bool hadNullabilityMismatch = false;
-                if (!HasBound(iParam) || !Fix(iParam, ref hadNullabilityMismatch, ref useSiteDiagnostics))
+                if (!HasBound(iParam) || !Fix(iParam, ref useSiteDiagnostics))
                 {
                     return false;
                 }
@@ -2782,8 +2777,7 @@ OuterBreak:
             Dictionary<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> candidates,
             HashSet<TypeSymbolWithAnnotations> bounds,
             VarianceKind variance,
-            ConversionsBase conversions,
-            ref bool hadNullabilityMismatch)
+            ConversionsBase conversions)
         {
             foreach (var candidate in bounds)
             {
@@ -2794,7 +2788,8 @@ OuterBreak:
                     // distinct "not computed" state from initial binding.
                     type = type.SetUnknownNullabilityForReferenceTypes();
                 }
-                AddOrMergeCandidate(candidates, type, variance, conversions, ref hadNullabilityMismatch);
+
+                AddOrMergeCandidate(candidates, type, variance, conversions);
             }
         }
 
@@ -2802,16 +2797,14 @@ OuterBreak:
             Dictionary<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> candidates,
             TypeSymbolWithAnnotations newCandidate,
             VarianceKind variance,
-            ConversionsBase conversions,
-            ref bool hadNullabilityMismatch)
+            ConversionsBase conversions)
         {
             Debug.Assert(conversions.IncludeNullability ||
                 newCandidate.SetUnknownNullabilityForReferenceTypes().Equals(newCandidate, TypeCompareKind.ConsiderEverything));
 
             if (candidates.TryGetValue(newCandidate, out TypeSymbolWithAnnotations oldCandidate))
             {
-                MergeAndReplaceIfStillCandidate(candidates, oldCandidate, newCandidate, variance, conversions, out bool hadMismatch);
-                hadNullabilityMismatch |= hadMismatch;
+                MergeAndReplaceIfStillCandidate(candidates, oldCandidate, newCandidate, variance, conversions);
             }
             else
             {
@@ -2829,7 +2822,6 @@ OuterBreak:
             ArrayBuilder<TypeSymbolWithAnnotations> initialCandidates,
             ConversionsBase conversions,
             VarianceKind variance,
-            ref bool hadNullabilityMismatch,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(variance == VarianceKind.In || variance == VarianceKind.Out);
@@ -2868,8 +2860,7 @@ OuterBreak:
                         // This rule doesn't have to be implemented explicitly due to special handling of 
                         // conversions from dynamic in ImplicitConversionExists helper.
                         // 
-                        MergeAndReplaceIfStillCandidate(candidates, candidate, bound, variance, conversions, out bool hadMismatch);
-                        hadNullabilityMismatch |= hadMismatch;
+                        MergeAndReplaceIfStillCandidate(candidates, candidate, bound, variance, conversions);
                     }
                 }
             }
@@ -2880,11 +2871,8 @@ OuterBreak:
             TypeSymbolWithAnnotations oldCandidate,
             TypeSymbolWithAnnotations newCandidate,
             VarianceKind variance,
-            ConversionsBase conversions,
-            out bool hadNullabilityMismatch)
+            ConversionsBase conversions)
         {
-            hadNullabilityMismatch = false;
-
             // We make an exception when new candidate is dynamic, for backwards compatibility 
             if (newCandidate.IsDynamic())
             {
@@ -2902,7 +2890,7 @@ OuterBreak:
                 // IOut<object?>, then merge that result with upper bound IOut<object!> (using VarianceKind.In)
                 // to produce IOut<object?>. But then conversion of argument IIn<IOut<object!>> to parameter
                 // IIn<IOut<object?>> will generate a warning at that point.)
-                TypeSymbolWithAnnotations merged = Merge(latest, newCandidate, variance, conversions, out hadNullabilityMismatch);
+                TypeSymbolWithAnnotations merged = Merge(latest, newCandidate, variance, conversions);
                 candidates[oldCandidate] = merged;
             }
         }
