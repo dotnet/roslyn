@@ -2263,14 +2263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ErrorCode getErrorCode(DiagnosticBag diagnostic)
             {
                 int code = diagnostic.AsEnumerable().LastOrDefault().Code;
-                if (Enum.TryParse(code.ToString(), out ErrorCode error))
-                {
-                    return error;
-                }
-                else
-                {
-                    return ErrorCode.ERR_NoExplicitConv;
-                }
+                return (ErrorCode)code;
             }
         }
 
