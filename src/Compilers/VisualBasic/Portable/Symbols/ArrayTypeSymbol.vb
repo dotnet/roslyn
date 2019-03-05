@@ -399,9 +399,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IArrayTypeSymbol_ElementNullability As Nullability Implements IArrayTypeSymbol.ElementNullability
+        Private ReadOnly Property IArrayTypeSymbol_ElementNullableAnnotation As NullableAnnotation Implements IArrayTypeSymbol.ElementNullableAnnotation
             Get
-                Return Nullability.NotComputed
+                Return NullableAnnotation.Default
             End Get
         End Property
 

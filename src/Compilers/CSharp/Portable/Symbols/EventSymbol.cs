@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Nullability IEventSymbol.Nullability => Nullability.NotComputed;
+        NullableAnnotation IEventSymbol.NullableAnnotation => NullableAnnotation.Default;
 
         IMethodSymbol IEventSymbol.AddMethod
         {

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         ITypeSymbol IDiscardSymbol.Type => Type;
-        Nullability IDiscardSymbol.Nullability => Nullability.NotComputed;
+        NullableAnnotation IDiscardSymbol.NullableAnnotation => NullableAnnotation.Default;
         public TypeSymbol Type { get; }
 
         /// <summary>

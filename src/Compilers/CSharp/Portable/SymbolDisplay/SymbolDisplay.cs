@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string ToDisplayString(
             ITypeSymbol symbol,
-            Nullability topLevelNullability,
+            NullableFlowState topLevelNullability,
             SymbolDisplayFormat format = null)
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string ToMinimalDisplayString(
             ITypeSymbol symbol,
-            Nullability topLevelNullability,
+            NullableFlowState topLevelNullability,
             SemanticModel semanticModel,
             int position,
             SymbolDisplayFormat format = null)
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ITypeSymbol symbol,
-            Nullability topLevelNullability,
+            NullableFlowState topLevelNullability,
             SymbolDisplayFormat format = null)
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
             ITypeSymbol symbol,
-            Nullability topLevelNullability,
+            NullableFlowState topLevelNullability,
             SemanticModel semanticModel,
             int position,
             SymbolDisplayFormat format = null)
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ISymbol symbol,
-            Nullability? topLevelNullabilityOpt,
+            NullableFlowState? topLevelNullabilityOpt,
             SemanticModel semanticModelOpt,
             int positionOpt,
             SymbolDisplayFormat format,

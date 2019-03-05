@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ITypeSymbol Type => _symbol.Type;
 
-            public Nullability Nullability => _symbol.Nullability;
+            public NullableAnnotation NullableAnnotation => _symbol.NullableAnnotation;
         }
     }
 }

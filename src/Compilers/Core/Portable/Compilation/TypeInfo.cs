@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     public readonly struct TypeInfo : IEquatable<TypeInfo>
     {
-        internal static readonly TypeInfo None = new TypeInfo(null, null, Nullability.NotComputed, Nullability.NotComputed);
+        internal static readonly TypeInfo None = new TypeInfo(null, null, default, default);
 
         /// <summary>
         /// The type of the expression represented by the syntax node. For expressions that do not
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         public ITypeSymbol Type { get; }
 
         // PROTOTYPE(nullable-api): Doc Comment
-        public Nullability Nullability { get; }
+        public NullabilityInfo NullabilityInfo { get; }
 
         /// <summary>
         /// The type of the expression after it has undergone an implicit conversion. If the type
@@ -27,23 +27,23 @@ namespace Microsoft.CodeAnalysis
         public ITypeSymbol ConvertedType { get; }
 
         // PROTOTYPE(nullable-api): Doc Comment
-        public Nullability ConvertedNullability { get; }
+        public NullabilityInfo ConvertedNullabilityInfo { get; }
 
-        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, Nullability nullability, Nullability convertedNullability)
+        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, NullabilityInfo nullabilityInfo, NullabilityInfo convertedNullabilityInfo)
             : this()
         {
             this.Type = type;
-            this.Nullability = nullability;
+            this.NullabilityInfo = nullabilityInfo;
             this.ConvertedType = convertedType;
-            this.ConvertedNullability = convertedNullability;
+            this.ConvertedNullabilityInfo = convertedNullabilityInfo;
         }
 
         public bool Equals(TypeInfo other)
         {
             return object.Equals(this.Type, other.Type)
                 && object.Equals(this.ConvertedType, other.ConvertedType)
-                && object.Equals(this.Nullability, other.Nullability)
-                && object.Equals(this.ConvertedNullability, other.ConvertedNullability);
+                && object.Equals(this.NullabilityInfo, other.NullabilityInfo)
+                && object.Equals(this.ConvertedNullabilityInfo, other.ConvertedNullabilityInfo);
         }
 
         public override bool Equals(object obj)
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis
         {
             return Hash.Combine(this.ConvertedType,
                 Hash.Combine(this.Type,
-                Hash.Combine(this.Nullability.GetHashCode(),
-                this.ConvertedNullability.GetHashCode())));
+                Hash.Combine(this.NullabilityInfo.GetHashCode(),
+                this.ConvertedNullabilityInfo.GetHashCode())));
         }
     }
 }

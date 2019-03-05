@@ -276,9 +276,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IEventSymbol_Nullability As Nullability Implements IEventSymbol.Nullability
+        Private ReadOnly Property IEventSymbol_NullableAnnotation As NullableAnnotation Implements IEventSymbol.NullableAnnotation
             Get
-                Return Nullability.NotComputed
+                Return NullableAnnotation.Default
             End Get
         End Property
 

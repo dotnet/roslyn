@@ -11,25 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal enum NullableAnnotation : byte
-    {
-        Unknown,      // No information. Think oblivious.
-        NotAnnotated, // Type is not annotated - string, int, T (including the case when T is unconstrained).
-        Annotated,    // Type is annotated - string?, T? where T : class; and for int?, T? where T : struct.
-        NotNullable,  // Explicitly set by flow analysis
-        Nullable,     // Explicitly set by flow analysis
-    }
 
-    /// <summary>
-    /// The nullable state of an rvalue computed in <see cref="NullableWalker"/>.
-    /// When in doubt we conservatively use <see cref="NullableFlowState.NotNull"/>
-    /// to minimize diagnostics.
-    /// </summary>
-    internal enum NullableFlowState : byte
-    {
-        NotNull,
-        MaybeNull
-    }
 
     /// <summary>
     /// A type and its corresponding flow state resulting from evaluating an rvalue expression.
@@ -237,30 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return NullableAnnotation.Unknown;
-        }
-
-        public static Nullability ConvertToPublicNullability(this NullableAnnotation annotation, TypeSymbol type)
-        {
-            switch (annotation)
-            {
-                case NullableAnnotation.Annotated:
-                case NullableAnnotation.Nullable:
-                    return Nullability.MayBeNull;
-
-                case NullableAnnotation.NotNullable:
-                    return Nullability.NotNull;
-
-                case NullableAnnotation.NotAnnotated:
-                    return type.IsPossiblyNullableReferenceTypeTypeParameter() ?
-                        Nullability.MayBeNull :
-                        Nullability.NotNull;
-
-                case NullableAnnotation.Unknown:
-                    return Nullability.Unknown;
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(annotation);
-            }
         }
     }
 

@@ -1144,9 +1144,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property INamedTypeSymbol_TypeArgumentsNullabilities As ImmutableArray(Of Nullability) Implements INamedTypeSymbol.TypeArgumentsNullabilities
+        Private ReadOnly Property INamedTypeSymbol_TypeArgumentsNullableAnnotations As ImmutableArray(Of NullableAnnotation) Implements INamedTypeSymbol.TypeArgumentsNullableAnnotations
             Get
-                Return Me.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(Function(t) Nullability.NotComputed)
+                Return Me.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(Function(t) NullableAnnotation.Default)
             End Get
         End Property
 

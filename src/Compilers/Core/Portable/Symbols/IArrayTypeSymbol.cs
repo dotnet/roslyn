@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol ElementType { get; }
 
         // PROTOTYPE(nullable-api): Document
-        Nullability ElementNullability { get; }
+        NullableAnnotation ElementNullableAnnotation { get; }
 
         /// <summary>
         /// Custom modifiers associated with the array type, or an empty array if there are none.

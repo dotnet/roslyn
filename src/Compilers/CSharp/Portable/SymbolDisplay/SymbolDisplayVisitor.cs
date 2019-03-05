@@ -92,27 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : $"@{identifier}";
         }
 
-        public void VisitWithNullability(TypeSymbol symbol, Nullability topLevelNullability)
+        public void VisitWithNullability(TypeSymbol symbol, NullableFlowState topLevelNullability)
         {
-            Debug.Assert(topLevelNullability != Nullability.NotApplicable && !(symbol is null));
+            Debug.Assert(!(symbol is null));
             Visit(symbol);
-            NullableAnnotation annotation;
-            switch (topLevelNullability)
-            {
-                case Nullability.MayBeNull:
-                    annotation = NullableAnnotation.Nullable;
-                    break;
-                case Nullability.NotNull:
-                    annotation = NullableAnnotation.NotNullable;
-                    break;
-                case Nullability.Unknown:
-                case Nullability.NotComputed:
-                    annotation = NullableAnnotation.Unknown;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(topLevelNullability);
-            }
-            AddNullableAnnotations(TypeSymbolWithAnnotations.Create(symbol, annotation));
+            AddNullableAnnotations(new TypeWithState(symbol, topLevelNullability).ToTypeSymbolWithAnnotations());
         }
 
         public override void VisitAssembly(IAssemblySymbol symbol)

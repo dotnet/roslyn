@@ -355,9 +355,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "ITypeParameterSymbol"
 
-        Private ReadOnly Property ITypeParameterSymbol_ReferenceTypeConstraintNullability As Nullability Implements ITypeParameterSymbol.ReferenceTypeConstraintNullability
+        Private ReadOnly Property ITypeParameterSymbol_ReferenceTypeConstraintNullableAnnotation As NullableAnnotation Implements ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation
             Get
-                Return Nullability.NotComputed
+                Return NullableAnnotation.Default
             End Get
         End Property
 
@@ -385,9 +385,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property ITypeParameterSymbol_ConstraintsNullabilities As ImmutableArray(Of Nullability) Implements ITypeParameterSymbol.ConstraintNullabilities
+        Private ReadOnly Property ITypeParameterSymbol_ConstraintNullableAnnotations As ImmutableArray(Of NullableAnnotation) Implements ITypeParameterSymbol.ConstraintNullableAnnotations
             Get
-                Return Me.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(Function(t) Nullability.NotComputed)
+                Return Me.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(Function(t) NullableAnnotation.Default)
             End Get
         End Property
 

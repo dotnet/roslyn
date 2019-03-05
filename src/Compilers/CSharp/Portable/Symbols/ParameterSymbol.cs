@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Type.TypeSymbol; }
         }
 
-        Nullability IParameterSymbol.Nullability => Nullability.NotComputed;
+        NullableAnnotation IParameterSymbol.NullableAnnotation => NullableAnnotation.Default;
 
         ImmutableArray<CustomModifier> IParameterSymbol.CustomModifiers
         {

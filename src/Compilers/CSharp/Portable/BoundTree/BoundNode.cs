@@ -18,24 +18,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly SyntaxNode Syntax;
 
         [Flags()]
-        private enum BoundNodeAttributes : byte
+        private enum BoundNodeAttributes : ushort
         {
             HasErrors = 1 << 0,
             CompilerGenerated = 1 << 1,
-            TopLevelNullableUnset = 0,
-            TopLevelNullable = 1 << 2,
-            TopLevelNonNullable = 1 << 3,
-            TopLevelUnknown = TopLevelNullable | TopLevelNonNullable,
-            TopLevelNullabilityMask = TopLevelUnknown,
+            IsSuppressed = 1 << 2,
+
+            // Bit 3: Whether nullability has been set
+            // Bit 4: 1 if the node is nullable, 0 if the node is not nullable
+            // Bits 5 and 6: 01 if the node is not annotated, 10 if the node is annotated, 00 if the node is disabled
+            TopLevelNullableInfoSet = 1 << 3,
+            TopLevelFlowStateNullable = 1 << 4,
+            TopLevelNotAnnotated = 1 << 5,
+            TopLevelAnnotated = 1 << 6,
+            TopLevelDisabled = 0,
+            TopLevelAnnotationMask = TopLevelAnnotated | TopLevelNotAnnotated,
 #if DEBUG
             /// <summary>
             /// Captures the fact that consumers of the node already checked the state of the WasCompilerGenerated bit.
             /// Allows to assert on attempts to set WasCompilerGenerated bit after that.
             /// </summary>
-            WasCompilerGeneratedIsChecked = 1 << 4,
-            WasTopLevelNullabilityChecked = 1 << 5,
+            WasCompilerGeneratedIsChecked = 1 << 7,
+            WasTopLevelNullabilityChecked = 1 << 8,
 #endif
-            IsSuppressed = 1 << 6,
         }
 
         protected BoundNode(BoundKind kind, SyntaxNode syntax)
@@ -167,30 +172,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Top level nullability for the node. This should not be used by flow analysis.
         /// </summary>
-        protected Nullability TopLevelNullability
+        protected NullabilityInfo TopLevelNullabilityInfo
         {
             get
             {
 #if DEBUG
                 _attributes |= BoundNodeAttributes.WasTopLevelNullabilityChecked;
 #endif
-                switch (_attributes & BoundNodeAttributes.TopLevelNullabilityMask)
+                if ((_attributes & BoundNodeAttributes.TopLevelNullableInfoSet) == 0)
                 {
-                    case BoundNodeAttributes.TopLevelNullable:
-                        return Nullability.MayBeNull;
-
-                    case BoundNodeAttributes.TopLevelNonNullable:
-                        return Nullability.NotNull;
-
-                    case BoundNodeAttributes.TopLevelUnknown:
-                        return Nullability.Unknown;
-
-                    case BoundNodeAttributes.TopLevelNullableUnset:
-                        return Nullability.NotComputed;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(_attributes);
+                    return default;
                 }
+
+                var annotation = (_attributes & BoundNodeAttributes.TopLevelAnnotationMask) switch
+                {
+                    BoundNodeAttributes.TopLevelAnnotated => NullableAnnotation.Annotated,
+                    BoundNodeAttributes.TopLevelNotAnnotated => NullableAnnotation.NotAnnotated,
+                    BoundNodeAttributes.TopLevelDisabled => NullableAnnotation.Unknown,
+                    _ => throw ExceptionUtilities.UnexpectedValue(_attributes & BoundNodeAttributes.TopLevelAnnotationMask)
+                };
+
+                var flowState = (_attributes & BoundNodeAttributes.TopLevelFlowStateNullable) == 0 ? NullableFlowState.NotNull : NullableFlowState.MaybeNull;
+
+                return new NullabilityInfo(annotation, flowState);
             }
             set
             {
@@ -198,24 +202,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((_attributes & BoundNodeAttributes.WasTopLevelNullabilityChecked) == 0,
                     "bound node nullability should not be set after reading it");
 #endif
-                _attributes &= ~BoundNodeAttributes.TopLevelNullabilityMask;
-                switch (value)
+                _attributes &= ~(BoundNodeAttributes.TopLevelAnnotationMask | BoundNodeAttributes.TopLevelFlowStateNullable);
+
+                switch (value.Annotation)
                 {
-                    case Nullability.MayBeNull:
-                        _attributes |= BoundNodeAttributes.TopLevelNullable;
+                    case NullableAnnotation.Annotated:
+                    case NullableAnnotation.Nullable:
+                        _attributes |= BoundNodeAttributes.TopLevelAnnotated;
                         break;
 
-                    case Nullability.NotNull:
-                        _attributes |= BoundNodeAttributes.TopLevelNonNullable;
+                    case NullableAnnotation.NotAnnotated:
+                    case NullableAnnotation.NotNullable:
+                        _attributes |= BoundNodeAttributes.TopLevelNotAnnotated;
                         break;
 
-                    case Nullability.Unknown:
-                        _attributes |= BoundNodeAttributes.TopLevelUnknown;
+                    case NullableAnnotation.Unknown:
+                        _attributes |= BoundNodeAttributes.TopLevelDisabled;
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(value);
+                        throw ExceptionUtilities.UnexpectedValue(value.Annotation);
                 }
+
+                switch (value.FlowState)
+                {
+                    case NullableFlowState.MaybeNull:
+                        _attributes |= BoundNodeAttributes.TopLevelFlowStateNullable;
+                        break;
+
+                    case NullableFlowState.NotNull:
+                        break;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(value.FlowState);
+                }
+
+                _attributes |= BoundNodeAttributes.TopLevelNullableInfoSet;
             }
         }
 

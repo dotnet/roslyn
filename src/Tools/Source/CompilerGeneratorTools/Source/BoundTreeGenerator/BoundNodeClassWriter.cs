@@ -1481,10 +1481,10 @@ namespace BoundTreeGenerator
                         Brace();
 
                         var updatedNullabilities = "_updatedNullabilities";
-                        WriteLine($"private readonly ImmutableDictionary<BoundExpression, TypeSymbolWithAnnotations> {updatedNullabilities};");
+                        WriteLine($"private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> {updatedNullabilities};");
 
                         Blank();
-                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, TypeSymbolWithAnnotations> updatedNullabilities)");
+                        WriteLine("public NullabilityRewriter(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> updatedNullabilities)");
                         Brace();
                         WriteLine($"{updatedNullabilities} = updatedNullabilities;");
                         Unbrace();
@@ -1530,7 +1530,7 @@ namespace BoundTreeGenerator
                             Unbrace();
 
                             void writeNullabilityCheck(bool inverted) =>
-                                WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out TypeSymbolWithAnnotations type))");
+                                WriteLine($"if ({(inverted ? "!" : "")}{updatedNullabilities}.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))");
 
                             void writeUpdate(bool decl, bool updatedType)
                             {
@@ -1538,14 +1538,14 @@ namespace BoundTreeGenerator
                                 ParenList(
                                     AllSpecifiableFields(node),
                                     field => IsDerivedOrListOfDerived("BoundNode", field.Type) ? ToCamelCase(field.Name)
-                                             : updatedType && field.Name == "Type" ? "type.TypeSymbol" 
+                                             : updatedType && field.Name == "Type" ? "infoAndType.Type"
                                              : string.Format("node.{0}", field.Name));
                                 WriteLine(";");
                             }
 
                             void writeNullabilityUpdate()
                             {
-                                WriteLine($"updatedNode.TopLevelNullability = type.NullableAnnotation.ConvertToPublicNullability(updatedNode.Type);");
+                                WriteLine($"updatedNode.TopLevelNullabilityInfo = infoAndType.Info;");
                             }
                         }
                         Unbrace();

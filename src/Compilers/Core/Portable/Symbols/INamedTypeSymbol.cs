@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
         // PROTOTYPE(nullable-api): Document
-        ImmutableArray<Nullability> TypeArgumentsNullabilities { get; }
+        ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations { get; }
 
         /// <summary>
         /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 

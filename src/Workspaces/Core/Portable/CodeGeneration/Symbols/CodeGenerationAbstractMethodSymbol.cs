@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract IMethodSymbol PartialDefinitionPart { get; }
         public abstract IMethodSymbol PartialImplementationPart { get; }
 
-        public Nullability ReceiverNullability => throw new NotImplementedException();
-        public Nullability ReturnNullability => throw new NotImplementedException();
-        public ImmutableArray<Nullability> TypeArgumentsNullabilities => throw new NotImplementedException();
+        public NullableAnnotation ReceiverNullableAnnotation => throw new NotImplementedException();
+        public NullableAnnotation ReturnNullableAnnotation => throw new NotImplementedException();
+        public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => throw new NotImplementedException();
 
         public virtual ITypeSymbol ReceiverType
         {
