@@ -8,10 +8,8 @@ using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -109,6 +107,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return new MoveToNamespaceResult(changedSolution, analysisResult.Document.Id);
         }
 
+        private static SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(
+            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+
         public override async Task<MoveToNamespaceOptionsResult> GetOptionsAsync(
             Document document,
             string defaultNamespace,
@@ -117,7 +119,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var namespaces = compilation.Assembly.NamespaceNames.Where(s => !string.IsNullOrEmpty(s));
+
+            var namespaces = compilation.GlobalNamespace.GetAllNamespaces(cancellationToken)
+                .Where(n => n.NamespaceKind == NamespaceKind.Module && n.ContainingAssembly == compilation.Assembly)
+                .Select(n => n.ToDisplayString(QualifiedNamespaceFormat));
 
             return await _moveToNamespaceOptionsService.GetChangeNamespaceOptionsAsync(
                 syntaxFactsService,

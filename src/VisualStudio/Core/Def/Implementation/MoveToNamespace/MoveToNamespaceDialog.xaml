@@ -51,9 +51,7 @@
                       AutomationProperties.LabeledBy="{Binding ElementName=NamespaceLabel}"
                       Text="{Binding NamespaceName, Mode=TwoWay}"
                       ItemsSource="{Binding AvailableNamespaces, Mode=OneTime}"
-                      BorderThickness="0"
-                      BorderBrush="Red">
-            </ComboBox>
+                      BorderThickness="0" />
         </Border>
         
         <StackPanel Height="25">
