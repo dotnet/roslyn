@@ -107,6 +107,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleTo Include="RoslynETAHost" />
     <InternalsVisibleTo Include="RoslynTaoActions" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
