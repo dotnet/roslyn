@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
                 var statementToFix = TryGetStatementToFix(node);
                 if (statementToFix != null)
                 {
-                    MakeStatementAsynchronous(document, editor, statementToFix);
+                    MakeStatementAsynchronous(editor, statementToFix);
                 }
             }
 
             return Task.CompletedTask;
         }
 
-        private static void MakeStatementAsynchronous(Document document, SyntaxEditor editor, SyntaxNode statementToFix)
+        private static void MakeStatementAsynchronous(SyntaxEditor editor, SyntaxNode statementToFix)
         {
             SyntaxNode newStatement;
             switch (statementToFix)
@@ -109,9 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) :
-                base(CSharpFeaturesResources.Use_asynchronous_statement,
+                base(CSharpFeaturesResources.Add_await,
                      createChangedDocument,
-                     CSharpFeaturesResources.Use_asynchronous_statement)
+                     CSharpFeaturesResources.Add_await)
             {
             }
         }
