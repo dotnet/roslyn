@@ -1891,6 +1891,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Toggle Block Comment.
+        /// </summary>
+        internal static string Toggle_Block_Comment {
+            get {
+                return ResourceManager.GetString("Toggle_Block_Comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Toggling block comment on selection....
+        /// </summary>
+        internal static string Toggling_block_comment_on_selection {
+            get {
+                return ResourceManager.GetString("Toggling_block_comment_on_selection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type Parts.
         /// </summary>
         internal static string Type_Parts {

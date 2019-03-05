@@ -717,27 +717,27 @@ class A
 
         private static void UncommentSelection(string code, IEnumerable<TextChange> expectedChanges, Span expectedSelectedSpan, bool supportBlockComments)
         {
-            CommentOrUncommentSelection(code, expectedChanges, new[] { expectedSelectedSpan }, supportBlockComments, CommentUncommentSelectionCommandHandler.Operation.Uncomment);
+            CommentOrUncommentSelection(code, expectedChanges, new[] { expectedSelectedSpan }, supportBlockComments, Operation.Uncomment);
         }
 
         private static void UncommentSelection(string code, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
         {
-            CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, CommentUncommentSelectionCommandHandler.Operation.Uncomment);
+            CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Uncomment);
         }
 
         private static void CommentSelection(string code, IEnumerable<TextChange> expectedChanges, bool supportBlockComments)
         {
-            CommentOrUncommentSelection(code, expectedChanges, null /*expectedSelectedSpans*/, supportBlockComments, CommentUncommentSelectionCommandHandler.Operation.Comment);
+            CommentOrUncommentSelection(code, expectedChanges, null /*expectedSelectedSpans*/, supportBlockComments, Operation.Comment);
         }
 
         private static void CommentSelection(string code, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
         {
-            CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, CommentUncommentSelectionCommandHandler.Operation.Comment);
+            CommentOrUncommentSelection(code, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
         }
 
         private static void CommentSelection(ITextView textView, IEnumerable<TextChange> expectedChanges, IEnumerable<Span> expectedSelectedSpans, bool supportBlockComments)
         {
-            CommentOrUncommentSelection(textView, expectedChanges, expectedSelectedSpans, supportBlockComments, CommentUncommentSelectionCommandHandler.Operation.Comment);
+            CommentOrUncommentSelection(textView, expectedChanges, expectedSelectedSpans, supportBlockComments, Operation.Comment);
         }
 
         private static void CommentOrUncommentSelection(
@@ -745,7 +745,7 @@ class A
             IEnumerable<TextChange> expectedChanges,
             IEnumerable<Span> expectedSelectedSpans,
             bool supportBlockComments,
-            CommentUncommentSelectionCommandHandler.Operation operation)
+            Operation operation)
         {
             using (var disposableView = EditorFactory.CreateView(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, code))
             {
@@ -760,14 +760,14 @@ class A
             IEnumerable<TextChange> expectedChanges,
             IEnumerable<Span> expectedSelectedSpans,
             bool supportBlockComments,
-            CommentUncommentSelectionCommandHandler.Operation operation)
+            Operation operation)
         {
             var textUndoHistoryRegistry = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IEditorOperationsFactoryService>();
             var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory);
             var service = new MockCommentSelectionService(supportBlockComments);
 
-            var trackingSpans = new List<ITrackingSpan>();
+            var trackingSpans = new List<CommentTrackingSpan>();
             var textChanges = new List<TextChange>();
 
             commandHandler.CollectEdits(
@@ -786,7 +786,7 @@ class A
 
             if (trackingSpans.Any())
             {
-                textView.SetSelection(trackingSpans.First().GetSpan(textView.TextSnapshot));
+                textView.SetSelection(trackingSpans.First().ToSnapshotSpan(textView.TextBuffer.CurrentSnapshot));
             }
 
             if (expectedSelectedSpans != null)

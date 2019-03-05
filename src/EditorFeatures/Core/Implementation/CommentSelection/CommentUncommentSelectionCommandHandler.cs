@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -17,45 +16,24 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.CommentSelection)]
+    //[Export(typeof(VSCommanding.ICommandHandler))]
+    //[ContentType(ContentTypeNames.RoslynContentType)]
+    //[Name(PredefinedCommandHandlerNames.CommentSelection)]
     internal class CommentUncommentSelectionCommandHandler :
+        AbstractCommentSelectionCommandHandler,
         VSCommanding.ICommandHandler<CommentSelectionCommandArgs>,
         VSCommanding.ICommandHandler<UncommentSelectionCommandArgs>
     {
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-        private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-
         [ImportingConstructor]
         internal CommentUncommentSelectionCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
-        {
-            Contract.ThrowIfNull(undoHistoryRegistry);
-            Contract.ThrowIfNull(editorOperationsFactoryService);
-
-            _undoHistoryRegistry = undoHistoryRegistry;
-            _editorOperationsFactoryService = editorOperationsFactoryService;
-        }
-
-        public string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
-
-        private static VSCommanding.CommandState GetCommandState(ITextBuffer buffer)
-        {
-            if (!buffer.CanApplyChangeDocumentToWorkspace())
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            return VSCommanding.CommandState.Available;
-        }
+            IEditorOperationsFactoryService editorOperationsFactoryService) : base(undoHistoryRegistry, editorOperationsFactoryService)
+        { }
 
         public VSCommanding.CommandState GetCommandState(CommentSelectionCommandArgs args)
         {
@@ -83,106 +61,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment, context);
         }
 
-        internal bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Operation operation, CommandExecutionContext context)
+        public override string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
+
+        internal override string GetTitle(Operation operation)
         {
-            var title = operation == Operation.Comment ? EditorFeaturesResources.Comment_Selection
-                                                       : EditorFeaturesResources.Uncomment_Selection;
-
-            var message = operation == Operation.Comment ? EditorFeaturesResources.Commenting_currently_selected_text
-                                                         : EditorFeaturesResources.Uncommenting_currently_selected_text;
-
-            using (context.OperationContext.AddScope(allowCancellation: false, message))
-            {
-
-                var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
-                {
-                    return true;
-                }
-
-                var service = GetService(document);
-                if (service == null)
-                {
-                    return true;
-                }
-
-                var trackingSpans = new List<ITrackingSpan>();
-                var textChanges = new List<TextChange>();
-                CollectEdits(
-                    document, service, textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer),
-                    textChanges, trackingSpans, operation, CancellationToken.None);
-
-                using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
-                {
-                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChanges, CancellationToken.None);
-                    transaction.Complete();
-                }
-
-                if (operation == Operation.Uncomment)
-                {
-                    using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
-                    {
-                        Format(service, subjectBuffer.CurrentSnapshot, trackingSpans, CancellationToken.None);
-                        transaction.Complete();
-                    }
-                }
-
-                if (trackingSpans.Any())
-                {
-                    // TODO, this doesn't currently handle block selection
-                    textView.SetSelection(trackingSpans.First().GetSpan(subjectBuffer.CurrentSnapshot));
-                }
-            }
-
-            return true;
+            return operation == Operation.Comment ? EditorFeaturesResources.Comment_Selection
+                : EditorFeaturesResources.Uncomment_Selection;
         }
 
-        private ICommentSelectionService GetService(Document document)
+        internal override string GetMessage(Operation operation)
         {
-            // First, try to get the new service for comment selection.
-            var service = document.GetLanguageService<ICommentSelectionService>();
-            if (service != null)
-            {
-                return service;
-            }
-
-            return null;
+            return operation == Operation.Comment ? EditorFeaturesResources.Commenting_currently_selected_text
+                : EditorFeaturesResources.Uncommenting_currently_selected_text;
         }
 
-        private void Format(ICommentSelectionService service, ITextSnapshot snapshot, IEnumerable<ITrackingSpan> changes, CancellationToken cancellationToken)
+        internal override void SetTrackingSpans(ITextView textView, ITextBuffer buffer, List<CommentTrackingSpan> trackingSpans)
         {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return;
-            }
-
-            var textSpans = changes.Select(s => s.GetSpan(snapshot).Span.ToTextSpan()).ToImmutableArray();
-            var newDocument = service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
-            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
+            // TODO, this doesn't currently handle block selection
+            textView.SetSelection(trackingSpans.First().ToSnapshotSpan(buffer.CurrentSnapshot));
         }
-
-        internal enum Operation { Comment, Uncomment }
 
         /// <summary>
         /// Add the necessary edits to the given spans. Also collect tracking spans over each span.
         ///
         /// Internal so that it can be called by unit tests.
         /// </summary>
-        internal void CollectEdits(
+        internal override void CollectEdits(
             Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans,
-            List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, Operation operation, CancellationToken cancellationToken)
+            List<TextChange> textChanges, List<CommentTrackingSpan> trackingSpans, Operation operation, CancellationToken cancellationToken)
         {
+            var spanTrackingList = new List<ITrackingSpan>();
             foreach (var span in selectedSpans)
             {
                 if (operation == Operation.Comment)
                 {
-                    CommentSpan(document, service, span, textChanges, trackingSpans, cancellationToken);
+                    CommentSpan(document, service, span, textChanges, spanTrackingList, cancellationToken);
                 }
                 else
                 {
-                    UncommentSpan(document, service, span, textChanges, trackingSpans, cancellationToken);
+                    UncommentSpan(document, service, span, textChanges, spanTrackingList, cancellationToken);
                 }
+            }
+            foreach (var internalTrackingSpan in spanTrackingList)
+            {
+                trackingSpans.Add(new CommentTrackingSpan(internalTrackingSpan, operation));
             }
         }
 
