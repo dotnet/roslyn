@@ -103,6 +103,7 @@ class C
         }
 
         [Fact, WorkItem(26654, "https://github.com/dotnet/roslyn/issues/26654")]
+        [WorkItem(27522, "https://github.com/dotnet/roslyn/issues/27522")]
         public void SuppressNullableWarning_DeclarationExpression()
         {
             var source = @"
@@ -38080,6 +38081,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(27522, "https://github.com/dotnet/roslyn/issues/27522")]
         public void SuppressNullableWarning_Out()
         {
             var source =
@@ -38090,12 +38092,15 @@ class C
         s = string.Empty;
         t = string.Empty;
     }
+    static ref string RefReturn() => ref (new string[1])[0];
     static void Main()
     {
         string? s;
         string t;
         F(out s, out t); // warn
         F(out s!, out t!); // ok
+        F(out RefReturn(), out RefReturn()); // warn
+        F(out RefReturn()!, out RefReturn()!); // ok
         F(out (s!), out (t!)); // errors
         F(out (s)!, out (t)!); // errors
     }
@@ -38105,25 +38110,28 @@ class C
                 parseOptions: TestOptions.Regular8,
                 options: WithNonNullTypesTrue(TestOptions.ReleaseExe));
             comp.VerifyDiagnostics(
-                // (15,19): error CS1525: Invalid expression term ','
+                // (18,19): error CS1525: Invalid expression term ','
                 //         F(out (s)!, out (t)!); // errors
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(15, 19),
-                // (15,29): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(18, 19),
+                // (18,29): error CS1525: Invalid expression term ')'
                 //         F(out (s)!, out (t)!); // errors
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(15, 29),
-                // (15,16): error CS0118: 's' is a variable but is used like a type
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(18, 29),
+                // (18,16): error CS0118: 's' is a variable but is used like a type
                 //         F(out (s)!, out (t)!); // errors
-                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(15, 16),
-                // (15,26): error CS0118: 't' is a variable but is used like a type
+                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(18, 16),
+                // (18,26): error CS0118: 't' is a variable but is used like a type
                 //         F(out (s)!, out (t)!); // errors
-                Diagnostic(ErrorCode.ERR_BadSKknown, "t").WithArguments("t", "variable", "type").WithLocation(15, 26),
-                // (12,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.ERR_BadSKknown, "t").WithArguments("t", "variable", "type").WithLocation(18, 26),
+                // (13,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         F(out s, out t); // warn
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "t").WithLocation(12, 22)
-                );
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "t").WithLocation(13, 22),
+                // (15,32): warning CS8601: Possible null reference assignment.
+                //         F(out RefReturn(), out RefReturn()); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "RefReturn()").WithLocation(15, 32));
         }
 
         [Fact]
+        [WorkItem(27522, "https://github.com/dotnet/roslyn/issues/27522")]
         [WorkItem(29903, "https://github.com/dotnet/roslyn/issues/29903")]
         public void SuppressNullableWarning_Assignment()
         {
