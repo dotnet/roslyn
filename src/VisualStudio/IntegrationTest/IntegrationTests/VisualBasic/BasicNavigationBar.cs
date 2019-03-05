@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -30,7 +31,14 @@ End Structure";
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        public override async Task DisposeAsync()
+        {
+            VisualStudio.Workspace.SetFeatureOption("NavigationBarOptions", "ShowNavigationBar", "Visual Basic", "True");
+            await base.DisposeAsync();
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void VerifyNavBar()
         {
             SetUpEditor(TestSource);
@@ -53,7 +61,7 @@ End Structure";
             VisualStudio.Editor.SelectTypeNavBarItem("S");
 
             VisualStudio.Editor.Verify.CaretPosition(112);
-            VisualStudio.Editor.Verify.CurrentLineText("Structure S$$", assertCaretPosition: true);
+            VisualStudio.Editor.Verify.CurrentLineText("Structure $$S", assertCaretPosition: true);
 
             VisualStudio.ExecuteCommand("Edit.LineDown");
             VerifyRightSelected("A");
@@ -71,7 +79,8 @@ End Structure";
             VisualStudio.Editor.Verify.CurrentLineText("Public Property $$B As Integer", assertCaretPosition: true, trimWhitespace: true);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar)]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.NavigationBar)]
         public void CodeSpit()
         {
             SetUpEditor(TestSource);

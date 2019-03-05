@@ -545,10 +545,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
                     break;
 
-                case BoundKind.SuppressNullableWarningExpression:
-                    VisitLvalue(((BoundSuppressNullableWarningExpression)node).Expression);
-                    break;
-
                 default:
                     VisitRvalue(node);
                     break;
@@ -601,11 +597,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// AssignedWhenFalse.
         /// </summary>
         /// <param name="node"></param>
-        protected BoundNode VisitRvalue(BoundExpression node)
+        protected virtual void VisitRvalue(BoundExpression node)
         {
-            var result = Visit(node);
+            Visit(node);
             Unsplit();
-            return result;
         }
 
         /// <summary>
@@ -1594,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
-            var result = VisitRvalue(node.ExpressionOpt);
+            VisitRvalue(node.ExpressionOpt);
 
             // byref return is also a potential write
             if (node.RefKind != RefKind.None)
@@ -1602,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WriteArgument(node.ExpressionOpt, node.RefKind, method: null);
             }
 
-            return result;
+            return null;
         }
 
         private void AdjustStateAfterReturnStatement(BoundReturnStatement node)
@@ -2104,14 +2099,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
-            if (node.LeftOperand != null)
+            if (node.LeftOperandOpt != null)
             {
-                VisitRvalue(node.LeftOperand);
+                VisitRvalue(node.LeftOperandOpt);
             }
 
-            if (node.RightOperand != null)
+            if (node.RightOperandOpt != null)
             {
-                VisitRvalue(node.RightOperand);
+                VisitRvalue(node.RightOperandOpt);
             }
 
             return null;
@@ -2628,12 +2623,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(UnreachableState());
             Visit(node.Argument);
             SetState(savedState);
-            return null;
-        }
-
-        public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
-        {
-            VisitRvalue(node.Expression);
             return null;
         }
 

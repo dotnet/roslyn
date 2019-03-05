@@ -4,11 +4,15 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Forms;
+using System.Windows.Media.Imaging;
+using PixelFormats = System.Windows.Media.PixelFormats;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
-    internal class ScreenshotService
+    internal static class ScreenshotService
     {
+        private static readonly object s_gate = new object();
+
         /// <summary>
         /// Takes a picture of the screen and saves it to the location specified by
         /// <paramref name="fullPath"/>. Files are always saved in PNG format, regardless of the
@@ -16,8 +20,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public static void TakeScreenshot(string fullPath)
         {
-            using (var bitmap = TryCaptureFullScreen())
+            // This gate prevents concurrency for two reasons:
+            //
+            // 1. Only one screenshot is held in memory at a time to prevent running out of memory for large displays
+            // 2. Only one screenshot is written to disk at a time to avoid exceptions if concurrent calls are writing
+            //    to the same file
+            lock (s_gate)
             {
+                var bitmap = TryCaptureFullScreen();
                 if (bitmap == null)
                 {
                     return;
@@ -26,7 +36,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var directory = Path.GetDirectoryName(fullPath);
                 Directory.CreateDirectory(directory);
 
-                bitmap.Save(fullPath, ImageFormat.Png);
+                using (var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
+                {
+                    var encoder = new PngBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                    encoder.Save(fileStream);
+                }
             }
         }
 
@@ -37,7 +52,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// A <see cref="Bitmap"/> containing the screen capture of the desktop, or null if a screen
         /// capture can't be created.
         /// </returns>
-        private static Bitmap TryCaptureFullScreen()
+        private static BitmapSource TryCaptureFullScreen()
         {
             int width = Screen.PrimaryScreen.Bounds.Width;
             int height = Screen.PrimaryScreen.Bounds.Height;
@@ -49,8 +64,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 return null;
             }
 
-            var bitmap = new Bitmap(width, height);
-
+            using (var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb))
             using (var graphics = Graphics.FromImage(bitmap))
             {
                 graphics.CopyFromScreen(
@@ -60,9 +74,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     destinationY: 0,
                     blockRegionSize: bitmap.Size,
                     copyPixelOperation: CopyPixelOperation.SourceCopy);
-            }
 
-            return bitmap;
+                var bitmapData = bitmap.LockBits(
+                    new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                    ImageLockMode.ReadOnly,
+                    PixelFormat.Format32bppArgb);
+                try
+                {
+                    return BitmapSource.Create(
+                        bitmapData.Width,
+                        bitmapData.Height,
+                        bitmap.HorizontalResolution,
+                        bitmap.VerticalResolution,
+                        PixelFormats.Bgra32,
+                        null,
+                        bitmapData.Scan0,
+                        bitmapData.Stride * bitmapData.Height,
+                        bitmapData.Stride);
+                }
+                finally
+                {
+                    bitmap.UnlockBits(bitmapData);
+                }
+            }
         }
     }
 }

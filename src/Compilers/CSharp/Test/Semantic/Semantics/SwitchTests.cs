@@ -2685,6 +2685,72 @@ class SwitchTest
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "goo").WithArguments("goo").WithLocation(40, 27));
         }
 
+        [Fact, WorkItem(32806, "https://github.com/dotnet/roslyn/issues/32806")]
+        public void TraditionalSwitchIsIncomplete_01()
+        {
+            var text = @"
+class SwitchTest
+{
+    static int Main(string[] args)
+    {
+        bool? test = null;
+
+        switch (test)
+        {
+            case true:
+                return 1;
+            case false:
+                return 0;
+            case null:
+                return -1;
+        }
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (4,16): error CS0161: 'SwitchTest.Main(string[])': not all code paths return a value
+                //     static int Main(string[] args)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("SwitchTest.Main(string[])").WithLocation(4, 16)
+                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+                // (4,16): error CS0161: 'SwitchTest.Main(string[])': not all code paths return a value
+                //     static int Main(string[] args)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("SwitchTest.Main(string[])").WithLocation(4, 16)
+                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(32806, "https://github.com/dotnet/roslyn/issues/32806")]
+        public void TraditionalSwitchIsIncomplete_02()
+        {
+            var text = @"
+class SwitchTest
+{
+    static int Main(string[] args)
+    {
+        bool? test = null;
+
+        switch (test)
+        {
+            case true when true:
+                return 1;
+            case false:
+                return 0;
+            case null:
+                return -1;
+        }
+    }
+}
+";
+            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+                // (10,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                //             case true when true:
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case true when true:").WithArguments("pattern matching", "7.0").WithLocation(10, 13)
+                );
+            CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics();
+            CreateCompilation(text, parseOptions: TestOptions.Regular8).VerifyDiagnostics();
+        }
+
         #endregion
 
         #region regressions

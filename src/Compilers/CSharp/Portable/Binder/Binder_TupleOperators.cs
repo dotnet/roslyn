@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tuple = TupleTypeSymbol.Create(locationOpt: null,
                 elementTypes: convertedTypes.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)),
                 elementLocations, elementNames: names, compilation,
-                shouldCheckConstraints: true, errorPositions: default, syntax, diagnostics);
+                shouldCheckConstraints: true, includeNullability: false, errorPositions: default, syntax, diagnostics);
 
             if (!isNullable)
             {

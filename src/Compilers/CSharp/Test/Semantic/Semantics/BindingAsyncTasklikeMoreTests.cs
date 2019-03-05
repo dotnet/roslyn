@@ -1320,5 +1320,61 @@ public sealed class MyTaskMethodBuilder
                 //         await new MyTask();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "await new MyTask();").WithArguments("MyTaskMethodBuilder.AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter, ref TStateMachine)", "IMyAwaiter", "TAwaiter", "MyTask.Awaiter").WithLocation(5, 9));
         }
+
+        [Fact, WorkItem(33388, "https://github.com/dotnet/roslyn/pull/33388")]
+        public void AttributeArgument_TaskLikeOverloadResolution()
+        {
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class A : Attribute
+{
+    public A(int i) { }
+}
+class B
+{
+    public static int F(Func<MyTask<C>> t) => 1;
+    public static int F(Func<Task<object>> t) => 2;
+}
+[A(B.F(async () => null))]
+class C
+{
+}
+
+
+[AsyncMethodBuilder(typeof(MyTaskMethodBuilder<>))]
+class MyTask<T>
+{
+    internal Awaiter GetAwaiter() => null;
+    internal class Awaiter : INotifyCompletion
+    {
+        public void OnCompleted(Action a) { }
+        internal bool IsCompleted => true;
+        internal T GetResult() => default(T);
+    }
+}
+class MyTaskMethodBuilder<T>
+{
+    public static MyTaskMethodBuilder<T> Create() => null;
+    public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    public void Start<TStateMachine>(ref TStateMachine stateMachine) where TStateMachine : IAsyncStateMachine { }
+    public void SetException(Exception e) { }
+    public void SetResult(T t) { }
+    public void AwaitOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : INotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public void AwaitUnsafeOnCompleted<TAwaiter, TStateMachine>(ref TAwaiter awaiter, ref TStateMachine stateMachine) where TAwaiter : ICriticalNotifyCompletion where TStateMachine : IAsyncStateMachine { }
+    public MyTask<T> Task => default(MyTask<T>);
+}
+
+namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
+";
+
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (15,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(B.F(async () => null))]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B.F(async () => null)").WithLocation(15, 4));
+        }
     }
 }

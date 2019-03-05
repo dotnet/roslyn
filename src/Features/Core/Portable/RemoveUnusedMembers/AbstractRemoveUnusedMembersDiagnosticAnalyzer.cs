@@ -253,6 +253,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     {
                         Debug.Assert(memberReference.Parent is ICompoundAssignmentOperation compoundAssignment &&
                             compoundAssignment.Target == memberReference ||
+                            memberReference.Parent is ICoalesceAssignmentOperation coalesceAssignment &&
+                            coalesceAssignment.Target == memberReference ||
                             memberReference.Parent is IIncrementOrDecrementOperation ||
                             memberReference.Parent is IReDimClauseOperation reDimClause && reDimClause.Operand == memberReference);
 

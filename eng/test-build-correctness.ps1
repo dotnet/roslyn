@@ -56,7 +56,7 @@ try {
     $bootstrapperInfoContent | Set-Content $bootstrapperInfoPath
 
     # generate run settings
-    Exec-Block { & (Join-Path $PSScriptRoot "generate-optprof-run-settings.ps1") -configuration:$configuration -vsDropName:"Products/DummyDrop" -bootstrapperInfo:$bootstrapperInfoPath }
+    Exec-Block { & (Join-Path $PSScriptRoot "common\sdk-task.ps1") -configuration:$configuration -task VisualStudio.BuildIbcTrainingSettings /p:VisualStudioDropName="Products/DummyDrop" /p:BootstrapperInfoPath=$bootstrapperInfoPath }
     
     exit 0
 }

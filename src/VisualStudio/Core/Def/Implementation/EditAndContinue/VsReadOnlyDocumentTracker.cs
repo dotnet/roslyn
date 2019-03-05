@@ -54,9 +54,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             foreach (var documentId in _workspace.GetOpenDocumentIds())
             {
                 var document = _workspace.CurrentSolution.GetDocument(documentId);
-                Debug.Assert(document != null);
-
-                SetReadOnly(document);
+                if (document != null)
+                {
+                    SetReadOnly(document);
+                }
             }
         }
 

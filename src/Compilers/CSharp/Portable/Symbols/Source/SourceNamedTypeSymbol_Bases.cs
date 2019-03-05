@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var conversions = new TypeConversions(corLibrary);
                 var location = singleDeclaration.NameLocation;
 
-                localBase.CheckAllConstraints(conversions, location, diagnostics);
+                localBase.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
             }
         }
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     foreach (var @interface in set)
                     {
-                        @interface.CheckAllConstraints(conversions, location, diagnostics);
+                        @interface.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
                     }
 
                     if (set.Count > 1)
@@ -400,14 +400,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         else
                         {
                             // '{0}' cannot derive from special class '{1}'
-                            diagnostics.Add(ErrorCode.ERR_DeriveFromEnumOrValueType, Locations[0], this, baseType);
+                            diagnostics.Add(ErrorCode.ERR_DeriveFromEnumOrValueType, location, this, baseType);
                             continue;
                         }
                     }
 
                     if (baseType.IsSealed && !this.IsStatic) // Give precedence to ERR_StaticDerivedFromNonObject
                     {
-                        diagnostics.Add(ErrorCode.ERR_CantDeriveFromSealedType, Locations[0], this, baseType);
+                        diagnostics.Add(ErrorCode.ERR_CantDeriveFromSealedType, location, this, baseType);
                         continue;
                     }
 

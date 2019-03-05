@@ -401,9 +401,9 @@ public class Test : short { }
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,14): error CS0509: 'Test': cannot derive from sealed type 'short'
+                // (2,21): error CS0509: 'Test': cannot derive from sealed type 'short'
                 // public class Test : short { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "Test").WithArguments("Test", "short"));
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "short").WithArguments("Test", "short"));
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");

@@ -315,7 +315,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 
             If Not String.IsNullOrEmpty(pCompilerOptions.wszExeName) Then
                 VisualStudioProject.AssemblyName = Path.GetFileNameWithoutExtension(pCompilerOptions.wszExeName)
+                If Not String.IsNullOrEmpty(pCompilerOptions.wszOutputPath) Then
+                    VisualStudioProject.IntermediateOutputFilePath = Path.Combine(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
+                End If
             End If
+
+            RefreshBinOutputPath()
 
             _runtimeLibraries = VisualStudioProjectOptionsProcessor.GetRuntimeLibraries(_compilerHost)
 
