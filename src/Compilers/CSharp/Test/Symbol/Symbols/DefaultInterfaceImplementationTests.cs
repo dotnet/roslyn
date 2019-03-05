@@ -35852,7 +35852,7 @@ I2.+2
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void Operators_16()
         {
             var source1 =
@@ -36073,7 +36073,7 @@ I1.+
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(CoreClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void Operators_19()
         {
             var source1 =
