@@ -251,9 +251,6 @@ class C
                 // (6,28): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
                 //         ref string x = ref NullableRef(); // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "NullableRef()").WithArguments("string?", "string").WithLocation(6, 28),
-                // (6,28): warning CS8597: Possible null value.
-                //         ref string x = ref NullableRef(); // 1
-                Diagnostic(ErrorCode.WRN_PossibleNull, "NullableRef()").WithLocation(6, 28),
                 // (7,29): warning CS8597: Possible null value.
                 //         ref string x2 = ref x; // 2
                 Diagnostic(ErrorCode.WRN_PossibleNull, "x").WithLocation(7, 29)
@@ -1725,10 +1722,7 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<string>", "C<string>?").WithLocation(17, 20),
                 // (21,20): warning CS8619: Nullability of reference types in value of type 'C<string>?' doesn't match target type 'C<string>'.
                 //         return ref x; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<string>?", "C<string>").WithLocation(21, 20),
-                // (21,20): warning CS8597: Possible null value.
-                //         return ref x; // 3
-                Diagnostic(ErrorCode.WRN_PossibleNull, "x").WithLocation(21, 20)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C<string>?", "C<string>").WithLocation(21, 20)
                 );
         }
 
@@ -1761,9 +1755,6 @@ class C
                 // (6,20): warning CS8619: Nullability of reference types in value of type 'C?' doesn't match target type 'C'.
                 //         return ref w; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "w").WithArguments("C?", "C").WithLocation(6, 20),
-                // (6,20): warning CS8597: Possible null value.
-                //         return ref w; // 1
-                Diagnostic(ErrorCode.WRN_PossibleNull, "w").WithLocation(6, 20),
                 // (10,20): warning CS8619: Nullability of reference types in value of type 'C' doesn't match target type 'C?'.
                 //         return ref w; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "w").WithArguments("C", "C?").WithLocation(10, 20)
@@ -1806,9 +1797,6 @@ class C
                 // (6,23): warning CS8619: Nullability of reference types in value of type 'C?' doesn't match target type 'C'.
                 //         ref C y = ref x; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("C?", "C").WithLocation(6, 23),
-                // (6,23): warning CS8597: Possible null value.
-                //         ref C y = ref x; // 1
-                Diagnostic(ErrorCode.WRN_PossibleNull, "x").WithLocation(6, 23),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         y.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(7, 9),
@@ -4855,15 +4843,9 @@ class C
                 // (6,28): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
                 //         ref string y = ref x;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("string?", "string").WithLocation(6, 28),
-                // (6,28): warning CS8597: Possible null value.
-                //         ref string y = ref x;
-                Diagnostic(ErrorCode.WRN_PossibleNull, "x").WithLocation(6, 28),
                 // (7,29): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
                 //         ref string y2 = ref x;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("string?", "string").WithLocation(7, 29),
-                // (7,29): warning CS8597: Possible null value.
-                //         ref string y2 = ref x;
-                Diagnostic(ErrorCode.WRN_PossibleNull, "x").WithLocation(7, 29),
                 // (8,10): error CS8598: The suppression operator is not allowed in this context
                 //         (y2! = ref y) = ref y;
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "y2").WithLocation(8, 10),
@@ -81086,9 +81068,6 @@ class Program
                 // (5,20): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
                 //         return ref x; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("string?", "string").WithLocation(5, 20),
-                // (5,20): warning CS8597: Possible null value.
-                //         return ref x; // 1
-                Diagnostic(ErrorCode.WRN_PossibleNull, "x").WithLocation(5, 20),
                 // (9,20): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
                 //         return ref y; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("string", "string?").WithLocation(9, 20)

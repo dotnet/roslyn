@@ -1202,9 +1202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     ReportNullabilityMismatchInAssignment(expr.Syntax, lvalueResultType, destinationType);
                 }
-
-                if (resultType.MaybeNull && !destinationType.CanBeAssignedNull)
+                else if (resultType.MaybeNull && !destinationType.CanBeAssignedNull)
                 {
+                    // types match, but state would let a null in
                     ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
                 }
             }
