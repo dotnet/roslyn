@@ -539,32 +539,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             MemberDeclarationSyntax firstMember,
             bool allowPartialSelection)
         {
+            var members = containingType.Members;
+            var fieldIndex = members.IndexOf(firstMember);
+            if (fieldIndex < 0)
+            {
+                return ImmutableArray<MemberDeclarationSyntax>.Empty;
+            }
+
             var selectedMembers = ArrayBuilder<MemberDeclarationSyntax>.GetInstance();
-            try
+            for (var i = fieldIndex; i < members.Count; i++)
             {
-
-                var members = containingType.Members;
-                var fieldIndex = members.IndexOf(firstMember);
-                if (fieldIndex < 0)
+                var member = members[i];
+                if (IsSelectedFieldOrProperty(textSpan, member, allowPartialSelection))
                 {
-                    return ImmutableArray<MemberDeclarationSyntax>.Empty;
+                    selectedMembers.Add(member);
                 }
-
-                for (var i = fieldIndex; i < members.Count; i++)
-                {
-                    var member = members[i];
-                    if (IsSelectedFieldOrProperty(textSpan, member, allowPartialSelection))
-                    {
-                        selectedMembers.Add(member);
-                    }
-                }
-
-                return selectedMembers.ToImmutable();
             }
-            finally
-            {
-                selectedMembers.Free();
-            }
+
+            return selectedMembers.ToImmutableAndFree();
 
             // local functions
             static bool IsSelectedFieldOrProperty(TextSpan textSpan, MemberDeclarationSyntax member, bool allowPartialSelection)
