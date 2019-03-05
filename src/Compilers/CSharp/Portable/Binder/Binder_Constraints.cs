@@ -122,12 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             constraints |= TypeParameterConstraintKind.NullableReferenceType;
 
-                            DiagnosticInfo info = LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(Compilation, IsNullableEnabled(questionToken));
-
-                            if (!(info is null))
-                            {
-                                diagnostics.Add(info, questionToken.GetLocation());
-                            }
+                            LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(IsNullableEnabled(questionToken), questionToken.GetLocation(), diagnostics);
                         }
                         else if (IsNullableEnabled(constraintSyntax.ClassOrStructKeyword))
                         {

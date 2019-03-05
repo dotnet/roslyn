@@ -59,7 +59,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                         SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                         SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                         SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
-                        SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+                        SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier |
+                        SymbolDisplayMiscellaneousOptions.AllowDefaultLiteral);
 
             private static readonly SymbolDisplayFormat s_descriptionStyle =
                 new SymbolDisplayFormat(

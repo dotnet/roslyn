@@ -125,14 +125,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
             Task<NamedPipeClientStream> pipeTask = null;
-            Mutex clientMutex = null;
+            IServerMutex clientMutex = null;
             var holdsMutex = false;
             try
             {
                 try
                 {
                     var clientMutexName = GetClientMutexName(pipeName);
-                    clientMutex = new Mutex(initiallyOwned: true, name: clientMutexName, out holdsMutex);
+                    clientMutex = OpenOrCreateMutex(clientMutexName, out holdsMutex);
                 }
                 catch
                 {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     try
                     {
-                        holdsMutex = clientMutex.WaitOne(timeoutNewProcess);
+                        holdsMutex = clientMutex.TryLock(timeoutNewProcess);
 
                         if (!holdsMutex)
                         {
@@ -173,14 +173,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             finally
             {
-                if (clientMutex != null)
-                {
-                    if (holdsMutex)
-                    {
-                        clientMutex.ReleaseMutex();
-                    }
-                    clientMutex.Dispose();
-                }
+                clientMutex?.Dispose();
             }
 
             if (pipeTask != null)
@@ -336,7 +329,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 Log("Attempt to connect named pipe '{0}'", pipeName);
                 try
                 {
-                    await pipeStream.ConnectAsync(timeoutMs, cancellationToken).ConfigureAwait(false);
+                    // NamedPipeClientStream.ConnectAsync on the "full" framework has a bug where it
+                    // tries to move potentially expensive work (actually connecting to the pipe) to
+                    // a background thread with Task.Factory.StartNew. However, that call will merely
+                    // queue the work onto the TaskScheduler associated with the "current" Task which
+                    // does not guarantee it will be processed on a background thread and this could
+                    // lead to a hang.
+                    // To avoid this, we first force ourselves to a background thread using Task.Run.
+                    // This ensures that the Task created by ConnectAsync will run on the default
+                    // TaskScheduler (i.e., on a threadpool thread) which was the intent all along.
+                    await Task.Run(() => pipeStream.ConnectAsync(timeoutMs, cancellationToken)).ConfigureAwait(false);
                 }
                 catch (Exception e) when (e is IOException || e is TimeoutException)
                 {
@@ -369,10 +371,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
-        internal static bool TryCreateServerCore(string clientDir, string pipeName)
+        internal static (string processFilePath, string commandLineArguments, string toolFilePath) GetServerProcessInfo(string clientDir, string pipeName)
         {
             var serverPathWithoutExtension = Path.Combine(clientDir, "VBCSCompiler");
-            var serverInfo = RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, $"-pipename:{pipeName}");
+            var commandLineArgs = $@"""-pipename:{pipeName}""";
+            return RuntimeHostInfo.GetProcessInfo(serverPathWithoutExtension, commandLineArgs);
+        }
+
+        internal static bool TryCreateServerCore(string clientDir, string pipeName)
+        {
+            var serverInfo = GetServerProcessInfo(clientDir, pipeName);
 
             if (!File.Exists(serverInfo.toolFilePath))
             {
@@ -471,7 +479,24 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return null;
             }
 
-            return $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
+            return GetPipeNameCore(userName, isAdmin, basePipeName);
+        }
+
+        internal static string GetPipeNameCore(string userName, bool isAdmin, string basePipeName)
+        {
+            var pipeName = $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
+
+            // The pipe name is passed between processes as a command line argument as a 
+            // quoted value. Unfortunately we can't use ProcessStartInfo.ArgumentList as 
+            // we still target net472 (API only available on CoreClr + netstandard). To 
+            // make the problem approachable we remove the troublesome characters.
+            //
+            // This does mean if two users on the same machine are building simultaneously
+            // and the user names differ only be a " or / and a _ then there will be a 
+            // conflict. That seems rather obscure though.
+            return pipeName
+                .Replace('"', '_')
+                .Replace('\\', '_');
         }
 
         /// <summary>
@@ -519,12 +544,23 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             try
             {
-                Mutex mutex;
-                var open = Mutex.TryOpenExisting(mutexName, out mutex);
-                if (open)
+                if (PlatformInformation.IsRunningOnMono)
                 {
-                    mutex.Dispose();
-                    return true;
+                    IServerMutex mutex = null;
+                    bool createdNew = false;
+                    try
+                    {
+                        mutex = new ServerFileMutexPair(mutexName, false, out createdNew);
+                        return !createdNew;
+                    }
+                    finally
+                    {
+                        mutex?.Dispose();
+                    }
+                }
+                else
+                {
+                    return ServerNamedMutex.WasOpen(mutexName);
                 }
             }
             catch
@@ -533,8 +569,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // the assumption is that it's not open. 
                 return false;
             }
+        }
 
-            return false;
+        internal static IServerMutex OpenOrCreateMutex(string name, out bool createdNew)
+        {
+            if (PlatformInformation.IsRunningOnMono)
+            {
+                return new ServerFileMutexPair(name, initiallyOwned: true, out createdNew);
+            }
+            else
+            {
+                return new ServerNamedMutex(name, out createdNew);
+            }
         }
 
         internal static string GetServerMutexName(string pipeName)
@@ -595,4 +641,225 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return Environment.GetEnvironmentVariable("SYSTEMROOT");
         }
     }
+
+    internal interface IServerMutex : IDisposable
+    {
+        bool TryLock(int timeoutMs);
+        void Unlock();
+        bool IsDisposed { get; }
+    }
+
+    /// <summary>
+    /// An interprocess mutex abstraction based on OS advisory locking (FileStream.Lock/Unlock).
+    /// If multiple processes running as the same user create FileMutex instances with the same name,
+    ///  those instances will all point to the same file somewhere in a selected temporary directory.
+    /// The TryLock method can be used to attempt to acquire the mutex, with Unlock or Dispose used to release.
+    /// Unlike Win32 named mutexes, there is no mechanism for detecting an abandoned mutex. The file
+    ///  will simply revert to being unlocked but remain where it is.
+    /// </summary>
+    internal sealed class FileMutex : IDisposable
+    {
+        public readonly FileStream Stream;
+        public readonly string FilePath;
+
+        public bool IsLocked { get; private set; }
+
+        internal static string GetMutexDirectory()
+        {
+            var tempPath = BuildServerConnection.GetTempPath(null);
+            var result = Path.Combine(tempPath, ".roslyn");
+            Directory.CreateDirectory(result);
+            return result;
+        }
+
+        public FileMutex(string name)
+        {
+            FilePath = Path.Combine(GetMutexDirectory(), name);
+            Stream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        }
+
+        public bool TryLock(int timeoutMs)
+        {
+            if (IsLocked)
+                throw new InvalidOperationException("Lock already held");
+
+            var sw = Stopwatch.StartNew();
+            do
+            {
+                try
+                {
+                    Stream.Lock(0, 0);
+                    IsLocked = true;
+                    return true;
+                }
+                catch (IOException)
+                {
+                    // Lock currently held by someone else.
+                    // We want to sleep for a short period of time to ensure that other processes
+                    //  have an opportunity to finish their work and relinquish the lock.
+                    // Spinning here (via Yield) would work but risks creating a priority
+                    //  inversion if the lock is held by a lower-priority process.
+                    Thread.Sleep(1);
+                }
+                catch (Exception)
+                {
+                    // Something else went wrong.
+                    return false;
+                }
+            } while (sw.ElapsedMilliseconds < timeoutMs);
+
+            return false;
+        }
+
+        public void Unlock()
+        {
+            if (!IsLocked)
+                return;
+            Stream.Unlock(0, 0);
+            IsLocked = false;
+        }
+
+        public void Dispose()
+        {
+            var wasLocked = IsLocked;
+            if (wasLocked)
+                Unlock();
+            Stream.Dispose();
+            // We do not delete the lock file here because there is no reliable way to perform a
+            //  'delete if no one has the file open' operation atomically on *nix. This is a leak.
+        }
+    }
+
+    internal sealed class ServerNamedMutex : IServerMutex
+    {
+        public readonly Mutex Mutex;
+
+        public bool IsDisposed { get; private set; }
+        public bool IsLocked { get; private set; }
+
+        public ServerNamedMutex(string mutexName, out bool createdNew)
+        {
+            Mutex = new Mutex(
+                initiallyOwned: true,
+                name: mutexName,
+                createdNew: out createdNew
+            );
+            if (createdNew)
+                IsLocked = true;
+        }
+
+        public static bool WasOpen(string mutexName)
+        {
+            Mutex m = null;
+            try
+            {
+                return Mutex.TryOpenExisting(mutexName, out m);
+            }
+            catch
+            {
+                // In the case an exception occured trying to open the Mutex then 
+                // the assumption is that it's not open.
+                return false;
+            }
+            finally
+            {
+                m?.Dispose();
+            }
+        }
+
+        public bool TryLock(int timeoutMs)
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException("Mutex");
+            if (IsLocked)
+                throw new InvalidOperationException("Lock already held");
+            return IsLocked = Mutex.WaitOne(timeoutMs);
+        }
+
+        public void Unlock()
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException("Mutex");
+            if (!IsLocked)
+                throw new InvalidOperationException("Lock not held");
+            Mutex.ReleaseMutex();
+            IsLocked = false;
+        }
+
+        public void Dispose()
+        {
+            if (IsDisposed)
+                return;
+            IsDisposed = true;
+
+            try
+            {
+                if (IsLocked)
+                    Mutex.ReleaseMutex();
+            }
+            finally
+            {
+                Mutex.Dispose();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Approximates a named mutex with 'locked', 'unlocked' and 'abandoned' states.
+    /// There is no reliable way to detect whether a mutex has been abandoned on some target platforms,
+    ///  so we use the AliveMutex to manually track whether the creator of a mutex is still running,
+    ///  while the HeldMutex represents the actual lock state of the mutex.
+    /// </summary>
+    internal sealed class ServerFileMutexPair : IServerMutex
+    {
+        public readonly FileMutex AliveMutex;
+        public readonly FileMutex HeldMutex;
+
+        public bool IsDisposed { get; private set; }
+
+        public ServerFileMutexPair(string mutexName, bool initiallyOwned, out bool createdNew)
+        {
+            AliveMutex = new FileMutex(mutexName + "-alive");
+            HeldMutex = new FileMutex(mutexName + "-held");
+            createdNew = AliveMutex.TryLock(0);
+            if (initiallyOwned && createdNew)
+            {
+                if (!TryLock(0))
+                    throw new Exception("Failed to lock mutex after creating it");
+            }
+        }
+
+        public bool TryLock(int timeoutMs)
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException("Mutex");
+            return HeldMutex.TryLock(timeoutMs);
+        }
+
+        public void Unlock()
+        {
+            if (IsDisposed)
+                throw new ObjectDisposedException("Mutex");
+            HeldMutex.Unlock();
+        }
+
+        public void Dispose()
+        {
+            if (IsDisposed)
+                return;
+            IsDisposed = true;
+
+            try
+            {
+                HeldMutex.Unlock();
+                AliveMutex.Unlock();
+            }
+            finally
+            {
+                AliveMutex.Dispose();
+                HeldMutex.Dispose();
+            }
+        }
+    }
+
 }

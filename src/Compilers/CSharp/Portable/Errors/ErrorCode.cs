@@ -1299,7 +1299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8062-8069
         ERR_SwitchFallOut = 8070,
-        // ERR_UnexpectedBoundGenericName = 8071, // for nameof - used in an early prototype
+        // available = 8071,
         ERR_NullPropagatingOpInExpressionTree = 8072,
         WRN_NubExprIsConstBool2 = 8073,
         ERR_DictionaryInitializerInExpressionTree = 8074,
@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NamedArgumentSpecificationBeforeFixedArgumentInDynamicInvocation = 8324,
         #endregion diagnostics introduced for C# 7.2
 
-        #region diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+        #region diagnostics introduced for `ref readonly`, `ref conditional` and `ref-like` features in C# 7.2
         ERR_RefConditionalAndAwait = 8325,
         ERR_RefConditionalNeedsTwoRefs = 8326,
         ERR_RefConditionalDifferentTypes = 8327,
@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
         ERR_OutAttrOnInParam = 8355,
-        #endregion diagnostics introduced for `ref readonly`, `ref ternary` and `ref-like` features in C# 7.2
+        #endregion diagnostics introduced for `ref readonly`, `ref conditional` and `ref-like` features in C# 7.2
 
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
@@ -1625,6 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DiscardPatternInSwitchStatement = 8523,
         #endregion diagnostics introduced for recursive patterns
 
+        WRN_PossibleNull = 8597,
         ERR_IllegalSuppression = 8598,
         WRN_IllegalPPWarningSafeOnly = 8599,
         WRN_ConvertingNullableToNonNullable = 8600,
@@ -1632,9 +1633,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceReceiver = 8602,
         WRN_NullReferenceReturn = 8603,
         WRN_NullReferenceArgument = 8604,
-        HDN_NullCheckIsProbablyAlwaysTrue = 8605,
-        HDN_NullCheckIsProbablyAlwaysFalse = 8606,
-        HDN_ExpressionIsProbablyNeverNull = 8607,
+        // Available = 8605,
+        // Available = 8606,
+        // Available = 8607,
         WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
@@ -1651,9 +1652,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInReturnTypeOfTargetDelegate = 8621,
         WRN_NullabilityMismatchInParameterTypeOfTargetDelegate = 8622,
         ERR_ExplicitNullableAttribute = 8623,
-        // Available = 8624,
+        WRN_NullabilityMismatchInArgumentForOutput = 8624,
         WRN_NullAsNonNullable = 8625,
-        WRN_NoBestNullabilityConditionalExpression = 8626,
+        WRN_AsOperatorMayReturnNull = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
         WRN_NullableValueTypeMayBeNull = 8629,
@@ -1665,8 +1666,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TripleDotNotAllowed = 8635,
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
-        WRN_CantInferNullabilityOfMethodTypeArgs = 8638,
-        WRN_NoBestNullabilityArrayElements = 8639,
+        WRN_ConditionalAccessMayReturnNull = 8638,
+        // Available = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
         ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
@@ -1679,6 +1680,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_GoToBackwardJumpOverUsingVar = 8649,
         ERR_IsNullableType = 8650,
         ERR_AsNullableType = 8651,
+        ERR_FeatureInPreview = 8652,
+        WRN_DefaultExpressionMayIntroduceNullT = 8653,
+        WRN_NullLiteralMayIntroduceNullT = 8654,
 
         #endregion diagnostics introduced for C# 8.0
 

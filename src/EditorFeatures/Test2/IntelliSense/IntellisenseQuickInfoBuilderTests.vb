@@ -387,9 +387,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "="),
                             New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
                             New ClassifiedTextRun(ClassificationTypeNames.Keyword, "default"),
-                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
-                            New ClassifiedTextRun(ClassificationTypeNames.StructName, "CancellationToken"),
-                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "]"),
                             New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
                     New ContainerElement(

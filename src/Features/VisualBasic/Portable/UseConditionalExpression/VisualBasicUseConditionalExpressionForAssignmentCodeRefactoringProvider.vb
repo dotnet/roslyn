@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
         Inherits AbstractUseConditionalExpressionForAssignmentCodeFixProvider(Of
             StatementSyntax, MultiLineIfBlockSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ExpressionSyntax, TernaryConditionalExpressionSyntax)
 
-        Protected Overrides Function GetMultiLineFormattingRule() As IFormattingRule
+        Protected Overrides Function GetMultiLineFormattingRule() As AbstractFormattingRule
             Return MultiLineConditionalExpressionFormattingRule.Instance
         End Function
 

@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 Imports Microsoft.CodeAnalysis.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -198,6 +199,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GenerateParameterNames(semanticModel As SemanticModel,
                                                arguments As IList(Of ArgumentSyntax),
+                                               reservedNames As IEnumerable(Of String),
+                                               parameterNamingRule As NamingRule,
+                                               cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
+            reservedNames = If(reservedNames, SpecializedCollections.EmptyEnumerable(Of String))
+            Return semanticModel.GenerateParameterNames(
+                arguments,
+                Function(s) Not reservedNames.Any(Function(n) CaseInsensitiveComparison.Equals(s, n)),
+                parameterNamingRule,
+                cancellationToken)
+        End Function
+
+        <Extension()>
+        Public Function GenerateParameterNames(semanticModel As SemanticModel,
+                                               arguments As IList(Of ArgumentSyntax),
                                                canUse As Func(Of String, Boolean),
                                                cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
             If arguments.Count = 0 Then
@@ -213,6 +228,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToList()
             Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
                                  Select(Function(name, index) New ParameterName(name, isFixed(index))).
+                                 ToImmutableArray()
+        End Function
+
+        <Extension()>
+        Public Function GenerateParameterNames(semanticModel As SemanticModel,
+                                               arguments As IList(Of ArgumentSyntax),
+                                               canUse As Func(Of String, Boolean),
+                                               parameterNamingRule As NamingRule,
+                                               cancellationToken As CancellationToken) As ImmutableArray(Of ParameterName)
+            If arguments.Count = 0 Then
+                Return ImmutableArray(Of ParameterName).Empty
+            End If
+
+            ' We can't change the names of named parameters.  Any other names we're flexible on.
+            Dim isFixed = Aggregate arg In arguments
+                          Select arg = TryCast(arg, SimpleArgumentSyntax)
+                          Select arg IsNot Nothing AndAlso arg.NameColonEquals IsNot Nothing
+                          Into ToList()
+
+            Dim parameterNames = arguments.Select(Function(a) semanticModel.GenerateNameForArgument(a, cancellationToken)).ToList()
+            Return NameGenerator.EnsureUniqueness(parameterNames, isFixed, canUse).
+                                 Select(Function(name, index) New ParameterName(name, isFixed(index), parameterNamingRule)).
                                  ToImmutableArray()
         End Function
 

@@ -872,11 +872,11 @@ namespace BoundTreeGenerator
 
             if (unsealed)
             {
-                WriteConstructor(node, false, hasChildNodes);
+                WriteConstructor(node, isPublic: false, hasChildNodes);
             }
             if (concrete)
             {
-                WriteConstructor(node, true, hasChildNodes);
+                WriteConstructor(node, isPublic: true, hasChildNodes);
             }
 
             foreach (var field in Fields(node))

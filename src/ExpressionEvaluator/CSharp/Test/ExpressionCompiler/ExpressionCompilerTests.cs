@@ -6759,7 +6759,7 @@ class C
   // Code size        6 (0x6)
   .maxstack  1
   .locals init (System.Range V_0) //x
-  IL_0000:  call       ""System.Range System.Range.All()""
+  IL_0000:  call       ""System.Range System.Range.All.get""
   IL_0005:  ret
 }");
         }
@@ -6805,7 +6805,7 @@ class C
   .locals init (System.Range V_0) //x
   IL_0000:  ldc.i4.2
   IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_0006:  call       ""System.Range System.Range.FromStart(System.Index)""
+  IL_0006:  call       ""System.Range System.Range.StartAt(System.Index)""
   IL_000b:  ret
 }");
         }
@@ -6851,7 +6851,7 @@ class C
   .locals init (System.Range V_0) //x
   IL_0000:  ldc.i4.2
   IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_0006:  call       ""System.Range System.Range.ToEnd(System.Index)""
+  IL_0006:  call       ""System.Range System.Range.EndAt(System.Index)""
   IL_000b:  ret
 }");
         }
@@ -6899,7 +6899,7 @@ class C
   IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
   IL_0006:  ldc.i4.4
   IL_0007:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_000c:  call       ""System.Range System.Range.Create(System.Index, System.Index)""
+  IL_000c:  newobj     ""System.Range..ctor(System.Index, System.Index)""
   IL_0011:  ret
 }");
         }
