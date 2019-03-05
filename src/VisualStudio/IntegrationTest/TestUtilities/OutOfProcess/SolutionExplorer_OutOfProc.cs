@@ -128,6 +128,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
+        public void CloseDesignerFile(ProjectUtils.Project project, string fileName, bool saveFile)
+            => _inProc.CloseDesignerFile(project.Name, fileName, saveFile);
+
+        public void CloseCodeFile(ProjectUtils.Project project, string fileName, bool saveFile)
+            => _inProc.CloseCodeFile(project.Name, fileName, saveFile);
+
         public void CloseFile(ProjectUtils.Project project, string fileName, bool saveFile)
             => _inProc.CloseFile(project.Name, fileName, saveFile);
 

@@ -888,6 +888,31 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
         }
 
+        public void CloseDesignerFile(string projectName, string relativeFilePath, bool saveFile)
+        {
+            CloseFile(projectName, relativeFilePath, VSConstants.LOGVIEWID.Designer_guid, saveFile);
+        }
+
+        public void CloseCodeFile(string projectName, string relativeFilePath, bool saveFile)
+        {
+            CloseFile(projectName, relativeFilePath, VSConstants.LOGVIEWID.Code_guid, saveFile);
+        }
+
+        private void CloseFile(string projectName, string relativeFilePath, Guid logicalView, bool saveFile)
+        {
+            InvokeOnUIThread(() =>
+            {
+                var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+                if (!VsShellUtilities.IsDocumentOpen(ServiceProvider.GlobalProvider, filePath, logicalView, out _, out _, out var windowFrame))
+                {
+                    throw new InvalidOperationException($"File '{filePath}' is not open in logical view '{logicalView}'");
+                }
+
+                var frameClose = saveFile ? __FRAMECLOSE.FRAMECLOSE_SaveIfDirty : __FRAMECLOSE.FRAMECLOSE_NoSave;
+                ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)frameClose));
+            });
+        }
+
         public void CloseFile(string projectName, string relativeFilePath, bool saveFile)
         {
             var document = GetOpenDocument(projectName, relativeFilePath);
@@ -906,7 +931,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
             var documents = GetDTE().Documents.Cast<EnvDTE.Document>();
-            var document = documents.FirstOrDefault(d => d.FullName == filePath);
+            var document = documents.SingleOrDefault(d => d.FullName == filePath);
 
             if (document == null)
             {
