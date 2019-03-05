@@ -247,6 +247,11 @@
         <target state="translated">Selezionare i membri:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_completion_list">
+        <source>Show completion list</source>
+        <target state="new">Show completion list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">Il valore inutilizzato viene assegnato in modo esplicito a una variabile locale inutilizzata</target>

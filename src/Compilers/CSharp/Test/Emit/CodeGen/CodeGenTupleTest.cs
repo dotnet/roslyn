@@ -1726,7 +1726,7 @@ class C
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33615")]
         public void TupleLambdaCapture03()
         {
             var source = @"
@@ -2286,7 +2286,7 @@ class C
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33615")]
         public void TupleAsyncCapture03()
         {
             var source = @"
