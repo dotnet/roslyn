@@ -14,12 +14,6 @@
 # it's fine to call `build.ps1 -build -testDesktop` followed by repeated calls to
 # `.\build.ps1 -testDesktop`.
 
-if ($PSVersionTable.PSVersion.Major -lt "5") {
-   $version = $PSVersionTable.PSVersion
-   Write-Host "PowerShell version must be 5 or greater (version $version detected)"
-               exit 1
-}
-
 [CmdletBinding(PositionalBinding=$false)]
 param (
     [string][Alias('c')]$configuration = "Debug",
@@ -65,6 +59,11 @@ param (
     [switch]$testIOperation,
 
     [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
+
+if ($PSVersionTable.PSVersion.Major -lt "5") {
+    Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
+    exit 1
+}
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
