@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 for (var i = fieldIndex; i < members.Count; i++)
                 {
                     var member = members[i];
-                    if (IsSelectedFieldOrProperty(member))
+                    if (IsSelectedFieldOrProperty(textSpan, member, allowPartialSelection))
                     {
                         selectedMembers.Add(member);
                     }
@@ -566,7 +566,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 selectedMembers.Free();
             }
 
-            bool IsSelectedFieldOrProperty(MemberDeclarationSyntax member)
+            // local functions
+            static bool IsSelectedFieldOrProperty(TextSpan textSpan, MemberDeclarationSyntax member, bool allowPartialSelection)
             {
                 if (!member.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.PropertyDeclaration))
                 {
@@ -585,10 +586,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
 
                 // next, check if identifier is at least partially selected
-                switch (member.Kind())
+                switch (member)
                 {
-                    case SyntaxKind.FieldDeclaration:
-                        var variables = ((FieldDeclarationSyntax)member).Declaration.Variables;
+                    case FieldDeclarationSyntax field:
+                        var variables = field.Declaration.Variables;
                         foreach (var variable in variables)
                         {
                             if (textSpan.OverlapsWith(variable.Identifier.Span))
@@ -597,8 +598,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             }
                         }
                         return false;
-                    case SyntaxKind.PropertyDeclaration:
-                        return textSpan.OverlapsWith(((PropertyDeclarationSyntax)member).Identifier.Span);
+                    case PropertyDeclarationSyntax property:
+                        return textSpan.OverlapsWith(property.Identifier.Span);
                     default:
                         return false;
                 }
