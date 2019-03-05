@@ -501,6 +501,23 @@ public class MyClass
                 );
         }
 
+        [Fact, WorkItem(31748, "https://github.com/dotnet/roslyn/issues/31748")]
+        public void NullableRangeIndexer()
+        {
+            var text = @"
+using System;
+#nullable enable
+class Program
+{
+    void M(int[] x, MyString m)
+    {
+        var y = x[1..3];
+        var z = m[1..3];
+    }
+}" + TestSources.GetSubArray + TestSources.StringWithIndexers;
+            CreateCompilationWithIndexAndRange(text).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
         public void SuppressNullableWarning_MemberAccess()
         {
