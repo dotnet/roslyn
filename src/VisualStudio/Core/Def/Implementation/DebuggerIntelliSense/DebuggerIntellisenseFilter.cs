@@ -180,10 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         internal void SetContext(AbstractDebuggerIntelliSenseContext context)
         {
-            // We're never notified of being disabled in the immediate window, so the
-            // best we can do is only keep resources from one context alive at a time.
-            Dispose();
-
+            // If there was an old context, it must be cleaned before calling SetContext.
             _context = context;
             this.SetCommandHandlers(context.Buffer);
         }
