@@ -41,16 +41,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
                 Icon = KnownMonikers.StatusInformation;
                 Message = $"'{NamespaceName}' will be created as a new namespace";
                 ShowMessage = true;
+                CanSubmit = true;
             }
             else if (!isValidName)
             {
-                Icon = KnownMonikers.StatusError;
+                Icon = KnownMonikers.StatusInvalid;
                 Message = $"'{NamespaceName}' is not a valid namespace";
                 ShowMessage = true;
+                CanSubmit = false;
             }
             else
             {
                 ShowMessage = false;
+                CanSubmit = true;
             }
         }
 
@@ -87,6 +90,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         {
             get => _showMessage;
             private set => SetProperty(ref _showMessage, value);
+        }
+
+        private bool _canSubmit = true;
+        public bool CanSubmit
+        {
+            get => _canSubmit;
+            private set => SetProperty(ref _canSubmit, value);
         }
     }
 }

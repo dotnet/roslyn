@@ -128,8 +128,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
-        <source>Move To Namespace</source>
-        <target state="new">Move To Namespace</target>
+        <source>Move to Namespace</source>
+        <target state="new">Move to Namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="Namespace">

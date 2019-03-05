@@ -1202,7 +1202,7 @@ I agree to all of the foregoing:</value>
     <value>Use enhanced colors for C# and Basic</value>
   </data>
   <data name="Move_to_namespace" xml:space="preserve">
-    <value>Move To Namespace</value>
+    <value>Move to Namespace</value>
   </data>
   <data name="Namespace" xml:space="preserve">
     <value>Namespace</value>

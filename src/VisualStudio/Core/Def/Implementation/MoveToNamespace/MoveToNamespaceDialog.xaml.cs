@@ -14,12 +14,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         private readonly MoveToNamespaceDialogViewModel _viewModel;
 
         public string MoveToNamespaceDialogTitle => ServicesVSResources.Move_to_namespace;
-        public string NamespaceLabelText => "Namespace: "; // ServicesVSResources.Namespace_colon;
+        public string NamespaceLabelText => "Target Namespace:"; // ServicesVSResources.Namespace_colon;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
 
         internal MoveToNamespaceDialog(MoveToNamespaceDialogViewModel viewModel)
-            : base(helpTopic: "vs.csharp.refactoring.movetonamespace")
+            : base()
         {
             _viewModel = viewModel;
 
@@ -37,7 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
         private void OK_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = true;
+            if (_viewModel.CanSubmit)
+            {
+                DialogResult = true;
+            }
         }
     }
 }
