@@ -38,16 +38,22 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                          GetType(IntelliSenseTestState)})
                                            End Function)
 
-        Private Shared EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As ComposableCatalog =
-            s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts.Value
+        Private Shared ReadOnly Property EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As ComposableCatalog
+            Get
+                Return s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts.Value
+            End Get
+        End Property
 
         Private Shared s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of IExportProviderFactory) =
             New Lazy(Of IExportProviderFactory)(Function()
                                                     Return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts)
                                                 End Function)
 
-        Private Shared ExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As IExportProviderFactory =
-            s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts.Value
+        Private Shared ReadOnly Property ExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As IExportProviderFactory
+            Get
+                Return s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts.Value
+            End Get
+        End Property
 
         Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
             Get
