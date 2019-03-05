@@ -77046,7 +77046,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31500: Track nullable state across lifted conversions.
             comp.VerifyDiagnostics();
         }
 
@@ -77174,6 +77173,39 @@ class Program
                 // (6,18): error CS0030: Cannot convert type 'method' to 'S?'
                 //         var s =  (S?)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S?)F").WithArguments("method", "S?").WithLocation(6, 18));
+        }
+
+        [WorkItem(33330, "https://github.com/dotnet/roslyn/issues/33330")]
+        [Fact]
+        public void NullableT_32()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static void F(int? i, int j)
+    {
+        if (i.HasValue)
+        {
+            _ = (int)(i & j);
+            _ = (int)(i | j);
+            _ = (int)(i ^ j);
+            _ = (int)(~i);
+        }
+    }
+    static void F(bool? i, bool b)
+    {
+        if (i.HasValue)
+        {
+            _ = (bool)(i & b);
+            _ = (bool)(i | b);
+            _ = (bool)(i ^ b);
+            _ = (bool)(!i);
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
