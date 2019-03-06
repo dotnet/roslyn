@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -617,16 +618,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override void VisitRvalue(BoundExpression node)
+        protected override void VisitRvalue(BoundExpression node) => VisitRvalueNonVirtual(node);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void VisitRvalueNonVirtual(BoundExpression node)
         {
             Visit(node);
+            TheRest();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void TheRest()
+        {
             Unsplit();
             UseRvalueOnly(); // drop lvalue part
         }
 
         private TypeWithState VisitRvalueWithState(BoundExpression node)
         {
-            VisitRvalue(node);
+            VisitRvalueNonVirtual(node);
             return ResultType;
         }
 
@@ -1432,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 VisitObjectElementInitializer(containingSlot, (BoundAssignmentOperator)initializer);
                                 break;
                             default:
-                                VisitRvalue(initializer);
+                                VisitRvalueNonVirtual(initializer);
                                 break;
                         }
                     }
@@ -1446,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 VisitCollectionElementInitializer((BoundCollectionElementInitializer)initializer);
                                 break;
                             default:
-                                VisitRvalue(initializer);
+                                VisitRvalueNonVirtual(initializer);
                                 break;
                         }
                     }
@@ -1558,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var expr in node.Bounds)
             {
-                VisitRvalue(expr);
+                VisitRvalueNonVirtual(expr);
             }
             TypeSymbol resultType = (node.InitializerOpt == null) ? node.Type : VisitArrayInitializer(node);
             ResultType = new TypeWithState(resultType, NullableFlowState.NotNull);
@@ -1745,7 +1755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var i in node.Indices)
             {
-                VisitRvalue(i);
+                VisitRvalueNonVirtual(i);
             }
 
             TypeSymbolWithAnnotations result;
@@ -2711,7 +2721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        VisitRvalue(argument);
+                        VisitRvalueNonVirtual(argument);
                     }
                     break;
                 case RefKind.Out:
@@ -4126,7 +4136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt = node.ReceiverOpt;
             if (receiverOpt != null)
             {
-                VisitRvalue(receiverOpt);
+                VisitRvalueNonVirtual(receiverOpt);
                 // https://github.com/dotnet/roslyn/issues/30563: Should not check receiver here.
                 // That check should be handled when applying the method group conversion,
                 // when we have a specific method, to avoid reporting null receiver warnings
@@ -4211,7 +4221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Event assignment is a call to an Add method. (Note that assignment
                 // of non-field-like events uses BoundEventAssignmentOperator
                 // rather than BoundAssignmentOperator.)
-                VisitRvalue(right);
+                VisitRvalueNonVirtual(right);
                 SetNotNullResult(node);
             }
             else
@@ -4257,7 +4267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // In the case of errors, simply visit the right as an r-value to update
                 // any nullability state even though deconstruction is skipped.
-                VisitRvalue(right.Operand);
+                VisitRvalueNonVirtual(right.Operand);
             }
             else
             {
@@ -4281,7 +4291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!conversion.DeconstructionInfo.IsDefault)
             {
-                VisitRvalue(right);
+                VisitRvalueNonVirtual(right);
 
                 var invocation = conversion.DeconstructionInfo.Invocation as BoundCall;
                 var deconstructMethod = invocation?.Method;
@@ -4464,7 +4474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // https://github.com/dotnet/roslyn/issues/33011: Should include conversion.UnderlyingConversions[i].
                 // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and
                 // ImplicitNullable conversions (see Deconstruction_ImplicitNullableConversion_02).
-                VisitRvalue(expr);
+                VisitRvalueNonVirtual(expr);
                 var fields = tupleType.TupleElements;
                 return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
             }
@@ -4642,7 +4652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializer = ((BoundAddressOfOperator)initializer).Operand;
             }
 
-            VisitRvalue(initializer);
+            VisitRvalueNonVirtual(initializer);
             SetNotNullResult(node);
             return null;
         }
@@ -4725,7 +4735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitIndexerAccess(BoundIndexerAccess node, out PropertySymbol indexer)
         {
             var receiverOpt = node.ReceiverOpt;
-            VisitRvalue(receiverOpt);
+            VisitRvalueNonVirtual(receiverOpt);
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.
             CheckPossibleNullReceiver(receiverOpt);
@@ -4823,7 +4833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void VisitForEachExpression(BoundForEachStatement node)
         {
             var expr = node.Expression;
-            VisitRvalue(expr);
+            VisitRvalueNonVirtual(expr);
             CheckPossibleNullReceiver(expr);
         }
 
@@ -4976,7 +4986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRefTypeOperator(BoundRefTypeOperator node)
         {
-            VisitRvalue(node.Operand);
+            VisitRvalueNonVirtual(node.Operand);
             SetNotNullResult(node);
             return null;
         }
@@ -5290,7 +5300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node)
         {
             var receiver = node.Receiver;
-            VisitRvalue(receiver);
+            VisitRvalueNonVirtual(receiver);
             CheckPossibleNullReceiver(receiver);
 
             Debug.Assert(node.Type.IsDynamic());
@@ -5301,7 +5311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
         {
-            VisitRvalue(node.Expression);
+            VisitRvalueNonVirtual(node.Expression);
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
 
             Debug.Assert(node.Type.IsDynamic());
@@ -5316,7 +5326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
-            VisitRvalue(node.ReceiverOpt);
+            VisitRvalueNonVirtual(node.ReceiverOpt);
             Debug.Assert(!IsConditionalState);
             var receiverOpt = node.ReceiverOpt;
             var @event = node.Event;
@@ -5327,7 +5337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // after arguments have been visited, and only if the receiver has not changed.
                 CheckPossibleNullReceiver(receiverOpt);
             }
-            VisitRvalue(node.Argument);
+            VisitRvalueNonVirtual(node.Argument);
             // https://github.com/dotnet/roslyn/issues/31018: Check for delegate mismatch.
             SetNotNullResult(node); // https://github.com/dotnet/roslyn/issues/29969 Review whether this is the correct result
             return null;
@@ -5414,7 +5424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
             var receiver = node.ReceiverOpt;
-            VisitRvalue(receiver);
+            VisitRvalueNonVirtual(receiver);
             // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
             // after indices have been visited, and only if the receiver has not changed.
             CheckPossibleNullReceiver(receiver);
