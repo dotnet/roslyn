@@ -961,7 +961,7 @@ haveLambdaBodyAndBinders:
 
         /// <summary>
         /// What we need to do is find a *repeatable* arbitrary way to choose between
-        /// two errors; we can for example simply take the one that is lower in alphabetical
+        /// two errors; we can for example simply take the one whose arguments are lower in alphabetical
         /// order when converted to a string.  As an optimization, we compare error codes
         /// first and skip string comparison if they differ.
         /// </summary>
@@ -980,7 +980,20 @@ haveLambdaBodyAndBinders:
             }
 
             // Optimization: don't bother 
-            return codeCompare == 0 ? string.CompareOrdinal(x.ToString(), y.ToString()) : codeCompare;
+            if (codeCompare != 0)
+                return codeCompare;
+
+            for (int i = 0; i < x.Arguments.Count && i < y.Arguments.Count; i++)
+            {
+                object argx = x.Arguments[i];
+                object argy = y.Arguments[i];
+
+                codeCompare = string.CompareOrdinal(argx?.ToString(), argy?.ToString());
+                if (codeCompare != 0)
+                    return codeCompare;
+            }
+
+            return x.Arguments.Count.CompareTo(y.Arguments.Count);
         }
     }
 
