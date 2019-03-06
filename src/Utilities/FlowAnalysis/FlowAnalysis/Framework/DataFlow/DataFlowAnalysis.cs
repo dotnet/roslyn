@@ -251,13 +251,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         {
                             // For catch and filter regions, we track the initial input data in the catchBlockInputDataMap.
                             ControlFlowRegion enclosingTryAndCatchRegion = GetEnclosingTryAndCatchRegionIfStartsHandler(block);
-                            if (enclosingTryAndCatchRegion != null)
+                            if (enclosingTryAndCatchRegion != null &&
+                                catchBlockInputDataMap.TryGetValue(enclosingTryAndCatchRegion, out var catchBlockInput))
                             {
                                 Debug.Assert(enclosingTryAndCatchRegion.Kind == ControlFlowRegionKind.TryAndCatch);
                                 Debug.Assert(block.EnclosingRegion.Kind == ControlFlowRegionKind.Catch || block.EnclosingRegion.Kind == ControlFlowRegionKind.Filter);
                                 Debug.Assert(block.EnclosingRegion.FirstBlockOrdinal == block.Ordinal);
-                                Debug.Assert(!catchBlockInputDataMap[enclosingTryAndCatchRegion].IsDisposed);
-                                input = catchBlockInputDataMap[enclosingTryAndCatchRegion];
+                                Debug.Assert(!catchBlockInput.IsDisposed);
+                                input = catchBlockInput;
 
                                 // Mark that all input into successorBlockOpt requires a merge.
                                 blockToUniqueInputFlowMap[block.Ordinal] = null;

@@ -828,6 +828,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt.GetCachedAbstractValueFromCaller(operation);
             }
 
+            // We were unable to find cached abstract value for requested operation.
+            // We should never reach this path, except for one known case.
+            // For interprocedural analysis, we might reach here when attempting to access abstract value for instance receiver
+            // of a method delegate which was saved in a prior interprocedural call chain, that returned back to the root caller
+            // and a different interprocedural call tree indirectly invokes that saved method delegate.
+            // We correctly resolve the method delegate target, but would need pretty complicated implementation to reach that
+            // operation's analysis result.
+            // See unit test 'DisposeObjectsBeforeLosingScopeTests.InvocationOfMethodDelegate_PriorInterproceduralCallChain' for an example.
+            // For now, we just gracefully return an unknown abstract value for this case.
+            if (DataFlowAnalysisContext.InterproceduralAnalysisConfiguration.InterproceduralAnalysisKind != InterproceduralAnalysisKind.None)
+            {
+                return ValueDomain.UnknownOrMayBeValue;
+            }
+
             throw new InvalidOperationException();
         }
 
