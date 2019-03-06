@@ -3,6 +3,8 @@
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -74,6 +76,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
             Instance = new IntegrationTestServiceCommands(package);
         }
 
+        /// <summary>
+        /// Supports deserialization of types passed to APIs injected into the Visual Studio process by
+        /// <see cref="IntegrationService.Execute"/>.
+        /// </summary>
+        private static Assembly CurrentDomainAssemblyResolve(object sender, ResolveEventArgs args)
+            => AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(assembly => assembly.FullName == args.Name);
+
         public void Dispose()
             => StopServiceCallback(this, EventArgs.Empty);
 
@@ -84,6 +93,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         {
             if (_startMenuCmd.Enabled)
             {
+                AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainAssemblyResolve;
+
+                IntegrationTestTraceListener.Install();
+
                 _service = new IntegrationService();
 
                 _serviceChannel = new IpcServerChannel(
@@ -106,6 +119,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         {
             if (_stopMenuCmd.Enabled)
             {
+                AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomainAssemblyResolve;
+
                 if (_serviceChannel != null)
                 {
                     _serviceChannel.StopListening(null);

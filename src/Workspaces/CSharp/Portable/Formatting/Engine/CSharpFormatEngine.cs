@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public CSharpFormatEngine(
             SyntaxNode node,
             OptionSet optionSet,
-            IEnumerable<IFormattingRule> formattingRules,
+            IEnumerable<AbstractFormattingRule> formattingRules,
             SyntaxToken token1,
             SyntaxToken token2) :
             base(TreeData.Create(node),

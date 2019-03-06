@@ -14,6 +14,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             NameValueCollection appSettings;
             try
             {
+#if BOOTSTRAP
+                ExitingTraceListener.Install();
+#endif
+
 #if NET472
                 appSettings = System.Configuration.ConfigurationManager.AppSettings;
 #else

@@ -5096,8 +5096,32 @@ P2 : 2, P3: 3
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task FormatRecursivePattern_SpaceBetweenTypeAndPositionalSubpattern()
+        [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        public async Task FormatRecursivePattern_NoSpaceBetweenTypeAndPositionalSubpattern()
         {
+            var code = @"class C
+{
+    void M() {
+_ = this is  C( 1 , 2 ){}  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is C(1, 2) { };
+    }
+}";
+            // no space separates the type and the positional pattern
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        public async Task FormatRecursivePattern_PreferSpaceBetweenTypeAndPositionalSubpattern()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpaceAfterMethodCallName, true);
             var code = @"class C
 {
     void M() {
@@ -5110,8 +5134,55 @@ _ = this is  C( 1 , 2 ){}  ; }
         _ = this is C (1, 2) { };
     }
 }";
-            // a space separates the type, the positional pattern and the properties pattern
-            await AssertFormatAsync(expectedCode, code);
+            await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        public async Task FormatRecursivePattern_PreferSpaceInsidePositionalSubpatternParentheses()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpaceWithinMethodCallParentheses, true);
+            var code = @"class C
+{
+    void M() {
+_ = this is  C( 1 , 2 ){}  ;
+_ = this is  C(  ){}  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is C( 1, 2 ) { };
+        _ = this is C() { };
+    }
+}";
+            await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(27268, "https://github.com/dotnet/roslyn/issues/27268")]
+        public async Task FormatRecursivePattern_PreferSpaceInsideEmptyPositionalSubpatternParentheses()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, true);
+            var code = @"class C
+{
+    void M() {
+_ = this is  C( 1 , 2 ){}  ;
+_ = this is  C(  ){}  ; }
+}";
+            var expectedCode = @"class C
+{
+    void M()
+    {
+        _ = this is C(1, 2) { };
+        _ = this is C( ) { };
+    }
+}";
+            await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
         }
 
         [Fact]
@@ -5235,7 +5306,7 @@ _ = this is (1, 2)
     {
         _ = this is (1, 2)
         {
-        M ();
+        M();
     }
 }
 }";

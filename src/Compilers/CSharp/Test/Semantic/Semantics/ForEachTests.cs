@@ -1872,7 +1872,7 @@ public class Test
   }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text,
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular,
                 // (6,13): error CS1525: Invalid expression term 'int'
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 13),
@@ -2283,11 +2283,23 @@ class C
     }
 }
 ";
-            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
-            comp.VerifyDiagnostics(
-                // (28,55): error CS8370: Feature 'nullable reference types' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expected = new[]
+            {
+                // (28,55): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "?").WithArguments("nullable reference types", "8.0").WithLocation(28, 55)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(28, 55)
+            };
+            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularDefault, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 55)
                 );
         }
 
@@ -3088,9 +3100,43 @@ ref struct DisposableEnumerator
             Assert.Equal("void DisposableEnumerator.Dispose()", enumeratorInfo.DisposeMethod.ToTestDisplayString());
         }
 
-        private static BoundForEachStatement GetBoundForEachStatement(string text, params DiagnosticDescription[] diagnostics)
+        [Fact]
+        public void TestPatternDisposeRefStruct_7_3()
         {
-            var tree = Parse(text);
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+ref struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+    public void Dispose() {  }
+}";
+
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3);
+            var enumeratorInfo = boundNode.EnumeratorInfoOpt;
+
+            Assert.Null(enumeratorInfo.DisposeMethod);
+        }
+
+        private static BoundForEachStatement GetBoundForEachStatement(string text, CSharpParseOptions options = null, params DiagnosticDescription[] diagnostics)
+        {
+            var tree = Parse(text, options: options);
             var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
 
             comp.VerifyDiagnostics(diagnostics);

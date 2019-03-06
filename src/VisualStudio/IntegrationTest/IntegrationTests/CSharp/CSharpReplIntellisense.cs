@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
@@ -56,7 +55,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 public delegate R Del<T, R>(T arg);
 Del<C, System");
             VisualStudio.SendKeys.Send(VirtualKey.Period);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
             VisualStudio.InteractiveWindow.Verify.CompletionItemsExist("ArgumentException");
         }
 

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public MessageID MessageID { get { return Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
-        internal readonly InferredLambdaReturnType InferredReturnType;
+        internal InferredLambdaReturnType InferredReturnType { get; private set; }
 
         MethodSymbol IBoundLambdaOrFunction.Symbol { get { return Symbol; } }
 
@@ -67,6 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax is ExpressionSyntax && LambdaUtilities.IsLambdaBody(syntax, allowReducedLambdas: true) || // query lambdas
                 LambdaUtilities.IsQueryPairLambda(syntax)                                                       // "pair" lambdas in queries
             );
+        }
+
+        protected override BoundExpression ShallowClone()
+        {
+            var result = new BoundLambda(this.Syntax, this.UnboundLambda, this.Symbol, this.Body, this.Diagnostics, this.Binder, this.Type, this.HasErrors);
+            result.CopyAttributes(this);
+            result.InferredReturnType = InferredReturnType;
+            return result;
         }
 
         public TypeSymbolWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -190,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             typesOnly.Add(resultType.TypeSymbol);
                         }
-                        var bestType = BestTypeInferrer.GetBestType(typesOnly, conversions, hadNullabilityMismatch: out _, ref useSiteDiagnostics);
+                        var bestType = BestTypeInferrer.GetBestType(typesOnly, conversions, ref useSiteDiagnostics);
                         bestResultType = bestType is null ? default : TypeSymbolWithAnnotations.Create(bestType);
                         typesOnly.Free();
                     }
@@ -226,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TypeSymbolWithAnnotations.Create(resultType);
             }
 
-            if (bestResultType.IsNull || bestResultType.SpecialType == SpecialType.System_Void)
+            if (!bestResultType.HasType || bestResultType.SpecialType == SpecialType.System_Void)
             {
                 // If the best type was 'void', ERR_CantReturnVoid is reported while binding the "return void"
                 // statement(s).
@@ -321,9 +329,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public MessageID MessageID { get { return Data.MessageID; } }
-        public BoundLambda Bind(NamedTypeSymbol delegateType) { return Data.Bind(delegateType); }
-        public BoundLambda BindForErrorRecovery() { return Data.BindForErrorRecovery(); }
-        public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType) { return Data.BindForReturnTypeInference(delegateType); }
+
+        public BoundLambda Bind(NamedTypeSymbol delegateType)
+            => SuppressIfNeeded(Data.Bind(delegateType));
+
+        public BoundLambda BindForErrorRecovery()
+            => SuppressIfNeeded(Data.BindForErrorRecovery());
+
+        public BoundLambda BindForReturnTypeInference(NamedTypeSymbol delegateType)
+            => SuppressIfNeeded(Data.BindForReturnTypeInference(delegateType));
+
+        private BoundLambda SuppressIfNeeded(BoundLambda lambda)
+            => this.IsSuppressed ? (BoundLambda)lambda.WithSuppression() : lambda;
+
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
@@ -410,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var lambda in _returnInferenceCache.Values)
             {
                 var type = lambda.InferredReturnType.Type;
-                if (!type.IsNull)
+                if (type.HasType)
                 {
                     any = true;
                     yield return type.TypeSymbol;
@@ -420,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!any)
             {
                 var type = BindForErrorRecovery().InferredReturnType.Type;
-                if (!type.IsNull)
+                if (type.HasType)
                 {
                     yield return type.TypeSymbol;
                 }
@@ -510,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambdaParameters = lambdaSymbol.Parameters;
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(lambdaParameters, diagnostics, modifyCompilation: false);
 
-            if (!returnType.IsNull)
+            if (returnType.HasType)
             {
                 if (returnType.NeedsNullableAttribute())
                 {
@@ -545,7 +563,7 @@ haveLambdaBodyAndBinders:
 
             if (IsAsync && !ErrorFacts.PreventsSuccessfulDelegateConversion(diagnostics))
             {
-                if (!returnType.IsNull && // Can be null if "delegateType" is not actually a delegate type.
+                if (returnType.HasType && // Can be null if "delegateType" is not actually a delegate type.
                     returnType.SpecialType != SpecialType.System_Void &&
                     !returnType.TypeSymbol.IsNonGenericTaskType(binder.Compilation) &&
                     !returnType.TypeSymbol.IsGenericTaskType(binder.Compilation))
@@ -615,7 +633,7 @@ haveLambdaBodyAndBinders:
 
             // TODO: Should InferredReturnType.UseSiteDiagnostics be merged into BoundLambda.Diagnostics?
             var returnType = inferredReturnType.Type;
-            if (returnType.IsNull)
+            if (!returnType.HasType)
             {
                 returnType = TypeSymbolWithAnnotations.Create(LambdaSymbol.InferenceFailureReturnType);
             }
@@ -824,7 +842,7 @@ haveLambdaBodyAndBinders:
                 builder.Builder.Append(parameter.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
             }
 
-            if (!lambda.ReturnType.IsNull)
+            if (lambda.ReturnType.HasType)
             {
                 builder.Builder.Append(lambda.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
             }

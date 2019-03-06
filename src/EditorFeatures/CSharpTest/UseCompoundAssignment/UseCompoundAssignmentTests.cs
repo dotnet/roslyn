@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.UseCompoundAssignment;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
@@ -739,6 +740,26 @@ public class C
     {
         b = (a += 10);
     }
+}");
+        }
+
+        [WorkItem(33382, "https://github.com/dotnet/roslyn/issues/33382")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)]
+        public async Task TestNotOnObjectInitializer()
+        {
+            await TestMissingAsync(
+@"
+struct InsertionPoint
+{
+	int level;
+	
+	InsertionPoint Up()
+	{
+		return new InsertionPoint
+        {
+			level [||]= level - 1,
+		};
+	}
 }");
         }
     }
