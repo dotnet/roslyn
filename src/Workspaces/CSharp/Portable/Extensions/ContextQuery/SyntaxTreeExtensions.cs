@@ -2318,6 +2318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 if (token.Parent.IsKind(SyntaxKind.ForEachStatement,
                                         SyntaxKind.ForEachVariableStatement,
                                         SyntaxKind.FromClause,
+                                        SyntaxKind.FromClause2,
                                         SyntaxKind.JoinClause))
                 {
                     return true;
@@ -2342,6 +2343,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // where |
+            if (token.IsKind(SyntaxKind.WhereKeyword) &&
+                token.Parent.IsKind(SyntaxKind.WhereClause2))
+            {
+                return true;
+            }
+
             // orderby |
             // orderby a, |
             if (token.IsKind(SyntaxKind.OrderByKeyword) ||
@@ -2356,6 +2364,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // select |
             if (token.IsKind(SyntaxKind.SelectKeyword) &&
                 token.Parent.IsKind(SyntaxKind.SelectClause))
+            {
+                return true;
+            }
+
+            // select |
+            if (token.IsKind(SyntaxKind.SelectKeyword) &&
+                token.Parent.IsKind(SyntaxKind.SelectClause2))
             {
                 return true;
             }

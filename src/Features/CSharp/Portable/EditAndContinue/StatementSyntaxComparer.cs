@@ -419,7 +419,26 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                     return Label.FromClauseLambda;
 
+                case SyntaxKind.FromClause2:
+                    // The first from clause of a query is not a lambda.
+                    // We have to assign it a label different from "FromClauseLambda"
+                    // so that we won't match lambda-from to non-lambda-from.
+                    // 
+                    // Since FromClause declares range variables we need to include it in the map,
+                    // so that we are able to map range variable declarations.
+                    // Therefore we assign it a dedicated label.
+                    // 
+                    // The parent is not available only when comparing nodes for value equality.
+                    // In that case it doesn't matter what label the node has as long as it has some.
+                    if (nodeOpt == null || nodeOpt.Parent.IsKind(SyntaxKind.QueryExpression2))
+                    {
+                        return Label.FromClause;
+                    }
+
+                    return Label.FromClauseLambda;
+
                 case SyntaxKind.QueryBody:
+                case SyntaxKind.QueryBody2:
                     return Label.QueryBody;
 
                 case SyntaxKind.QueryContinuation:
@@ -429,6 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.LetClauseLambda;
 
                 case SyntaxKind.WhereClause:
+                case SyntaxKind.WhereClause2:
                     return Label.WhereClauseLambda;
 
                 case SyntaxKind.OrderByClause:
@@ -439,6 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     return Label.OrderingLambda;
 
                 case SyntaxKind.SelectClause:
+                case SyntaxKind.SelectClause2:
                     return Label.SelectClauseLambda;
 
                 case SyntaxKind.JoinClause:

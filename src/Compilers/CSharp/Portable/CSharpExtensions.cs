@@ -905,6 +905,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets the semantic information associated with a query clause.
+        /// </summary>
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        public static QueryClauseInfo GetQueryClauseInfo(this SemanticModel semanticModel, QueryClause2Syntax node, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetQueryClauseInfo(node, cancellationToken);
+            }
+            else
+            {
+                return default(QueryClauseInfo);
+            }
+        }
+
+        /// <summary>
         /// If <paramref name="nameSyntax"/> resolves to an alias name, return the AliasSymbol corresponding
         /// to A. Otherwise return null.
         /// </summary>

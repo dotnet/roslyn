@@ -1104,6 +1104,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestImplicitArrayCreation2()
+        {
+            var text = "[ b ]";
+            var expr = this.ParseExpression(text);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.ImplicitArrayCreationExpression2, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var ac = (ImplicitArrayCreationExpression2Syntax)expr;
+            Assert.NotNull(ac.Initializer);
+            Assert.NotNull(ac.Initializer.OpenBracketToken);
+            Assert.NotNull(ac.Initializer.CloseBracketToken);
+            Assert.False(ac.Initializer.OpenBracketToken.IsMissing);
+            Assert.False(ac.Initializer.CloseBracketToken.IsMissing);
+            Assert.Equal(1, ac.Initializer.Expressions.Count);
+            Assert.Equal("b", ac.Initializer.Expressions[0].ToString());
+        }
+
+        [Fact]
+        public void TestQuery2()
+        {
+            var text = "[ from b in bs select b ]";
+            var expr = this.ParseExpression(text);
+
+            Assert.NotNull(expr);
+            Assert.Equal(SyntaxKind.QueryExpression2, expr.Kind());
+            Assert.Equal(text, expr.ToString());
+            Assert.Equal(0, expr.Errors().Length);
+            var ac = (QueryExpression2Syntax)expr;
+            Assert.NotNull(ac.Body);
+            Assert.NotNull(ac.OpenBracketToken);
+            Assert.NotNull(ac.CloseBracketToken);
+            Assert.False(ac.OpenBracketToken.IsMissing);
+            Assert.False(ac.CloseBracketToken.IsMissing);
+            Assert.Equal(0, ac.Body.Clauses.Count);
+            Assert.Equal("select b", ac.Body.ToString());
+        }
+
+        [Fact]
         public void TestAnonymousObjectCreation()
         {
             var text = "new {a, b}";

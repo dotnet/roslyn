@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         HashToken = 8220,
         SlashToken = 8221,
         DotDotToken = 8222,
+        IndentInToken = 8223,
+        IndentOutToken = 8224,
 
         // additional xml tokens
         SlashGreaterThanToken = 8232, // xml empty element end
@@ -344,6 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitElementAccess = 8656,
         IsPatternExpression = 8657,
         RangeExpression = 8658,
+        ImplicitArrayCreationExpression2 = 8659,
 
         // binary expressions
         AddExpression = 8668,
@@ -440,6 +443,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         SelectClause = 8784,
         GroupClause = 8785,
         QueryContinuation = 8786,
+
+        QueryExpression2 = 8787,
+        QueryBody2 = 8788,
+        FromClause2 = 8789,
+        WhereClause2 = 8790,
+        SelectClause2 = 8791,
 
         // statements
         Block = 8792,
@@ -591,5 +600,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitStackAllocArrayCreationExpression = 9053,
         SuppressNullableWarningExpression = 9054,
         NullableDirectiveTrivia = 9055,
+
+        OpenContext = 9080,
+        CloseContext = 9081
     }
 }

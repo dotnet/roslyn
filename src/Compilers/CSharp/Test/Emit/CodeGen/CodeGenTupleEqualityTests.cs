@@ -269,6 +269,254 @@ class C
         }
 
         [Fact]
+        public void TestILForSimplePythonFor()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+        for (var i = 0; i < 10; ++i) {}
+    }
+}";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.M", @"{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (int V_0) //i
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  br.s       IL_0008
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.1
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.s   10
+  IL_000b:  blt.s      IL_0004
+  IL_000d:  ret
+}");
+        }
+
+        [Fact]
+        public void TestILForSimplePythonFor123()
+        {
+            var source = @"
+class C
+    static void M()
+        for (var i = 0; i < 10; ++i)
+            i += 1;
+    
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (int V_0) //i
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  br.s       IL_000c
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.1
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  add
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.s   10
+  IL_000f:  blt.s      IL_0004
+  IL_0011:  ret
+}");
+        }
+
+        [Fact]
+        public void TestILForSimplePythonFor123123()
+        {
+            var source = @"
+class C
+    static void M()
+        for (var i = 0; i < 10; ++i)
+            i += 1
+            i = 123 + i*i
+    
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (int V_0) //i
+  IL_0000:  ldc.i4.0
+  IL_0001:  stloc.0
+  IL_0002:  br.s       IL_0013
+  IL_0004:  ldloc.0
+  IL_0005:  ldc.i4.1
+  IL_0006:  add
+  IL_0007:  stloc.0
+  IL_0008:  ldc.i4.s   123
+  IL_000a:  ldloc.0
+  IL_000b:  ldloc.0
+  IL_000c:  mul
+  IL_000d:  add
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldc.i4.1
+  IL_0011:  add
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  ldc.i4.s   10
+  IL_0016:  blt.s      IL_0004
+  IL_0018:  ret
+}");
+        }
+
+        [Fact]
+        public void TestILForSimplePythonFor123123123()
+        {
+            var source = @"
+class C
+    static void M()
+        i = 1
+        i = 123
+        i += 1
+        i = 123 + i*i
+    
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  3
+  .locals init (int V_0) //i
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.s   123
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  stloc.0
+  IL_0009:  ldc.i4.s   123
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  mul
+  IL_000e:  add
+  IL_000f:  stloc.0
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void TestILForSimplePythonFor1236623()
+        {
+            var source = @"
+class C
+    static void M()
+        for (i = 1; i < 9; ++i)
+            i += 123
+    
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  3
+  .locals init (int V_0) //i
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.s   123
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  stloc.0
+  IL_0009:  ldc.i4.s   123
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  mul
+  IL_000e:  add
+  IL_000f:  stloc.0
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void TestILForSimplePythonFor123226623()
+        {
+            var source = @"
+class C
+    static void M()
+        i = 123
+        a = 321
+        i = 222
+        i += 1
+        a += 1
+    
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.M", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  3
+  .locals init (int V_0) //i
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.s   123
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  stloc.0
+  IL_0009:  ldc.i4.s   123
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  mul
+  IL_000e:  add
+  IL_000f:  stloc.0
+  IL_0010:  ret
+}");
+        }
+
+        [Fact]
+        public void TestILForSimplePythonListSugar()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+        var x = new int[] {};
+    }
+}";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.M", @"{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  newarr     ""int""
+  IL_0006:  pop
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
         public void TestILForSimpleEqualOnInTuple()
         {
             var source = @"

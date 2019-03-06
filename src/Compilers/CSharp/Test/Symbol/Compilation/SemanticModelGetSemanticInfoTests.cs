@@ -8279,6 +8279,37 @@ class P
             Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
         }
 
+        [Fact]
+        public void WhereDefinedInType2()
+        {
+            var csSource = @"
+using System;
+
+class Y
+{
+    public int Where(Func<int, bool> predicate)
+    {
+        return 45;
+    }
+}
+
+class P
+{
+    static void Main()
+    {
+        var src = new Y();
+        var query = [ from x in src
+                where x > 0
+                select /*<bind>*/ x /*</bind>*/ ];
+    }
+}
+";
+
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(csSource);
+            Assert.Equal("x", semanticInfo.Symbol.Name);
+            Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
+        }
+
         [WorkItem(541830, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541830")]
         [Fact]
         public void AttributeUsageError()
@@ -11748,6 +11779,42 @@ namespace Test
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ImplicitArrayCreationExpression2_IdentifierNameSyntax()
+        {
+            string sourceCode = @"
+using System;
+
+namespace Test
+{
+    public class Program
+    {
+        public static int Main()
+        {
+            var a = [ 1, 2, 3 ];
+
+            return /*<bind>*/a/*</bind>*/[0];
+        }
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+
+            Assert.Equal("System.Int32[]", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Array, semanticInfo.Type.TypeKind);
+            Assert.Equal("System.Int32[]", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Array, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal("System.Int32[] a", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);

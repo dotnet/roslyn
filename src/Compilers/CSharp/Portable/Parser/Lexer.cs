@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case LexerMode.Syntax:
                 case LexerMode.DebuggerSyntax:
-                    return this.QuickScanSyntaxToken() ?? this.LexSyntaxToken();
+                    return this.QuickScanSyntaxToken() ?? this.LexSyntaxToken(slowLex: true);
                 case LexerMode.Directive:
                     return this.LexDirectiveToken();
             }
@@ -294,7 +294,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return width;
         }
 
-        private SyntaxToken LexSyntaxToken()
+        private bool firstTokenOfTheLine = false;
+        private int lastLineWhitespaceIndent = 0;
+        private int leftoverDepth = 0;
+
+        private SyntaxToken LexSyntaxToken(bool slowLex)
         {
             _leadingTriviaCache.Clear();
             this.LexSyntaxTrivia(afterFirstToken: TextWindow.Position > 0, isTrailing: false, triviaList: ref _leadingTriviaCache);
@@ -303,6 +307,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var tokenInfo = default(TokenInfo);
 
             this.Start();
+
+            if (leftoverDepth > 0)
+            {
+                leftoverDepth--;
+
+                var errors22 = this.GetErrors(GetFullWidth(leading));
+                _trailingTriviaCache.Clear();
+
+                tokenInfo.Kind = SyntaxKind.IndentOutToken;
+                tokenInfo.ContextualKind = SyntaxKind.None;
+                tokenInfo.Text = "";
+
+                var newScopeToken2 = Create(ref tokenInfo, leading, _trailingTriviaCache, errors22);
+                return newScopeToken2;
+            }
+            else if (slowLex && firstTokenOfTheLine && leading.Count > 0) // && leading[leading.Count - 1].Kind != SyntaxKind.EndOfLineTrivia)
+            {
+                int newDepth = ((leading[leading.Count - 1] as SyntaxTrivia)?.Kind == SyntaxKind.EndOfLineTrivia) ? 0 : leading[leading.Count - 1].Width;
+
+                if (newDepth != lastLineWhitespaceIndent)
+                {
+                    bool deeper = newDepth > lastLineWhitespaceIndent;
+                    if (!deeper)
+                    {
+                        leftoverDepth = (lastLineWhitespaceIndent - newDepth + 3) / 4 - 1;
+                    }
+
+                    lastLineWhitespaceIndent = newDepth;
+                    firstTokenOfTheLine = false;
+
+                    var errors2 = this.GetErrors(GetFullWidth(leading));
+                    _trailingTriviaCache.Clear();
+
+                    tokenInfo.Kind = deeper ? SyntaxKind.IndentInToken : SyntaxKind.IndentOutToken;
+                    tokenInfo.ContextualKind = SyntaxKind.None;
+                    tokenInfo.Text = "";
+
+                    var newScopeToken = Create(ref tokenInfo, leading, _trailingTriviaCache, errors2);
+                    return newScopeToken;
+                }
+            }
+
             this.ScanSyntaxToken(ref tokenInfo);
             var errors = this.GetErrors(GetFullWidth(leading));
 
@@ -310,7 +356,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.LexSyntaxTrivia(afterFirstToken: true, isTrailing: true, triviaList: ref _trailingTriviaCache);
             var trailing = _trailingTriviaCache;
 
-            return Create(ref tokenInfo, leading, trailing, errors);
+            var lexedToken = Create(ref tokenInfo, leading, trailing, errors);
+
+            if (lexedToken.TrailingTrivia.Count > 0 && lexedToken.TrailingTrivia.Last.Kind == SyntaxKind.EndOfLineTrivia)
+            {
+                firstTokenOfTheLine = true;
+            }
+
+            return lexedToken;
         }
 
         internal SyntaxTriviaList LexSyntaxLeadingTrivia()

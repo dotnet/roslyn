@@ -8830,7 +8830,9 @@ class C
         [WorkItem(25098, "https://github.com/dotnet/roslyn/issues/25098")]
         public void FormatSingleStructDeclaration()
         {
-            Formatter.Format(SyntaxFactory.StructDeclaration("S"), DefaultWorkspace);
+            Formatter.Format(SyntaxFactory.StructDeclaration("S"
+                , openBraceToken: SyntaxFactory.Token(SyntaxKind.IndentInToken)
+                , closeBraceToken: SyntaxFactory.Token(SyntaxKind.IndentOutToken)), DefaultWorkspace);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]

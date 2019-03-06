@@ -114,6 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 {
                     case SyntaxKind.WhereClause:
                         return SyntaxFactory.Block(SyntaxFactory.IfStatement(((WhereClauseSyntax)node).Condition.WithAdditionalAnnotations(Simplifier.Annotation).WithoutTrivia(), statement));
+                    case SyntaxKind.WhereClause2:
+                        return SyntaxFactory.Block(SyntaxFactory.IfStatement(((WhereClause2Syntax)node).Condition.WithAdditionalAnnotations(Simplifier.Annotation).WithoutTrivia(), statement));
                     case SyntaxKind.FromClause:
                         var fromClause = (FromClauseSyntax)node;
 
@@ -141,6 +143,34 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             fromClause.Type ?? VarNameIdentifier,
                             fromClause.Identifier,
                             expression1,
+                            WrapWithBlock(statement));
+                    case SyntaxKind.FromClause2:
+                        var fromClause2 = (FromClause2Syntax)node;
+
+                        // If we are processing the first from and
+                        // there were joins and some evaluations were moved into declarations above the foreach
+                        // Check if the declaration on the first fromclause should be moved for the evaluation above declarations already moved upfront.
+                        ExpressionSyntax expression12;
+                        if (isLastClause && hasExtraDeclarations && !IsLocalOrParameterSymbol(_source.FromClause.Expression))
+                        {
+                            string expressionName = _semanticFacts.GenerateNameForExpression(
+                                _semanticModel,
+                                fromClause2.Expression,
+                                capitalize: false,
+                                _cancellationToken);
+                            SyntaxToken variable = GetFreeSymbolNameAndMarkUsed(expressionName);
+                            extraStatementToAddAbove = CreateLocalDeclarationStatement(variable, fromClause2.Expression, generateTypeFromExpression: false);
+                            expression12 = SyntaxFactory.IdentifierName(variable);
+                        }
+                        else
+                        {
+                            expression12 = fromClause2.Expression.WithoutTrivia();
+                        }
+
+                        return SyntaxFactory.ForEachStatement(
+                            fromClause2.Type ?? VarNameIdentifier,
+                            fromClause2.Identifier,
+                            expression12,
                             WrapWithBlock(statement));
                     case SyntaxKind.LetClause:
                         var letClause = (LetClauseSyntax)node;

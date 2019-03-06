@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private class QueryTranslationState2
+        private class QueryTranslationState
         {
             // Represents the current translation state for a query.  Consider a query of the form
             // from ID in EXPR { clauses } SELECT ...
@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             public RangeVariableSymbol rangeVariable;
 
             // the clauses, above.  The top of the stack is the leftmost clause
-            public readonly Stack<QueryClause2Syntax> clauses = new Stack<QueryClause2Syntax>();
+            public readonly Stack<QueryClauseSyntax> clauses = new Stack<QueryClauseSyntax>();
 
             // the SELECT clause above (or a groupby clause in its place)
-            public SelectClause2Syntax selectOrGroup;
+            public SelectOrGroupClauseSyntax selectOrGroup;
 
             // all query variables in scope, including those visible through transparent identifiers
             // introduced in previous translation phases.  Every query variable in scope is a key in

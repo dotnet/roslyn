@@ -40,6 +40,77 @@ namespace Test
         }
 
         [Fact]
+        public void Test_001_Simple2()
+        {
+            var source = @"
+using System.Linq;
+
+namespace Test
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            var a = [ 1, 2, 3 ];
+            
+            System.Console.Write(a.SequenceEqual(new int[]{1, 2, 3}));
+        }
+    }
+}
+";
+
+            CompileAndVerify(
+                source,
+                expectedOutput: "True");
+        }
+
+        [Fact]
+        public void Test_001_Simple23()
+        {
+            var source = @"
+using System.Linq;
+
+namespace Test
+    public class Program
+        public static void Main()
+            var a = [ 1, 2, 3 ];
+            System.Console.Write(a.SequenceEqual(new int[]{1, 2, 3}));
+        
+    
+
+";
+
+            CompileAndVerify(
+                source,
+                expectedOutput: "True");
+        }
+
+        [Fact]
+        public void Test_001_Simple213123()
+        {
+            var source = @"
+using System.Linq;
+
+namespace Test
+{
+    public class Program
+    {
+        public static void Main()
+        {
+            var a = [ from x in [1,2,3] where x > 1 select x ];
+            
+            System.Console.Write(a.SequenceEqual(from x in new int[] {1,2,3} where x > 1 select x));
+        }
+    }
+}
+";
+
+            CompileAndVerify(
+                source,
+                expectedOutput: "True");
+        }
+
+        [Fact]
         public void Test_002_IntTypeBest()
         {
             // Best type: int

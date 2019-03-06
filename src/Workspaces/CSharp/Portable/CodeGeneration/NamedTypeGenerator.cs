@@ -193,7 +193,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 GenerateModifiers(namedType, destination, options),
                 namedType.Name.ToIdentifierToken(),
                 baseList: baseList,
-                members: default);
+                members: default,
+                openBraceToken: SyntaxFactory.Token(SyntaxKind.IndentInToken),
+                closeBraceToken: SyntaxFactory.Token(SyntaxKind.IndentOutToken));
         }
 
         private static SyntaxList<AttributeListSyntax> GenerateAttributeDeclarations(

@@ -499,37 +499,6 @@ IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: Syst
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
-        public void ArrayElementReferenceError_NoArrayReference()
-        {
-            string source = @"
-class C
-{
-    public void F()
-    {
-        var a = /*<bind>*/[0]/*</bind>*/;
-    }
-
-    public string[] F2() => null;
-}
-";
-            string expectedOperationTree = @"
-IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[0]')
-  Children(2):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
-      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-        Children(0)
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1525: Invalid expression term '['
-                //         var a = /*<bind>*/[0]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(6, 27)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22006, "https://github.com/dotnet/roslyn/issues/22006")]
         public void ArrayElementReferenceError_NoIndices()
         {
             string source = @"

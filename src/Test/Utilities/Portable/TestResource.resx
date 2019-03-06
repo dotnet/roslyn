@@ -189,7 +189,7 @@ namespace My
         void Patterns(object o, object p)
         {
             var b = o is string s;
-            var c = o switch { "a" => 1, "b" => 2, _ => 3 };
+            var c = o switch { "a" =&gt; 1, "b" =&gt; 2, _ =&gt; 3 };
             switch (o, p)
             {
                 case (2, 1): break;
@@ -361,7 +361,7 @@ namespace My
                         return;
                     }
             }
-            var z7 = 1 switch { 1 => 1 };
+            var z7 = 1 switch { 1 =&gt; 1 };
             while (i &lt; 10)
             {
                 ++i;
@@ -462,6 +462,10 @@ namespace My
             query = from c in customers
                     select c into d
                     select d;
+                    
+            query = [ from c in customers
+                    select c into d
+                    select d ];
         }
         ~A()
         {
@@ -676,6 +680,10 @@ namespace ConsoleApplication1
             var q = from i in new int[] { 1, 2, 3, 4 }
                     where i &gt; 5
                     select i;
+                    
+            var q2 = [ from i in new int[] { 1, 2, 3, 4 }
+                    where i &gt; 5
+                    select i ];
         }
 
         public static implicit operator Test(string s)
@@ -812,6 +820,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
         public partial void method()
         {
             int?[] a = new int?[5];/*[] bug*/ // YES []
+            var x = [1,2,3];
             int[] var = { 1, 2, 3, 4, 5 };/*,;*/
             int i = a[i];/*[]*/
             Goo&lt;T&gt; f = new Goo&lt;int&gt;();/*&lt;&gt; ()*/

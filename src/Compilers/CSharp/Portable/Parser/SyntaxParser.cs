@@ -491,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return AddTrailingSkippedSyntax(replacement, this.EatToken());
         }
 
-        private SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
+        internal SyntaxToken CreateMissingToken(SyntaxKind expected, SyntaxKind actual, bool reportError)
         {
             // should we eat the current ParseToken's leading trivia?
             var token = SyntaxFactory.MissingToken(expected);
@@ -593,6 +593,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             else
             {
                 return ConvertToKeyword(this.EatToken());
+            }
+        }
+
+        protected SyntaxToken EatClosingToken()
+        {
+            var current = this.CurrentToken.Kind;
+
+            if (current == SyntaxKind.IndentOutToken || current == SyntaxKind.CloseBraceToken)
+            {
+                return this.EatToken();
+            }
+            else if (current == SyntaxKind.EndOfFileToken)
+            {
+                return CreateMissingToken(SyntaxKind.IndentOutToken, SyntaxKind.EndOfFileToken, reportError: false);
+            }
+            else
+            {
+                return this.EatToken(SyntaxKind.IndentOutToken);
             }
         }
 

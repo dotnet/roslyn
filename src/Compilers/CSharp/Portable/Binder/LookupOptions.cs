@@ -96,6 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Do not consider symbols that are method type parameters.
         /// </summary>
         MustNotBeMethodTypeParameter = 1 << 14,
+
+        /// <summary>
+        /// Do not lookup the implicitly declared variables from local binder.
+        /// </summary>
+        NoImplicitLocals = 1 << 15
     }
 
     internal static class LookupOptionExtensions

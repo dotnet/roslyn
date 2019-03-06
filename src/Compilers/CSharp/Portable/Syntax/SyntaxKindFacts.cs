@@ -1254,8 +1254,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "=";
                 case SyntaxKind.OpenBraceToken:
                     return "{";
+                case SyntaxKind.IndentInToken:
+                    return "";
                 case SyntaxKind.CloseBraceToken:
                     return "}";
+                case SyntaxKind.IndentOutToken:
+                    return "";
                 case SyntaxKind.OpenBracketToken:
                     return "[";
                 case SyntaxKind.CloseBracketToken:

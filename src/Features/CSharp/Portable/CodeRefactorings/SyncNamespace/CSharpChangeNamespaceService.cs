@@ -290,7 +290,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace
                         .WithAdditionalAnnotations(WarningAnnotation),
                 externs: default,
                 usings: default,
-                members: compilationUnit.Members);
+                members: compilationUnit.Members,
+                openBraceToken: SyntaxFactory.Token(SyntaxKind.IndentInToken),
+                closeBraceToken: SyntaxFactory.Token(SyntaxKind.IndentOutToken));
             return compilationUnit.WithMembers(new SyntaxList<MemberDeclarationSyntax>(targetNamespaceDecl))
                 .WithoutAnnotations(ContainerAnnotation);   // Make sure to remove the annotation we added
         }

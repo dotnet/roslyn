@@ -37,7 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         GenerateNullLiteral() :
                         SyntaxFactory.ImplicitArrayCreationExpression(
                             SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
-                                SyntaxFactory.SeparatedList(typedConstant.Values.Select(GenerateExpression))));
+                                openBraceToken: SyntaxFactory.Token(SyntaxKind.IndentInToken),
+                                SyntaxFactory.SeparatedList(typedConstant.Values.Select(GenerateExpression)),
+                                closeBraceToken: SyntaxFactory.Token(SyntaxKind.IndentOutToken)));
 
                 default:
                     return GenerateNullLiteral();

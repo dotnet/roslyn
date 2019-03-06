@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.LetClause:
                 case SyntaxKind.WhereClause:
+                case SyntaxKind.WhereClause2:
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
                 case SyntaxKind.JoinClause:
@@ -32,9 +33,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var selectClause = (SelectClauseSyntax)node;
                     return !IsReducedSelectOrGroupByClause(selectClause, selectClause.Expression);
 
+                case SyntaxKind.SelectClause2:
+                    var selectClause2 = (SelectClause2Syntax)node;
+                    return !IsReducedSelectOrGroupByClause(selectClause2, selectClause2.Expression);
+
                 case SyntaxKind.FromClause:
                     // The first from clause of a query expression is not a lambda.
                     return !node.Parent.IsKind(SyntaxKind.QueryExpression);
+
+                case SyntaxKind.FromClause2:
+                    // The first from clause of a query expression is not a lambda.
+                    return !node.Parent.IsKind(SyntaxKind.QueryExpression2);
             }
 
             return false;
@@ -76,11 +85,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.FromClause:
                     return ((FromClauseSyntax)newLambda).Expression;
 
+                case SyntaxKind.FromClause2:
+                    return ((FromClause2Syntax)newLambda).Expression;
+
                 case SyntaxKind.LetClause:
                     return ((LetClauseSyntax)newLambda).Expression;
 
                 case SyntaxKind.WhereClause:
                     return ((WhereClauseSyntax)newLambda).Condition;
+
+                case SyntaxKind.WhereClause2:
+                    return ((WhereClause2Syntax)newLambda).Condition;
 
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
@@ -92,6 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Select clause is not considered to be lambda if it's reduced,
                     // however to avoid complexity we allow it to be passed in and just return null.
                     return IsReducedSelectOrGroupByClause(selectClause, selectClause.Expression) ? null : selectClause.Expression;
+
+                case SyntaxKind.SelectClause2:
+                    var selectClause2 = (SelectClause2Syntax)newLambda;
+
+                    // Select clause is not considered to be lambda if it's reduced,
+                    // however to avoid complexity we allow it to be passed in and just return null.
+                    return IsReducedSelectOrGroupByClause(selectClause2, selectClause2.Expression) ? null : selectClause2.Expression;
 
                 case SyntaxKind.JoinClause:
                     var oldJoin = (JoinClauseSyntax)oldBody.Parent;
@@ -160,6 +182,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var fromClause = (FromClauseSyntax)parent;
                     return fromClause.Expression == node && fromClause.Parent is QueryBodySyntax;
 
+                case SyntaxKind.FromClause2:
+                    var fromClause2 = (FromClause2Syntax)parent;
+                    return fromClause2.Expression == node && fromClause2.Parent is QueryBody2Syntax;
+
                 case SyntaxKind.JoinClause:
                     var joinClause = (JoinClauseSyntax)parent;
                     return joinClause.LeftExpression == node || joinClause.RightExpression == node;
@@ -172,6 +198,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var whereClause = (WhereClauseSyntax)parent;
                     return whereClause.Condition == node;
 
+                case SyntaxKind.WhereClause2:
+                    var whereClause2 = (WhereClause2Syntax)parent;
+                    return whereClause2.Condition == node;
+
                 case SyntaxKind.AscendingOrdering:
                 case SyntaxKind.DescendingOrdering:
                     var ordering = (OrderingSyntax)parent;
@@ -180,6 +210,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.SelectClause:
                     var selectClause = (SelectClauseSyntax)parent;
                     return selectClause.Expression == node && (allowReducedLambdas || !IsReducedSelectOrGroupByClause(selectClause, selectClause.Expression));
+
+                case SyntaxKind.SelectClause2:
+                    var selectClause2 = (SelectClause2Syntax)parent;
+                    return selectClause2.Expression == node && (allowReducedLambdas || !IsReducedSelectOrGroupByClause(selectClause2, selectClause2.Expression));
 
                 case SyntaxKind.GroupClause:
                     var groupClause = (GroupClauseSyntax)parent;
@@ -256,6 +290,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        /// <summary>
+        /// When queries are translated into expressions select and group-by expressions such that
+        /// 1) select/group-by expression is the same identifier as the "source" identifier and
+        /// 2) at least one Where or OrderBy clause but no other clause is present in the contained query body or
+        ///    the expression in question is a group-by expression and the body has no clause
+        /// 
+        /// do not translate into lambdas.
+        /// By "source" identifier we mean the identifier specified in the from clause that initiates the query or the query continuation that includes the body.
+        /// 
+        /// The above condition can be derived from the language specification (chapter 7.16.2) as follows:
+        /// - In order for 7.16.2.5 "Select clauses" to be applicable the following conditions must hold:
+        ///   - There has to be at least one clause in the body, otherwise the query is reduced into a final form by 7.16.2.3 "Degenerate query expressions".
+        ///   - Only where and order-by clauses may be present in the query body, otherwise a transformation in 7.16.2.4 "From, let, where, join and orderby clauses"
+        ///     produces pattern that doesn't match the requirements of 7.16.2.5.
+        ///   
+        /// - In order for 7.16.2.6 "Groupby clauses" to be applicable the following conditions must hold:
+        ///   - Only where and order-by clauses may be present in the query body, otherwise a transformation in 7.16.2.4 "From, let, where, join and orderby clauses"
+        ///     produces pattern that doesn't match the requirements of 7.16.2.5.
+        /// </summary>
+        private static bool IsReducedSelectOrGroupByClause(SelectClause2Syntax selectOrGroupClause, ExpressionSyntax selectOrGroupExpression)
+        {
+            if (!selectOrGroupExpression.IsKind(SyntaxKind.IdentifierName))
+            {
+                return false;
+            }
+
+            var selectorIdentifier = ((IdentifierNameSyntax)selectOrGroupExpression).Identifier;
+
+            SyntaxToken sourceIdentifier;
+            QueryBody2Syntax containingBody;
+
+            var containingQueryOrContinuation = selectOrGroupClause.Parent.Parent;
+
+            var containingQuery = (QueryExpression2Syntax)containingQueryOrContinuation;
+            containingBody = containingQuery.Body;
+            sourceIdentifier = containingQuery.FromClause.Identifier;
+
+            if (!SyntaxFactory.AreEquivalent(sourceIdentifier, selectorIdentifier))
+            {
+                return false;
+            }
+
+            if (selectOrGroupClause.IsKind(SyntaxKind.SelectClause2) && containingBody.Clauses.Count == 0)
+            {
+                return false;
+            }
+
+            foreach (var clause in containingBody.Clauses)
+            {
+                if (!clause.IsKind(SyntaxKind.WhereClause2))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         /// <remarks>
         /// In C# lambda bodies are expressions or block statements. In both cases it's a single node.
         /// In VB a lambda body might be a sequence of nodes (statements). 
@@ -298,6 +390,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lambdaBody1 = ((FromClauseSyntax)node).Expression;
                     return true;
 
+                case SyntaxKind.FromClause2:
+                    // The first from clause of a query expression is not a lambda.
+                    if (node.Parent.IsKind(SyntaxKind.QueryExpression2))
+                    {
+                        return false;
+                    }
+
+                    lambdaBody1 = ((FromClause2Syntax)node).Expression;
+                    return true;
+
                 case SyntaxKind.JoinClause:
                     var joinClause = (JoinClauseSyntax)node;
                     lambdaBody1 = joinClause.LeftExpression;
@@ -310,6 +412,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.WhereClause:
                     lambdaBody1 = ((WhereClauseSyntax)node).Condition;
+                    return true;
+
+                case SyntaxKind.WhereClause2:
+                    lambdaBody1 = ((WhereClause2Syntax)node).Condition;
                     return true;
 
                 case SyntaxKind.AscendingOrdering:
@@ -325,6 +431,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     lambdaBody1 = selectClause.Expression;
+                    return true;
+
+                case SyntaxKind.SelectClause2:
+                    var selectClause2 = (SelectClause2Syntax)node;
+                    if (IsReducedSelectOrGroupByClause(selectClause2, selectClause2.Expression))
+                    {
+                        return false;
+                    }
+
+                    lambdaBody1 = selectClause2.Expression;
                     return true;
 
                 case SyntaxKind.GroupClause:
@@ -370,7 +486,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Avoid generating these lambdas. Instead generate a static factory method on the anonymous type.
             return syntax.IsKind(SyntaxKind.GroupClause) ||
                    syntax.IsKind(SyntaxKind.JoinClause) ||
-                   syntax.IsKind(SyntaxKind.FromClause);
+                   syntax.IsKind(SyntaxKind.FromClause) ||
+                   syntax.IsKind(SyntaxKind.FromClause2);
         }
 
         /// <summary>

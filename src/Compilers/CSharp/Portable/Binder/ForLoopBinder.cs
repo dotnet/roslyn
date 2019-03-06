@@ -30,7 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var vdecl in _syntax.Declaration.Variables)
                 {
-                    var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.RegularVariable);
+                    var localSymbol = SourceLocalSymbol.MakeLocal(
+                        this.ContainingMemberOrLambda,
+                        this,
+                        true,
+                        _syntax.Declaration.Type,
+                        vdecl.Identifier,
+                        LocalDeclarationKind.RegularVariable,
+                        vdecl.Initializer.Value);
+
                     locals.Add(localSymbol);
 
                     // also gather expression-declared variables from the bracketed argument lists and the initializers
@@ -39,7 +47,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Initializers);
+                foreach (var exp in _syntax.Initializers)
+                {
+                    if (exp.Kind() == SyntaxKind.SimpleAssignmentExpression)
+                    {
+                        LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
+                        var simpleExpression = exp as AssignmentExpressionSyntax;
+                        var leftIdentifier = ((IdentifierNameSyntax)simpleExpression.Left).Identifier;
+
+                        if (locals.All(l => l.Name != leftIdentifier.Value))
+                        {
+                            var localSymbol = SourceLocalSymbol.MakeLocal(
+                                                this.ContainingMemberOrLambda,
+                                                this,
+                                                true,
+                                                default(TypeSyntax),
+                                                leftIdentifier,
+                                                kind,
+                                                simpleExpression.Right);
+
+                            locals.Add(localSymbol);
+                        }
+
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Initializers);
+                    }
+                }
             }
 
             return locals.ToImmutableAndFree();

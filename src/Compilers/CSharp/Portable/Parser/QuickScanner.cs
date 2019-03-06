@@ -204,10 +204,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var charWindow = TextWindow.CharacterWindow;
             var charPropLength = s_charProperties.Length;
 
+            if (i > 0 && charWindow[i - 1] == '\n')
+            {
+                state = QuickScanState.Bad;
+                goto exitWhile;
+            }
+
             for (; i < n; i++)
             {
                 char c = charWindow[i];
                 int uc = unchecked((int)c);
+
+                if (i > 0 && c == '\n')
+                {
+                    state = QuickScanState.Bad;
+                    goto exitWhile;
+                }
 
                 var flags = uc < charPropLength ? (CharFlags)s_charProperties[uc] : CharFlags.Complex;
 
@@ -258,7 +270,7 @@ exitWhile:
             var quickWidth = TextWindow.Width;
 #endif
             TextWindow.Reset(TextWindow.LexemeStartPosition);
-            var token = this.LexSyntaxToken();
+            var token = this.LexSyntaxToken(slowLex: false);
 #if DEBUG
             Debug.Assert(quickWidth == token.FullWidth);
 #endif

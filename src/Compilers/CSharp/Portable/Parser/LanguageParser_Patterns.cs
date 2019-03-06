@@ -51,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.IndentOutToken:
                 case SyntaxKind.SemicolonToken:
                 case SyntaxKind.CommaToken:
                     // HACK: for error recovery, we prefer a (missing) type.
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             // check to see if it looks like a recursive pattern.
-            if (tk == SyntaxKind.OpenParenToken || tk == SyntaxKind.OpenBraceToken)
+            if (tk == SyntaxKind.OpenParenToken || tk == SyntaxKind.OpenBraceToken || tk == SyntaxKind.IndentInToken)
             {
                 var resetPoint = this.GetResetPoint();
                 try
@@ -331,6 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.CommaToken:
                 case SyntaxKind.SemicolonToken:
                 case SyntaxKind.CloseBraceToken:
+                case SyntaxKind.IndentOutToken:
                 case SyntaxKind.CloseParenToken:
                 case SyntaxKind.CloseBracketToken:
                 case SyntaxKind.EqualsGreaterThanToken:
@@ -401,6 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.OpenBraceToken:
+                case SyntaxKind.IndentInToken:
                 case SyntaxKind.IdentifierToken:
                     return true;
                 default:
@@ -488,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClauseResult)
             {
                 propertyPatternClauseResult = null;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken || this.CurrentToken.Kind == SyntaxKind.IndentInToken)
                 {
                     propertyPatternClauseResult = ParsePropertyPatternClause();
                     return true;
@@ -649,9 +652,9 @@ tryAgain:
             // For better error recovery when an expression is typed on a line before a switch statement,
             // the caller checks if the switch keyword is followed by an open curly brace. Only if it is
             // would we attempt to parse it as a switch expression here.
-            var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
+            var openBrace = this.EatToken(this.CurrentToken.Kind == SyntaxKind.IndentInToken ? SyntaxKind.IndentInToken : SyntaxKind.OpenBraceToken);
             var arms = this.ParseSwitchExpressionArms();
-            var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
+            var closeBrace = this.EatClosingToken();
             var result = _syntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBrace, arms, closeBrace);
             result = this.CheckFeatureAvailability(result, MessageID.IDS_FeatureRecursivePatterns);
             return result;
@@ -661,7 +664,7 @@ tryAgain:
         {
             var arms = _pool.AllocateSeparated<SwitchExpressionArmSyntax>();
 
-            while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+            while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken && this.CurrentToken.Kind != SyntaxKind.IndentOutToken)
             {
                 // We use a precedence that excludes lambdas, assignments, and a conditional which could have a
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
@@ -678,7 +681,7 @@ tryAgain:
                     break;
 
                 arms.Add(switchExpressionCase);
-                if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+                if (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken && this.CurrentToken.Kind != SyntaxKind.IndentOutToken)
                 {
                     var commaToken = this.EatToken(SyntaxKind.CommaToken);
                     arms.AddSeparator(commaToken);

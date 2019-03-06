@@ -323,12 +323,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             if ((currentToken.Kind() == SyntaxKind.FromKeyword && currentToken.Parent.Kind() == SyntaxKind.FromClause) ||
+                //(currentToken.Kind() == SyntaxKind.FromKeyword && currentToken.Parent.Kind() == SyntaxKind.FromClause2) ||
                 (currentToken.Kind() == SyntaxKind.LetKeyword && currentToken.Parent.Kind() == SyntaxKind.LetClause) ||
                 (currentToken.Kind() == SyntaxKind.WhereKeyword && currentToken.Parent.Kind() == SyntaxKind.WhereClause) ||
+                //(currentToken.Kind() == SyntaxKind.WhereKeyword && currentToken.Parent.Kind() == SyntaxKind.WhereClause2) ||
                 (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.Kind() == SyntaxKind.JoinClause) ||
                 (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.Kind() == SyntaxKind.JoinIntoClause) ||
                 (currentToken.Kind() == SyntaxKind.OrderByKeyword && currentToken.Parent.Kind() == SyntaxKind.OrderByClause) ||
                 (currentToken.Kind() == SyntaxKind.SelectKeyword && currentToken.Parent.Kind() == SyntaxKind.SelectClause) ||
+                //(currentToken.Kind() == SyntaxKind.SelectKeyword && currentToken.Parent.Kind() == SyntaxKind.SelectClause2) ||
                 (currentToken.Kind() == SyntaxKind.GroupKeyword && currentToken.Parent.Kind() == SyntaxKind.GroupClause))
             {
                 return 1;

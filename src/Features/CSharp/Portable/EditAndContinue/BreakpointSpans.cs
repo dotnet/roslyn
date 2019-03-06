@@ -261,6 +261,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var fromClause = (FromClauseSyntax)node;
                     return TryCreateSpanForNode(fromClause.Expression, position);
 
+                case SyntaxKind.FromClause2:
+                    var fromClause2 = (FromClause2Syntax)node;
+                    return TryCreateSpanForNode(fromClause2.Expression, position);
+
                 case SyntaxKind.JoinClause:
                     var joinClause = (JoinClauseSyntax)node;
                     return TryCreateSpanForNode(joinClause.LeftExpression, position);
@@ -273,6 +277,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     var whereClause = (WhereClauseSyntax)node;
                     return TryCreateSpanForNode(whereClause.Condition, position);
 
+                case SyntaxKind.WhereClause2:
+                    var whereClause2 = (WhereClause2Syntax)node;
+                    return TryCreateSpanForNode(whereClause2.Condition, position);
+
                 case SyntaxKind.OrderByClause:
                     var orderByClause = (OrderByClauseSyntax)node;
                     return orderByClause.Orderings.Count > 0
@@ -282,6 +290,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.SelectClause:
                     var selectClause = (SelectClauseSyntax)node;
                     return TryCreateSpanForNode(selectClause.Expression, position);
+
+                case SyntaxKind.SelectClause2:
+                    var selectClause2 = (SelectClause2Syntax)node;
+                    return TryCreateSpanForNode(selectClause2.Expression, position);
 
                 case SyntaxKind.GroupClause:
                     var groupClause = (GroupClauseSyntax)node;

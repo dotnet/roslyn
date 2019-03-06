@@ -1193,13 +1193,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ElementAccessExpression:
                     return new SourceLocation(((ElementAccessExpressionSyntax)syntax).ArgumentList.OpenBracketToken);
                 case SyntaxKind.FromClause:
+                case SyntaxKind.FromClause2:
                 case SyntaxKind.GroupClause:
                 case SyntaxKind.JoinClause:
                 case SyntaxKind.JoinIntoClause:
                 case SyntaxKind.LetClause:
                 case SyntaxKind.OrderByClause:
                 case SyntaxKind.SelectClause:
+                case SyntaxKind.SelectClause2:
                 case SyntaxKind.WhereClause:
+                case SyntaxKind.WhereClause2:
                     return new SourceLocation(syntax.GetFirstToken());
                 default:
                     return null;

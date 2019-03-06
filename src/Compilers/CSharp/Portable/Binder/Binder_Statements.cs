@@ -333,7 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // For loop constructs, only warn if we see a block following the statement.
                                 // That indicates code like:  "while (x) ; { }"
                                 // which is most likely a bug.
-                                if (emptyStatement.SemicolonToken.GetNextToken().Kind() != SyntaxKind.OpenBraceToken)
+                                if (emptyStatement.SemicolonToken.GetNextToken().Kind() != SyntaxKind.OpenBraceToken &&
+                                    emptyStatement.SemicolonToken.GetNextToken().Kind() != SyntaxKind.IndentInToken)
                                 {
                                     break;
                                 }
@@ -800,6 +801,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindInferredVariableInitializer(diagnostics, value, valueKind, refKind, errorSyntax);
         }
 
+        internal BoundExpression BindInferredVariableInitializer(DiagnosticBag diagnostics, RefKind refKind, ExpressionSyntax initializerValue,
+            CSharpSyntaxNode errorSyntax)
+        {
+            BindValueKind valueKind;
+            ExpressionSyntax value;
+            IsInitializerRefKindValid(initializerValue, initializerValue, refKind, diagnostics, out valueKind, out value); // The return value isn't important here; we just want the diagnostics and the BindValueKind
+            return BindInferredVariableInitializer(diagnostics, value, valueKind, refKind, errorSyntax);
+        }
+
         // The location where the error is reported might not be the initializer.
         protected BoundExpression BindInferredVariableInitializer(DiagnosticBag diagnostics, ExpressionSyntax initializer, BindValueKind valueKind, RefKind refKind, CSharpSyntaxNode errorSyntax)
         {
@@ -866,6 +876,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                     : BindValueKind.RefOrOut;
 
                 if (initializer == null)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ByReferenceVariableMustBeInitialized, node);
+                    return false;
+                }
+                else if (expressionRefKind != RefKind.Ref)
+                {
+                    Error(diagnostics, ErrorCode.ERR_InitializeByReferenceVariableWithValue, node);
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private static bool IsInitializerRefKindValid(
+            ExpressionSyntax initializerValue,
+            CSharpSyntaxNode node,
+            RefKind variableRefKind,
+            DiagnosticBag diagnostics,
+            out BindValueKind valueKind,
+            out ExpressionSyntax value)
+        {
+            RefKind expressionRefKind = RefKind.None;
+            value = initializerValue?.CheckAndUnwrapRefExpression(diagnostics, out expressionRefKind);
+            if (variableRefKind == RefKind.None)
+            {
+                valueKind = BindValueKind.RValue;
+                if (expressionRefKind == RefKind.Ref)
+                {
+                    Error(diagnostics, ErrorCode.ERR_InitializeByValueVariableWithReference, node);
+                    return false;
+                }
+            }
+            else
+            {
+                valueKind = variableRefKind == RefKind.RefReadOnly
+                    ? BindValueKind.ReadonlyRef
+                    : BindValueKind.RefOrOut;
+
+                if (initializerValue == null)
                 {
                     Error(diagnostics, ErrorCode.ERR_ByReferenceVariableMustBeInitialized, node);
                     return false;
@@ -1122,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeSyntax,
                     identifier,
                     kind,
-                    equalsValue);
+                    equalsValue.Value);
             }
 
             return localSymbol;

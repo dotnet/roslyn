@@ -25,13 +25,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<Symbol> symbols,
             DiagnosticBag diagnostics)
         {
-            FromClauseSyntax fromClause = null;
+            CSharpSyntaxNode fromClause = null;
+            ExpressionSyntax expression = null;
+            TypeSyntax type = null;
+            SyntaxToken identifier = default(SyntaxToken);
+
             for (SyntaxNode node = queryClause; ; node = node.Parent)
             {
                 var e = node as QueryExpressionSyntax;
                 if (e != null)
                 {
                     fromClause = e.FromClause;
+                    expression = e.FromClause.Expression;
+                    type = e.FromClause.Type;
+                    identifier = e.FromClause.Identifier;
+                    break;
+                }
+
+                var e2 = node as QueryExpression2Syntax;
+                if (e2 != null)
+                {
+                    fromClause = e2.FromClause;
+                    expression = e2.FromClause.Expression;
+                    type = e2.FromClause.Type;
+                    identifier = e2.FromClause.Identifier;
                     break;
                 }
             }
@@ -51,15 +68,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(new DiagnosticInfoWithSymbols(
                     ErrorCode.ERR_QueryNoProviderStandard,
                     new object[] { instanceArgument.Type, name },
-                    symbols), new SourceLocation(fromClause != null ? fromClause.Expression : queryClause));
+                    symbols), new SourceLocation(fromClause != null ? expression : queryClause));
             }
-            else if (fromClause != null && fromClause.Type == null && HasCastToQueryProvider(instanceArgument.Type, ref useSiteDiagnostics))
+            else if (fromClause != null && type == null && HasCastToQueryProvider(instanceArgument.Type, ref useSiteDiagnostics))
             {
                 // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.  Consider explicitly specifying the type of the range variable '{2}'.
                 diagnostics.Add(new DiagnosticInfoWithSymbols(
                     ErrorCode.ERR_QueryNoProviderCastable,
-                    new object[] { instanceArgument.Type, name, fromClause.Identifier.ValueText },
-                    symbols), new SourceLocation(fromClause.Expression));
+                    new object[] { instanceArgument.Type, name, identifier.ValueText },
+                    symbols), new SourceLocation(expression));
             }
             else
             {
@@ -67,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(new DiagnosticInfoWithSymbols(
                     ErrorCode.ERR_QueryNoProvider,
                     new object[] { instanceArgument.Type, name },
-                    symbols), new SourceLocation(fromClause != null ? fromClause.Expression : queryClause));
+                    symbols), new SourceLocation(fromClause != null ? expression : queryClause));
             }
 
             diagnostics.Add(queryClause, useSiteDiagnostics);
@@ -171,9 +188,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     clauseKind = SyntaxFacts.GetText(SyntaxKind.LetKeyword);
                     break;
                 case SyntaxKind.SelectClause:
+                case SyntaxKind.SelectClause2:
                     clauseKind = SyntaxFacts.GetText(SyntaxKind.SelectKeyword);
                     break;
                 case SyntaxKind.WhereClause:
+                case SyntaxKind.WhereClause2:
                     clauseKind = SyntaxFacts.GetText(SyntaxKind.WhereKeyword);
                     break;
                 case SyntaxKind.OrderByClause:
@@ -196,6 +215,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     clauseKind = SyntaxFacts.GetText(SyntaxKind.FromKeyword);
                     break;
+                case SyntaxKind.FromClause2:
+                    if (ReportQueryInferenceFailedSelectMany((FromClause2Syntax)queryClause, methodName, receiver, arguments, symbols, diagnostics))
+                    {
+                        return;
+                    }
+                    clauseKind = SyntaxFacts.GetText(SyntaxKind.FromKeyword);
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(queryClause.Kind());
             }
@@ -207,6 +233,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static bool ReportQueryInferenceFailedSelectMany(FromClauseSyntax fromClause, string methodName, BoundExpression receiver, AnalyzedArguments arguments, ImmutableArray<Symbol> symbols, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(methodName == "SelectMany");
+
+            // Estimate the return type of Select's lambda argument
+            BoundExpression arg = arguments.Argument(arguments.IsExtensionMethodInvocation ? 1 : 0);
+            TypeSymbol type = null;
+            if (arg.Kind == BoundKind.UnboundLambda)
+            {
+                var unbound = (UnboundLambda)arg;
+                foreach (var t in unbound.Data.InferredReturnTypes())
+                {
+                    if (!t.IsErrorType())
+                    {
+                        type = t;
+                        break;
+                    }
+                }
+            }
+
+            if ((object)type == null || type.IsErrorType())
+            {
+                return false;
+            }
+
+            TypeSymbol receiverType = receiver?.Type;
+            diagnostics.Add(new DiagnosticInfoWithSymbols(
+                ErrorCode.ERR_QueryTypeInferenceFailedSelectMany,
+                new object[] { type, receiverType, methodName },
+                symbols), fromClause.Expression.Location);
+            return true;
+        }
+
+        private static bool ReportQueryInferenceFailedSelectMany(FromClause2Syntax fromClause, string methodName, BoundExpression receiver, AnalyzedArguments arguments, ImmutableArray<Symbol> symbols, DiagnosticBag diagnostics)
         {
             Debug.Assert(methodName == "SelectMany");
 

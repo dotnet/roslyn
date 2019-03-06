@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ParseInterpolationStart(out SyntaxToken openBraceToken, out ExpressionSyntax expr, out SyntaxToken commaToken, out ExpressionSyntax alignmentExpression)
         {
-            openBraceToken = this.EatToken(SyntaxKind.OpenBraceToken);
+            openBraceToken = this.EatToken(this.CurrentToken.Kind == SyntaxKind.IndentInToken ? SyntaxKind.IndentInToken : SyntaxKind.OpenBraceToken);
             expr = this.ParseExpressionCore();
             if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {

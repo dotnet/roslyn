@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this._identifierToken = identifierToken;
             this._typeSyntax = allowRefKind ? typeSyntax?.SkipRef(out this._refKind) : typeSyntax;
             this._declarationKind = declarationKind;
+            this.IsDeclaredWithoutVar = typeSyntax == default(TypeSyntax);
 
             // create this eagerly as it will always be needed for the EnsureSingleDefinition
             _locations = ImmutableArray.Create<Location>(identifierToken.GetLocation());
@@ -83,6 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return _scopeBinder.ScopeDesignator; }
         }
+
+        internal override bool IsDeclaredWithoutVar { get; }
 
         internal override uint RefEscapeScope => _refEscapeScope;
 
@@ -202,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind,
-            EqualsValueClauseSyntax initializer = null,
+            ExpressionSyntax initializer = null,
             Binder initializerBinderOpt = null)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
@@ -424,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (_declarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
-                        Debug.Assert(node is VariableDeclaratorSyntax);
+                        Debug.Assert(node is VariableDeclaratorSyntax || node.Parent is AssignmentExpressionSyntax);
                         break;
 
                     case LocalDeclarationKind.Constant:
@@ -499,7 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private sealed class LocalWithInitializer : SourceLocalSymbol
         {
-            private readonly EqualsValueClauseSyntax _initializer;
+            //private readonly EqualsValueClauseSyntax _initializer;
+            private readonly ExpressionSyntax _initializerValue;
             private readonly Binder _initializerBinder;
 
             /// <summary>
@@ -514,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Binder scopeBinder,
                 TypeSyntax typeSyntax,
                 SyntaxToken identifierToken,
-                EqualsValueClauseSyntax initializer,
+                ExpressionSyntax initializer,
                 Binder initializerBinder,
                 LocalDeclarationKind declarationKind) :
                     base(containingSymbol, scopeBinder, true, typeSyntax, identifierToken, declarationKind)
@@ -522,7 +526,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
                 Debug.Assert(initializer != null);
 
-                _initializer = initializer;
+                //_initializer = initializer;
+                _initializerValue = initializer;
                 _initializerBinder = initializerBinder;
 
                 // default to the current scope in case we need to handle self-referential error cases.
@@ -532,13 +537,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override TypeSymbolWithAnnotations InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                BoundExpression initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializer, _initializer);
+                BoundExpression initializerOpt = this._initializerBinder.BindInferredVariableInitializer(diagnostics, RefKind, _initializerValue, _initializerValue);
                 return initializerOpt == null ?
                     default :
                     initializerOpt.GetTypeAndNullability();
             }
 
-            internal override SyntaxNode ForbiddenZone => _initializer;
+            internal override SyntaxNode ForbiddenZone => _initializerValue;
 
             /// <summary>
             /// Determine the constant value of this local and the corresponding diagnostics.
@@ -551,14 +556,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.IsConst && _constantTuple == null)
                 {
                     var value = Microsoft.CodeAnalysis.ConstantValue.Bad;
-                    Location initValueNodeLocation = _initializer.Value.Location;
+                    Location initValueNodeLocation = _initializerValue.Location;
                     var diagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
                     var type = this.Type.TypeSymbol;
                     if (boundInitValue == null)
                     {
                         var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinder);
-                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializerValue(_initializer, this.RefKind, type, diagnostics);
+                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializerValue(this._initializerValue, this.RefKind, type, diagnostics);
                     }
 
                     value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, initValueNodeLocation, diagnostics);

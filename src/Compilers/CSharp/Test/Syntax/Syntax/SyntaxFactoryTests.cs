@@ -42,7 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstructNamespaceWithNameOnly()
         {
-            var n = SyntaxFactory.NamespaceDeclaration(name: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("goo")));
+            var n = SyntaxFactory.NamespaceDeclaration(name: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("goo"))
+                , openBraceToken: SyntaxFactory.Token(SyntaxKind.IndentInToken)
+                , closeBraceToken: SyntaxFactory.Token(SyntaxKind.IndentOutToken));
             Assert.NotNull(n);
             Assert.Equal(0, n.Errors().Length);
             Assert.Equal(0, n.Externs.Count);
@@ -62,7 +64,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstructClassWithKindAndNameOnly()
         {
-            var c = SyntaxFactory.ClassDeclaration(identifier: SyntaxFactory.Identifier("goo"));
+            var c = SyntaxFactory.ClassDeclaration(identifier: SyntaxFactory.Identifier("goo")
+                , openBraceToken: SyntaxFactory.Token(SyntaxKind.IndentInToken)
+                , closeBraceToken: SyntaxFactory.Token(SyntaxKind.IndentOutToken));
             Assert.NotNull(c);
             Assert.Equal(0, c.AttributeLists.Count);
             Assert.Equal(0, c.Modifiers.Count);
@@ -473,7 +477,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxFactory.CompilationUnit()
                 .WithMembers(
                     SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                        SyntaxFactory.ClassDeclaration("C")
+                        SyntaxFactory.ClassDeclaration("C"
+                , openBraceToken: SyntaxFactory.Token(SyntaxKind.IndentInToken)
+                , closeBraceToken: SyntaxFactory.Token(SyntaxKind.IndentOutToken))
                         .WithMembers(
                             SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
                                 SyntaxFactory.PropertyDeclaration(
@@ -497,7 +503,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 SyntaxFactory.CompilationUnit()
                 .WithMembers(
                     SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
-                        SyntaxFactory.ClassDeclaration("C")
+                        SyntaxFactory.ClassDeclaration("C"
+                , openBraceToken: SyntaxFactory.Token(SyntaxKind.IndentInToken)
+                , closeBraceToken: SyntaxFactory.Token(SyntaxKind.IndentOutToken))
                         .WithMembers(
                             SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
                                 SyntaxFactory.PropertyDeclaration(

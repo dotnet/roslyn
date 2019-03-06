@@ -694,6 +694,37 @@ System.Double
 
         [WorkItem(126766, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ArraysOfRank1_Length2()
+        {
+            var source =
+@"class C
+    static void Main()
+        var t = new Test();
+        System.Console.WriteLine(t.Test1().Length);
+    
+
+";
+            var compilation = CreateCompilationWithILAndMscorlib40(source, s_arraysOfRank1IlSource, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(compilation, expectedOutput:
+@"Test1
+1");
+
+            verifier.VerifyIL("C.Main",
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  IL_0000:  newobj     ""Test..ctor()""
+  IL_0005:  callvirt   ""double[*] Test.Test1()""
+  IL_000a:  callvirt   ""int System.Array.Length.get""
+  IL_000f:  call       ""void System.Console.WriteLine(int)""
+  IL_0014:  ret
+}
+");
+        }
+
+        [WorkItem(126766, "https://devdiv.visualstudio.com:443/defaultcollection/DevDiv/_workitems/edit/126766"), WorkItem(4924, "https://github.com/dotnet/roslyn/issues/4924")]
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void ArraysOfRank1_LongLength()
         {
             var source =

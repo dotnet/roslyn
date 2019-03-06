@@ -1347,6 +1347,32 @@
       <summary>Creates a ParenthesizedLambdaExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="InitializerExpression2Syntax" Base="ExpressionSyntax">
+    <Kind Name="ArrayInitializerExpression"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open brace.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Expressions" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;">
+      <PropertyComment>
+        <summary>SeparatedSyntaxList of ExpressionSyntax representing the list of expressions in the initializer expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close brace.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for initializer expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an InitializerExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="InitializerExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ObjectInitializerExpression"/>
     <Kind Name="CollectionInitializerExpression"/>
@@ -1354,6 +1380,7 @@
     <Kind Name="ComplexElementInitializerExpression"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the open brace.</summary>
       </PropertyComment>
@@ -1365,6 +1392,7 @@
     </Field>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the close brace.</summary>
       </PropertyComment>
@@ -1432,6 +1460,7 @@
     </Field>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the open brace.</summary>
       </PropertyComment>
@@ -1443,6 +1472,7 @@
     </Field>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the close brace.</summary>
       </PropertyComment>
@@ -1477,6 +1507,20 @@
     </TypeComment>
     <FactoryComment>
       <summary>Creates an ArrayCreationExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ImplicitArrayCreationExpression2Syntax" Base="ExpressionSyntax">
+    <Kind Name="ImplicitArrayCreationExpression2"/>
+    <Field Name="Initializer" Type="InitializerExpression2Syntax">
+      <PropertyComment>
+        <summary>InitializerExpressionSyntax representing the initializer expression of the implicit array creation expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for implicit array creation expression 2.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ImplicitArrayCreationExpressionSyntax2 node.</summary>
     </FactoryComment>
   </Node>
   <Node Name="ImplicitArrayCreationExpressionSyntax" Base="ExpressionSyntax">
@@ -1573,6 +1617,63 @@
       <summary>Creates an ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <!---->
+  <AbstractNode Name="QueryClause2Syntax" Base="CSharpSyntaxNode">
+  </AbstractNode>
+  <Node Name="QueryExpression2Syntax" Base="ExpressionSyntax">
+    <Kind Name="QueryExpression2"/>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open brace.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="FromClause" Type="FromClause2Syntax"/>
+    <Field Name="Body" Type="QueryBody2Syntax"/>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close brace.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="QueryBody2Syntax" Base="CSharpSyntaxNode">
+    <Kind Name="QueryBody2"/>
+    <Field Name="Clauses" Type="SyntaxList&lt;QueryClause2Syntax&gt;"/>
+    <Field Name="SelectOrGroup" Type="SelectClause2Syntax"/>
+  </Node>
+  <Node Name="FromClause2Syntax" Base="QueryClause2Syntax">
+    <Kind Name="FromClause2"/>
+    <Field Name="FromKeyword" Type="SyntaxToken">
+      <Kind Name="FromKeyword"/>
+    </Field>
+    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
+    <Field Name="Identifier" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the identifier.</summary>
+      </PropertyComment>
+      <Kind Name="IdentifierToken"/>
+    </Field>
+    <Field Name="InKeyword" Type="SyntaxToken">
+      <Kind Name="InKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+  </Node>
+  <Node Name="WhereClause2Syntax" Base="QueryClause2Syntax">
+    <Kind Name="WhereClause2"/>
+    <Field Name="WhereKeyword" Type="SyntaxToken">
+      <Kind Name="WhereKeyword"/>
+    </Field>
+    <Field Name="Condition" Type="ExpressionSyntax"/>
+  </Node>
+  <Node Name="SelectClause2Syntax" Base="QueryClause2Syntax">
+    <Kind Name="SelectClause2"/>
+    <Field Name="SelectKeyword" Type="SyntaxToken">
+      <Kind Name="SelectKeyword"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+  </Node>
+  <!---->
   <AbstractNode Name="QueryClauseSyntax" Base="CSharpSyntaxNode">
   </AbstractNode>
   <AbstractNode Name="SelectOrGroupClauseSyntax" Base="CSharpSyntaxNode">
@@ -1831,10 +1932,12 @@
     <Kind Name="PropertyPatternClause"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
     </Field>
     <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternSyntax&gt;"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
     </Field>
   </Node>
   <Node Name="SubpatternSyntax" Base="CSharpSyntaxNode">
@@ -1865,12 +1968,14 @@
     <Kind Name="Interpolation"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
     </Field>
     <Field Name="Expression" Type="ExpressionSyntax"/>
     <Field Name="AlignmentClause" Type="InterpolationAlignmentClauseSyntax" Optional="true"/>
     <Field Name="FormatClause" Type="InterpolationFormatClauseSyntax" Optional="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
     </Field>
   </Node>
   <Node Name="InterpolationAlignmentClauseSyntax" Base="CSharpSyntaxNode">
@@ -1902,10 +2007,12 @@
     <Kind Name="Block"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
     </Field>
     <Field Name="Statements" Type="SyntaxList&lt;StatementSyntax&gt;"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
     </Field>
   </Node>
   <Node Name="LocalFunctionStatementSyntax" Base="StatementSyntax">
@@ -1945,7 +2052,7 @@
       </PropertyComment>
     </Field>
     <Field Name="Declaration" Type="VariableDeclarationSyntax"/>
-    <Field Name="SemicolonToken" Type="SyntaxToken">
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
@@ -2002,7 +2109,7 @@
   <Node Name="ExpressionStatementSyntax" Base="StatementSyntax">
     <Kind Name="ExpressionStatement"/>
     <Field Name="Expression" Type="ExpressionSyntax"/>
-    <Field Name="SemicolonToken" Type="SyntaxToken">
+    <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
       <Kind Name="SemicolonToken"/>
     </Field>
   </Node>
@@ -2454,6 +2561,7 @@
     </Field>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
       <PropertyComment>
         <summary>
           Gets a SyntaxToken that represents the open braces preceding the switch sections.
@@ -2469,6 +2577,7 @@
     </Field>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
       <PropertyComment>
         <summary>
           Gets a SyntaxToken that represents the open braces following the switch sections.
@@ -2597,10 +2706,12 @@
     </Field>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
     </Field>
     <Field Name="Arms" Type="SeparatedSyntaxList&lt;SwitchExpressionArmSyntax&gt;"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
     </Field>
   </Node>
   <Node Name="SwitchExpressionArmSyntax" Base="CSharpSyntaxNode">
@@ -2740,12 +2851,14 @@
     <Field Name="Name" Type="NameSyntax"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
     </Field>
     <Field Name="Externs" Type="SyntaxList&lt;ExternAliasDirectiveSyntax&gt;"/>
     <Field Name="Usings" Type="SyntaxList&lt;UsingDirectiveSyntax&gt;"/>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
       <PropertyComment>
@@ -2932,16 +3045,18 @@
       </PropertyComment>
     </Field>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
       <PropertyComment>
         <summary>Gets the open brace token.</summary>
       </PropertyComment>
-      <Kind Name="OpenBraceToken"/>
     </Field>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <PropertyComment>
         <summary>Gets the close brace token.</summary>
       </PropertyComment>
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true">
       <PropertyComment>
@@ -2992,10 +3107,12 @@
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="SemicolonToken"/>
@@ -3022,10 +3139,12 @@
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="SemicolonToken"/>
@@ -3052,10 +3171,12 @@
     <Field Name="ConstraintClauses" Type="SyntaxList&lt;TypeParameterConstraintClauseSyntax&gt;" Override="true"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
     </Field>
     <Field Name="Members" Type="SyntaxList&lt;MemberDeclarationSyntax&gt;" Override="true"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <Kind Name="SemicolonToken"/>
@@ -3081,6 +3202,7 @@
     </Field>
     <Field Name="OpenBraceToken" Type="SyntaxToken" Override="true">
       <Kind Name="OpenBraceToken"/>
+      <Kind Name="IndentInToken"/>
     </Field>
     <Field Name="Members" Type="SeparatedSyntaxList&lt;EnumMemberDeclarationSyntax&gt;">
       <PropertyComment>
@@ -3089,6 +3211,7 @@
     </Field>
     <Field Name="CloseBraceToken" Type="SyntaxToken" Override="true">
       <Kind Name="CloseBraceToken"/>
+      <Kind Name="IndentOutToken"/>
     </Field>
     <Field Name="SemicolonToken" Type="SyntaxToken" Optional="true" Override="true">
       <PropertyComment>

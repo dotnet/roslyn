@@ -217,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 kind = LocalDeclarationKind.RegularVariable;
                             }
+
                             foreach (var vdecl in decl.Declaration.Variables)
                             {
                                 var localSymbol = MakeLocal(decl.Declaration, vdecl, kind, localDeclarationBinder);
@@ -230,6 +231,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case SyntaxKind.ExpressionStatement:
+                        Binder localDeclarationBinder2 = enclosingBinder.GetBinder(innerStatement) ?? enclosingBinder;
+
+                        if ((innerStatement is ExpressionStatementSyntax exp) && exp.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
+                        {
+                            LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
+                            var simpleExpression = exp.Expression as AssignmentExpressionSyntax;
+                            var leftIdentifier = ((IdentifierNameSyntax)simpleExpression.Left).Identifier;
+
+                            if (locals.All(l => l.Name != leftIdentifier.Value))
+                            {
+                                var localSymbol = SourceLocalSymbol.MakeLocal(
+                                                    this.ContainingMemberOrLambda,
+                                                    this,
+                                                    true,
+                                                    default(TypeSyntax),
+                                                    leftIdentifier,
+                                                    kind,
+                                                    simpleExpression.Right,
+                                                    localDeclarationBinder2);
+
+                                locals.Add(localSymbol);
+                            }
+                        }
+
+                        ExpressionVariableFinder.FindExpressionVariables(this, locals, innerStatement, localDeclarationBinder2);
+                        break;
+
                     case SyntaxKind.IfStatement:
                     case SyntaxKind.YieldReturnStatement:
                     case SyntaxKind.ReturnStatement:
@@ -300,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declaration.Type,
                 declarator.Identifier,
                 kind,
-                declarator.Initializer,
+                declarator.Initializer.Value,
                 initializerBinderOpt);
         }
 
@@ -408,7 +436,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LocalSymbol localSymbol;
                 if (localsMap.TryGetValue(name, out localSymbol))
                 {
-                    result.MergeEqual(originalBinder.CheckViability(localSymbol, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved));
+                    if (!localSymbol.IsDeclaredWithoutVar || (options & LookupOptions.NoImplicitLocals) == 0)
+                    {
+                        result.MergeEqual(originalBinder.CheckViability(localSymbol, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved));
+                    }
                 }
             }
 
