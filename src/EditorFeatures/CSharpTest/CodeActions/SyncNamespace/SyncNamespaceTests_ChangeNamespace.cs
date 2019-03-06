@@ -1842,5 +1842,176 @@ namespace Foo
 }";
             await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_ExternsionMethodInReducedForm()
+        {
+            var defaultNamespace = "A";
+
+            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]{defaultNamespace}
+{{
+    public static class Extensions
+    {{ 
+        public static bool Foo(this Class1 c1) => true;
+    }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}"">
+namespace {defaultNamespace}
+{{
+    using System;
+
+    public class Class1
+    {{
+        public bool Bar(Class1 c1) => c1.Foo();
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+$@"namespace A.B.C
+{{
+    public static class Extensions
+    {{
+        public static bool Foo(this Class1 c1) => true;
+    }}
+}}";
+            var expectedSourceReference =
+$@"
+namespace {defaultNamespace}
+{{
+    using System;
+    using A.B.C;
+
+    public class Class1
+    {{
+        public bool Bar(Class1 c1) => c1.Foo();
+    }}
+}}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_ExternsionMethodInRegularForm()
+        {
+            var defaultNamespace = "A";
+
+            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]A
+{{
+    public static class Extensions
+    {{ 
+        public static bool Foo(this Class1 c1) => true;
+    }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}"">
+using System;
+
+namespace A
+{{
+    public class Class1
+    {{
+        public bool Bar(Class1 c1) => Extensions.Foo(c1);
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+$@"namespace A.B.C
+{{
+    public static class Extensions
+    {{
+        public static bool Foo(this Class1 c1) => true;
+    }}
+}}";
+            var expectedSourceReference =
+$@"
+using System;
+using A.B.C;
+
+namespace A
+{{
+    public class Class1
+    {{
+        public bool Bar(Class1 c1) => Extensions.Foo(c1);
+    }}
+}}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
+        public async Task ChangeNamespace_ContainsBothTypeAndExternsionMethod()
+        {
+            var defaultNamespace = "A";
+
+            var documentPath1 = CreateDocumentFilePath(new[] { "B", "C" }, "File1.cs");
+            var documentPath2 = CreateDocumentFilePath(Array.Empty<string>(), "File2.cs");
+            var code =
+$@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" FilePath=""{ProjectFilePath}"" RootNamespace=""{defaultNamespace}"" CommonReferences=""true"">
+        <Document Folders=""{documentPath1.folder}"" FilePath=""{documentPath1.filePath}""> 
+namespace [||]A
+{{
+    public static class Extensions
+    {{ 
+        public static bool Foo(this Class1 c1) => true;
+    }}
+
+    public class Class2
+    {{ }}
+}}</Document>
+<Document Folders=""{documentPath2.folder}"" FilePath=""{documentPath2.filePath}"">
+using System;
+
+namespace A
+{{
+    public class Class1
+    {{
+        public bool Bar(Class1 c1, Class2 c2) => c2 == null ? c1.Foo() : true;
+    }}
+}}</Document>
+    </Project>
+</Workspace>";
+
+            var expectedSourceOriginal =
+@"namespace A.B.C
+{
+    public static class Extensions
+    {
+        public static bool Foo(this Class1 c1) => true;
+    }
+
+    public class Class2
+    { }
+}";
+            var expectedSourceReference =
+@"
+using System;
+using A.B.C;
+
+namespace A
+{
+    public class Class1
+    {
+        public bool Bar(Class1 c1, Class2 c2) => c2 == null ? c1.Foo() : true;
+    }
+}";
+            await TestChangeNamespaceAsync(code, expectedSourceOriginal, expectedSourceReference);
+        }
     }
 }
