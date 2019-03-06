@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public override Task<CodeAction> GetFixAsync(FixAllContext fixAllContext)
         {
+            // Disable RS0005 as this is test code and we don't need telemetry for created code action.
+#pragma warning disable RS0005 // Do not use generic CodeAction.Create to create CodeAction
+
             CodeAction fixAction;
             switch (fixAllContext.Scope)
             {
@@ -47,6 +50,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     fixAction = null;
                     break;
             }
+
+#pragma warning restore RS0005 // Do not use generic CodeAction.Create to create CodeAction
 
             return Task.FromResult(fixAction);
         }
