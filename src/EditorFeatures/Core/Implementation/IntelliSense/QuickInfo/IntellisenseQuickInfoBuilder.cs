@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     }
                     else
                     {
+                        // If the description section contains multiple paragraphs, the second and additional paragraphs
+                        // are not wrapped in firstLineElements (they are normal paragraphs).
                         elements.Add(element);
                     }
                 }
@@ -66,17 +68,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             var documentationCommentSection = quickInfoItem.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.DocumentationComments);
             if (documentationCommentSection != null)
             {
-                var classifiedComments = BuildClassifiedTextElements(documentationCommentSection).ToArray();
-                if (classifiedComments.Length > 0)
+                var isFirstElement = true;
+                foreach (var element in BuildClassifiedTextElements(documentationCommentSection))
                 {
-                    // Stack the first item with the main description to avoid the vertical padding
-                    var lastElement = elements[elements.Count - 1];
-                    elements[elements.Count - 1] = new ContainerElement(
-                        ContainerElementStyle.Stacked,
-                        lastElement,
-                        classifiedComments[0]);
+                    if (isFirstElement)
+                    {
+                        isFirstElement = false;
 
-                    elements.AddRange(classifiedComments.Skip(1));
+                        // Stack the first paragraph of the documentation comments with the last line of the description
+                        // to avoid vertical padding between the two.
+                        var lastElement = elements[elements.Count - 1];
+                        elements[elements.Count - 1] = new ContainerElement(
+                            ContainerElementStyle.Stacked,
+                            lastElement,
+                            element);
+                    }
+                    else
+                    {
+                        elements.Add(element);
+                    }
                 }
             }
 
