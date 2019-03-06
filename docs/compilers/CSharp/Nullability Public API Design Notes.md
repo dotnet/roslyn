@@ -41,7 +41,7 @@ This API will only be added if, after dogfooding, we determine that the performa
 
 Generally speaking, when you want to determine the nullability of an `ITypeSymbol`, you need to check the containing context.
 The declaring symbol (e.g. `ILocalSymbol`, `IFieldSymbol`, etc.) will have the `NullableAnnotation` of the type.
-`GetTypeInfo` will give you both the `ITypeSymbol` and the `NullableFlowState` of an expression.
+`GetTypeInfo` will give you the `ITypeSymbol`, the `NullableAnnotation` (if this expression could be used as an lvalue), and the `NullableFlowState` of an expression (if this expression can be used as an rvalue).
 Nested `NullableAnnotation`s for type parameters are contained on the containing `ITypeSymbol`.
 For example, if you wanted to know whether an array's contents are nullable, you will need to check the `IArrayTypeSymbol` for `ElementNullableAnnotation`.
 
@@ -108,6 +108,11 @@ internal enum NullableFlowState : byte
     MaybeNull
 }
 
+internal readonly struct NullabilityInfo
+{
+    public NullableAnnotation LValueAnnotation { get; }
+    public NullableFlowState RValueFlowState { get; }
+}
 
 #region Declared Nullability
 
@@ -167,8 +172,8 @@ public interface ITypeParameterSymbol : ITypeSymbol
 
 public struct TypeInfo
 {
-    public NullableFlowState Nullability { get; }
-    public NullableFlowState ConvertedNullability { get; }
+    public NullabilityInfo Nullability { get; }
+    public NullabilityInfo ConvertedNullability { get; }
 }
 
 #endregion
