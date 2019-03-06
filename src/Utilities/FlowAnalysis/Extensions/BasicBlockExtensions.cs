@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
@@ -57,6 +58,100 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     yield return operation;
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns true if the given <paramref name="basicBlock"/> is contained in a control flow region with the given <paramref name="regionKind"/>.
+        /// </summary>
+        public static bool IsContainedInRegionOfKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind)
+            => basicBlock.GetContainingRegionOfKind(regionKind) != null;
+
+        /// <summary>
+        /// Returns the innermost control flow region of the given <paramref name="regionKind"/> that contains the given <paramref name="basicBlock"/>.
+        /// </summary>
+        public static ControlFlowRegion GetContainingRegionOfKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind)
+        {
+            var enclosingRegion = basicBlock.EnclosingRegion;
+            while (enclosingRegion != null)
+            {
+                if (enclosingRegion.Kind == regionKind)
+                {
+                    return enclosingRegion;
+                }
+
+                enclosingRegion = enclosingRegion.EnclosingRegion;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns true if the given basic block is the first block of a finally region.
+        /// </summary>
+        public static bool IsFirstBlockOfFinally(this BasicBlock basicBlock, out ControlFlowRegion finallyRegion)
+            => basicBlock.IsFirstBlockOfRegionKind(ControlFlowRegionKind.Finally, out finallyRegion);
+
+        /// <summary>
+        /// Returns true if the given basic block is the last block of a finally region.
+        /// </summary>
+        public static bool IsLastBlockOfFinally(this BasicBlock basicBlock, out ControlFlowRegion finallyRegion)
+            => basicBlock.IsLastBlockOfRegionKind(ControlFlowRegionKind.Finally, out finallyRegion);
+
+        /// <summary>
+        /// Returns true if the given basic block is the first block of a region of the given regionKind.
+        /// </summary>
+        public static bool IsFirstBlockOfRegionKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind, out ControlFlowRegion region)
+            => basicBlock.IsFirstOrLastBlockOfRegionKind(regionKind, first: true, out region);
+
+        /// <summary>
+        /// Returns true if the given basic block is the last block of a region of the given regionKind.
+        /// </summary>
+        public static bool IsLastBlockOfRegionKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind, out ControlFlowRegion region)
+            => basicBlock.IsFirstOrLastBlockOfRegionKind(regionKind, first: false, out region);
+
+        private static bool IsFirstOrLastBlockOfRegionKind(this BasicBlock basicBlock, ControlFlowRegionKind regionKind, bool first, out ControlFlowRegion foundRegion)
+        {
+            foundRegion = null;
+
+            var enclosingRegion = basicBlock.EnclosingRegion;
+            while (enclosingRegion != null)
+            {
+                var ordinalToCompare = first ? enclosingRegion.FirstBlockOrdinal : enclosingRegion.LastBlockOrdinal;
+                if (ordinalToCompare != basicBlock.Ordinal)
+                {
+                    return false;
+                }
+
+                if (enclosingRegion.Kind == regionKind)
+                {
+                    foundRegion = enclosingRegion;
+                    return true;
+                }
+
+                enclosingRegion = enclosingRegion.EnclosingRegion;
+            }
+
+            return false;
+        }
+
+        internal static ControlFlowRegion GetInnermostRegionStartedByBlock(this BasicBlock basicBlock, ControlFlowRegionKind regionKind)
+        {
+            if (basicBlock.EnclosingRegion?.FirstBlockOrdinal != basicBlock.Ordinal)
+            {
+                return null;
+            }
+
+            var enclosingRegion = basicBlock.EnclosingRegion;
+            while (enclosingRegion.Kind != regionKind)
+            {
+                enclosingRegion = enclosingRegion.EnclosingRegion;
+                if (enclosingRegion?.FirstBlockOrdinal != basicBlock.Ordinal)
+                {
+                    return null;
+                }
+            }
+
+            return enclosingRegion;
         }
     }
 }

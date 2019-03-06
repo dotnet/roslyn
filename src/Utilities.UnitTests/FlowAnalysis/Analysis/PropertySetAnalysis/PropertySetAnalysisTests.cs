@@ -86,7 +86,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             try
             {
                 Assert.Equal(expectedResults.Length, actual.Count);
-                foreach ((int Line, int Column, string Method, HazardousUsageEvaluationResult Result) expected in expectedResults)
+                foreach ((int Line, int Column, string Method, HazardousUsageEvaluationResult Result) in expectedResults)
                 {
                     HazardousUsageEvaluationResult? actualResult = null;
                     foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
@@ -98,9 +98,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                             continue;
                         }
 
-                        if (span.StartLinePosition.Line + 1 == expected.Line
-                            && span.StartLinePosition.Character + 1 == expected.Column
-                            && kvp.Key.Method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) == expected.Method)
+                        if (span.StartLinePosition.Line + 1 == Line
+                            && span.StartLinePosition.Character + 1 == Column
+                            && kvp.Key.Method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) == Method)
                         {
                             actualResult = kvp.Value;
                             break;
@@ -109,10 +109,10 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 
                     Assert.True(
                         actualResult.HasValue,
-                        $"Could not find expected result Line {expected.Line} Column {expected.Column} Method {expected.Method} Result {expected.Result}");
+                        $"Could not find expected result Line {Line} Column {Column} Method {Method} Result {Result}");
                     Assert.True(
-                        actualResult == expected.Result,
-                        $"Expected {expected.Result}, Actual {actualResult}, for Line {expected.Line} Column {expected.Column} Method {expected.Method}");
+                        actualResult == Result,
+                        $"Expected {Result}, Actual {actualResult}, for Line {Line} Column {Column} Method {Method}");
                 }
             }
             catch (XunitException)
@@ -720,12 +720,12 @@ class TestClass
                         {
                             case ValueContainsNonLiteralState.No:
                                 return valueContentAbstractValue.LiteralValues.Any(
-                                    o => (o as String)?.StartsWith("T", StringComparison.Ordinal) == true)
+                                    o => (o as string)?.StartsWith("T", StringComparison.Ordinal) == true)
                                     ? PropertySetAbstractValueKind.Flagged
                                     : PropertySetAbstractValueKind.Unflagged;
                             case ValueContainsNonLiteralState.Maybe:
                                 return valueContentAbstractValue.LiteralValues.Any(
-                                    o => (o as String)?.StartsWith("T", StringComparison.Ordinal) == true)
+                                    o => (o as string)?.StartsWith("T", StringComparison.Ordinal) == true)
                                     ? PropertySetAbstractValueKind.Flagged
                                     : PropertySetAbstractValueKind.Unknown;
                             default:

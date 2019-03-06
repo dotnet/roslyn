@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             TValue GetMergedValueForEntityPresentInOneMap(AnalysisEntity key, TValue value)
             {
+                if (key.HasConstantValue)
+                {
+                    return value;
+                }
+
                 var defaultValue = GetDefaultValue(key);
                 return ValueDomain.Merge(value, defaultValue);
             }

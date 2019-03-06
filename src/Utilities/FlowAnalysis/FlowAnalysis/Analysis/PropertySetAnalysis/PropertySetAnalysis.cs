@@ -126,6 +126,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 ((PropertySetDataFlowOperationVisitor)this.OperationVisitor).HazardousUsages);
         }
 
-        protected override PropertySetBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PropertySetAnalysisData blockAnalysisData) => new PropertySetBlockAnalysisResult(basicBlock, blockAnalysisData);
+        protected override PropertySetBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PropertySetAnalysisData blockAnalysisData)
+            => new PropertySetBlockAnalysisResult(basicBlock, blockAnalysisData);
     }
 }

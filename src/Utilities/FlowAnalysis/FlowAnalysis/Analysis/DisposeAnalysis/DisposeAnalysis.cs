@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
@@ -38,15 +39,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             DiagnosticDescriptor rule,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
             bool trackInstanceFields,
+            bool exceptionPathsAnalysis,
             CancellationToken cancellationToken,
             out PointsToAnalysisResult pointsToAnalysisResult,
-            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive)
+            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
+            bool performCopyAnalysisIfNotUserConfigured = false)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
             return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
                 interproceduralAnalysisConfig, disposeOwnershipTransferLikelyTypes,
-                trackInstanceFields, out pointsToAnalysisResult);
+                trackInstanceFields, exceptionPathsAnalysis,
+                performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
+                out pointsToAnalysisResult);
         }
 
         private static DisposeAnalysisResult GetOrComputeResult(
@@ -56,6 +61,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
             bool trackInstanceFields,
+            bool exceptionPathsAnalysis,
+            bool performCopyAnalysis,
             out PointsToAnalysisResult pointsToAnalysisResult)
         {
             Debug.Assert(cfg != null);
@@ -63,10 +70,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(owningSymbol != null);
 
             pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
-                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, PessimisticAnalysis);
+                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, PessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
             var analysisContext = DisposeAnalysisContext.Create(
                 DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, PessimisticAnalysis,
-                pointsToAnalysisResult, GetOrComputeResultForAnalysisContext, disposeOwnershipTransferLikelyTypes, trackInstanceFields);
+                exceptionPathsAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext, disposeOwnershipTransferLikelyTypes, trackInstanceFields);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 
@@ -79,8 +86,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
         protected override DisposeAnalysisResult ToResult(DisposeAnalysisContext analysisContext, DataFlowAnalysisResult<DisposeBlockAnalysisResult, DisposeAbstractValue> dataFlowAnalysisResult)
         {
+            var operationVisitor = (DisposeDataFlowOperationVisitor)OperationVisitor;
             var trackedInstanceFieldPointsToMap = analysisContext.TrackInstanceFields ?
-                ((DisposeDataFlowOperationVisitor)OperationVisitor).TrackedInstanceFieldPointsToMap :
+                operationVisitor.TrackedInstanceFieldPointsToMap :
                 null;
             return new DisposeAnalysisResult(dataFlowAnalysisResult, trackedInstanceFieldPointsToMap);
         }

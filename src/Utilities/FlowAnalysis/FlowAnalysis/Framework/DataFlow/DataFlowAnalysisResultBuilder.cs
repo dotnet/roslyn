@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
 
@@ -41,8 +42,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             (TAbstractAnalysisValue, PredicateValueKind)? returnValueAndPredicateKindOpt,
             ImmutableDictionary<IOperation, IDataFlowAnalysisResult<TAbstractAnalysisValue>> interproceduralResultsMap,
             TAnalysisData entryBlockOutputData,
-            TAnalysisData exitBlockOutputData,
+            TAnalysisData exitBlockData,
+            TAnalysisData exceptionPathsExitBlockDataOpt,
             TAnalysisData mergedDataForUnhandledThrowOperationsOpt,
+            Dictionary<ThrownExceptionInfo, TAnalysisData> analysisDataForUnhandledThrowOperationsOpt,
             ControlFlowGraph cfg,
             TAbstractAnalysisValue defaultUnknownValue)
             where TBlockAnalysisResult : AbstractBlockAnalysisResult
@@ -56,18 +59,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 resultBuilder.Add(block, result);
             }
 
-            TBlockAnalysisResult mergedStateForUnhandledThrowOperationsOpt = null;
-            if (mergedDataForUnhandledThrowOperationsOpt != null)
-            {
-                mergedStateForUnhandledThrowOperationsOpt = getBlockResult(cfg.GetExit(), mergedDataForUnhandledThrowOperationsOpt);
-            }
+            var mergedStateForUnhandledThrowOperationsOpt = mergedDataForUnhandledThrowOperationsOpt != null ?
+                getBlockResult(cfg.GetExit(), mergedDataForUnhandledThrowOperationsOpt) :
+                null;
 
             var entryBlockOutputResult = getBlockResult(cfg.GetEntry(), entryBlockOutputData);
-            var exitBlockOutputResult = getBlockResult(cfg.GetExit(), exitBlockOutputData);
+            var exitBlockOutputResult = getBlockResult(cfg.GetExit(), exitBlockData);
+            var exceptionPathsExitBlockOutputResultOpt = exceptionPathsExitBlockDataOpt != null ?
+                getBlockResult(cfg.GetExit(), exceptionPathsExitBlockDataOpt) :
+                null;
 
             return new DataFlowAnalysisResult<TBlockAnalysisResult, TAbstractAnalysisValue>(resultBuilder.ToImmutableDictionaryAndFree(), stateMap,
                 predicateValueKindMap, returnValueAndPredicateKindOpt, interproceduralResultsMap,
-                entryBlockOutputResult, exitBlockOutputResult, mergedStateForUnhandledThrowOperationsOpt, cfg, defaultUnknownValue);
+                entryBlockOutputResult, exitBlockOutputResult, exceptionPathsExitBlockOutputResultOpt,
+                mergedStateForUnhandledThrowOperationsOpt, analysisDataForUnhandledThrowOperationsOpt, cfg, defaultUnknownValue);
         }
 
         public void Dispose()

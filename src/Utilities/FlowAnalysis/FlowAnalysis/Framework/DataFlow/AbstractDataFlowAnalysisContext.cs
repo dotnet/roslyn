@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
             bool pessimisticAnalysis,
             bool predicateAnalysis,
+            bool exceptionPathsAnalysis,
             CopyAnalysisResult copyAnalysisResultOpt,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<TAnalysisContext, TAnalysisResult> getOrComputeAnalysisResult,
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             InterproceduralAnalysisConfiguration = interproceduralAnalysisConfig;
             PessimisticAnalysis = pessimisticAnalysis;
             PredicateAnalysis = predicateAnalysis;
+            ExceptionPathsAnalysis = exceptionPathsAnalysis;
             CopyAnalysisResultOpt = copyAnalysisResultOpt;
             PointsToAnalysisResultOpt = pointsToAnalysisResultOpt;
             GetOrComputeAnalysisResult = getOrComputeAnalysisResult;
@@ -64,6 +66,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         public InterproceduralAnalysisConfiguration InterproceduralAnalysisConfiguration { get; }
         public bool PessimisticAnalysis { get; }
         public bool PredicateAnalysis { get; }
+        public bool ExceptionPathsAnalysis { get; }
         public CopyAnalysisResult CopyAnalysisResultOpt { get; }
         public PointsToAnalysisResult PointsToAnalysisResultOpt { get; }
         public Func<TAnalysisContext, TAnalysisResult> GetOrComputeAnalysisResult { get; }
@@ -98,7 +101,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return parentAnalysisContext?.GetLocalFunctionControlFlowGraph(localFunction);
             }
 
-            Debug.Fail($"Unable to find control flow graph for {localFunction.ToDisplayString()}");
+            // Unable to find control flow graph for local function.
+            // This can happen for cases where local function creation and invocations are in different interprocedural call trees.
+            // See unit test "DisposeObjectsBeforeLosingScopeTests.InvocationOfLocalFunctionCachedOntoField_InterproceduralAnalysis"
+            // for an example.
+            // Currently, we don't support interprocedural analysis of such local function invocations.
             return null;
         }
 
@@ -118,7 +125,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return parentAnalysisContext?.GetAnonymousFunctionControlFlowGraph(lambda);
                 }
 
-                Debug.Fail($"Unable to find control flow graph for {lambda.Symbol.ToDisplayString()}");
+                // Unable to find control flow graph for lambda.
+                // This can happen for cases where lambda creation and invocations are in different interprocedural call trees.
+                // See unit test "DisposeObjectsBeforeLosingScopeTests.InvocationOfLambdaCachedOntoField_InterproceduralAnalysis"
+                // for an example.
+                // Currently, we don't support interprocedural analysis of such lambda invocations.
                 return null;
             }
         }
@@ -133,6 +144,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             builder.Add(InterproceduralAnalysisConfiguration.GetHashCode());
             builder.Add(PessimisticAnalysis.GetHashCode());
             builder.Add(PredicateAnalysis.GetHashCode());
+            builder.Add(ExceptionPathsAnalysis.GetHashCode());
             builder.Add(CopyAnalysisResultOpt.GetHashCodeOrDefault());
             builder.Add(PointsToAnalysisResultOpt.GetHashCodeOrDefault());
             builder.Add(InterproceduralAnalysisDataOpt.GetHashCodeOrDefault());

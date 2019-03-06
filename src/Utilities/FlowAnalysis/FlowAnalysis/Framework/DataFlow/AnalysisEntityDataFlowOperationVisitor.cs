@@ -27,12 +27,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         {
         }
 
-        protected abstract void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false);
+        protected void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false)
+            => AddTrackedEntities(CurrentAnalysisData, builder, forInterproceduralAnalysis);
+        protected abstract void AddTrackedEntities(TAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis = false);
         protected abstract void SetAbstractValue(AnalysisEntity analysisEntity, TAbstractAnalysisValue value);
         protected abstract void ResetAbstractValue(AnalysisEntity analysisEntity);
         protected abstract TAbstractAnalysisValue GetAbstractValue(AnalysisEntity analysisEntity);
         protected abstract bool HasAbstractValue(AnalysisEntity analysisEntity);
-        protected abstract void StopTrackingEntity(AnalysisEntity analysisEntity);
+        protected abstract void StopTrackingEntity(AnalysisEntity analysisEntity, TAnalysisData analysisData);
 
         protected override TAbstractAnalysisValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TAbstractAnalysisValue defaultValue)
         {
@@ -123,6 +125,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         }
 
         private void StopTrackingDataForEntity(AnalysisEntity analysisEntity, PooledHashSet<AnalysisEntity> allEntities)
+            => StopTrackingDataForEntity(analysisEntity, CurrentAnalysisData, allEntities);
+
+        private void StopTrackingDataForEntity(AnalysisEntity analysisEntity, TAnalysisData analysisData, PooledHashSet<AnalysisEntity> allEntities)
         {
             if (!allEntities.Contains(analysisEntity))
             {
@@ -130,14 +135,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Stop tracking entity that is now out of scope.
-            StopTrackingEntity(analysisEntity);
+            StopTrackingEntity(analysisEntity, analysisData);
 
             // Additionally, stop tracking all the child entities if the entity type has value copy semantics.
             if (analysisEntity.Type.HasValueCopySemantics())
             {
                 foreach (var childEntity in GetChildAnalysisEntities(analysisEntity, allEntities))
                 {
-                    StopTrackingEntity(childEntity);
+                    StopTrackingEntity(childEntity, analysisData);
                 }
             }
         }
@@ -157,13 +162,38 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                     foreach (AnalysisEntity parameterEntity in parameterEntities.Values)
                     {
-                        StopTrackingDataForEntity(parameterEntity, allEntities);
+                        StopTrackingDataForEntity(parameterEntity, CurrentAnalysisData, allEntities);
                     }
                 }
                 finally
                 {
                     allEntities.Free();
                 }
+            }
+        }
+
+        protected override TAnalysisData GetMergedAnalysisDataForPossibleThrowingOperation(TAnalysisData existingDataOpt, IOperation operation)
+        {
+            var entitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+            try
+            {
+                // Get tracked entities.
+                AddTrackedEntities(entitiesBuilder);
+
+                // Only non-child entities are tracked for now.
+                var resultAnalysisData = GetTrimmedCurrentAnalysisData(entitiesBuilder.Where(e => !e.IsChildOrInstanceMember && HasAbstractValue(e)));
+                if (existingDataOpt != null)
+                {
+                    var mergedAnalysisData = MergeAnalysisData(resultAnalysisData, existingDataOpt);
+                    resultAnalysisData.Dispose();
+                    resultAnalysisData = mergedAnalysisData;
+                }
+
+                return resultAnalysisData;
+            }
+            finally
+            {
+                entitiesBuilder.Free();
             }
         }
 
@@ -657,10 +687,75 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
         }
 
+        internal bool ShouldStopTrackingEntityAtExit(AnalysisEntity entity)
+        {
+            Debug.Assert(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null);
+
+            // Filter out all the parameter, local symbol and flow capture entities from the analysis data.
+            return IsParameterEntityForCurrentMethod(entity) ||
+                entity.SymbolOpt?.Kind == SymbolKind.Local &&
+                entity.SymbolOpt.ContainingSymbol.Equals(DataFlowAnalysisContext.OwningSymbol) ||
+                entity.CaptureIdOpt.HasValue &&
+                entity.CaptureIdOpt.Value.ControlFlowGraph == DataFlowAnalysisContext.ControlFlowGraph;
+        }
+
+        public override TAnalysisData GetMergedDataForUnhandledThrowOperations()
+        {
+            // For interprocedural analysis, prune analysis data for unhandled exceptions
+            // to remove analysis entities that are only valid in the callee.
+            if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null &&
+                AnalysisDataForUnhandledThrowOperations != null &&
+                AnalysisDataForUnhandledThrowOperations.Values.Any(HasAnyAbstractValue))
+            {
+                var allAnalysisEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+
+                try
+                {
+                    foreach (var dataAtException in AnalysisDataForUnhandledThrowOperations.Values)
+                    {
+                        AddTrackedEntities(dataAtException, allAnalysisEntities, forInterproceduralAnalysis: true);
+                    }
+
+                    foreach (var entity in allAnalysisEntities)
+                    {
+                        if (ShouldStopTrackingEntityAtExit(entity))
+                        {
+                            foreach (var dataAtException in AnalysisDataForUnhandledThrowOperations.Values)
+                            {
+                                StopTrackingDataForEntity(entity, dataAtException, allAnalysisEntities);
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    allAnalysisEntities.Free();
+                }
+            }
+
+            return base.GetMergedDataForUnhandledThrowOperations();
+        }
+
         #endregion
 
         protected DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> GetClonedAnalysisDataHelper(IDictionary<AnalysisEntity, TAbstractAnalysisValue> analysisData)
             => new DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue>(analysisData);
+
+        protected void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(
+            DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> coreDataAtException,
+            DictionaryAnalysisData<AnalysisEntity, TAbstractAnalysisValue> coreCurrentAnalysisData,
+            ThrownExceptionInfo throwBranchWithExceptionType)
+        {
+            Func<AnalysisEntity, bool> predicateOpt = null;
+            if (throwBranchWithExceptionType.IsDefaultExceptionForExceptionsPathAnalysis)
+            {
+                // Only tracking non-child analysis entities for exceptions path analysis for now.
+                Debug.Assert(throwBranchWithExceptionType.ExceptionType.Equals(WellKnownTypeProvider.Exception));
+                predicateOpt = e => !e.IsChildOrInstanceMember;
+            }
+
+            base.ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(coreDataAtException, coreCurrentAnalysisData, predicateOpt);
+        }
 
         #region Visitor methods
 

@@ -64,9 +64,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             protected override void SetAbstractValue(AbstractLocation location, DisposeAbstractValue value)
             {
-                Debug.Assert(location.IsNull || location.LocationTypeOpt.IsDisposable(WellKnownTypeProvider.IDisposable));
-
-                if (!location.IsNull)
+                if (!location.IsNull &&
+                    location.LocationTypeOpt != null &&
+                    !location.LocationTypeOpt.IsValueType &&
+                    location.LocationTypeOpt.IsDisposable(WellKnownTypeProvider.IDisposable))
                 {
                     CurrentAnalysisData[location] = value;
                 }
@@ -76,11 +77,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             protected override void ResetCurrentAnalysisData() => ResetAnalysisData(CurrentAnalysisData);
 
-            protected override DisposeAbstractValue HandleInstanceCreation(ITypeSymbol instanceType, PointsToAbstractValue instanceLocation, DisposeAbstractValue defaultValue)
+            protected override DisposeAbstractValue HandleInstanceCreation(IOperation creation, PointsToAbstractValue instanceLocation, DisposeAbstractValue defaultValue)
             {
-                defaultValue = DisposeAbstractValue.NotDisposable;
+                if (ExecutingExceptionPathsAnalysisPostPass)
+                {
+                    base.HandlePossibleThrowingOperation(creation);
+                }
 
-                if (!instanceType.IsDisposable(WellKnownTypeProvider.IDisposable))
+                defaultValue = DisposeAbstractValue.NotDisposable;
+                var instanceType = creation.Type;
+
+                if (!instanceType.IsDisposable(WellKnownTypeProvider.IDisposable) ||
+                    !IsCurrentBlockReachable())
                 {
                     return defaultValue;
                 }
@@ -191,12 +199,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
 
             protected override DisposeAnalysisData MergeAnalysisData(DisposeAnalysisData value1, DisposeAnalysisData value2)
                 => DisposeAnalysisDomainInstance.Merge(value1, value2);
+            protected override void UpdateValuesForAnalysisData(DisposeAnalysisData targetAnalysisData)
+                => UpdateValuesForAnalysisData(targetAnalysisData, CurrentAnalysisData);
             protected override DisposeAnalysisData GetClonedAnalysisData(DisposeAnalysisData analysisData)
                 => GetClonedAnalysisDataHelper(CurrentAnalysisData);
             public override DisposeAnalysisData GetEmptyAnalysisData()
                 => GetEmptyAnalysisDataHelper();
             protected override DisposeAnalysisData GetExitBlockOutputData(DisposeAnalysisResult analysisResult)
                 => GetClonedAnalysisDataHelper(analysisResult.ExitBlockOutput.Data);
+            protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(DisposeAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+                => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException, CurrentAnalysisData);
             protected override bool Equals(DisposeAnalysisData value1, DisposeAnalysisData value2)
                 => EqualsHelper(value1, value2);
 
@@ -214,6 +226,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 return value;
             }
 
+            protected override void HandlePossibleThrowingOperation(IOperation operation)
+            {
+                // Handle possible throwing operation.
+                // Note that we handle the cases for object creation and method invocation
+                // separately as these also lead to NotDisposed allocations, but
+                // they should not be considered as part of current state when possible exception occurs.
+                if (operation != null &&
+                    operation.Kind != OperationKind.ObjectCreation &&
+                    (!(operation is IInvocationOperation invocation) ||
+                       invocation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate()))
+                {
+                    base.HandlePossibleThrowingOperation(operation);
+                }
+            }
+
             // FxCop compat: Catches things like static calls to File.Open() and Create()
             private static bool IsDisposableCreationSpecialCase(IMethodSymbol targetMethod)
                 => targetMethod.IsStatic &&
@@ -225,11 +252,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 IOperation instance,
                 ImmutableArray<IArgumentOperation> arguments,
                 bool invokedAsDelegate,
-                IOperation originaOperation,
+                IOperation originalOperation,
                 DisposeAbstractValue defaultValue)
             {
                 var value = base.VisitInvocation_NonLambdaOrDelegateOrLocalFunction(targetMethod, instance,
-                    arguments, invokedAsDelegate, originaOperation, defaultValue);
+                    arguments, invokedAsDelegate, originalOperation, defaultValue);
 
                 var disposeMethodKind = targetMethod.GetDisposeMethodKind(WellKnownTypeProvider.IDisposable, WellKnownTypeProvider.Task);
                 switch (disposeMethodKind)
@@ -237,8 +264,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     case DisposeMethodKind.Dispose:
                     case DisposeMethodKind.DisposeBool:
                     case DisposeMethodKind.DisposeAsync:
-                        HandleDisposingOperation(originaOperation, instance);
-                        break;
+                        HandleDisposingOperation(originalOperation, instance);
+                        return value;
 
                     case DisposeMethodKind.Close:
                         // FxCop compat: Calling "this.Close" shouldn't count as disposing the object within the implementation of Dispose.
@@ -252,11 +279,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                         // FxCop compat: Catches things like static calls to File.Open() and Create()
                         if (IsDisposableCreationSpecialCase(targetMethod))
                         {
-                            var instanceLocation = GetPointsToAbstractValue(originaOperation);
-                            return HandleInstanceCreation(originaOperation.Type, instanceLocation, value);
+                            var instanceLocation = GetPointsToAbstractValue(originalOperation);
+                            return HandleInstanceCreation(originalOperation, instanceLocation, value);
                         }
 
                         break;
+                }
+
+                if (ExecutingExceptionPathsAnalysisPostPass)
+                {
+                    base.HandlePossibleThrowingOperation(originalOperation);
                 }
 
                 return value;
@@ -317,7 +349,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     if (!_trackedInstanceFieldLocationsOpt.TryGetValue(operation.Field, out _))
                     {
                         var pointsToAbstractValue = GetPointsToAbstractValue(operation);
-                        if (HandleInstanceCreation(operation.Type, pointsToAbstractValue, DisposeAbstractValue.NotDisposable) != DisposeAbstractValue.NotDisposable)
+                        if (HandleInstanceCreation(operation, pointsToAbstractValue, DisposeAbstractValue.NotDisposable) != DisposeAbstractValue.NotDisposable)
                         {
                             _trackedInstanceFieldLocationsOpt.Add(operation.Field, pointsToAbstractValue);
                         }

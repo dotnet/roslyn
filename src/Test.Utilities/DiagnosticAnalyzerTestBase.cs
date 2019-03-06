@@ -58,6 +58,9 @@ namespace Test.Utilities
         /// <returns></returns>
         protected abstract DiagnosticAnalyzer GetBasicDiagnosticAnalyzer();
 
+        private const string EditorConfigEnableCopyAnalysis = "dotnet_code_quality.copy_analysis = true";
+        protected FileAndSource GetEditorConfigToEnableCopyAnalysis() => GetEditorConfigAdditionalFile(EditorConfigEnableCopyAnalysis);
+
         protected bool PrintActualDiagnosticsOnFailure { get; set; }
 
         // It is assumed to be of the format, Get<RuleId>CSharpResultAt(line: {0}, column: {1}, message: {2})

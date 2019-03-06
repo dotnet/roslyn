@@ -15,5 +15,20 @@ namespace Analyzer.Utilities
             InterproceduralAnalysisKind defaultValue,
             CancellationToken cancellationToken)
             => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.InterproceduralAnalysisKind, rule, defaultValue, cancellationToken);
+
+        public static DisposeAnalysisKind GetDisposeAnalysisKindOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            DisposeAnalysisKind defaultValue,
+            CancellationToken cancellationToken)
+            => options.GetNonFlagsEnumOptionValue(EditorConfigOptionNames.DisposeAnalysisKind, rule, defaultValue, cancellationToken);
+
+        public static bool GetCopyAnalysisOption(
+            this AnalyzerOptions options,
+            DiagnosticDescriptor rule,
+            bool defaultValue,
+            CancellationToken cancellationToken)
+            => options.GetBoolOptionValue(EditorConfigOptionNames.CopyAnalysis, rule, defaultValue, cancellationToken);
+
     }
 }

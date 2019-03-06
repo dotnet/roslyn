@@ -43,8 +43,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return builder.ToImmutableArray();
             }
 
-            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
-                => CurrentAnalysisData.AddTrackedEntities(builder);
+            protected override void AddTrackedEntities(TaintedDataAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+                => analysisData.AddTrackedEntities(builder);
 
             protected override bool Equals(TaintedDataAnalysisData value1, TaintedDataAnalysisData value2)
             {
@@ -81,6 +81,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 return TaintedDataAnalysisDomainInstance.Merge(value1, value2);
             }
 
+            protected override void UpdateValuesForAnalysisData(TaintedDataAnalysisData targetAnalysisData)
+            {
+                UpdateValuesForAnalysisData(targetAnalysisData.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData);
+            }
+
             protected override void ResetCurrentAnalysisData()
             {
                 this.CurrentAnalysisData.Reset(this.ValueDomain.UnknownOrMayBeValue);
@@ -94,6 +99,11 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
             protected override TaintedDataAnalysisData GetExitBlockOutputData(TaintedDataAnalysisResult analysisResult)
             {
                 return new TaintedDataAnalysisData(analysisResult.ExitBlockOutput.Data);
+            }
+
+            protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(TaintedDataAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+            {
+                base.ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
             }
 
             protected override void SetAbstractValue(AnalysisEntity analysisEntity, TaintedDataAbstractValue value)
@@ -115,9 +125,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
                 this.SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
             }
 
-            protected override void StopTrackingEntity(AnalysisEntity analysisEntity)
+            protected override void StopTrackingEntity(AnalysisEntity analysisEntity, TaintedDataAnalysisData analysisData)
             {
-                this.CurrentAnalysisData.RemoveEntries(analysisEntity);
+                analysisData.RemoveEntries(analysisEntity);
             }
 
             public override TaintedDataAbstractValue DefaultVisit(IOperation operation, object argument)
