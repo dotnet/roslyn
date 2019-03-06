@@ -29,9 +29,9 @@
     <ProjectReference Include="..\..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" PrivateAssets="all"/>
   </ItemGroup>
 
-  <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeCompilerArtifacts">
+  <Target Name="_GetFilesToPackage" DependsOnTargets="InitializeDesktopCompilerArtifacts">
     <ItemGroup>
-      <_File Include="@(CompilerArtifact)" TargetDir="" />
+      <_File Include="@(DesktopCompilerArtifact)" TargetDir="" />
       <_File Include="$(MSBuildProjectDirectory)\Init.cmd" TargetDir="" />
 
       <!-- Workaround for https://github.com/dotnet/roslyn/issues/17864 -->
@@ -60,5 +60,5 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="..\Microsoft.Net.Compilers\CompilerArtifacts.targets"/>
+  <Import Project="..\Microsoft.Net.Compilers.Toolset\DesktopCompilerArtifacts.targets"/>
 </Project>

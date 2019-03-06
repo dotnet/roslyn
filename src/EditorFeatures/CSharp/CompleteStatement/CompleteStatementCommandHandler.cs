@@ -169,10 +169,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool CaretIsInForStatementCondition(int caretPosition, ForStatementSyntax forStatementSyntax)
             // If condition is null and caret is in the condition section, as in `for ( ; $$; )`, 
             // we will have bailed earlier due to not being inside supported delimiters
-            => forStatementSyntax.Condition == null ?
-                false :
-                caretPosition > forStatementSyntax.Condition.SpanStart &&
-                caretPosition < forStatementSyntax.Condition.Span.End;
+            => forStatementSyntax.Condition == null
+                ? false
+                : caretPosition > forStatementSyntax.Condition.SpanStart &&
+                  caretPosition < forStatementSyntax.Condition.Span.End;
 
         private static bool CaretIsInForStatementDeclaration(int caretPosition, ForStatementSyntax forStatementSyntax)
             => forStatementSyntax.Declaration != null &&

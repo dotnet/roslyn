@@ -72,6 +72,11 @@
         <target state="translated">Declara como que acepta valores NULL</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_return_type">
+        <source>Fix return type</source>
+        <target state="new">Fix return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">Variable temporal en línea</target>
@@ -120,6 +125,11 @@
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">Ordenar modificadores de accesibilidad</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="new">Unseal class '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">

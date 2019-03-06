@@ -6,6 +6,8 @@ variables:
   SignType: real
   SkipTests: false
   SkipApplyOptimizationData: false
+  IbcSourceBranchName: 'master-vs-deps'
+  IbcDropId: '75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1'
 
 jobs:
 - job: OfficialBuild
@@ -19,8 +21,6 @@ jobs:
   timeoutInMinutes: 360
 
   variables:
-    VisualStudio.MajorVersion: 16
-    VisualStudio.ChannelName: 'int.d16.0stg'
     VisualStudio.DropName: Products/$(System.TeamProject)/$(Build.Repository.Name)/$(Build.SourceBranchName)/$(Build.BuildNumber)
 
   steps:
@@ -59,8 +59,10 @@ jobs:
               -officialBuildId $(Build.BuildNumber)
               -officialSkipTests $(SkipTests)
               -officialSkipApplyOptimizationData $(SkipApplyOptimizationData)
+              -officialSourceBranchName $(Build.SourceBranchName)
+              -officialIbcSourceBranchName $(IbcSourceBranchName)
+              -officialIbcDropId $(IbcDropId)
               /p:RepositoryName=$(Build.Repository.Name)
-              /p:VisualStudioIbcSourceBranchName="master-vs-deps"
               /p:VisualStudioDropAccessToken=$(System.AccessToken)
               /p:VisualStudioDropName=$(VisualStudio.DropName)
               /p:DotNetSignType=$(SignType)
@@ -70,8 +72,6 @@ jobs:
               /p:PublishToSymbolServer=true
               /p:DotNetSymbolServerTokenMsdl=$(microsoft-symbol-server-pat)
               /p:DotNetSymbolServerTokenSymWeb=$(symweb-symbol-server-pat)
-              /p:IbcOptimizationDataDir=$(Build.SourcesDirectory)\.o\\
-              /p:VisualStudioIbcDropId=75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1
     displayName: Build
     condition: succeeded()
 

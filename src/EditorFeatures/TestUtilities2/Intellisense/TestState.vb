@@ -406,7 +406,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional displayTextSuffix As String = Nothing,
-                               Optional shouldFormatOnCommit As Boolean? = Nothing) As Task Implements ITestState.AssertSelectedCompletionItem
+                               Optional shouldFormatOnCommit As Boolean? = Nothing,
+                               Optional inlineDescription As String = Nothing) As Task Implements ITestState.AssertSelectedCompletionItem
 
             Await WaitForAsynchronousOperationsAsync()
             If isSoftSelected.HasValue Then
@@ -423,6 +424,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If displayTextSuffix IsNot Nothing Then
                 Assert.Equal(displayTextSuffix, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayTextSuffix)
+            End If
+
+            If inlineDescription IsNot Nothing Then
+                Assert.Equal(inlineDescription, Me.CurrentCompletionPresenterSession.SelectedItem.InlineDescription)
             End If
 
             If shouldFormatOnCommit.HasValue Then

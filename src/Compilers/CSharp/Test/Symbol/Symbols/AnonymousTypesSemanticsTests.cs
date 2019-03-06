@@ -158,7 +158,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, Constant: """") (Syntax: 'BB = """"')
                             Left: 
-                              IPropertyReferenceOperation: System.String? <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.BB { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'BB')
+                              IPropertyReferenceOperation: System.String <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.BB { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'BB')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>, IsImplicit) (Syntax: 'new ... }')
                             Right: 
@@ -205,7 +205,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
                               ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 123.456) (Syntax: '123.456')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'CCC = new ... }')
                             Left: 
-                              IPropertyReferenceOperation: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>? <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>.CCC { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'CCC')
+                              IPropertyReferenceOperation: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>.CCC { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>) (Syntax: 'CCC')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: ClassA.SSS aa, System.Double BB, <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC> CCC>, IsImplicit) (Syntax: 'new ... }')
                             Right: 
@@ -225,7 +225,7 @@ IBlockOperation (4 statements, 4 locals) (OperationKind.Block, Type: null) (Synt
                                                 null
                                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, Constant: ""-=-= -"", IsImplicit) (Syntax: 'ClassA.BB')
                                       Left: 
-                                        IPropertyReferenceOperation: System.String? <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.BB { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'ClassA.BB')
+                                        IPropertyReferenceOperation: System.String <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>.BB { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'ClassA.BB')
                                           Instance Receiver: 
                                             IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 aa, System.String BB, ClassA.SSS CCC>, IsImplicit) (Syntax: 'new ... }')
                                       Right: 
@@ -314,7 +314,7 @@ class ClassA
                 info0.Type.ToTestDisplayString());
 
             Assert.Equal(
-                "<anonymous type: System.Int32 select, System.String global>..ctor(System.Int32 select, System.String? global)",
+                "<anonymous type: System.Int32 select, System.String global>..ctor(System.Int32 select, System.String global)",
                 info1.Symbol.ToTestDisplayString());
         }
 
@@ -352,14 +352,14 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
   Initializers(3):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, Constant: ""var"") (Syntax: 'var = ""var""')
         Left: 
-          IPropertyReferenceOperation: System.String? <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>.var { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'var')
+          IPropertyReferenceOperation: System.String <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>.var { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'var')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>, IsImplicit) (Syntax: 'new ... }')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: ""var"") (Syntax: '""var""')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <empty anonymous type>) (Syntax: 'get = new { }')
         Left: 
-          IPropertyReferenceOperation: <empty anonymous type>? <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>.get { get; } (OperationKind.PropertyReference, Type: <empty anonymous type>) (Syntax: 'get')
+          IPropertyReferenceOperation: <empty anonymous type> <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>.get { get; } (OperationKind.PropertyReference, Type: <empty anonymous type>) (Syntax: 'get')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>, IsImplicit) (Syntax: 'new ... }')
         Right: 
@@ -367,7 +367,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Initializers(0)
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 select, System.String global>) (Syntax: 'partial = n ... }')
         Left: 
-          IPropertyReferenceOperation: <anonymous type: System.Int32 select, System.String global>? <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>.partial { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 select, System.String global>) (Syntax: 'partial')
+          IPropertyReferenceOperation: <anonymous type: System.Int32 select, System.String global> <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>.partial { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 select, System.String global>) (Syntax: 'partial')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.String var, <empty anonymous type> get, <anonymous type: System.Int32 select, System.String global> partial>, IsImplicit) (Syntax: 'new ... }')
         Right: 
@@ -387,7 +387,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                             null
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, Constant: "" -=-= -"", IsImplicit) (Syntax: 'global')
                   Left: 
-                    IPropertyReferenceOperation: System.String? <anonymous type: System.Int32 select, System.String global>.global { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'global')
+                    IPropertyReferenceOperation: System.String <anonymous type: System.Int32 select, System.String global>.global { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'global')
                       Instance Receiver: 
                         IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 select, System.String global>, IsImplicit) (Syntax: 'new ... }')
                   Right: 
@@ -419,7 +419,7 @@ class ClassA
                             1);
 
             Assert.Equal("<anonymous type: D1 module>", info0.Type.ToTestDisplayString());
-            Assert.Equal("<anonymous type: D1 module>..ctor(D1? module)", info0.Symbol.ToTestDisplayString());
+            Assert.Equal("<anonymous type: D1 module>..ctor(D1 module)", info0.Symbol.ToTestDisplayString());
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -441,7 +441,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
   Initializers(1):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: D1) (Syntax: 'module = (D ... ) => false)')
         Left: 
-          IPropertyReferenceOperation: D1? <anonymous type: D1 module>.module { get; } (OperationKind.PropertyReference, Type: D1) (Syntax: 'module')
+          IPropertyReferenceOperation: D1 <anonymous type: D1 module>.module { get; } (OperationKind.PropertyReference, Type: D1) (Syntax: 'module')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: D1 module>, IsImplicit) (Syntax: 'new { modul ... => false) }')
         Right: 
@@ -510,7 +510,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
   Initializers(1):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.Int32, System.Int32>, IsImplicit) (Syntax: 'base.F')
         Left: 
-          IPropertyReferenceOperation: System.Func<System.Int32, System.Int32>? <anonymous type: System.Func<System.Int32, System.Int32> F>.F { get; } (OperationKind.PropertyReference, Type: System.Func<System.Int32, System.Int32>, IsImplicit) (Syntax: 'base.F')
+          IPropertyReferenceOperation: System.Func<System.Int32, System.Int32> <anonymous type: System.Func<System.Int32, System.Int32> F>.F { get; } (OperationKind.PropertyReference, Type: System.Func<System.Int32, System.Int32>, IsImplicit) (Syntax: 'base.F')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Func<System.Int32, System.Int32> F>, IsImplicit) (Syntax: 'new { base.F }')
         Right: 
@@ -555,7 +555,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
   Initializers(1):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Type) (Syntax: 'F123 = typeof(ClassA)')
         Left: 
-          IPropertyReferenceOperation: System.Type? <anonymous type: System.Type F123>.F123 { get; } (OperationKind.PropertyReference, Type: System.Type) (Syntax: 'F123')
+          IPropertyReferenceOperation: System.Type <anonymous type: System.Type F123>.F123 { get; } (OperationKind.PropertyReference, Type: System.Type) (Syntax: 'F123')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Type F123>, IsImplicit) (Syntax: 'new { F123  ... f(ClassA) }')
         Right: 
@@ -615,7 +615,7 @@ IInvocationOperation (virtual System.Boolean System.Object.Equals(System.Object 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, Constant: """") (Syntax: 'f2 = """"')
             Left: 
-              IPropertyReferenceOperation: System.String? <anonymous type: System.Int32 f1, System.String f2>.f2 { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'f2')
+              IPropertyReferenceOperation: System.String <anonymous type: System.Int32 f1, System.String f2>.f2 { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'f2')
                 Instance Receiver: 
                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 f1, System.String f2>, IsImplicit) (Syntax: 'new { f1 = 1, f2 = """" }')
             Right: 
@@ -695,8 +695,8 @@ class ClassA
             var method = info.Symbol;
             Assert.NotNull(method);
             Assert.Equal(SymbolKind.Method, method.Kind);
-            Assert.Equal("<anonymous type: int f1, string f2>..ctor(int, string?)", method.ToDisplayString());
-            Assert.Equal("<anonymous type: System.Int32 f1, System.String f2>..ctor(System.Int32 f1, System.String? f2)", method.ToTestDisplayString());
+            Assert.Equal("<anonymous type: int f1, string f2>..ctor(int, string)", method.ToDisplayString());
+            Assert.Equal("<anonymous type: System.Int32 f1, System.String f2>..ctor(System.Int32 f1, System.String f2)", method.ToTestDisplayString());
         }
 
         [Fact()]
@@ -750,7 +750,7 @@ class ClassA
             var info = data.Model.GetSymbolInfo((ExpressionSyntax)data.Nodes[0]);
             Assert.NotNull(info.Symbol);
             Assert.Equal(SymbolKind.Property, info.Symbol.Kind);
-            Assert.Equal("System.Type? <anonymous type: System.Type F123>.F123 { get; }", info.Symbol.ToTestDisplayString());
+            Assert.Equal("System.Type <anonymous type: System.Type F123>.F123 { get; }", info.Symbol.ToTestDisplayString());
         }
 
         [Fact()]
@@ -881,7 +881,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
               IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'x')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'y')
         Left: 
-          IPropertyReferenceOperation: System.String? <anonymous type: System.Int32 x, System.String y>.y { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'y')
+          IPropertyReferenceOperation: System.String <anonymous type: System.Int32 x, System.String y>.y { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'y')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'new { x, y }')
         Right: 
@@ -915,7 +915,7 @@ class ClassA
             var info1 = GetAnonymousTypeInfoSummary(data, 3,
                 data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 2).Span);
 
-            Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type>? y)", info0.Symbol.ToTestDisplayString());
+            Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type> y)", info0.Symbol.ToTestDisplayString());
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -944,7 +944,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <empty anonymous type>) (Syntax: 'y = new { }')
         Left: 
-          IPropertyReferenceOperation: <empty anonymous type>? <anonymous type: System.Int32 x, <empty anonymous type> y>.y { get; } (OperationKind.PropertyReference, Type: <empty anonymous type>) (Syntax: 'y')
+          IPropertyReferenceOperation: <empty anonymous type> <anonymous type: System.Int32 x, <empty anonymous type> y>.y { get; } (OperationKind.PropertyReference, Type: <empty anonymous type>) (Syntax: 'y')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 x, <empty anonymous type> y>, IsImplicit) (Syntax: 'new { x = 1 ... = new { } }')
         Right: 
@@ -980,7 +980,7 @@ class ClassA
             var info1 = GetAnonymousTypeInfoSummary(data, 3,
                 data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 2).Span);
 
-            Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type>? y)", info0.Symbol.ToTestDisplayString());
+            Assert.Equal("<anonymous type: System.Int32 x, <empty anonymous type> y>..ctor(System.Int32 x, <empty anonymous type> y)", info0.Symbol.ToTestDisplayString());
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1012,7 +1012,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <empty anonymous type>) (Syntax: 'y = new { }')
         Left: 
-          IPropertyReferenceOperation: <empty anonymous type>? <anonymous type: System.Int32 x, <empty anonymous type> y>.y { get; } (OperationKind.PropertyReference, Type: <empty anonymous type>) (Syntax: 'y')
+          IPropertyReferenceOperation: <empty anonymous type> <anonymous type: System.Int32 x, <empty anonymous type> y>.y { get; } (OperationKind.PropertyReference, Type: <empty anonymous type>) (Syntax: 'y')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 x, <empty anonymous type> y>, IsImplicit) (Syntax: 'new { x = 1 ... = new { } }')
         Right: 
@@ -1189,7 +1189,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                       Initializers(3):
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'aa = xyz')
                             Left: 
-                              IPropertyReferenceOperation: ?? <anonymous type: ? aa, System.String BB, SSS CCC>.aa { get; } (OperationKind.PropertyReference, Type: ?) (Syntax: 'aa')
+                              IPropertyReferenceOperation: ? <anonymous type: ? aa, System.String BB, SSS CCC>.aa { get; } (OperationKind.PropertyReference, Type: ?) (Syntax: 'aa')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: ? aa, System.String BB, SSS CCC>, IsInvalid, IsImplicit) (Syntax: 'new ... }')
                             Right: 
@@ -1197,14 +1197,14 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                 Children(0)
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, Constant: """") (Syntax: 'BB = """"')
                             Left: 
-                              IPropertyReferenceOperation: System.String? <anonymous type: ? aa, System.String BB, SSS CCC>.BB { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'BB')
+                              IPropertyReferenceOperation: System.String <anonymous type: ? aa, System.String BB, SSS CCC>.BB { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'BB')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: ? aa, System.String BB, SSS CCC>, IsInvalid, IsImplicit) (Syntax: 'new ... }')
                             Right: 
                               ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: """") (Syntax: '""""')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: SSS, IsInvalid) (Syntax: 'CCC = new SSS()')
                             Left: 
-                              IPropertyReferenceOperation: SSS? <anonymous type: ? aa, System.String BB, SSS CCC>.CCC { get; } (OperationKind.PropertyReference, Type: SSS) (Syntax: 'CCC')
+                              IPropertyReferenceOperation: SSS <anonymous type: ? aa, System.String BB, SSS CCC>.CCC { get; } (OperationKind.PropertyReference, Type: SSS) (Syntax: 'CCC')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: ? aa, System.String BB, SSS CCC>, IsInvalid, IsImplicit) (Syntax: 'new ... }')
                             Right: 
@@ -1225,7 +1225,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                       Initializers(3):
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: SSS, IsInvalid) (Syntax: 'aa = new SSS()')
                             Left: 
-                              IPropertyReferenceOperation: SSS? <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.aa { get; } (OperationKind.PropertyReference, Type: SSS) (Syntax: 'aa')
+                              IPropertyReferenceOperation: SSS <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.aa { get; } (OperationKind.PropertyReference, Type: SSS) (Syntax: 'aa')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>, IsInvalid, IsImplicit) (Syntax: 'new ... }')
                             Right: 
@@ -1240,7 +1240,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                               ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 123.456) (Syntax: '123.456')
                           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: ? aa, ? BB, ? CCC>, IsInvalid) (Syntax: 'CCC = new ... }')
                             Left: 
-                              IPropertyReferenceOperation: <anonymous type: ? aa, ? BB, ? CCC>? <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.CCC { get; } (OperationKind.PropertyReference, Type: <anonymous type: ? aa, ? BB, ? CCC>) (Syntax: 'CCC')
+                              IPropertyReferenceOperation: <anonymous type: ? aa, ? BB, ? CCC> <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>.CCC { get; } (OperationKind.PropertyReference, Type: <anonymous type: ? aa, ? BB, ? CCC>) (Syntax: 'CCC')
                                 Instance Receiver: 
                                   IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: SSS aa, System.Double BB, <anonymous type: ? aa, ? BB, ? CCC> CCC>, IsInvalid, IsImplicit) (Syntax: 'new ... }')
                             Right: 
@@ -1248,7 +1248,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                 Initializers(3):
                                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: '(new ClassA()).aa')
                                       Left: 
-                                        IPropertyReferenceOperation: ?? <anonymous type: ? aa, ? BB, ? CCC>.aa { get; } (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '(new ClassA()).aa')
+                                        IPropertyReferenceOperation: ? <anonymous type: ? aa, ? BB, ? CCC>.aa { get; } (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '(new ClassA()).aa')
                                           Instance Receiver: 
                                             IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: ? aa, ? BB, ? CCC>, IsInvalid, IsImplicit) (Syntax: 'new ... }')
                                       Right: 
@@ -1260,7 +1260,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                                   null
                                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ClassA.BB')
                                       Left: 
-                                        IPropertyReferenceOperation: ?? <anonymous type: ? aa, ? BB, ? CCC>.BB { get; } (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ClassA.BB')
+                                        IPropertyReferenceOperation: ? <anonymous type: ? aa, ? BB, ? CCC>.BB { get; } (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ClassA.BB')
                                           Instance Receiver: 
                                             IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: ? aa, ? BB, ? CCC>, IsInvalid, IsImplicit) (Syntax: 'new ... }')
                                       Right: 
@@ -1269,7 +1269,7 @@ IBlockOperation (2 statements, 2 locals) (OperationKind.Block, Type: null, IsInv
                                               IOperation:  (OperationKind.None, Type: null) (Syntax: 'ClassA')
                                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ClassA.CCC')
                                       Left: 
-                                        IPropertyReferenceOperation: ?? <anonymous type: ? aa, ? BB, ? CCC>.CCC { get; } (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ClassA.CCC')
+                                        IPropertyReferenceOperation: ? <anonymous type: ? aa, ? BB, ? CCC>.CCC { get; } (OperationKind.PropertyReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'ClassA.CCC')
                                           Instance Receiver: 
                                             IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: ? aa, ? BB, ? CCC>, IsInvalid, IsImplicit) (Syntax: 'new ... }')
                                       Right: 
@@ -1396,7 +1396,7 @@ public class ClassA
             Assert.Equal(3, properties.Length);
 
             Assert.Equal("System.Int32 <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.aa { get; }", properties[0].ToTestDisplayString());
-            Assert.Equal("System.String? <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.$1 { get; }", properties[1].ToTestDisplayString());
+            Assert.Equal("System.String <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.$1 { get; }", properties[1].ToTestDisplayString());
             Assert.Equal("System.Double <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.bb { get; }", properties[2].ToTestDisplayString());
         }
 
@@ -1432,7 +1432,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'ClassA.aa')
         Left: 
-          IPropertyReferenceOperation: System.String? <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.$1 { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'ClassA.aa')
+          IPropertyReferenceOperation: System.String <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.$1 { get; } (OperationKind.PropertyReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'ClassA.aa')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 aa, System.String $1, System.Double bb>, IsInvalid, IsImplicit) (Syntax: 'new ... }')
         Right: 
@@ -1490,8 +1490,8 @@ public class ClassA
             Assert.Equal("System.Boolean System.Object.ReferenceEquals(System.Object objA, System.Object objB)", syms[index++]);
             Assert.Equal("System.Double <anonymous type: System.String aa, System.Double abc>.abc { get; }", syms[index++]);
             Assert.Equal("System.Int32 System.Object.GetHashCode()", syms[index++]);
+            Assert.Equal("System.String <anonymous type: System.String aa, System.Double abc>.aa { get; }", syms[index++]);
             Assert.Equal("System.String System.Object.ToString()", syms[index++]);
-            Assert.Equal("System.String? <anonymous type: System.String aa, System.Double abc>.aa { get; }", syms[index++]);
             Assert.Equal("System.Type System.Object.GetType()", syms[index++]);
 
             info0 = GetAnonymousTypeInfoSummary(data, 3,
@@ -1620,7 +1620,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
   Initializers(1):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'Conditional ... upplierID }')
         Left: 
-          IPropertyReferenceOperation: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>? <anonymous type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID> Conditional>.Conditional { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'Conditional')
+          IPropertyReferenceOperation: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID> <anonymous type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID> Conditional>.Conditional { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>) (Syntax: 'Conditional')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID> Conditional>, IsImplicit) (Syntax: 'new { Condi ... plierID } }')
         Right: 
@@ -1641,7 +1641,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                             IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: Product) (Syntax: 'p')
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'p.ProductName')
                       Left: 
-                        IPropertyReferenceOperation: System.String? <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>.ProductName { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'p.ProductName')
+                        IPropertyReferenceOperation: System.String <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>.ProductName { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'p.ProductName')
                           Instance Receiver: 
                             IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>, IsImplicit) (Syntax: 'new { p.Pro ... upplierID }')
                       Right: 
@@ -1671,7 +1671,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                             IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: Product) (Syntax: 'p')
                     ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.String, IsImplicit) (Syntax: 'p.ProductName')
                       Left: 
-                        IPropertyReferenceOperation: System.String? <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>.ProductName { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'p.ProductName')
+                        IPropertyReferenceOperation: System.String <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>.ProductName { get; } (OperationKind.PropertyReference, Type: System.String, IsImplicit) (Syntax: 'p.ProductName')
                           Instance Receiver: 
                             IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 ProductID, System.String ProductName, System.Int32 SupplierID>, IsImplicit) (Syntax: 'new { p.Pro ... upplierID }')
                       Right: 
@@ -1786,14 +1786,14 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
   Initializers(3):
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, Constant: null, IsInvalid) (Syntax: 'f1 = null')
         Left: 
-          IPropertyReferenceOperation: error? <anonymous type: error f1, error f2, error f3>.f1 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f1')
+          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, error f3>.f1 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f1')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, IsInvalid) (Syntax: 'f2 = M')
         Left: 
-          IPropertyReferenceOperation: error? <anonymous type: error f1, error f2, error f3>.f2 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f2')
+          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, error f3>.f2 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f2')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
         Right: 
@@ -1802,7 +1802,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: ClassA, IsInvalid, IsImplicit) (Syntax: 'M')
       ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: error, IsInvalid) (Syntax: 'f3 = default')
         Left: 
-          IPropertyReferenceOperation: error? <anonymous type: error f1, error f2, error f3>.f3 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f3')
+          IPropertyReferenceOperation: error <anonymous type: error f1, error f2, error f3>.f3 { get; } (OperationKind.PropertyReference, Type: error, IsInvalid) (Syntax: 'f3')
             Instance Receiver: 
               IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: error f1, error f2, error f3>, IsInvalid, IsImplicit) (Syntax: 'new { f1 =  ... = default }')
         Right: 

@@ -539,6 +539,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix return type.
+        /// </summary>
+        internal static string Fix_return_type {
+            get {
+                return ResourceManager.GetString("Fix_return_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to fixed statement.
         /// </summary>
         internal static string fixed_statement {
@@ -1266,6 +1275,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string unchecked_statement {
             get {
                 return ResourceManager.GetString("unchecked_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unseal class &apos;{0}&apos;.
+        /// </summary>
+        internal static string Unseal_class_0 {
+            get {
+                return ResourceManager.GetString("Unseal_class_0", resourceCulture);
             }
         }
         

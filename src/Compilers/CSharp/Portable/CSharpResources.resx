@@ -994,7 +994,7 @@
     <value>A params parameter must be the last parameter in a formal parameter list</value>
   </data>
   <data name="ERR_SizeofUnsafe" xml:space="preserve">
-    <value>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)</value>
+    <value>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</value>
   </data>
   <data name="ERR_DottedTypeNameNotFoundInNS" xml:space="preserve">
     <value>The type or namespace name '{0}' does not exist in the namespace '{1}' (are you missing an assembly reference?)</value>
@@ -4577,7 +4577,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -5325,24 +5325,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_PossibleNull_Title" xml:space="preserve">
     <value>Possible null value.</value>
   </data>
-  <data name="HDN_NullCheckIsProbablyAlwaysTrue" xml:space="preserve">
-    <value>Result of the comparison is possibly always true.</value>
-  </data>
-  <data name="HDN_NullCheckIsProbablyAlwaysTrue_Title" xml:space="preserve">
-    <value>Result of the comparison is possibly always true.</value>
-  </data>
-  <data name="HDN_NullCheckIsProbablyAlwaysFalse" xml:space="preserve">
-    <value>Result of the comparison is possibly always false.</value>
-  </data>
-  <data name="HDN_NullCheckIsProbablyAlwaysFalse_Title" xml:space="preserve">
-    <value>Result of the comparison is possibly always false.</value>
-  </data>
-  <data name="HDN_ExpressionIsProbablyNeverNull" xml:space="preserve">
-    <value>Expression is probably never null.</value>
-  </data>
-  <data name="HDN_ExpressionIsProbablyNeverNull_Title" xml:space="preserve">
-    <value>Expression is probably never null.</value>
-  </data>
   <data name="WRN_NullabilityMismatchInTypeOnOverride" xml:space="preserve">
     <value>Nullability of reference types in type doesn't match overridden member.</value>
   </data>
@@ -5415,11 +5397,41 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInAssignment_Title" xml:space="preserve">
     <value>Nullability of reference types in value doesn't match target type.</value>
   </data>
+  <data name="WRN_ConditionalAccessMayReturnNull" xml:space="preserve">
+    <value>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</value>
+  </data>
+  <data name="WRN_ConditionalAccessMayReturnNull_Title" xml:space="preserve">
+    <value>Conditional access may produce a null value for a type parameter.</value>
+  </data>
+  <data name="WRN_AsOperatorMayReturnNull" xml:space="preserve">
+    <value>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</value>
+  </data>
+  <data name="WRN_AsOperatorMayReturnNull_Title" xml:space="preserve">
+    <value>The 'as' operator may produce a null value for a type parameter.</value>
+  </data>
+  <data name="WRN_DefaultExpressionMayIntroduceNullT" xml:space="preserve">
+    <value>A default expression introduces a null value when '{0}' is a non-nullable reference type.</value>
+  </data>
+  <data name="WRN_DefaultExpressionMayIntroduceNullT_Title" xml:space="preserve">
+    <value>A default expression introduces a null value for a type parameter.</value>
+  </data>
+  <data name="WRN_NullLiteralMayIntroduceNullT" xml:space="preserve">
+    <value>A null literal introduces a null value when '{0}' is a non-nullable reference type.</value>
+  </data>
+  <data name="WRN_NullLiteralMayIntroduceNullT_Title" xml:space="preserve">
+    <value>A null literal introduces a null value for a type parameter.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
-    <value>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</value>
+    <value>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_NullabilityMismatchInArgument_Title" xml:space="preserve">
-    <value>Nullability of reference types in argument doesn't match target type.</value>
+    <value>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInArgumentForOutput" xml:space="preserve">
+    <value>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInArgumentForOutput_Title" xml:space="preserve">
+    <value>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
@@ -5434,10 +5446,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match the target delegate.</value>
   </data>
   <data name="WRN_NullAsNonNullable" xml:space="preserve">
-    <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
+    <value>Cannot convert null literal to non-nullable reference type.</value>
   </data>
   <data name="WRN_NullAsNonNullable_Title" xml:space="preserve">
-    <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
+    <value>Cannot convert null literal to non-nullable reference type.</value>
   </data>
   <data name="ERR_AnnotationDisallowedInObjectCreation" xml:space="preserve">
     <value>Cannot use a nullable reference type in object creation.</value>

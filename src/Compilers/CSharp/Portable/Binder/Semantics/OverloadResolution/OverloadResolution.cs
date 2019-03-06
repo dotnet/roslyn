@@ -1559,8 +1559,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                    ref useSiteDiagnostics,
                                                    out okToDowngradeToNeither);
 
-                var type1Normalized = type1.NormalizeTaskTypes(Compilation);
-                var type2Normalized = type2.NormalizeTaskTypes(Compilation);
+                var type1Normalized = type1;
+                var type2Normalized = type2;
+
+                // Normalizing task types can cause attributes to be bound on the type,
+                // and attribute arguments may call overloaded methods in error cases.
+                // To avoid a stack overflow, we must not normalize task types within attribute arguments.
+                if (!_binder.InAttributeArgument)
+                {
+                    type1Normalized = type1.NormalizeTaskTypes(Compilation);
+                    type2Normalized = type2.NormalizeTaskTypes(Compilation);
+                }
 
                 if (r == BetterResult.Neither)
                 {
@@ -1656,6 +1665,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We might have got out of the loop above early and allSame isn't completely calculated.
             // We need to ensure that we are not going to skip over the next 'if' because of that.
+            // One way we can break out of the above loop early is when the corresponding method parameters have identical types
+            // but different ref kinds. See RefOmittedComCall_OverloadResolution_MultipleArguments_ErrorCases for an example.
             if (allSame && m1ParametersUsedIncludingExpansionAndOptional == m2ParametersUsedIncludingExpansionAndOptional)
             {
                 // Complete comparison for the remaining parameter types
@@ -1674,11 +1685,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var parameter1 = GetParameter(i, m1.Result, m1LeastOverridenParameters);
                     var type1 = GetParameterType(parameter1, m1.Result);
-                    var type1Normalized = type1.NormalizeTaskTypes(Compilation);
 
                     var parameter2 = GetParameter(i, m2.Result, m2LeastOverridenParameters);
                     var type2 = GetParameterType(parameter2, m2.Result);
-                    var type2Normalized = type2.NormalizeTaskTypes(Compilation);
+
+                    var type1Normalized = type1;
+                    var type2Normalized = type2;
+                    if (!_binder.InAttributeArgument)
+                    {
+                        type1Normalized = type1.NormalizeTaskTypes(Compilation);
+                        type2Normalized = type2.NormalizeTaskTypes(Compilation);
+                    }
 
                     if (Conversions.ClassifyImplicitConversionFromType(type1Normalized, type2Normalized, ref useSiteDiagnostics).Kind != ConversionKind.Identity)
                     {
@@ -2231,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // - an inferred return type X exists for E in the context of the parameter list of D(§7.5.2.12), and an identity conversion exists from X to Y
                 var x = lambda.GetInferredReturnType(ref useSiteDiagnostics);
-                if (!x.IsNull && Conversions.HasIdentityConversion(x.TypeSymbol, y))
+                if (x.HasType && Conversions.HasIdentityConversion(x.TypeSymbol, y))
                 {
                     return true;
                 }
@@ -2656,7 +2673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var x = lambda.InferReturnType(Conversions, d1, ref useSiteDiagnostics);
-                        if (x.IsNull)
+                        if (!x.HasType)
                         {
                             return true;
                         }

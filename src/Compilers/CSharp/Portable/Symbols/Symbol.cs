@@ -208,6 +208,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// The index of this member in the containing symbol. This is an optional
+        /// property, implemented by anonymous type properties only, for comparing
+        /// symbols in flow analysis.
+        /// </summary>
+        /// <remarks>
+        /// Should this be used for tuple fields as well?
+        /// </remarks>
+        internal virtual int? MemberIndexOpt => null;
+
+        /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
         /// source or metadata.
