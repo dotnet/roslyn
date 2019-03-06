@@ -1299,7 +1299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion6 = 8059,
         // available 8062-8069
         ERR_SwitchFallOut = 8070,
-        // ERR_UnexpectedBoundGenericName = 8071, // for nameof - used in an early prototype
+        // available = 8071,
         ERR_NullPropagatingOpInExpressionTree = 8072,
         WRN_NubExprIsConstBool2 = 8073,
         ERR_DictionaryInitializerInExpressionTree = 8074,
@@ -1633,9 +1633,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceReceiver = 8602,
         WRN_NullReferenceReturn = 8603,
         WRN_NullReferenceArgument = 8604,
-        HDN_NullCheckIsProbablyAlwaysTrue = 8605,
-        HDN_NullCheckIsProbablyAlwaysFalse = 8606,
-        HDN_ExpressionIsProbablyNeverNull = 8607,
+        // Available = 8605,
+        // Available = 8606,
+        // Available = 8607,
         WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
@@ -1654,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitNullableAttribute = 8623,
         WRN_NullabilityMismatchInArgumentForOutput = 8624,
         WRN_NullAsNonNullable = 8625,
-        // Available = 8626,
+        WRN_AsOperatorMayReturnNull = 8626,
         ERR_NullableUnconstrainedTypeParameter = 8627,
         ERR_AnnotationDisallowedInObjectCreation = 8628,
         WRN_NullableValueTypeMayBeNull = 8629,
@@ -1666,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TripleDotNotAllowed = 8635,
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
-        // Available = 8638,
+        WRN_ConditionalAccessMayReturnNull = 8638,
         // Available = 8639,
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
@@ -1681,6 +1681,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IsNullableType = 8650,
         ERR_AsNullableType = 8651,
         ERR_FeatureInPreview = 8652,
+        WRN_DefaultExpressionMayIntroduceNullT = 8653,
+        WRN_NullLiteralMayIntroduceNullT = 8654,
 
         #endregion diagnostics introduced for C# 8.0
 

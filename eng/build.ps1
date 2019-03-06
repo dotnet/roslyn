@@ -60,6 +60,11 @@ param (
 
     [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
+if ($PSVersionTable.PSVersion.Major -lt "5") {
+    Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
+    exit 1
+}
+
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
