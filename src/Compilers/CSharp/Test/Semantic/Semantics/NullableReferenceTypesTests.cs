@@ -14196,6 +14196,33 @@ public class C
                 );
         }
 
+        [Fact, WorkItem(32335, "https://github.com/dotnet/roslyn/issues/32335")]
+        public void NotNullWhenTrue_LearnFromNonNullTest()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+class C
+{
+    void M(C? c1)
+    {
+        if (MyIsNullOrEmpty(c1?.Method()))
+            c1.ToString(); // 1
+        else
+            c1.ToString();
+    }
+
+    C? Method() => throw null!;
+    static bool MyIsNullOrEmpty([NotNullWhenFalse] C? s) => throw null!;
+}
+", NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             c1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c1").WithLocation(8, 13)
+                );
+        }
+
         [Fact]
         [WorkItem(29916, "https://github.com/dotnet/roslyn/issues/29916")]
         public void NotNullWhenFalse_EqualsTrue_InErrorInvocation()
@@ -17749,6 +17776,27 @@ public class C
         s.ToString(); // ok
     }
     public static void ThrowIfNull([EnsuresNotNull] string? s) => throw null!;
+}
+", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(32335, "https://github.com/dotnet/roslyn/issues/32335")]
+        public void EnsuresNotNull_LearningFromNotNullTest()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+class C
+{
+    void M(C? c1)
+    {
+        ThrowIfNull(c1?.Method());
+        c1.ToString(); // ok
+    }
+
+    C? Method() => throw null!;
+    static void ThrowIfNull([EnsuresNotNull] C? c) => throw null!;
 }
 ", EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
 
