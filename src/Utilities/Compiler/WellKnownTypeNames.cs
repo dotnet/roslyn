@@ -263,5 +263,21 @@ namespace Analyzer.Utilities
         public const string SystemWebScriptSerializationJavaScriptSerializer = "System.Web.Script.Serialization.JavaScriptSerializer";
         public const string SystemWebScriptSerializationJavaScriptTypeResolver = "System.Web.Script.Serialization.JavaScriptTypeResolver";
         public const string SystemWebScriptSerializationSimpleTypeResolver = "System.Web.Script.Serialization.SimpleTypeResolver";
+        public const string SystemWebUIPageTheme = "System.Web.UI.PageTheme";
+        public const string SystemWebUITemplateControl = "System.Web.UI.TemplateControl";
+        public const string SystemWebUIWebControlsXmlDataSource = "System.Web.UI.WebControls.XmlDataSource";
+        public const string SystemWebUIXPathBinder = "System.Web.UI.XPathBinder";
+        public const string SystemXmlSchemaXmlSchemaXPath = "System.Xml.Schema.XmlSchemaXPath";
+        public const string SystemXmlXmlNode = "System.Xml.XmlNode";
+        public const string SystemXmlXPathXPathExpression = "System.Xml.XPath.XPathExpression";
+        public const string SystemXmlXPathXPathNavigator = "System.Xml.XPath.XPathNavigator";
+        public const string SystemXmlXmlAttribute = "System.Xml.XmlAttribute";
+        public const string SystemXmlXmlDocument = "System.Xml.XmlDocument";
+        public const string SystemXmlXmlDocumentFragment = "System.Xml.XmlDocumentFragment";
+        public const string SystemXmlXmlElement = "System.Xml.XmlElement";
+        public const string SystemXmlXmlEntity = "System.Xml.XmlEntity";
+        public const string SystemXmlXmlNotation = "System.Xml.XmlNotation";
+        public const string SystemXmlXmlTextWriter = "System.Xml.XmlTextWriter";
+        public const string SystemWindowsMarkupXamlReader = "System.Windows.Markup.XamlReader";
     }
 }

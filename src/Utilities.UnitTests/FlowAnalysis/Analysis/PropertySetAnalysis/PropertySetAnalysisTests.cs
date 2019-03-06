@@ -21,7 +21,7 @@ using Xunit.Sdk;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
 {
-    [Trait(Traits.DataflowAnalysis, Traits.Dataflow.TaintedDataAnalysis)]
+    [Trait(Traits.DataflowAnalysis, Traits.Dataflow.PropertySetAnalysis)]
     public class PropertySetAnalysisTests : DiagnosticAnalyzerTestBase
     {
         /// <summary>

@@ -113,11 +113,25 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 }
             }
 
+            private void HandlePossibleInvalidatingOperation(IOperation invalidatedInstance)
+            {
+                PointsToAbstractValue instanceLocation = GetPointsToAbstractValue(invalidatedInstance);
+                foreach (AbstractLocation location in instanceLocation.Locations)
+                {
+                    if (CurrentAnalysisData.TryGetValue(location, out DisposeAbstractValue currentDisposeValue) &&
+                        currentDisposeValue.Kind != DisposeAbstractValueKind.NotDisposable)
+                    {
+                        SetAbstractValue(location, DisposeAbstractValue.Invalid);
+                    }
+                }
+            }
+
             private void HandlePossibleEscapingOperation(IOperation escapingOperation, ImmutableHashSet<AbstractLocation> escapedLocations)
             {
                 foreach (AbstractLocation escapedLocation in escapedLocations)
                 {
-                    if (CurrentAnalysisData.TryGetValue(escapedLocation, out DisposeAbstractValue currentDisposeValue))
+                    if (CurrentAnalysisData.TryGetValue(escapedLocation, out DisposeAbstractValue currentDisposeValue) &&
+                        currentDisposeValue.Kind != DisposeAbstractValueKind.Unknown)
                     {
                         DisposeAbstractValue newDisposeValue = currentDisposeValue.WithNewEscapingOperation(escapingOperation);
                         SetAbstractValue(escapedLocation, newDisposeValue);
@@ -308,6 +322,64 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                             _trackedInstanceFieldLocationsOpt.Add(operation.Field, pointsToAbstractValue);
                         }
                     }
+                }
+
+                return value;
+            }
+
+            public override DisposeAbstractValue VisitBinaryOperatorCore(IBinaryOperation operation, object argument)
+            {
+                var value = base.VisitBinaryOperatorCore(operation, argument);
+
+                // Handle null-check for a disposable symbol on a control flow branch.
+                //     var x = flag ? new Disposable() : null;
+                //     if (x == null)
+                //     {
+                //         // Disposable allocation above cannot exist on this code path.
+                //     }
+                //
+
+                // if (x == null)
+                // {
+                //      // This code path
+                // }
+                var isNullEqualsOnWhenTrue = FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue &&
+                    (operation.OperatorKind == BinaryOperatorKind.Equals || operation.OperatorKind == BinaryOperatorKind.ObjectValueEquals);
+
+                // if (x != null) { ... }
+                // else
+                // {
+                //      // This code path
+                // }
+                var isNullNotEqualsOnWhenFalse = FlowBranchConditionKind == ControlFlowConditionKind.WhenFalse &&
+                    (operation.OperatorKind == BinaryOperatorKind.NotEquals || operation.OperatorKind == BinaryOperatorKind.ObjectValueNotEquals);
+
+                if (isNullEqualsOnWhenTrue || isNullNotEqualsOnWhenFalse)
+                {
+                    if (GetNullAbstractValue(operation.RightOperand) == NullAbstractValue.Null)
+                    {
+                        // if (x == null)
+                        HandlePossibleInvalidatingOperation(operation.LeftOperand);
+                    }
+                    else if (GetNullAbstractValue(operation.LeftOperand) == NullAbstractValue.Null)
+                    {
+                        // if (null == x)
+                        HandlePossibleInvalidatingOperation(operation.RightOperand);
+                    }
+                }
+
+                return value;
+            }
+
+            public override DisposeAbstractValue VisitIsNull(IIsNullOperation operation, object argument)
+            {
+                var value = base.VisitIsNull(operation, argument);
+
+                // Handle null-check for a disposable symbol on a control flow branch.
+                // See comments in VisitBinaryOperatorCore override above for further details.
+                if (FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue)
+                {
+                    HandlePossibleInvalidatingOperation(operation.Operand);
                 }
 
                 return value;
