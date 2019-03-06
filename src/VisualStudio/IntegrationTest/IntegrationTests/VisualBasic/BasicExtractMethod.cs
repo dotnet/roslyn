@@ -42,7 +42,7 @@ End Module";
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/33103")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void SimpleExtractMethod()
         {

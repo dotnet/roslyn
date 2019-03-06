@@ -117,7 +117,7 @@ csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
 
 # using preferences
-csharp_preferred_using_placement = no_preference:silent
+csharp_using_directive_placement = preserve:silent
 
 #### C# Formatting Rules ####
 
@@ -280,7 +280,7 @@ csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
 
 # using preferences
-csharp_preferred_using_placement = no_preference:silent
+csharp_using_directive_placement = preserve:silent
 
 #### C# Formatting Rules ####
 

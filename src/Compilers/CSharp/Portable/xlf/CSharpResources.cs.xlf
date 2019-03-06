@@ -1333,13 +1333,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</source>
-        <target state="translated">Typ odkazu s možnou hodnotou null v argumentu typu {0} neodpovídá cílovému typu {1} parametru {2} v {3}.</target>
+        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">Typ odkazu s možnou hodnotou null v argumentu typu {0} neodpovídá cílovému typu {1} parametru {2} v {3}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
+        <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="new">Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
+        <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
+        <target state="new">Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Nullability of reference types in argument doesn't match target type.</source>
-        <target state="translated">Typ odkazu s možnou hodnotou null v argumentu neodpovídá cílovému typu.</target>
+        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">Typ odkazu s možnou hodnotou null v argumentu neodpovídá cílovému typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -2643,8 +2653,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
-        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)</source>
-        <target state="translated">'{0} nemá předdefinovanou velikost. Operátor sizeof jde proto použít jenom v kontextu unsafe (zvažte možnost použití operátoru System.Runtime.InteropServices.Marshal.SizeOf).</target>
+        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
+        <target state="needs-review-translation">'{0} nemá předdefinovanou velikost. Operátor sizeof jde proto použít jenom v kontextu unsafe (zvažte možnost použití operátoru System.Runtime.InteropServices.Marshal.SizeOf).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
@@ -8904,8 +8914,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Větve tříhodnotového operátoru REF nemůžou odkazovat na proměnné s nekompatibilními obory deklarace.</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">Větve tříhodnotového operátoru REF nemůžou odkazovat na proměnné s nekompatibilními obory deklarace.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">

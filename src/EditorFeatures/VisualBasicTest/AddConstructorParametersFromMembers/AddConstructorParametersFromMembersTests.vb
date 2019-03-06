@@ -202,5 +202,40 @@ Class Program
     End Sub
 End Class")
         End Function
+
+        <WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestConstructorWithNoParameters() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class Program
+    [|Private i As Integer
+    Property Hello As Integer = 1|]
+    Public Sub New()
+    End Sub
+End Class",
+"
+Class Program
+    [|Private i As Integer
+    Property Hello As Integer = 1|]
+    Public Sub New(i As Integer, hello As Integer)
+        Me.i = i
+        Me.Hello = hello
+    End Sub
+End Class"
+)
+        End Function
+
+        <WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestDefaultConstructor() As Task
+            Await TestMissingAsync(
+"
+Class Program
+    [|Private i As Integer|]
+End Class"
+)
+
+        End Function
     End Class
 End Namespace
