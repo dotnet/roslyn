@@ -6848,7 +6848,7 @@ class B<T> : A<T> where T : A<T>.I
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, WorkItem(27686, "https://github.com/dotnet/roslyn/issues/27686")]
         public void AssignObliviousIntoLocals()
         {
             var obliviousLib = @"
@@ -6872,7 +6872,6 @@ class C
     }
 }
 ";
-            // Should a declared type affect an oblivious state? https://github.com/dotnet/roslyn/issues/27686
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference() });
 
@@ -38926,7 +38925,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(28798, "https://github.com/dotnet/roslyn/issues/28798")]
         public void IsPattern_AffectsNullConditionalOperator_VarPattern()
         {
             var source =
@@ -38944,8 +38943,6 @@ class C
         }
     }
 }";
-            // Should also warn on unreachable code
-            // https://github.com/dotnet/roslyn/issues/28798
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8602: Possible dereference of a null reference.
