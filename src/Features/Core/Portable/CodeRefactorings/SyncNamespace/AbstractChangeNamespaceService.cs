@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return originalSolution;
         }
 
-        private struct LocationForAffectedSymbol
+        private readonly struct LocationForAffectedSymbol
         {
             public LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
             {
@@ -452,56 +452,57 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbol(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
 
             var builder = ArrayBuilder<LocationForAffectedSymbol>.GetInstance();
 
-            var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
-            await SymbolFinder.FindReferencesAsync(
-                symbolAndProjectId: SymbolAndProjectId.Create(symbol, document.Project.Id),
-                solution: document.Project.Solution,
-                documents: null,
-                progress: progress,
-                options: FindReferencesSearchOptions.Default,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            var referencedSymbols = progress.GetReferencedSymbols();
-            builder.AddRange(referencedSymbols
-                .Where(refSymbol => refSymbol.Definition.Equals(symbol))
-                .SelectMany(refSymbol => refSymbol.Locations)
-                .Select(location => new LocationForAffectedSymbol(location, false)));
-
-            // Find references above doesn't handle invocation of extension methods (in reduced form)
-            // that are declared in the affected types, so we need to find references to extension methods
-            // as well. This will returns all the references, not just in the reduced form. But we will
-            // not further distinguish the usage. In the worst case, those references are redundant because
-            // they could be covered by the type references found above.
-            if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.MightContainExtensionMethods)
+            try
             {
-                foreach (var memberSymbol in typeSymbol.GetMembers())
+                var referencedSymbols = await FindReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+                builder.AddRange(referencedSymbols
+                    .Where(refSymbol => refSymbol.Definition.Equals(symbol))
+                    .SelectMany(refSymbol => refSymbol.Locations)
+                    .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: false)));
+
+                // Find references above doesn't handle invocation of extension methods (in reduced form)
+                // that are declared in the affected types, so we need to find references to extension methods
+                // as well. This will returns all the references, not just in the reduced form. But we will
+                // not further distinguish the usage. In the worst case, those references are redundant because
+                // they could be covered by the type references found above.
+                if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.MightContainExtensionMethods)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    if (memberSymbol is IMethodSymbol methodSymbol && methodSymbol.IsExtensionMethod)
+                    foreach (var methodSymbol in typeSymbol.GetMembers().OfType<IMethodSymbol>())
                     {
-                        var methodProgress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
-                        await SymbolFinder.FindReferencesAsync(
-                            symbolAndProjectId: SymbolAndProjectId.Create(methodSymbol, document.Project.Id),
-                            solution: document.Project.Solution,
-                            documents: null,
-                            progress: methodProgress,
-                            options: FindReferencesSearchOptions.Default,
-                            cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                        var referencedMethodSymbols = methodProgress.GetReferencedSymbols();
-                        builder.AddRange(referencedMethodSymbols
-                            .SelectMany(refSymbol => refSymbol.Locations)
-                            .Select(location => new LocationForAffectedSymbol(location, true)));
+                        if (methodSymbol.IsExtensionMethod)
+                        {
+                            var referencedMethodSymbols = await FindReferencesAsync(methodSymbol, document, cancellationToken).ConfigureAwait(false);
+                            builder.AddRange(referencedMethodSymbols
+                                .SelectMany(refSymbol => refSymbol.Locations)
+                                .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: true)));
+                        }
                     }
                 }
+
+                return builder.ToImmutable();
+            }
+            finally
+            {
+                builder.Free();
             }
 
-            return builder.ToImmutableAndFree();
+            async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol s, Document d, CancellationToken c)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+                await SymbolFinder.FindReferencesAsync(
+                    symbolAndProjectId: SymbolAndProjectId.Create(s, d.Project.Id),
+                    solution: d.Project.Solution,
+                    documents: null,
+                    progress: progress,
+                    options: FindReferencesSearchOptions.Default,
+                    cancellationToken: c).ConfigureAwait(false);
+
+                return progress.GetReferencedSymbols();
+            }
         }
 
         private async Task<Document> FixDeclarationDocumentAsync(
@@ -666,7 +667,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 var refNode = root.FindNode(refLoc.ReferenceLocation.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
 
-                //For invocation of extension method, we only need to add missing import.
+                // For invocation of extension method, we only need to add missing import.
                 if (!refLoc.IsReferenceToExtensionMethod)
                 {
                     if (abstractChangeNamespaceService.TryGetReplacementReferenceSyntax(
