@@ -65,6 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assignable = 2 << ValueKindInsignificantBits,
 
             /// <summary>
+            /// Expression is the receiver of a method/accessor call.
+            /// Used for warning diagnostics on non-readonly calls from readonly members.
+            /// </summary>
+            AssignableReceiver = Assignable + 1,
+
+            /// <summary>
             /// Expression represents a location. Often referred as a "variable"
             /// Examples:
             ///  local variable, parameter, field
@@ -490,8 +496,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (isLvalueError)
                     {
-                        // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
-                        Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
+                        // AssignableReceiver warnings are given at a higher level in order to produce better diagnostics
+                        if (valueKind != BindValueKind.AssignableReceiver)
+                        {
+                            // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
+                            Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
+                        }
                         return false;
                     }
 

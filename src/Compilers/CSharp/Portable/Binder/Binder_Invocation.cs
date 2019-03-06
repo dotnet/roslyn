@@ -1018,6 +1018,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
+            // Check if an implicit copy is needed to call a non-readonly method from within a readonly method.
+            if ((ContainingMemberOrLambda as MethodSymbol)?.IsReadOnly == true && !method.IsReadOnly && receiver.Type.IsValueType)
+            {
+                if (!CheckValueKind(node: receiver.Syntax, receiver, BindValueKind.AssignableReceiver, checkingReceiver: true, diagnostics))
+                {
+                    var receiverName = receiver.Kind == BoundKind.ThisReference ? ThisParameterSymbol.SymbolName : GetName((ExpressionSyntax)receiver.Syntax);
+                    Error(diagnostics, ErrorCode.WRN_ImplicitCopyInReadOnlyMember, receiver.Syntax, method.Name, receiverName);
+                }
+            }
+
             if (invokedAsExtensionMethod)
             {
                 BoundExpression receiverArgument = analyzedArguments.Argument(0);

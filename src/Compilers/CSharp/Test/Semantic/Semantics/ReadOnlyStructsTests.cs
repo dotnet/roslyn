@@ -185,7 +185,20 @@ public struct A
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this").WithLocation(11, 9));
         }
 
-        // TODO: test where readonly method calls readonly method
+        [Fact]
+        public void ReadOnlyMethod_CallReadOnlyMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int M1() => M2() + 1;
+    public readonly int M2() => i;
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyDiagnostics();
+        }
 
         [Fact]
         public void ReadOnlyMethod_CallNormalMethod()
@@ -200,11 +213,16 @@ public struct S
         // should create local copy
         M2();
         System.Console.Write(i);
+
+        // explicit local copy, no warning
+        var copy = this;
+        copy.M2();
+        System.Console.Write(copy.i);
     }
 
     void M2()
     {
-        i = 42;
+        i = 23;
     }
 
     static void Main()
@@ -215,22 +233,34 @@ public struct S
 }
 ";
 
-            // TODO: emit a warning for implicit local copy of 'this'
-            var verifier = CompileAndVerify(csharp, expectedOutput: "1");
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+            verifier.VerifyDiagnostics(
+                // (9,9): warning CS8655: Call to non-readonly member 'M2' from a 'readonly' member results in an implicit copy of 'this'.
+                //         M2();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M2").WithArguments("M2", "this").WithLocation(9, 9));
             verifier.VerifyIL("S.M1", @"
 {
-  // Code size       26 (0x1a)
+  // Code size       51 (0x33)
   .maxstack  1
-  .locals init (S V_0)
+  .locals init (S V_0, //copy
+                S V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldobj      ""S""
-  IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
   IL_0009:  call       ""void S.M2()""
   IL_000e:  ldarg.0
   IL_000f:  ldfld      ""int S.i""
   IL_0014:  call       ""void System.Console.Write(int)""
-  IL_0019:  ret
+  IL_0019:  ldarg.0
+  IL_001a:  ldobj      ""S""
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""void S.M2()""
+  IL_0027:  ldloc.0
+  IL_0028:  ldfld      ""int S.i""
+  IL_002d:  call       ""void System.Console.Write(int)""
+  IL_0032:  ret
 }");
         }
 
@@ -295,7 +325,11 @@ public struct S2
     }
 }
 ";
-            CompileAndVerify(csharp, expectedOutput: "0");
+            var verifier = CompileAndVerify(csharp, expectedOutput: "0");
+            verifier.VerifyDiagnostics(
+                // (7,9): warning CS8655: Call to non-readonly member 'M2' from a 'readonly' member results in an implicit copy of 's2'.
+                //         s2.M2();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "s2").WithArguments("M2", "s2").WithLocation(7, 9));
         }
 
         #endregion
