@@ -452,9 +452,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
         private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbol(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-
             var builder = ArrayBuilder<LocationForAffectedSymbol>.GetInstance();
-
             try
             {
                 var referencedSymbols = await FindReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
@@ -488,21 +486,21 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             {
                 builder.Free();
             }
+        }
 
-            async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol s, Document d, CancellationToken c)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
-                await SymbolFinder.FindReferencesAsync(
-                    symbolAndProjectId: SymbolAndProjectId.Create(s, d.Project.Id),
-                    solution: d.Project.Solution,
-                    documents: null,
-                    progress: progress,
-                    options: FindReferencesSearchOptions.Default,
-                    cancellationToken: c).ConfigureAwait(false);
+        private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol, Document document, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
+            await SymbolFinder.FindReferencesAsync(
+                symbolAndProjectId: SymbolAndProjectId.Create(symbol, document.Project.Id),
+                solution: document.Project.Solution,
+                documents: null,
+                progress: progress,
+                options: FindReferencesSearchOptions.Default,
+                cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                return progress.GetReferencedSymbols();
-            }
+            return progress.GetReferencedSymbols();
         }
 
         private async Task<Document> FixDeclarationDocumentAsync(
