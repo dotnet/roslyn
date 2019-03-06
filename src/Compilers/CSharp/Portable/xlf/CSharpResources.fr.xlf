@@ -1343,7 +1343,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">La nullabilité des types référence dans l'argument de type '{0}' ne correspond pas au type cible '{1}' pour le paramètre '{2}' dans '{3}'.</target>
         <note />
       </trans-unit>
@@ -1358,7 +1358,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">La nullabilité des types référence dans l'argument ne correspond pas au type cible.</target>
         <note />
       </trans-unit>

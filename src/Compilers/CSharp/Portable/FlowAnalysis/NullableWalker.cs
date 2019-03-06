@@ -1200,12 +1200,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lvalueResultType = LvalueResultType;
                 if (IsNullabilityMismatch(lvalueResultType, destinationType))
                 {
+                    // declared types must match
                     ReportNullabilityMismatchInAssignment(expr.Syntax, lvalueResultType, destinationType);
                 }
-                else if (resultType.MaybeNull && !destinationType.CanBeAssignedNull)
+                else
                 {
                     // types match, but state would let a null in
-                    ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
+                    ReportNullableAssignmentIfNecessary(expr, destinationType, resultType, useLegacyWarnings: false);
                 }
             }
             return resultType;
@@ -2878,6 +2879,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitResult result,
             bool extensionMethodThisArgument)
         {
+            // Note: we allow for some variance in `in` and `out` cases. Unlike in binding, we're not
+            // limited by CLR constraints.
+
             var resultType = result.RValueType;
             bool reported = false;
             switch (refKind)
@@ -2903,20 +2907,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!argument.IsSuppressed)
                         {
-                            reported = ReportNullableAssignmentIfNecessary(argument, parameterType, resultType,
-                                useLegacyWarnings: false, AssignmentKind.Argument, target: parameter);
-                            if (!reported)
+                            var lvalueResultType = result.LValueType;
+                            if (IsNullabilityMismatch(lvalueResultType, parameterType))
                             {
-                                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                                if (!_conversions.HasIdentityOrImplicitReferenceConversion(resultType.Type, parameterType.TypeSymbol, ref useSiteDiagnostics))
-                                {
-                                    ReportNullabilityMismatchInArgument(argument, resultType.Type, parameter, parameterType.TypeSymbol, forOutput: false);
-                                    reported = true;
-                                }
+                                // declared types must match
+                                ReportNullabilityMismatchInRefArgument(argument, argumentType: lvalueResultType, parameter, parameterType);
+                            }
+                            else
+                            {
+                                // types match, but state would let a null in
+                                ReportNullableAssignmentIfNecessary(argument, parameterType, resultType, useLegacyWarnings: false);
                             }
                         }
+
+                        // Check assignment from a fictional value from the parameter to the argument.
+                        var parameterWithState = parameterType.ToTypeWithState();
+                        if (argument.IsSuppressed)
+                        {
+                            parameterWithState = parameterWithState.WithNotNullState();
+                        }
+
+                        var parameterValue = new BoundParameter(argument.Syntax, parameter);
+                        var lValueType = result.LValueType;
+                        TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState);
                     }
-                    goto case RefKind.Out;
+                    break;
                 case RefKind.Out:
                     {
                         var parameterWithState = parameterType.ToTypeWithState();
@@ -2926,8 +2941,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var lValueType = result.LValueType;
-                        // The argument and the parameter may have different nested or top-level nullabilities,
-                        // so we're going to check assignment from a fictional value from the parameter to the argument.
+                        // Check assignment from a fictional value from the parameter to the argument.
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
 
                         if (!argument.IsSuppressed && !reported)
@@ -4664,6 +4678,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void ReportNullabilityMismatchInRefArgument(BoundExpression argument, TypeSymbolWithAnnotations argumentType, ParameterSymbol parameter, TypeSymbolWithAnnotations parameterType)
+        {
+            ReportSafetyDiagnostic(ErrorCode.WRN_NullabilityMismatchInArgument,
+                argument.Syntax, argumentType, parameterType,
+                new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
+                new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
+        }
+
         /// <summary>
         /// Report warning passing argument where nested nullability does not match
         /// parameter (e.g.: calling `void F(object[] o)` with `F(new[] { maybeNull })`).
@@ -4841,7 +4863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var foreachSyntax = (ForEachStatementSyntax)node.Syntax;
                             ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
                         }
-                        state = sourceType.ToTypeWithState().State;
+                        state = sourceState.State;
                     }
                     else
                     {

@@ -1343,7 +1343,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">'{0}' 型の引数における参照型の Null 許容性が、'{3}' 内のパラメーター '{2}' に関する対象の型 '{1}' と一致しません。</target>
         <note />
       </trans-unit>
@@ -1358,7 +1358,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">引数における参照型の Null 許容性が、対象の型と一致しません。</target>
         <note />
       </trans-unit>
