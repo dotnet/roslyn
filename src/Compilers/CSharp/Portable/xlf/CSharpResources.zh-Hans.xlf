@@ -988,13 +988,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
