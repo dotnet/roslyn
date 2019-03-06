@@ -76,12 +76,21 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             public void MarkLineBreak()
             {
                 // If this is a <br> with nothing before it, then skip it.
-                if (_anyNonWhitespaceSinceLastPara == false)
+                if (_anyNonWhitespaceSinceLastPara == false && !_pendingLineBreak)
                 {
                     return;
                 }
 
-                _pendingLineBreak = true;
+                if (_pendingLineBreak || _pendingParagraphBreak)
+                {
+                    // Multiple line breaks in sequence become a single paragraph break.
+                    _pendingParagraphBreak = true;
+                    _pendingLineBreak = false;
+                }
+                else
+                {
+                    _pendingLineBreak = true;
+                }
 
                 // Reset flag.
                 _anyNonWhitespaceSinceLastPara = false;

@@ -414,6 +414,70 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             AssertEqualAdornments(expected, container)
         End Sub
 
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <InlineData("<para>text1</para><para>text2</para>")>
+        <InlineData("text1<br/><br/>text2")>
+        <InlineData("text1<br/><br/><br/>text2")>
+        <InlineData("<br/>text1<br/><br/>text2<br/>")>
+        <InlineData("<br/><br/>text1<br/><br/>text2<br/><br/>")>
+        <InlineData("<para>text1<br/><br/>text2</para>")>
+        <InlineData("<para/>text1<br/><br/>text2<para/>")>
+        <InlineData("<para/><para/>text1<br/><br/>text2<para/><para/>")>
+        <InlineData("<para>text1</para><br/><para>text2</para>")>
+        <WorkItem(33001, "https://github.com/dotnet/roslyn/issues/33001")>
+        Public Async Sub EquivalentParagraphForms(summary As String)
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.IO;
+                            using System.Threading;
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// <%= summary %>
+                                /// &lt;/summary&gt;
+                                void MyMethod() {
+                                    MyM$$ethod();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+
+            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                .DefaultValue = DefaultValue.Mock
+            }
+
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "text1"))),
+                New ClassifiedTextElement(
+                    New ClassifiedTextRun(ClassificationTypeNames.Text, "text2")))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
         Private Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of QuickInfoItem)
             Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Dim solution = workspace.CurrentSolution

@@ -263,6 +263,28 @@ This is also part of a paragraph.";
             TestFormat(comment, expected);
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [InlineData("<br/><br/>")]
+        [InlineData("<br/><br/><br/>")]
+        [WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
+        public void Paragraphs6(string lineBreak)
+        {
+            var comment =
+$@"
+<para>This is part of a{lineBreak}paragraph.</para>
+<para>This is also part of a paragraph.</para>
+";
+
+            var expected =
+@"This is part of a
+
+paragraph.
+
+This is also part of a paragraph.";
+
+            TestFormat(comment, expected);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
         public void See1()
         {
