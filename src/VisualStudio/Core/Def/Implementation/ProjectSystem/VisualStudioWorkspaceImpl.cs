@@ -1098,6 +1098,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 GetProjectData(updatedInfo.Id.ProjectId, out var _, out var project);
                 var projectItemForDocument = project.FindItem(document.Name, StringComparer.InvariantCultureIgnoreCase); //?
 
+                if (projectItemForDocument == null)
+                {
+                    // TODO: The document might actually belong to a Shared Project.
+                    return;
+                }
+
                 // Must save the document first for things like Breakpoints to be preserved.
                 projectItemForDocument.Save();
 
