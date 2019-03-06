@@ -364,13 +364,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         }
                     }
                 }
-
-                if (block.EnclosingRegion.Kind == ControlFlowRegionKind.Finally ||
-                    block.EnclosingRegion.Kind == ControlFlowRegionKind.Catch ||
-                    block.EnclosingRegion.Kind == ControlFlowRegionKind.Filter)
-                {
-                    OnLeavingRegion(block.EnclosingRegion);
-                }
             }
 
             if (block.Kind == BasicBlockKind.Exit)
@@ -380,15 +373,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             CurrentBasicBlock = null;
             return CurrentAnalysisData;
-
-            // Local functions.
-            void OnLeavingRegion(ControlFlowRegion region)
-            {
-                if (region.Locals.Length > 0 || region.CaptureIds.Length > 0)
-                {
-                    ProcessOutOfScopeLocalsAndFlowCaptures(region.Locals, region.CaptureIds);
-                }
-            }
         }
 
         /// <summary>

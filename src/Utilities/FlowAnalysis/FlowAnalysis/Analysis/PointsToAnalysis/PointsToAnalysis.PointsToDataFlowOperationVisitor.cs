@@ -1082,6 +1082,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
                 return Visit(operation.Expression, argument);
             }
 
+            public override PointsToAbstractValue VisitCaughtException(ICaughtExceptionOperation operation, object argument)
+            {
+                _ = base.VisitCaughtException(operation, argument);
+                return PointsToAbstractValue.UnknownNotNull;
+            }
+
             #endregion
         }
     }
