@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -181,25 +182,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         internal void SetContext(AbstractDebuggerIntelliSenseContext context)
         {
             // If there was an old context, it must be cleaned before calling SetContext.
+            Debug.Assert(_context == null);
             _context = context;
             this.SetCommandHandlers(context.Buffer);
         }
 
         internal void RemoveContext()
         {
-            Dispose();
-            _context = null;
+            if (_context != null)
+            {
+                _context.Dispose();
+                _context = null;
+            }
         }
 
         internal void SetContentType(bool install)
             => _context?.SetContentType(install);
 
         public void Dispose()
-        {
-            if (_context != null)
-            {
-                _context.Dispose();
-            }
-        }
+            => RemoveContext();
     }
 }
