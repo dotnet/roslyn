@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (parameter.Type.IsReferenceType)
             {
-                var newAttributes = attributes.RemoveAll(IsAllowNullAttribute);
+                var newAttributes = attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
                 if (newAttributes.Length != attributes.Length)
                 {
                     attributes = newAttributes;
@@ -163,11 +163,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         nullableAnnotation = NullableAnnotation.Annotated;
                     }
                 }
+
+                if (nullableAnnotation == NullableAnnotation.NotAnnotated)
+                {
+                    attributes = attributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
+                }
             }
             else if (parameter.Type.IsValueType)
             {
                 attributes = parameter.NullableAnnotation == NullableAnnotation.Annotated
-                    ? attributes.RemoveAll(IsAllowNullAttribute)
+                    ? attributes.RemoveAll(IsAllowNullOrMaybeNullAttribute)
                     : attributes.RemoveAll(IsNullableFlowAnalysisAttribute);
             }
 

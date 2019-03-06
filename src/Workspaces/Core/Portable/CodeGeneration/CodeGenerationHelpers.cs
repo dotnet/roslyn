@@ -104,15 +104,36 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             => type != null && type.SpecialType == specialType;
 
         /// <summary>
-        /// Indicates whether the specified attribute is <see cref="AllowNullAttribute"/>, <see cref="MaybeNullAttribute"/> or <see cref="MaybeNullWhenAttribute"/>.
+        /// Indicates whether the specified attribute is
+        /// <see cref="AllowNullAttribute"/>,
+        /// <see cref="MaybeNullAttribute"/> or
+        /// <see cref="MaybeNullWhenAttribute"/>.
         /// </summary>
-        public static bool IsAllowNullAttribute(AttributeData attribute) =>
+        public static bool IsAllowNullOrMaybeNullAttribute(AttributeData attribute) =>
             IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
                 attribute.AttributeClass.Name switch
                 {
                     nameof(AllowNullAttribute) => true,
                     nameof(MaybeNullAttribute) => true,
                     nameof(MaybeNullWhenAttribute) => true,
+                    _ => false
+                };
+
+        /// <summary>
+        /// Indicates whether the specified attribute is
+        /// <see cref="DisallowNullAttribute"/>,
+        /// <see cref="NotNullAttribute"/>,
+        /// <see cref="NotNullWhenAttribute"/> or
+        /// <see cref="NotNullIfNotNullAttribute"/>.
+        /// </summary>
+        public static bool IsDisallowNullOrNotNullAttribute(AttributeData attribute) =>
+            IsFlowAnalysisNamespace(attribute.AttributeClass.ContainingNamespace) &&
+                attribute.AttributeClass.Name switch
+                {
+                    nameof(DisallowNullAttribute) => true,
+                    nameof(NotNullAttribute) => true,
+                    nameof(NotNullWhenAttribute) => true,
+                    nameof(NotNullIfNotNullAttribute) => true,
                     _ => false
                 };
 

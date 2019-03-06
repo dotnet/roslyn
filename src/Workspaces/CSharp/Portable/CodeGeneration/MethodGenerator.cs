@@ -201,12 +201,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             if (method.ReturnType.IsReferenceType)
             {
-                returnTypeAttributes = returnTypeAttributes.RemoveAll(IsAllowNullAttribute);
+                returnTypeAttributes = returnTypeAttributes.RemoveAll(IsAllowNullOrMaybeNullAttribute);
+
+                if (method.ReturnNullableAnnotation == NullableAnnotation.NotAnnotated)
+                {
+                    returnTypeAttributes = returnTypeAttributes.RemoveAll(IsDisallowNullOrNotNullAttribute);
+                }
             }
             else if (method.ReturnType.IsValueType)
             {
                 returnTypeAttributes = method.ReturnNullableAnnotation == NullableAnnotation.Annotated
-                    ? returnTypeAttributes.RemoveAll(IsAllowNullAttribute)
+                    ? returnTypeAttributes.RemoveAll(IsAllowNullOrMaybeNullAttribute)
                     : returnTypeAttributes.RemoveAll(IsNullableFlowAnalysisAttribute);
             }
 

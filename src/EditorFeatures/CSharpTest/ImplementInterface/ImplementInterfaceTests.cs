@@ -8609,7 +8609,7 @@ class C : [|I|]
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestAllowNullAttributeOnNonNullableReferenceType()
+        public async Task TestFlowAnalysisAttributeOnNonNullableReferenceType()
         {
             await TestInRegularAndScript1Async(
 $@"#nullable enable
@@ -8621,7 +8621,10 @@ using System.Diagnostics.CodeAnalysis;
 interface IInterface<T>
 {{
     [return: MaybeNull]
-    T Method([AllowNull] T value);
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
 }}
 
 class Class : [|IInterface<string>|]
@@ -8636,12 +8639,20 @@ using System.Diagnostics.CodeAnalysis;
 interface IInterface<T>
 {{
     [return: MaybeNull]
-    T Method([AllowNull] T value);
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
 }}
 
 class Class : IInterface<string>
 {{
-    public string Method(string? value)
+    public string MethodAllowNull(string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public string MethodDisallowNull(string value)
     {{
         throw new System.NotImplementedException();
     }}
@@ -8649,7 +8660,7 @@ class Class : IInterface<string>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        public async Task TestAllowNullAttributeOnNullableReferenceType()
+        public async Task TestFlowAnalysisAttributeOnNullableReferenceType()
         {
             await TestInRegularAndScript1Async(
 $@"#nullable enable
@@ -8661,7 +8672,10 @@ using System.Diagnostics.CodeAnalysis;
 interface IInterface<T>
 {{
     [return: MaybeNull]
-    T Method([AllowNull] T value);
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
 }}
 
 class Class : [|IInterface<string?>|]
@@ -8676,12 +8690,21 @@ using System.Diagnostics.CodeAnalysis;
 interface IInterface<T>
 {{
     [return: MaybeNull]
-    T Method([AllowNull] T value);
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
 }}
 
 class Class : IInterface<string?>
 {{
-    public string? Method(string? value)
+    public string? MethodAllowNull(string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    [return: NotNull]
+    public string? MethodDisallowNull([DisallowNull] string? value)
     {{
         throw new System.NotImplementedException();
     }}

@@ -1905,7 +1905,7 @@ record B(int i) : A
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestAllowNullAttributeOnNonNullableReferenceType()
+        public async Task TestFlowAnalysisAttributeOnNonNullableReferenceType()
         {
             await TestInRegularAndScript1Async(
 @"#nullable enable
@@ -1913,7 +1913,10 @@ record B(int i) : A
 abstract class Base<T>
 {
     [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    protected abstract T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
 }
 
 class [|Class|] : Base<string>
@@ -1924,12 +1927,20 @@ class [|Class|] : Base<string>
 abstract class Base<T>
 {
     [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    protected abstract T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
 }
 
 class Class : Base<string>
 {
-    protected override string Method(string? value)
+    protected override string MethodAllowNull(string? value)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    protected override string MethodDisallowNull(string value)
     {
         throw new System.NotImplementedException();
     }
@@ -1937,7 +1948,7 @@ class Class : Base<string>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-        public async Task TestAllowNullAttributeOnNullableReferenceType()
+        public async Task TestFlowAnalysisAttributeOnNullableReferenceType()
         {
             await TestInRegularAndScript1Async(
 @"#nullable enable
@@ -1945,7 +1956,10 @@ class Class : Base<string>
 abstract class Base<T>
 {
     [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    protected abstract T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
 }
 
 class [|Class|] : Base<string?>
@@ -1956,12 +1970,21 @@ class [|Class|] : Base<string?>
 abstract class Base<T>
 {
     [return: System.Diagnostics.CodeAnalysis.MaybeNullAttribute]
-    protected abstract T Method([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+    protected abstract T MethodAllowNull([System.Diagnostics.CodeAnalysis.AllowNullAttribute] T value);
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected abstract T MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] T value);
 }
 
 class Class : Base<string?>
 {
-    protected override string? Method(string? value)
+    protected override string? MethodAllowNull(string? value)
+    {
+        throw new System.NotImplementedException();
+    }
+
+    [return: System.Diagnostics.CodeAnalysis.NotNullAttribute]
+    protected override string? MethodDisallowNull([System.Diagnostics.CodeAnalysis.DisallowNullAttribute] string? value)
     {
         throw new System.NotImplementedException();
     }
