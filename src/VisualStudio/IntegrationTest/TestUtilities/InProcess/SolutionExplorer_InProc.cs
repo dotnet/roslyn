@@ -12,6 +12,7 @@ using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -25,13 +26,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class SolutionExplorer_InProc : InProcComponent
     {
+        private readonly SendKeys_InProc _sendKeys;
         private Solution2 _solution;
         private string _fileName;
 
         private static readonly IDictionary<string, string> _csharpProjectTemplates = InitializeCSharpProjectTemplates();
         private static readonly IDictionary<string, string> _visualBasicProjectTemplates = InitializeVisualBasicProjectTemplates();
 
-        private SolutionExplorer_InProc() { }
+        private SolutionExplorer_InProc()
+        {
+            _sendKeys = new SendKeys_InProc(VisualStudio_InProc.Create());
+        }
 
         public static SolutionExplorer_InProc Create()
             => new SolutionExplorer_InProc();
@@ -379,6 +384,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
             {
+                // Close the Find Source window in case it's open.
+                // 🐛 This is an ugly mitigation for https://github.com/dotnet/roslyn/issues/33785
+                _sendKeys.Send(VirtualKey.Escape);
+
                 dte.Debugger.TerminateAll();
                 WaitForDesignMode();
             }
