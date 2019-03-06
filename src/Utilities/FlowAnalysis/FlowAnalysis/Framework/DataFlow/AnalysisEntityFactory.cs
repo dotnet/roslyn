@@ -388,7 +388,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             var interproceduralFlowCaptureEntityOpt = _interproceduralGetAnalysisEntityForFlowCaptureOpt?.Invoke(flowCaptureOrReference);
             if (interproceduralFlowCaptureEntityOpt != null)
             {
-                Debug.Assert(!_controlFlowGraph.DescendantOperations().Contains(flowCaptureOrReference));
                 Debug.Assert(_interproceduralCallStackOpt.Last().Descendants().Contains(flowCaptureOrReference));
                 return interproceduralFlowCaptureEntityOpt;
             }
