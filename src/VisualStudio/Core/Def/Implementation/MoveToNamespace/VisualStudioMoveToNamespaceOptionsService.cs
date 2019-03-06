@@ -29,8 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         }
 
         public async Task<MoveToNamespaceOptionsResult> GetChangeNamespaceOptionsAsync(
-            ISyntaxFactsService syntaxFactsService,
-            INotificationService notificationService,
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces,
             CancellationToken cancellationToken)
@@ -39,7 +37,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             cancellationToken.ThrowIfCancellationRequested();
 
             var viewModel = new MoveToNamespaceDialogViewModel(
-                _glyphService,
                 defaultNamespace,
                 availableNamespaces);
 

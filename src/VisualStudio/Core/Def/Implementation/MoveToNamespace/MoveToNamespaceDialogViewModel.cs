@@ -5,13 +5,14 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.CodeAnalysis.MoveToNamespace;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {
     class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged
     {
         public MoveToNamespaceDialogViewModel(
-            IGlyphService glyphService,
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces)
         {
@@ -34,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         public void OnNamespaceUpdated()
         {
             var isNewNamespace = !AvailableNamespaces.Contains(NamespaceName);
-            var isValidName = !isNewNamespace || IsValidNamespace(NamespaceName);
+            var isValidName = !isNewNamespace || UnicodeCharacterUtilities.IsValidNamespace(NamespaceName);
 
             if (isNewNamespace && isValidName)
             {
@@ -55,11 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
                 ShowMessage = false;
                 CanSubmit = true;
             }
-        }
-
-        private static bool IsValidNamespace(string @namespace)
-        {
-            return !@namespace.Contains(" ");
         }
 
         private string _namespaceName;

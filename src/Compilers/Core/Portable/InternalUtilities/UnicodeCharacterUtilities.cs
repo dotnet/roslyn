@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Globalization;
+using System.Linq;
 
 namespace Roslyn.Utilities
 {
@@ -107,6 +108,19 @@ namespace Roslyn.Utilities
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Returns true if every identifier in a namespace is valid using <see cref="IsValidIdentifier(string)"/>
+        /// </summary>
+        public static bool IsValidNamespace(string @namespace)
+        {
+            if (string.IsNullOrEmpty(@namespace))
+            {
+                return false;
+            }
+
+            return @namespace.Split('.').All(IsValidIdentifier);
         }
 
         private static bool IsLetterChar(UnicodeCategory cat)

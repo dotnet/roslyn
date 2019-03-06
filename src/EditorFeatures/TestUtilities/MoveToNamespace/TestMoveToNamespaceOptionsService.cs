@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 extern alias WORKSPACES;
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         {
         }
 
-        public Task<MoveToNamespaceOptionsResult> GetChangeNamespaceOptionsAsync(ISyntaxFactsService syntaxFactsService, INotificationService notificationService, string defaultNamespace, CancellationToken cancellationToken)
+        public Task<MoveToNamespaceOptionsResult> GetChangeNamespaceOptionsAsync(string defaultNamespace, ImmutableArray<string> availableNamespaces, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
