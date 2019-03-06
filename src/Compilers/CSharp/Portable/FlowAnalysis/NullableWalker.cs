@@ -1948,6 +1948,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             slotBuilder.Free();
         }
 
+        private void LearnFromNullTest(BoundExpression expression, ref LocalState state)
+        {
+            int slot = MakeSlot(expression);
+            if (slot > 0)
+            {
+                state[slot] = NullableFlowState.MaybeNull;
+            }
+        }
+
         private static BoundExpression SkipReferenceConversions(BoundExpression possiblyConversion)
         {
             while (possiblyConversion.Kind == BoundKind.Conversion)
@@ -1976,20 +1985,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The assignment to the left below needs the declared type from VisitLvalue, but the hidden
             // unnecessary check diagnostic needs the current adjusted type of the slot
             TypeSymbolWithAnnotations targetType = VisitLvalueWithAnnotations(leftOperand);
-            TypeWithState currentLeftType = GetAdjustedResult(targetType, leftSlot);
-
             var leftState = this.State.Clone();
+            LearnFromNonNullTest(leftOperand, ref leftState);
+            LearnFromNullTest(leftOperand, ref this.State);
             TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, UseLegacyWarnings(leftOperand), AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
-
-            TypeWithState resultType = GetNullCoalescingResultType(leftOperand, currentLeftType, rightOperand, rightResult, targetType.TypeSymbol);
-            ResultType = resultType;
-
-            if (leftSlot > 0)
-            {
-                this.State[leftSlot] = resultType.State;
-            }
+            ResultType = GetNullCoalescingResultType(node, rightOperand, rightResult, targetType.TypeSymbol);
 
             return null;
         }
@@ -2015,9 +2017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var whenNotNull = this.State.Clone();
             LearnFromNonNullTest(leftOperand, ref whenNotNull);
-
-            // Consider learning in whenNull branch as well
-            // https://github.com/dotnet/roslyn/issues/30297
+            LearnFromNullTest(leftOperand, ref this.State);
 
             bool leftIsConstant = leftOperand.ConstantValue != null;
             if (leftIsConstant)
@@ -2056,7 +2056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind);
             }
 
-            ResultType = GetNullCoalescingResultType(leftOperand, leftResult, rightOperand, rightResult, resultType);
+            ResultType = GetNullCoalescingResultType(node, rightOperand, rightResult, resultType);
             return null;
 
             NullableFlowState getNullableState(BoundExpression e, TypeWithState t)
@@ -2118,18 +2118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static TypeWithState GetNullCoalescingResultType(BoundExpression leftOperand, TypeWithState leftResult, BoundExpression rightOperand, TypeWithState rightResult, TypeSymbol resultType)
+        private static TypeWithState GetNullCoalescingResultType(BoundExpression node, BoundExpression rightOperand, TypeWithState rightResult, TypeSymbol resultType)
         {
-            NullableFlowState resultState;
-            if (getNullableState(leftOperand, leftResult) == NullableFlowState.NotNull)
-            {
-                resultState = getNullableState(leftOperand, leftResult);
-            }
-            else
-            {
-                resultState = getNullableState(rightOperand, rightResult);
-            }
-
+            NullableFlowState resultState =
+                node.HasAnyErrors ? NullableFlowState.NotNull : getNullableState(rightOperand, rightResult);
             return new TypeWithState(resultType, resultState);
 
             NullableFlowState getNullableState(BoundExpression e, TypeWithState t)
@@ -4727,9 +4719,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!IsConditionalState);
-            if (nullableOfTMember == SpecialMember.System_Nullable_T_get_HasValue)
+            if (nullableOfTMember == SpecialMember.System_Nullable_T_get_HasValue && !(receiverOpt is null))
             {
-                int containingSlot = (receiverOpt is null) ? -1 : MakeSlot(receiverOpt);
+                int containingSlot = MakeSlot(receiverOpt);
                 if (containingSlot > 0)
                 {
                     Split();
