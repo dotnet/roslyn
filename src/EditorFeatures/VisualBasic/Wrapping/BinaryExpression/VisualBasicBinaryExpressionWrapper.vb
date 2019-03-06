@@ -9,6 +9,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.BinaryExpression
         Inherits AbstractBinaryExpressionWrapper(Of BinaryExpressionSyntax)
 
         Public Sub New()
+            ' Override default indentation behavior.  The special indentation rule tries to 
+            ' align parameters.  But that's what we're actually trying to control, so we need
+            ' to remove this.
             MyBase.New(VisualBasicIndentationService.WithoutParameterAlignmentInstance,
                        VisualBasicSyntaxFactsService.Instance,
                        VisualBasicPrecedenceService.Instance)
