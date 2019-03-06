@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                    languageService,
                    vbHelperFormattingRule: null)
         {
-            Contract.ThrowIfFalse(vbHelperFormattingRule != null);
+            Contract.ThrowIfTrue(vbHelperFormattingRule != null);
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                    languageService,
                    vbHelperFormattingRule: null)
         {
-            Contract.ThrowIfFalse(vbHelperFormattingRule != null);
+            Contract.ThrowIfTrue(vbHelperFormattingRule != null);
         }
 
         internal ContainedLanguage(

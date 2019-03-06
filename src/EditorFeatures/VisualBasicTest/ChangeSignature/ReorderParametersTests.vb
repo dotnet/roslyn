@@ -146,7 +146,7 @@ End Class
 
 Module CExt
     <System.Runtime.CompilerServices.Extension()>
-    $$Public Sub M(ByVal this As C, x As Integer, y As Integer, Optional a As String = "test_a", Optional b As String = "test_b", Optional c As String = "test_c")
+    Public Sub M($$ByVal this As C, x As Integer, y As Integer, Optional a As String = "test_a", Optional b As String = "test_b", Optional c As String = "test_c")
     End Sub
 End Module]]></Text>.NormalizedValue()
             Dim permutation = {0, 2, 1, 5, 4, 3}
@@ -163,7 +163,10 @@ Module CExt
     End Sub
 End Module]]></Text>.NormalizedValue()
 
-            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+            ' Although the `ParameterConfig` has 0 for the `SelectedIndex`, the UI dialog will make an adjustment
+            ' and select parameter `y` instead because the `this` parameter cannot be moved or removed.
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation,
+                                                     expectedUpdatedInvocationDocumentCode:=updatedCode, expectedSelectedIndex:=0)
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>

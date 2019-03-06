@@ -35,20 +35,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         private static bool _firstLaunch = true;
 
-        static VisualStudioInstanceFactory()
-        {
-            var majorVsProductVersion = VsProductVersion.Split('.')[0];
-
-            if (int.Parse(majorVsProductVersion) < 15)
-            {
-                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
-            }
-        }
-
         public VisualStudioInstanceFactory()
         {
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
             AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
+
+            var majorVsProductVersion = VsProductVersion.Split('.')[0];
+            if (int.Parse(majorVsProductVersion) < 15)
+            {
+                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
+            }
         }
 
         private static void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
@@ -77,7 +73,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                     baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
                 }
 
-                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
+                Directory.CreateDirectory(logDir);
 
                 var exception = eventArgs.Exception;
                 File.WriteAllText(
@@ -86,6 +82,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 EventLogCollector.TryWriteDotNetEntriesToFile(Path.Combine(logDir, $"{baseFileName}.DotNet.log"));
                 EventLogCollector.TryWriteWatsonEntriesToFile(Path.Combine(logDir, $"{baseFileName}.Watson.log"));
+
+                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
             }
             finally
             {
@@ -322,6 +320,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 Process.Start(vsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
                 Process.Start(vsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
                 Process.Start(vsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
+
+                // Disable roaming settings to avoid interference from the online user profile
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"").WaitForExit();
+
+                // Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
+                // custom handler or fail silently and continue testing.
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"Text Editor\" \"Report Exceptions\" dword 0").WaitForExit();
 
                 _firstLaunch = false;
             }

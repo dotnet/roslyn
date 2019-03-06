@@ -100,9 +100,7 @@
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
   </PropertyGroup>
 
-  <Target Name="CheckBootstrapState" Condition="'$(BootstrapBuildPath)' != ''" AfterTargets="CoreCompile">
-    <ValidateBootstrap BootstrapPath="$(BootstrapBuildPath)" />
-  </Target>
+  <Import Project="Bootstrap.targets" Condition="'$(BootstrapBuildPath)' != ''" />
 
   <!--
     When running our determinism tests we need to copy the diagnostic file from the intermediate directory

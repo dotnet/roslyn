@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
 
-                foreach (var entry in dictionary.Values.Where(v => !v.IsNull))
+                foreach (var entry in dictionary.Values.Where(v => v.HasType))
                 {
                     // Result types cannot have nested types that are unspeakables
                     Assert.Null(entry.VisitType(typeOpt: null,
@@ -335,9 +335,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // We don't support VerifyTypes on suppressions at the moment
                     Assert.NotEqual(syntaxOpt.Kind(), SyntaxKind.SuppressNullableWarningExpression);
 
-                    return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type)
-                        ? (type.IsNull ? "<null>" : type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat))
-                        : null;
+                    return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type) ?
+                        (!type.HasType ? "<null>" : type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat)) :
+                        null;
                 }
             }
 
