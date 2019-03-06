@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -39,6 +41,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var vsCommandHandlerServiceAdapterFactory = componentModel.GetService<IVsCommandHandlerServiceAdapterFactory>();
             var vsCommandHandlerServiceAdapter = vsCommandHandlerServiceAdapterFactory.Create(wpfTextView, _subjectBuffer, nextCommandTarget);
             NextCommandTarget = vsCommandHandlerServiceAdapter;
+        }
+
+        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        public VenusCommandFilter(
+            TLanguageService languageService,
+            IWpfTextView wpfTextView,
+            ICommandHandlerServiceFactory commandHandlerServiceFactory,
+            ITextBuffer subjectBuffer,
+            IOleCommandTarget nextCommandTarget,
+            IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
+            : this(languageService, wpfTextView, subjectBuffer, nextCommandTarget, editorAdaptersFactoryService)
+        {
         }
 
         protected override ITextBuffer GetSubjectBufferContainingCaret()
