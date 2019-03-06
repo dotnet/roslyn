@@ -20,16 +20,16 @@ Nullability information is exposed publicly as two enums, `NullableAnnotation` a
 
 `NullableAnnotation` represents lvalues. There are 4 possible values:
 
-* `Default` - This is used when nullability information is requested about something that does not have the concept of nullability, such as a statement, directive, or other similar constructs.
-If we decide to expose a version of `SemanticModel` that does not compute nullability information for certain perf-sensitive scenarios, all annotation information returned would be `Default`.
-* `Unknown` - This value was defined in a nullable-disabled context.
+* `NotApplicable` - This is used when nullability information is requested about something that does not have the concept of nullability, such as a statement, directive, or other similar constructs.
+If we decide to expose a version of `SemanticModel` that does not compute nullability information for certain perf-sensitive scenarios, all annotation information returned would be `NotApplicable`.
+* `Disabled` - This value was defined in a nullable-disabled context.
 * `NotAnnotated` - This value was defined in a nullable-enabled context, and was not annotated in source (or in type inference scenarios, was inferred to be a not annotated type).
-* `Annotated` - This value was defined in a nullable-enabled context, and was annotated in source (or in type inference scenarios, was inferred to be a annotated type).
+* `Annotated` - This value was defined in a nullable-enabled context, and was annotated with a `?` in source (or in type inference scenarios, was inferred to be a annotated type).
 
 `NullableFlowState` represents rvalues. There are 3 possible values:
 
-* `Default` - This is used when nullability information is requested about something that does not have the concept of nullability, such as a statement, directive, or other similar constructs.
-If we decide to expose a version of `SemanticModel` that does not compute nullability information for certain perf-sensitive scenarios, all annotation information returned would be `Default`.
+* `NotApplicable` - This is used when nullability information is requested about something that does not have the concept of nullability, such as a statement, directive, or other similar constructs.
+If we decide to expose a version of `SemanticModel` that does not compute nullability information for certain perf-sensitive scenarios, all annotation information returned would be `NotApplicable`.
 * `MaybeNull` - The nullable analysis of the compiler has determined that this value could be null.
 * `NotNull` - The nullable analysis of the compiler has determined that this value is not null.
 
@@ -49,7 +49,7 @@ Value types are always considered `NotNull`.
 Nullable value types and reference types have their state tracked, and are either `NotNull` or `MaybeNull` depending on flow state.
 Unconstrained generic parameters are being tracked.
 When queried with `GetSymbolInfo`/`GetDeclaredSymbol`, variables/parameters/fields/etc of unconstrained type parameters have a `NullableAnnotation` of `NotAnnotated`.
-When queried with `GetTypeInfo`, the have a flow state of `MaybeNull` if they have not yet been checked for null, and `NotNull` after they have been checked for null.
+When queried with `GetTypeInfo`, they have a flow state of `MaybeNull` if they have not yet been checked for null and directly or indirectly assigned a non-null value, and `NotNull` after they have been checked for null and have not been directly or indirectly assigned a `MaybeNull` value.
 
 ### Declared Nullability
 
@@ -68,9 +68,9 @@ s2 = null; // This will warn, because the type of s2 is string, not string?
 The declared annotation of `s1` is `Annotated`, even though it is being initialized with a non-null value.
 However, because of the flow state of `s1` is `NotNull`, we will infer the declared annotation of `s2` to be `NotAnnotated` as well.
 
-The declared nullable annotation can be retreived from the declaration symbol (e.g. `IFieldSymbol`, `IMethodSymbol`, etc.).
+The declared nullable annotation can be retrieved from the declaration symbol (e.g. `IFieldSymbol`, `IMethodSymbol`, etc.).
 The nullable annotation of symbols at a location can be retrieved through the `GetSymbolInfo` API: if the expression successfully resolved to a single symbol, the `Symbol` property will have annotations calculated.
-`CandidateSymbols` will not have calculated nullable annotations, as we cannot run nullable analysis on code that has failed overload resolution.
+`CandidateSymbols` will not have calculated nullable annotations, as we do not run nullable analysis on code that has failed overload resolution.
 
 ### Flow State
 
@@ -93,25 +93,25 @@ It will share an initial-binding `BoundNode` cache with the standard semantic mo
 We add the new APIs for retreiving and interacting with nullability:
 
 ```C#
-internal enum NullableAnnotation : byte
+public enum NullableAnnotation : byte
 {
-    Default,
-    Unknown,
+    NotApplicable,
+    Disabled,
     NotAnnotated,
     Annotated
 }
 
-internal enum NullableFlowState : byte
+public enum NullableFlowState : byte
 {
-    Default,
+    NotApplicable,
     NotNull,
     MaybeNull
 }
 
-internal readonly struct NullabilityInfo
+public readonly struct NullabilityInfo
 {
-    public NullableAnnotation LValueAnnotation { get; }
-    public NullableFlowState RValueFlowState { get; }
+    public NullableAnnotation Annotation { get; }
+    public NullableFlowState FlowState { get; }
 }
 
 #region Declared Nullability
@@ -227,7 +227,7 @@ This will no longer be possible if we were to add `Nullability` to `ITypeSymbol`
 When a class is declared, it doesn't have a nullability.
 It's just an `INamedTypeSymbol`.
 It may have constraints that have nullabilities, but the top-level nullability is not a question that makes any sense.
-However, in order to not break analyzers on nullable-unaware code, we will have to make the default nullability `Unknown`, as old C# code will have this as the nullability when `GetTypeInfo` is called on an expression.
+However, in order to not break analyzers on nullable-unaware code, we will have to make the default nullability `Disabled`, as old C# code will have this as the nullability when `GetTypeInfo` is called on an expression.
 This would further exacerbate issue #1.
 3. This causes massive explosion in type heirarchies.
 If a user got `string?` and called `GetDeclaredMembers()`, the parent of each of these members must point back to `string?`, and not `string` or `string~`.
@@ -263,7 +263,7 @@ We briefly wandered down a thought experiment where we considered adding an `ITy
 This would be an *extremely* breaking change, requiring massive changes across the API surface area.
 It would also require revisiting an explicit design choice in the initial design of Roslyn.
 
-### A Single `Nullability` Enum for both lvalues and rvalues
+### A single `Nullability` enum for both lvalues and rvalues
 
-This proposal looked very similar to the current proposal, except there was only one public enum, `Nullability`, with possible values of `NotApplicable`, `NotComputed`, `Unknown`, `MaybeNull`, and `NotNull`
+This proposal looked very similar to the current proposal, except there was only one public enum, `Nullability`, with possible values of `NotApplicable`, `NotComputed`, `Unknown`, `MaybeNull`, and `NotNull`.
 After some work towards implementation, we felt that separating rvalue state and lvalue annotation would lead to an ultimately more useful API that was more maintainable and testable.
