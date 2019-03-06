@@ -66,22 +66,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MakeStatementAsynchronous
             {
                 case ForEachStatementSyntax forEach:
                     newStatement = forEach
-                        .WithForEachKeyword(SyntaxFactory.Token(SyntaxKind.ForEachKeyword))
+                        .WithForEachKeyword(forEach.ForEachKeyword.WithLeadingTrivia())
                         .WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(forEach.GetLeadingTrivia()));
                     break;
                 case ForEachVariableStatementSyntax forEachDeconstruction:
                     newStatement = forEachDeconstruction
-                        .WithForEachKeyword(SyntaxFactory.Token(SyntaxKind.ForEachKeyword))
+                        .WithForEachKeyword(forEachDeconstruction.ForEachKeyword.WithLeadingTrivia())
                         .WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(forEachDeconstruction.GetLeadingTrivia()));
                     break;
                 case UsingStatementSyntax usingStatement:
                     newStatement = usingStatement
-                        .WithUsingKeyword(SyntaxFactory.Token(SyntaxKind.UsingKeyword))
+                        .WithUsingKeyword(usingStatement.UsingKeyword.WithLeadingTrivia())
                         .WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(usingStatement.GetLeadingTrivia()));
                     break;
                 case LocalDeclarationStatementSyntax localDeclaration:
                     newStatement = localDeclaration
-                        .WithUsingKeyword(SyntaxFactory.Token(SyntaxKind.UsingKeyword))
+                        .WithUsingKeyword(localDeclaration.UsingKeyword.WithLeadingTrivia())
                         .WithAwaitKeyword(SyntaxFactory.Token(SyntaxKind.AwaitKeyword).WithLeadingTrivia(localDeclaration.GetLeadingTrivia()));
                     break;
                 default:
