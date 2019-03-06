@@ -360,8 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportUseSiteDiagnostics(constructedType.TypeSymbol.OriginalDefinition, diagnostics, syntax);
                             var type = (NamedTypeSymbol)constructedType.TypeSymbol;
                             var location = syntax.Location;
-                            var conversions = this.Conversions.WithNullability(includeNullability: true);
-                            type.CheckConstraints(this.Compilation, conversions, location, diagnostics);
+                            type.CheckConstraints(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics);
                         }
                         else if (constructedType.TypeSymbol.IsTypeParameterDisallowingAnnotation())
                         {
@@ -470,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var location = questionToken.GetLocation();
 
                 // Inside a method body or other executable code, we can question IsValueType without causing cycles.
-                if (!typeArgument.IsNull && !ShouldCheckConstraints)
+                if (typeArgument.HasType && !ShouldCheckConstraints)
                 {
                     LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(isNullableEnabled, typeArgument, location, diagnostics);
                 }
@@ -590,17 +589,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.UnexpectedValue(typesArray.Length);
             }
 
+            bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
             return TupleTypeSymbol.Create(syntax.Location,
-                                            typesArray,
-                                            locationsArray,
-                                            elementNames == null ?
-                                                default(ImmutableArray<string>) :
-                                                elementNames.ToImmutableAndFree(),
-                                            this.Compilation,
-                                            this.ShouldCheckConstraints,
-                                            errorPositions: default(ImmutableArray<bool>),
-                                            syntax: syntax,
-                                            diagnostics: diagnostics);
+                                          typesArray,
+                                          locationsArray,
+                                          elementNames == null ?
+                                            default(ImmutableArray<string>) :
+                                            elementNames.ToImmutableAndFree(),
+                                          this.Compilation,
+                                          this.ShouldCheckConstraints,
+                                          includeNullability: this.ShouldCheckConstraints && includeNullability,
+                                          errorPositions: default(ImmutableArray<bool>),
+                                          syntax: syntax,
+                                          diagnostics: diagnostics);
         }
 
         private static void CollectTupleFieldMemberName(string name, int elementIndex, int tupleSize, ref ArrayBuilder<string> elementNames)
@@ -1197,8 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (ShouldCheckConstraints && ConstraintsHelper.RequiresChecking(type))
             {
                 bool includeNullability = Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes);
-                var conversions = this.Conversions.WithNullability(includeNullability);
-                type.CheckConstraintsForNonTuple(conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
+                type.CheckConstraintsForNonTuple(this.Conversions, includeNullability, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
             type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);

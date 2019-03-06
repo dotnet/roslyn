@@ -98,51 +98,51 @@ class C : I {
 }
 //]";
 
-        public SpacingViewModel(OptionSet options, IServiceProvider serviceProvider) : base(options, serviceProvider, LanguageNames.CSharp)
+        public SpacingViewModel(OptionStore optionStore, IServiceProvider serviceProvider) : base(optionStore, serviceProvider, LanguageNames.CSharp)
         {
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.Set_spacing_for_method_declarations });
 
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, CSharpVSResources.Insert_space_between_method_name_and_its_opening_parenthesis2, s_methodPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis, CSharpVSResources.Insert_space_within_parameter_list_parentheses, s_methodPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBetweenEmptyMethodDeclarationParentheses, CSharpVSResources.Insert_space_within_empty_parameter_list_parentheses, s_methodPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpacingAfterMethodDeclarationName, CSharpVSResources.Insert_space_between_method_name_and_its_opening_parenthesis2, s_methodPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinMethodDeclarationParenthesis, CSharpVSResources.Insert_space_within_parameter_list_parentheses, s_methodPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBetweenEmptyMethodDeclarationParentheses, CSharpVSResources.Insert_space_within_empty_parameter_list_parentheses, s_methodPreview, this, optionStore));
 
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.Set_spacing_for_method_calls });
 
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterMethodCallName, CSharpVSResources.Insert_space_between_method_name_and_its_opening_parenthesis1, s_methodPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinMethodCallParentheses, CSharpVSResources.Insert_space_within_argument_list_parentheses, s_methodPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, CSharpVSResources.Insert_space_within_empty_argument_list_parentheses, s_methodPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterMethodCallName, CSharpVSResources.Insert_space_between_method_name_and_its_opening_parenthesis1, s_methodPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinMethodCallParentheses, CSharpVSResources.Insert_space_within_argument_list_parentheses, s_methodPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBetweenEmptyMethodCallParentheses, CSharpVSResources.Insert_space_within_empty_argument_list_parentheses, s_methodPreview, this, optionStore));
 
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.Set_other_spacing_options });
 
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword, CSharpVSResources.Insert_space_after_keywords_in_control_flow_statements, s_forDelimiterPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinExpressionParentheses, CSharpVSResources.Insert_space_within_parentheses_of_expressions, s_expressionPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinCastParentheses, CSharpVSResources.Insert_space_within_parentheses_of_type_casts, s_castPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinOtherParentheses, CSharpVSResources.Insert_spaces_within_parentheses_of_control_flow_statements, s_forDelimiterPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterCast, CSharpVSResources.Insert_space_after_cast, s_castPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, CSharpVSResources.Ignore_spaces_in_declaration_statements, s_declarationSpacingPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterControlFlowStatementKeyword, CSharpVSResources.Insert_space_after_keywords_in_control_flow_statements, s_forDelimiterPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinExpressionParentheses, CSharpVSResources.Insert_space_within_parentheses_of_expressions, s_expressionPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinCastParentheses, CSharpVSResources.Insert_space_within_parentheses_of_type_casts, s_castPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinOtherParentheses, CSharpVSResources.Insert_spaces_within_parentheses_of_control_flow_statements, s_forDelimiterPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterCast, CSharpVSResources.Insert_space_after_cast, s_castPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpacesIgnoreAroundVariableDeclaration, CSharpVSResources.Ignore_spaces_in_declaration_statements, s_declarationSpacingPreview, this, optionStore));
 
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.Set_spacing_for_brackets });
 
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBeforeOpenSquareBracket, CSharpVSResources.Insert_space_before_open_square_bracket, s_bracketPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, CSharpVSResources.Insert_space_within_empty_square_brackets, s_bracketPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinSquareBrackets, CSharpVSResources.Insert_spaces_within_square_brackets, s_bracketPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBeforeOpenSquareBracket, CSharpVSResources.Insert_space_before_open_square_bracket, s_bracketPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBetweenEmptySquareBrackets, CSharpVSResources.Insert_space_within_empty_square_brackets, s_bracketPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceWithinSquareBrackets, CSharpVSResources.Insert_spaces_within_square_brackets, s_bracketPreview, this, optionStore));
 
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.Set_spacing_for_delimiters });
 
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration, CSharpVSResources.Insert_space_after_colon_for_base_or_interface_in_type_declaration, s_baseColonPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterComma, CSharpVSResources.Insert_space_after_comma, s_delimiterPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterDot, CSharpVSResources.Insert_space_after_dot, s_delimiterPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement, CSharpVSResources.Insert_space_after_semicolon_in_for_statement, s_forDelimiterPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBeforeColonInBaseTypeDeclaration, CSharpVSResources.Insert_space_before_colon_for_base_or_interface_in_type_declaration, s_baseColonPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBeforeComma, CSharpVSResources.Insert_space_before_comma, s_delimiterPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBeforeDot, CSharpVSResources.Insert_space_before_dot, s_delimiterPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement, CSharpVSResources.Insert_space_before_semicolon_in_for_statement, s_forDelimiterPreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration, CSharpVSResources.Insert_space_after_colon_for_base_or_interface_in_type_declaration, s_baseColonPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterComma, CSharpVSResources.Insert_space_after_comma, s_delimiterPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterDot, CSharpVSResources.Insert_space_after_dot, s_delimiterPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement, CSharpVSResources.Insert_space_after_semicolon_in_for_statement, s_forDelimiterPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBeforeColonInBaseTypeDeclaration, CSharpVSResources.Insert_space_before_colon_for_base_or_interface_in_type_declaration, s_baseColonPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBeforeComma, CSharpVSResources.Insert_space_before_comma, s_delimiterPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBeforeDot, CSharpVSResources.Insert_space_before_dot, s_delimiterPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement, CSharpVSResources.Insert_space_before_semicolon_in_for_statement, s_forDelimiterPreview, this, optionStore));
 
             Items.Add(new HeaderItemViewModel() { Header = CSharpVSResources.Set_spacing_for_operators });
 
-            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Ignore_spaces_around_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Ignore, CSharpFormattingOptions.SpacingAroundBinaryOperator, this, Options));
-            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Remove_spaces_before_and_after_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Remove, CSharpFormattingOptions.SpacingAroundBinaryOperator, this, Options));
-            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Insert_space_before_and_after_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Single, CSharpFormattingOptions.SpacingAroundBinaryOperator, this, Options));
+            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Ignore_spaces_around_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Ignore, CSharpFormattingOptions.SpacingAroundBinaryOperator, this, OptionStore));
+            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Remove_spaces_before_and_after_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Remove, CSharpFormattingOptions.SpacingAroundBinaryOperator, this, OptionStore));
+            Items.Add(new RadioButtonViewModel<BinaryOperatorSpacingOptions>(CSharpVSResources.Insert_space_before_and_after_binary_operators, s_expressionSpacingPreview, "binary", BinaryOperatorSpacingOptions.Single, CSharpFormattingOptions.SpacingAroundBinaryOperator, this, OptionStore));
         }
     }
 }

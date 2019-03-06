@@ -1872,7 +1872,7 @@ public class Test
   }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text,
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular,
                 // (6,13): error CS1525: Invalid expression term 'int'
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 13),
@@ -3100,9 +3100,43 @@ ref struct DisposableEnumerator
             Assert.Equal("void DisposableEnumerator.Dispose()", enumeratorInfo.DisposeMethod.ToTestDisplayString());
         }
 
-        private static BoundForEachStatement GetBoundForEachStatement(string text, params DiagnosticDescription[] diagnostics)
+        [Fact]
+        public void TestPatternDisposeRefStruct_7_3()
         {
-            var tree = Parse(text);
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+ref struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+    public void Dispose() {  }
+}";
+
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3);
+            var enumeratorInfo = boundNode.EnumeratorInfoOpt;
+
+            Assert.Null(enumeratorInfo.DisposeMethod);
+        }
+
+        private static BoundForEachStatement GetBoundForEachStatement(string text, CSharpParseOptions options = null, params DiagnosticDescription[] diagnostics)
+        {
+            var tree = Parse(text, options: options);
             var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
 
             comp.VerifyDiagnostics(diagnostics);
