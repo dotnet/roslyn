@@ -46,6 +46,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _enclosing = oldEnclosing;
             }
         }
+        
+        private void VisitRankSpecifiers(TypeSyntax type, Binder enclosing)
+        {
+            type.VisitRankSpecifiers((rankSpecifier, args) =>
+            {
+                foreach (var size in rankSpecifier.Sizes)
+                {
+                    if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                    {
+                        args.localBinderFactory.Visit(size, args.binder);
+                    }
+                }
+            }, (localBinderFactory: this, binder: enclosing));
+        }
 
         // methodsWithYields will contain all function-declaration-like CSharpSyntaxNodes with yield statements contained within them.
         // Currently the types of these are restricted to only be whatever the syntax parameter is, plus any LocalFunctionStatementSyntax contained within it.
@@ -366,6 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                VisitRankSpecifiers(node.Declaration.Type, usingBinder);
+
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
                     Visit(declarator, usingBinder);
@@ -404,6 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableDeclarationSyntax declaration = node.Declaration;
             if (declaration != null)
             {
+                VisitRankSpecifiers(node.Declaration.Type, binder);
+
                 foreach (VariableDeclaratorSyntax variable in declaration.Variables)
                 {
                     Visit(variable, binder);
@@ -487,6 +505,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Declaration != null)
             {
+                VisitRankSpecifiers(node.Declaration.Type, binder);
+
                 foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
                 {
                     Visit(declarator, binder);

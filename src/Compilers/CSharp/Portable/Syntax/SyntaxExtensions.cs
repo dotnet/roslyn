@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Visits all the ArrayRankSpecifiers of a typeSyntax, invoking an action on each one in turn
+        /// Visits all the ArrayRankSpecifiers of a typeSyntax, invoking an action on each one in turn.
         /// </summary>
         /// <param name="type"></param>
         /// <param name="action"></param>
@@ -427,15 +427,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case QualifiedNameSyntax qualifiedNameSyntax:
+                    qualifiedNameSyntax.Left.VisitRankSpecifiers(action, argument);
                     qualifiedNameSyntax.Right.VisitRankSpecifiers(action, argument);
+                    break;
+                case AliasQualifiedNameSyntax aliasQualifiedNameSyntax:
+                    aliasQualifiedNameSyntax.Name.VisitRankSpecifiers(action, argument);
                     break;
                 case IdentifierNameSyntax _:
                     break;
                 case OmittedTypeArgumentSyntax _:
                     break;
                 case PredefinedTypeSyntax _:
-                    break;
-                case AliasQualifiedNameSyntax _:
                     break;
                 default:
                     throw ExceptionUtilities.Unreachable;

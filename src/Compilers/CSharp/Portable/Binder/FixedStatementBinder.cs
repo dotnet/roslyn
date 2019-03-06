@@ -27,6 +27,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_syntax.Declaration != null)
             {
                 var locals = new ArrayBuilder<LocalSymbol>(_syntax.Declaration.Variables.Count);
+
+                _syntax.Declaration.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                {
+                    if (rankSpecifier.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                    {
+                        foreach (var size in rankSpecifier.Sizes)
+                        {
+                            ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
+                        }
+                    }
+                }, (binder: this, locals: locals));
+
                 foreach (VariableDeclaratorSyntax declarator in _syntax.Declaration.Variables)
                 {
                     locals.Add(MakeLocal(_syntax.Declaration, declarator, LocalDeclarationKind.FixedVariable));

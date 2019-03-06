@@ -1152,6 +1152,128 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_NestedArrayType()
+        {
+            string source = @"
+class C
+{
+#nullable enable
+    void M1()
+    {
+        /*<bind>*/int[10]?[20]? x;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[10]?[20]? x')
+  Ignored Dimensions(2):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20, IsInvalid) (Syntax: '20')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[]?[]? x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[10]?[20]? x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[10]").WithLocation(7, 22),
+                // file.cs(7,27): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/int[10]?[20]? x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[20]").WithLocation(7, 27),
+                // file.cs(7,33): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/int[10]?[20]? x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 33)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_AliasQualifiedName01()
+        {
+            string source = @"
+using Col=System.Collections.Generic;
+class C
+{
+    void M1()
+    {
+        /*<bind>*/Col::List<int[]> x;/*</bind>*/
+    }
+}
+";
+            var syntaxTree = Parse(source, filename: "file.cs");
+            var rankSpecifierOld = syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<ArrayRankSpecifierSyntax>().First();
+            var rankSpecifierNew = rankSpecifierOld
+                .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(SyntaxFactory.NodeOrTokenList(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression ,SyntaxFactory.Literal(10)))));
+            syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
+
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'Col::List<int[10]> x')
+  Ignored Dimensions(1):
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Collections.Generic.List<System.Int32[]> x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,32): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         /*<bind>*/Col::List<int[10]> x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[10]").WithLocation(7, 32),
+                // file.cs(7,38): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/Col::List<int[10]> x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 38)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void IVariableDeclaration_InvalidIgnoredDimensions_AliasQualifiedName02()
+        {
+            string source = @"
+using List=System.Collections.Generic.List<int[10]>;
+
+class C
+{
+    void M1()
+    {
+        /*<bind>*/List x;/*</bind>*/
+    }
+}
+";
+
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'List x')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Collections.Generic.List<System.Int32[]> x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
+        Initializer: 
+          null
+  Initializer: 
+    null
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(2,47): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                // using List=System.Collections.Generic.List<int[10]>;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[10]").WithLocation(2, 47),
+                // file.cs(8,24): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/List x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(8, 24)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
         public void IVariableDeclaration_InvalidIgnoredDimensions_DeclarationPattern()
@@ -1213,45 +1335,33 @@ class C
     void M1()
     {
         int y = 10;
-        /*<bind>*/int[] x;/*</bind>*/
+        /*<bind>*/int[M(y switch { int z => 42 })] x;/*</bind>*/
     }
+
+    int M(int a) => a;
 }
 ";
-            // We replace
-            // int[] x;
-            // with
-            // int[y switch { int z => 42 }] x;
-
-            var syntaxTree = Parse(source, filename: "file.cs");
-            var rankSpecifierOld = syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<ArrayRankSpecifierSyntax>().Single();
-            var rankSpecifierNew = rankSpecifierOld
-                .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(
-                    SyntaxFactory.NodeOrTokenList(
-                        SyntaxFactory.SwitchExpression(
-                            SyntaxFactory.IdentifierName("y"),
-                            SyntaxFactory.SeparatedList<SwitchExpressionArmSyntax>(
-                                SyntaxFactory.NodeOrTokenList(SyntaxFactory.SwitchExpressionArm(
-                                    SyntaxFactory.DeclarationPattern(
-                                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.IntKeyword, "int", "int", SyntaxFactory.TriviaList())),
-                                        SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier("z"))),
-                                    SyntaxFactory.LiteralExpression(
-                                        SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal("42", 42)))
-                                ))))));
-            syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
 
             string expectedOperationTree = @"
-IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[yswitch{intz=>42}] x')
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[M(y swi ... => 42 })] x')
   Ignored Dimensions(1):
-      ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'yswitch{intz=>42}')
-        Value: 
-          ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
-        Arms(1):
-            ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'intz=>42')
-              Pattern: 
-                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'intz') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
-              Value: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
-              Locals: Local_1: System.Int32 z
+      IInvocationOperation ( System.Int32 C.M(System.Int32 a)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M(y switch  ...  z => 42 })')
+        Instance Receiver: 
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
+        Arguments(1):
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+              ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+                Value: 
+                  ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                Arms(1):
+                    ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
+                      Pattern: 
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                      Value: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+                      Locals: Local_1: System.Int32 z
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
   Declarators:
       IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
         Initializer: 
@@ -1265,52 +1375,11 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
                 //         int y = 10;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
                 // file.cs(7,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         /*<bind>*/int[yswitch{intz=>42}] x;/*</bind>*/
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[yswitch{intz=>42}]").WithLocation(7, 22),
-                // file.cs(7,42): warning CS0168: The variable 'x' is declared but never used
-                //         /*<bind>*/int[yswitch{intz=>42}] x;/*</bind>*/
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 42)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new []{syntaxTree}, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
-        public void IVariableDeclaration_InvalidIgnoredDimensions_NestedArrayType()
-        {
-            string source = @"
-class C
-{
-#nullable enable
-    void M1()
-    {
-        /*<bind>*/int[10]?[20]? x;/*</bind>*/
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[10]?[20]? x')
-  Ignored Dimensions(2):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10, IsInvalid) (Syntax: '10')
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20, IsInvalid) (Syntax: '20')
-  Declarators:
-      IVariableDeclaratorOperation (Symbol: System.Int32[]?[]? x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
-        Initializer: 
-          null
-  Initializer: 
-    null
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(7,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         /*<bind>*/int[10]?[20]? x;/*</bind>*/
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[10]").WithLocation(7, 22),
-                // file.cs(7,27): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
-                //         /*<bind>*/int[10]?[20]? x;/*</bind>*/
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[20]").WithLocation(7, 27),
-                // file.cs(7,33): warning CS0168: The variable 'x' is declared but never used
-                //         /*<bind>*/int[10]?[20]? x;/*</bind>*/
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 33)
+                //         /*<bind>*/int[M(y switch { int z => 42 })] x;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[M(y switch { int z => 42 })]").WithLocation(7, 22),
+                // file.cs(7,52): warning CS0168: The variable 'x' is declared but never used
+                //         /*<bind>*/int[M(y switch { int z => 42 })] x;/*</bind>*/
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(7, 52)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1681,6 +1750,76 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
                 // CS0169: The field 'Program.i2' is never used
                 //     int i1, i2;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "i2").WithArguments("Program.i2").WithLocation(4, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void FixedStatement_InvalidIgnoredDimensions_SwitchExpression()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int y = 10;
+        unsafe
+        {
+            fixed (/*<bind>*/int[M2(y switch { int z => 42 })] p1 = null/*</bind>*/)
+            {
+
+            }
+        }
+    }
+
+    int M2(int x) => x;
+}
+";
+
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[M2(y sw ... ] p1 = null')
+  Ignored Dimensions(1):
+      IInvocationOperation ( System.Int32 C.M2(System.Int32 x)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2(y switch ...  z => 42 })')
+        Instance Receiver: 
+          IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+        Arguments(1):
+            IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+              ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+                Value: 
+                  ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                Arms(1):
+                    ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
+                      Pattern: 
+                        IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+                      Value: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+                      Locals: Local_1: System.Int32 z
+              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[] p1) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'p1 = null')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= null')
+            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
+  Initializer: 
+    null
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         int y = 10;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
+                // file.cs(7,9): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //         unsafe
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(7, 9),
+                // file.cs(9,33): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //             fixed (/*<bind>*/int[M2(y switch { int z => 42 })] p1 = null/*</bind>*/)
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[M2(y switch { int z => 42 })]").WithLocation(9, 33),
+                // file.cs(9,64): error CS0209: The type of a local declared in a fixed statement must be a pointer type
+                //             fixed (/*<bind>*/int[M2(y switch { int z => 42 })] p1 = null/*</bind>*/)
+                Diagnostic(ErrorCode.ERR_BadFixedInitType, "p1 = null").WithLocation(9, 64)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -2143,6 +2282,130 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Fact]
+        public void UsingStatement_InvalidIgnoredDimensions_SwitchExpression()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int y = 10;
+       using( /*<bind>*/int[] x = new int[0]/*</bind>*/);
+    }
+}
+";
+            var syntaxTree = Parse(source, filename: "file.cs");
+            var rankSpecifierOld = syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<ArrayRankSpecifierSyntax>().First();
+            var rankSpecifierNew = rankSpecifierOld
+                .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(SyntaxFactory.NodeOrTokenList(SyntaxFactory.ParseExpression("y switch { int z => 42 }"))));
+            syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
+
+
+            string expectedOperationTree = @"
+	IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
+	  Ignored Dimensions(1):
+	      ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+	        Value:
+	          ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+	        Arms(1):
+	            ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
+	              Pattern:
+	                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+	              Value:
+	                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+	              Locals: Local_1: System.Int32 z
+	  Declarators:
+	      IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = new int[0]')
+	        Initializer:
+	          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new int[0]')
+	            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsInvalid) (Syntax: 'new int[0]')
+	              Dimension Sizes(1):
+	                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+	              Initializer:
+	                null
+	  Initializer:
+	    null
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         int y = 10;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
+                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/);
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[y switch { int z => 42 }] x = new int[0]").WithArguments("int[]").WithLocation(7, 25),
+                // file.cs(7,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/);
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y switch { int z => 42 }]").WithLocation(7, 28),
+                // file.cs(7,29): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y switch { int z => 42 }").WithArguments("recursive patterns").WithLocation(7, 29),
+                // file.cs(7,81): warning CS0642: Possible mistaken empty statement
+                //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(7, 81)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void UsingDeclaration_InvalidIgnoredDimensions_SwitchExpression()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int y = 10;
+       using /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;
+    }
+}
+";
+
+            string expectedOperationTree = @"
+	IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
+	  Ignored Dimensions(1):
+	      ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+	        Value:
+	          ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+	        Arms(1):
+	            ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
+	              Pattern:
+	                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+	              Value:
+	                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+	              Locals: Local_1: System.Int32 z
+	  Declarators:
+	      IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = new int[0]')
+	        Initializer:
+	          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new int[0]')
+	            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsInvalid) (Syntax: 'new int[0]')
+	              Dimension Sizes(1):
+	                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+	              Initializer:
+	                null
+	  Initializer:
+	    null
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         int y = 10;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
+                // file.cs(7,8): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //        using /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;").WithArguments("int[]").WithLocation(7, 8),
+                // file.cs(7,27): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //        using /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y switch { int z => 42 }]").WithLocation(7, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         #endregion
 
         #region For Loops
@@ -2489,6 +2752,68 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ForLoop_InvalidIgnoredDimensions_SwitchExpression()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int y = 10;
+        for (/*<bind/>*/int[] x = new int[0]/*</bind>*/;;);
+    }
+}
+";
+            var syntaxTree = Parse(source, filename: "file.cs");
+            var rankSpecifierOld = syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<ArrayRankSpecifierSyntax>().First();
+            var rankSpecifierNew = rankSpecifierOld
+                .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(SyntaxFactory.NodeOrTokenList(SyntaxFactory.ParseExpression("y switch { int z => 42 }"))));
+            syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
+
+
+            string expectedOperationTree = @"
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
+  Ignored Dimensions(1):
+      ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+        Value: 
+          ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+        Arms(1):
+            ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
+              Pattern: 
+                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+              Locals: Local_1: System.Int32 z
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = new int[0]')
+        Initializer: 
+          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= new int[0]')
+            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new int[0]')
+              Dimension Sizes(1):
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Initializer: 
+                null
+  Initializer: 
+    null
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         int y = 10;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
+                // file.cs(7,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         for (/*<bind/>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;;);
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y switch { int z => 42 }]").WithLocation(7, 28),
+                // file.cs(7,29): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         for (/*<bind/>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/;;);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y switch { int z => 42 }").WithArguments("recursive patterns").WithLocation(7, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>( new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
         }
 
         #endregion
