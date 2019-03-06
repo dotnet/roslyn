@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
@@ -10,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.SeparatedSyntaxList
         Inherits AbstractSeparatedSyntaxListWrapper(Of TListSyntax, TListItemSyntax)
 
         Protected Sub New()
-            MyBase.New(WrappingIndentationService.Instance)
+            MyBase.New(VisualBasicIndentationService.WithoutParameterAlignmentInstance)
         End Sub
     End Class
 End Namespace
