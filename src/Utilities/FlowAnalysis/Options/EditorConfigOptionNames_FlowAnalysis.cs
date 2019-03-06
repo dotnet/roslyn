@@ -41,9 +41,14 @@ namespace Analyzer.Utilities
         /// <code>
         ///     void M(string str1, string str2)
         ///     {
-        ///         if (str1 != null && str1 == str2)
+        ///         if (str1 != null)
         ///         {
-        ///             if (str2 != null) // This is redundant as 'str1' and 'str2' are value copies on this code path. This requires copy analysis.
+        ///             if (str1 == str2)
+        ///             {
+        ///                 if (str2 != null) // This is redundant as 'str1' and 'str2' are value copies on this code path. This requires copy analysis.
+        ///                 {
+        ///                 }
+        ///             }
         ///         }
         ///     }
         /// </code>

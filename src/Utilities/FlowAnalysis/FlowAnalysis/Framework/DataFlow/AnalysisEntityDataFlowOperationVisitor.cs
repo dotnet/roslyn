@@ -35,8 +35,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         protected abstract TAbstractAnalysisValue GetAbstractValue(AnalysisEntity analysisEntity);
         protected abstract bool HasAbstractValue(AnalysisEntity analysisEntity);
         protected abstract void StopTrackingEntity(AnalysisEntity analysisEntity, TAnalysisData analysisData);
-        private void StopTrackingEntity(AnalysisEntity analysisEntity)
-            => StopTrackingEntity(analysisEntity, CurrentAnalysisData);
 
         protected override TAbstractAnalysisValue ComputeAnalysisValueForReferenceOperation(IOperation operation, TAbstractAnalysisValue defaultValue)
         {
