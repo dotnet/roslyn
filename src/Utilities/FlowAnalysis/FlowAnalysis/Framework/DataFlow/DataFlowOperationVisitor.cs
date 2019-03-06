@@ -1308,7 +1308,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 case IBinaryOperation binaryOperation:
                     // Predicate analysis for different equality comparison operators.
-                    Debug.Assert(binaryOperation.IsComparisonOperator());
+                    if (!binaryOperation.IsComparisonOperator())
+                    {
+                        return;
+                    }
+
                     predicateValueKind = SetValueForComparisonOperator(binaryOperation, targetAnalysisData);
                     break;
 
