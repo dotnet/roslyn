@@ -45,6 +45,11 @@ namespace Roslyn.Test.Utilities
         /// Edit and continue is only supported on desktop at the moment.
         /// </summary>
         public const string EditAndContinueRequiresDesktop = "Edit and continue is only supported on desktop";
+
+        /// <summary>
+        /// Mono issues around Default Interface Methods
+        /// </summary>
+        public const string MonoDefaultInterfaceMethods = "Mono can't execute this default interface method test yet";
     }
 
     public class ConditionalFactAttribute : FactAttribute
