@@ -32,7 +32,7 @@ namespace Analyzer.Utilities
         private static readonly ConditionalWeakTable<Compilation, DisposeAnalysisHelper>.CreateValueCallback s_DisposeHelperCacheCallback =
             new ConditionalWeakTable<Compilation, DisposeAnalysisHelper>.CreateValueCallback(compilation => new DisposeAnalysisHelper(compilation));
 
-        private static ImmutableHashSet<OperationKind> s_DisposableCreationKinds => ImmutableHashSet.Create(
+        private static readonly ImmutableHashSet<OperationKind> s_DisposableCreationKinds = ImmutableHashSet.Create(
             OperationKind.ObjectCreation,
             OperationKind.TypeParameterObjectCreation,
             OperationKind.DynamicObjectCreation,

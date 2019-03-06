@@ -248,9 +248,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             foreach (var operation in _returnValueOperationsOpt)
             {
                 mergedValue = ValueDomain.Merge(mergedValue, GetCachedAbstractValue(operation));
-                if (PredicateAnalysis &&
-                    _predicateValueKindCacheBuilder.TryGetValue(operation, out var predicateValueKind))
+                if (PredicateAnalysis)
                 {
+                    if (!_predicateValueKindCacheBuilder.TryGetValue(operation, out var predicateValueKind))
+                    {
+                        predicateValueKind = PredicateValueKind.Unknown;
+                    }
+
                     if (!mergedPredicateValueKind.HasValue)
                     {
                         mergedPredicateValueKind = predicateValueKind;
@@ -354,16 +358,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         if (exceptionInfo.ContainingFinallyRegionOpt == null ||
                             !finallyRegion.ContainsRegionOrSelf(exceptionInfo.ContainingFinallyRegionOpt))
                         {
+                            AssertValidAnalysisData(dataAtException);
                             UpdateValuesForAnalysisData(dataAtException);
+                            AssertValidAnalysisData(dataAtException);
                         }
                     }
-                }
-
-                if (block.EnclosingRegion.Kind == ControlFlowRegionKind.Finally ||
-                    block.EnclosingRegion.Kind == ControlFlowRegionKind.Catch ||
-                    block.EnclosingRegion.Kind == ControlFlowRegionKind.Filter)
-                {
-                    OnLeavingRegion(block.EnclosingRegion);
                 }
             }
 
@@ -374,15 +373,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             CurrentBasicBlock = null;
             return CurrentAnalysisData;
-
-            // Local functions.
-            void OnLeavingRegion(ControlFlowRegion region)
-            {
-                if (region.Locals.Length > 0 || region.CaptureIds.Length > 0)
-                {
-                    ProcessOutOfScopeLocalsAndFlowCaptures(region.Locals, region.CaptureIds);
-                }
-            }
         }
 
         /// <summary>
@@ -499,10 +489,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (_lazyParameterEntities != null && DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null)
             {
                 // Reset address shared entities to caller's address shared entities.
-                _addressSharedEntitiesProvider.SetAddressSharedEntities(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt?.AddressSharedEntities);
+                _addressSharedEntitiesProvider.SetAddressSharedEntities(DataFlowAnalysisContext.InterproceduralAnalysisDataOpt.AddressSharedEntities);
                 StopTrackingDataForParameters(_lazyParameterEntities);
             }
         }
+
+        protected bool IsParameterEntityForCurrentMethod(AnalysisEntity analysisEntity)
+            => analysisEntity.SymbolOpt is IParameterSymbol parameter &&
+            _lazyParameterEntities != null &&
+            _lazyParameterEntities.TryGetValue(parameter, out var parameterEntity) &&
+            parameterEntity == analysisEntity;
 
         /// <summary>
         /// Primary method that flows analysis data through the given flow edge/branch.
@@ -710,6 +706,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             data = GetMergedAnalysisDataForPossibleThrowingOperation(data, operation);
             Debug.Assert(data != null);
+            AssertValidAnalysisData(data);
             AnalysisDataForUnhandledThrowOperations[DefaultThrownExceptionInfo] = data;
         }
 
@@ -805,6 +802,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 mergedData = mergedData != null ? MergeAnalysisData(mergedData, data) : data;
             }
 
+#if DEBUG
+            if (mergedData != null)
+            {
+                AssertValidAnalysisData(mergedData);
+            }
+#endif
             return mergedData;
         }
 
@@ -823,6 +826,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             if (DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null)
             {
                 return DataFlowAnalysisContext.InterproceduralAnalysisDataOpt.GetCachedAbstractValueFromCaller(operation);
+            }
+
+            // We were unable to find cached abstract value for requested operation.
+            // We should never reach this path, except for one known case.
+            // For interprocedural analysis, we might reach here when attempting to access abstract value for instance receiver
+            // of a method delegate which was saved in a prior interprocedural call chain, that returned back to the root caller
+            // and a different interprocedural call tree indirectly invokes that saved method delegate.
+            // We correctly resolve the method delegate target, but would need pretty complicated implementation to reach that
+            // operation's analysis result.
+            // See unit test 'DisposeObjectsBeforeLosingScopeTests.InvocationOfMethodDelegate_PriorInterproceduralCallChain' for an example.
+            // For now, we just gracefully return an unknown abstract value for this case.
+            if (DataFlowAnalysisContext.InterproceduralAnalysisConfiguration.InterproceduralAnalysisKind != InterproceduralAnalysisKind.None)
+            {
+                return ValueDomain.UnknownOrMayBeValue;
             }
 
             throw new InvalidOperationException();
@@ -1291,7 +1308,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 case IBinaryOperation binaryOperation:
                     // Predicate analysis for different equality comparison operators.
-                    Debug.Assert(binaryOperation.IsComparisonOperator());
+                    if (!binaryOperation.IsComparisonOperator())
+                    {
+                        return;
+                    }
+
                     predicateValueKind = SetValueForComparisonOperator(binaryOperation, targetAnalysisData);
                     break;
 
@@ -1669,6 +1690,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             => dict1.Count == dict2.Count &&
                dict1.Keys.All(key => dict2.TryGetValue(key, out TValue value2) && EqualityComparer<TValue>.Default.Equals(dict1[key], value2));
         protected abstract void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(TAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType);
+        protected virtual void AssertValidAnalysisData(TAnalysisData analysisData)
+        {
+            // No validation by default, all the subtypes can override for validation.
+        }
 
         protected void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData<TKey>(
             DictionaryAnalysisData<TKey, TAbstractAnalysisValue> coreDataAtException,
@@ -1737,7 +1762,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Local functions
             void ApplyInterproceduralAnalysisDataForUnhandledThrowOperation(ThrownExceptionInfo exceptionInfo, TAnalysisData analysisDataAtException)
             {
+                AssertValidAnalysisData(analysisDataAtException);
                 ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(analysisDataAtException, exceptionInfo);
+                AssertValidAnalysisData(analysisDataAtException);
+
                 if (!AnalysisDataForUnhandledThrowOperations.TryGetValue(exceptionInfo, out var existingAnalysisDataAtException))
                 {
                     AnalysisDataForUnhandledThrowOperations.Add(exceptionInfo, analysisDataAtException);
@@ -1745,6 +1773,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 else
                 {
                     var mergedAnalysisDataAtException = MergeAnalysisData(existingAnalysisDataAtException, analysisDataAtException);
+                    AssertValidAnalysisData(mergedAnalysisDataAtException);
                     AnalysisDataForUnhandledThrowOperations[exceptionInfo] = mergedAnalysisDataAtException;
                     existingAnalysisDataAtException.Dispose();
                     analysisDataAtException.Dispose();
@@ -1850,14 +1879,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Update the current analysis data based on interprocedural analysis result.
             if (isContextSensitive)
             {
-                var resultData = GetExitBlockOutputData(analysisResult);
-                ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, analysisResult);
-
-                // Also apply any interprocedural analysis data for unhandled throw operations.
+                // Apply any interprocedural analysis data for unhandled exceptions paths.
                 if (analysisResult.AnalysisDataForUnhandledThrowOperationsOpt is Dictionary<ThrownExceptionInfo, TAnalysisData> interproceduralUnhandledThrowOperationsDataOpt)
                 {
                     ApplyInterproceduralAnalysisDataForUnhandledThrowOperations(interproceduralUnhandledThrowOperationsDataOpt);
                 }
+
+                // Apply interprocedural result analysis data for non-exception paths.
+                var resultData = GetExitBlockOutputData(analysisResult);
+                ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, analysisResult);
 
                 Debug.Assert(arguments.All(arg => !_pendingArgumentsToReset.Contains(arg)));
             }
@@ -1963,10 +1993,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                         return (receiverAnalysisEntityOpt, instancePointsToValue);
                     }
-                    else
+                    else if (invokedMethod.MethodKind == MethodKind.Constructor)
                     {
-                        return null;
+                        // We currently only support interprocedural constructor analysis for object creation operations.
+                        Debug.Assert(originalOperation.Kind == OperationKind.ObjectCreation);
+
+                        // Pass in the allocation location as interprocedural instance.
+                        // There is no analysis entity for the allocation.
+                        var instancePointsToValue = GetPointsToAbstractValue(originalOperation);
+                        return (null, instancePointsToValue);
                     }
+
+                    return null;
                 }
 
                 (AnalysisEntity, PointsToAbstractValue)? GetThisOrMeInstance()
@@ -2906,6 +2944,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         var previousCurrentAnalysisData = CurrentAnalysisData;
                         var exceptionData = AnalysisDataForUnhandledThrowOperations[pendingThrow];
                         CurrentAnalysisData = MergeAnalysisData(previousCurrentAnalysisData, exceptionData);
+                        AssertValidAnalysisData(CurrentAnalysisData);
                         previousCurrentAnalysisData.Dispose();
                         if (caughtExceptionTypeOpt != null)
                         {

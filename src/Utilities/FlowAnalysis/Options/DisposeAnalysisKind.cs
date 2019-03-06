@@ -15,14 +15,14 @@ namespace Analyzer.Utilities
         //       as that would be a breaking change for .editorconfig specification.
 
         /// <summary>
-        /// Track and report missing dispose violations on all paths.
-        /// Additionally, also flags use of non-recommended dispose patterns that may cause
+        /// Track and report missing dispose violations on all paths (non-exception and exception paths).
+        /// Additionally, also flag use of non-recommended dispose patterns that may cause
         /// potential dispose leaks.
         /// </summary>
         AllPaths,
 
         /// <summary>
-        /// Track and report missing dispose violations on all paths.
+        /// Track and report missing dispose violations on all paths (non-exception and exception paths).
         /// Do not flag use of non-recommended dispose patterns that may cause
         /// potential dispose leaks.
         /// </summary>

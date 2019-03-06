@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             {
             }
 
-            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
-                => CurrentAnalysisData.AddTrackedEntities(builder);
+            protected override void AddTrackedEntities(ValueContentAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+                => analysisData.AddTrackedEntities(builder);
 
             protected override void ResetAbstractValue(AnalysisEntity analysisEntity)
                 => SetAbstractValue(analysisEntity, ValueDomain.UnknownOrMayBeValue);
@@ -44,17 +44,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                 analysisData.SetAbstractValue(analysisEntity, value);
             }
 
-            protected override bool HasAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.HasAbstractValue(analysisEntity);
+            protected override bool HasAbstractValue(AnalysisEntity analysisEntity)
+                => CurrentAnalysisData.HasAbstractValue(analysisEntity);
 
-            protected override void StopTrackingEntity(AnalysisEntity analysisEntity) => CurrentAnalysisData.RemoveEntries(analysisEntity);
+            protected override void StopTrackingEntity(AnalysisEntity analysisEntity, ValueContentAnalysisData analysisData)
+                => analysisData.RemoveEntries(analysisEntity);
 
-            protected override ValueContentAbstractValue GetAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
+            protected override ValueContentAbstractValue GetAbstractValue(AnalysisEntity analysisEntity)
+                => CurrentAnalysisData.TryGetValue(analysisEntity, out var value) ? value : ValueDomain.UnknownOrMayBeValue;
 
-            protected override ValueContentAbstractValue GetAbstractDefaultValue(ITypeSymbol type) => ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState;
+            protected override ValueContentAbstractValue GetAbstractDefaultValue(ITypeSymbol type)
+                => ValueContentAbstractValue.DoesNotContainLiteralOrNonLiteralState;
 
-            protected override bool HasAnyAbstractValue(ValueContentAnalysisData data) => data.HasAnyAbstractValue;
+            protected override bool HasAnyAbstractValue(ValueContentAnalysisData data)
+                => data.HasAnyAbstractValue;
 
-            protected override void ResetCurrentAnalysisData() => CurrentAnalysisData.Reset(ValueDomain.UnknownOrMayBeValue);
+            protected override void ResetCurrentAnalysisData()
+                => CurrentAnalysisData.Reset(ValueDomain.UnknownOrMayBeValue);
 
             #region Predicate analysis
             protected override PredicateValueKind SetValueForIsNullComparisonOperator(IOperation leftOperand, bool equals, ValueContentAnalysisData targetAnalysisData)

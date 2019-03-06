@@ -101,7 +101,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return parentAnalysisContext?.GetLocalFunctionControlFlowGraph(localFunction);
             }
 
-            Debug.Fail($"Unable to find control flow graph for {localFunction.ToDisplayString()}");
+            // Unable to find control flow graph for local function.
+            // This can happen for cases where local function creation and invocations are in different interprocedural call trees.
+            // See unit test "DisposeObjectsBeforeLosingScopeTests.InvocationOfLocalFunctionCachedOntoField_InterproceduralAnalysis"
+            // for an example.
+            // Currently, we don't support interprocedural analysis of such local function invocations.
             return null;
         }
 
@@ -121,7 +125,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     return parentAnalysisContext?.GetAnonymousFunctionControlFlowGraph(lambda);
                 }
 
-                Debug.Fail($"Unable to find control flow graph for {lambda.Symbol.ToDisplayString()}");
+                // Unable to find control flow graph for lambda.
+                // This can happen for cases where lambda creation and invocations are in different interprocedural call trees.
+                // See unit test "DisposeObjectsBeforeLosingScopeTests.InvocationOfLambdaCachedOntoField_InterproceduralAnalysis"
+                // for an example.
+                // Currently, we don't support interprocedural analysis of such lambda invocations.
                 return null;
             }
         }

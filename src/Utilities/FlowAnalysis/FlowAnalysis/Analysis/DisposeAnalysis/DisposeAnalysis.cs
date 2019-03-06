@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
@@ -41,13 +42,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             bool exceptionPathsAnalysis,
             CancellationToken cancellationToken,
             out PointsToAnalysisResult pointsToAnalysisResult,
-            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive)
+            InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
+            bool performCopyAnalysisIfNotUserConfigured = false)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
             return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
                 interproceduralAnalysisConfig, disposeOwnershipTransferLikelyTypes,
-                trackInstanceFields, exceptionPathsAnalysis, out pointsToAnalysisResult);
+                trackInstanceFields, exceptionPathsAnalysis,
+                performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
+                out pointsToAnalysisResult);
         }
 
         private static DisposeAnalysisResult GetOrComputeResult(
@@ -58,6 +62,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
             bool trackInstanceFields,
             bool exceptionPathsAnalysis,
+            bool performCopyAnalysis,
             out PointsToAnalysisResult pointsToAnalysisResult)
         {
             Debug.Assert(cfg != null);
@@ -65,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(owningSymbol != null);
 
             pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
-                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, PessimisticAnalysis, exceptionPathsAnalysis: exceptionPathsAnalysis);
+                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, PessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
             var analysisContext = DisposeAnalysisContext.Create(
                 DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, PessimisticAnalysis,
                 exceptionPathsAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext, disposeOwnershipTransferLikelyTypes, trackInstanceFields);

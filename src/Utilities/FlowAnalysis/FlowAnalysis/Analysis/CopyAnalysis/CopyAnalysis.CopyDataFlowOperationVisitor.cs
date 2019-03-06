@@ -57,15 +57,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 copyAnalysisData.AssertValidCopyAnalysisData(GetDefaultCopyValue);
             }
 
-            protected override void AddTrackedEntities(PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
-                => CurrentAnalysisData.AddTrackedEntities(builder);
+            protected override void AddTrackedEntities(CopyAnalysisData analysisData, PooledHashSet<AnalysisEntity> builder, bool forInterproceduralAnalysis)
+                => analysisData.AddTrackedEntities(builder);
 
             protected override bool HasAbstractValue(AnalysisEntity analysisEntity) => CurrentAnalysisData.HasAbstractValue(analysisEntity);
 
             protected override bool HasAnyAbstractValue(CopyAnalysisData data) => data.HasAnyAbstractValue;
 
-            protected override void StopTrackingEntity(AnalysisEntity analysisEntity)
-                => StopTrackingEntity(analysisEntity, CurrentAnalysisData, GetDefaultCopyValue);
+            protected override void StopTrackingEntity(AnalysisEntity analysisEntity, CopyAnalysisData analysisData)
+                => StopTrackingEntity(analysisEntity, analysisData, GetDefaultCopyValue);
 
             private static void StopTrackingEntity(
                 AnalysisEntity analysisEntity,
@@ -385,8 +385,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
             protected override void UpdateValuesForAnalysisData(CopyAnalysisData targetAnalysisData)
             {
-                targetAnalysisData.AssertValidCopyAnalysisData();
-
                 // We need to trim the copy values to only include the entities that are existing keys in targetAnalysisData.
                 var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
                 var builder = ArrayBuilder<AnalysisEntity>.GetInstance(targetAnalysisData.CoreAnalysisData.Count);
@@ -422,14 +420,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
 
                             if (newValue != existingValue)
                             {
-                                SetAbstractValue(targetAnalysisData, key, newValue, TryGetAddressSharedCopyValue);
+                                targetAnalysisData.SetAbstactValueForEntities(newValue, entityBeingAssignedOpt: null);
                             }
 
                             processedEntities.AddRange(newValue.AnalysisEntities);
                         }
                     }
-
-                    targetAnalysisData.AssertValidCopyAnalysisData();
                 }
                 finally
                 {
@@ -438,35 +434,57 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 }
             }
 
+            protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(CopyAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
+            {
+                Func<AnalysisEntity, bool> predicateOpt = null;
+                if (throwBranchWithExceptionType.IsDefaultExceptionForExceptionsPathAnalysis)
+                {
+                    // Only tracking non-child analysis entities for exceptions path analysis for now.
+                    Debug.Assert(throwBranchWithExceptionType.ExceptionType.Equals(WellKnownTypeProvider.Exception));
+                    predicateOpt = e => !e.IsChildOrInstanceMember;
+                }
+
+                ApplyMissingCurrentAnalysisDataCore(dataAtException, predicateOpt);
+            }
+
             protected override CopyAnalysisData GetClonedAnalysisData(CopyAnalysisData analysisData)
                 => (CopyAnalysisData)analysisData.Clone();
             public override CopyAnalysisData GetEmptyAnalysisData()
                 => new CopyAnalysisData();
             protected override CopyAnalysisData GetExitBlockOutputData(CopyAnalysisResult analysisResult)
                 => new CopyAnalysisData(analysisResult.ExitBlockOutput.Data);
-            protected override void ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(CopyAnalysisData dataAtException, ThrownExceptionInfo throwBranchWithExceptionType)
-                => ApplyMissingCurrentAnalysisDataForUnhandledExceptionData(dataAtException.CoreAnalysisData, CurrentAnalysisData.CoreAnalysisData, throwBranchWithExceptionType);
+            protected override void AssertValidAnalysisData(CopyAnalysisData analysisData)
+                => AssertValidCopyAnalysisData(analysisData);
             protected override bool Equals(CopyAnalysisData value1, CopyAnalysisData value2)
                 => value1.Equals(value2);
 
             public override (CopyAbstractValue Value, PredicateValueKind PredicateValueKind)? GetReturnValueAndPredicateKind()
             {
-                // Filter out all the local symbol and flow capture entities from the return value.
+                // Filter out all the local symbol and flow capture entities from the return value for interprocedural analysis.
                 var returnValueAndPredicateKindOpt = base.GetReturnValueAndPredicateKind();
                 if (returnValueAndPredicateKindOpt.HasValue &&
-                    returnValueAndPredicateKindOpt.Value.Value.Kind.IsKnown())
+                    returnValueAndPredicateKindOpt.Value.Value.Kind.IsKnown() &&
+                    DataFlowAnalysisContext.InterproceduralAnalysisDataOpt != null)
                 {
                     var entitiesToFilterBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
+                    var copyValue = returnValueAndPredicateKindOpt.Value.Value;
+                    var copyValueEntities = copyValue.AnalysisEntities;
 
                     try
                     {
-                        var copyValue = returnValueAndPredicateKindOpt.Value.Value;
-                        var copyValueEntities = copyValue.AnalysisEntities;
                         foreach (var entity in copyValueEntities)
                         {
-                            if (ShouldRemoveEntityAtExit(entity))
+                            if (ShouldStopTrackingEntityAtExit(entity))
                             {
-                                ProcessEntityToRemoveAtExit(entity, entitiesToFilterBuilder, copyValueEntities);
+                                // Stop tracking entity that is now out of scope.
+                                entitiesToFilterBuilder.Add(entity);
+
+                                // Additionally, stop tracking all the child entities if the entity type has value copy semantics.
+                                if (entity.Type.HasValueCopySemantics())
+                                {
+                                    var childEntities = copyValueEntities.Where(e => IsChildAnalysisEntity(e, ancestorEntity: entity));
+                                    entitiesToFilterBuilder.AddRange(childEntities);
+                                }
                             }
                         }
 
@@ -488,89 +506,54 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 return returnValueAndPredicateKindOpt;
             }
 
-            private bool ShouldRemoveEntityAtExit(AnalysisEntity entity)
-            {
-                return entity.SymbolOpt?.Kind == SymbolKind.Local &&
-                    entity.SymbolOpt.ContainingSymbol.Equals(DataFlowAnalysisContext.OwningSymbol) ||
-                    entity.CaptureIdOpt.HasValue &&
-                    entity.CaptureIdOpt.Value.ControlFlowGraph == DataFlowAnalysisContext.ControlFlowGraph;
-            }
-
-            private void ProcessEntityToRemoveAtExit(
-                AnalysisEntity entity,
-                PooledHashSet<AnalysisEntity> entitiesToFilterBuilder,
-                IEnumerable<AnalysisEntity> allAnalysisEntities)
-            {
-                Debug.Assert(ShouldRemoveEntityAtExit(entity));
-
-                // Stop tracking entity that is now out of scope.
-                entitiesToFilterBuilder.Add(entity);
-
-                // Additionally, stop tracking all the child entities if the entity type has value copy semantics.
-                if (entity.Type.HasValueCopySemantics())
-                {
-                    var childEntities = allAnalysisEntities.Where(e => IsChildAnalysisEntity(e, ancestorEntity: entity));
-                    entitiesToFilterBuilder.AddRange(childEntities);
-                }
-            }
-
-            public override CopyAnalysisData GetMergedDataForUnhandledThrowOperations()
-            {
-                var copyAnalysisData = base.GetMergedDataForUnhandledThrowOperations();
-                if (copyAnalysisData == null)
-                {
-                    return null;
-                }
-
-                copyAnalysisData.AssertValidCopyAnalysisData(TryGetAddressSharedCopyValue);
-
-                // Filter out all the local symbol and flow capture entities from the returned analysis data.
-                var entitiesToFilterBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
-
-                try
-                {
-                    var allAnalysisEntities = copyAnalysisData.CoreAnalysisData.Keys;
-                    foreach (var entity in allAnalysisEntities)
-                    {
-                        if (ShouldRemoveEntityAtExit(entity))
-                        {
-                            ProcessEntityToRemoveAtExit(entity, entitiesToFilterBuilder, allAnalysisEntities);
-                        }
-                    }
-
-                    foreach (var entity in entitiesToFilterBuilder)
-                    {
-                        StopTrackingEntity(entity, copyAnalysisData, GetDefaultCopyValue);
-                    }
-                }
-                finally
-                {
-                    entitiesToFilterBuilder.Free();
-                }
-
-                return copyAnalysisData;
-            }
-
             #region Interprocedural analysis
 
             protected override void ApplyInterproceduralAnalysisResultCore(CopyAnalysisData resultData)
             {
                 using (var mergedData = GetClonedAnalysisData(resultData))
                 {
+                    ApplyMissingCurrentAnalysisDataCore(mergedData, predicateOpt: null);
+                    CurrentAnalysisData.CoreAnalysisData.Clear();
+                    CurrentAnalysisData.CoreAnalysisData.AddRange(mergedData.CoreAnalysisData);
+                }
+            }
+
+            private void ApplyMissingCurrentAnalysisDataCore(CopyAnalysisData mergedData, Func<AnalysisEntity, bool> predicateOpt)
+            {
+                var processedEntities = PooledHashSet<AnalysisEntity>.GetInstance();
+                try
+                {
                     foreach (var kvp in CurrentAnalysisData.CoreAnalysisData)
                     {
-                        var entity = kvp.Key;
+                        var key = kvp.Key;
                         var copyValue = kvp.Value;
-                        if (!mergedData.CoreAnalysisData.ContainsKey(entity))
+                        if (mergedData.CoreAnalysisData.ContainsKey(key) ||
+                            (predicateOpt != null && !predicateOpt(key)) ||
+                            !processedEntities.Add(key))
                         {
-                            mergedData.SetAbstactValueForEntities(copyValue, entityBeingAssignedOpt: null);
+                            continue;
                         }
+
+                        if (predicateOpt != null && copyValue.AnalysisEntities.Count > 1)
+                        {
+                            var entitiesToRemove = copyValue.AnalysisEntities.Where(entity => key != entity && !predicateOpt(entity));
+                            if (entitiesToRemove.Any())
+                            {
+                                copyValue = copyValue.WithEntitiesRemoved(entitiesToRemove);
+                            }
+                        }
+
+                        Debug.Assert(copyValue.AnalysisEntities.Contains(key));
+                        Debug.Assert(predicateOpt == null || copyValue.AnalysisEntities.All(predicateOpt));
+                        mergedData.SetAbstactValueForEntities(copyValue, entityBeingAssignedOpt: null);
+                        processedEntities.AddRange(copyValue.AnalysisEntities);
                     }
 
                     AssertValidCopyAnalysisData(mergedData);
-
-                    CurrentAnalysisData.CoreAnalysisData.Clear();
-                    CurrentAnalysisData.CoreAnalysisData.AddRange(mergedData.CoreAnalysisData);
+                }
+                finally
+                {
+                    processedEntities.Free();
                 }
             }
 
