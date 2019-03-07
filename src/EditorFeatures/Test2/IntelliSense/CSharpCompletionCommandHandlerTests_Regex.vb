@@ -26,7 +26,7 @@ class c
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("\A")
+                Await state.AssertSelectedCompletionItem("\A", inlineDescription:=WorkspacesResources.Regex_start_of_string_only_short)
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("new Regex(""\\A"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)

@@ -1283,13 +1283,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">NULL-Literal kann nicht in einen Nicht-Nullable-Verweis- oder uneingeschränkten Typparameter konvertiert werden.</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">NULL-Literal kann nicht in einen Nicht-Nullable-Verweis- oder uneingeschränkten Typparameter konvertiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">NULL-Literal kann nicht in einen Nicht-Nullable-Verweis- oder uneingeschränkten Typparameter konvertiert werden.</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">NULL-Literal kann nicht in einen Nicht-Nullable-Verweis- oder uneingeschränkten Typparameter konvertiert werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">

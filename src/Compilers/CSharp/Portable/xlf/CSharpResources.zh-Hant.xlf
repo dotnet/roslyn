@@ -1283,13 +1283,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">無法將 Null 常值轉換為不可為 Null 的參考型別或非限制式型別參數。</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">無法將 Null 常值轉換為不可為 Null 的參考型別或非限制式型別參數。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">無法將 Null 常值轉換為不可為 Null 的參考型別或非限制式型別參數。</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">無法將 Null 常值轉換為不可為 Null 的參考型別或非限制式型別參數。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">

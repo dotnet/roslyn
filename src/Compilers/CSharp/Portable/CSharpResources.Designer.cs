@@ -9448,7 +9448,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf).
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a predefined size, therefore sizeof can only be used in an unsafe context.
         /// </summary>
         internal static string ERR_SizeofUnsafe {
             get {
@@ -15395,7 +15395,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference or unconstrained type parameter..
+        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference type..
         /// </summary>
         internal static string WRN_NullAsNonNullable {
             get {
@@ -15404,7 +15404,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference or unconstrained type parameter..
+        ///   Looks up a localized string similar to Cannot convert null literal to non-nullable reference type..
         /// </summary>
         internal static string WRN_NullAsNonNullable_Title {
             get {

@@ -115,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             FeatureOnOffOptions.RefactoringVerification,
             FeatureOnOffOptions.StreamingGoToImplementation,
             FeatureOnOffOptions.NavigateToDecompiledSources,
-            FeatureOnOffOptions.AcceptedDecompilerDisclaimer);
+            FeatureOnOffOptions.AcceptedDecompilerDisclaimer,
+            FeatureOnOffOptions.UseEnhancedColors);
     }
 }

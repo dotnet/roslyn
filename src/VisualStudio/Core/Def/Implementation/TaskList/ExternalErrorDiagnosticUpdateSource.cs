@@ -75,6 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         public event EventHandler<BuildProgress> BuildProgressChanged;
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         public bool IsInProgress => BuildInprogressState != null;
 
