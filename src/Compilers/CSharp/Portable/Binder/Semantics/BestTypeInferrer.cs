@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(type.HasType);
                 Debug.Assert(type.Equals(types[0], TypeCompareKind.AllIgnoreOptions));
                 // This uses the covariant merging rules.
-                result = result.Join(type.AsSpeakable().NullableAnnotation);
+                result = result.Join(type.NullableAnnotation);
             }
 
             return result;

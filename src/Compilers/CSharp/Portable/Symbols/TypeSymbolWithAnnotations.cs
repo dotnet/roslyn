@@ -81,23 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// This method projects nullable annotations onto a smaller set that can be expressed in source.
-        /// </summary>
-        public static NullableAnnotation AsSpeakable(this NullableAnnotation annotation, TypeSymbol type)
-        {
-            if (type is null)
-            {
-                return annotation;
-            }
-
-            Debug.Assert((object)type != null);
-            if (annotation.IsAnnotated() && type.IsTypeParameterDisallowingAnnotation())
-                return NullableAnnotation.NotAnnotated;
-
-            return annotation;
-        }
-
-        /// <summary>
         /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
         /// This uses the covariant merging rules.
         /// </summary>
@@ -237,27 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _defaultType = defaultType;
             NullableAnnotation = nullableAnnotation;
             _extensions = extensions;
-        }
-
-        public TypeSymbolWithAnnotations AsSpeakable()
-        {
-            if (!HasType)
-            {
-                return default;
-            }
-
-            TypeSymbol typeSymbol = this.TypeSymbol;
-            var annotation = this.NullableAnnotation;
-            var speakableAnnotation = annotation.AsSpeakable(typeSymbol);
-
-            if (annotation == speakableAnnotation)
-            {
-                return this;
-            }
-
-            // PROTOTYPE(ngafter): This is believed to be impossible.  We create only speakable TSWAs now.
-            throw null;
-            return Create(typeSymbol, speakableAnnotation, this.CustomModifiers);
         }
 
         public override string ToString() => TypeSymbol.ToString();
