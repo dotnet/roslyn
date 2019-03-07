@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
                 {
                     foreach (var attribute in element.Attributes())
                     {
-                        AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName);
+                        AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.CrefAttributeName, SymbolDisplayPartKind.Text);
                     }
 
                     return;
@@ -195,9 +195,10 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             else if (name == DocumentationCommentXmlNames.ParameterReferenceElementName ||
                      name == DocumentationCommentXmlNames.TypeParameterReferenceElementName)
             {
+                var kind = name == DocumentationCommentXmlNames.ParameterReferenceElementName ? SymbolDisplayPartKind.ParameterName : SymbolDisplayPartKind.TypeParameterName;
                 foreach (var attribute in element.Attributes())
                 {
-                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.NameAttributeName);
+                    AppendTextFromAttribute(state, element, attribute, attributeNameToParse: DocumentationCommentXmlNames.NameAttributeName, kind);
                 }
 
                 return;
@@ -223,13 +224,13 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
             }
         }
 
-        private static void AppendTextFromAttribute(FormatterState state, XElement element, XAttribute attribute, string attributeNameToParse)
+        private static void AppendTextFromAttribute(FormatterState state, XElement element, XAttribute attribute, string attributeNameToParse, SymbolDisplayPartKind kind)
         {
             var attributeName = attribute.Name.LocalName;
             if (attributeNameToParse == attributeName)
             {
                 state.AppendParts(
-                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format).ToTaggedText());
+                    CrefToSymbolDisplayParts(attribute.Value, state.Position, state.SemanticModel, state.Format, kind).ToTaggedText());
             }
             else
             {
@@ -241,7 +242,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
         }
 
         internal static IEnumerable<SymbolDisplayPart> CrefToSymbolDisplayParts(
-            string crefValue, int position, SemanticModel semanticModel, SymbolDisplayFormat format = null)
+            string crefValue, int position, SemanticModel semanticModel, SymbolDisplayFormat format = null, SymbolDisplayPartKind kind = SymbolDisplayPartKind.Text)
         {
             // first try to parse the symbol
             if (semanticModel != null)
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.DocumentationComments
 
             // if any of that fails fall back to just displaying the raw text
             return SpecializedCollections.SingletonEnumerable(
-                new SymbolDisplayPart(SymbolDisplayPartKind.Text, symbol: null, text: TrimCrefPrefix(crefValue)));
+                new SymbolDisplayPart(kind, symbol: null, text: TrimCrefPrefix(crefValue)));
         }
 
         private static string TrimCrefPrefix(string value)
