@@ -1511,13 +1511,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbolWithAnnotations mergeNullability(TypeSymbolWithAnnotations one, TypeSymbolWithAnnotations other)
             {
                 TypeSymbol typeSymbol = other.TypeSymbol;
-                NullableAnnotation nullableAnnotation = mergeNullableAnnotation(typeSymbol, one.NullableAnnotation, other.NullableAnnotation);
+                CSharpNullableAnnotation nullableAnnotation = mergeNullableAnnotation(typeSymbol, one.NullableAnnotation, other.NullableAnnotation);
                 TypeSymbol type = one.TypeSymbol.MergeNullability(typeSymbol, variance);
                 Debug.Assert((object)type != null);
                 return TypeSymbolWithAnnotations.Create(type, nullableAnnotation, one.CustomModifiers);
             }
 
-            NullableAnnotation mergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b)
+            CSharpNullableAnnotation mergeNullableAnnotation(TypeSymbol type, CSharpNullableAnnotation a, CSharpNullableAnnotation b)
             {
                 switch (variance)
                 {

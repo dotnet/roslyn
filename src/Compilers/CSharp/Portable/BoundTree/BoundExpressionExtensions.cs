@@ -225,14 +225,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method is not a replacement for the actual calculation of nullability through flow analysis
         /// which is handled in NullableWalker.
         /// </summary>
-        private static NullableAnnotation GetNullableAnnotation(this BoundExpression expr)
+        private static CSharpNullableAnnotation GetNullableAnnotation(this BoundExpression expr)
         {
             switch (expr.Kind)
             {
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)expr;
-                        return local.IsNullableUnknown ? NullableAnnotation.Unknown : local.LocalSymbol.Type.NullableAnnotation;
+                        return local.IsNullableUnknown ? CSharpNullableAnnotation.Unknown : local.LocalSymbol.Type.NullableAnnotation;
                     }
                 case BoundKind.Parameter:
                     return ((BoundParameter)expr).ParameterSymbol.Type.NullableAnnotation;
@@ -243,9 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     return ((BoundCall)expr).Method.ReturnType.NullableAnnotation;
                 case BoundKind.Conversion:
-                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType.NullableAnnotation ?? NullableAnnotation.Unknown;
+                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType.NullableAnnotation ?? CSharpNullableAnnotation.Unknown;
                 case BoundKind.BinaryOperator:
-                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.NullableAnnotation ?? NullableAnnotation.Unknown;
+                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.NullableAnnotation ?? CSharpNullableAnnotation.Unknown;
                 case BoundKind.NullCoalescingOperator:
                     {
                         var op = (BoundNullCoalescingOperator)expr;
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TypeOfOperator:
                 case BoundKind.NameOfOperator:
                 case BoundKind.TupleLiteral:
-                    return NullableAnnotation.NotNullable;
+                    return CSharpNullableAnnotation.NotNullable;
                 case BoundKind.DefaultExpression:
                 case BoundKind.Literal:
                 case BoundKind.UnboundLambda:
@@ -279,15 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constant.IsNull)
                 {
-                    return NullableAnnotation.Nullable;
+                    return CSharpNullableAnnotation.Nullable;
                 }
                 if (expr.Type?.IsReferenceType == true)
                 {
-                    return NullableAnnotation.NotNullable;
+                    return CSharpNullableAnnotation.NotNullable;
                 }
             }
 
-            return NullableAnnotation.Unknown;
+            return CSharpNullableAnnotation.Unknown;
         }
     }
 }

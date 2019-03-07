@@ -1393,8 +1393,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.NullableAnnotation == NullableAnnotation.Unknown ||
-                destination.NullableAnnotation == NullableAnnotation.Unknown)
+            if (source.NullableAnnotation == CSharpNullableAnnotation.Unknown ||
+                destination.NullableAnnotation == CSharpNullableAnnotation.Unknown)
             {
                 return true;
             }
@@ -1424,8 +1424,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.NullableAnnotation == NullableAnnotation.Unknown ||
-                destination.NullableAnnotation == NullableAnnotation.Unknown ||
+            if (source.NullableAnnotation == CSharpNullableAnnotation.Unknown ||
+                destination.NullableAnnotation == CSharpNullableAnnotation.Unknown ||
                 destination.NullableAnnotation.IsAnyNullable())
             {
                 return true;

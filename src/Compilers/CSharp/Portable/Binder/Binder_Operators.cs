@@ -2767,7 +2767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.AddRangeAndFree(isTypeDiagnostics);
-            if (targetType.IsReferenceType && targetTypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
+            if (targetType.IsReferenceType && targetTypeWithAnnotations.NullableAnnotation == CSharpNullableAnnotation.Annotated)
             {
                 Error(diagnostics, ErrorCode.ERR_IsNullableType, node.Right, targetType);
                 operandHasErrors = true;
@@ -3180,7 +3180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundAsOperator(node, operand, typeExpression, Conversion.NoConversion, resultType, hasErrors: true);
             }
 
-            if (targetType.IsReferenceType && targetTypeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
+            if (targetType.IsReferenceType && targetTypeWithAnnotations.NullableAnnotation == CSharpNullableAnnotation.Annotated)
             {
                 Error(diagnostics, ErrorCode.ERR_AsNullableType, node.Right, targetType);
 

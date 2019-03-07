@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case NullableAnnotation.Unknown:
-                        _attributes |= BoundNodeAttributes.TopLevelDisabled;
+                        // Disabled is 0, nothing to do
                         break;
 
                     default:

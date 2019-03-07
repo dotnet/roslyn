@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (constraintType.NullableAnnotation == NullableAnnotation.Unknown)
+            if (constraintType.NullableAnnotation == CSharpNullableAnnotation.Unknown)
             {
                 return null;
             }
