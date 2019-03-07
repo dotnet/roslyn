@@ -2124,15 +2124,9 @@ class C
                 // (7,52): error CS1586: Array creation must have array size or array initializer
                 //     Expression<Action<dynamic>> e = x => new object[](x);
                 Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(7, 52),
-                // (7,42): error CS0149: Method name expected
-                //     Expression<Action<dynamic>> e = x => new object[](x);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "new object[]").WithLocation(7, 42),
                 // (8,53): error CS1586: Array creation must have array size or array initializer
                 //     Expression<Action<dynamic>> e2 = x => new object[](x)!;
                 Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(8, 53),
-                // (8,43): error CS0149: Method name expected
-                //     Expression<Action<dynamic>> e2 = x => new object[](x)!;
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "new object[]").WithLocation(8, 43),
                 // (8,43): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //     Expression<Action<dynamic>> e2 = x => new object[](x)!;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "new object[](x)!").WithLocation(8, 43)
