@@ -27470,7 +27470,7 @@ I2.M1
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void MethodImplementationInDerived_23()
         {
             var source1 =
