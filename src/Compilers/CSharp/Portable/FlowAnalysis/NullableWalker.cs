@@ -1209,6 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportNullableAssignmentIfNecessary(expr, destinationType, resultType, useLegacyWarnings: false);
                 }
             }
+
             return resultType;
         }
 
@@ -4230,6 +4231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     rightType = VisitRefExpression(right, leftLValueType);
                 }
+
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightType, MakeSlot(right));
                 SetResult(new TypeWithState(leftLValueType.TypeSymbol, rightType.State), leftLValueType);
             }
