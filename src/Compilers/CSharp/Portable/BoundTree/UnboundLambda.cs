@@ -976,17 +976,17 @@ haveLambdaBodyAndBinders:
             if (codeCompare != 0)
                 return codeCompare;
 
-            for (int i = 0; i < Math.Min(x.Arguments.Count, y.Arguments.Count); i++)
+            for (int i = 0, n = Math.Min(x.Arguments.Count, y.Arguments.Count); i < n; i++)
             {
                 object argx = x.Arguments[i];
                 object argy = y.Arguments[i];
 
-                codeCompare = string.CompareOrdinal(argx?.ToString(), argy?.ToString());
-                if (codeCompare != 0)
-                    return codeCompare;
+                int argCompare = string.CompareOrdinal(argx?.ToString(), argy?.ToString());
+                if (argCompare != 0)
+                    return argCompare;
             }
 
-            return x.Arguments.Count.CompareTo(y.Arguments.Count);
+            return x.Arguments.Count - y.Arguments.Count;
         }
     }
 
