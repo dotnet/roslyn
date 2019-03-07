@@ -290,6 +290,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static void Analyze(
             CSharpCompilation compilation,
+            BoundAttribute attribute,
+            DiagnosticBag diagnostics)
+        {
+            if (attribute.Constructor is null)
+            {
+                return;
+            }
+
+            Analyze(compilation, attribute.Constructor, attribute, diagnostics);
+        }
+
+        internal static void Analyze(
+            CSharpCompilation compilation,
             BoundLambda lambda,
             DiagnosticBag diagnostics,
             MethodSymbol delegateInvokeMethod,
@@ -5717,6 +5730,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckPossibleNullReceiver(node.Argument);
             VisitStatement(node.Body);
             return null;
+        }
+
+        public override BoundNode VisitAttribute(BoundAttribute node)
+        {
+            VisitArguments(node, node.ConstructorArguments, ImmutableArray<RefKind>.Empty, node.Constructor, argsToParamsOpt: node.ConstructorArgumentsToParamsOpt, expanded: node.ConstructorExpanded);
+            foreach (var assignment in node.NamedArguments)
+            {
+                Visit(assignment);
+            }
+
+            var result = base.VisitAttribute(node);
+            SetNotNullResult(node);
+            return result;
         }
 
         protected override string Dump(LocalState state)

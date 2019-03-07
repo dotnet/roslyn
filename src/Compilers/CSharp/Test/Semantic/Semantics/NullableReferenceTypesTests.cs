@@ -83706,10 +83706,10 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute(null)] //1
-class C {}
+class C { }
 
 [MyAttribute(""foo"")]
-class D {}
+class D { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -83731,13 +83731,31 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute(null!)] 
-class C {}
-
+class C { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
+        [Fact]
+        public void AttributeArgument_Constructor_NullLiteral_CSharp7_3()
+        {
+            var source =
+@"
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s) { }
+}
+
+[MyAttribute(null)] 
+class C { }
+
+[MyAttribute(""foo"")]
+class D { }
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypes(NullableContextOptions.Disable), parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics();
+        }
 
         [Fact]
         public void AttributeArgument_Constructor_NullLiteral_WithDefaultArgument()
@@ -83750,13 +83768,13 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute(null)] //1
-class C {} 
+class C { } 
 
 [MyAttribute(null, null)] // 2, 3
-class D {}
+class D { }
 
 [MyAttribute(null, ""foo"")] // 4
-class E {}
+class E { }
 
 ";
             var comp = CreateCompilation(source);
@@ -83787,13 +83805,13 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute(""foo"", s2: null, s3: null)] //1
-class C {}
+class C { }
 
 [MyAttribute(s3: null, s2: null, s: ""foo"")] // 2
-class D {}
+class D { }
 
 [MyAttribute(s3: null, s2: ""bar"", s: ""foo"")]
-class E {}
+class E { }
 
 ";
             var comp = CreateCompilation(source);
@@ -83823,7 +83841,7 @@ class MyAttribute : System.Attribute
 null
 #nullable enable
 )] 
-class C {}
+class C { }
 
 [MyAttribute(
 #nullable disable
@@ -83831,7 +83849,24 @@ null,
 #nullable enable
 null //2
 )] 
-class D {}
+class D { }
+
+[MyAttribute(null, //3
+s2: 
+#nullable disable
+null
+#nullable enable
+)] 
+class E { }
+
+[MyAttribute(
+#nullable disable
+null,
+s2: 
+#nullable enable
+null //4
+)] 
+class F { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -83840,7 +83875,75 @@ class D {}
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 14),
                 // (19,1): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 // null //2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(19, 1)
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(19, 1),
+                // (23,14): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // [MyAttribute(null, //3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(23, 14),
+                // (36,1): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // null //4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(36, 1)
+                );
+        }
+
+        [Fact]
+        public void AttributeArgument_Constructor_NullLiteral_WarningDisabledEnabled()
+        {
+            var source =
+@"
+#nullable enable
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s, string s2) { }
+}
+#nullable disable
+
+#pragma warning enable nullable
+[MyAttribute(null, //1
+#pragma warning disable nullable
+null
+#pragma warning enable nullable
+)] 
+class C { }
+
+[MyAttribute(
+#pragma warning disable nullable
+null, 
+#pragma warning enable nullable
+null //2
+)] 
+class D { }
+
+[MyAttribute(null, //3
+s2: 
+#pragma warning disable nullable
+null
+#pragma warning enable nullable
+)] 
+class E { }
+
+[MyAttribute(
+#pragma warning disable nullable
+null,
+s2: 
+#pragma warning enable nullable
+null //4
+)] 
+class F { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,14): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // [MyAttribute(null, //1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 14),
+                // (21,1): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // null //2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 1),
+                // (25,14): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // [MyAttribute(null, //3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(25, 14),
+                // (38,1): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // null //4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(38, 1)
                 );
         }
 
@@ -83856,7 +83959,7 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute(null)] //1
-class C {}
+class C { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -83878,7 +83981,7 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute(null!)]
-class C {}
+class C { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
@@ -83896,13 +83999,13 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute(new string?[]{ null })] //1
-class C {}
+class C { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,14): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'.
+                // (8,14): warning CS8620: Argument of type 'string?[]' cannot be used as an input of type 'string[]' for parameter 's' in 'MyAttribute.MyAttribute(string[] s)' due to differences in the nullability of reference types.
                 // [MyAttribute(new string?[]{ null })] //1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new string?[]{ null }").WithArguments("string?[]", "string[]").WithLocation(8, 14)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "new string?[]{ null }").WithArguments("string?[]", "string[]", "s", "MyAttribute.MyAttribute(string[] s)").WithLocation(8, 14)
                 );
         }
 
@@ -83918,13 +84021,87 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute(new string?[]{ null }!)]
-class C {}
+class C { }
 
 [MyAttribute(new string[]{ null! })]
-class D {}
+class D { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AttributeArgument_Constructor_Array_ArrayOfNullable_ImplicitType()
+        {
+            var source =
+@"
+#nullable enable
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(string[] s) { }
+}
+
+[MyAttribute(new []{ ""foo"", null })] //1
+class C { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,14): warning CS8620: Argument of type 'string?[]' cannot be used as an input of type 'string[]' for parameter 's' in 'MyAttribute.MyAttribute(string[] s)' due to differences in the nullability of reference types.
+                // [MyAttribute(new []{ "foo", null })] //1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, @"new []{ ""foo"", null }").WithArguments("string?[]", "string[]", "s", "MyAttribute.MyAttribute(string[] s)").WithLocation(8, 14)
+                );
+        }
+
+        [Fact]
+        public void AttributeArgument_Constructor_Array_NullValueInInitializer()
+        {
+            var source =
+@"
+#nullable enable
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(string[] s) { }
+}
+
+[MyAttribute(new string[]{ ""foo"", null, ""bar"" })] //1
+class C { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,35): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // [MyAttribute(new string[]{ "foo", null, "bar" })] //1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 35)
+                );
+        }
+
+        [Fact]
+        public void AttributeArgument_Constructor_Array_NullValueInNestedInitializer()
+        {
+            var source =
+@"
+#nullable enable
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(object[] s) { }
+}
+
+[MyAttribute(new object[]
+{ 
+    new string[] { ""foo"", null }, //1
+    new string[] { null }, //2
+    new string?[] { null }
+})]
+class C { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,27): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     new string[] { "foo", null }, //1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 27),
+                // (11,20): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     new string[] { null }, //2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 20)
+                );
         }
 
         [Fact]
@@ -83938,11 +84115,37 @@ class MyAttribute : System.Attribute
     public MyAttribute(params object?[] s) { }
 }
 
-[MyAttribute(null)] //1
-class C {}
+[MyAttribute(null)] 
+class C { }
 ";
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,14): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // [MyAttribute(null)] 
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 14)
+                );
+        }
+
+        [Fact]
+        public void AttributeArgument_Constructor_ParamsArray_NullItem()
+        {
+            var source =
+@"
+#nullable enable
+class MyAttribute : System.Attribute
+{
+    public MyAttribute(string s1, params object[] s) { }
+}
+
+[MyAttribute(""foo"", null, ""bar"", ""baz"")] //1
+class C { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,21): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // [MyAttribute("foo", null, "bar")] //1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 21)
+                );
         }
 
         [Fact]
@@ -83955,14 +84158,14 @@ class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
 	
-	public string MyValue {get; set; } = ""foo"";
+	public string MyValue { get; set; } = ""foo"";
 }
 
 [MyAttribute(MyValue = null)] //1
-class C {}
+class C { }
 
 [MyAttribute(MyValue = ""foo"")]
-class D {}
+class D { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -83982,17 +84185,17 @@ class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
 	
-	public string[] PropertyArray {get; set; } = new string[]{};
+	public string[] PropertyArray { get; set; } = new string[] { };
 
-	public string[]? NullablePropertyArray {get; set; } = null;
+	public string[]? NullablePropertyArray { get; set; } = null;
 
 }
 
 [MyAttribute(PropertyArray = null)] //1
-class C {}
+class C { }
 
 [MyAttribute(NullablePropertyArray = null)] 
-class D {}
+class D { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -84012,17 +84215,17 @@ class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
 	
-	public string[] PropertyArray {get; set; } = new string[]{ ""foo"" };
+	public string[] PropertyArray { get; set; } = new string[] { ""foo"" };
 
-	public string[]? PropertyArrayOfNullable {get; set; } = new string[]{ ""foo"" };
+	public string[]? PropertyArrayOfNullable { get; set; } = new string[] { ""foo"" };
 
 }
 
 [MyAttribute(PropertyArray = new string?[]{ null })] //1
-class C {}
+class C { }
 
-[MyAttribute(PropertyArrayOfNullable = null)] //1
-class D {}
+[MyAttribute(PropertyArrayOfNullable = null)]
+class D { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -84046,10 +84249,10 @@ class MyAttribute : System.Attribute
 }
 
 [MyAttribute(myValue = null)] //1
-class C {}
+class C { }
 
 [MyAttribute(myValue = ""foo"")]
-class D {}
+class D { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -84069,16 +84272,16 @@ class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
 	
-	public string[] fieldArray = new string[]{};
+	public string[] fieldArray = new string[] { };
 
     public string[]? nullableFieldArray = null;
 }
 
 [MyAttribute(fieldArray = null)] //1
-class C {}
+class C { }
 
-[MyAttribute(nullableFieldArray = null)] //1
-class D {}
+[MyAttribute(nullableFieldArray = null)]
+class D { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -84098,16 +84301,16 @@ class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
 	
-	public string[] fieldArray = new string[]{};
+	public string[] fieldArray = new string[] { };
 
-    public string?[] fieldArrayOfNullable = new string?[] {};
+    public string?[] fieldArrayOfNullable = new string?[] { };
 }
 
 [MyAttribute(fieldArray = new string?[]{ null })] //1
-class C {}
+class C { }
 
 [MyAttribute(fieldArrayOfNullable = new string?[]{ null })] 
-class D {}
+class D { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
@@ -84128,17 +84331,17 @@ class MyAttribute : System.Attribute
 {
     public MyAttribute(string s, string s2 = ""foo"", string s3 = ""bar"") { }
 	
-	public string[] fieldArray = new string[]{};
+	public string[] fieldArray = new string[] { };
 
-    public string?[] fieldArrayOfNullable = new string[]{};
+    public string?[] fieldArrayOfNullable = new string[] { };
 
     public string[]? nullableFieldArray = null;
 
-    public string[] PropertyArray {get; set; } = new string[]{};
+    public string[] PropertyArray { get; set; } = new string[] { };
 
-    public string?[] PropertyArrayOfNullable {get; set; } = new string[]{};
+    public string?[] PropertyArrayOfNullable { get; set; } = new string[] { };
 
-    public string[]? NullablePropertyArray {get; set; } = null;
+    public string[]? NullablePropertyArray { get; set; } = null;
 
 }
 

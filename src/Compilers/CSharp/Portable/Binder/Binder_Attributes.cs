@@ -147,25 +147,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedAttributeArguments analyzedArguments = attributeArgumentBinder.BindAttributeArguments(argumentListOpt, attributeTypeForBinding, diagnostics);
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            ImmutableArray<int> argsToParamsOpt = default;
+            bool expanded = false;
+            MethodSymbol attributeConstructor = null;
 
             // Bind attributeType's constructor based on the bound constructor arguments
-            MethodSymbol attributeConstructor = attributeTypeForBinding.IsErrorType() ?
-                null :
-                BindAttributeConstructor(node, attributeTypeForBinding, analyzedArguments.ConstructorArguments, diagnostics, ref resultKind, suppressErrors: attributeType.IsErrorType(), useSiteDiagnostics: ref useSiteDiagnostics);
+            if (!attributeTypeForBinding.IsErrorType())
+            {
+                attributeConstructor = BindAttributeConstructor(node,
+                                                                attributeTypeForBinding,
+                                                                analyzedArguments.ConstructorArguments,
+                                                                diagnostics,
+                                                                ref resultKind,
+                                                                suppressErrors: attributeType.IsErrorType(),
+                                                                ref argsToParamsOpt,
+                                                                ref expanded,
+                                                                ref useSiteDiagnostics);
+            }
             diagnostics.Add(node, useSiteDiagnostics);
 
             if (!(attributeConstructor is null))
             {
                 ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
 
-                if (attributeConstructor.Parameters.Any(p => p.RefKind == RefKind.In) == true)
+                if (attributeConstructor.Parameters.Any(p => p.RefKind == RefKind.In))
                 {
                     Error(diagnostics, ErrorCode.ERR_AttributeCtorInParameter, node, attributeConstructor.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat));
-                }
-
-                if (Compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion()) //TODO: needed?
-                {
-                    CheckArgumentNullability(attributeConstructor, analyzedArguments, diagnostics);
                 }
             }
 
@@ -175,94 +182,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundNamedArguments = analyzedArguments.NamedArguments;
             constructorArguments.Free();
 
-            return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt,
+            var attribute = new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
+
+            if (Compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
+            {
+                NullableWalker.Analyze(Compilation, attribute, diagnostics);
+            }
+            return attribute;
         }
-
-        private void CheckArgumentNullability(MethodSymbol attributeConstructor, AnalyzedAttributeArguments arguments, DiagnosticBag diagnostics)
-        {
-            // Check constructor arguments
-            for (int i = 0; i < arguments.ConstructorArguments.Arguments.Count; i++)
-            {
-                var argument = arguments.ConstructorArguments.Argument(i);
-                var argName = arguments.ConstructorArguments.Name(i);
-
-                // map the argument back to the correct parameter
-                var parameter = argName == null
-                                ? attributeConstructor.Parameters[i]
-                                : attributeConstructor.Parameters.Single(p => p.Name == argName);
-
-                reportPossibleNullabilityMismatch(parameter.Type, argument, parameter.IsParams);
-            }
-
-            // Check assignments
-            foreach (BoundAssignmentOperator assignment in arguments.NamedArguments)
-            {
-                TypeSymbolWithAnnotations assignmentType;
-                switch (assignment.Left)
-                {
-                    case BoundPropertyAccess propertyAccess:
-                        assignmentType = propertyAccess.PropertySymbol.Type;
-                        break;
-                    case BoundFieldAccess fieldAccess:
-                        assignmentType = fieldAccess.FieldSymbol.Type;
-                        break;
-                    default:
-                        continue; 
-                }
-
-                reportPossibleNullabilityMismatch(assignmentType, assignment.Right);
-            }
-
-            void reportPossibleNullabilityMismatch(TypeSymbolWithAnnotations destination, BoundExpression sourceExpression, bool destinationIsParams = false)
-            {
-                if (IsNullableEnabled(sourceExpression.SyntaxTree, sourceExpression.Syntax.SpanStart))
-                {
-                    if (destination.NullableAnnotation == NullableAnnotation.NotAnnotated &&
-                       sourceExpression.ConstantValue == ConstantValue.Null &&
-                       !isSupressed(sourceExpression) &&
-                       !destinationIsParams)
-                    {
-                        // passing null to a non-nullable parameter
-                        diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, sourceExpression.Syntax.GetLocation());
-                    }
-                    else if (sourceExpression.Type is ArrayTypeSymbol sourceArrayType &&
-                             destination.TypeSymbol is ArrayTypeSymbol destArrayType)
-                    {
-                        if (sourceArrayType.ElementType.NullableAnnotation == NullableAnnotation.Annotated &&
-                            destArrayType.ElementType.NullableAnnotation == NullableAnnotation.NotAnnotated &&
-                            !isSupressed(sourceExpression))
-                        {
-                            // passing an array of nullable to an array of non-nullable
-                            diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax.GetLocation(), sourceExpression.Type, destination.TypeSymbol);
-                        }
-                        else if (sourceArrayType.ElementType.NullableAnnotation == NullableAnnotation.NotAnnotated &&
-                                sourceExpression is BoundArrayCreation arrayCreation &&
-                                !(arrayCreation.InitializerOpt is null))
-                        {
-                            foreach (var initExpr in arrayCreation.InitializerOpt.Initializers)
-                            {
-                                if (initExpr.ConstantValue == ConstantValue.Null &&
-                                    !isSupressed(initExpr))
-                                {
-                                    // we found null in a non null array initializer, so warn and stop looking further
-                                    diagnostics.Add(ErrorCode.WRN_NullAsNonNullable, initExpr.Syntax.GetLocation());
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            bool isSupressed(BoundExpression sourceExpression)
-            {
-                return sourceExpression.IsSuppressed ||
-                       sourceExpression is BoundConversion conversion &&
-                       conversion.Operand.IsSuppressed;
-            }
-        }
-
         private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, DiagnosticBag diagnostics)
         {
             var attributeType = (NamedTypeSymbol)boundAttribute.Type;
@@ -580,6 +508,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             ref LookupResultKind resultKind,
             bool suppressErrors,
+            ref ImmutableArray<int> argsToParamsOpt,
+            ref bool expanded,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             MemberResolutionResult<MethodSymbol> memberResolutionResult;
@@ -600,7 +530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         LookupResultKind.Inaccessible :
                         LookupResultKind.OverloadResolutionFailure);
             }
-
+            argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
+            expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
             return memberResolutionResult.Member;
         }
 
