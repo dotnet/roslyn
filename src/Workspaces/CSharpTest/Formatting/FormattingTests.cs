@@ -5512,6 +5512,36 @@ _ = this switch
             await AssertFormatAsync(expectedCode, code);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(33839, "https://github.com/dotnet/roslyn/issues/33839")]
+        public async Task FormatSwitchExpression_ExpressionBody()
+        {
+            var code = @"
+public class Test
+{
+    public object Method(int i)
+        => i switch
+{
+1 => 'a',
+2 => 'b',
+_ => null,
+};
+}";
+            var expectedCode = @"
+public class Test
+{
+    public object Method(int i)
+        => i switch
+        {
+            1 => 'a',
+            2 => 'b',
+            _ => null,
+        };
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatSwitchWithPropertyPattern()
