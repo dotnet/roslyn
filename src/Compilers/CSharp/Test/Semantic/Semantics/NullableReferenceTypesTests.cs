@@ -82222,6 +82222,52 @@ namespace System
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(33905, "https://github.com/dotnet/roslyn/issues/33905")]
+        public void TestDiagnosticsInUnreachableCode()
+        {
+            var source =
+@"#pragma warning disable 0162 // suppress unreachable statement warning
+#pragma warning disable 0219 // suppress unused local warning
+class G<T>
+{
+    public static void Test(bool b, object? o, G<string?> g)
+    {
+        M1(o); // 1
+        M2(g); // 2
+        if (false) M1(o);
+        if (false) M2(g);
+        if (false && M1(o)) M2(g);
+        if (false && M2(g)) M1(o);
+        if (true || M1(o))
+            M2(g); // 3
+        if (true || M2(g))
+            M1(o); // 4
+        G<string> g1 = g; // 5
+        if (false) { G<string> g2 = g; }
+        if (false) { object o1 = null; }
+    }
+
+    public static bool M1(object o) => true;
+    public static bool M2(G<string> o) => true;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,12): warning CS8604: Possible null reference argument for parameter 'o' in 'bool G<T>.M1(object o)'.
+                //         M1(o); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "bool G<T>.M1(object o)").WithLocation(7, 12),
+                // (8,12): warning CS8620: Argument of type 'G<string?>' cannot be used as an input of type 'G<string>' for parameter 'o' in 'bool G<T>.M2(G<string> o)' due to differences in the nullability of reference types.
+                //         M2(g); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "g").WithArguments("G<string?>", "G<string>", "o", "bool G<T>.M2(G<string> o)").WithLocation(8, 12),
+                // (14,16): warning CS8620: Argument of type 'G<string?>' cannot be used as an input of type 'G<string>' for parameter 'o' in 'bool G<T>.M2(G<string> o)' due to differences in the nullability of reference types.
+                //             M2(g); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "g").WithArguments("G<string?>", "G<string>", "o", "bool G<T>.M2(G<string> o)").WithLocation(14, 16),
+                // (16,16): warning CS8604: Possible null reference argument for parameter 'o' in 'bool G<T>.M1(object o)'.
+                //             M1(o); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "bool G<T>.M1(object o)").WithLocation(16, 16),
+                // (17,24): warning CS8619: Nullability of reference types in value of type 'G<string?>' doesn't match target type 'G<string>'.
+                //         G<string> g1 = g; // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "g").WithArguments("G<string?>", "G<string>").WithLocation(17, 24));
+        }
     }
 }
-

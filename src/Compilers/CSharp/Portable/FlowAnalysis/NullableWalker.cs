@@ -901,7 +901,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Obsolete("Use ReportSafetyDiagnostic/ReportNonSafetyDiagnostic instead", error: false)]
         private void ReportDiagnostic(ErrorCode errorCode, SyntaxNode syntaxNode, params object[] arguments)
         {
-            if (!_disableDiagnostics)
+            Debug.Assert(!IsConditionalState);
+            if (this.State.Reachable && !_disableDiagnostics)
             {
                 Diagnostics.Add(errorCode, syntaxNode.GetLocation(), arguments);
             }
