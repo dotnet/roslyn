@@ -1343,7 +1343,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">型別 '{0}' 的引數中參考型別可 Null 性與 '{3}' 中參數 '{2}' 的目標型別 '{1}' 不符合。</target>
         <note />
       </trans-unit>
@@ -1358,7 +1358,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">引數中參考型別的可 Null 性與目標型別不符合。</target>
         <note />
       </trans-unit>
