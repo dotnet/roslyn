@@ -29408,7 +29408,7 @@ class Test1 : I2, I3
             compilation3.VerifyDiagnostics(expected2 ?? expected1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void PropertyImplementationInDerived_14()
         {
