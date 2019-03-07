@@ -52,7 +52,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
 }
 ");
-            VisualStudio.SolutionExplorer.CloseFile(project, "FileImplementation.cs", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseCodeFile(project, "FileImplementation.cs", saveFile: true);
             VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.cs");
             VisualStudio.Editor.SetText(

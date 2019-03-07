@@ -891,11 +891,12 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                     case WellKnownMember.System_Index__ctor:
-                    case WellKnownMember.System_Index__IsFromEnd:
-                    case WellKnownMember.System_Index__Value:
-                    case WellKnownMember.System_Range__Start:
-                    case WellKnownMember.System_Range__End:
+                    case WellKnownMember.System_Index__GetOffset:
                     case WellKnownMember.System_Range__ctor:
+                    case WellKnownMember.System_Range__StartAt:
+                    case WellKnownMember.System_Range__EndAt:
+                    case WellKnownMember.System_Range__get_All:
+                    case WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T:
                     case WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor:
                     case WellKnownMember.System_IAsyncDisposable__DisposeAsync:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator:

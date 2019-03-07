@@ -273,8 +273,13 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
 
                     // Otherwise, sort items and add to the resultant list
                     var sorted = WrapItemsAction.SortActionsByMostRecentlyUsed(ImmutableArray<CodeAction>.CastUp(wrappingActions));
+
+                    // Make our code action low priority.  This option will be offered *a lot*, and 
+                    // much of  the time will not be something the user particularly wants to do.  
+                    // It should be offered after all other normal refactorings.
                     result.Add(new CodeActionWithNestedActions(
-                        wrappingActions[0].ParentTitle, sorted, group.IsInlinable));
+                        wrappingActions[0].ParentTitle, sorted,
+                        group.IsInlinable, CodeActionPriority.Low));
                 }
 
                 // Finally, sort the topmost list we're building and return that.  This ensures that

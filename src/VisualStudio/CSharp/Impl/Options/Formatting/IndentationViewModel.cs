@@ -73,19 +73,19 @@ class MyClass
     }
 }";
 
-        public IndentationViewModel(OptionSet options, IServiceProvider serviceProvider) : base(options, serviceProvider, LanguageNames.CSharp)
+        public IndentationViewModel(OptionStore optionStore, IServiceProvider serviceProvider) : base(optionStore, serviceProvider, LanguageNames.CSharp)
         {
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentBlock, CSharpVSResources.Indent_block_contents, BlockContentPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentBraces, CSharpVSResources.Indent_open_and_close_braces, IndentBracePreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchCaseSection, CSharpVSResources.Indent_case_contents, SwitchCasePreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock, CSharpVSResources.Indent_case_contents_when_block, SwitchCaseWhenBlockPreview, this, options));
-            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchSection, CSharpVSResources.Indent_case_labels, SwitchCasePreview, this, options));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentBlock, CSharpVSResources.Indent_block_contents, BlockContentPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentBraces, CSharpVSResources.Indent_open_and_close_braces, IndentBracePreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchCaseSection, CSharpVSResources.Indent_case_contents, SwitchCasePreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock, CSharpVSResources.Indent_case_contents_when_block, SwitchCaseWhenBlockPreview, this, optionStore));
+            Items.Add(new CheckBoxOptionViewModel(CSharpFormattingOptions.IndentSwitchSection, CSharpVSResources.Indent_case_labels, SwitchCasePreview, this, optionStore));
 
             Items.Add(new TextBlock() { Text = CSharpVSResources.Label_Indentation });
 
-            Items.Add(new RadioButtonViewModel<LabelPositionOptions>(CSharpVSResources.Place_goto_labels_in_leftmost_column, GotoLabelPreview, "goto", LabelPositionOptions.LeftMost, CSharpFormattingOptions.LabelPositioning, this, options));
-            Items.Add(new RadioButtonViewModel<LabelPositionOptions>(CSharpVSResources.Indent_labels_normally, GotoLabelPreview, "goto", LabelPositionOptions.NoIndent, CSharpFormattingOptions.LabelPositioning, this, options));
-            Items.Add(new RadioButtonViewModel<LabelPositionOptions>(CSharpVSResources.Place_goto_labels_one_indent_less_than_current, GotoLabelPreview, "goto", LabelPositionOptions.OneLess, CSharpFormattingOptions.LabelPositioning, this, options));
+            Items.Add(new RadioButtonViewModel<LabelPositionOptions>(CSharpVSResources.Place_goto_labels_in_leftmost_column, GotoLabelPreview, "goto", LabelPositionOptions.LeftMost, CSharpFormattingOptions.LabelPositioning, this, optionStore));
+            Items.Add(new RadioButtonViewModel<LabelPositionOptions>(CSharpVSResources.Indent_labels_normally, GotoLabelPreview, "goto", LabelPositionOptions.NoIndent, CSharpFormattingOptions.LabelPositioning, this, optionStore));
+            Items.Add(new RadioButtonViewModel<LabelPositionOptions>(CSharpVSResources.Place_goto_labels_one_indent_less_than_current, GotoLabelPreview, "goto", LabelPositionOptions.OneLess, CSharpFormattingOptions.LabelPositioning, this, optionStore));
         }
     }
 }

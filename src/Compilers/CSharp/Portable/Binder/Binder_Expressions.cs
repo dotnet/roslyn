@@ -1974,7 +1974,43 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!rangeType.IsErrorType())
             {
-                symbolOpt = (MethodSymbol)GetWellKnownTypeMember(Compilation, WellKnownMember.System_Range__ctor, diagnostics, syntax: node);
+                // Depending on the available arguments to the range expression, there are four
+                // possible well-known members we could bind to. The constructor is always the
+                // fallback member, usable in any situation. However, if any of the other members
+                // are available and applicable, we will prefer that.
+
+                WellKnownMember? memberOpt = null;
+                if (node.LeftOperand is null && node.RightOperand is null)
+                {
+                    memberOpt = WellKnownMember.System_Range__get_All;
+                }
+                else if (node.LeftOperand is null)
+                {
+                    memberOpt = WellKnownMember.System_Range__EndAt;
+                }
+                else if (node.RightOperand is null)
+                {
+                    memberOpt = WellKnownMember.System_Range__StartAt;
+                }
+
+                if (!(memberOpt is null))
+                {
+                    symbolOpt = (MethodSymbol)GetWellKnownTypeMember(
+                        Compilation,
+                        memberOpt.GetValueOrDefault(),
+                        diagnostics,
+                        syntax: node,
+                        isOptional: true);
+                }
+
+                if (symbolOpt is null)
+                {
+                    symbolOpt = (MethodSymbol)GetWellKnownTypeMember(
+                        Compilation,
+                        WellKnownMember.System_Range__ctor,
+                        diagnostics,
+                        syntax: node);
+                }
             }
 
             BoundExpression left = BindRangeExpressionOperand(node.LeftOperand, diagnostics);
@@ -6864,8 +6900,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var resultType = rank == 1 &&
-                TypeSymbol.Equals(convertedArguments[0].Type, Compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2)
+            TypeSymbol resultType = rank == 1 &&
+                TypeSymbol.Equals(
+                    convertedArguments[0].Type,
+                    Compilation.GetWellKnownType(WellKnownType.System_Range),
+                    TypeCompareKind.ConsiderEverything)
                 ? arrayType
                 : arrayType.ElementType.TypeSymbol;
 
@@ -6893,9 +6932,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result is null && allowIndexAndRange)
             {
-                result =
-                    TryImplicitConversionToArrayIndex(index, WellKnownType.System_Index, node, diagnostics) ??
-                    TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
+                result = TryImplicitConversionToArrayIndex(index, WellKnownType.System_Index, node, diagnostics);
+
+                if (result is null)
+                {
+                    result = TryImplicitConversionToArrayIndex(index, WellKnownType.System_Range, node, diagnostics);
+                    if (!(result is null))
+                    {
+                        // This member is needed for lowering and should produce an error if not present
+                        _ = GetWellKnownTypeMember(
+                            Compilation,
+                            WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
+                            diagnostics,
+                            syntax: node);
+                    }
+                }
+                else
+                {
+                    // This member is needed for lowering and should produce an error if not present
+                    _ = GetWellKnownTypeMember(
+                        Compilation,
+                        WellKnownMember.System_Index__GetOffset,
+                        diagnostics,
+                        syntax: node);
+                }
             }
 
             if (result is null)
@@ -7216,43 +7276,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!analyzedArguments.HasErrors)
                 {
-                    // https://github.com/dotnet/roslyn/issues/30620
-                    // Pretend like there are indexers that support range and index
-                    if (receiverOpt?.Type.SpecialType == SpecialType.System_String &&
-                        analyzedArguments.Arguments.Count == 1)
-                    {
-                        var argType = analyzedArguments.Arguments[0].Type;
-                        TypeSymbol resultType = null;
-                        if (TypeSymbol.Equals(argType, Compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything2))
-                        {
-                            resultType = GetSpecialType(SpecialType.System_Char, diagnostics, syntax);
-                        }
-                        else if (TypeSymbol.Equals(argType, Compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything2))
-                        {
-                            resultType = GetSpecialType(SpecialType.System_String, diagnostics, syntax);
-                        }
-
-                        if (!(resultType is null))
-                        {
-                            var args = analyzedArguments.Arguments.ToImmutable();
-
-                            overloadResolutionResult.Free();
-                            return new BoundIndexerAccess(
-                                syntax,
-                                receiverOpt,
-                                candidates[0],
-                                args,
-                                argumentNames,
-                                argumentRefKinds,
-                                expanded: false,
-                                argsToParamsOpt: default,
-                                binderOpt: this,
-                                useSetterForDefaultArgumentGeneration: false,
-                                resultType,
-                                hasErrors: false);
-                        }
-                    }
-
                     // Dev10 uses the "this" keyword as the method name for indexers.
                     var candidate = candidates[0];
                     var name = candidate.IsIndexer ? SyntaxFacts.GetText(SyntaxKind.ThisKeyword) : candidate.Name;

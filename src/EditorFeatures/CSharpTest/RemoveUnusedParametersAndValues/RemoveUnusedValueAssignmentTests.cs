@@ -5401,13 +5401,13 @@ $@"class C
 
     int M(bool flag, int p)
     {
-        // Trigger diagostic
 
         // Unused assignment from parameter, should be removed.
 
         // Unused assignment from local, should be removed.
         int local = 3;
 
+        // Trigger diagostic
         // Used assignment, declaration for 'x' should move here
         int x = 0;
         System.Console.WriteLine(x);
@@ -5415,11 +5415,10 @@ $@"class C
         // Unused non-constant 'out' assignment
         // Not fixed as we have a different code fix 'Use discard' for it.
         M2(out x);
-
-        // Unused initialization with only def/use in nested block.
-        // Declaration for 'y' should be moved inside the if block.
         if (flag)
         {
+            // Unused initialization with only def/use in nested block.
+            // Declaration for 'y' should be moved inside the if block.
             int y = 2;
             System.Console.WriteLine(y);
         }
@@ -5472,10 +5471,11 @@ $@"class C
     {
         int z1 = 1;
         _ = M2();
-        int x;
+
         // Multiple unused variable declarations (x and y) moved below to start of if-else block
         // Used declaration (z1) and evaluation (_ = M2()) retained.
         // Completely unused declaration (z2) removed.
+        int x;
         int y;
         if (flag)
         {
@@ -5530,10 +5530,11 @@ $@"class C
     int M(bool flag, int p)
     {
         int z1 = 1, _ = M2();
-        int x;
+
         // Multiple unused variable declarations (x and y) moved below to start of if-else block
         // Used declaration (z1) and evaluation (_ = M2()) retained.
         // Completely unused declaration (z2) removed.
+        int x;
         int y;
         if (flag)
         {
@@ -6501,6 +6502,165 @@ class C
         => x ?? new C();
 }
 ", optionName: nameof(PreferDiscard), parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
+        }
+
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task RedundantAssignment_WithLeadingAndTrailingComment()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        // This is a comment before the variable assignment.
+        // It has two lines.
+        [|int foo = 0;|] // Trailing comment.
+        if (true)
+        {
+            foo = 1;
+        }
+        System.Console.WriteLine(foo);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        // This is a comment before the variable assignment.
+        // It has two lines.
+        int foo;
+        if (true)
+        {
+            foo = 1;
+        }
+        System.Console.WriteLine(foo);
+    }
+}", options: PreferUnusedLocal);
+        }
+
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task MultipleRedundantAssignment_WithLeadingAndTrailingComment()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        // This is a comment before the variable assignment.
+        // It has two lines.
+        {|FixAllInDocument:int unused = 0, foo = 0, bar = 0;|} // Trailing comment.
+        if (true)
+        {
+            foo = 1;
+            bar = 1;
+        }
+        System.Console.WriteLine(foo);
+        System.Console.WriteLine(bar);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        // This is a comment before the variable assignment.
+        // It has two lines.
+        int foo;
+        int bar;
+        if (true)
+        {
+            foo = 1;
+            bar = 1;
+        }
+        System.Console.WriteLine(foo);
+        System.Console.WriteLine(bar);
+    }
+}", options: PreferUnusedLocal);
+        }
+
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task MultipleRedundantAssignment_WithInnerComment()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        {|FixAllInDocument:int unused = 0, /*Comment*/foo = 0, /*Another comment*/ bar = 0;|}
+        if (true)
+        {
+            foo = 1;
+        }
+        System.Console.WriteLine(foo);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int foo;
+        if (true)
+        {
+            foo = 1;
+        }
+        System.Console.WriteLine(foo);
+    }
+}", options: PreferUnusedLocal);
+        }
+
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInSwitchCase_WithTrivia_PreferDiscard()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p)
+    {
+        switch (p)
+        {
+            case /*Inline trivia*/ int [|x|]:
+                // Other trivia
+                x = 1;
+                break;
+        };
+    }
+}",
+@"class C
+{
+    void M(object p)
+    {
+        switch (p)
+        {
+            case /*Inline trivia*/ int _:
+                // Other trivia
+                int x = 1;
+                break;
+        };
+    }
+}", options: PreferDiscard);
+        }
+
+        [WorkItem(32856, "https://github.com/dotnet/roslyn/issues/33312")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        public async Task DeclarationPatternInSwitchCase_WithTrivia_PreferUnusedLocal()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M(object p)
+    {
+        switch (p)
+        {
+            case /*Inline trivia*/ int [|x|]:
+                // Other trivia
+                x = 1;
+                break;
+        };
+    }
+}", PreferUnusedLocal);
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -53,6 +52,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
         /// cref="SyntaxToken.Text"/> of the token between the quotes maps to each character in the
         /// token's <see cref="SyntaxToken.ValueText"/>.
         /// </summary>
-        ImmutableArray<VirtualChar> TryConvertToVirtualChars(SyntaxToken token);
+        VirtualCharSequence TryConvertToVirtualChars(SyntaxToken token);
     }
 }

@@ -181,7 +181,10 @@ class C
                 //     object? F() => null;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 11),
                 // error CS0518: Predefined type 'System.Byte' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Byte").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Int32' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "").WithArguments("System.Int32").WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -1686,6 +1689,107 @@ public class B<T> :
                 type.GetMember<PropertySymbol>("Property").ToTestDisplayString());
         }
 
+        [Fact]
+        public void NullableFlags_Field_Exists()
+        {
+            var source =
+@"public class C
+{
+    public void F(object? c) { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                var method = (MethodSymbol)type.GetMembers("F").Single();
+                var attributes = method.Parameters.Single().GetAttributes();
+                AssertNullableAttribute(attributes);
+
+                var nullable = GetNullableAttribute(attributes);
+
+                var field = nullable.AttributeClass.GetField("NullableFlags");
+                Assert.NotNull(field);
+                Assert.Equal("System.Byte[]", field.Type.ToTestDisplayString());
+            });
+        }
+
+        [Fact]
+        public void NullableFlags_Field_Contains_ConstructorArguments_SingleByteConstructor()
+        {
+            var source =
+@"
+#nullable enable
+using System;
+using System.Linq;
+public class C
+{
+    public void F(object? c) { }
+
+    public static void Main()
+    {
+        var attribute = typeof(C).GetMethod(""F"").GetParameters()[0].GetCustomAttributes(true).Single(a => a.GetType().Name == ""NullableAttribute"");
+        var field = attribute.GetType().GetField(""NullableFlags"");
+        byte[] flags = (byte[])field.GetValue(attribute);
+
+        Console.Write($""{{ {string.Join("","", flags)} }}"");
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "{ 2 }", symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                var method = (MethodSymbol)type.GetMembers("F").Single();
+                var attributes = method.Parameters.Single().GetAttributes();
+                AssertNullableAttribute(attributes);
+
+                var nullable = GetNullableAttribute(attributes);
+                var args = nullable.ConstructorArguments;
+                Assert.Single(args);
+                Assert.Equal((byte)2, args.First().Value);
+            });
+        }
+
+        [Fact]
+        public void NullableFlags_Field_Contains_ConstructorArguments_ByteArrayConstructor()
+        {
+            var source =
+@"
+#nullable enable
+using System;
+using System.Linq;
+public class C
+{
+    public void F(Action<object?, Action<object, object?>?> c) { }
+
+    public static void Main()
+    {
+        var attribute = typeof(C).GetMethod(""F"").GetParameters()[0].GetCustomAttributes(true).Single(a => a.GetType().Name == ""NullableAttribute"");
+        var field = attribute.GetType().GetField(""NullableFlags"");
+        byte[] flags = (byte[])field.GetValue(attribute);
+
+        System.Console.Write($""{{ {string.Join("","", flags)} }}"");
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
+            CompileAndVerify(comp, expectedOutput: "{ 1,2,2,1,2 }", symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("C");
+                var method = (MethodSymbol)type.GetMembers("F").Single();
+                var attributes = method.Parameters.Single().GetAttributes();
+                AssertNullableAttribute(attributes);
+
+                var nullable = GetNullableAttribute(attributes);
+                var args = nullable.ConstructorArguments;
+                Assert.Single(args);
+                var byteargs = args.First().Values;
+                Assert.Equal((byte)1, byteargs[0].Value);
+                Assert.Equal((byte)2, byteargs[1].Value);
+                Assert.Equal((byte)2, byteargs[2].Value);
+                Assert.Equal((byte)1, byteargs[3].Value);
+                Assert.Equal((byte)2, byteargs[4].Value);
+            });
+        }
+
         private static void AssertNoNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
             AssertAttributes(attributes);
@@ -1712,6 +1816,11 @@ public class B<T> :
                 var attributes = metadataReader.GetCustomAttributeRows().Select(metadataReader.GetCustomAttributeName).ToArray();
                 Assert.False(attributes.Contains(attributeName));
             }
+        }
+
+        private static CSharpAttributeData GetNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)
+        {
+            return attributes.Single(a => a.AttributeClass.ToTestDisplayString() == "System.Runtime.CompilerServices.NullableAttribute");
         }
 
         private static TypeDefinition GetTypeDefinitionByName(MetadataReader reader, string name)
