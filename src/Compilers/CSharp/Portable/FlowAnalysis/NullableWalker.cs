@@ -848,7 +848,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // if InheritNullableStateOfMember asserts the member is valid for target and value?
                 if (areEquivalentTypes(targetType, valueType)) // https://github.com/dotnet/roslyn/issues/29968 Allow assignment to base type.
                 {
-                    if (targetType.IsReferenceType || targetType.IsNullableType())
+                    // https://github.com/dotnet/roslyn/issues/31395: We should copy all tracked state from `value` regardless of
+                    // BoundNode type but we'll need to handle cycles (see NullableReferenceTypesTests.Members_FieldCycle_07).
+                    // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
+                    if ((targetType.IsReferenceType && (value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.TypeSymbol.IsAnonymousType)) ||
+                        targetType.IsNullableType())
                     {
                         // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
                         // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
