@@ -77,6 +77,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             //  with the matching input branch.
             var blockToUniqueInputFlowMap = PooledDictionary<int, (int Ordinal, ControlFlowConditionKind BranchKind)?>.GetInstance();
 
+            // Map from basic block ordinals that are destination of back edge(s) to the minimum block ordinal that dominates it,
+            // i.e. for every '{key, value}' pair in the dictionary, 'key' is the destination of at least one back edge
+            // and 'value' is the minimum ordinal such that there is no back edge to 'key' from any basic block with ordinal > 'value'.
+            var loopRangeMap = PooledDictionary<int, int>.GetInstance();
+            ComputeLoopRangeMap(cfg, loopRangeMap);
+
             TAnalysisData normalPathsExitBlockData = null, exceptionPathsExitBlockDataOpt = null;
 
             try
@@ -99,8 +105,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 // Add the block to the worklist.
                 worklist.Add(entry.Ordinal);
 
-                RunCore(cfg, worklist, pendingBlocksNeedingAtLeastOnePass, initialAnalysisDataOpt, resultBuilder, uniqueSuccessors,
-                    finallyBlockSuccessorsMap, catchBlockInputDataMap, inputDataFromInfeasibleBranchesMap, blockToUniqueInputFlowMap, exceptionPathsAnalysisPostPass: false);
+                RunCore(cfg, worklist, pendingBlocksNeedingAtLeastOnePass, initialAnalysisDataOpt, resultBuilder,
+                    uniqueSuccessors, finallyBlockSuccessorsMap, catchBlockInputDataMap, inputDataFromInfeasibleBranchesMap,
+                    blockToUniqueInputFlowMap, loopRangeMap, exceptionPathsAnalysisPostPass: false);
                 normalPathsExitBlockData = resultBuilder.ExitBlockOutputData;
 
                 if (analysisContext.ExceptionPathsAnalysis)
@@ -130,7 +137,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
 
                     RunCore(cfg, worklist, pendingBlocksNeedingAtLeastOnePass, initialAnalysisDataOpt, resultBuilder, uniqueSuccessors,
-                        finallyBlockSuccessorsMap, catchBlockInputDataMap, inputDataFromInfeasibleBranchesMap, blockToUniqueInputFlowMap, exceptionPathsAnalysisPostPass: true);
+                        finallyBlockSuccessorsMap, catchBlockInputDataMap, inputDataFromInfeasibleBranchesMap,
+                        blockToUniqueInputFlowMap, loopRangeMap, exceptionPathsAnalysisPostPass: true);
                     exceptionPathsExitBlockDataOpt = resultBuilder.ExitBlockOutputData;
                     OperationVisitor.ExecutingExceptionPathsAnalysisPostPass = false;
                 }
@@ -154,6 +162,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 inputDataFromInfeasibleBranchesMap.Free();
                 unreachableBlocks.Free();
                 blockToUniqueInputFlowMap.Free();
+                loopRangeMap.Free();
             }
         }
 
@@ -168,6 +177,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             PooledDictionary<ControlFlowRegion, TAnalysisData> catchBlockInputDataMap,
             PooledDictionary<int, TAnalysisData> inputDataFromInfeasibleBranchesMap,
             PooledDictionary<int, (int Ordinal, ControlFlowConditionKind BranchKind)?> blockToUniqueInputFlowMap,
+            PooledDictionary<int, int> loopRangeMap,
             bool exceptionPathsAnalysisPostPass)
         {
             var unreachableBlocks = PooledHashSet<int>.GetInstance();
@@ -184,7 +194,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 while (worklist.Count > 0 || pendingBlocksNeedingAtLeastOnePass.Count > 0)
                 {
-                    updateUnreachableBlocks();
+                    UpdateUnreachableBlocks();
 
                     // Get the next block to process from the worklist.
                     // If worklist is empty, get any one of the pendingBlocksNeedingAtLeastOnePass, which must be unreachable from Entry block.
@@ -428,9 +438,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             {
                                 // For back edges, analysis data in subsequent iterations needs
                                 // to be merged with analysis data from previous iterations.
-                                var loopEndBlock = successorBlockOpt.Predecessors.Max(branch => branch.Source?.Ordinal ?? 0);
+                                var dominatorBlockOrdinal = loopRangeMap[successorBlockOpt.Ordinal];
+                                Debug.Assert(dominatorBlockOrdinal >= block.Ordinal);
+                                Debug.Assert(dominatorBlockOrdinal >= successorBlockOpt.Ordinal);
 
-                                for (int i = successorBlockOpt.Ordinal; i <= loopEndBlock; i++)
+                                for (int i = successorBlockOpt.Ordinal; i <= dominatorBlockOrdinal + 1; i++)
                                 {
                                     blockToUniqueInputFlowMap[i] = null;
                                 }
@@ -456,7 +468,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             }
 
             // Local functions.
-            void updateUnreachableBlocks()
+            void UpdateUnreachableBlocks()
             {
                 if (worklist.Count == 0)
                 {
@@ -731,6 +743,31 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 case BasicBlockKind.Exit:
                     builder.ExitBlockOutputData = AnalysisDomain.Clone(newOutput);
                     break;
+            }
+        }
+
+        private static void ComputeLoopRangeMap(ControlFlowGraph cfg, PooledDictionary<int, int> loopRangeMap)
+        {
+            for (int i = cfg.Blocks.Length - 1; i > 0; i--)
+            {
+                var block = cfg.Blocks[i];
+                HandleBranch(block.FallThroughSuccessor);
+                HandleBranch(block.ConditionalSuccessor);
+            }
+
+            void HandleBranch(ControlFlowBranch branch)
+            {
+                if (branch.IsBackEdge() && !loopRangeMap.ContainsKey(branch.Destination.Ordinal))
+                {
+                    var maxSuccessorOrdinal = Math.Max(branch.Destination.GetMaxSuccessorOrdinal(), branch.Source.Ordinal);
+
+                    if (branch.FinallyRegions.Length > 0)
+                    {
+                        maxSuccessorOrdinal = Math.Max(maxSuccessorOrdinal, branch.FinallyRegions[branch.FinallyRegions.Length - 1].LastBlockOrdinal);
+                    }
+
+                    loopRangeMap.Add(branch.Destination.Ordinal, maxSuccessorOrdinal);
+                }
             }
         }
     }
