@@ -36,8 +36,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Workspace = workspace;
             _logger = logger;
 
-            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target);
-            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+            var jsonFormatter = new JsonMessageFormatter();
+            jsonFormatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+
+            _rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter), target);
+            _rpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
+            _rpc.TraceSource = logger;
 
             _rpc.Disconnected += OnDisconnected;
         }
@@ -117,9 +121,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private void HandleException(Exception ex, CancellationToken cancellationToken)
         {
-            // StreamJsonRpc throws RemoteInvocationException if the call is cancelled.
-            // Handle this case by throwing a proper cancellation exception instead.
-            // See https://github.com/Microsoft/vs-streamjsonrpc/issues/67
             cancellationToken.ThrowIfCancellationRequested();
 
             LogError($"exception: {ex.ToString()}");
