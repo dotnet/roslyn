@@ -643,20 +643,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public string Style_UseImplicitTypeWherePossible
         {
-            get { return GetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible); }
-            set { SetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, value); }
+            get { return GetXmlOption(CSharpCodeStyleOptions.VarElsewhere); }
+            set { SetXmlOption(CSharpCodeStyleOptions.VarElsewhere, value); }
         }
 
         public string Style_UseImplicitTypeWhereApparent
         {
-            get { return GetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent); }
-            set { SetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, value); }
+            get { return GetXmlOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent); }
+            set { SetXmlOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, value); }
         }
 
         public string Style_UseImplicitTypeForIntrinsicTypes
         {
-            get { return GetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes); }
-            set { SetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, value); }
+            get { return GetXmlOption(CSharpCodeStyleOptions.VarForBuiltInTypes); }
+            set { SetXmlOption(CSharpCodeStyleOptions.VarForBuiltInTypes, value); }
         }
 
         public string Style_PreferConditionalDelegateCall

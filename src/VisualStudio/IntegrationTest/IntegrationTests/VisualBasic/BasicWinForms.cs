@@ -55,7 +55,7 @@ End Class");
             var project = new ProjectUtils.Project(ProjectName);
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.vb", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.vb", saveFile: true);
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.vb");
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"Me.SomeButton.Name = ""SomeButton""", actualText);
@@ -69,7 +69,7 @@ End Class");
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             VisualStudio.Editor.AddWinFormButton("SomeButton");
             VisualStudio.Editor.EditWinFormButtonProperty(buttonName: "SomeButton", propertyName: "Text", propertyValue: "NewButtonText");
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.vb", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.vb", saveFile: true);
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.vb");
             var actualText = VisualStudio.Editor.GetText();
             Assert.Contains(@"Me.SomeButton.Text = ""NewButtonText""", actualText);
@@ -85,7 +85,7 @@ End Class");
             var expectedPropertyValue = "ButtonTextGoesHere";
             var actualPropertyValue = VisualStudio.Editor.GetWinFormButtonPropertyValue(buttonName: "SomeButton", propertyName: "Text");
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.vb", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseDesignerFile(project, "Form1.vb", saveFile: true);
             //  Change the control's text in designer.vb code
             VisualStudio.SolutionExplorer.OpenFile(project, "Form1.Designer.vb");
             //  Verify that the control's property was set correctly. The following text should appear in InitializeComponent().
@@ -94,7 +94,7 @@ End Class");
             //  Replace text property with something else
             VisualStudio.Editor.SelectTextInCurrentDocument(@"Me.SomeButton.Text = ""ButtonTextGoesHere""");
             VisualStudio.Editor.SendKeys(@"Me.SomeButton.Text = ""GibberishText""");
-            VisualStudio.SolutionExplorer.CloseFile(project, "Form1.Designer.vb", saveFile: true);
+            VisualStudio.SolutionExplorer.CloseCodeFile(project, "Form1.Designer.vb", saveFile: true);
             //  Verify that the control text has changed in the designer
             VisualStudio.SolutionExplorer.OpenFileWithDesigner(project, "Form1.vb");
             expectedPropertyValue = "GibberishText";
