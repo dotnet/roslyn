@@ -2350,6 +2350,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make readonly fields writable.
+        /// </summary>
+        internal static string Make_readonly_fields_writable {
+            get {
+                return ResourceManager.GetString("Make_readonly_fields_writable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Member name can be simplified.
         /// </summary>
         internal static string Member_name_can_be_simplified {

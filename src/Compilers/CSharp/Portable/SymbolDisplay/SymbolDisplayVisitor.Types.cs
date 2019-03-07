@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private void VisitTypeSymbolWithAnnotations(TypeSymbolWithAnnotations type, AbstractSymbolDisplayVisitor visitorOpt = null)
         {
-            var visitor = (SymbolDisplayVisitor)(visitorOpt ?? this.NotFirstVisitor);
+            var visitor = visitorOpt ?? this.NotFirstVisitor;
             var typeSymbol = type.TypeSymbol;
 
             typeSymbol.Accept(visitor);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (underlyingType.Kind == SymbolKind.ArrayType && !ShouldAddNullableAnnotation(underlyingTypeWithAnnotations));
 
-            if (!underlyingTypeWithAnnotations.IsNull)
+            if (underlyingTypeWithAnnotations.HasType)
             {
                 VisitTypeSymbolWithAnnotations(underlyingTypeWithAnnotations);
             }
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arrayType = symbol;
             while (arrayType != null && arrayType != underlyingType)
             {
-                if (!(arrayType is null) && !this.isFirstSymbolVisited)
+                if (!this.isFirstSymbolVisited)
                 {
                     AddCustomModifiersIfRequired(arrayType.CustomModifiers, leadingSpace: true);
                 }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ShouldAddNullableAnnotation(TypeSymbolWithAnnotations typeOpt)
         {
-            if (typeOpt.IsNull)
+            if (!typeOpt.HasType)
             {
                 return false;
             }

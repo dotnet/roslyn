@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27110.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28620.130
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoslynDeployment", "src\Deployment\RoslynDeployment.csproj", "{600AF682-E097-407B-AD85-EE3CED37E680}"
 EndProject
@@ -280,6 +280,7 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.IntegrationTest.Setup", "src\VisualStudio\IntegrationTest\TestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.csproj", "{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{600AF682-E097-407B-AD85-EE3CED37E680} = {600AF682-E097-407B-AD85-EE3CED37E680}
+		{A486D7DE-F614-409D-BB41-0FFDF582E35C} = {A486D7DE-F614-409D-BB41-0FFDF582E35C}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.LanguageServices.IntegrationTests", "src\VisualStudio\IntegrationTest\IntegrationTests\Microsoft.VisualStudio.LanguageServices.IntegrationTests.csproj", "{E5A55C16-A5B9-4874-9043-A5266DC02F58}"
@@ -391,8 +392,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Pack
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Compilers.Setup", "src\Setup\DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.Setup.csproj", "{03607817-6800-40B6-BEAA-D6F437CD62B7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-format", "src\Tools\dotnet-format\dotnet-format.csproj", "{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Installer.Package", "src\Setup\Installer\Installer.Package.csproj", "{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Workspaces.Desktop.UnitTests", "src\Workspaces\DesktopTest\Microsoft.CodeAnalysis.Workspaces.Desktop.UnitTests.csproj", "{23405307-7EFF-4774-8B11-8F5885439761}"
@@ -408,6 +407,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Razor", "src\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj", "{2FB6C157-DF91-4B1C-9827-A4D1C08C73EC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.TypeScript", "src\Tools\ExternalAccess\TypeScript\Microsoft.CodeAnalysis.ExternalAccess.TypeScript.csproj", "{1638FB04-0298-4341-B5E0-8A13B4823C81}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Toolset.Package", "src\NuGet\Microsoft.Net.Compilers.Toolset\Microsoft.Net.Compilers.Toolset.Package.csproj", "{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -1050,10 +1051,6 @@ Global
 		{03607817-6800-40B6-BEAA-D6F437CD62B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03607817-6800-40B6-BEAA-D6F437CD62B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03607817-6800-40B6-BEAA-D6F437CD62B7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -1078,6 +1075,10 @@ Global
 		{1638FB04-0298-4341-B5E0-8A13B4823C81}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1638FB04-0298-4341-B5E0-8A13B4823C81}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1638FB04-0298-4341-B5E0-8A13B4823C81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1261,7 +1262,6 @@ Global
 		{3636D3E2-E3EF-4815-B020-819F382204CD} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 		{B9843F65-262E-4F40-A0BC-2CBEF7563A44} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 		{03607817-6800-40B6-BEAA-D6F437CD62B7} = {BE25E872-1667-4649-9D19-96B83E75A44E}
-		{4A9B5423-11BF-4E1D-B231-C9A2FDD78EC4} = {FD0FAF5F-1DED-485C-99FA-84B97F3A8EEC}
 		{6A68FDF9-24B3-4CB6-A808-96BF50D1BCE5} = {BE25E872-1667-4649-9D19-96B83E75A44E}
 		{23405307-7EFF-4774-8B11-8F5885439761} = {55A62CFA-1155-46F1-ADF3-BEEE51B58AB5}
 		{AFA5F921-0650-45E8-B293-51A0BB89DEA0} = {8DBA5174-B0AA-4561-82B1-A46607697753}
@@ -1270,6 +1270,7 @@ Global
 		{BD8CE303-5F04-45EC-8DCF-73C9164CD614} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{2FB6C157-DF91-4B1C-9827-A4D1C08C73EC} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{1638FB04-0298-4341-B5E0-8A13B4823C81} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{A74C7D2E-92FA-490A-B80A-28BEF56B56FC} = {C52D8057-43AF-40E6-A01B-6CDBB7301985}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
 
             BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
+            ReportSuppressionIfNeeded(left, diagnostics);
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
@@ -2105,6 +2106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindAddressOfExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression operand = BindValue(node.Operand, diagnostics, BindValueKind.AddressOf);
+            ReportSuppressionIfNeeded(operand, diagnostics);
 
             bool hasErrors = operand.HasAnyErrors; // This would propagate automatically, but by reading it explicitly we can reduce cascading.
             bool isFixedStatementAddressOfExpression = SyntaxFacts.IsFixedStatementExpression(node);
@@ -2281,6 +2283,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand = BindValue(node.Operand, diagnostics, GetUnaryAssignmentKind(node.Kind()));
             BoundLiteral constant = BindIntegralMinValConstants(node, operand, diagnostics);
             return constant ?? BindUnaryOperatorCore(node, node.OperatorToken.Text, operand, diagnostics);
+        }
+
+        private void ReportSuppressionIfNeeded(BoundExpression expr, DiagnosticBag diagnostics)
+        {
+            if (expr.IsSuppressed)
+            {
+                Error(diagnostics, ErrorCode.ERR_IllegalSuppression, expr.Syntax);
+            }
         }
 
         private BoundExpression BindUnaryOperatorCore(CSharpSyntaxNode node, string operatorText, BoundExpression operand, DiagnosticBag diagnostics)
@@ -3569,6 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
+            ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
             // If either operand is bad, bail out preventing more cascading errors
@@ -3621,7 +3632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// From ExpressionBinder::EnsureQMarkTypesCompatible:
         ///
-        /// The v2.0 specification states that the types of the second and third operands T and S of a ternary operator
+        /// The v2.0 specification states that the types of the second and third operands T and S of a conditional operator
         /// must be TT and TS such that either (a) TT==TS, or (b), TT->TS or TS->TT but not both.
         ///
         /// Unfortunately that is not what we implemented in v2.0.  Instead, we implemented

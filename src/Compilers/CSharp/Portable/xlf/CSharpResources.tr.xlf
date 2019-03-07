@@ -357,36 +357,6 @@
         <target state="translated">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull">
-        <source>Expression is probably never null.</source>
-        <target state="translated">İfade büyük ihtimalle hiçbir zaman null değildir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull_Title">
-        <source>Expression is probably never null.</source>
-        <target state="translated">İfade büyük ihtimalle hiçbir zaman null değildir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">Karşılaştırma sonucunun her zaman false olması mümkündür.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse_Title">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">Karşılaştırma sonucunun her zaman false olması mümkündür.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">Karşılaştırma sonucunun her zaman true olması mümkündür.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue_Title">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">Karşılaştırma sonucunun her zaman true olması mümkündür.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_CSCHelp">
         <source>
                              Visual C# Compiler Options
@@ -428,7 +398,7 @@
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -574,7 +544,7 @@
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -1192,6 +1162,16 @@
         <target state="translated">SyntaxTree derlemenin bir parçası olmadığından kaldırılamaz</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull">
+        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
+        <source>The 'as' operator may produce a null value for a type parameter.</source>
+        <target state="new">The 'as' operator may produce a null value for a type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">'_' adı atma desenine değil sabite başvuruyor. Değeri atmak için 'var _' adını ya da bu ada sahip bir sabite başvurmak için '@_' adını kullanın.</target>
@@ -1202,6 +1182,16 @@
         <target state="translated">Bir case sabiti için '_' adını kullanmayın.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
+        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">Conditional access may produce a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
+        <source>Conditional access may produce a null value for a type parameter.</source>
+        <target state="new">Conditional access may produce a null value for a type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Null sabit değeri veya olası null değeri, boş değer atanamaz türe dönüştürülüyor.</target>
@@ -1210,6 +1200,16 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Null sabit değeri veya olası null değeri, boş değer atanamaz türe dönüştürülüyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
+        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A default expression introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
+        <source>A default expression introduces a null value for a type parameter.</source>
+        <target state="new">A default expression introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
@@ -1283,13 +1283,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">Null sabit değeri, boş değer atanamaz başvuruya veya kısıtlanmamış tür parametresine dönüştürülemiyor.</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">Null sabit değeri, boş değer atanamaz başvuruya veya kısıtlanmamış tür parametresine dönüştürülemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">Null sabit değeri, boş değer atanamaz başvuruya veya kısıtlanmamış tür parametresine dönüştürülemiyor.</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">Null sabit değeri, boş değer atanamaz başvuruya veya kısıtlanmamış tür parametresine dönüştürülemiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
+        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A null literal introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
+        <source>A null literal introduces a null value for a type parameter.</source>
+        <target state="new">A null literal introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
@@ -1333,13 +1343,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</source>
-        <target state="translated">'{0}' türündeki bağımsız değişken için başvuru türlerinin boş değer atanabilirliği, '{3}' içindeki '{2}' parametresi için '{1}' hedef türüyle eşleşmiyor.</target>
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">'{0}' türündeki bağımsız değişken için başvuru türlerinin boş değer atanabilirliği, '{3}' içindeki '{2}' parametresi için '{1}' hedef türüyle eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
+        <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="new">Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
+        <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
+        <target state="new">Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Nullability of reference types in argument doesn't match target type.</source>
-        <target state="translated">Bağımsız değişkendeki başvuru türlerinin boş değer atanabilirliği hedef tür ile eşleşmiyor.</target>
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">Bağımsız değişkendeki başvuru türlerinin boş değer atanabilirliği hedef tür ile eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -2643,8 +2663,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
-        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)</source>
-        <target state="translated">'{0}' öğesi önceden tanımlı boyuta sahip değil, bu nedenle sizeof yalnızca unsafe bağlamda kullanılabilir (System.Runtime.InteropServices.Marshal.SizeOf kullanmayı düşünün)</target>
+        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
+        <target state="needs-review-translation">'{0}' öğesi önceden tanımlı boyuta sahip değil, bu nedenle sizeof yalnızca unsafe bağlamda kullanılabilir (System.Runtime.InteropServices.Marshal.SizeOf kullanmayı düşünün)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
@@ -8904,8 +8924,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Başvuru üçlü operatörünün dalları, bildirim kapsamı uyumsuz olan değişkenlere başvuruda bulunamaz</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">Başvuru üçlü operatörünün dalları, bildirim kapsamı uyumsuz olan değişkenlere başvuruda bulunamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">

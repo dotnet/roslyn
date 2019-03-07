@@ -81,12 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<string> elementNames,
             CSharpCompilation compilation,
             bool shouldCheckConstraints,
+            bool includeNullability,
             ImmutableArray<bool> errorPositions,
             CSharpSyntaxNode syntax = null,
             DiagnosticBag diagnostics = null)
         {
             Debug.Assert(!shouldCheckConstraints || (object)syntax != null);
             Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
+            Debug.Assert(!includeNullability || shouldCheckConstraints);
 
             int numElements = elementTypes.Length;
 
@@ -106,10 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
             if (shouldCheckConstraints && diagnostics != null)
             {
-                // https://github.com/dotnet/roslyn/issues/33303
-                // Need to follow up on checking tuple constraints within a method body which may cause us to revisit the 
-                // explicit false below.
-                constructedType.CheckConstraints(compilation.Conversions, includeNullability: false, syntax, elementLocations, compilation, diagnostics);
+                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics);
             }
 
             return constructedType;
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TupleTypeSymbol WithElementTypes(ImmutableArray<TypeSymbolWithAnnotations> newElementTypes)
         {
             Debug.Assert(_elementTypes.Length == newElementTypes.Length);
-            Debug.Assert(newElementTypes.All(t => !t.IsNull));
+            Debug.Assert(newElementTypes.All(t => t.HasType));
 
             NamedTypeSymbol firstTupleType;
             NamedTypeSymbol chainedTupleType;
@@ -1523,11 +1522,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (variance)
                 {
                     case VarianceKind.In:
-                        return a.MeetForFlowAnalysisFinally(b);
+                        return a.MeetForFixingUpperBounds(b);
                     case VarianceKind.Out:
-                        return a.JoinForFlowAnalysisBranches(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
+                        return a.JoinForFixingLowerBounds(b);
                     case VarianceKind.None:
-                        return a.EnsureCompatibleForTuples(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
+                        return a.EnsureCompatibleForTuples(b);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(variance);
                 }

@@ -357,36 +357,6 @@
         <target state="translated">Název souboru {0} je prázdný, obsahuje neplatné znaky, má specifikaci jednotky bez absolutní cesty nebo je moc dlouhý.</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull">
-        <source>Expression is probably never null.</source>
-        <target state="translated">Výraz pravděpodobně není nikdy null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull_Title">
-        <source>Expression is probably never null.</source>
-        <target state="translated">Výraz pravděpodobně není nikdy null.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">Výsledek porovnání je pravděpodobně vždy false.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse_Title">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">Výsledek porovnání je pravděpodobně vždy false.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">Výsledek porovnání je pravděpodobně vždy true.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue_Title">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">Výsledek porovnání je pravděpodobně vždy true.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_CSCHelp">
         <source>
                              Visual C# Compiler Options
@@ -428,7 +398,7 @@
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -574,7 +544,7 @@
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -1192,6 +1162,16 @@
         <target state="translated">SyntaxTree není součástí kompilace, takže se nedá odebrat.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull">
+        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
+        <source>The 'as' operator may produce a null value for a type parameter.</source>
+        <target state="new">The 'as' operator may produce a null value for a type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">Název „_“ odkazuje na konstantu, ne na vzor discard. Zadáním „var _“ hodnotu zahodíte a zadáním „@_“ nastavíte pod tímto názvem odkaz na konstantu.</target>
@@ -1202,6 +1182,16 @@
         <target state="translated">Nepoužívejte „_“ jako konstantu case.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
+        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">Conditional access may produce a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
+        <source>Conditional access may produce a null value for a type parameter.</source>
+        <target state="new">Conditional access may produce a null value for a type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Literál s hodnotou null nebo s možnou hodnotou null se převádí na typ bez možnosti hodnoty null.</target>
@@ -1210,6 +1200,16 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">Literál s hodnotou null nebo s možnou hodnotou null se převádí na typ bez možnosti hodnoty null.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
+        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A default expression introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
+        <source>A default expression introduces a null value for a type parameter.</source>
+        <target state="new">A default expression introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
@@ -1283,13 +1283,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">Literál s hodnotou null nejde převést na odkaz bez možnosti hodnoty null ani na parametr neomezeného typu.</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">Literál s hodnotou null nejde převést na odkaz bez možnosti hodnoty null ani na parametr neomezeného typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">Literál s hodnotou null nejde převést na odkaz bez možnosti hodnoty null ani na parametr neomezeného typu.</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">Literál s hodnotou null nejde převést na odkaz bez možnosti hodnoty null ani na parametr neomezeného typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
+        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A null literal introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
+        <source>A null literal introduces a null value for a type parameter.</source>
+        <target state="new">A null literal introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
@@ -1333,13 +1343,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</source>
-        <target state="translated">Typ odkazu s možnou hodnotou null v argumentu typu {0} neodpovídá cílovému typu {1} parametru {2} v {3}.</target>
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">Typ odkazu s možnou hodnotou null v argumentu typu {0} neodpovídá cílovému typu {1} parametru {2} v {3}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
+        <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="new">Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
+        <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
+        <target state="new">Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Nullability of reference types in argument doesn't match target type.</source>
-        <target state="translated">Typ odkazu s možnou hodnotou null v argumentu neodpovídá cílovému typu.</target>
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">Typ odkazu s možnou hodnotou null v argumentu neodpovídá cílovému typu.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -2643,8 +2663,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_SizeofUnsafe">
-        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)</source>
-        <target state="translated">'{0} nemá předdefinovanou velikost. Operátor sizeof jde proto použít jenom v kontextu unsafe (zvažte možnost použití operátoru System.Runtime.InteropServices.Marshal.SizeOf).</target>
+        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
+        <target state="needs-review-translation">'{0} nemá předdefinovanou velikost. Operátor sizeof jde proto použít jenom v kontextu unsafe (zvažte možnost použití operátoru System.Runtime.InteropServices.Marshal.SizeOf).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
@@ -8904,8 +8924,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_MismatchedRefEscapeInTernary">
-        <source>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</source>
-        <target state="translated">Větve tříhodnotového operátoru REF nemůžou odkazovat na proměnné s nekompatibilními obory deklarace.</target>
+        <source>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</source>
+        <target state="needs-review-translation">Větve tříhodnotového operátoru REF nemůžou odkazovat na proměnné s nekompatibilními obory deklarace.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_EscapeStackAlloc">
