@@ -1341,7 +1341,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     var result = AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity flowCaptureReferenceEntity);
                     Debug.Assert(result);
                     Debug.Assert(flowCaptureReferenceEntity.CaptureIdOpt != null);
-                    Debug.Assert(HasPredicatedDataForEntity(flowCaptureReferenceEntity));
+                    if (!HasPredicatedDataForEntity(flowCaptureReferenceEntity))
+                    {
+                        return;
+                    }
+
                     predicateValueKind = ApplyPredicatedDataForEntity(targetAnalysisData, flowCaptureReferenceEntity, trueData: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue);
                     break;
 

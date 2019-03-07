@@ -428,13 +428,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                             {
                                 // For back edges, analysis data in subsequent iterations needs
                                 // to be merged with analysis data from previous iterations.
-                                var enclosingRegion = successorBlockOpt.EnclosingRegion;
-                                while (enclosingRegion.EnclosingRegion?.FirstBlockOrdinal == successorBlockOpt.Ordinal)
-                                {
-                                    enclosingRegion = enclosingRegion.EnclosingRegion;
-                                }
+                                var loopEndBlock = successorBlockOpt.Predecessors.Max(branch => branch.Source?.Ordinal ?? 0);
 
-                                for (int i = successorBlockOpt.Ordinal; i <= enclosingRegion.LastBlockOrdinal; i++)
+                                for (int i = successorBlockOpt.Ordinal; i <= loopEndBlock; i++)
                                 {
                                     blockToUniqueInputFlowMap[i] = null;
                                 }
