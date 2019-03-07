@@ -13991,7 +13991,7 @@ set_P4
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void PropertyModifiers_23_00()
         {
             var source1 =
