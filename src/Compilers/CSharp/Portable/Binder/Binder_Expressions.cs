@@ -2849,9 +2849,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<BoundExpression> sizes = ArrayBuilder<BoundExpression>.GetInstance();
             ArrayRankSpecifierSyntax firstRankSpecifier = node.Type.RankSpecifiers[0];
+            bool hasErrors = false;
             foreach (var arg in firstRankSpecifier.Sizes)
             {
-                var size = BindArrayDimension(arg, diagnostics);
+                var size = BindArrayDimension(arg, diagnostics, ref hasErrors);
                 if (size != null)
                 {
                     sizes.Add(size);
@@ -2859,6 +2860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (node.Initializer is null && arg == firstRankSpecifier.Sizes[0])
                 {
                     Error(diagnostics, ErrorCode.ERR_MissingArraySize, firstRankSpecifier);
+                    hasErrors = true;
                 }
             }
 
@@ -2873,6 +2875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var size = BindValue(arg, diagnostics, BindValueKind.RValue);
                         Error(diagnostics, ErrorCode.ERR_InvalidArray, dimension[0]);
+                        hasErrors = true;
                         // Capture the invalid sizes for `SemanticModel` and `IOperation`
                         sizes.Add(size);
                     }
@@ -2882,11 +2885,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arraySizes = sizes.ToImmutableAndFree();
 
             return node.Initializer == null
-                ? new BoundArrayCreation(node, arraySizes, null, type)
-                : BindArrayCreationWithInitializer(diagnostics, node, node.Initializer, type, arraySizes);
+                ? new BoundArrayCreation(node, arraySizes, null, type, hasErrors)
+                : BindArrayCreationWithInitializer(diagnostics, node, node.Initializer, type, arraySizes, hasErrors: hasErrors);
         }
 
-        private BoundExpression BindArrayDimension(ExpressionSyntax dimension, DiagnosticBag diagnostics)
+        private BoundExpression BindArrayDimension(ExpressionSyntax dimension, DiagnosticBag diagnostics, ref bool hasErrors)
         {
             // These make the parse tree nicer, but they shouldn't actually appear in the bound tree.
             if (dimension.Kind() != SyntaxKind.OmittedArraySizeExpression)
@@ -2898,6 +2901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (IsNegativeConstantForArraySize(size))
                     {
                         Error(diagnostics, ErrorCode.ERR_NegativeArraySize, dimension);
+						hasErrors = true;
                     }
                 }
 
@@ -3205,7 +3209,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             InitializerExpressionSyntax initSyntax,
             ArrayTypeSymbol type,
             ImmutableArray<BoundExpression> sizes,
-            ImmutableArray<BoundExpression> boundInitExprOpt = default(ImmutableArray<BoundExpression>))
+            ImmutableArray<BoundExpression> boundInitExprOpt = default(ImmutableArray<BoundExpression>),
+            bool hasErrors = false)
         {
             Debug.Assert(creationSyntax == null ||
                 creationSyntax.Kind() == SyntaxKind.ArrayCreationExpression ||
@@ -3213,8 +3218,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initSyntax != null);
             Debug.Assert((object)type != null);
             Debug.Assert(boundInitExprOpt.IsDefault || creationSyntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression);
-
-            bool error = false;
 
             // NOTE: In error scenarios, it may be the case sizes.Count > type.Rank.
             // For example, new int[1 2] has 2 sizes, but rank 1 (since there are 0 commas).
@@ -3238,7 +3241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!size.HasAnyErrors && knownSizes[i] == null)
                 {
                     Error(diagnostics, ErrorCode.ERR_ConstantExpected, size.Syntax);
-                    error = true;
+                    hasErrors = true;
                 }
             }
 
@@ -3246,7 +3249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // information about the sizes.
             BoundArrayInitialization initializer = BindArrayInitializerList(diagnostics, initSyntax, type, knownSizes, 1, boundInitExprOpt);
 
-            error = error || initializer.HasAnyErrors;
+            hasErrors = hasErrors || initializer.HasAnyErrors;
 
             bool hasCreationSyntax = creationSyntax != null;
             CSharpSyntaxNode nonNullSyntax = (CSharpSyntaxNode)creationSyntax ?? initSyntax;
@@ -3268,13 +3271,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 sizes = sizeArray.AsImmutableOrNull();
             }
-            else if (!error && rank != numSizes)
+            else if (!hasErrors && rank != numSizes)
             {
                 Error(diagnostics, ErrorCode.ERR_BadIndexCount, nonNullSyntax, type.Rank);
-                error = true;
+                hasErrors = true;
             }
 
-            return new BoundArrayCreation(nonNullSyntax, sizes, initializer, type, hasErrors: error)
+            return new BoundArrayCreation(nonNullSyntax, sizes, initializer, type, hasErrors: hasErrors)
             {
                 WasCompilerGenerated = !hasCreationSyntax &&
                     (initSyntax.Parent == null ||

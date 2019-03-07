@@ -586,6 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpressionStatement expressionStatement;
 
             var expression = BindValue(syntax, diagnostics, BindValueKind.RValue);
+            ReportSuppressionIfNeeded(expression, diagnostics);
             if (!allowsAnyExpression && !IsValidStatementExpression(syntax, expression))
             {
                 if (!node.HasErrors)
@@ -1088,9 +1089,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 typeSyntax.VisitRankSpecifiers((rankSpecifier, args) =>
                 {
+                    bool _ = false;
                     foreach (var expressionSyntax in rankSpecifier.Sizes)
                     {
-                        var size = args.binder.BindArrayDimension(expressionSyntax, args.diagnostics);
+                        var size = args.binder.BindArrayDimension(expressionSyntax, args.diagnostics, ref _);
                         if (size != null)
                         {
                             args.invalidDimensions.Add(size);
@@ -1349,6 +1351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var op1 = BindValue(node.Left, diagnostics, lhsKind);
+            ReportSuppressionIfNeeded(op1, diagnostics);
 
             var lhsRefKind = RefKind.None;
             // If the LHS is a ref (not ref-readonly), the rhs

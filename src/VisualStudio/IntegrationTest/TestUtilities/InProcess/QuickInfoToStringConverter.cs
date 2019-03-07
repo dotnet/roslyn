@@ -29,7 +29,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 case ITextBuffer textBuffer:
                     return textBuffer.CurrentSnapshot.GetText();
                 case ContainerElement containerElement:
-                    var separator = containerElement.Style == ContainerElementStyle.Wrapped ? "" : Environment.NewLine;
+                    string separator;
+                    switch (containerElement.Style)
+                    {
+                        case ContainerElementStyle.Wrapped:
+                            separator = "";
+                            break;
+
+                        case ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding:
+                            separator = Environment.NewLine + Environment.NewLine;
+                            break;
+
+                        case ContainerElementStyle.Stacked:
+                        default:
+                            separator = Environment.NewLine;
+                            break;
+                    }
+
                     return string.Join(separator, containerElement.Elements.Select(GetStringFromItem));
                 case ClassifiedTextElement classifiedTextElement:
                     return string.Join("", classifiedTextElement.Runs.Select(GetStringFromItem));
