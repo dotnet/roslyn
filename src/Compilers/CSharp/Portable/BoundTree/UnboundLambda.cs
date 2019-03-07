@@ -972,18 +972,18 @@ haveLambdaBodyAndBinders:
 
             int codeCompare = xCode.CompareTo(yCode);
 
-            // ToString fails for a diagnostic with an error code that does not prevent successful delegate conversion.
-            // Also, the order doesn't matter, since all such diagnostics will be dropped.
-            if (!ErrorFacts.PreventsSuccessfulDelegateConversion(xCode) || !ErrorFacts.PreventsSuccessfulDelegateConversion(yCode))
-            {
-                return codeCompare;
-            }
-
             // Optimization: don't bother 
             if (codeCompare != 0)
                 return codeCompare;
 
-            for (int i = 0; i < x.Arguments.Count && i < y.Arguments.Count; i++)
+            // ToString fails for a diagnostic with an error code that does not prevent successful delegate conversion.
+            // Also, the order doesn't matter, since all such diagnostics will be dropped.
+            if (!ErrorFacts.PreventsSuccessfulDelegateConversion(xCode))
+            {
+                return codeCompare;
+            }
+
+            for (int i = 0; i < Math.Min(x.Arguments.Count, y.Arguments.Count); i++)
             {
                 object argx = x.Arguments[i];
                 object argy = y.Arguments[i];
