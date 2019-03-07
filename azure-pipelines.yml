@@ -2,6 +2,8 @@
 trigger:
 - master
 - master-vs-deps
+- features/*
+- demos/*
 - dev16.0-preview3
 - dev16.0-preview3-vs-deps
 - dev16.0

@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Windows;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
@@ -92,6 +93,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
 
             // Simply return if we were queued to run during shutdown.
             if (_isDisposed)
+            {
+                return;
+            }
+
+            // We do not want to make any changes while in high contrast mode.
+            if (SystemParameters.HighContrast)
             {
                 return;
             }

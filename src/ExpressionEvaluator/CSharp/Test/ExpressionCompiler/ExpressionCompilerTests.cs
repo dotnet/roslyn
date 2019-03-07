@@ -6756,17 +6756,11 @@ class C
 
             Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       20 (0x14)
-  .maxstack  3
+  // Code size        6 (0x6)
+  .maxstack  1
   .locals init (System.Range V_0) //x
-  IL_0000:  ldc.i4.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0007:  ldc.i4.0
-  IL_0008:  ldc.i4.1
-  IL_0009:  newobj     ""System.Index..ctor(int, bool)""
-  IL_000e:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0013:  ret
+  IL_0000:  call       ""System.Range System.Range.All.get""
+  IL_0005:  ret
 }");
         }
 
@@ -6806,16 +6800,13 @@ class C
 
             Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "2..").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       19 (0x13)
-  .maxstack  3
+  // Code size       12 (0xc)
+  .maxstack  1
   .locals init (System.Range V_0) //x
   IL_0000:  ldc.i4.2
   IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_0006:  ldc.i4.0
-  IL_0007:  ldc.i4.1
-  IL_0008:  newobj     ""System.Index..ctor(int, bool)""
-  IL_000d:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0012:  ret
+  IL_0006:  call       ""System.Range System.Range.StartAt(System.Index)""
+  IL_000b:  ret
 }");
         }
 
@@ -6855,16 +6846,13 @@ class C
 
             Evaluate(source, OutputKind.ConsoleApplication, "C.Main", "..2").GetMethodData("<>x.<>m0").VerifyIL(
 @"{
-  // Code size       19 (0x13)
-  .maxstack  2
+  // Code size       12 (0xc)
+  .maxstack  1
   .locals init (System.Range V_0) //x
-  IL_0000:  ldc.i4.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  newobj     ""System.Index..ctor(int, bool)""
-  IL_0007:  ldc.i4.2
-  IL_0008:  call       ""System.Index System.Index.op_Implicit(int)""
-  IL_000d:  newobj     ""System.Range..ctor(System.Index, System.Index)""
-  IL_0012:  ret
+  IL_0000:  ldc.i4.2
+  IL_0001:  call       ""System.Index System.Index.op_Implicit(int)""
+  IL_0006:  call       ""System.Range System.Range.EndAt(System.Index)""
+  IL_000b:  ret
 }");
         }
 

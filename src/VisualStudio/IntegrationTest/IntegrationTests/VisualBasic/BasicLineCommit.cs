@@ -76,7 +76,7 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(16);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20991"), Trait(Traits.Feature, Traits.Features.LineCommit)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
         void CommitOnSave()
         {
             VisualStudio.Editor.SetText(@"Module Module1
@@ -107,7 +107,7 @@ End Module");
             VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
             VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
             VisualStudio.Editor.SendKeys("                  ");
-            VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
+            VisualStudio.SolutionExplorer.CloseCodeFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
             VisualStudio.Editor.Verify.TextContains(@"
     Sub M()
     End Sub
@@ -130,7 +130,7 @@ End Module");
                 VisualStudio.SolutionExplorer.AddFile(new ProjName(ProjectName), "TestZ.vb", open: true); // Cause focus lost
                 VisualStudio.SolutionExplorer.OpenFile(new ProjName(ProjectName), "TestZ.vb"); // Work around https://github.com/dotnet/roslyn/issues/18488
                 VisualStudio.Editor.SendKeys("                  ");
-                VisualStudio.SolutionExplorer.CloseFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
+                VisualStudio.SolutionExplorer.CloseCodeFile(new ProjName(ProjectName), "TestZ.vb", saveFile: false);
                 VisualStudio.Editor.Verify.TextContains(@"
     Sub M()
      End Sub
