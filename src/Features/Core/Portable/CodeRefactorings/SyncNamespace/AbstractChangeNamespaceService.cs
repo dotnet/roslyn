@@ -461,11 +461,12 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     .SelectMany(refSymbol => refSymbol.Locations)
                     .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: false)));
 
-                // Find references above doesn't handle invocation of extension methods (in reduced form)
-                // that are declared in the affected types, so we need to find references to extension methods
-                // as well. This will returns all the references, not just in the reduced form. But we will
+                // So far we only have references to types declared in affected namespace. We also need to 
+                // handle invocation of extension methods (in reduced form) that are declared in those types. 
+                // Therefore additional calls to find references are needed for those extension methods.
+                // This will returns all the references, not just in the reduced form. But we will
                 // not further distinguish the usage. In the worst case, those references are redundant because
-                // they could be covered by the type references found above.
+                // they are already covered by the type references found above.
                 if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.MightContainExtensionMethods)
                 {
                     foreach (var methodSymbol in typeSymbol.GetMembers().OfType<IMethodSymbol>())
