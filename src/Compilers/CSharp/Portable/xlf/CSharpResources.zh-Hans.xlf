@@ -398,7 +398,7 @@
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -504,7 +504,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Visual C# 编译器选项
 
                         - 输出文件 -
@@ -1344,7 +1344,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">类型“{0}”的实参中引用类型的为 Null 性与“{3}”中形参“{2}”的目标类型“{1}”不匹配。</target>
         <note />
       </trans-unit>
@@ -1359,7 +1359,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">参数中的引用类型的为 Null 性与目标类型不匹配。</target>
         <note />
       </trans-unit>
@@ -7902,7 +7902,7 @@ You should consider suppressing the warning only if you're sure that you don't w
 To embed interop type information for both assemblies, use /link for references to each assembly (set the Embed Interop Types property to True).
 
 To remove the warning, you can use /reference instead (set the Embed Interop Types property to False). In this case, a primary interop assembly (PIA) provides interop type information.</source>
-        <target state="translated">使用 /link 添加了对程序集的引用(“嵌入互操作类型”属性设置为 True)。这指示编译器嵌入来自该程序集的互操作类型信息。但是，编译器无法嵌入来自该程序集的互操作类型信息，因为已引用的另一个程序集也使用 /reference 引用该程序集(“嵌入互操作类型”属性设置为 False)。
+        <target state="needs-review-translation">使用 /link 添加了对程序集的引用(“嵌入互操作类型”属性设置为 True)。这指示编译器嵌入来自该程序集的互操作类型信息。但是，编译器无法嵌入来自该程序集的互操作类型信息，因为已引用的另一个程序集也使用 /reference 引用该程序集(“嵌入互操作类型”属性设置为 False)。
 
 要嵌入两个程序集的互操作类型信息，请对每个程序集的引用使用 /link (将“嵌入互操作类型”属性设置为 True)。
 

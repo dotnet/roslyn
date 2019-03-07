@@ -2,13 +2,14 @@
 
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractInteractiveWindowTest : AbstractIntegrationTest
     {
-        protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        protected AbstractInteractiveWindowTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
