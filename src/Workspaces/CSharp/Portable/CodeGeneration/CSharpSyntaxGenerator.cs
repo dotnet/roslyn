@@ -1572,6 +1572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case MemberDeclarationSyntax memberDecl: return memberDecl.Modifiers;
                 case ParameterSyntax parameter: return parameter.Modifiers;
                 case LocalDeclarationStatementSyntax localDecl: return localDecl.Modifiers;
+                case LocalFunctionStatementSyntax localFunc: return localFunc.Modifiers;
                 case AccessorDeclarationSyntax accessor: return accessor.Modifiers;
                 case VariableDeclarationSyntax varDecl: return GetModifierTokens(varDecl.Parent);
                 case VariableDeclaratorSyntax varDecl: return GetModifierTokens(varDecl.Parent);
@@ -1582,52 +1583,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxNode SetModifierTokens(SyntaxNode declaration, SyntaxTokenList modifiers)
         {
-            switch (declaration.Kind())
+            switch (declaration)
             {
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.InterfaceDeclaration:
-                    return ((InterfaceDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.EnumDeclaration:
-                    return ((EnumDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.DelegateDeclaration:
-                    return ((DelegateDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.MethodDeclaration:
-                    return ((MethodDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.OperatorDeclaration:
-                    return ((OperatorDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.ConversionOperatorDeclaration:
-                    return ((ConversionOperatorDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.ConstructorDeclaration:
-                    return ((ConstructorDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.DestructorDeclaration:
-                    return ((DestructorDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.FieldDeclaration:
-                    return ((FieldDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.PropertyDeclaration:
-                    return ((PropertyDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.IndexerDeclaration:
-                    return ((IndexerDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.EventFieldDeclaration:
-                    return ((EventFieldDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.EventDeclaration:
-                    return ((EventDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.Parameter:
-                    return ((ParameterSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.LocalDeclarationStatement:
-                    return ((LocalDeclarationStatementSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)declaration).WithModifiers(modifiers);
-                case SyntaxKind.LocalFunctionStatement:
-                    return ((LocalFunctionStatementSyntax)declaration).WithModifiers(modifiers);
-                default:
-                    return declaration;
+                case MemberDeclarationSyntax memberDecl: return memberDecl.WithModifiers(modifiers);
+                case ParameterSyntax parameter: return parameter.WithModifiers(modifiers);
+                case LocalDeclarationStatementSyntax localDecl: return localDecl.WithModifiers(modifiers);
+                case LocalFunctionStatementSyntax localFunc: return localFunc.WithModifiers(modifiers);
+                case AccessorDeclarationSyntax accessor: return accessor.WithModifiers(modifiers);
             }
+
+            return declaration;
         }
 
         private static SyntaxTokenList AsModifierList(Accessibility accessibility, DeclarationModifiers modifiers, SyntaxKind kind)
