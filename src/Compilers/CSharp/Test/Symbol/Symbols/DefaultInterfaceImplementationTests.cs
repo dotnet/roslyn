@@ -27386,7 +27386,7 @@ I3.M1
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void MethodImplementationInDerived_22()
         {
             var source1 =
