@@ -1770,62 +1770,59 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
         {
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
+            TypeWithState leftType = ResultType;
+            bool warnOnNullReferenceArgument = (binary.OperatorKind.IsUserDefined() && (object)binary.MethodOpt != null && binary.MethodOpt.ParameterCount == 2);
+
+            if (warnOnNullReferenceArgument)
             {
-                TypeWithState leftType = ResultType;
-                bool warnOnNullReferenceArgument = (binary.OperatorKind.IsUserDefined() && (object)binary.MethodOpt != null && binary.MethodOpt.ParameterCount == 2);
+                ReportArgumentWarnings(binary.Left, leftType, binary.MethodOpt.Parameters[0]);
+            }
 
-                if (warnOnNullReferenceArgument)
+            var rightType = VisitRvalueWithState(binary.Right);
+            Debug.Assert(!IsConditionalState);
+            // At this point, State.Reachable may be false for
+            // invalid code such as `s + throw new Exception()`.
+
+            if (warnOnNullReferenceArgument)
+            {
+                ReportArgumentWarnings(binary.Right, rightType, binary.MethodOpt.Parameters[1]);
+            }
+
+            Debug.Assert(!IsConditionalState);
+            ResultType = InferResultNullability(binary, leftType, rightType);
+
+            BinaryOperatorKind op = binary.OperatorKind.Operator();
+            if (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual)
+            {
+                BoundExpression operandComparedToNull = null;
+                TypeWithState operandComparedToNullType = default;
+
+                if (binary.Right.ConstantValue?.IsNull == true)
                 {
-                    ReportArgumentWarnings(binary.Left, leftType, binary.MethodOpt.Parameters[0]);
+                    operandComparedToNull = binary.Left;
+                    operandComparedToNullType = leftType;
+                }
+                else if (binary.Left.ConstantValue?.IsNull == true)
+                {
+                    operandComparedToNull = binary.Right;
+                    operandComparedToNullType = rightType;
                 }
 
-                var rightType = VisitRvalueWithState(binary.Right);
-                Debug.Assert(!IsConditionalState);
-                // At this point, State.Reachable may be false for
-                // invalid code such as `s + throw new Exception()`.
-
-                if (warnOnNullReferenceArgument)
+                if (operandComparedToNull != null)
                 {
-                    ReportArgumentWarnings(binary.Right, rightType, binary.MethodOpt.Parameters[1]);
-                }
+                    // Skip reference conversions
+                    operandComparedToNull = SkipReferenceConversions(operandComparedToNull);
 
-                Debug.Assert(!IsConditionalState);
-                ResultType = InferResultNullability(binary, leftType, rightType);
-
-                BinaryOperatorKind op = binary.OperatorKind.Operator();
-                if (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual)
-                {
-                    BoundExpression operandComparedToNull = null;
-                    TypeWithState operandComparedToNullType = default;
-
-                    if (binary.Right.ConstantValue?.IsNull == true)
+                    // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
+                    var slotBuilder = ArrayBuilder<int>.GetInstance();
+                    GetSlotsToMarkAsNotNullable(operandComparedToNull, slotBuilder);
+                    if (slotBuilder.Count != 0)
                     {
-                        operandComparedToNull = binary.Left;
-                        operandComparedToNullType = leftType;
+                        Split();
+                        ref LocalState stateToUpdate = ref (op == BinaryOperatorKind.Equal) ? ref this.StateWhenFalse : ref this.StateWhenTrue;
+                        MarkSlotsAsNotNull(slotBuilder, ref stateToUpdate);
                     }
-                    else if (binary.Left.ConstantValue?.IsNull == true)
-                    {
-                        operandComparedToNull = binary.Right;
-                        operandComparedToNullType = rightType;
-                    }
-
-                    if (operandComparedToNull != null)
-                    {
-                        // Skip reference conversions
-                        operandComparedToNull = SkipReferenceConversions(operandComparedToNull);
-
-                        // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
-                        var slotBuilder = ArrayBuilder<int>.GetInstance();
-                        GetSlotsToMarkAsNotNullable(operandComparedToNull, slotBuilder);
-                        if (slotBuilder.Count != 0)
-                        {
-                            Split();
-                            ref LocalState stateToUpdate = ref (op == BinaryOperatorKind.Equal) ? ref this.StateWhenFalse : ref this.StateWhenTrue;
-                            MarkSlotsAsNotNull(slotBuilder, ref stateToUpdate);
-                        }
-                        slotBuilder.Free();
-                    }
+                    slotBuilder.Free();
                 }
             }
         }
@@ -1858,7 +1855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (operand.Kind)
                 {
                     case BoundKind.Conversion:
-                        // https://github.com/dotnet/roslyn/issues/29953 Detect when conversion has a nullable operand
+                        // https://github.com/dotnet/roslyn/issues/33879 Detect when conversion has a nullable operand
                         operand = ((BoundConversion)operand).Operand;
                         continue;
                     case BoundKind.ConditionalAccess:
@@ -1901,7 +1898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Attempt to create a slot for the current thing. If there were any more conditional accesses,
                         // they would have been on top, so this is the last thing we need to specially handle.
 
-                        // https://github.com/dotnet/roslyn/issues/29953 When we handle unconditional access survival (ie after
+                        // https://github.com/dotnet/roslyn/issues/33879 When we handle unconditional access survival (ie after
                         // c.D has been invoked, c must be nonnull or we've thrown a NullRef), revisit whether
                         // we need more special handling here
 
@@ -2412,11 +2409,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
-            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
-            {
-                var type = method.ReturnType;
-                LvalueResultType = type;
-            }
+            var type = method.ReturnType;
+            LvalueResultType = type;
         }
 
         private TypeWithState VisitCallReceiver(BoundCall node)
@@ -4525,68 +4519,58 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState resultType;
             Debug.Assert(!IsConditionalState);
 
-            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
+            TypeWithState leftOnRightType = GetAdjustedResult(leftResultType, MakeSlot(node.Left));
+
+            // https://github.com/dotnet/roslyn/issues/29962 Update operator based on inferred argument types.
+            if ((object)node.Operator.LeftType != null)
             {
-                TypeWithState leftOnRightType = GetAdjustedResult(leftResultType, MakeSlot(node.Left));
-
-                // https://github.com/dotnet/roslyn/issues/29962 Update operator based on inferred argument types.
-                if ((object)node.Operator.LeftType != null)
-                {
-                    // https://github.com/dotnet/roslyn/issues/29962 Ignoring top-level nullability of operator left parameter.
-                    leftOnRightType = ApplyConversion(
-                        node.Left,
-                        node.Left,
-                        node.LeftConversion,
-                        TypeSymbolWithAnnotations.Create(node.Operator.LeftType),
-                        leftOnRightType,
-                        checkConversion: true,
-                        fromExplicitCast: false,
-                        useLegacyWarnings: false,
-                        AssignmentKind.Assignment,
-                        reportTopLevelWarnings: false,
-                        reportRemainingWarnings: true);
-                }
-                else
-                {
-                    leftOnRightType = default;
-                }
-
-                TypeWithState rightType = VisitRvalueWithState(node.Right);
-                if ((object)node.Operator.ReturnType != null)
-                {
-                    if (node.Operator.Kind.IsUserDefined() && (object)node.Operator.Method != null && node.Operator.Method.ParameterCount == 2)
-                    {
-                        ReportArgumentWarnings(node.Left, leftOnRightType, node.Operator.Method.Parameters[0]);
-                        ReportArgumentWarnings(node.Right, rightType, node.Operator.Method.Parameters[1]);
-                    }
-
-                    resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightType, rightType);
-                    resultType = ApplyConversion(
-                        node,
-                        node,
-                        node.FinalConversion,
-                        leftLValueType,
-                        resultType,
-                        checkConversion: true,
-                        fromExplicitCast: false,
-                        useLegacyWarnings: false,
-                        AssignmentKind.Assignment);
-                }
-                else
-                {
-                    resultType = new TypeWithState(node.Type, NullableFlowState.NotNull);
-                }
-
-                TrackNullableStateForAssignment(node, leftLValueType, MakeSlot(node.Left), resultType);
-                ResultType = resultType;
+                // https://github.com/dotnet/roslyn/issues/29962 Ignoring top-level nullability of operator left parameter.
+                leftOnRightType = ApplyConversion(
+                    node.Left,
+                    node.Left,
+                    node.LeftConversion,
+                    TypeSymbolWithAnnotations.Create(node.Operator.LeftType),
+                    leftOnRightType,
+                    checkConversion: true,
+                    fromExplicitCast: false,
+                    useLegacyWarnings: false,
+                    AssignmentKind.Assignment,
+                    reportTopLevelWarnings: false,
+                    reportRemainingWarnings: true);
             }
-            //else
-            //{   // https://github.com/dotnet/roslyn/issues/29962 code should be restored?
-            //    VisitRvalue(node.Right);
-            //    AfterRightHasBeenVisited(node);
-            //    resultType = null;
-            //}
+            else
+            {
+                leftOnRightType = default;
+            }
 
+            TypeWithState rightType = VisitRvalueWithState(node.Right);
+            if ((object)node.Operator.ReturnType != null)
+            {
+                if (node.Operator.Kind.IsUserDefined() && (object)node.Operator.Method != null && node.Operator.Method.ParameterCount == 2)
+                {
+                    ReportArgumentWarnings(node.Left, leftOnRightType, node.Operator.Method.Parameters[0]);
+                    ReportArgumentWarnings(node.Right, rightType, node.Operator.Method.Parameters[1]);
+                }
+
+                resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightType, rightType);
+                resultType = ApplyConversion(
+                    node,
+                    node,
+                    node.FinalConversion,
+                    leftLValueType,
+                    resultType,
+                    checkConversion: true,
+                    fromExplicitCast: false,
+                    useLegacyWarnings: false,
+                    AssignmentKind.Assignment);
+            }
+            else
+            {
+                resultType = new TypeWithState(node.Type, NullableFlowState.NotNull);
+            }
+
+            TrackNullableStateForAssignment(node, leftLValueType, MakeSlot(node.Left), resultType);
+            ResultType = resultType;
             return null;
         }
 
@@ -4694,8 +4678,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitMemberAccess(BoundExpression node, BoundExpression receiverOpt, Symbol member)
         {
-            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
-
             Debug.Assert(!IsConditionalState);
 
             var receiverType = (receiverOpt != null) ? VisitRvalueWithState(receiverOpt) : default;
@@ -4931,7 +4913,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.OperatorKind.IsLifted())
             {
-                // https://github.com/dotnet/roslyn/issues/29953 Conversions: Lifted operator
+                // https://github.com/dotnet/roslyn/issues/33879 Conversions: Lifted operator
                 // Should this use the updated flow type and state?  How should it compute nullability?
                 return new TypeWithState(node.Type, NullableFlowState.NotNull);
             }
@@ -4950,58 +4932,55 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void AfterLeftChildOfBinaryLogicalOperatorHasBeenVisited(BoundExpression node, BoundExpression right, bool isAnd, bool isBool, ref LocalState leftTrue, ref LocalState leftFalse)
         {
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
+            TypeWithState leftType = ResultType;
+            // https://github.com/dotnet/roslyn/issues/29605 Update operator methods based on inferred operand types.
+            MethodSymbol logicalOperator = null;
+            MethodSymbol trueFalseOperator = null;
+            BoundExpression left = null;
+
+            switch (node.Kind)
             {
-                TypeWithState leftType = ResultType;
-                // https://github.com/dotnet/roslyn/issues/29605 Update operator methods based on inferred operand types.
-                MethodSymbol logicalOperator = null;
-                MethodSymbol trueFalseOperator = null;
-                BoundExpression left = null;
+                case BoundKind.BinaryOperator:
+                    Debug.Assert(!((BoundBinaryOperator)node).OperatorKind.IsUserDefined());
+                    break;
+                case BoundKind.UserDefinedConditionalLogicalOperator:
+                    var binary = (BoundUserDefinedConditionalLogicalOperator)node;
+                    if (binary.LogicalOperator != null && binary.LogicalOperator.ParameterCount == 2)
+                    {
+                        logicalOperator = binary.LogicalOperator;
+                        left = binary.Left;
+                        trueFalseOperator = isAnd ? binary.FalseOperator : binary.TrueOperator;
 
-                switch (node.Kind)
-                {
-                    case BoundKind.BinaryOperator:
-                        Debug.Assert(!((BoundBinaryOperator)node).OperatorKind.IsUserDefined());
-                        break;
-                    case BoundKind.UserDefinedConditionalLogicalOperator:
-                        var binary = (BoundUserDefinedConditionalLogicalOperator)node;
-                        if (binary.LogicalOperator != null && binary.LogicalOperator.ParameterCount == 2)
+                        if ((object)trueFalseOperator != null && trueFalseOperator.ParameterCount != 1)
                         {
-                            logicalOperator = binary.LogicalOperator;
-                            left = binary.Left;
-                            trueFalseOperator = isAnd ? binary.FalseOperator : binary.TrueOperator;
-
-                            if ((object)trueFalseOperator != null && trueFalseOperator.ParameterCount != 1)
-                            {
-                                trueFalseOperator = null;
-                            }
+                            trueFalseOperator = null;
                         }
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(node.Kind);
-                }
+                    }
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
+            }
 
-                Debug.Assert(trueFalseOperator is null || ((object)logicalOperator != null && left != null));
+            Debug.Assert(trueFalseOperator is null || ((object)logicalOperator != null && left != null));
 
-                if ((object)trueFalseOperator != null)
-                {
-                    ReportArgumentWarnings(left, leftType, trueFalseOperator.Parameters[0]);
-                }
+            if ((object)trueFalseOperator != null)
+            {
+                ReportArgumentWarnings(left, leftType, trueFalseOperator.Parameters[0]);
+            }
 
-                if ((object)logicalOperator != null)
-                {
-                    ReportArgumentWarnings(left, leftType, logicalOperator.Parameters[0]);
-                }
+            if ((object)logicalOperator != null)
+            {
+                ReportArgumentWarnings(left, leftType, logicalOperator.Parameters[0]);
+            }
 
-                Visit(right);
-                TypeWithState rightType = ResultType;
+            Visit(right);
+            TypeWithState rightType = ResultType;
 
-                ResultType = InferResultNullabilityOfBinaryLogicalOperator(node, leftType, rightType);
+            ResultType = InferResultNullabilityOfBinaryLogicalOperator(node, leftType, rightType);
 
-                if ((object)logicalOperator != null)
-                {
-                    ReportArgumentWarnings(right, rightType, logicalOperator.Parameters[1]);
-                }
+            if ((object)logicalOperator != null)
+            {
+                ReportArgumentWarnings(right, rightType, logicalOperator.Parameters[1]);
             }
 
             AfterRightChildOfBinaryLogicalOperatorHasBeenVisited(node, right, isAnd, isBool, ref leftTrue, ref leftFalse);
@@ -5172,7 +5151,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitLiteral(node);
 
             Debug.Assert(!IsConditionalState);
-            //if (this.State.Reachable) // Consider reachability: see https://github.com/dotnet/roslyn/issues/28798
             ResultType = new TypeWithState(node.Type, node.Type?.CanContainNull() != false && node.ConstantValue?.IsNull == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
 
             return result;
@@ -5672,6 +5650,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal void EnsureCapacity(int capacity)
             {
+                if (!Reachable)
+                {
+                    return;
+                }
+
                 if (_state == null)
                 {
                     _state = new ArrayBuilder<NullableFlowState>(capacity);
@@ -5687,7 +5670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 get
                 {
-                    if (slot < Capacity)
+                    if (slot < Capacity && this.Reachable)
                     {
                         return _state[slot];
                     }
@@ -5696,10 +5679,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 set
                 {
-                    // https://github.com/dotnet/roslyn/issues/32047 : all variables should be considered not null in unreachable code.
-                    // Moreover, no states should be modified in unreachable code, as there is only one unreachable state.
-                    EnsureCapacity(slot + 1);
-                    _state[slot] = value;
+                    if (this.Reachable)
+                    {
+                        // All variables are be considered not null in unreachable code.
+                        // Moreover, no states should be modified in unreachable code, as there is only one unreachable state.
+                        EnsureCapacity(slot + 1);
+                        _state[slot] = value;
+                    }
                 }
             }
 
