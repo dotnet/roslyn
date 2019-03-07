@@ -18766,7 +18766,7 @@ class Test1 : I1, I2, I3, I4
             ValidatePropertyModifiers_22(source1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void IndexerModifiers_23_00()
         {
             var source1 =
