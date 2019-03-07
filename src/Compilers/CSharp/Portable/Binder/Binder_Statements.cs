@@ -586,6 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpressionStatement expressionStatement;
 
             var expression = BindValue(syntax, diagnostics, BindValueKind.RValue);
+            ReportSuppressionIfNeeded(expression, diagnostics);
             if (!allowsAnyExpression && !IsValidStatementExpression(syntax, expression))
             {
                 if (!node.HasErrors)
@@ -1324,6 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var op1 = BindValue(node.Left, diagnostics, lhsKind);
+            ReportSuppressionIfNeeded(op1, diagnostics);
 
             var lhsRefKind = RefKind.None;
             // If the LHS is a ref (not ref-readonly), the rhs
