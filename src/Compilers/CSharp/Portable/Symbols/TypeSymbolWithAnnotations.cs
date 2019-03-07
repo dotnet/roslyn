@@ -11,137 +11,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal enum NullableAnnotation : byte
-    {
-        Unknown,      // No information. Think oblivious.
-        NotAnnotated, // Type is not annotated - string, int, T (including the case when T is unconstrained).
-        Annotated,    // Type is annotated - string?, T? where T : class; and for int?, T? where T : struct.
-    }
-
     /// <summary>
-    /// The nullable state of an rvalue computed in <see cref="NullableWalker"/>.
-    /// When in doubt we conservatively use <see cref="NullableFlowState.NotNull"/>
-    /// to minimize diagnostics.
-    /// </summary>
-    internal enum NullableFlowState : byte
-    {
-        NotNull,
-        MaybeNull
-    }
-
-    /// <summary>
-    /// A type and its corresponding flow state resulting from evaluating an rvalue expression.
-    /// </summary>
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal readonly struct TypeWithState
-    {
-        public TypeSymbol Type { get; }
-        public NullableFlowState State { get; }
-        public bool HasNullType => Type is null;
-        public bool MaybeNull => State == NullableFlowState.MaybeNull;
-        public bool NotNull => State == NullableFlowState.NotNull;
-        public static TypeWithState ForType(TypeSymbol type) => new TypeWithState(type, type?.CanContainNull() == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
-        public TypeWithState(TypeSymbol type, NullableFlowState state) => (Type, State) = (type, state);
-        public void Deconstruct(out TypeSymbol type, out NullableFlowState state) => (type, state) = (Type, State);
-        public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
-        public TypeWithState WithNotNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
-        public TypeSymbolWithAnnotations ToTypeSymbolWithAnnotations()
-        {
-            NullableAnnotation annotation = this.State.IsNotNull() || Type?.CanContainNull() == false || Type?.IsTypeParameterDisallowingAnnotation() == true
-                ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
-            return TypeSymbolWithAnnotations.Create(this.Type, annotation);
-        }
-    }
-
-    internal static class NullableAnnotationExtensions
-    {
-        public static bool IsAnnotated(this NullableAnnotation annotation)
-        {
-            return annotation == NullableAnnotation.Annotated;
-        }
-
-        public static bool IsNotAnnotated(this NullableAnnotation annotation)
-        {
-            return annotation == NullableAnnotation.NotAnnotated;
-        }
-
-        public static bool IsOblivious(this NullableAnnotation annotation)
-        {
-            return annotation == NullableAnnotation.Unknown;
-        }
-
-        public static bool MaybeNull(this NullableFlowState state)
-        {
-            return state == NullableFlowState.MaybeNull;
-        }
-
-        public static bool IsNotNull(this NullableFlowState state)
-        {
-            return state == NullableFlowState.NotNull;
-        }
-
-        /// <summary>
-        /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
-        /// This uses the covariant merging rules.
-        /// </summary>
-        public static NullableAnnotation Join(this NullableAnnotation a, NullableAnnotation b)
-        {
-            var x = _permute[(int)a];
-            var y = _permute[(int)b];
-            return (NullableAnnotation)_permute[(x > y) ? x : y];
-        }
-
-        /// <summary>
-        /// Meet two nullable annotations for computing the nullable annotation of a type parameter from upper bounds.
-        /// This uses the contravariant merging rules.
-        /// </summary>
-        public static NullableAnnotation Meet(this NullableAnnotation a, NullableAnnotation b)
-        {
-            var x = _permute[(int)a];
-            var y = _permute[(int)b];
-            return (NullableAnnotation)_permute[(x < y) ? x : y];
-        }
-
-        /// <summary>
-        /// This permutation places the NullableFlowState values into the proper order to form a linear
-        /// lattice.  This permutation is a self inverse.
-        /// </summary>
-        private static int[] _permute = new[] { 1, 0, 2 };
-
-        /// <summary>
-        /// Join nullable flow states from distinct branches during flow analysis.
-        /// The result is <see cref="NullableFlowState.MaybeNull"/> if either operand is that.
-        /// </summary>
-        public static NullableFlowState Join(this NullableFlowState a, NullableFlowState b)
-        {
-            return (a > b) ? a : b;
-        }
-
-        /// <summary>
-        /// Meet two nullable flow states from distinct states for the meet (union) operation in flow analysis.
-        /// The result is <see cref="NullableFlowState.NotNull"/> if either operand is that.
-        /// </summary>
-        public static NullableFlowState Meet(this NullableFlowState a, NullableFlowState b)
-        {
-            return (a < b) ? a : b;
-        }
-
-        /// <summary>
-        /// Check that two nullable annotations are "compatible", which means they could be the same. Return the
-        /// nullable annotation to be used as a result.  This uses the invariant merging rules.
-        /// </summary>
-        public static NullableAnnotation EnsureCompatible(this NullableAnnotation a, NullableAnnotation b)
-        {
-            if (a.IsOblivious())
-                return b;
-            if (b.IsOblivious())
-                return a;
-            return (a < b) ? a : b;
-        }
-    }
-
-    /// <summary>
-    /// A simple class that combines a single type symbol with annotations
+    /// A struct that combines a single type symbol with annotations
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct TypeSymbolWithAnnotations : IFormattable
@@ -446,18 +317,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
                     !IsNullableType() && !IsValueType &&
-                    (NullableAnnotation.IsAnnotated() ||
-                     (NullableAnnotation.IsAnnotated() && !TypeSymbol.IsTypeParameterDisallowingAnnotation())))
+                    NullableAnnotation.IsAnnotated())
                 {
                     return str + "?";
                 }
                 else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
                     !IsValueType &&
-                    NullableAnnotation.IsNotAnnotated() && !TypeSymbol.IsTypeParameterDisallowingAnnotation())
+                    NullableAnnotation.IsNotAnnotated() &&
+                    !TypeSymbol.IsTypeParameterDisallowingAnnotation())
                 {
                     return str + "!";
                 }
             }
+
             return str;
         }
 
@@ -877,6 +749,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Compute the flow state resulting from reading from an lvalue.
+        /// </summary>
+        internal TypeWithState ToTypeWithState()
+        {
+            // This operation reflects reading from an lvalue, which produces an rvalue.
+            // Reading from a variable of a type parameter (that could be substituted with a nullable type), but which
+            // cannot itself be annotated (because it isn't known to be a reference type), may yield a null value
+            // even though the type parameter isn't annotated.
+            return new TypeWithState(
+                TypeSymbol,
+                IsPossiblyNullableTypeTypeParameter() || NullableAnnotation.IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
+        }
+
+        /// <summary>
         /// Additional data or behavior beyond the core TypeSymbolWithAnnotations.
         /// </summary>
         private abstract class Extensions
@@ -1180,20 +1066,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return type.TypeSymbolEqualsCore(other, comparison);
             }
-        }
-
-        /// <summary>
-        /// Compute the flow state resulting from reading from an lvalue.
-        /// </summary>
-        internal TypeWithState ToTypeWithState()
-        {
-            // This operation reflects reading from an lvalue, which produces an rvalue.
-            // Reading from a variable of a type parameter (that could be substituted with a nullable type), but which
-            // cannot itself be annotated (because it isn't known to be a reference type), may yield a null value
-            // even though the type parameter isn't annotated.
-            return new TypeWithState(
-                this.TypeSymbol,
-                IsPossiblyNullableTypeTypeParameter() || this.NullableAnnotation.IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
         }
     }
 }

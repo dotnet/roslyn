@@ -2262,7 +2262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     visitResult = TypeSymbolWithAnnotations.Create(resultType,
-                                                                   convertedConsequenceResult.NullableAnnotation.Join(convertedAlternativeResult.NullableAnnotation));
+                        convertedConsequenceResult.NullableAnnotation.Join(convertedAlternativeResult.NullableAnnotation));
                 }
             }
             else

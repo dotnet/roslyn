@@ -73786,7 +73786,7 @@ class Program
         private readonly static NullableFlowState[] s_AllNullableFlowStates = (NullableFlowState[])Enum.GetValues(typeof(NullableFlowState));
 
         [Fact]
-        public void TestJoinForFixingLowerBounds()
+        public void TestJoinForNullableAnnotations()
         {
             var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
             Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.Join(inputs[i], inputs[j]);
@@ -73802,7 +73802,7 @@ class Program
         }
 
         [Fact]
-        public void TestJoinForFlowAnalysisBranches()
+        public void TestJoinForNullableFlowStates()
         {
             var inputs = new[] { NullableFlowState.NotNull, NullableFlowState.MaybeNull };
 
@@ -73818,7 +73818,7 @@ class Program
         }
 
         [Fact]
-        public void TestMeetForFixingUpperBounds()
+        public void TestMeetForNullableAnnotations()
         {
             var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
             Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.Meet(inputs[i], inputs[j]);
@@ -73834,7 +73834,7 @@ class Program
         }
 
         [Fact]
-        public void TestMeetForFlowAnalysisFinally()
+        public void TestMeetForNullableFlowStates()
         {
             var inputs = new[] { NullableFlowState.NotNull, NullableFlowState.MaybeNull };
             Func<int, int, NullableFlowState> getResult = (i, j) => inputs[i].Meet(inputs[j]);
@@ -73875,7 +73875,7 @@ class Program
         }
 
         [Fact]
-        public void TestAbsorptionForAnnotations()
+        public void TestAbsorptionForNullableAnnotations()
         {
             foreach (var a in s_AllNullableAnnotations)
             {
@@ -73888,7 +73888,7 @@ class Program
         }
 
         [Fact]
-        public void TestAbsorptionForFlowStates()
+        public void TestAbsorptionForNullableFlowStates()
         {
             foreach (var a in s_AllNullableFlowStates)
             {
@@ -73901,7 +73901,7 @@ class Program
         }
 
         [Fact]
-        public void TestJoinForFixingLowerBoundsIsAssociative()
+        public void TestJoinForNullableAnnotationsIsAssociative()
         {
             foreach (var a in s_AllNullableAnnotations)
             {
@@ -73918,7 +73918,7 @@ class Program
         }
 
         [Fact]
-        public void TestJoinForFlowAnalysisBranchesIsAssociative()
+        public void TestJoinForNullableFlowStatesIsAssociative()
         {
             foreach (var a in s_AllNullableFlowStates)
             {
@@ -73935,7 +73935,7 @@ class Program
         }
 
         [Fact]
-        public void TestMeetForFixingUpperBoundsIsAssociative()
+        public void TestMeetForNullableAnnotationsIsAssociative()
         {
             foreach (var a in s_AllNullableAnnotations)
             {
@@ -73952,7 +73952,7 @@ class Program
         }
 
         [Fact]
-        public void TestMeetForFlowAnalysisFinallyIsAssociative()
+        public void TestMeetForNullableFlowStatesIsAssociative()
         {
             foreach (var a in s_AllNullableFlowStates)
             {
@@ -73990,7 +73990,7 @@ class Program
         }
 
         [Fact]
-        public void TestJoinForFixingLowerBoundsIsCommutative()
+        public void TestJoinForNullableAnnotationsIsCommutative()
         {
             foreach (var a in s_AllNullableAnnotations)
             {
@@ -74004,7 +74004,7 @@ class Program
         }
 
         [Fact]
-        public void TestJoinForFlowAnalysisBranchesIsCommutative()
+        public void TestJoinForNullableFlowStatesIsCommutative()
         {
             Func<bool, bool> identity = x => x;
             foreach (var a in s_AllNullableFlowStates)
@@ -74019,7 +74019,7 @@ class Program
         }
 
         [Fact]
-        public void TestMeetForFixingUpperBoundsIsCommutative()
+        public void TestMeetForNullableAnnotationsIsCommutative()
         {
             foreach (var a in s_AllNullableAnnotations)
             {
@@ -74033,7 +74033,7 @@ class Program
         }
 
         [Fact]
-        public void TestMeetForFlowAnalysisFinallyIsCommutative()
+        public void TestMeetForNullableFlowStatesIsCommutative()
         {
             foreach (var a in s_AllNullableFlowStates)
             {
