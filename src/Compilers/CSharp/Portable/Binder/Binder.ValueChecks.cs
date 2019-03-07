@@ -2990,7 +2990,7 @@ moreArguments:
                         return true;
                     }
 
-                    if (!IsAnyReadOnly(addressKind) && type.IsReadOnly)
+                    if (!IsAnyReadOnly(addressKind) && (type.IsReadOnly || method.IsReadOnly))
                     {
                         return method.MethodKind == MethodKind.Constructor;
                     }

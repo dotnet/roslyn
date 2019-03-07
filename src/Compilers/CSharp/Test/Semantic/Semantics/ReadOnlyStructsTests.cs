@@ -154,6 +154,312 @@ interface I1
             );
         }
 
+        [Fact]
+        public void WriteableInstanceFields_ReadOnlyMethod()
+        {
+            var text = @"
+public struct A
+{
+    public static int s;
+
+    public int x;
+
+    readonly void AssignField()
+    {
+        // error
+        this.x = 1;
+
+        A a = default;
+        // OK
+        a.x = 3;
+        // OK
+        s = 5;
+    }
+}
+";
+            // PROTOTYPE: should give ERR_AssgReadonlyLocal
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_PassThisByRef()
+        {
+            var csharp = @"
+public struct S
+{
+    public static void M1(ref S s) {}
+    public static void M2(in S s) {}
+
+    public void M2()
+    {
+        M1(ref this); // ok
+        M2(in this); // ok
+    }
+
+    public readonly void M3()
+    {
+        M1(ref this); // error
+        M2(in this); // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            // PROTOTYPE: should give ERR_RefReadonlyLocal
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_PassFieldByRef()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int f1;
+    public int f2;
+
+    public static void M1(ref int s) {}
+    public static void M2(in int s) {}
+
+    public void M3()
+    {
+        M1(ref f1); // ok
+        M1(ref f2); // ok
+        M2(in f1); // ok
+        M2(in f2); // ok
+    }
+
+    public readonly void M4()
+    {
+        M1(ref f1); // ok
+        M1(ref f2); // error
+        M2(in f1); // ok
+        M2(in f2); // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            // PROTOTYPE: should give ERR_RefReadonlyLocal
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallReadOnlyMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int M1() => M2() + 1;
+    public readonly int M2() => i;
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyIL("S.M1", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int S.M2()""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallStaticMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int i;
+    public readonly int M1() => M2() + 1;
+    public static int M2() => i;
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallNormalMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+
+    public readonly void M1()
+    {
+        // should create local copy
+        M2();
+        System.Console.Write(i);
+
+        // explicit local copy, no warning
+        var copy = this;
+        copy.M2();
+        System.Console.Write(copy.i);
+    }
+
+    void M2()
+    {
+        i = 23;
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        s.M1();
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+            // PROTOTYPE: should warn about copying 'this' when calling M2
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S.M1", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (S V_0, //copy
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void S.M2()""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""int S.i""
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ldarg.0
+  IL_001a:  ldobj      ""S""
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""void S.M2()""
+  IL_0027:  ldloc.0
+  IL_0028:  ldfld      ""int S.i""
+  IL_002d:  call       ""void System.Console.Write(int)""
+  IL_0032:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyAccessor_CallNormalMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+
+    public int P
+    {
+        readonly get
+        {
+            // should create local copy
+            M();
+            System.Console.Write(i);
+
+            // explicit local copy, no warning
+            var copy = this;
+            copy.M();
+            System.Console.Write(copy.i);
+
+            return i;
+        }
+    }
+
+    void M()
+    {
+        i = 23;
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        _ = s.P;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+            // PROTOTYPE: should warn about copying 'this' when calling M
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStruct_CallNormalMethodOnField()
+        {
+            var csharp = @"
+public readonly struct S1
+{
+    public readonly S2 s2;
+    public void M1()
+    {
+        s2.M2();
+    }
+}
+
+public struct S2
+{
+    public int i;
+    public void M2()
+    {
+        i = 42;
+    }
+
+    static void Main()
+    {
+        var s1 = new S1();
+        s1.M1();
+        System.Console.Write(s1.s2.i);
+    }
+}
+";
+            CompileAndVerify(csharp, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallNormalMethodOnField()
+        {
+            var csharp = @"
+public struct S1
+{
+    public S2 s2;
+    public readonly void M1()
+    {
+        // warn on local copy
+        s2.M2();
+        System.Console.Write(s2.i);
+
+        // no warning on explicit copy
+        var copy = s2;
+        copy.M2();
+        System.Console.Write(copy.i);
+    }
+}
+
+public struct S2
+{
+    public int i;
+    public void M2()
+    {
+        i = 23;
+    }
+
+    static void Main()
+    {
+        var s1 = new S1() { s2 = new S2 { i = 1 } };
+        s1.M1();
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+            // PROTOTYPE: should warn about calling M2
+            verifier.VerifyDiagnostics();
+        }
+
         private static string ilreadonlyStructWithWriteableFieldIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
        extends [mscorlib]System.Attribute
