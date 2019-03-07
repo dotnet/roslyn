@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private void VisitTypeSymbolWithAnnotations(TypeSymbolWithAnnotations type, AbstractSymbolDisplayVisitor visitorOpt = null)
         {
-            var visitor = (SymbolDisplayVisitor)(visitorOpt ?? this.NotFirstVisitor);
+            var visitor = visitorOpt ?? this.NotFirstVisitor;
             var typeSymbol = type.TypeSymbol;
 
             typeSymbol.Accept(visitor);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arrayType = symbol;
             while (arrayType != null && arrayType != underlyingType)
             {
-                if (!(arrayType is null) && !this.isFirstSymbolVisited)
+                if (!this.isFirstSymbolVisited)
                 {
                     AddCustomModifiersIfRequired(arrayType.CustomModifiers, leadingSpace: true);
                 }
