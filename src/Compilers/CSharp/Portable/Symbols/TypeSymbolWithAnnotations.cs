@@ -255,6 +255,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this;
             }
 
+            // PROTOTYPE(ngafter): This is believed to be impossible.  We create only speakable TSWAs now.
+            throw null;
             return Create(typeSymbol, speakableAnnotation, this.CustomModifiers);
         }
 
