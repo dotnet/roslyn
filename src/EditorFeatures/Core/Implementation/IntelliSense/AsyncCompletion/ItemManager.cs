@@ -258,15 +258,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // If we don't have a best completion item yet, then pick the first item from the list.
             var bestOrFirstCompletionItem = bestItem ?? itemsInList.First().FilterResult.CompletionItem;
 
-            // Check that it is a filter symbol. We can be called for a non-filter symbol.
-            if (filterReason == CompletionFilterReason.Insertion &&
-                !IsPotentialFilterCharacter(typeChar) &&
-                !string.IsNullOrEmpty(filterText) &&
-                !Helpers.IsFilterCharacter(bestOrFirstCompletionItem, typeChar, filterText))
-            {
-                return null;
-            }
-
             bool isHardSelection = IsHardSelection(
                 filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,
                 completionHelper, filterReason, recentItems, hasSuggestedItemOptions);
