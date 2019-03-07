@@ -77633,7 +77633,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31500: Track nullable state across lifted conversions.
             comp.VerifyDiagnostics();
         }
 
@@ -77761,6 +77760,71 @@ class Program
                 // (6,18): error CS0030: Cannot convert type 'method' to 'S?'
                 //         var s =  (S?)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S?)F").WithArguments("method", "S?").WithLocation(6, 18));
+        }
+
+        [WorkItem(33330, "https://github.com/dotnet/roslyn/issues/33330")]
+        [Fact]
+        public void NullableT_32()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static void F(int? i, int j)
+    {
+        _ = (int)(i & j); // 1
+        _ = (int)(i | j); // 2
+        _ = (int)(i ^ j); // 3
+        _ = (int)(~i);    // 4
+        if (i.HasValue)
+        {
+            _ = (int)(i & j);
+            _ = (int)(i | j);
+            _ = (int)(i ^ j);
+            _ = (int)(~i);
+        }
+    }
+    static void F(bool? i, bool b)
+    {
+        _ = (bool)(i & b); // 5
+        _ = (bool)(i | b); // 6
+        _ = (bool)(i ^ b); // 7
+        _ = (bool)(!i);    // 8
+        if (i.HasValue)
+        {
+            _ = (bool)(i & b);
+            _ = (bool)(i | b);
+            _ = (bool)(i ^ b);
+            _ = (bool)(!i);
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8629: Nullable value type may be null.
+                //         _ = (int)(i & j); // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)(i & j)").WithLocation(6, 13),
+                // (7,13): warning CS8629: Nullable value type may be null.
+                //         _ = (int)(i | j); // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)(i | j)").WithLocation(7, 13),
+                // (8,13): warning CS8629: Nullable value type may be null.
+                //         _ = (int)(i ^ j); // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)(i ^ j)").WithLocation(8, 13),
+                // (9,13): warning CS8629: Nullable value type may be null.
+                //         _ = (int)(~i);    // 4
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)(~i)").WithLocation(9, 13),
+                // (20,13): warning CS8629: Nullable value type may be null.
+                //         _ = (bool)(i & b); // 5
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(bool)(i & b)").WithLocation(20, 13),
+                // (21,13): warning CS8629: Nullable value type may be null.
+                //         _ = (bool)(i | b); // 6
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(bool)(i | b)").WithLocation(21, 13),
+                // (22,13): warning CS8629: Nullable value type may be null.
+                //         _ = (bool)(i ^ b); // 7
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(bool)(i ^ b)").WithLocation(22, 13),
+                // (23,13): warning CS8629: Nullable value type may be null.
+                //         _ = (bool)(!i);    // 8
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(bool)(!i)").WithLocation(23, 13));
         }
 
         [Fact]
