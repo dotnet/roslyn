@@ -2783,7 +2783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // SPEC ends
 
-            var type = (ArrayTypeSymbol)BindArrayType(node.Type, diagnostics, permitDimensions: true, basesBeingResolved: null).TypeSymbol;
+            var type = (ArrayTypeSymbol)BindArrayType(node.Type, diagnostics, permitDimensions: true, basesBeingResolved: null, disallowRestrictedTypes: true).TypeSymbol;
 
             // CONSIDER: 
             //
@@ -3243,7 +3243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayTypeSyntax arrayTypeSyntax = (ArrayTypeSyntax)typeSyntax;
             var elementTypeSyntax = arrayTypeSyntax.ElementType;
-            var arrayType = (ArrayTypeSymbol)BindArrayType(arrayTypeSyntax, diagnostics, permitDimensions: true, basesBeingResolved: null).TypeSymbol;
+            var arrayType = (ArrayTypeSymbol)BindArrayType(arrayTypeSyntax, diagnostics, permitDimensions: true, basesBeingResolved: null, disallowRestrictedTypes: false).TypeSymbol;
             var elementType = arrayType.ElementType;
 
             TypeSymbol type = GetStackAllocType(node, elementType, diagnostics, out bool hasErrors);

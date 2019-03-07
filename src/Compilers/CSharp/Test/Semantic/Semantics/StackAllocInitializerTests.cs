@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -12,6 +13,66 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.StackAllocInitializer)]
     public class StackAllocInitializerTests : CompilingTestBase
     {
+        [Fact, WorkItem(33945, "https://github.com/dotnet/roslyn/issues/33945")]
+        public void RestrictedTypesAllowedInStackalloc()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+ref struct RefS { }
+
+class C
+{
+    unsafe void M()
+    {
+        var x1 = stackalloc RefS[10];
+        var x2 = stackalloc System.TypedReference[10];
+        var x3 = stackalloc System.ArgIterator[10];
+        var x4 = stackalloc System.RuntimeArgumentHandle[10];
+
+        var y1 = new RefS[10];
+        var y2 = new System.TypedReference[10];
+        var y3 = new System.ArgIterator[10];
+        var y4 = new System.RuntimeArgumentHandle[10];
+
+        RefS[] z1 = null;
+        System.TypedReference[] z2 = null;
+        System.ArgIterator[] z3 = null;
+        System.RuntimeArgumentHandle[] z4 = null;
+        _ = z1;
+        _ = z2;
+        _ = z3;
+        _ = z4;
+    }
+}
+", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (13,22): error CS0611: Array elements cannot be of type 'RefS'
+                //         var y1 = new RefS[10];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefS").WithArguments("RefS").WithLocation(13, 22),
+                // (14,22): error CS0611: Array elements cannot be of type 'TypedReference'
+                //         var y2 = new System.TypedReference[10];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(14, 22),
+                // (15,22): error CS0611: Array elements cannot be of type 'ArgIterator'
+                //         var y3 = new System.ArgIterator[10];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(15, 22),
+                // (16,22): error CS0611: Array elements cannot be of type 'RuntimeArgumentHandle'
+                //         var y4 = new System.RuntimeArgumentHandle[10];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(16, 22),
+                // (18,9): error CS0611: Array elements cannot be of type 'RefS'
+                //         RefS[] z1 = null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefS").WithArguments("RefS").WithLocation(18, 9),
+                // (19,9): error CS0611: Array elements cannot be of type 'TypedReference'
+                //         System.TypedReference[] z2 = null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(19, 9),
+                // (21,9): error CS0611: Array elements cannot be of type 'RuntimeArgumentHandle'
+                //         System.RuntimeArgumentHandle[] z4 = null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(21, 9),
+                // (21,40): warning CS0219: The variable 'z4' is assigned but its value is never used
+                //         System.RuntimeArgumentHandle[] z4 = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z4").WithArguments("z4").WithLocation(21, 40)
+                );
+        }
+
         [Fact]
         public void NoBestType_Pointer()
         {
