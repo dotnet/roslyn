@@ -32193,7 +32193,7 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void IndexerImplementationInDerived_14()
         {
