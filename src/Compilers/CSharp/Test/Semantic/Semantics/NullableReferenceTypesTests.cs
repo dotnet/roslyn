@@ -38715,7 +38715,7 @@ class C
 
         [Fact]
         [WorkItem(27317, "https://github.com/dotnet/roslyn/pull/27317")]
-        public void OutSuppressionInference()
+        public void RefOutSuppressionInference()
         {
             var src = @"
 class C
