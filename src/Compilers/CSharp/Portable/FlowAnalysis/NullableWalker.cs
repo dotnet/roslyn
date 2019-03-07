@@ -1980,7 +1980,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
 
-            TypeWithState resultType = GetNullCoalescingResultType(leftOperand, currentLeftType, rightOperand, rightResult, targetType.TypeSymbol);
+            TypeWithState resultType = GetNullCoalescingResultType(currentLeftType, rightResult, targetType.TypeSymbol);
             ResultType = resultType;
 
             if (leftSlot > 0)
@@ -2006,7 +2006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rightResult = VisitRvalueWithState(rightOperand);
                 // Should be able to use rightResult for the result of the operator but
                 // binding may have generated a different result type in the case of errors.
-                ResultType = new TypeWithState(node.Type, getNullableState(rightOperand, rightResult));
+                ResultType = new TypeWithState(node.Type, rightResult.State);
                 return null;
             }
 
@@ -2053,18 +2053,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind);
             }
 
-            ResultType = GetNullCoalescingResultType(leftOperand, leftResult, rightOperand, rightResult, resultType);
+            ResultType = GetNullCoalescingResultType(leftResult, rightResult, resultType);
             return null;
-
-            NullableFlowState getNullableState(BoundExpression e, TypeWithState t)
-            {
-                if (t.HasNullType)
-                {
-                    return GetNullableAnnotation(e).IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
-                }
-
-                return t.State;
-            }
 
             TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
@@ -2113,29 +2103,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static TypeWithState GetNullCoalescingResultType(BoundExpression leftOperand, TypeWithState leftResult, BoundExpression rightOperand, TypeWithState rightResult, TypeSymbol resultType)
+        private static TypeWithState GetNullCoalescingResultType(TypeWithState leftResult, TypeWithState rightResult, TypeSymbol resultType)
         {
-            NullableFlowState resultState;
-            if (getNullableState(leftOperand, leftResult) == NullableFlowState.NotNull)
-            {
-                resultState = getNullableState(leftOperand, leftResult);
-            }
-            else
-            {
-                resultState = getNullableState(rightOperand, rightResult);
-            }
-
+            NullableFlowState resultState = leftResult.State.Meet(rightResult.State);
             return new TypeWithState(resultType, resultState);
-
-            NullableFlowState getNullableState(BoundExpression e, TypeWithState t)
-            {
-                if (t.HasNullType)
-                {
-                    return GetNullableAnnotation(e).IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
-                }
-
-                return t.State;
-            }
         }
 
         public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)

@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Join nullable flow states from distinct branches during flow analysis.
+        /// The result is <see cref="NullableFlowState.MaybeNull"/> if either operand is that.
         /// </summary>
         public static NullableFlowState Join(this NullableFlowState a, NullableFlowState b)
         {
@@ -118,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Meet two nullable flow states from distinct states for the meet (union) operation in flow analysis.
+        /// The result is <see cref="NullableFlowState.NotNull"/> if either operand is that.
         /// </summary>
         public static NullableFlowState Meet(this NullableFlowState a, NullableFlowState b)
         {
