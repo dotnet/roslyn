@@ -345,6 +345,51 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyAccessor_CallNormalMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+
+    public int P
+    {
+        readonly get
+        {
+            // should create local copy
+            M();
+            System.Console.Write(i);
+
+            // explicit local copy, no warning
+            var copy = this;
+            copy.M();
+            System.Console.Write(copy.i);
+
+            return i;
+        }
+    }
+
+    void M()
+    {
+        i = 23;
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        _ = s.P;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+            verifier.VerifyDiagnostics(
+                // (11,13): warning CS8655: Call to non-readonly member 'M' from a 'readonly' member results in an implicit copy of 'this'.
+                //             M();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M").WithArguments("M", "this").WithLocation(11, 13));
+        }
+
+        [Fact]
         public void ReadOnlyStruct_CallNormalMethodOnField()
         {
             var csharp = @"
@@ -385,7 +430,14 @@ public struct S1
     public S2 s2;
     public readonly void M1()
     {
+        // warn on local copy
         s2.M2();
+        System.Console.Write(s2.i);
+
+        // no warning on explicit copy
+        var copy = s2;
+        copy.M2();
+        System.Console.Write(copy.i);
     }
 }
 
@@ -394,22 +446,21 @@ public struct S2
     public int i;
     public void M2()
     {
-        i = 42;
+        i = 23;
     }
 
     static void Main()
     {
-        var s1 = new S1();
+        var s1 = new S1() { s2 = new S2 { i = 1 } };
         s1.M1();
-        System.Console.Write(s1.s2.i);
     }
 }
 ";
-            var verifier = CompileAndVerify(csharp, expectedOutput: "0");
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
             verifier.VerifyDiagnostics(
-                // (7,9): warning CS8655: Call to non-readonly member 'M2' from a 'readonly' member results in an implicit copy of 's2'.
+                // (8,9): warning CS8655: Call to non-readonly member 'M2' from a 'readonly' member results in an implicit copy of 's2'.
                 //         s2.M2();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "s2").WithArguments("M2", "s2").WithLocation(7, 9));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "s2").WithArguments("M2", "s2").WithLocation(8, 9));
         }
 
         #endregion

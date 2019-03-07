@@ -1018,15 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
-            // Check if an implicit copy is needed to call a non-readonly instance method from within a readonly method.
-            if ((ContainingMemberOrLambda as MethodSymbol)?.IsReadOnly == true && !method.IsReadOnly && !method.IsStatic && receiver.Type.IsValueType)
-            {
-                if (!CheckValueKind(node: receiver.Syntax, receiver, BindValueKind.AssignableReceiver, checkingReceiver: true, diagnostics))
-                {
-                    var receiverName = receiver.Kind == BoundKind.ThisReference ? ThisParameterSymbol.SymbolName : GetName((ExpressionSyntax)receiver.Syntax);
-                    Error(diagnostics, ErrorCode.WRN_ImplicitCopyInReadOnlyMember, receiver.Syntax, method.Name, receiverName);
-                }
-            }
+            CheckImplicitCopyInReadOnlyMember(receiver, method, diagnostics);
 
             if (invokedAsExtensionMethod)
             {
@@ -1151,6 +1143,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                         argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
+        }
+
+        private void CheckImplicitCopyInReadOnlyMember(BoundExpression receiver, MethodSymbol method, DiagnosticBag diagnostics)
+        {
+            if ((ContainingMemberOrLambda as MethodSymbol)?.IsReadOnly == true && !method.IsReadOnly && !method.IsStatic && receiver.Type.IsValueType)
+            {
+                if (!CheckValueKind(node: receiver.Syntax, receiver, BindValueKind.AssignableReceiver, checkingReceiver: true, diagnostics))
+                {
+                    var receiverName = receiver.Kind == BoundKind.ThisReference ? ThisParameterSymbol.SymbolName : GetName((ExpressionSyntax)receiver.Syntax);
+                    Error(diagnostics, ErrorCode.WRN_ImplicitCopyInReadOnlyMember, receiver.Syntax, method.Name, receiverName);
+                }
+            }
         }
 
         private bool IsBindingModuleLevelAttribute()
