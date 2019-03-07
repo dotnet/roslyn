@@ -186,6 +186,71 @@ public struct A
         }
 
         [Fact]
+        public void ReadOnlyMethod_PassThisByRef()
+        {
+            var csharp = @"
+public struct S
+{
+    public static void M1(ref S s) {}
+    public static void M2(in S s) {}
+
+    public void M2()
+    {
+        M1(ref this); // ok
+        M2(in this); // ok
+    }
+
+    public readonly void M3()
+    {
+        M1(ref this); // error
+        M2(in this); // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (15,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         M1(ref this); // error
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(15, 16));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_PassFieldByRef()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int f1;
+    public int f2;
+
+    public static void M1(ref int s) {}
+    public static void M2(in int s) {}
+
+    public void M3()
+    {
+        M1(ref f1); // ok
+        M1(ref f2); // ok
+        M2(in f1); // ok
+        M2(in f2); // ok
+    }
+
+    public readonly void M4()
+    {
+        M1(ref f1); // ok
+        M1(ref f2); // error
+        M2(in f1); // ok
+        M2(in f2); // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (21,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         M1(ref f2); // error
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "f2").WithArguments("this").WithLocation(21, 16));
+        }
+
+        [Fact]
         public void ReadOnlyMethod_CallReadOnlyMethod()
         {
             var csharp = @"
