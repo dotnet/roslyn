@@ -1018,8 +1018,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
-            // Check if an implicit copy is needed to call a non-readonly method from within a readonly method.
-            if ((ContainingMemberOrLambda as MethodSymbol)?.IsReadOnly == true && !method.IsReadOnly && receiver.Type.IsValueType)
+            // Check if an implicit copy is needed to call a non-readonly instance method from within a readonly method.
+            if ((ContainingMemberOrLambda as MethodSymbol)?.IsReadOnly == true && !method.IsReadOnly && !method.IsStatic && receiver.Type.IsValueType)
             {
                 if (!CheckValueKind(node: receiver.Syntax, receiver, BindValueKind.AssignableReceiver, checkingReceiver: true, diagnostics))
                 {

@@ -201,6 +201,21 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyMethod_CallStaticMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int i;
+    public readonly int M1() => M2() + 1;
+    public static int M2() => i;
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ReadOnlyMethod_CallNormalMethod()
         {
             var csharp = @"
