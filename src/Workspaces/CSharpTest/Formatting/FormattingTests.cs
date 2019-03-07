@@ -2125,6 +2125,40 @@ else
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(33458, "https://github.com/dotnet/roslyn/issues/33458")]
+        public async Task NoNewLineForElseChecksBraceOwner()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { NewLineForElse, false },
+                { NewLinesForBracesInControlBlocks, false },
+            };
+
+            await AssertFormatAsync(@"class Class
+{
+    void Method()
+    {
+        if (true)
+            for (int i = 0; i < 10; i++) {
+                Method();
+            }
+        else
+            return;
+    }
+}", @"class Class
+{
+    void Method()
+    {
+        if (true)
+            for (int i = 0; i < 10; i++) {
+                Method();
+            } else
+            return;
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NewLineForExpressionDefault()
         {
             await AssertFormatAsync(@"class f00
