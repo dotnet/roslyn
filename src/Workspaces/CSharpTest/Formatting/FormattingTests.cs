@@ -9038,5 +9038,31 @@ public class Test
     }
 }");
         }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31571, "https://github.com/dotnet/roslyn/issues/31571")]
+        [WorkItem(33910, "https://github.com/dotnet/roslyn/issues/33910")]
+        [CombinatorialData]
+        public async Task ConversionOperator_CorrectlySpaceArgumentList(
+            [CombinatorialValues("implicit", "explicit")] string operatorType,
+            [CombinatorialValues("string", "string[]", "System.Action<int>", "int?", "int*", "(int, int)")] string targetType,
+            bool spacingAfterMethodDeclarationName)
+        {
+            var expectedSpacing = spacingAfterMethodDeclarationName ? " " : "";
+            var initialSpacing = spacingAfterMethodDeclarationName ? "" : " ";
+            var changedOptionSet = new Dictionary<OptionKey, object> { { SpacingAfterMethodDeclarationName, spacingAfterMethodDeclarationName } };
+            await AssertFormatAsync(
+                $@"
+public unsafe class Test
+{{
+    public static {operatorType} operator {targetType}{expectedSpacing}() => throw null;
+}}",
+                $@"
+public unsafe class Test
+{{
+    public static {operatorType} operator {targetType}{initialSpacing}() => throw null;
+}}",
+                changedOptionSet: changedOptionSet);
+        }
     }
 }
