@@ -75,8 +75,11 @@ with other members of the same kind;
 at the end;
 When generating property;
 prefer throwing properties;
-prefer auto properties;</source>
-        <target state="translated">Zobrazit diagnostiku pro zavřené soubory;
+prefer auto properties;
+regex;
+regular expression;
+Use enhanced colors;</source>
+        <target state="needs-review-translation">Zobrazit diagnostiku pro zavřené soubory;
 Obarvit regulární výraz; 
 Zvýrazňovat související komponenty pod kurzorem; 
 Hlásit neplatné regulární výrazy;

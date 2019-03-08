@@ -212,8 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the delegate.
 
             ImmutableArray<RefKind> formalParameterRefKinds, // Optional; assume all value if missing.
-            ImmutableArray<BoundExpression> arguments, // Required; in scenarios like method group conversions where there are
-                                                       // no arguments per se we cons up some fake arguments.
+            ImmutableArray<BoundExpression> arguments,// Required; in scenarios like method group conversions where there are
+                                                      // no arguments per se we cons up some fake arguments.
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             Func<BoundExpression, TypeSymbolWithAnnotations> getTypeWithAnnotationOpt = null)
         {
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var fixedType = _fixedResults[i];
 
-                if (fixedType.IsNull)
+                if (!fixedType.HasType)
                 {
                     sb.Append("UNFIXED ");
                 }
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < _methodTypeParameters.Length; i++)
             {
-                if (!_fixedResults[i].IsNull)
+                if (_fixedResults[i].HasType)
                 {
                     if (!_fixedResults[i].IsErrorType())
                     {
@@ -411,12 +411,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsUnfixed(int methodTypeParameterIndex)
         {
             Debug.Assert(ValidIndex(methodTypeParameterIndex));
-            return _fixedResults[methodTypeParameterIndex].IsNull;
+            return !_fixedResults[methodTypeParameterIndex].HasType;
         }
 
         private bool IsUnfixedTypeParameter(TypeSymbolWithAnnotations type)
         {
-            Debug.Assert(!type.IsNull);
+            Debug.Assert(type.HasType);
 
             if (type.TypeKind != TypeKind.TypeParameter) return false;
 
@@ -442,7 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddBound(TypeSymbolWithAnnotations addedBound, HashSet<TypeSymbolWithAnnotations>[] collectedBounds, TypeSymbolWithAnnotations methodTypeParameterWithAnnotations)
         {
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameterWithAnnotations));
-            Debug.Assert(addedBound.NullableAnnotation.IsSpeakable());
 
             var methodTypeParameter = (TypeParameterSymbol)methodTypeParameterWithAnnotations.TypeSymbol;
             int methodTypeParameterIndex = methodTypeParameter.Ordinal;
@@ -1169,7 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void OutputTypeInference(Binder binder, BoundExpression expression, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(expression != null);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(target.HasType);
             // SPEC: An output type inference is made from an expression E to a type T
             // SPEC: in the following way:
 
@@ -1192,7 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * Otherwise, if E is an expression with type U then a lower-bound
             // SPEC:   inference is made from U to T.
             var sourceType = GetTypeWithAnnotations(expression);
-            if (!sourceType.IsNull)
+            if (sourceType.HasType)
             {
                 LowerBoundInference(sourceType, target, ref useSiteDiagnostics);
             }
@@ -1202,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool InferredReturnTypeInference(BoundExpression source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(source != null);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(target.HasType);
             // SPEC: * If E is an anonymous function with inferred return type U and
             // SPEC:   T is a delegate type or expression tree with return type Tb
             // SPEC:   then a lower bound inference is made from U to Tb.
@@ -1218,13 +1217,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types.");
             var returnType = delegateType.DelegateInvokeMethod.ReturnType;
-            if (returnType.IsNull || returnType.SpecialType == SpecialType.System_Void)
+            if (!returnType.HasType || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
             }
 
             var inferredReturnType = InferReturnType(source, delegateType, ref useSiteDiagnostics);
-            if (inferredReturnType.IsNull)
+            if (!inferredReturnType.HasType)
             {
                 return false;
             }
@@ -1261,7 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          "This method should only be called for valid delegate types");
 
             TypeSymbolWithAnnotations delegateReturnType = delegateInvokeMethod.ReturnType;
-            if (delegateReturnType.IsNull || delegateReturnType.SpecialType == SpecialType.System_Void)
+            if (!delegateReturnType.HasType || delegateReturnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
             }
@@ -1280,7 +1279,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            NullableAnnotation returnIsNullable = NullableAnnotation.Unknown; // https://github.com/dotnet/roslyn/issues/27961 Review this
+            // https://github.com/dotnet/roslyn/issues/33635 : We should preserve the return nullability from the
+            // selected method of the method group, possibly turning oblivious into non-null.
+            NullableAnnotation returnIsNullable = NullableAnnotation.Oblivious;
             LowerBoundInference(TypeSymbolWithAnnotations.Create(returnType, returnIsNullable), delegateReturnType, ref useSiteDiagnostics);
 
             return true;
@@ -1324,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void ExplicitParameterTypeInference(BoundExpression source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(source != null);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(target.HasType);
 
             // SPEC: An explicit type parameter type inference is made from an expression
             // SPEC: E to a type T in the following way.
@@ -1382,8 +1383,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         private void ExactInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: An exact inference from a type U to a type V is made as follows:
 
@@ -1429,8 +1430,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ExactTypeParameterInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of bounds
             // SPEC:   for Xi.
@@ -1444,8 +1445,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ExactArrayInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: * Otherwise, if U is an array type UE[...] and V is an array type VE[...]
             // SPEC:   of the same rank then an exact inference from UE to VE is made.
@@ -1490,8 +1491,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ExactOrBoundsNullableInference(ExactOrBoundsKind kind, TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             if (source.IsNullableType() && target.IsNullableType())
             {
@@ -1509,7 +1510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // True if the type is nullable but not an unconstrained type parameter.
             bool isNullableOnly(TypeSymbolWithAnnotations type)
-                => type.NullableAnnotation.IsAnyNullable() && !type.TypeSymbol.IsTypeParameterDisallowingAnnotation();
+                => type.NullableAnnotation.IsAnnotated() && !type.TypeSymbol.IsTypeParameterDisallowingAnnotation();
         }
 
         private bool ExactNullableInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1519,8 +1520,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool LowerBoundTupleInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // NOTE: we are losing tuple element names when unwrapping tuple types to underlying types.
             //       that is ok, because we are inferring type parameters used in the matching elements, 
@@ -1546,8 +1547,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ExactConstructedInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: * Otherwise, if V is a constructed type C<V1...Vk> and U is a constructed
             // SPEC:   type C<U1...Uk> then an exact inference 
@@ -1614,8 +1615,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         private void LowerBoundInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: A lower-bound inference from a type U to a type V is made as follows:
 
@@ -1696,8 +1697,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool LowerBoundTypeParameterInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of bounds
             // SPEC:   for Xi.
@@ -1765,7 +1766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arraySource = (ArrayTypeSymbol)source;
             var elementSource = arraySource.ElementType;
             var elementTarget = GetMatchingElementType(arraySource, target, ref useSiteDiagnostics);
-            if (elementTarget.IsNull)
+            if (!elementTarget.HasType)
             {
                 return false;
             }
@@ -2003,8 +2004,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         private void UpperBoundInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: An upper-bound inference from a type U to a type V is made as follows:
 
@@ -2059,8 +2060,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool UpperBoundTypeParameterInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
             // SPEC: * If V is one of the unfixed Xi then U is added to the set of upper bounds
             // SPEC:   for Xi.
             if (IsUnfixedTypeParameter(target))
@@ -2073,8 +2074,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool UpperBoundArrayInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!source.IsNull);
-            Debug.Assert(!target.IsNull);
+            Debug.Assert(source.HasType);
+            Debug.Assert(target.HasType);
 
             // SPEC: * Otherwise, if V is an array type Ve[...] and U is an array
             // SPEC:   type Ue[...] of the same rank, or if V is a one-dimensional array
@@ -2091,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arrayTarget = (ArrayTypeSymbol)target.TypeSymbol;
             var elementTarget = arrayTarget.ElementType;
             var elementSource = GetMatchingElementType(arrayTarget, source.TypeSymbol, ref useSiteDiagnostics);
-            if (elementSource.IsNull)
+            if (!elementSource.HasType)
             {
                 return false;
             }
@@ -2115,8 +2116,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool UpperBoundConstructedInference(TypeSymbolWithAnnotations sourceWithAnnotations, TypeSymbolWithAnnotations targetWithAnnotations, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            Debug.Assert(!sourceWithAnnotations.IsNull);
-            Debug.Assert(!targetWithAnnotations.IsNull);
+            Debug.Assert(sourceWithAnnotations.HasType);
+            Debug.Assert(targetWithAnnotations.HasType);
             var source = sourceWithAnnotations.TypeSymbol.TupleUnderlyingTypeOrSelf();
             var target = targetWithAnnotations.TypeSymbol.TupleUnderlyingTypeOrSelf();
 
@@ -2302,7 +2303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var upper = _upperBounds[iParam];
 
             var best = Fix(exact, lower, upper, ref useSiteDiagnostics, _conversions);
-            if (best.IsNull)
+            if (!best.HasType)
             {
                 return false;
             }
@@ -2415,7 +2416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (best.IsNull)
+                if (!best.HasType)
                 {
                     best = candidate;
                 }
@@ -2454,6 +2455,7 @@ OuterBreak:
                 // distinct "not computed" state from initial binding.
                 return merged.SetUnknownNullabilityForReferenceTypes();
             }
+
             return merged.MergeNullability(second, variance);
         }
 
@@ -2785,6 +2787,7 @@ OuterBreak:
                     // distinct "not computed" state from initial binding.
                     type = type.SetUnknownNullabilityForReferenceTypes();
                 }
+
                 AddOrMergeCandidate(candidates, type, variance, conversions);
             }
         }

@@ -177,5 +177,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Highlight_related_components_under_cursor =>
             ServicesVSResources.Highlight_related_components_under_cursor;
+
+        public static string Option_Show_completion_list =>
+            ServicesVSResources.Show_completion_list;
+
+        public static string Option_Classifications =>
+            ServicesVSResources.Classifications;
+
+        public static string Option_Use_enhanced_colors_for_C_and_Basic =>
+            ServicesVSResources.Use_enhanced_colors_for_C_and_Basic;
     }
 }

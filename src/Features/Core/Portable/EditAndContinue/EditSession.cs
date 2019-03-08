@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         internal bool HasProject(ProjectId id)
         {
-            return Projects.TryGetValue(id, out var reason);
+            return Projects.TryGetValue(id, out _);
         }
 
         private List<(DocumentId, AsyncLazy<DocumentAnalysisResults>)> GetChangedDocumentsAnalyses(Project baseProject, Project project)
@@ -353,7 +353,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             documentBaseActiveStatements = ImmutableArray<ActiveStatement>.Empty;
                         }
 
-                        var result = await analyzer.AnalyzeDocumentAsync(_baseSolution, documentBaseActiveStatements, document, cancellationToken).ConfigureAwait(false);
+                        var trackingService = _baseSolution.Workspace.Services.GetService<IActiveStatementTrackingService>();
+                        var baseProject = _baseSolution.GetProject(document.Project.Id);
+                        var result = await analyzer.AnalyzeDocumentAsync(baseProject, documentBaseActiveStatements, document, trackingService, cancellationToken).ConfigureAwait(false);
 
                         if (!result.RudeEditErrors.IsDefault)
                         {

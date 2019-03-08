@@ -25,16 +25,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             string truePreview,
             string falsePreview,
             AbstractOptionPreviewViewModel info,
-            OptionSet options,
+            OptionStore optionStore,
             string groupName,
             List<CodeStylePreference> preferences = null,
             List<NotificationOptionViewModel> notificationPreferences = null)
-            : base(option, description, info, options, groupName, preferences, notificationPreferences)
+            : base(option, description, info, groupName, preferences, notificationPreferences)
         {
             _truePreview = truePreview;
             _falsePreview = falsePreview;
 
-            var codeStyleOption = ((CodeStyleOption<bool>)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
+            var codeStyleOption = ((CodeStyleOption<bool>)optionStore.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
             _selectedPreference = Preferences.Single(c => c.IsChecked == codeStyleOption.Value);
 
             var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Severity == codeStyleOption.Notification.Severity);

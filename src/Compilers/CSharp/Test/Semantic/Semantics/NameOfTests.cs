@@ -550,7 +550,8 @@ class Program
         [Fact]
         public void TestNameofIndexerName()
         {
-            var source = @"using System.Linq;
+            var source = @"
+using System.Linq;
 class C
 {
     public static void Main(string[] args)
