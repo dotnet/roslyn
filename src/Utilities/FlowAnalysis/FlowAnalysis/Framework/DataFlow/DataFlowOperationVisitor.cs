@@ -1342,7 +1342,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     var result = AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity flowCaptureReferenceEntity);
                     Debug.Assert(result);
                     Debug.Assert(flowCaptureReferenceEntity.CaptureIdOpt != null);
-                    if (!HasPredicatedDataForEntity(flowCaptureReferenceEntity))
+                    if (!HasPredicatedDataForEntity(targetAnalysisData, flowCaptureReferenceEntity))
                     {
                         return;
                     }
@@ -1521,7 +1521,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             throw new NotImplementedException();
         }
 
-        protected virtual bool HasPredicatedDataForEntity(AnalysisEntity predicatedEntity)
+        private bool HasPredicatedDataForEntity(AnalysisEntity predicatedEntity)
+            => HasPredicatedDataForEntity(CurrentAnalysisData, predicatedEntity);
+
+        protected virtual bool HasPredicatedDataForEntity(TAnalysisData analysisData, AnalysisEntity predicatedEntity)
         {
             Debug.Assert(PredicateAnalysis);
             throw new NotImplementedException();
