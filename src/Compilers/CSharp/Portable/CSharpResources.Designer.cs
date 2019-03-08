@@ -14356,6 +14356,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Call to non-readonly member &apos;{0}&apos; from a &apos;readonly&apos; member results in an implicit copy of &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_ImplicitCopyInReadOnlyMember {
+            get {
+                return ResourceManager.GetString("WRN_ImplicitCopyInReadOnlyMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Call to non-readonly member from a &apos;readonly&apos; member results in an implicit copy..
+        /// </summary>
+        internal static string WRN_ImplicitCopyInReadOnlyMember_Title {
+            get {
+                return ResourceManager.GetString("WRN_ImplicitCopyInReadOnlyMember_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Assignment in conditional expression is always constant; did you mean to use == instead of = ?.
         /// </summary>
         internal static string WRN_IncorrectBooleanAssg {
