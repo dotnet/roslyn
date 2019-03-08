@@ -1849,39 +1849,96 @@ namespace Microsoft.CodeAnalysis.CSharp
             ResultType = InferResultNullability(binary, leftType, rightType);
 
             BinaryOperatorKind op = binary.OperatorKind.Operator();
+
+            // learn from non-null constant
+            BoundExpression operandComparedToNonNull = null;
+            if (isNonNullConstant(binary.Left))
+            {
+                operandComparedToNonNull = binary.Right;
+            }
+            else if (isNonNullConstant(binary.Right))
+            {
+                operandComparedToNonNull = binary.Left;
+            }
+
+            if (operandComparedToNonNull != null)
+            {
+                switch (op)
+                {
+                    case BinaryOperatorKind.Equal:
+                    case BinaryOperatorKind.GreaterThan:
+                    case BinaryOperatorKind.LessThan:
+                    case BinaryOperatorKind.GreaterThanOrEqual:
+                    case BinaryOperatorKind.LessThanOrEqual:
+                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
+                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: true);
+                        return;
+                    case BinaryOperatorKind.NotEqual:
+                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
+                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
+                        return;
+                    default:
+                        break;
+                };
+            }
+
+            // learn from null constant
             if (op == BinaryOperatorKind.Equal || op == BinaryOperatorKind.NotEqual)
             {
                 BoundExpression operandComparedToNull = null;
-                TypeWithState operandComparedToNullType = default;
 
                 if (binary.Right.ConstantValue?.IsNull == true)
                 {
                     operandComparedToNull = binary.Left;
-                    operandComparedToNullType = leftType;
                 }
                 else if (binary.Left.ConstantValue?.IsNull == true)
                 {
                     operandComparedToNull = binary.Right;
-                    operandComparedToNullType = rightType;
                 }
 
                 if (operandComparedToNull != null)
                 {
-                    // Skip reference conversions
                     operandComparedToNull = SkipReferenceConversions(operandComparedToNull);
 
                     // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
-                    var slotBuilder = ArrayBuilder<int>.GetInstance();
-                    GetSlotsToMarkAsNotNullable(operandComparedToNull, slotBuilder);
-                    if (slotBuilder.Count != 0)
+                    bool nonNullCase = op != BinaryOperatorKind.Equal; // true represents WhenTrue
+                    splitAndLearnFromNonNullTest(operandComparedToNull, whenTrue: nonNullCase);
+
+                    var operandWithoutConversion = RemoveConversion(operandComparedToNull, includeExplicitConversions: true).expression;
+                    int slot = MakeSlot(operandWithoutConversion);
+                    if (slot > 0 && PossiblyNullableType(operandWithoutConversion.Type))
                     {
-                        Split();
-                        ref LocalState stateToUpdate = ref (op == BinaryOperatorKind.Equal) ? ref this.StateWhenFalse : ref this.StateWhenTrue;
-                        MarkSlotsAsNotNull(slotBuilder, ref stateToUpdate);
+                        // `x == null` and `x != null` are pure null tests so update the null-state in the alternative branch too
+                        (nonNullCase ? ref StateWhenFalse : ref StateWhenTrue)[slot] = NullableFlowState.MaybeNull;
                     }
-                    slotBuilder.Free();
                 }
             }
+
+            static BoundExpression skipImplicitNullableConversions(BoundExpression possiblyConversion)
+            {
+                while (possiblyConversion.Kind == BoundKind.Conversion &&
+                    possiblyConversion is BoundConversion { ConversionKind: ConversionKind.ImplicitNullable, Operand: var operand })
+                {
+                    possiblyConversion = operand;
+                }
+                return possiblyConversion;
+            }
+
+            void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNull, bool whenTrue)
+            {
+                var slotBuilder = ArrayBuilder<int>.GetInstance();
+                GetSlotsToMarkAsNotNullable(operandComparedToNull, slotBuilder);
+                if (slotBuilder.Count != 0)
+                {
+                    Split();
+                    ref LocalState stateToUpdate = ref whenTrue ? ref this.StateWhenTrue : ref this.StateWhenFalse;
+                    MarkSlotsAsNotNull(slotBuilder, ref stateToUpdate);
+                }
+                slotBuilder.Free();
+            }
+
+            static bool isNonNullConstant(BoundExpression expr)
+                => skipImplicitNullableConversions(expr).ConstantValue?.IsNull == false;
         }
 
         /// <summary>
