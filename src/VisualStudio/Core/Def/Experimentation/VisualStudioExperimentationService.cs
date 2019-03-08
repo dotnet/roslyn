@@ -62,7 +62,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
                     {
                         return enabled;
                     }
-
                 }
                 catch
                 {
