@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class IteratorRewriter : StateMachineRewriter
     {
-        private readonly TypeSymbol _elementType;
+        private readonly TypeSymbolWithAnnotations _elementType;
 
         // true if the iterator implements IEnumerable and IEnumerable<T>,
         // false if it implements IEnumerator and IEnumerator<T>
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out IteratorStateMachine stateMachineType)
         {
-            TypeSymbol elementType = method.IteratorElementType.TypeSymbol;
-            if ((object)elementType == null || method.IsAsync)
+            TypeSymbolWithAnnotations elementType = method.IteratorElementType;
+            if (elementType.IsDefault || method.IsAsync)
             {
                 stateMachineType = null;
                 return body;
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName());
 
             // Add a field: T current
-            _currentField = F.StateMachineField(_elementType, GeneratedNames.MakeIteratorCurrentFieldName());
+            _currentField = F.StateMachineField(_elementType.TypeSymbol, GeneratedNames.MakeIteratorCurrentFieldName());
         }
 
         protected override void GenerateMethodImplementations()
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var IEnumerator_Reset = F.SpecialMethod(SpecialMember.System_Collections_IEnumerator__Reset);
             var IEnumerator_get_Current = F.SpecialProperty(SpecialMember.System_Collections_IEnumerator__Current).GetMethod;
 
-            var IEnumeratorOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType);
+            var IEnumeratorOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType.TypeSymbol);
             var IEnumeratorOfElementType_get_Current = F.SpecialProperty(SpecialMember.System_Collections_Generic_IEnumerator_T__Current).GetMethod.AsMember(IEnumeratorOfElementType);
 
             // Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var IEnumerable_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_IEnumerable__GetEnumerator);
 
-            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType);
+            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType.TypeSymbol);
             var IEnumerableOfElementType_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).AsMember(IEnumerableOfElementType);
 
             // generate GetEnumerator()
