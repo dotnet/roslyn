@@ -967,14 +967,9 @@ haveLambdaBodyAndBinders:
         /// </summary>
         private static int CanonicallyCompareDiagnostics(Diagnostic x, Diagnostic y)
         {
-            ErrorCode xCode = (ErrorCode)x.Code;
-            ErrorCode yCode = (ErrorCode)y.Code;
-
-            int codeCompare = xCode.CompareTo(yCode);
-
             // Optimization: don't bother 
-            if (codeCompare != 0)
-                return codeCompare;
+            if (x.Code != y.Code)
+                return x.Code - y.Code;
 
             var nx = x.Arguments?.Count ?? 0;
             var ny = y.Arguments?.Count ?? 0;
