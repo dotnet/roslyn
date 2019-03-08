@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     if (expression.Type.IsValueType)
                     {
 
-                        if (addressKind == AddressKind.Writeable && _method.IsReadOnly)
+                        if (!HasHome(expression, addressKind))
                         {
                             // a readonly method is calling a non-readonly method, therefore we need to copy 'this'
                             goto default;
