@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static TypeSymbolWithAnnotations CreateType(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             // The actual annotation will be set when these types are transformed by the caller.
-            return TypeSymbolWithAnnotations.Create(type, NullableAnnotation.Unknown, CSharpCustomModifier.Convert(customModifiers));
+            return TypeSymbolWithAnnotations.Create(type, NullableAnnotation.Oblivious, CSharpCustomModifier.Convert(customModifiers));
         }
     }
 }
