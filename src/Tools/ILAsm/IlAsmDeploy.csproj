@@ -43,7 +43,7 @@
   </PropertyGroup>
 
   <Target Name="_PublishILAsm"
-          AfterTargets="Build"
+          BeforeTargets="AfterBuild"
           Inputs="$(MSBuildThisFileFullPath)"
           Outputs="$(_IlasmIncrementalBuildMarker)">
 
