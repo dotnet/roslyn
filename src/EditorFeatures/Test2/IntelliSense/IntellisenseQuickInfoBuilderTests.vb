@@ -478,6 +478,122 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             AssertEqualAdornments(expected, container)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        Public Async Sub QuickInfoForParameterReference()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.Threading;
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// The parameter is &lt;paramref name="p"/&gt;.
+                                /// &lt;/summary&gt;
+                                void MyMethod(CancellationToken p) {
+                                    MyM$$ethod(CancellationToken.None);
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+
+            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                .DefaultValue = DefaultValue.Mock
+            }
+
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.StructName, "CancellationToken"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "p"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "The parameter is"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.ParameterName, "p"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(33546, "https://github.com/dotnet/roslyn/issues/33546")>
+        Public Async Sub QuickInfoForTypeParameterReference()
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            using System.Threading;
+                            class MyClass {
+                                /// &lt;summary&gt;
+                                /// The type parameter is &lt;typeparamref name="T"/&gt;.
+                                /// &lt;/summary&gt;
+                                void MyMethod&lt;T&gt;() {
+                                    MyM$$ethod&lt;int&gt;();
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim codeAnalysisQuickInfoItem = Await GetQuickInfoItemAsync(workspace, LanguageNames.CSharp)
+
+            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
+                .DefaultValue = DefaultValue.Mock
+            }
+
+            Dim intellisenseQuickInfo = Await IntellisenseQuickInfoBuilder.BuildItemAsync(trackingSpan.Object, codeAnalysisQuickInfoItem, Nothing, Nothing, CancellationToken.None)
+            Assert.NotNull(intellisenseQuickInfo)
+
+            Dim container = Assert.IsType(Of ContainerElement)(intellisenseQuickInfo.Item)
+
+            Dim expected = New ContainerElement(
+                ContainerElementStyle.Stacked Or ContainerElementStyle.VerticalPadding,
+                New ContainerElement(
+                    ContainerElementStyle.Stacked,
+                    New ContainerElement(
+                        ContainerElementStyle.Wrapped,
+                        New ImageElement(New ImageId(KnownImageIds.ImageCatalogGuid, KnownImageIds.MethodPrivate)),
+                        New ClassifiedTextElement(
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "void"),
+                            New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                            New ClassifiedTextRun(ClassificationTypeNames.ClassName, "MyClass"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "."),
+                            New ClassifiedTextRun(ClassificationTypeNames.MethodName, "MyMethod"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "<"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Keyword, "int"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ">"),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, "("),
+                            New ClassifiedTextRun(ClassificationTypeNames.Punctuation, ")"))),
+                    New ClassifiedTextElement(
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "The type parameter is"),
+                        New ClassifiedTextRun(ClassificationTypeNames.WhiteSpace, " "),
+                        New ClassifiedTextRun(ClassificationTypeNames.TypeParameterName, "T"),
+                        New ClassifiedTextRun(ClassificationTypeNames.Text, "."))))
+
+            AssertEqualAdornments(expected, container)
+        End Sub
+
         Private Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of QuickInfoItem)
             Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Dim solution = workspace.CurrentSolution

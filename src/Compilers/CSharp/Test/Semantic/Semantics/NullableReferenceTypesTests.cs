@@ -43244,13 +43244,21 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class fields
+            // are not inherited on assignment (see t.Item2.F and u.Item2.F).
             comp.VerifyDiagnostics(
                 // (14,9): warning CS8602: Possible dereference of a null reference.
                 //         t.Item1.F.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item1.F").WithLocation(14, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item2.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item2.F").WithLocation(15, 9),
                 // (16,9): warning CS8602: Possible dereference of a null reference.
                 //         u.Item1.F.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item1.F").WithLocation(16, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item1.F").WithLocation(16, 9),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         u.Item2.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item2.F").WithLocation(17, 9));
             comp.VerifyTypes();
         }
 
@@ -44048,9 +44056,12 @@ class Program
 }";
             // https://github.com/dotnet/roslyn/issues/32703: Not inferring nullability of non-nullable value compared to null
             // two warnings should appear once 32703 is fixed.
-
+            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment.
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         y.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(17, 9));
         }
 
         [Fact]
@@ -50430,7 +50441,11 @@ class Program
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics();
+            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment.
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y.F.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F.F").WithLocation(9, 9));
         }
 
         [Fact]
@@ -50507,6 +50522,70 @@ class Program
                 // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         a.B.A.B.A.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.B.A.B.A").WithLocation(15, 9));
+        }
+
+        [Fact]
+        [WorkItem(33908, "https://github.com/dotnet/roslyn/issues/33908")]
+        public void Members_FieldCycle_07()
+        {
+            var source =
+@"#pragma warning disable 8618
+class C
+{
+    C F;
+    static void M()
+    {
+        C x = null;
+        while (true)
+        {
+            C y = new C() { F = x };
+            x = y;
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,7): warning CS0414: The field 'C.F' is assigned but its value is never used
+                //     C F;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F").WithArguments("C.F").WithLocation(4, 7),
+                // (7,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         C x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 15),
+                // (10,33): warning CS8601: Possible null reference assignment.
+                //             C y = new C() { F = x };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(10, 33));
+        }
+
+        [Fact]
+        [WorkItem(33908, "https://github.com/dotnet/roslyn/issues/33908")]
+        public void Members_FieldCycle_08()
+        {
+            var source =
+@"#pragma warning disable 8618
+class C
+{
+    C F;
+    static void M()
+    {
+        C x = null;
+        while (true)
+        {
+            C y = new C() { F = x };
+            x = new C() { F = y };
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,7): warning CS0414: The field 'C.F' is assigned but its value is never used
+                //     C F;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "F").WithArguments("C.F").WithLocation(4, 7),
+                // (7,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         C x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 15),
+                // (10,33): warning CS8601: Possible null reference assignment.
+                //             C y = new C() { F = x };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(10, 33));
         }
 
         [Fact]
@@ -71893,20 +71972,21 @@ class Program
         var a1 = new C<string>() { F = s };
         F(a1.F/*T:string?*/); // 1
         var b1 = a1;
-        F(b1.F/*T:string?*/); // 2
+        F(b1.F/*T:string!*/); // 2
     }
     static void F2<T>(T? t) where T : class
     {
         var a2 = new C<T>() { F = t };
         F(a2.F/*T:T?*/); // 3
         var b2 = a2;
-        F(b2.F/*T:T?*/); // 4
+        F(b2.F/*T:T!*/); // 4
     }
     static void F(object o)
     {
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment.
             comp.VerifyDiagnostics(
                 // (10,40): warning CS8601: Possible null reference assignment.
                 //         var a1 = new C<string>() { F = s };
@@ -71914,18 +71994,12 @@ class Program
                 // (11,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
                 //         F(a1.F/*T:string?*/); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a1.F").WithArguments("o", "void Program.F(object o)").WithLocation(11, 11),
-                // (13,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
-                //         F(b1.F/*T:string?*/); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b1.F").WithArguments("o", "void Program.F(object o)").WithLocation(13, 11),
                 // (17,35): warning CS8601: Possible null reference assignment.
                 //         var a2 = new C<T>() { F = t };
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(17, 35),
                 // (18,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
                 //         F(a2.F/*T:T?*/); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a2.F").WithArguments("o", "void Program.F(object o)").WithLocation(18, 11),
-                // (20,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void Program.F(object o)'.
-                //         F(b2.F/*T:T?*/); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b2.F").WithArguments("o", "void Program.F(object o)").WithLocation(20, 11));
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "a2.F").WithArguments("o", "void Program.F(object o)").WithLocation(18, 11));
             comp.VerifyTypes();
         }
 
@@ -77633,7 +77707,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31500: Track nullable state across lifted conversions.
             comp.VerifyDiagnostics();
         }
 
@@ -77761,6 +77834,71 @@ class Program
                 // (6,18): error CS0030: Cannot convert type 'method' to 'S?'
                 //         var s =  (S?)F;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S?)F").WithArguments("method", "S?").WithLocation(6, 18));
+        }
+
+        [WorkItem(33330, "https://github.com/dotnet/roslyn/issues/33330")]
+        [Fact]
+        public void NullableT_32()
+        {
+            var source =
+@"#nullable enable
+class Program
+{
+    static void F(int? i, int j)
+    {
+        _ = (int)(i & j); // 1
+        _ = (int)(i | j); // 2
+        _ = (int)(i ^ j); // 3
+        _ = (int)(~i);    // 4
+        if (i.HasValue)
+        {
+            _ = (int)(i & j);
+            _ = (int)(i | j);
+            _ = (int)(i ^ j);
+            _ = (int)(~i);
+        }
+    }
+    static void F(bool? i, bool b)
+    {
+        _ = (bool)(i & b); // 5
+        _ = (bool)(i | b); // 6
+        _ = (bool)(i ^ b); // 7
+        _ = (bool)(!i);    // 8
+        if (i.HasValue)
+        {
+            _ = (bool)(i & b);
+            _ = (bool)(i | b);
+            _ = (bool)(i ^ b);
+            _ = (bool)(!i);
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8629: Nullable value type may be null.
+                //         _ = (int)(i & j); // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)(i & j)").WithLocation(6, 13),
+                // (7,13): warning CS8629: Nullable value type may be null.
+                //         _ = (int)(i | j); // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)(i | j)").WithLocation(7, 13),
+                // (8,13): warning CS8629: Nullable value type may be null.
+                //         _ = (int)(i ^ j); // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)(i ^ j)").WithLocation(8, 13),
+                // (9,13): warning CS8629: Nullable value type may be null.
+                //         _ = (int)(~i);    // 4
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(int)(~i)").WithLocation(9, 13),
+                // (20,13): warning CS8629: Nullable value type may be null.
+                //         _ = (bool)(i & b); // 5
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(bool)(i & b)").WithLocation(20, 13),
+                // (21,13): warning CS8629: Nullable value type may be null.
+                //         _ = (bool)(i | b); // 6
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(bool)(i | b)").WithLocation(21, 13),
+                // (22,13): warning CS8629: Nullable value type may be null.
+                //         _ = (bool)(i ^ b); // 7
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(bool)(i ^ b)").WithLocation(22, 13),
+                // (23,13): warning CS8629: Nullable value type may be null.
+                //         _ = (bool)(!i);    // 8
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(bool)(!i)").WithLocation(23, 13));
         }
 
         [Fact]
@@ -82084,6 +82222,52 @@ namespace System
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(33905, "https://github.com/dotnet/roslyn/issues/33905")]
+        public void TestDiagnosticsInUnreachableCode()
+        {
+            var source =
+@"#pragma warning disable 0162 // suppress unreachable statement warning
+#pragma warning disable 0219 // suppress unused local warning
+class G<T>
+{
+    public static void Test(bool b, object? o, G<string?> g)
+    {
+        M1(o); // 1
+        M2(g); // 2
+        if (false) M1(o);
+        if (false) M2(g);
+        if (false && M1(o)) M2(g);
+        if (false && M2(g)) M1(o);
+        if (true || M1(o))
+            M2(g); // 3
+        if (true || M2(g))
+            M1(o); // 4
+        G<string> g1 = g; // 5
+        if (false) { G<string> g2 = g; }
+        if (false) { object o1 = null; }
+    }
+
+    public static bool M1(object o) => true;
+    public static bool M2(G<string> o) => true;
+}";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (7,12): warning CS8604: Possible null reference argument for parameter 'o' in 'bool G<T>.M1(object o)'.
+                //         M1(o); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "bool G<T>.M1(object o)").WithLocation(7, 12),
+                // (8,12): warning CS8620: Argument of type 'G<string?>' cannot be used as an input of type 'G<string>' for parameter 'o' in 'bool G<T>.M2(G<string> o)' due to differences in the nullability of reference types.
+                //         M2(g); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "g").WithArguments("G<string?>", "G<string>", "o", "bool G<T>.M2(G<string> o)").WithLocation(8, 12),
+                // (14,16): warning CS8620: Argument of type 'G<string?>' cannot be used as an input of type 'G<string>' for parameter 'o' in 'bool G<T>.M2(G<string> o)' due to differences in the nullability of reference types.
+                //             M2(g); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "g").WithArguments("G<string?>", "G<string>", "o", "bool G<T>.M2(G<string> o)").WithLocation(14, 16),
+                // (16,16): warning CS8604: Possible null reference argument for parameter 'o' in 'bool G<T>.M1(object o)'.
+                //             M1(o); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "bool G<T>.M1(object o)").WithLocation(16, 16),
+                // (17,24): warning CS8619: Nullability of reference types in value of type 'G<string?>' doesn't match target type 'G<string>'.
+                //         G<string> g1 = g; // 5
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "g").WithArguments("G<string?>", "G<string>").WithLocation(17, 24));
+        }
     }
 }
-
