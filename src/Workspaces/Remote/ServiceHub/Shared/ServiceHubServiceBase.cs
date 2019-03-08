@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
             {
                 // never reach
-                return;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
             {
                 // never reach
-                return default;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -229,6 +229,7 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
             {
                 // never reach
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
             {
                 // never reach
-                return;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -276,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
             {
                 // never reach
-                return default;
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
@@ -292,6 +293,7 @@ namespace Microsoft.CodeAnalysis.Remote
             catch (Exception ex) when (LogUnlessCanceled(ex, cancellationToken))
             {
                 // never reach
+                throw ExceptionUtilities.Unreachable;
             }
         }
 
