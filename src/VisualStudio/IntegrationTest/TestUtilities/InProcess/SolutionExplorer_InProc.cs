@@ -12,6 +12,7 @@ using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -25,13 +26,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     internal class SolutionExplorer_InProc : InProcComponent
     {
+        private readonly SendKeys_InProc _sendKeys;
         private Solution2 _solution;
         private string _fileName;
 
         private static readonly IDictionary<string, string> _csharpProjectTemplates = InitializeCSharpProjectTemplates();
         private static readonly IDictionary<string, string> _visualBasicProjectTemplates = InitializeVisualBasicProjectTemplates();
 
-        private SolutionExplorer_InProc() { }
+        private SolutionExplorer_InProc()
+        {
+            _sendKeys = new SendKeys_InProc(VisualStudio_InProc.Create());
+        }
 
         public static SolutionExplorer_InProc Create()
             => new SolutionExplorer_InProc();
@@ -390,6 +395,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (dte.Debugger.CurrentMode != EnvDTE.dbgDebugMode.dbgDesignMode)
             {
+                // Close the Find Source window in case it's open.
+                // 🐛 This is an ugly mitigation for https://github.com/dotnet/roslyn/issues/33785
+                _sendKeys.Send(VirtualKey.Escape);
+
                 dte.Debugger.TerminateAll();
                 WaitForDesignMode();
             }
@@ -595,7 +604,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             OpenFile(projectName, fileName);
             SetText(contents ?? string.Empty);
-            CloseFile(projectName, fileName, saveFile: true);
+            CloseCodeFile(projectName, fileName, saveFile: true);
             if (open)
             {
                 OpenFile(projectName, fileName);
@@ -899,25 +908,36 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             ErrorHandler.ThrowOnFailure(textManager.NavigateToLineAndColumn(textLines, VSConstants.LOGVIEWID.Code_guid, line, column, line, column));
         }
 
-        public void CloseFile(string projectName, string relativeFilePath, bool saveFile)
+        public void CloseDesignerFile(string projectName, string relativeFilePath, bool saveFile)
         {
-            var document = GetOpenDocument(projectName, relativeFilePath);
-            if (saveFile)
+            CloseFile(projectName, relativeFilePath, VSConstants.LOGVIEWID.Designer_guid, saveFile);
+        }
+
+        public void CloseCodeFile(string projectName, string relativeFilePath, bool saveFile)
+        {
+            CloseFile(projectName, relativeFilePath, VSConstants.LOGVIEWID.Code_guid, saveFile);
+        }
+
+        private void CloseFile(string projectName, string relativeFilePath, Guid logicalView, bool saveFile)
+        {
+            InvokeOnUIThread(() =>
             {
-                SaveFileWithExtraValidation(document);
-                document.Close(EnvDTE.vsSaveChanges.vsSaveChangesYes);
-            }
-            else
-            {
-                document.Close(EnvDTE.vsSaveChanges.vsSaveChangesNo);
-            }
+                var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+                if (!VsShellUtilities.IsDocumentOpen(ServiceProvider.GlobalProvider, filePath, logicalView, out _, out _, out var windowFrame))
+                {
+                    throw new InvalidOperationException($"File '{filePath}' is not open in logical view '{logicalView}'");
+                }
+
+                var frameClose = saveFile ? __FRAMECLOSE.FRAMECLOSE_SaveIfDirty : __FRAMECLOSE.FRAMECLOSE_NoSave;
+                ErrorHandler.ThrowOnFailure(windowFrame.CloseFrame((uint)frameClose));
+            });
         }
 
         private EnvDTE.Document GetOpenDocument(string projectName, string relativeFilePath)
         {
             var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
             var documents = GetDTE().Documents.Cast<EnvDTE.Document>();
-            var document = documents.FirstOrDefault(d => d.FullName == filePath);
+            var document = documents.SingleOrDefault(d => d.FullName == filePath);
 
             if (document == null)
             {

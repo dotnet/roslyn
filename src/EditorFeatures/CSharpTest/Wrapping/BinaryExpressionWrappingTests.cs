@@ -439,12 +439,46 @@ BeginningOfLine,
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestInLocalInitializer()
+        public async Task TestInLocalInitializer_Beginning()
         {
-            await TestEndOfLine(
+            await TestAllWrappingCasesAsync(
 @"class C {
     void Goo() {
         var v = [||]a && b && c;
+    }
+}",
+BeginningOfLine,
+@"class C {
+    void Goo() {
+        var v = a
+            && b
+            && c;
+    }
+}",
+@"class C {
+    void Goo() {
+        var v = a
+                && b
+                && c;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInLocalInitializer_End()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    void Goo() {
+        var v = [||]a && b && c;
+    }
+}",
+EndOfLine,
+@"class C {
+    void Goo() {
+        var v = a &&
+            b &&
+            c;
     }
 }",
 @"class C {
@@ -457,11 +491,37 @@ BeginningOfLine,
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestInField()
+        public async Task TestInField_Beginning()
         {
-            await TestEndOfLine(
+            await TestAllWrappingCasesAsync(
 @"class C {
     bool v = [||]a && b && c;
+}",
+BeginningOfLine,
+@"class C {
+    bool v = a
+        && b
+        && c;
+}",
+@"class C {
+    bool v = a
+             && b
+             && c;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInField_End()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    bool v = [||]a && b && c;
+}",
+EndOfLine,
+@"class C {
+    bool v = a &&
+        b &&
+        c;
 }",
 @"class C {
     bool v = a &&
@@ -471,12 +531,21 @@ BeginningOfLine,
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestAdditionEnd()
+        public async Task TestAddition_End()
         {
-            await TestEndOfLine(
+            await TestAllWrappingCasesAsync(
 @"class C {
     void Bar() {
         var goo = [||]""now"" + ""is"" + ""the"" + ""time"";
+    }
+}",
+EndOfLine,
+@"class C {
+    void Bar() {
+        var goo = ""now"" +
+            ""is"" +
+            ""the"" +
+            ""time"";
     }
 }",
 @"class C {
@@ -490,12 +559,21 @@ BeginningOfLine,
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
-        public async Task TestAdditionBeginning()
+        public async Task TestAddition_Beginning()
         {
-            await TestBeginningOfLine(
+            await TestAllWrappingCasesAsync(
 @"class C {
     void Bar() {
         var goo = [||]""now"" + ""is"" + ""the"" + ""time"";
+    }
+}",
+BeginningOfLine,
+@"class C {
+    void Bar() {
+        var goo = ""now""
+            + ""is""
+            + ""the""
+            + ""time"";
     }
 }",
 @"class C {
@@ -543,6 +621,40 @@ BeginningOfLine,
             && _ != null) {
         }
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInField_Already_Wrapped_Beginning()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    bool v =
+        [||]a && b && c;
+}",
+BeginningOfLine,
+@"class C {
+    bool v =
+        a
+        && b
+        && c;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInField_Already_Wrapped_End()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    bool v =
+        [||]a && b && c;
+}",
+EndOfLine,
+@"class C {
+    bool v =
+        a &&
+        b &&
+        c;
 }");
         }
     }

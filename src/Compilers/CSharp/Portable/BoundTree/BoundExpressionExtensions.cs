@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (object)receiverType != null && receiverType.Kind == SymbolKind.NamedType && ((NamedTypeSymbol)receiverType).IsComImport;
         }
 
-        // https://github.com/dotnet/roslyn/issues/29618 Remove this method. Initial binding should not infer nullability.
+        // https://github.com/dotnet/roslyn/issues/33941: Remove this method. Initial binding should not infer nullability.
         internal static TypeSymbolWithAnnotations GetTypeAndNullability(this BoundExpression expr)
         {
             var type = expr.Type;
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TypeSymbolWithAnnotations.Create(type, annotation);
         }
 
-        // https://github.com/dotnet/roslyn/issues/29618 Remove this method. Initial binding should not infer nullability.
+        // https://github.com/dotnet/roslyn/issues/33941: Remove this method. Initial binding should not infer nullability.
         /// <summary>
         /// Returns the top-level nullability of the expression if the nullability can be determined statically,
         /// and returns null otherwise. (May return null even in cases where the nullability is explicit,
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)expr;
-                        return local.IsNullableUnknown ? NullableAnnotation.Unknown : local.LocalSymbol.Type.NullableAnnotation;
+                        return local.IsNullableUnknown ? NullableAnnotation.Oblivious : local.LocalSymbol.Type.NullableAnnotation;
                     }
                 case BoundKind.Parameter:
                     return ((BoundParameter)expr).ParameterSymbol.Type.NullableAnnotation;
@@ -243,15 +243,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     return ((BoundCall)expr).Method.ReturnType.NullableAnnotation;
                 case BoundKind.Conversion:
-                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType.NullableAnnotation ?? NullableAnnotation.Unknown;
+                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType.NullableAnnotation ?? NullableAnnotation.Oblivious;
                 case BoundKind.BinaryOperator:
-                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.NullableAnnotation ?? NullableAnnotation.Unknown;
+                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.NullableAnnotation ?? NullableAnnotation.Oblivious;
                 case BoundKind.NullCoalescingOperator:
                     {
                         var op = (BoundNullCoalescingOperator)expr;
                         var left = op.LeftOperand.GetNullableAnnotation();
                         var right = op.RightOperand.GetNullableAnnotation();
-                        return left.IsAnyNullable() ? right : left;
+                        return left.IsAnnotated() ? right : left;
                     }
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.TypeOfOperator:
                 case BoundKind.NameOfOperator:
                 case BoundKind.TupleLiteral:
-                    return NullableAnnotation.NotNullable;
+                    return NullableAnnotation.NotAnnotated;
                 case BoundKind.DefaultExpression:
                 case BoundKind.Literal:
                 case BoundKind.UnboundLambda:
@@ -279,15 +279,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constant.IsNull)
                 {
-                    return NullableAnnotation.Nullable;
+                    return NullableAnnotation.Annotated;
                 }
                 if (expr.Type?.IsReferenceType == true)
                 {
-                    return NullableAnnotation.NotNullable;
+                    return NullableAnnotation.NotAnnotated;
                 }
             }
 
-            return NullableAnnotation.Unknown;
+            return NullableAnnotation.Oblivious;
         }
     }
 }

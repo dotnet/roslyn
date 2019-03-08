@@ -122,6 +122,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 var sortText = context.Items.Count.ToString("0000");
                 context.AddItem(CompletionItem.Create(
                     displayText: embeddedItem.DisplayText,
+                    inlineDescription: embeddedItem.InlineDescription,
                     sortText: sortText,
                     properties: properties.ToImmutable(),
                     rules: s_rules));

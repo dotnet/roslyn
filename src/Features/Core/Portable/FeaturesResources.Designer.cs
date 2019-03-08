@@ -4586,9 +4586,20 @@ namespace Microsoft.CodeAnalysis {
         /// <summary>
         ///   Looks up a localized string similar to Wrap call chain.
         /// </summary>
-        internal static string Wrap_call_chain {
-            get {
+        internal static string Wrap_call_chain
+        {
+            get
+            {
                 return ResourceManager.GetString("Wrap_call_chain", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap and align expression.
+        /// </summary>
+        internal static string Wrap_and_align_expression {
+            get {
+                return ResourceManager.GetString("Wrap_and_align_expression", resourceCulture);
             }
         }
         

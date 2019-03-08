@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public ObjectCreationPlaceholderLocal(Symbol containingSymbol, BoundExpression objectCreationExpression)
             {
                 _containingSymbol = containingSymbol;
-                _type = TypeSymbolWithAnnotations.Create(objectCreationExpression.Type, NullableAnnotation.NotNullable);
+                _type = TypeSymbolWithAnnotations.Create(objectCreationExpression.Type, NullableAnnotation.NotAnnotated);
                 _objectCreationExpression = objectCreationExpression;
             }
 

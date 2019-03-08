@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
@@ -18,8 +19,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpReferenceHighlighting))
+        public CSharpReferenceHighlighting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpReferenceHighlighting))
         {
         }
 

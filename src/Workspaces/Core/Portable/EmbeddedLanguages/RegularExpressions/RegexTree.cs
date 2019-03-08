@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
         public readonly ImmutableDictionary<int, TextSpan> CaptureNumbersToSpan;
 
         public RegexTree(
-            ImmutableArray<VirtualChar> text,
+            VirtualCharSequence text,
             RegexCompilationUnit root,
             ImmutableArray<EmbeddedDiagnostic> diagnostics,
             ImmutableDictionary<string, TextSpan> captureNamesToSpan,

@@ -112,6 +112,11 @@
         <target state="translated">修正錯字 '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Foo">
+        <source>foo</source>
+        <target state="new">foo</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document</source>
         <target state="translated">正在將文件格式化</target>
@@ -420,6 +425,11 @@
       <trans-unit id="Value_assigned_to_symbol_is_never_used">
         <source>Value assigned to symbol is never used</source>
         <target state="new">Value assigned to symbol is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_expression">
+        <source>Wrap and align expression</source>
+        <target state="new">Wrap and align expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_call_chain">
