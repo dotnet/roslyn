@@ -189,7 +189,7 @@ class Test1 : I1
             Validate1(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "PROTOTYPE(DefaultInterfaceImplementation): intentionally break test on Mono and CoreCLR. Was:Test1 M1" : null,
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test1 M1" : null,
                              verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
 
             var source2 =
@@ -26148,7 +26148,7 @@ I4.M1
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void MethodImplementationInDerived_12()
         {
@@ -28913,7 +28913,7 @@ I4.M1.set
             compilation6.VerifyDiagnostics(expected);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void PropertyImplementationInDerived_12()
         {
@@ -30593,7 +30593,7 @@ I4.M1.remove
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void EventImplementationInDerived_12()
         {
@@ -31909,7 +31909,7 @@ public interface I3 : I1
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void IndexerImplementationInDerived_12()
         {
@@ -35843,7 +35843,7 @@ I2.+2
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void Operators_16()
         {
             var source1 =
@@ -36064,7 +36064,7 @@ I1.+
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void Operators_19()
         {
             var source1 =
