@@ -961,26 +961,29 @@ haveLambdaBodyAndBinders:
 
         /// <summary>
         /// What we need to do is find a *repeatable* arbitrary way to choose between
-        /// two errors; we can for example simply take the one that is lower in alphabetical
+        /// two errors; we can for example simply take the one whose arguments are lower in alphabetical
         /// order when converted to a string.  As an optimization, we compare error codes
         /// first and skip string comparison if they differ.
         /// </summary>
         private static int CanonicallyCompareDiagnostics(Diagnostic x, Diagnostic y)
         {
-            ErrorCode xCode = (ErrorCode)x.Code;
-            ErrorCode yCode = (ErrorCode)y.Code;
+            // Optimization: don't bother 
+            if (x.Code != y.Code)
+                return x.Code - y.Code;
 
-            int codeCompare = xCode.CompareTo(yCode);
-
-            // ToString fails for a diagnostic with an error code that does not prevent successful delegate conversion.
-            // Also, the order doesn't matter, since all such diagnostics will be dropped.
-            if (!ErrorFacts.PreventsSuccessfulDelegateConversion(xCode) || !ErrorFacts.PreventsSuccessfulDelegateConversion(yCode))
+            var nx = x.Arguments?.Count ?? 0;
+            var ny = y.Arguments?.Count ?? 0;
+            for (int i = 0, n = Math.Min(nx, ny); i < n; i++)
             {
-                return codeCompare;
+                object argx = x.Arguments[i];
+                object argy = y.Arguments[i];
+
+                int argCompare = string.CompareOrdinal(argx?.ToString(), argy?.ToString());
+                if (argCompare != 0)
+                    return argCompare;
             }
 
-            // Optimization: don't bother 
-            return codeCompare == 0 ? string.CompareOrdinal(x.ToString(), y.ToString()) : codeCompare;
+            return nx - ny;
         }
     }
 
