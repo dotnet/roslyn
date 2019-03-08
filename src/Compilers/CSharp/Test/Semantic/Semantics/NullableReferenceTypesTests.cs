@@ -2162,10 +2162,6 @@ class C
     }
 }
 ";
-
-            // We should probably warn of possible de-reference in alternative case of (3)
-            // Tracked by https://github.com/dotnet/roslyn/issues/30297
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (18,57): warning CS8602: Possible dereference of a null reference.
                 //         _ = c ?? throw new System.ArgumentNullException(c.ToString()); // 1
