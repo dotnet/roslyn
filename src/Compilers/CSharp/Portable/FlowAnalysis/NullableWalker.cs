@@ -1430,16 +1430,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // a nullable value type created with its default constructor is by definition null
                         resultState = NullableFlowState.MaybeNull;
                     }
-                    else
+                    else if (constructor.ParameterCount == 1)
                     {
                         // if we deal with one-parameter ctor that takes underlying, then Value state is inferred from the argument.
-                        if (constructor.ParameterCount == 1)
+                        var parameterType = constructor.ParameterTypes[0];
+                        if (AreNullableAndUnderlyingTypes(type, parameterType.TypeSymbol, out TypeSymbolWithAnnotations underlyingType))
                         {
-                            var parameterType = constructor.ParameterTypes[0];
-                            if (AreNullableAndUnderlyingTypes(type, parameterType.TypeSymbol, out TypeSymbolWithAnnotations underlyingType))
-                            {
-                                TrackNullableStateWhenWrappingUnderlying(node, arguments[0], type, underlyingType);
-                            }
+                            TrackNullableStateOfNullableValue(node, arguments[0], type, underlyingType);
                         }
                     }
                 }
@@ -3671,11 +3668,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (AreNullableAndUnderlyingTypes(convertedType, operandType, out TypeSymbolWithAnnotations underlyingType))
             {
                 // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
-                TrackNullableStateWhenWrappingUnderlying(node, operand, convertedType, underlyingType);
+                TrackNullableStateOfNullableValue(node, operand, convertedType, underlyingType);
             }
         }
 
-        private void TrackNullableStateWhenWrappingUnderlying(BoundExpression node, BoundExpression operand, TypeSymbol convertedType, TypeSymbolWithAnnotations underlyingType)
+        private void TrackNullableStateOfNullableValue(BoundExpression node, BoundExpression operand, TypeSymbol convertedType, TypeSymbolWithAnnotations underlyingType)
         {
             int valueSlot = MakeSlot(operand);
             if (valueSlot > 0)
