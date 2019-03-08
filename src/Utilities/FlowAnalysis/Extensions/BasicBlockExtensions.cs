@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -153,5 +154,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             return enclosingRegion;
         }
+
+        /// <summary>
+        /// Gets the maximum ordinal of a conditional or fall through successor of the given basic block.
+        /// Returns -1 if the block has no conditional or fall through successor,
+        /// for example, if the block only has a structured exception handling branch for throw operation.
+        /// </summary>
+        /// <param name="basicBlock"></param>
+        /// <returns></returns>
+        internal static int GetMaxSuccessorOrdinal(this BasicBlock basicBlock)
+            => Math.Max(basicBlock.FallThroughSuccessor?.Destination?.Ordinal ?? -1,
+                        basicBlock.ConditionalSuccessor?.Destination?.Ordinal ?? -1);
     }
 }

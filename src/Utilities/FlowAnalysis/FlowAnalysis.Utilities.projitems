@@ -11,6 +11,7 @@
     <Import_RootNamespace>Analyzer.Utilities</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowBranchExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowConditionKindExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IOperationExtensions_FlowAnalysis.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\CopyAnalysis\SetCopyAbstractValuePredicateKind.cs" />

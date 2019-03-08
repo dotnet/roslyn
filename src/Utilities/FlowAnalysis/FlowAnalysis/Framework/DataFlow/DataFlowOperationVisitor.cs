@@ -206,6 +206,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             AnalysisEntityFactory = new AnalysisEntityFactory(
                 DataFlowAnalysisContext.ControlFlowGraph,
+                DataFlowAnalysisContext.WellKnownTypeProvider,
                 getPointsToAbstractValueOpt: (analysisContext.PointsToAnalysisResultOpt != null || IsPointsToAnalysis) ?
                     GetPointsToAbstractValue :
                     (Func<IOperation, PointsToAbstractValue>)null,
@@ -1341,7 +1342,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     var result = AnalysisEntityFactory.TryCreate(operation, out AnalysisEntity flowCaptureReferenceEntity);
                     Debug.Assert(result);
                     Debug.Assert(flowCaptureReferenceEntity.CaptureIdOpt != null);
-                    Debug.Assert(HasPredicatedDataForEntity(flowCaptureReferenceEntity));
+                    if (!HasPredicatedDataForEntity(targetAnalysisData, flowCaptureReferenceEntity))
+                    {
+                        return;
+                    }
+
                     predicateValueKind = ApplyPredicatedDataForEntity(targetAnalysisData, flowCaptureReferenceEntity, trueData: FlowBranchConditionKind == ControlFlowConditionKind.WhenTrue);
                     break;
 
@@ -1516,7 +1521,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             throw new NotImplementedException();
         }
 
-        protected virtual bool HasPredicatedDataForEntity(AnalysisEntity predicatedEntity)
+        private bool HasPredicatedDataForEntity(AnalysisEntity predicatedEntity)
+            => HasPredicatedDataForEntity(CurrentAnalysisData, predicatedEntity);
+
+        protected virtual bool HasPredicatedDataForEntity(TAnalysisData analysisData, AnalysisEntity predicatedEntity)
         {
             Debug.Assert(PredicateAnalysis);
             throw new NotImplementedException();
