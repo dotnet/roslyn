@@ -18,9 +18,9 @@ namespace Analyzer.Utilities
         public const string ApiSurface = "api_surface";
 
         /// <summary>
-        /// Boolean option to skip analysis of async void methods.
+        /// Boolean option to exclude analysis of async void methods.
         /// </summary>
-        public const string SkipAsyncVoidMethods = "skip_async_void_methods";
+        public const string ExcludeAsyncVoidMethods = "exclude_async_void_methods";
 
         /// <summary>
         /// Option to configure analyzed output kinds, i.e. <see cref="Microsoft.CodeAnalysis.CompilationOptions.OutputKind"/> of the compilation.
@@ -29,8 +29,8 @@ namespace Analyzer.Utilities
         public const string OutputKind = "output_kind";
 
         /// <summary>
-        /// Boolean option to configure if single letter type parameter names are allowed for CA1715 (https://docs.microsoft.com/visualstudio/code-quality/ca1715-identifiers-should-have-correct-prefix).
+        /// Boolean option to configure if single letter type parameter names are not flagged for CA1715 (https://docs.microsoft.com/visualstudio/code-quality/ca1715-identifiers-should-have-correct-prefix).
         /// </summary>
-        public const string AllowSingleLetterTypeParameters = "allow_single_letter_type_parameters";
+        public const string ExcludeSingleLetterTypeParameters = "exclude_single_letter_type_parameters";
     }
 }
