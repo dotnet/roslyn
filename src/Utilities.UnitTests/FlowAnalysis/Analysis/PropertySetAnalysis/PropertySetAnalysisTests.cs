@@ -68,7 +68,9 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 $"Could not find code block to analyze.  Does your test code have {StartString} and {EndString} around the braces of block to analyze?");
             ISymbol symbol = syntaxNode.Parent.GetDeclaredOrReferencedSymbol(model);
 
+#pragma warning disable CA1508 // Avoid dead conditional code - https://github.com/dotnet/roslyn-analyzers/issues/2180
             using (var cancellationSource = new CancellationTokenSource())
+#pragma warning restore CA1508 // Avoid dead conditional code
             {
                 ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
                     PropertySetAnalysis.GetOrComputeHazardousUsages(
