@@ -1506,7 +1506,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariables.Single().Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariables.Single().TypeWithAnnotations.SpecialType);
         }
 
         [Fact]
@@ -1536,7 +1536,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal(SpecialType.System_Char, boundNode.IterationVariables.Single().Type.SpecialType);
+            Assert.Equal(SpecialType.System_Char, boundNode.IterationVariables.Single().TypeWithAnnotations.SpecialType);
         }
 
         [Fact]
@@ -1565,7 +1565,7 @@ class Enumerator
             var boundNode = GetBoundForEachStatement(text);
             Assert.NotNull(boundNode.EnumeratorInfoOpt);
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariables.Single().Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, boundNode.IterationVariables.Single().TypeWithAnnotations.SpecialType);
         }
 
         [Fact]
@@ -1589,7 +1589,7 @@ class Enumerable : System.Collections.IEnumerable
             var boundNode = GetBoundForEachStatement(text);
             Assert.NotNull(boundNode.EnumeratorInfoOpt);
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal(SpecialType.System_Object, boundNode.IterationVariables.Single().Type.SpecialType);
+            Assert.Equal(SpecialType.System_Object, boundNode.IterationVariables.Single().TypeWithAnnotations.SpecialType);
         }
 
         [Fact]
@@ -1621,7 +1621,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal("C.var", boundNode.IterationVariables.Single().Type.ToTestDisplayString());
+            Assert.Equal("C.var", boundNode.IterationVariables.Single().TypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]
@@ -3063,7 +3063,7 @@ namespace System.Collections
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
-            Assert.Equal(SpecialType.System_Char, boundNode.IterationVariables.Single().Type.SpecialType);
+            Assert.Equal(SpecialType.System_Char, boundNode.IterationVariables.Single().TypeWithAnnotations.SpecialType);
         }
 
         [Fact]
@@ -3184,7 +3184,7 @@ ref struct DisposableEnumerator
                     Assert.Null(statementInfo.DisposeMethod);
                 }
 
-                Assert.Equal(enumeratorInfo.ElementType.TypeSymbol, statementInfo.ElementType);
+                Assert.Equal(enumeratorInfo.ElementType.Type, statementInfo.ElementType);
                 Assert.Equal(boundNode.ElementConversion, statementInfo.ElementConversion);
                 Assert.Equal(enumeratorInfo.CurrentConversion, statementInfo.CurrentConversion);
             }

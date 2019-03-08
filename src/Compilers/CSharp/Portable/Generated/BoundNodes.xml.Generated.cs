@@ -5497,7 +5497,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicMemberAccess : BoundExpression
     {
-        public BoundDynamicMemberAccess(SyntaxNode syntax, BoundExpression receiver, ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type, bool hasErrors = false)
+        public BoundDynamicMemberAccess(SyntaxNode syntax, BoundExpression receiver, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.DynamicMemberAccess, syntax, type, hasErrors || receiver.HasErrors())
         {
 
@@ -5515,7 +5515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Receiver { get; }
 
-        public ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsOpt { get; }
+        public ImmutableArray<TypeWithAnnotations> TypeArgumentsOpt { get; }
 
         public string Name { get; }
 
@@ -5528,7 +5528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitDynamicMemberAccess(this);
         }
 
-        public BoundDynamicMemberAccess Update(BoundExpression receiver, ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type)
+        public BoundDynamicMemberAccess Update(BoundExpression receiver, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type)
         {
             if (receiver != this.Receiver || typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || invoked != this.Invoked || indexed != this.Indexed || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
@@ -5800,7 +5800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundMethodGroup : BoundMethodOrPropertyGroup
     {
-        public BoundMethodGroup(SyntaxNode syntax, ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol lookupSymbolOpt, DiagnosticInfo lookupError, BoundMethodGroupFlags flags, BoundExpression receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
+        public BoundMethodGroup(SyntaxNode syntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol lookupSymbolOpt, DiagnosticInfo lookupError, BoundMethodGroupFlags flags, BoundExpression receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
             : base(BoundKind.MethodGroup, syntax, receiverOpt, resultKind, hasErrors || receiverOpt.HasErrors())
         {
 
@@ -5816,7 +5816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        public ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsOpt { get; }
+        public ImmutableArray<TypeWithAnnotations> TypeArgumentsOpt { get; }
 
         public string Name { get; }
 
@@ -5833,7 +5833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitMethodGroup(this);
         }
 
-        public BoundMethodGroup Update(ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol lookupSymbolOpt, DiagnosticInfo lookupError, BoundMethodGroupFlags flags, BoundExpression receiverOpt, LookupResultKind resultKind)
+        public BoundMethodGroup Update(ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol lookupSymbolOpt, DiagnosticInfo lookupError, BoundMethodGroupFlags flags, BoundExpression receiverOpt, LookupResultKind resultKind)
         {
             if (typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || methods != this.Methods || lookupSymbolOpt != this.LookupSymbolOpt || lookupError != this.LookupError || flags != this.Flags || receiverOpt != this.ReceiverOpt || resultKind != this.ResultKind)
             {

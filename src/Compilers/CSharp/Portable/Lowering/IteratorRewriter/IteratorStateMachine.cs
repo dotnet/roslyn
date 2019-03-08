@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public IteratorStateMachine(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol iteratorMethod, int iteratorMethodOrdinal, bool isEnumerable, TypeSymbol elementType)
             : base(slotAllocatorOpt, compilationState, iteratorMethod, iteratorMethodOrdinal)
         {
-            this.ElementType = TypeMap.SubstituteType(elementType).TypeSymbol;
+            this.ElementType = TypeMap.SubstituteType(elementType).Type;
 
             var interfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             if (isEnumerable)

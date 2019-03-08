@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the type of this local.
         /// </summary>
-        public abstract TypeSymbolWithAnnotations Type
+        public abstract TypeWithAnnotations TypeWithAnnotations
         {
             get;
         }
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type.TypeSymbol;
+                return this.TypeWithAnnotations.Type;
             }
         }
 

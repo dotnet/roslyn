@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Gets the type of this field.
         /// </summary>
-        public TypeSymbolWithAnnotations Type
+        public TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal abstract TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
+        internal abstract TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
         /// <summary>
         /// If this field serves as a backing variable for an automatically generated
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // metadata constant unless they are of type decimal, because decimals are not regarded as constant by the CLR.
         public bool IsMetadataConstant
         {
-            get { return this.IsConst && (this.Type.SpecialType != SpecialType.System_Decimal); }
+            get { return this.IsConst && (this.TypeWithAnnotations.SpecialType != SpecialType.System_Decimal); }
         }
 
         /// <summary>
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type.IsPointerType();
+                return this.TypeWithAnnotations.IsPointerType();
             }
         }
 
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(IsDefinition);
 
             // Check type, custom modifiers
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.Type))
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations))
             {
                 return true;
             }
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.ContainingModule.HasUnifiedReferences)
             {
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
+                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
                 {
                     return true;
                 }
@@ -451,13 +451,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type.TypeSymbol;
+                return this.TypeWithAnnotations.Type;
             }
         }
 
         ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
         {
-            get { return this.Type.CustomModifiers; }
+            get { return this.TypeWithAnnotations.CustomModifiers; }
         }
 
         IFieldSymbol IFieldSymbol.OriginalDefinition

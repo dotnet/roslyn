@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The type of the event. 
         /// </summary>
-        public abstract TypeSymbolWithAnnotations Type { get; }
+        public abstract TypeWithAnnotations TypeWithAnnotations { get; }
 
         /// <summary>
         /// The 'add' accessor of the event.  Null only in error scenarios.
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(this.IsDefinition);
 
             // Check event type.
-            if (DeriveUseSiteDiagnosticFromType(ref result, this.Type))
+            if (DeriveUseSiteDiagnosticFromType(ref result, this.TypeWithAnnotations))
             {
                 return true;
             }
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // If the member is in an assembly with unified references, 
                 // we check if its definition depends on a type from a unified reference.
                 HashSet<TypeSymbol> unificationCheckedTypes = null;
-                if (this.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
+                if (this.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, this, ref unificationCheckedTypes))
                 {
                     return true;
                 }
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.Type.TypeSymbol;
+                return this.TypeWithAnnotations.Type;
             }
         }
 

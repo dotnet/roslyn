@@ -41,7 +41,7 @@ class C
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var localSymbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
             Assert.Equal("o", localSymbol.Name);
-            Assert.Equal(SpecialType.System_Object, localSymbol.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Object, localSymbol.TypeWithAnnotations.SpecialType);
 
             var lockStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LockStatementSyntax>().Single();
             var lockExprInfo = model.GetSymbolInfo(lockStatement.Expression);
@@ -601,7 +601,7 @@ partial class Test
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type.TypeSymbol, isSymbolNull: true);
+            VerifySemanticInfoForLockStatements(compilation, symbol.TypeWithAnnotations.Type, isSymbolNull: true);
         }
 
         [Fact()]
@@ -625,7 +625,7 @@ class Test
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type.TypeSymbol);
+            VerifySemanticInfoForLockStatements(compilation, symbol.TypeWithAnnotations.Type);
         }
 
         [Fact()]

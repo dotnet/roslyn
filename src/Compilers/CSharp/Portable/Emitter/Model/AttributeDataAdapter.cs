@@ -159,11 +159,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var fieldSymbol = symbol as FieldSymbol;
             if ((object)fieldSymbol != null)
             {
-                type = fieldSymbol.Type.TypeSymbol;
+                type = fieldSymbol.TypeWithAnnotations.Type;
             }
             else
             {
-                type = ((PropertySymbol)symbol).Type.TypeSymbol;
+                type = ((PropertySymbol)symbol).TypeWithAnnotations.Type;
             }
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;

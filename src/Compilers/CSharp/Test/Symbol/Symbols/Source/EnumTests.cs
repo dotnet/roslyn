@@ -744,7 +744,7 @@ partial class EnumPartial
 
             var classEnum = comp.SourceModule.GlobalNamespace.GetMembers("EnumPartial").Single() as NamedTypeSymbol;
             var member = classEnum.GetMembers("M").Single() as FieldSymbol;
-            Assert.Equal(TypeKind.Enum, member.Type.TypeKind);
+            Assert.Equal(TypeKind.Enum, member.TypeWithAnnotations.TypeKind);
         }
 
         // Enum as an optional parameter 

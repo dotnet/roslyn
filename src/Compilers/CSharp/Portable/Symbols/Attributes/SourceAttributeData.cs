@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     }
 
-                    TypeSymbol parameterType = parameters[k].Type.TypeSymbol;
+                    TypeSymbol parameterType = parameters[k].TypeWithAnnotations.Type;
                     SpecialType specType = parameterType.SpecialType;
                     byte targetType = targetSignature[j];
 
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else if (parameterType.IsArray())
                     {
-                        specType = ((ArrayTypeSymbol)parameterType).ElementType.SpecialType;
+                        specType = ((ArrayTypeSymbol)parameterType).ElementTypeWithAnnotations.SpecialType;
                     }
 
                     switch (targetType)

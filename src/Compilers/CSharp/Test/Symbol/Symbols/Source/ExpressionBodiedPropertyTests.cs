@@ -266,10 +266,10 @@ class C
 
             Assert.Equal(2, indexer.ParameterCount);
             var i = indexer.Parameters[0];
-            Assert.Equal(SpecialType.System_Int32, i.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, i.TypeWithAnnotations.SpecialType);
             Assert.Equal("i", i.Name);
             var j = indexer.Parameters[1];
-            Assert.Equal(SpecialType.System_Int32, i.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, i.TypeWithAnnotations.SpecialType);
             Assert.Equal("j", j.Name);
         }
 

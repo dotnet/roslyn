@@ -171,14 +171,14 @@ class C : IB, IC
             Assert.NotNull(property);
             Assert.True(property.IsIndexer);
 
-            Assert.Equal(property.Type.SpecialType, expectedType);
+            Assert.Equal(property.TypeWithAnnotations.SpecialType, expectedType);
             CheckParameters(property.Parameters, expectedParameterTypes);
 
             var getter = property.GetMethod;
             if (hasGet)
             {
                 Assert.NotNull(getter);
-                Assert.Equal(getter.ReturnType.SpecialType, expectedType);
+                Assert.Equal(getter.ReturnTypeWithAnnotations.SpecialType, expectedType);
                 CheckParameters(getter.Parameters, expectedParameterTypes);
             }
             else
@@ -209,7 +209,7 @@ class C : IB, IC
             {
                 var parameter = parameters[i];
                 Assert.Equal(parameter.Ordinal, i);
-                Assert.Equal(parameter.Type.SpecialType, expectedTypes[i]);
+                Assert.Equal(parameter.TypeWithAnnotations.SpecialType, expectedTypes[i]);
             }
         }
 

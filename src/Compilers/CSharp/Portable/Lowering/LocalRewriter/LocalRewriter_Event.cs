@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol actionType = _factory.WellKnownType(WellKnownType.System_Action_T).Construct(tokenType);
 
-            TypeSymbol eventType = eventSymbol.Type.TypeSymbol;
+            TypeSymbol eventType = eventSymbol.TypeWithAnnotations.Type;
 
             BoundExpression delegateCreationArgument = boundTemp ?? rewrittenReceiverOpt ?? _factory.Type(eventType);
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenReceiver: null,
                         method: clearMethod,
                         rewrittenArguments: ImmutableArray.Create<BoundExpression>(removeDelegate),
-                        type: clearMethod.ReturnType.TypeSymbol);
+                        type: clearMethod.ReturnTypeWithAnnotations.Type);
                 }
                 else
                 {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenReceiver: null,
                     method: marshalMethod,
                     rewrittenArguments: marshalArguments,
-                    type: marshalMethod.ReturnType.TypeSymbol);
+                    type: marshalMethod.ReturnTypeWithAnnotations.Type);
             }
             else
             {
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return MakeFieldAccess(syntax, rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type);
             }
 
-            NamedTypeSymbol fieldType = (NamedTypeSymbol)fieldSymbol.Type.TypeSymbol;
+            NamedTypeSymbol fieldType = (NamedTypeSymbol)fieldSymbol.TypeWithAnnotations.Type;
             Debug.Assert(fieldType.Name == "EventRegistrationTokenTable");
 
             // _tokenTable
@@ -296,8 +296,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression eventInfo = _factory.New(ctor, _factory.Typeof(node.Event.ContainingType), _factory.Literal(node.Event.MetadataName));
                     result = _factory.Call(eventInfo, addRemove,
-                                          _factory.Convert(addRemove.Parameters[0].Type.TypeSymbol, rewrittenReceiver),
-                                          _factory.Convert(addRemove.Parameters[1].Type.TypeSymbol, rewrittenArgument));
+                                          _factory.Convert(addRemove.Parameters[0].TypeWithAnnotations.Type, rewrittenReceiver),
+                                          _factory.Convert(addRemove.Parameters[1].TypeWithAnnotations.Type, rewrittenArgument));
                 }
             }
 

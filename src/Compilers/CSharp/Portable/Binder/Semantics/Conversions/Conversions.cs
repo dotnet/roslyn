@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 GetDelegateArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
                 var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics, inferWithDynamic: true,
-                    isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnType.TypeSymbol);
+                    isMethodGroupConversion: true, returnRefKind: delegateInvokeMethodOpt.RefKind, returnType: delegateInvokeMethodOpt.ReturnTypeWithAnnotations.Type);
                 analyzedArguments.Free();
                 return resolution;
             }
@@ -145,14 +145,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(method.IsExtensionMethod);
 
                             var thisParameter = method.Parameters[0];
-                            if (!thisParameter.Type.IsReferenceType)
+                            if (!thisParameter.TypeWithAnnotations.IsReferenceType)
                             {
                                 // Extension method '{0}' defined on value type '{1}' cannot be used to create delegates
                                 diagnostics.Add(
                                     ErrorCode.ERR_ValueTypeExtDelegate,
                                     expr.Syntax.Location,
                                     method,
-                                    thisParameter.Type.TypeSymbol);
+                                    thisParameter.TypeWithAnnotations.Type);
                                 hasErrors = true;
                             }
                         }
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useSiteDiagnostics: ref useSiteDiagnostics,
                 isMethodGroupConversion: true,
                 returnRefKind: delegateInvokeMethod.RefKind,
-                returnType: delegateInvokeMethod.ReturnType.TypeSymbol);
+                returnType: delegateInvokeMethod.ReturnTypeWithAnnotations.Type);
             var conversion = ToConversion(result, methodGroup, delegateType);
 
             analyzedArguments.Free();
@@ -232,12 +232,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // type generally fail (modulo identity conversions).  This is not reflected in the C# 4 spec, but will be
                 // incorporated going forward.  See DevDiv #742345 for additional details.
                 // NOTE: Dev11 does a deep substitution (e.g. C<C<C<dynamic>>> -> C<C<C<object>>>), but that seems redundant.
-                if (parameter.Type.IsDynamic())
+                if (parameter.TypeWithAnnotations.IsDynamic())
                 {
                     // If we don't have System.Object, then we'll get an error type, which will cause overload resolution to fail, 
                     // which will cause some error to be reported.  That's sufficient (i.e. no need to specifically report its absence here).
                     parameter = new SignatureOnlyParameterSymbol(
-                        TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.Type.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
+                        TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Object), customModifiers: parameter.TypeWithAnnotations.CustomModifiers), parameter.RefCustomModifiers, parameter.IsParams, parameter.RefKind);
                 }
 
                 analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method = result.BestResult.Member;
 
-            if (methodGroup.IsExtensionMethodGroup && !method.Parameters[0].Type.IsReferenceType)
+            if (methodGroup.IsExtensionMethodGroup && !method.Parameters[0].TypeWithAnnotations.IsReferenceType)
             {
                 return Conversion.NoConversion;
             }
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)sourceExpression.Type == null);
                 Debug.Assert((object)sourceExpression.ElementType != null);
 
-                var sourceAsPointer = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(sourceExpression.ElementType));
+                var sourceAsPointer = new PointerTypeSymbol(TypeWithAnnotations.Create(sourceExpression.ElementType));
                 var pointerConversion = ClassifyImplicitConversionFromType(sourceAsPointer, destination, ref useSiteDiagnostics);
 
                 if (pointerConversion.IsValid)

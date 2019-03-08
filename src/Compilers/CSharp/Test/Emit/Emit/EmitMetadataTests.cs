@@ -395,31 +395,31 @@ abstract public class A
                 var m4 = classA.GetMembers("M4").OfType<MethodSymbol>().Single();
                 var m5 = classA.GetMembers("M5").OfType<MethodSymbol>().Single();
 
-                var method1Ret = (ArrayTypeSymbol)m1.ReturnType.TypeSymbol;
-                var method2Ret = (ArrayTypeSymbol)m2.ReturnType.TypeSymbol;
-                var method3Ret = (ArrayTypeSymbol)m3.ReturnType.TypeSymbol;
+                var method1Ret = (ArrayTypeSymbol)m1.ReturnTypeWithAnnotations.Type;
+                var method2Ret = (ArrayTypeSymbol)m2.ReturnTypeWithAnnotations.Type;
+                var method3Ret = (ArrayTypeSymbol)m3.ReturnTypeWithAnnotations.Type;
 
                 Assert.True(method1Ret.IsSZArray);
-                Assert.Same(classA, method1Ret.ElementType.TypeSymbol);
+                Assert.Same(classA, method1Ret.ElementTypeWithAnnotations.Type);
                 Assert.Equal(2, method2Ret.Rank);
-                Assert.Same(classA, method2Ret.ElementType.TypeSymbol);
+                Assert.Same(classA, method2Ret.ElementTypeWithAnnotations.Type);
                 Assert.Equal(3, method3Ret.Rank);
-                Assert.Same(classA, method3Ret.ElementType.TypeSymbol);
+                Assert.Same(classA, method3Ret.ElementTypeWithAnnotations.Type);
 
                 Assert.True(classA.IsAbstract);
                 Assert.Equal(Accessibility.Public, classA.DeclaredAccessibility);
 
                 var parameter1 = m1.Parameters.Single();
-                var parameter1Type = parameter1.Type.TypeSymbol;
+                var parameter1Type = parameter1.TypeWithAnnotations.Type;
 
                 Assert.Equal(RefKind.Ref, parameter1.RefKind);
                 Assert.Same(module.GetCorLibType(SpecialType.System_Array), parameter1Type);
-                Assert.Same(module.GetCorLibType(SpecialType.System_Boolean), m2.Parameters.Single().Type.TypeSymbol);
-                Assert.Same(module.GetCorLibType(SpecialType.System_Char), m3.Parameters.Single().Type.TypeSymbol);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Boolean), m2.Parameters.Single().TypeWithAnnotations.Type);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Char), m3.Parameters.Single().TypeWithAnnotations.Type);
 
-                var method4ParamTypes = m4.Parameters.Select(p => p.Type.TypeSymbol).ToArray();
+                var method4ParamTypes = m4.Parameters.Select(p => p.TypeWithAnnotations.Type).ToArray();
 
-                Assert.Same(module.GetCorLibType(SpecialType.System_Void), m4.ReturnType.TypeSymbol);
+                Assert.Same(module.GetCorLibType(SpecialType.System_Void), m4.ReturnTypeWithAnnotations.Type);
                 Assert.Same(module.GetCorLibType(SpecialType.System_SByte), method4ParamTypes[0]);
                 Assert.Same(module.GetCorLibType(SpecialType.System_Single), method4ParamTypes[1]);
                 Assert.Same(module.GetCorLibType(SpecialType.System_Double), method4ParamTypes[2]);
@@ -435,8 +435,8 @@ abstract public class A
                 Assert.Same(module.GetCorLibType(SpecialType.System_UIntPtr), method4ParamTypes[12]);
 
                 Assert.True(m5.IsGenericMethod);
-                Assert.Same(m5.TypeParameters[0], m5.Parameters[0].Type.TypeSymbol);
-                Assert.Same(m5.TypeParameters[1], m5.Parameters[1].Type.TypeSymbol);
+                Assert.Same(m5.TypeParameters[0], m5.Parameters[0].TypeWithAnnotations.Type);
+                Assert.Same(m5.TypeParameters[1], m5.Parameters[1].TypeWithAnnotations.Type);
 
                 Assert.Equal(6, ((PEModuleSymbol)module).Module.GetMetadataReader().TypeReferences.Count);
             });
@@ -519,12 +519,12 @@ public class A
                 var f4 = classA.GetMembers("F4").OfType<FieldSymbol>().Single();
 
                 Assert.False(f1.IsVolatile);
-                Assert.Equal(0, f1.Type.CustomModifiers.Length);
+                Assert.Equal(0, f1.TypeWithAnnotations.CustomModifiers.Length);
 
                 Assert.True(f2.IsVolatile);
-                Assert.Equal(1, f2.Type.CustomModifiers.Length);
+                Assert.Equal(1, f2.TypeWithAnnotations.CustomModifiers.Length);
 
-                CustomModifier mod = f2.Type.CustomModifiers[0];
+                CustomModifier mod = f2.TypeWithAnnotations.CustomModifiers[0];
 
                 Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
                 Assert.Equal(Accessibility.Internal, f2.DeclaredAccessibility);
@@ -581,7 +581,7 @@ public class A
                 // Bug - 2067
                 Assert.Equal("N.C." + WellKnownMemberNames.InstanceConstructorName + "()", ctor.ToTestDisplayString());
                 Assert.Equal(0, ctor.TypeParameters.Length);
-                Assert.Equal("Void", ctor.ReturnType.Name);
+                Assert.Equal("Void", ctor.ReturnTypeWithAnnotations.Name);
 
                 if (isFromSource)
                 {
@@ -601,9 +601,9 @@ public class A
                     Assert.False(cctor.IsVararg);
                     // Bug - 2067
                     Assert.Equal("N.C." + WellKnownMemberNames.StaticConstructorName + "()", cctor.ToTestDisplayString());
-                    Assert.Equal(0, cctor.TypeArguments.Length);
+                    Assert.Equal(0, cctor.TypeArgumentsWithAnnotations.Length);
                     Assert.Equal(0, cctor.Parameters.Length);
-                    Assert.Equal("Void", cctor.ReturnType.Name);
+                    Assert.Equal("Void", cctor.ReturnTypeWithAnnotations.Name);
                 }
                 else
                 {
@@ -647,7 +647,7 @@ public class A
             Assert.True(field.IsStatic);
             Assert.True(field.IsConst);
             Assert.Equal(field.DeclaredAccessibility, declaredAccessibility);
-            Assert.Equal(field.Type.SpecialType, fieldType);
+            Assert.Equal(field.TypeWithAnnotations.SpecialType, fieldType);
             Assert.Equal(field.ConstantValue, value);
         }
 
@@ -914,25 +914,25 @@ class C
                 var pBack = p.BackingField;
                 Assert.False(pBack.IsReadOnly);
                 Assert.False(pBack.IsStatic);
-                Assert.Equal(pBack.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(pBack.TypeWithAnnotations.SpecialType, SpecialType.System_Int32);
 
                 var q = type.GetMember<SourcePropertySymbol>("Q");
                 var qBack = q.BackingField;
                 Assert.False(qBack.IsReadOnly);
                 Assert.False(qBack.IsStatic);
-                Assert.Equal(qBack.Type.SpecialType, SpecialType.System_String);
+                Assert.Equal(qBack.TypeWithAnnotations.SpecialType, SpecialType.System_String);
 
                 var r = type.GetMember<SourcePropertySymbol>("R");
                 var rBack = r.BackingField;
                 Assert.True(rBack.IsReadOnly);
                 Assert.False(rBack.IsStatic);
-                Assert.Equal(rBack.Type.SpecialType, SpecialType.System_Decimal);
+                Assert.Equal(rBack.TypeWithAnnotations.SpecialType, SpecialType.System_Decimal);
 
                 var s = type.GetMember<SourcePropertySymbol>("S");
                 var sBack = s.BackingField;
                 Assert.True(sBack.IsReadOnly);
                 Assert.True(sBack.IsStatic);
-                Assert.Equal(sBack.Type.SpecialType, SpecialType.System_Char);
+                Assert.Equal(sBack.TypeWithAnnotations.SpecialType, SpecialType.System_Char);
             };
 
             CompileAndVerify(
@@ -985,25 +985,25 @@ struct S
                 Assert.False(p.HasInitializer);
                 Assert.True(p.IsReadOnly);
                 Assert.False(p.IsStatic);
-                Assert.Equal(p.Type.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(p.TypeWithAnnotations.SpecialType, SpecialType.System_Int32);
 
                 var q = type.GetMember<SourcePropertySymbol>("Q");
                 var qBack = q.BackingField;
                 Assert.True(qBack.IsReadOnly);
                 Assert.False(qBack.IsStatic);
-                Assert.Equal(qBack.Type.SpecialType, SpecialType.System_String);
+                Assert.Equal(qBack.TypeWithAnnotations.SpecialType, SpecialType.System_String);
 
                 var r = type.GetMember<SourcePropertySymbol>("R");
                 var rBack = r.BackingField;
                 Assert.True(rBack.IsReadOnly);
                 Assert.False(rBack.IsStatic);
-                Assert.Equal(rBack.Type.SpecialType, SpecialType.System_Decimal);
+                Assert.Equal(rBack.TypeWithAnnotations.SpecialType, SpecialType.System_Decimal);
 
                 var s = type.GetMember<SourcePropertySymbol>("T");
                 var sBack = s.BackingField;
                 Assert.True(sBack.IsReadOnly);
                 Assert.True(sBack.IsStatic);
-                Assert.Equal(sBack.Type.SpecialType, SpecialType.System_Char);
+                Assert.Equal(sBack.TypeWithAnnotations.SpecialType, SpecialType.System_Char);
             };
 
             CompileAndVerify(
@@ -1131,7 +1131,7 @@ public class C : I
 
         private static void CheckPropertyAccessibility(PropertySymbol property, Accessibility propertyAccessibility, Accessibility getterAccessibility, Accessibility setterAccessibility)
         {
-            var type = property.Type;
+            var type = property.TypeWithAnnotations;
             Assert.NotEqual(type.PrimitiveTypeCode, Microsoft.Cci.PrimitiveTypeCode.Void);
             Assert.Equal(propertyAccessibility, property.DeclaredAccessibility);
             CheckPropertyAccessorAccessibility(property, propertyAccessibility, property.GetMethod, getterAccessibility);
@@ -1244,7 +1244,7 @@ class C : B<string>
                 var classC = module.GlobalNamespace.GetTypeMembers("C").Single();
                 p = classC.BaseType().GetProperty("P");
                 VerifyAutoProperty(p, isFromSource);
-                Assert.Equal(p.Type.SpecialType, SpecialType.System_String);
+                Assert.Equal(p.TypeWithAnnotations.SpecialType, SpecialType.System_String);
                 Assert.Equal(p.GetMethod.AssociatedSymbol, p);
             };
 
@@ -1341,7 +1341,7 @@ class C : B<string>
             Assert.True(field.IsConst);
             // TODO: DeclaredAccessibility should be NotApplicable.
             //Assert.Equal(field.DeclaredAccessibility, Accessibility.NotApplicable);
-            Assert.Equal(field.Type.TypeSymbol, type);
+            Assert.Equal(field.TypeWithAnnotations.Type, type);
             Assert.Equal(field.ConstantValue, value);
 
             var sourceType = type as SourceNamedTypeSymbol;
@@ -1375,7 +1375,7 @@ class C : B<string>
                 Assert.False(field.IsConst);
                 Assert.False(field.IsReadOnly);
                 Assert.Equal(field.DeclaredAccessibility, Accessibility.Public); // Dev10: value__ is public
-                Assert.Equal(field.Type.TypeSymbol, type.EnumUnderlyingType);
+                Assert.Equal(field.TypeWithAnnotations.Type, type.EnumUnderlyingType);
 
                 var module = new PEAssemblyBuilder((SourceAssemblySymbol)sourceType.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                     GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
@@ -2038,30 +2038,30 @@ class C
 
                 var beginInvoke = myDel.GetMembers("BeginInvoke").Single() as MethodSymbol;
                 Assert.Equal(invoke.Parameters.Length + 2, beginInvoke.Parameters.Length);
-                Assert.Equal(TypeKind.Interface, beginInvoke.ReturnType.TypeKind);
-                Assert.Equal("System.IAsyncResult", beginInvoke.ReturnType.TypeSymbol.ToTestDisplayString());
+                Assert.Equal(TypeKind.Interface, beginInvoke.ReturnTypeWithAnnotations.TypeKind);
+                Assert.Equal("System.IAsyncResult", beginInvoke.ReturnTypeWithAnnotations.Type.ToTestDisplayString());
                 for (int i = 0; i < invoke.Parameters.Length; i++)
                 {
-                    Assert.Equal(invoke.Parameters[i].Type.TypeSymbol, beginInvoke.Parameters[i].Type.TypeSymbol);
+                    Assert.Equal(invoke.Parameters[i].TypeWithAnnotations.Type, beginInvoke.Parameters[i].TypeWithAnnotations.Type);
                     Assert.Equal(invoke.Parameters[i].RefKind, beginInvoke.Parameters[i].RefKind);
                 }
-                Assert.Equal("System.AsyncCallback", beginInvoke.Parameters[invoke.Parameters.Length].Type.TypeSymbol.ToTestDisplayString());
-                Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.AsyncCallback", beginInvoke.Parameters[invoke.Parameters.Length].TypeWithAnnotations.Type.ToTestDisplayString());
+                Assert.Equal("System.Object", beginInvoke.Parameters[invoke.Parameters.Length + 1].TypeWithAnnotations.Type.ToTestDisplayString());
 
-                var invokeReturn = invoke.ReturnType.TypeSymbol;
+                var invokeReturn = invoke.ReturnTypeWithAnnotations.Type;
                 var endInvoke = myDel.GetMembers("EndInvoke").Single() as MethodSymbol;
-                var endInvokeReturn = endInvoke.ReturnType.TypeSymbol;
+                var endInvokeReturn = endInvoke.ReturnTypeWithAnnotations.Type;
                 Assert.Equal(invokeReturn, endInvokeReturn);
                 int k = 0;
                 for (int i = 0; i < invoke.Parameters.Length; i++)
                 {
                     if (invoke.Parameters[i].RefKind != RefKind.None)
                     {
-                        Assert.Equal(invoke.Parameters[i].Type, endInvoke.Parameters[k].Type);
+                        Assert.Equal(invoke.Parameters[i].TypeWithAnnotations, endInvoke.Parameters[k].TypeWithAnnotations);
                         Assert.Equal(invoke.Parameters[i].RefKind, endInvoke.Parameters[k++].RefKind);
                     }
                 }
-                Assert.Equal("System.IAsyncResult", endInvoke.Parameters[k++].Type.TypeSymbol.ToTestDisplayString());
+                Assert.Equal("System.IAsyncResult", endInvoke.Parameters[k++].TypeWithAnnotations.Type.ToTestDisplayString());
                 Assert.Equal(k, endInvoke.Parameters.Length);
             });
         }

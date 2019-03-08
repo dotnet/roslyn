@@ -5787,7 +5787,7 @@ namespace System
         A.F(null);
     }
 }";
-            TypeSymbolWithAnnotations getParameterType(Compilation c) => c.GetMember<MethodSymbol>("A.F").Parameters[0].Type;
+            TypeWithAnnotations getParameterType(Compilation c) => c.GetMember<MethodSymbol>("A.F").Parameters[0].TypeWithAnnotations;
 
             // 7.0 library
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
@@ -5913,15 +5913,15 @@ public class C
             void verify(Compilation c)
             {
                 c.VerifyDiagnostics();
-                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<FieldSymbol>("C.F").Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<EventSymbol>("C.E").Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<PropertySymbol>("C.P").Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<FieldSymbol>("C.F").TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<EventSymbol>("C.E").TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<PropertySymbol>("C.P").TypeWithAnnotations.NullableAnnotation);
                 var indexer = c.GetMember<PropertySymbol>("C.this[]");
-                Assert.Equal(NullableAnnotation.Oblivious, indexer.Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Oblivious, indexer.Parameters[0].Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, indexer.TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, indexer.Parameters[0].TypeWithAnnotations.NullableAnnotation);
                 var method = c.GetMember<MethodSymbol>("C.M");
-                Assert.Equal(NullableAnnotation.Oblivious, method.ReturnType.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Oblivious, method.Parameters[0].Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, method.ReturnTypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, method.Parameters[0].TypeWithAnnotations.NullableAnnotation);
             }
 
             var comp1A = CreateCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) });
@@ -5957,21 +5957,21 @@ public class C
             var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
             comp0.VerifyDiagnostics();
 
-            void verifyTuple(TypeSymbolWithAnnotations type)
+            void verifyTuple(TypeWithAnnotations type)
             {
-                var tuple = (TupleTypeSymbol)type.TypeSymbol;
-                Assert.Equal(NullableAnnotation.Oblivious, tuple.TupleElements[0].Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Oblivious, tuple.TupleElements[1].Type.NullableAnnotation);
+                var tuple = (TupleTypeSymbol)type.Type;
+                Assert.Equal(NullableAnnotation.Oblivious, tuple.TupleElements[0].TypeWithAnnotations.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, tuple.TupleElements[1].TypeWithAnnotations.NullableAnnotation);
             }
 
             void verify(Compilation c)
             {
                 c.VerifyDiagnostics();
-                verifyTuple(c.GetMember<FieldSymbol>("C.F").Type);
-                verifyTuple(c.GetMember<PropertySymbol>("C.P").Type);
+                verifyTuple(c.GetMember<FieldSymbol>("C.F").TypeWithAnnotations);
+                verifyTuple(c.GetMember<PropertySymbol>("C.P").TypeWithAnnotations);
                 var method = c.GetMember<MethodSymbol>("C.M");
-                verifyTuple(method.ReturnType);
-                verifyTuple(method.Parameters[0].Type);
+                verifyTuple(method.ReturnTypeWithAnnotations);
+                verifyTuple(method.Parameters[0].TypeWithAnnotations);
             }
 
             var comp1A = CreateCompilation(source1, references: new[] { new CSharpCompilationReference(comp0) });
@@ -6026,15 +6026,15 @@ class C : I<string>
             comp.VerifyDiagnostics();
             var type = comp.GetMember<NamedTypeSymbol>("C");
             var interfaceType = type.Interfaces().Single();
-            var typeArg = interfaceType.TypeArgumentsNoUseSiteDiagnostics.Single();
+            var typeArg = interfaceType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
             Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
             var method = type.GetMember<MethodSymbol>("I<System.String>.F");
-            Assert.Equal(NullableAnnotation.Oblivious, method.ReturnType.NullableAnnotation);
-            typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
+            Assert.Equal(NullableAnnotation.Oblivious, method.ReturnTypeWithAnnotations.NullableAnnotation);
+            typeArg = ((NamedTypeSymbol)method.ReturnTypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
             Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
             var parameter = method.Parameters.Single();
-            Assert.Equal(NullableAnnotation.Oblivious, parameter.Type.NullableAnnotation);
-            typeArg = ((NamedTypeSymbol)parameter.Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
+            Assert.Equal(NullableAnnotation.Oblivious, parameter.TypeWithAnnotations.NullableAnnotation);
+            typeArg = ((NamedTypeSymbol)parameter.TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
             Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
         }
 
@@ -7287,12 +7287,12 @@ class B : A
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember<MethodSymbol>("A.F");
-            var typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0];
+            var typeArg = ((NamedTypeSymbol)method.ReturnTypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
             Assert.True(typeArg.IsValueType);
             Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
 
             method = comp.GetMember<MethodSymbol>("B.F");
-            typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0];
+            typeArg = ((NamedTypeSymbol)method.ReturnTypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
             Assert.True(typeArg.IsValueType);
             Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
 
@@ -8139,7 +8139,7 @@ class C3
             void verify(string methodName, string displayName, NullableAnnotation nullableAnnotation)
             {
                 var method = comp.GetMember<MethodSymbol>(methodName);
-                var type = method.ReturnType;
+                var type = method.ReturnTypeWithAnnotations;
                 Assert.Equal(displayName, type.ToTestDisplayString(true));
                 Assert.Equal(nullableAnnotation, type.NullableAnnotation);
             }
@@ -8242,7 +8242,7 @@ class C3
             void verify(string methodName, string displayName, NullableAnnotation nullableAnnotation)
             {
                 var method = comp.GetMember<MethodSymbol>(methodName);
-                var type = method.ReturnType;
+                var type = method.ReturnTypeWithAnnotations;
                 Assert.Equal(displayName, type.ToTestDisplayString(true));
                 Assert.Equal(nullableAnnotation, type.NullableAnnotation);
             }
@@ -8393,9 +8393,9 @@ class B : A
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.True(m1.Parameters[0].Type.IsNullableType());
-            Assert.True(m1.Parameters[0].Type.IsValueType);
-            Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.True(m1.Parameters[0].TypeWithAnnotations.IsValueType);
+            Assert.True(m1.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
         }
 
         [Fact]
@@ -8432,16 +8432,16 @@ class B : A
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].Type.NullableAnnotation);
-            Assert.True(m1.Parameters[0].Type.IsReferenceType);
-            Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(m1.Parameters[0].TypeWithAnnotations.IsReferenceType);
+            Assert.False(m1.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
 
             var m2 = b.GetMember<MethodSymbol>("M2");
-            Assert.False(m2.ReturnType.IsNullableType());
-            Assert.Equal(NullableAnnotation.Annotated, m2.ReturnType.NullableAnnotation);
-            Assert.True(m2.ReturnType.IsReferenceType);
-            Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
+            Assert.False(m2.ReturnTypeWithAnnotations.IsNullableType());
+            Assert.Equal(NullableAnnotation.Annotated, m2.ReturnTypeWithAnnotations.NullableAnnotation);
+            Assert.True(m2.ReturnTypeWithAnnotations.IsReferenceType);
+            Assert.False(m2.OverriddenMethod.ReturnTypeWithAnnotations.IsNullableType());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29846 : Override matches other M3<T>.")]
@@ -8497,16 +8497,16 @@ class B : A
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.True(m1.Parameters[0].Type.IsNullableType());
-            Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.True(m1.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
 
             var m2 = b.GetMember<MethodSymbol>("M2");
-            Assert.False(m2.Parameters[0].Type.IsNullableType());
-            Assert.False(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.False(m2.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.False(m2.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
 
             var m3 = b.GetMember<MethodSymbol>("M3");
-            Assert.True(m3.Parameters[0].Type.IsNullableType());
-            Assert.True(m3.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.True(m3.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.True(m3.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
         }
 
         [Fact]
@@ -8558,13 +8558,13 @@ class D : C
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.True(m1.Parameters[0].Type.IsNullableType());
-            Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.True(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.True(m1.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
 
             var d = compilation.GetTypeByMetadataName("D");
             var m2 = d.GetMember<MethodSymbol>("M2");
-            Assert.False(m2.Parameters[0].Type.IsNullableType());
-            Assert.False(m2.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.False(m2.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.False(m2.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
         }
 
         [Fact]
@@ -8626,12 +8626,12 @@ class C<T> {}
             var m3 = b.GetMember<MethodSymbol>("M3");
             var m4 = b.GetMember<MethodSymbol>("M4");
             var m5 = b.GetMember<MethodSymbol>("M5");
-            Assert.True(((NamedTypeSymbol)m3.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.True(((NamedTypeSymbol)m3.OverriddenMethod.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.True(((NamedTypeSymbol)m4.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.True(((NamedTypeSymbol)m4.OverriddenMethod.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.False(((NamedTypeSymbol)m5.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.False(((NamedTypeSymbol)m5.OverriddenMethod.Parameters[0].Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m3.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m3.OverriddenMethod.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m4.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m4.OverriddenMethod.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.False(((NamedTypeSymbol)m5.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.False(((NamedTypeSymbol)m5.OverriddenMethod.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
         }
 
         [Fact]
@@ -8657,8 +8657,8 @@ class B : A
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.True(m1.Parameters[0].Type.IsNullableType());
-            Assert.True(m1.Parameters[0].Type.TypeSymbol.StrippedType().IsValueType);
+            Assert.True(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.True(m1.Parameters[0].TypeWithAnnotations.Type.StrippedType().IsValueType);
             Assert.Null(m1.OverriddenMethod);
         }
 
@@ -8695,9 +8695,9 @@ class B : A
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.False(m1.Parameters[0].Type.TypeSymbol.StrippedType().IsValueType);
-            Assert.False(m1.Parameters[0].Type.TypeSymbol.StrippedType().IsReferenceType);
+            Assert.False(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.False(m1.Parameters[0].TypeWithAnnotations.Type.StrippedType().IsValueType);
+            Assert.False(m1.Parameters[0].TypeWithAnnotations.Type.StrippedType().IsReferenceType);
             Assert.Null(m1.OverriddenMethod);
         }
 
@@ -8779,10 +8779,10 @@ class B : A
             var m2 = b.GetMember<MethodSymbol>("M2");
             var m3 = b.GetMember<MethodSymbol>("M3");
             var m4 = b.GetMember<MethodSymbol>("M4");
-            Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.False(m2.Parameters[0].Type.IsNullableType());
-            Assert.False(m3.Parameters[0].Type.IsNullableType());
-            Assert.False(m4.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.False(m2.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.False(m3.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.False(m4.Parameters[0].TypeWithAnnotations.IsNullableType());
 
             Assert.Null(m1.OverriddenMethod);
             Assert.Null(m2.OverriddenMethod);
@@ -8823,7 +8823,7 @@ class B : A
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(m1.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
             Assert.Null(m1.OverriddenMethod);
         }
 
@@ -8861,8 +8861,8 @@ class C<T> {}
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(((NamedTypeSymbol)m1.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.True(((NamedTypeSymbol)m1.OverriddenMethod.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.False(((NamedTypeSymbol)m1.ReturnTypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m1.OverriddenMethod.ReturnTypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
         }
 
         [Fact]
@@ -8949,15 +8949,15 @@ class B : A
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(m1.ReturnType.IsNullableType());
-            Assert.False(m1.OverriddenMethod.ReturnType.IsNullableType());
+            Assert.False(m1.ReturnTypeWithAnnotations.IsNullableType());
+            Assert.False(m1.OverriddenMethod.ReturnTypeWithAnnotations.IsNullableType());
 
             var m4 = b.GetMember<MethodSymbol>("M4");
-            Assert.False(m4.ReturnType.IsNullableType());
-            Assert.True(m4.OverriddenMethod.ReturnType.IsNullableType());
+            Assert.False(m4.ReturnTypeWithAnnotations.IsNullableType());
+            Assert.True(m4.OverriddenMethod.ReturnTypeWithAnnotations.IsNullableType());
 
             var m5 = b.GetMember<MethodSymbol>("M4");
-            Assert.False(m5.ReturnType.IsNullableType());
+            Assert.False(m5.ReturnTypeWithAnnotations.IsNullableType());
         }
 
         [Fact]
@@ -9035,17 +9035,17 @@ class B : A
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].Type.NullableAnnotation);
-            Assert.True(m1.Parameters[0].Type.IsReferenceType);
-            Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(m1.Parameters[0].TypeWithAnnotations.IsReferenceType);
+            Assert.False(m1.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
 
             var m4 = b.GetMember<MethodSymbol>("M4");
-            Assert.False(m4.Parameters[0].Type.IsNullableType());
+            Assert.False(m4.Parameters[0].TypeWithAnnotations.IsNullableType());
             Assert.Null(m4.OverriddenMethod);
 
             var m5 = b.GetMember<MethodSymbol>("M4");
-            Assert.False(m5.Parameters[0].Type.IsNullableType());
+            Assert.False(m5.Parameters[0].TypeWithAnnotations.IsNullableType());
         }
 
         [Fact]
@@ -9122,11 +9122,11 @@ class B : A
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
-            Assert.True(b.GetMember<MethodSymbol>("M1").ReturnType.IsNullableType());
-            Assert.True(b.GetMember<MethodSymbol>("M2").ReturnType.IsNullableType());
-            Assert.False(b.GetMember<MethodSymbol>("M3").ReturnType.IsNullableType());
-            Assert.True(b.GetMember<MethodSymbol>("M4").ReturnType.IsNullableType());
-            Assert.True(b.GetMember<MethodSymbol>("M5").ReturnType.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M1").ReturnTypeWithAnnotations.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M2").ReturnTypeWithAnnotations.IsNullableType());
+            Assert.False(b.GetMember<MethodSymbol>("M3").ReturnTypeWithAnnotations.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M4").ReturnTypeWithAnnotations.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M5").ReturnTypeWithAnnotations.IsNullableType());
         }
 
         [Fact]
@@ -9194,11 +9194,11 @@ class B : A
                 );
 
             var b = compilation.GetTypeByMetadataName("B");
-            Assert.True(b.GetMember<MethodSymbol>("M1").Parameters[0].Type.IsNullableType());
-            Assert.True(b.GetMember<MethodSymbol>("M2").Parameters[0].Type.IsNullableType());
-            Assert.False(b.GetMember<MethodSymbol>("M3").Parameters[0].Type.IsNullableType());
-            Assert.True(b.GetMember<MethodSymbol>("M4").Parameters[0].Type.IsNullableType());
-            Assert.True(b.GetMember<MethodSymbol>("M5").Parameters[0].Type.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M1").Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M2").Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.False(b.GetMember<MethodSymbol>("M3").Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M4").Parameters[0].TypeWithAnnotations.IsNullableType());
+            Assert.True(b.GetMember<MethodSymbol>("M5").Parameters[0].TypeWithAnnotations.IsNullableType());
         }
 
         [Fact]
@@ -9264,11 +9264,11 @@ class B2 : A
                 foreach (string memberName in new[] { "E1", "E2" })
                 {
                     var member = type.GetMember<EventSymbol>(memberName);
-                    Assert.False(member.Type.Equals(member.OverriddenEvent.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                    Assert.False(member.TypeWithAnnotations.Equals(member.OverriddenEvent.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
                 }
 
                 var e3 = type.GetMember<EventSymbol>("E3");
-                Assert.True(e3.Type.Equals(e3.OverriddenEvent.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.True(e3.TypeWithAnnotations.Equals(e3.OverriddenEvent.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "A", "B1", "B2" })
@@ -9277,8 +9277,8 @@ class B2 : A
 
                 foreach (var ev in type.GetMembers().OfType<EventSymbol>())
                 {
-                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
-                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(ev.TypeWithAnnotations.Equals(ev.AddMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
+                    Assert.True(ev.TypeWithAnnotations.Equals(ev.RemoveMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -9370,8 +9370,8 @@ public class B2 : A
             void verifyMethodMatchesOverridden(bool expectMatch, NamedTypeSymbol type, string methodName)
             {
                 var member = type.GetMember<MethodSymbol>(methodName);
-                Assert.Equal(expectMatch, member.ReturnType.Equals(member.OverriddenMethod.ReturnType, TypeCompareKind.ConsiderEverything));
-                Assert.Equal(expectMatch, member.Parameters.Single().Type.Equals(member.OverriddenMethod.Parameters.Single().Type, TypeCompareKind.ConsiderEverything));
+                Assert.Equal(expectMatch, member.ReturnTypeWithAnnotations.Equals(member.OverriddenMethod.ReturnTypeWithAnnotations, TypeCompareKind.ConsiderEverything));
+                Assert.Equal(expectMatch, member.Parameters.Single().TypeWithAnnotations.Equals(member.OverriddenMethod.Parameters.Single().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
             }
         }
 
@@ -9631,7 +9631,7 @@ class B2 : IA
                     var type = compilation.GetTypeByMetadataName(typeName);
 
                     var impl = (EventSymbol)type.FindImplementationForInterfaceMember(member);
-                    Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                    Assert.False(impl.TypeWithAnnotations.Equals(member.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
                 }
             }
 
@@ -9642,7 +9642,7 @@ class B2 : IA
                 var type = compilation.GetTypeByMetadataName(typeName);
 
                 var impl = (EventSymbol)type.FindImplementationForInterfaceMember(e3);
-                Assert.True(impl.Type.Equals(e3.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.True(impl.TypeWithAnnotations.Equals(e3.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA", "B1", "B2" })
@@ -9651,8 +9651,8 @@ class B2 : IA
 
                 foreach (var ev in type.GetMembers().OfType<EventSymbol>())
                 {
-                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
-                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(ev.TypeWithAnnotations.Equals(ev.AddMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
+                    Assert.True(ev.TypeWithAnnotations.Equals(ev.RemoveMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -9730,13 +9730,13 @@ class B2 : IB
                 var member = ia.GetMember<EventSymbol>(memberName);
 
                 var impl = (EventSymbol)b1.FindImplementationForInterfaceMember(member);
-                Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.False(impl.TypeWithAnnotations.Equals(member.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             var e3 = ia.GetMember<EventSymbol>("E3");
             {
                 var impl = (EventSymbol)b1.FindImplementationForInterfaceMember(e3);
-                Assert.True(impl.Type.Equals(e3.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.True(impl.TypeWithAnnotations.Equals(e3.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA", "B1" })
@@ -9745,8 +9745,8 @@ class B2 : IB
 
                 foreach (var ev in type.GetMembers().OfType<EventSymbol>())
                 {
-                    Assert.True(ev.Type.Equals(ev.AddMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
-                    Assert.True(ev.Type.Equals(ev.RemoveMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(ev.TypeWithAnnotations.Equals(ev.AddMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
+                    Assert.True(ev.TypeWithAnnotations.Equals(ev.RemoveMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -9827,12 +9827,12 @@ class B2 : A2
 
             foreach (var member in compilation.GetTypeByMetadataName("B1").GetMembers().OfType<PropertySymbol>())
             {
-                Assert.False(member.Type.Equals(member.OverriddenProperty.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.False(member.TypeWithAnnotations.Equals(member.OverriddenProperty.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (var member in compilation.GetTypeByMetadataName("B2").GetMembers().OfType<PropertySymbol>())
             {
-                Assert.True(member.Type.Equals(member.OverriddenProperty.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.True(member.TypeWithAnnotations.Equals(member.OverriddenProperty.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "A1", "B1", "A2", "B2" })
@@ -9841,8 +9841,8 @@ class B2 : A2
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.GetMethod.ReturnTypeWithAnnotations, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.SetMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -9978,13 +9978,13 @@ class B : IA, IA2
             foreach (var member in compilation.GetTypeByMetadataName("IA").GetMembers().OfType<PropertySymbol>())
             {
                 var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
-                Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.False(impl.TypeWithAnnotations.Equals(member.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (var member in compilation.GetTypeByMetadataName("IA2").GetMembers().OfType<PropertySymbol>())
             {
                 var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
-                Assert.True(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.True(impl.TypeWithAnnotations.Equals(member.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA", "IA2", "B" })
@@ -9993,8 +9993,8 @@ class B : IA, IA2
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.GetMethod.ReturnTypeWithAnnotations, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.SetMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -10069,13 +10069,13 @@ class B : IA, IA2
             foreach (var member in compilation.GetTypeByMetadataName("IA").GetMembers().OfType<PropertySymbol>())
             {
                 var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
-                Assert.False(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.False(impl.TypeWithAnnotations.Equals(member.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (var member in compilation.GetTypeByMetadataName("IA2").GetMembers().OfType<PropertySymbol>())
             {
                 var impl = (PropertySymbol)b.FindImplementationForInterfaceMember(member);
-                Assert.True(impl.Type.Equals(member.Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.True(impl.TypeWithAnnotations.Equals(member.TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA", "IA2", "B" })
@@ -10084,8 +10084,8 @@ class B : IA, IA2
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.GetMethod.ReturnTypeWithAnnotations, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.SetMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -10141,12 +10141,12 @@ class B : A
             foreach (string memberName in new[] { "M1", "M2" })
             {
                 var member = b.GetMember<MethodSymbol>(memberName);
-                Assert.False(member.ReturnType.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).ReturnType,
+                Assert.False(member.ReturnTypeWithAnnotations.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).ReturnTypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             var m3 = b.GetMember<MethodSymbol>("M3");
-            Assert.True(m3.ReturnType.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).ReturnType,
+            Assert.True(m3.ReturnTypeWithAnnotations.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).ReturnTypeWithAnnotations,
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
@@ -10260,16 +10260,16 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>(memberName);
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
-                Assert.False(implementing.ReturnType.Equals(implemented.ReturnType,
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.False(implementing.ReturnTypeWithAnnotations.Equals(implemented.ReturnTypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
                 var member = ia.GetMember<MethodSymbol>("M3");
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
-                Assert.True(implementing.ReturnType.Equals(implemented.ReturnType,
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.True(implementing.ReturnTypeWithAnnotations.Equals(implemented.ReturnTypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
         }
@@ -10328,16 +10328,16 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>(memberName);
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
-                Assert.False(implementing.ReturnType.Equals(implemented.ReturnType,
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.False(implementing.ReturnTypeWithAnnotations.Equals(implemented.ReturnTypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
                 var member = ia.GetMember<MethodSymbol>("M3");
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
-                Assert.True(implementing.ReturnType.Equals(implemented.ReturnType,
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.True(implementing.ReturnTypeWithAnnotations.Equals(implemented.ReturnTypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
         }
@@ -10538,12 +10538,12 @@ class B : A
             foreach (string memberName in new[] { "M1", "M2" })
             {
                 var member = b.GetMember<MethodSymbol>(memberName);
-                Assert.False(member.Parameters[0].Type.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).Parameters[0].Type,
+                Assert.False(member.Parameters[0].TypeWithAnnotations.Equals(member.OverriddenMethod.ConstructIfGeneric(member.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).Parameters[0].TypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             var m3 = b.GetMember<MethodSymbol>("M3");
-            Assert.True(m3.Parameters[0].Type.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t))).Parameters[0].Type,
+            Assert.True(m3.Parameters[0].TypeWithAnnotations.Equals(m3.OverriddenMethod.ConstructIfGeneric(m3.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t))).Parameters[0].TypeWithAnnotations,
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
@@ -10700,8 +10700,8 @@ class B : A
                                                             parseOptions: TestOptions.Regular8);
 
             var m1 = compilation.GetTypeByMetadataName("B").GetMember<MethodSymbol>("M1");
-            Assert.Equal("C<System.String? modopt(System.Runtime.CompilerServices.IsConst), System.String>", m1.OverriddenMethod.ReturnType.ToTestDisplayString());
-            Assert.Equal("C<System.String modopt(System.Runtime.CompilerServices.IsConst), System.String?>", m1.ReturnType.ToTestDisplayString());
+            Assert.Equal("C<System.String? modopt(System.Runtime.CompilerServices.IsConst), System.String>", m1.OverriddenMethod.ReturnTypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("C<System.String modopt(System.Runtime.CompilerServices.IsConst), System.String?>", m1.ReturnTypeWithAnnotations.ToTestDisplayString());
 
             compilation.VerifyDiagnostics(
                  // (11,40): warning CS8609: Nullability of reference types in return type doesn't match overridden member.
@@ -10759,16 +10759,16 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>(memberName);
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
-                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.False(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
                 var member = ia.GetMember<MethodSymbol>("M3");
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
-                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.True(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
         }
@@ -10822,16 +10822,16 @@ class B : IA
             {
                 var member = ia.GetMember<MethodSymbol>(memberName);
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
-                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.False(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
                 var member = ia.GetMember<MethodSymbol>("M3");
                 var implementing = (MethodSymbol)b.FindImplementationForInterfaceMember(member);
-                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
-                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type,
+                var implemented = member.ConstructIfGeneric(implementing.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
+                Assert.True(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
         }
@@ -10900,13 +10900,13 @@ class B3 : A3
             {
                 foreach (var member in compilation.GetTypeByMetadataName(typeName).GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.False(member.Parameters[0].Type.Equals(member.OverriddenProperty.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                    Assert.False(member.Parameters[0].TypeWithAnnotations.Equals(member.OverriddenProperty.Parameters[0].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
                 }
             }
 
             foreach (var member in compilation.GetTypeByMetadataName("B3").GetMembers().OfType<PropertySymbol>())
             {
-                Assert.True(member.Parameters[0].Type.Equals(member.OverriddenProperty.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.True(member.Parameters[0].TypeWithAnnotations.Equals(member.OverriddenProperty.Parameters[0].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "A1", "A2", "A3", "B1", "B2", "B3" })
@@ -10915,8 +10915,8 @@ class B3 : A3
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.GetMethod.ReturnTypeWithAnnotations, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.SetMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -10985,13 +10985,13 @@ class B3 : IA3
             {
                 var implemented = compilation.GetTypeByMetadataName(typeName[0]).GetMembers().OfType<PropertySymbol>().Single();
                 var implementing = (PropertySymbol)compilation.GetTypeByMetadataName(typeName[1]).FindImplementationForInterfaceMember(implemented);
-                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.False(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
                 var implemented = compilation.GetTypeByMetadataName("IA3").GetMembers().OfType<PropertySymbol>().Single();
                 var implementing = (PropertySymbol)compilation.GetTypeByMetadataName("B3").FindImplementationForInterfaceMember(implemented);
-                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.True(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA1", "IA2", "IA3", "B1", "B2", "B3" })
@@ -11000,8 +11000,8 @@ class B3 : IA3
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.GetMethod.ReturnTypeWithAnnotations, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.SetMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -11070,13 +11070,13 @@ class B3 : IA3
             {
                 var implemented = compilation.GetTypeByMetadataName(typeName[0]).GetMembers().OfType<PropertySymbol>().Single();
                 var implementing = (PropertySymbol)compilation.GetTypeByMetadataName(typeName[1]).FindImplementationForInterfaceMember(implemented);
-                Assert.False(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.False(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             {
                 var implemented = compilation.GetTypeByMetadataName("IA3").GetMembers().OfType<PropertySymbol>().Single();
                 var implementing = (PropertySymbol)compilation.GetTypeByMetadataName("B3").FindImplementationForInterfaceMember(implemented);
-                Assert.True(implementing.Parameters[0].Type.Equals(implemented.Parameters[0].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
+                Assert.True(implementing.Parameters[0].TypeWithAnnotations.Equals(implemented.Parameters[0].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
             foreach (string typeName in new[] { "IA1", "IA2", "IA3", "B1", "B2", "B3" })
@@ -11085,8 +11085,8 @@ class B3 : IA3
 
                 foreach (var property in type.GetMembers().OfType<PropertySymbol>())
                 {
-                    Assert.True(property.Type.Equals(property.GetMethod.ReturnType, TypeCompareKind.ConsiderEverything));
-                    Assert.True(property.Type.Equals(property.SetMethod.Parameters.Last().Type, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.GetMethod.ReturnTypeWithAnnotations, TypeCompareKind.ConsiderEverything));
+                    Assert.True(property.TypeWithAnnotations.Equals(property.SetMethod.Parameters.Last().TypeWithAnnotations, TypeCompareKind.ConsiderEverything));
                 }
             }
         }
@@ -12008,15 +12008,15 @@ partial class C1
 
             var m1 = c1.GetMember<MethodSymbol>("M1");
             var m1Impl = m1.PartialImplementationPart;
-            var m1Def = m1.ConstructIfGeneric(m1Impl.TypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)));
+            var m1Def = m1.ConstructIfGeneric(m1Impl.TypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)));
 
             for (int i = 0; i < 3; i++)
             {
-                Assert.False(m1Impl.Parameters[i].Type.Equals(m1Def.Parameters[i].Type,
+                Assert.False(m1Impl.Parameters[i].TypeWithAnnotations.Equals(m1Def.Parameters[i].TypeWithAnnotations,
                     TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
             }
 
-            Assert.True(m1Impl.Parameters[3].Type.Equals(m1Def.Parameters[3].Type,
+            Assert.True(m1Impl.Parameters[3].TypeWithAnnotations.Equals(m1Def.Parameters[3].TypeWithAnnotations,
                 TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions));
         }
 
@@ -15197,7 +15197,7 @@ public class C
             var model = compilation.GetSemanticModel(tree);
             var outVar = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
             var symbol = (LocalSymbol)model.GetSymbolInfo(outVar).Symbol;
-            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat));
+            Assert.Equal(expectedType, symbol.TypeWithAnnotations.ToDisplayString(TypeWithAnnotations.TestDisplayFormat));
             Assert.Null(model.GetDeclaredSymbol(outVar));
         }
 
@@ -15215,7 +15215,7 @@ public class C
             var varDecl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(d => d.Declaration.Type.IsVar).Single();
             var variable = varDecl.Declaration.Variables.Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(variable);
-            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat));
+            Assert.Equal(expectedType, symbol.TypeWithAnnotations.ToDisplayString(TypeWithAnnotations.TestDisplayFormat));
             Assert.Null(model.GetSymbolInfo(variable).Symbol);
         }
 
@@ -22770,8 +22770,8 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -22798,8 +22798,8 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -22826,8 +22826,8 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -22857,8 +22857,8 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -22890,9 +22890,9 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             // https://github.com/dotnet/roslyn/issues/29856: Type should be `string!`.
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
             // https://github.com/dotnet/roslyn/issues/29856: IsNullable should be inferred nullable state: false.
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -22924,8 +22924,8 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -22956,8 +22956,8 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -22989,8 +22989,8 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -23023,8 +23023,8 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -23056,8 +23056,8 @@ class CL1
             // Tracked by https://github.com/dotnet/roslyn/issues/32661
 
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -23084,7 +23084,7 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            var type = symbol.Type;
+            var type = symbol.TypeWithAnnotations;
             Assert.True(type.IsErrorType());
             Assert.Equal("var", type.ToTestDisplayString());
             Assert.Equal(NullableAnnotation.Oblivious, type.NullableAnnotation);
@@ -23114,16 +23114,16 @@ class CL1
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
 
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);  // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: false
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);  // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: false
 
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
 
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[2]);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
         }
 
         [Fact]
@@ -29931,11 +29931,11 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.True(symbol.TypeWithAnnotations.NullableAnnotation.IsAnnotated());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.Int32", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -29966,11 +29966,11 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.True(symbol.TypeWithAnnotations.NullableAnnotation.IsAnnotated());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.Int32?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -30013,12 +30013,12 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
+            Assert.Equal("T", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             // https://github.com/dotnet/roslyn/issues/29856: Is T correct?
-            Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
+            Assert.Equal("T", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -30051,11 +30051,11 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("T?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
+            Assert.Equal("T?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.True(symbol.TypeWithAnnotations.NullableAnnotation.IsAnnotated());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            Assert.Equal("T?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
+            Assert.Equal("T?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.True(symbol.TypeWithAnnotations.NullableAnnotation.IsAnnotated());
         }
 
         [Fact]
@@ -30088,11 +30088,11 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("System.String!", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String!", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.TypeWithAnnotations.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.Int32", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -30123,11 +30123,11 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("System.Int32?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -30160,8 +30160,8 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("T", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -30197,11 +30197,11 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("T!", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("T!", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.TypeWithAnnotations.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            Assert.Equal("T?", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
+            Assert.Equal("T?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -40167,7 +40167,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String!", symbol.Type.ToTestDisplayString(true));
+            Assert.Equal("System.String!", symbol.TypeWithAnnotations.ToTestDisplayString(true));
         }
 
         [Fact]
@@ -60760,10 +60760,10 @@ class C {}
 
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B[]", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("B[]", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
             var f2 = comp.GetMember<FieldSymbol>("A.F2");
-            Assert.Equal("C![]!", f2.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("C![]!", f2.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -60802,7 +60802,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
             }
         }
 
@@ -60826,7 +60826,7 @@ class B {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("B", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -60856,7 +60856,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -60882,7 +60882,7 @@ class B {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
             comp.VerifyDiagnostics(
                 // (8,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
@@ -60916,7 +60916,7 @@ class A
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("System.String!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("System.String!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
             }
         }
 
@@ -60938,7 +60938,7 @@ class A
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("System.String", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("System.String", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -60969,7 +60969,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B[]!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B[]!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
             }
         }
 
@@ -60994,7 +60994,7 @@ class B {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B![]", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("B![]", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -61025,7 +61025,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal(NullableAnnotation.NotAnnotated, f1.Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.NotAnnotated, f1.TypeWithAnnotations.NullableAnnotation);
             }
         }
 
@@ -61050,7 +61050,7 @@ class B {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal(NullableAnnotation.Oblivious, f1.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, f1.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -61081,7 +61081,7 @@ class B<T> {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B<A>!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B<A>!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
             }
         }
 
@@ -61106,7 +61106,7 @@ class B<T> {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B<A!>", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("B<A!>", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -61143,7 +61143,7 @@ class var {}
                 var model = comp.GetSemanticModel(tree);
 
                 var decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
-                Assert.Equal("var!", ((LocalSymbol)model.GetDeclaredSymbol(decl.Designation)).Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("var!", ((LocalSymbol)model.GetDeclaredSymbol(decl.Designation)).TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
             }
         }
 
@@ -61174,7 +61174,7 @@ class var {}
             var model = comp.GetSemanticModel(tree);
 
             var decl = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
-            Assert.Equal("var", ((LocalSymbol)model.GetDeclaredSymbol(decl.Designation)).Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("var", ((LocalSymbol)model.GetDeclaredSymbol(decl.Designation)).TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -61816,7 +61816,7 @@ class C {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("C!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("C!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
             }
         }
 
@@ -61841,7 +61841,7 @@ class C {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("C", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("C", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -61875,7 +61875,7 @@ namespace C
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("C.B!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("C.B!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
             }
         }
 
@@ -61903,7 +61903,7 @@ namespace C
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("C.B", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("C.B", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -61937,7 +61937,7 @@ namespace C
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("C.B<A>!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("C.B<A>!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
             }
         }
 
@@ -61965,7 +61965,7 @@ namespace C
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("C.B<A!>", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("C.B<A!>", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -61995,7 +61995,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
             }
         }
 
@@ -62019,7 +62019,7 @@ class B {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(NullableContextOptions.SafeOnly));
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("B", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -62049,7 +62049,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -62072,7 +62072,7 @@ class B {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(NullableContextOptions.SafeOnly));
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("B!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
         }
 
         [Fact]
@@ -62092,7 +62092,7 @@ class B {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(NullableContextOptions.SafeOnly));
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+            Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
             comp.VerifyDiagnostics();
         }
@@ -62125,7 +62125,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics(
                     // (8,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
@@ -62163,7 +62163,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics(
                     // (8,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
@@ -62200,7 +62200,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics(
                     // (8,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
@@ -62238,7 +62238,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics(
                     // (8,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
@@ -62275,7 +62275,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -62308,7 +62308,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -62339,7 +62339,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -62372,7 +62372,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: compilationOptions);
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -62404,7 +62404,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(nullableContextOptions));
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -62436,7 +62436,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(nullableContextOptions));
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -62467,7 +62467,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(nullableContextOptions));
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -62499,7 +62499,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(nullableContextOptions));
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B?", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B?", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -62530,7 +62530,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(nullableContextOptions));
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -62560,7 +62560,7 @@ class B {}
                 var comp = CreateCompilation(new[] { source }, options: WithNonNullTypes(nullableContextOptions));
 
                 var f1 = comp.GetMember<FieldSymbol>("A.F1");
-                Assert.Equal("B!", f1.Type.ToTestDisplayString(includeNonNullable: true));
+                Assert.Equal("B!", f1.TypeWithAnnotations.ToTestDisplayString(includeNonNullable: true));
 
                 comp.VerifyDiagnostics();
             }
@@ -71274,7 +71274,7 @@ class B
             {
                 var name = "F" + (i + 1).ToString("00");
                 var f = b.GetMember<FieldSymbol>(name);
-                Assert.Equal(baseline[i].type, f.Type.ToTestDisplayString(true));
+                Assert.Equal(baseline[i].type, f.TypeWithAnnotations.ToTestDisplayString(true));
 
                 if (baseline[i].attribute == null)
                 {

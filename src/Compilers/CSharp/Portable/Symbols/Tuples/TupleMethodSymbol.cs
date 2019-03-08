@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = container;
 
             TypeMap.Empty.WithAlphaRename(underlyingMethod, this, out _typeParameters);
-            _underlyingMethod = underlyingMethod.ConstructIfGeneric(TypeArguments);
+            _underlyingMethod = underlyingMethod.ConstructIfGeneric(TypeArgumentsWithAnnotations);
         }
 
         public override bool IsTupleMethod
@@ -110,11 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return _underlyingMethod.ReturnType;
+                return _underlyingMethod.ReturnTypeWithAnnotations;
             }
         }
 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {

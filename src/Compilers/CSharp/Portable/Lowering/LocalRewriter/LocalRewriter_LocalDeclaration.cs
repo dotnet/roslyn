@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // around because we'll be generating debug info for it.)
             if (localSymbol.IsConst)
             {
-                if (!localSymbol.Type.IsReferenceType && localSymbol.ConstantValue == null)
+                if (!localSymbol.TypeWithAnnotations.IsReferenceType && localSymbol.ConstantValue == null)
                 {
                     // This can occur in error scenarios (e.g. bad imported metadata)
                     hasErrors = true;
@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         localSymbol,
                         null,
-                        localSymbol.Type.TypeSymbol
+                        localSymbol.TypeWithAnnotations.Type
                     ),
                     rewrittenInitializer,
-                    localSymbol.Type.TypeSymbol,
+                    localSymbol.TypeWithAnnotations.Type,
                     localSymbol.IsRef),
                 hasErrors);
 

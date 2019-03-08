@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // BindType for AttributeSyntax's name is handled specially during lookup, see Binder.LookupAttributeType.
                     // When looking up a name in attribute type context, we generate a diagnostic + error type if it is not an attribute type, i.e. named type deriving from System.Attribute.
                     // Hence we can assume here that BindType returns a NamedTypeSymbol.
-                    boundAttributeTypes[i] = (NamedTypeSymbol)binder.BindType(attributesToBind[i].Name, diagnostics).TypeSymbol;
+                    boundAttributeTypes[i] = (NamedTypeSymbol)binder.BindType(attributesToBind[i].Name, diagnostics).Type;
                 }
             }
         }
@@ -225,12 +225,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var parameter in parameters)
             {
-                var paramType = parameter.Type;
+                var paramType = parameter.TypeWithAnnotations;
                 Debug.Assert(paramType.HasType);
 
-                if (!paramType.TypeSymbol.IsValidAttributeParameterType(Compilation))
+                if (!paramType.Type.IsValidAttributeParameterType(Compilation))
                 {
-                    Error(diagnostics, ErrorCode.ERR_BadAttributeParamType, syntax, parameter.Name, paramType.TypeSymbol);
+                    Error(diagnostics, ErrorCode.ERR_BadAttributeParamType, syntax, parameter.Name, paramType.Type);
                     hasErrors = true;
                 }
             }
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We do not want to generate any unassigned field or unreferenced field diagnostics.
                 containingAssembly?.NoteFieldAccess(fieldSymbol, read: true, write: true);
 
-                lvalue = new BoundFieldAccess(nameSyntax, null, fieldSymbol, ConstantValue.NotAvailable, resultKind, fieldSymbol.Type.TypeSymbol);
+                lvalue = new BoundFieldAccess(nameSyntax, null, fieldSymbol, ConstantValue.NotAvailable, resultKind, fieldSymbol.TypeWithAnnotations.Type);
             }
             else
             {
@@ -436,14 +436,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Field:
                         var fieldSymbol = (FieldSymbol)namedArgumentNameSymbol;
-                        namedArgumentType = fieldSymbol.Type.TypeSymbol;
+                        namedArgumentType = fieldSymbol.TypeWithAnnotations.Type;
                         invalidNamedArgument |= fieldSymbol.IsReadOnly;
                         invalidNamedArgument |= fieldSymbol.IsConst;
                         break;
 
                     case SymbolKind.Property:
                         var propertySymbol = ((PropertySymbol)namedArgumentNameSymbol).GetLeastOverriddenProperty(this.ContainingType);
-                        namedArgumentType = propertySymbol.Type.TypeSymbol;
+                        namedArgumentType = propertySymbol.TypeWithAnnotations.Type;
                         invalidNamedArgument |= propertySymbol.IsReadOnly;
                         var getMethod = propertySymbol.GetMethod;
                         var setMethod = propertySymbol.SetMethod;
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ParameterSymbol parameter = parameters[i];
                 TypedConstant reorderedArgument;
 
-                if (parameter.IsParams && parameter.Type.TypeSymbol.IsSZArray() && i + 1 == parameterCount)
+                if (parameter.IsParams && parameter.TypeWithAnnotations.Type.IsSZArray() && i + 1 == parameterCount)
                 {
                     reorderedArgument = GetParamArrayArgument(parameter, constructorArgsArray, constructorArgumentNamesOpt, argumentsCount,
                         argsConsumedCount, this.Conversions, out bool foundNamed);
@@ -626,8 +626,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
                     else if (reorderedArgument.Kind == TypedConstantKind.Array &&
-                        parameter.Type.TypeKind == TypeKind.Array &&
-                        !((TypeSymbol)reorderedArgument.Type).Equals(parameter.Type.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
+                        parameter.TypeWithAnnotations.TypeKind == TypeKind.Array &&
+                        !((TypeSymbol)reorderedArgument.Type).Equals(parameter.TypeWithAnnotations.Type, TypeCompareKind.AllIgnoreOptions))
                     {
                         // NOTE: As in dev11, we don't allow array covariance conversions (presumably, we don't have a way to
                         // represent the conversion in metadata).
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypedConstant GetDefaultValueArgument(ParameterSymbol parameter, AttributeSyntax syntax, DiagnosticBag diagnostics)
         {
-            var parameterType = parameter.Type.TypeSymbol;
+            var parameterType = parameter.TypeWithAnnotations.Type;
             ConstantValue defaultConstantValue = parameter.IsOptional ? parameter.ExplicitDefaultConstantValue : ConstantValue.NotAvailable;
 
             TypedConstantKind kind;
@@ -838,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // A named argument for a params parameter is necessarily the only one for that parameter
-                    return new TypedConstant(parameter.Type.TypeSymbol, ImmutableArray.Create(constructorArgsArray[argIndex]));
+                    return new TypedConstant(parameter.TypeWithAnnotations.Type, ImmutableArray.Create(constructorArgsArray[argIndex]));
                 }
             }
 
@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If there are zero arguments left
             if (paramArrayArgCount == 0)
             {
-                return new TypedConstant(parameter.Type.TypeSymbol, ImmutableArray<TypedConstant>.Empty);
+                return new TypedConstant(parameter.TypeWithAnnotations.Type, ImmutableArray<TypedConstant>.Empty);
             }
 
             // If there's exactly one argument left, we'll try to use it in normal form
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 values[i] = constructorArgsArray[argsConsumedCount++];
             }
 
-            return new TypedConstant(parameter.Type.TypeSymbol, values.AsImmutableOrNull());
+            return new TypedConstant(parameter.TypeWithAnnotations.Type, values.AsImmutableOrNull());
         }
 
         private static bool TryGetNormalParamValue(ParameterSymbol parameter, ImmutableArray<TypedConstant> constructorArgsArray,
@@ -884,14 +884,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol argumentType = (TypeSymbol)argument.Type;
             // Easy out (i.e. don't bother classifying conversion).
-            if (TypeSymbol.Equals(argumentType, parameter.Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals(argumentType, parameter.TypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2))
             {
                 result = argument;
                 return true;
             }
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null; // ignoring, since already bound argument and parameter
-            Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.Type.TypeSymbol, ref useSiteDiagnostics);
+            Conversion conversion = conversions.ClassifyBuiltInConversion(argumentType, parameter.TypeWithAnnotations.Type, ref useSiteDiagnostics);
 
             // NOTE: Won't always succeed, even though we've performed overload resolution.
             // For example, passing int[] to params object[] actually treats the int[] as an element of the object[].
@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (type.SpecialType == SpecialType.System_Object ||
                         operandType.IsArray() && type.IsArray() &&
-                        ((ArrayTypeSymbol)type).ElementType.SpecialType == SpecialType.System_Object)
+                        ((ArrayTypeSymbol)type).ElementTypeWithAnnotations.SpecialType == SpecialType.System_Object)
                     {
                         var typedConstantKind = operandType.GetAttributeParameterTypedConstantKind(_binder.Compilation);
                         return VisitExpression(operand, typedConstantKind, diagnostics, ref attrHasErrors, curArgumentHasErrors);

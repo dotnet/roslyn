@@ -829,7 +829,7 @@ public class A
             Assert.False(destructor.IsAbstract);
             Assert.Null(destructor.OverriddenMethod);
 
-            Assert.Equal(SpecialType.System_Void, destructor.ReturnType.SpecialType);
+            Assert.Equal(SpecialType.System_Void, destructor.ReturnTypeWithAnnotations.SpecialType);
             Assert.Equal(0, destructor.Parameters.Length);
             Assert.Equal(0, destructor.TypeParameters.Length);
 

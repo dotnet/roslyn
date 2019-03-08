@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // https://github.com/dotnet/roslyn/issues/33941: Remove this method. Initial binding should not infer nullability.
-        internal static TypeSymbolWithAnnotations GetTypeAndNullability(this BoundExpression expr)
+        internal static TypeWithAnnotations GetTypeAndNullability(this BoundExpression expr)
         {
             var type = expr.Type;
             if ((object)type == null)
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default;
             }
             var annotation = expr.GetNullableAnnotation();
-            return TypeSymbolWithAnnotations.Create(type, annotation);
+            return TypeWithAnnotations.Create(type, annotation);
         }
 
         // https://github.com/dotnet/roslyn/issues/33941: Remove this method. Initial binding should not infer nullability.
@@ -232,20 +232,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)expr;
-                        return local.IsNullableUnknown ? NullableAnnotation.Oblivious : local.LocalSymbol.Type.NullableAnnotation;
+                        return local.IsNullableUnknown ? NullableAnnotation.Oblivious : local.LocalSymbol.TypeWithAnnotations.NullableAnnotation;
                     }
                 case BoundKind.Parameter:
-                    return ((BoundParameter)expr).ParameterSymbol.Type.NullableAnnotation;
+                    return ((BoundParameter)expr).ParameterSymbol.TypeWithAnnotations.NullableAnnotation;
                 case BoundKind.FieldAccess:
-                    return ((BoundFieldAccess)expr).FieldSymbol.Type.NullableAnnotation;
+                    return ((BoundFieldAccess)expr).FieldSymbol.TypeWithAnnotations.NullableAnnotation;
                 case BoundKind.PropertyAccess:
-                    return ((BoundPropertyAccess)expr).PropertySymbol.Type.NullableAnnotation;
+                    return ((BoundPropertyAccess)expr).PropertySymbol.TypeWithAnnotations.NullableAnnotation;
                 case BoundKind.Call:
-                    return ((BoundCall)expr).Method.ReturnType.NullableAnnotation;
+                    return ((BoundCall)expr).Method.ReturnTypeWithAnnotations.NullableAnnotation;
                 case BoundKind.Conversion:
                     return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType.NullableAnnotation ?? NullableAnnotation.Oblivious;
                 case BoundKind.BinaryOperator:
-                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.NullableAnnotation ?? NullableAnnotation.Oblivious;
+                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnTypeWithAnnotations.NullableAnnotation ?? NullableAnnotation.Oblivious;
                 case BoundKind.NullCoalescingOperator:
                     {
                         var op = (BoundNullCoalescingOperator)expr;

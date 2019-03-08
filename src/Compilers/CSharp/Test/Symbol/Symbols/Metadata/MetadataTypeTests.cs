@@ -266,11 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var type1 = ns3.GetTypeMembers("EventProviderBase").Single() as NamedTypeSymbol;
             // EventData[]
-            var type2 = (type1.GetMembers("m_eventData").Single() as FieldSymbol).Type.TypeSymbol as ArrayTypeSymbol;
+            var type2 = (type1.GetMembers("m_eventData").Single() as FieldSymbol).TypeWithAnnotations.Type as ArrayTypeSymbol;
             var member2 = type1.GetMembers("WriteTransferEventHelper").Single() as MethodSymbol;
             Assert.Equal(3, member2.Parameters.Length);
             // params object[]
-            var type3 = (member2.Parameters[2] as ParameterSymbol).Type.TypeSymbol as ArrayTypeSymbol;
+            var type3 = (member2.Parameters[2] as ParameterSymbol).TypeWithAnnotations.Type as ArrayTypeSymbol;
 
             Assert.Equal(SymbolKind.ArrayType, type2.Kind);
             Assert.Equal(SymbolKind.ArrayType, type3.Kind);
@@ -282,9 +282,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(TypeKind.Array, type2.TypeKind);
             Assert.Equal(TypeKind.Array, type3.TypeKind);
 
-            Assert.Equal("EventData", type2.ElementType.Name);
+            Assert.Equal("EventData", type2.ElementTypeWithAnnotations.Name);
             Assert.Equal("Array", type2.BaseType().Name);
-            Assert.Equal("Object", type3.ElementType.Name);
+            Assert.Equal("Object", type3.ElementTypeWithAnnotations.Name);
             Assert.Equal("System.Diagnostics.Eventing.EventProviderBase.EventData[]", type2.ToTestDisplayString());
             Assert.Equal("System.Object[]", type3.ToTestDisplayString());
 
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(type3.IsType);
 
             Assert.True(type2.IsReferenceType);
-            Assert.True(type2.ElementType.IsValueType);
+            Assert.True(type2.ElementTypeWithAnnotations.IsValueType);
             Assert.True(type3.IsReferenceType);
             Assert.False(type3.IsValueType);
 

@@ -607,7 +607,7 @@ class User
 
                 var property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
-                AssertNotReferencedIsReadOnlyAttribute(property.Type.TypeSymbol.GetAttributes());
+                AssertNotReferencedIsReadOnlyAttribute(property.TypeWithAnnotations.Type.GetAttributes());
             }
         }
 

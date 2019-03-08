@@ -1041,8 +1041,8 @@ using System;
 
                 var localD = (LocalSymbol)semanticModel.GetSymbolInfo(identifierSyntax).Symbol;
                 Assert.Equal("d", localD.Name);
-                Assert.Equal("Disposable", localD.Type.Name);
-                Assert.Equal(classDisposable, localD.Type.TypeSymbol);
+                Assert.Equal("Disposable", localD.TypeWithAnnotations.Name);
+                Assert.Equal(classDisposable, localD.TypeWithAnnotations.Type);
 
                 var methodDispose = (MethodSymbol)semanticModel.GetSymbolInfo(memberAccessSyntax).Symbol;
                 Assert.Equal("Dispose", methodDispose.Name);

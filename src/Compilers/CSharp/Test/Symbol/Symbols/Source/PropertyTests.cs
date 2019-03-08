@@ -447,7 +447,7 @@ class C1
             PropertySymbol ein = (PropertySymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
             Assert.Equal("C1.@in", ein.ToString());
-            NamedTypeSymbol dout = (NamedTypeSymbol)ein.Type.TypeSymbol;
+            NamedTypeSymbol dout = (NamedTypeSymbol)ein.TypeWithAnnotations.Type;
             Assert.Equal("out", dout.Name);
             Assert.Equal("@out", dout.ToString());
         }
@@ -1856,19 +1856,19 @@ class Program
             {
                 var program = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Program");
                 var field = program.GetMember<FieldSymbol>("testClass");
-                var type = field.Type.TypeSymbol;
+                var type = field.TypeWithAnnotations.Type;
                 // Non-generic type.
                 //var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("WithParameterizedProps");
                 var getters = type.GetMembers("get_P").OfType<MethodSymbol>();
                 Assert.Equal(2, getters.Count(getter => getter.Parameters.Length == 1));
                 Assert.Equal(1, getters.Count(getter => getter.Parameters.Length == 2));
 
-                Assert.True(getters.Any(getter => getter.Parameters[0].Type.SpecialType == SpecialType.System_Int32));
-                Assert.True(getters.Any(getter => getter.Parameters[0].Type.SpecialType == SpecialType.System_String));
+                Assert.True(getters.Any(getter => getter.Parameters[0].TypeWithAnnotations.SpecialType == SpecialType.System_Int32));
+                Assert.True(getters.Any(getter => getter.Parameters[0].TypeWithAnnotations.SpecialType == SpecialType.System_String));
                 Assert.True(getters.Any(getter =>
                     getter.Parameters.Length == 2 &&
-                    getter.Parameters[0].Type.SpecialType == SpecialType.System_Int32 &&
-                    getter.Parameters[1].Type.SpecialType == SpecialType.System_String));
+                    getter.Parameters[0].TypeWithAnnotations.SpecialType == SpecialType.System_Int32 &&
+                    getter.Parameters[1].TypeWithAnnotations.SpecialType == SpecialType.System_String));
             };
             // TODO: it would be nice to validate the emitted symbols, but CompileAndVerify currently has a limitation
             // where it won't pick up the referenced assemblies from the compilation when it creates the ModuleSymbol
@@ -1909,7 +1909,7 @@ public class A : Attribute
             Assert.Equal(2, xs.Length);
             foreach (var x in xs)
             {
-                Assert.Equal(a, (x as PropertySymbol).Type.TypeSymbol); // duplicate, but all the same.
+                Assert.Equal(a, (x as PropertySymbol).TypeWithAnnotations.Type); // duplicate, but all the same.
             }
 
             var errors = comp.GetDeclarationDiagnostics();
@@ -2596,14 +2596,14 @@ public interface IA
             var ia = comp.GetTypeByMetadataName("IA");
             Assert.NotNull(ia);
             var iap = ia.GetMember<PropertySymbol>("P");
-            Assert.False(iap.Type.IsDynamic());
+            Assert.False(iap.TypeWithAnnotations.IsDynamic());
             var iam = ia.GetMember<MethodSymbol>("M");
-            Assert.False(iam.ReturnType.IsDynamic());
+            Assert.False(iam.ReturnTypeWithAnnotations.IsDynamic());
 
             var iap2 = ia.GetMember<PropertySymbol>("P2");
-            Assert.Equal(SpecialType.System_String, iap2.Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, iap2.TypeWithAnnotations.SpecialType);
             var iam2 = ia.GetMember<MethodSymbol>("M2");
-            Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
+            Assert.Equal(SpecialType.System_String, iam2.ReturnTypeWithAnnotations.SpecialType);
 
             var compRef = refComp.ToMetadataReference(embedInteropTypes: false);
             comp = CreateCompilationWithMscorlib46("", new[] { compRef });
@@ -2614,14 +2614,14 @@ public interface IA
             ia = comp.GetTypeByMetadataName("IA");
             Assert.NotNull(ia);
             iap = ia.GetMember<PropertySymbol>("P");
-            Assert.False(iap.Type.IsDynamic());
+            Assert.False(iap.TypeWithAnnotations.IsDynamic());
             iam = ia.GetMember<MethodSymbol>("M");
-            Assert.False(iam.ReturnType.IsDynamic());
+            Assert.False(iam.ReturnTypeWithAnnotations.IsDynamic());
 
             iap2 = ia.GetMember<PropertySymbol>("P2");
-            Assert.Equal(SpecialType.System_String, iap2.Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, iap2.TypeWithAnnotations.SpecialType);
             iam2 = ia.GetMember<MethodSymbol>("M2");
-            Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
+            Assert.Equal(SpecialType.System_String, iam2.ReturnTypeWithAnnotations.SpecialType);
 
             mdRef = refData.GetReference(embedInteropTypes: true);
             comp = CreateCompilationWithMscorlib46("", new[] { mdRef });
@@ -2632,14 +2632,14 @@ public interface IA
             ia = comp.GetTypeByMetadataName("IA");
             Assert.NotNull(ia);
             iap = ia.GetMember<PropertySymbol>("P");
-            Assert.True(iap.Type.IsDynamic());
+            Assert.True(iap.TypeWithAnnotations.IsDynamic());
             iam = ia.GetMember<MethodSymbol>("M");
-            Assert.True(iam.ReturnType.IsDynamic());
+            Assert.True(iam.ReturnTypeWithAnnotations.IsDynamic());
 
             iap2 = ia.GetMember<PropertySymbol>("P2");
-            Assert.Equal(SpecialType.System_String, iap2.Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, iap2.TypeWithAnnotations.SpecialType);
             iam2 = ia.GetMember<MethodSymbol>("M2");
-            Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
+            Assert.Equal(SpecialType.System_String, iam2.ReturnTypeWithAnnotations.SpecialType);
 
             compRef = refComp.ToMetadataReference(embedInteropTypes: true);
             comp = CreateCompilationWithMscorlib46("", new[] { compRef });
@@ -2650,14 +2650,14 @@ public interface IA
             ia = comp.GetTypeByMetadataName("IA");
             Assert.NotNull(ia);
             iap = ia.GetMember<PropertySymbol>("P");
-            Assert.True(iap.Type.IsDynamic());
+            Assert.True(iap.TypeWithAnnotations.IsDynamic());
             iam = ia.GetMember<MethodSymbol>("M");
-            Assert.True(iam.ReturnType.IsDynamic());
+            Assert.True(iam.ReturnTypeWithAnnotations.IsDynamic());
 
             iap2 = ia.GetMember<PropertySymbol>("P2");
-            Assert.Equal(SpecialType.System_String, iap2.Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, iap2.TypeWithAnnotations.SpecialType);
             iam2 = ia.GetMember<MethodSymbol>("M2");
-            Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
+            Assert.Equal(SpecialType.System_String, iam2.ReturnTypeWithAnnotations.SpecialType);
             Assert.Equal(2, comp.ExternalReferences.Length);
 
             refSrc = @"
@@ -2689,14 +2689,14 @@ public interface IA
             ia = comp.GetTypeByMetadataName("IA");
             Assert.NotNull(ia);
             iap = ia.GetMember<PropertySymbol>("P");
-            Assert.Equal(SpecialType.System_Object, iap.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Object, iap.TypeWithAnnotations.SpecialType);
             iam = ia.GetMember<MethodSymbol>("M");
-            Assert.Equal(SpecialType.System_Object, iam.ReturnType.SpecialType);
+            Assert.Equal(SpecialType.System_Object, iam.ReturnTypeWithAnnotations.SpecialType);
 
             iap2 = ia.GetMember<PropertySymbol>("P2");
-            Assert.Equal(SpecialType.System_String, iap2.Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, iap2.TypeWithAnnotations.SpecialType);
             iam2 = ia.GetMember<MethodSymbol>("M2");
-            Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
+            Assert.Equal(SpecialType.System_String, iam2.ReturnTypeWithAnnotations.SpecialType);
 
             compRef = refComp.ToMetadataReference(embedInteropTypes: true);
             comp = CreateCompilationWithMscorlib46("", new[] { compRef });
@@ -2707,14 +2707,14 @@ public interface IA
             ia = comp.GetTypeByMetadataName("IA");
             Assert.NotNull(ia);
             iap = ia.GetMember<PropertySymbol>("P");
-            Assert.Equal(SpecialType.System_Object, iap.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Object, iap.TypeWithAnnotations.SpecialType);
             iam = ia.GetMember<MethodSymbol>("M");
-            Assert.Equal(SpecialType.System_Object, iam.ReturnType.SpecialType);
+            Assert.Equal(SpecialType.System_Object, iam.ReturnTypeWithAnnotations.SpecialType);
 
             iap2 = ia.GetMember<PropertySymbol>("P2");
-            Assert.Equal(SpecialType.System_String, iap2.Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, iap2.TypeWithAnnotations.SpecialType);
             iam2 = ia.GetMember<MethodSymbol>("M2");
-            Assert.Equal(SpecialType.System_String, iam2.ReturnType.SpecialType);
+            Assert.Equal(SpecialType.System_String, iam2.ReturnTypeWithAnnotations.SpecialType);
         }
 
         private delegate void VerifyType(bool isWinMd, params string[] expectedMembers);

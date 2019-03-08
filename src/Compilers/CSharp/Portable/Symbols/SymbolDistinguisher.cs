@@ -139,13 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (symbol.Kind)
                 {
                     case SymbolKind.Parameter:
-                        symbol = ((ParameterSymbol)symbol).Type.TypeSymbol;
+                        symbol = ((ParameterSymbol)symbol).TypeWithAnnotations.Type;
                         continue;
                     case SymbolKind.PointerType:
-                        symbol = ((PointerTypeSymbol)symbol).PointedAtType.TypeSymbol;
+                        symbol = ((PointerTypeSymbol)symbol).PointedAtTypeWithAnnotations.Type;
                         continue;
                     case SymbolKind.ArrayType:
-                        symbol = ((ArrayTypeSymbol)symbol).ElementType.TypeSymbol;
+                        symbol = ((ArrayTypeSymbol)symbol).ElementTypeWithAnnotations.Type;
                         continue;
                     default:
                         return symbol;

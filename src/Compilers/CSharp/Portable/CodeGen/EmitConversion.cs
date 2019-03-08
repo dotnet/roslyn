@@ -345,8 +345,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if ((object)m == null) continue;
                 var parameters = m.Parameters;
                 if (parameters.Length != 2) continue;
-                if (parameters[0].Type.SpecialType != SpecialType.System_Object) continue;
-                var p1t = parameters[1].Type.SpecialType;
+                if (parameters[0].TypeWithAnnotations.SpecialType != SpecialType.System_Object) continue;
+                var p1t = parameters[1].TypeWithAnnotations.SpecialType;
                 if (p1t == SpecialType.System_IntPtr || p1t == SpecialType.System_UIntPtr)
                 {
                     return m;

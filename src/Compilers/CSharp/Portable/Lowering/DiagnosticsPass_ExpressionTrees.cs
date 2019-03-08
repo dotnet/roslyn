@@ -441,9 +441,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         _diagnostics.Add(ErrorCode.ERR_ByRefParameterInExpressionTree, p.Locations[0]);
                     }
-                    if (p.Type.IsRestrictedType())
+                    if (p.TypeWithAnnotations.IsRestrictedType())
                     {
-                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
+                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.TypeWithAnnotations.Name);
                     }
                 }
 
