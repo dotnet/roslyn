@@ -4604,6 +4604,26 @@ class C
             End Using
         End Function
 
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestVariableNameInCurlyBraces(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    public static void M() 
+    {
+        var a = 1;
+        if (a is { $$})
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("a")
+                Await state.AssertSelectedCompletionItem(displayText:="a")
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 

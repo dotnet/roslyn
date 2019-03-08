@@ -2024,6 +2024,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // { |
+            if (token.IsKind(SyntaxKind.OpenBraceToken) &&
+                token.Parent.IsKind(SyntaxKind.PropertyPatternClause))
+            {
+                return true;
+            }
+
             // - |
             // + |
             // ~ |
