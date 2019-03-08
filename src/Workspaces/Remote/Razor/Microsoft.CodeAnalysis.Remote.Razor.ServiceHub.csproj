@@ -39,5 +39,8 @@
     <Compile Include="..\ServiceHub\Shared\ServiceHubServiceBase.cs">
       <Link>Shared\ServiceHubServiceBase.cs</Link>
     </Compile>
+    <Compile Include="..\ServiceHub\Shared\Extensions.cs">
+      <Link>Shared\Extensions.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>

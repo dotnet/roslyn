@@ -63,7 +63,7 @@ namespace Roslyn.Test.Utilities.Remote
             _inprocServices = inprocServices;
             _remotableDataRpc = remotableDataRpc;
 
-            _rpc = JsonRpcEx.CreateStreamJsonRpc(stream, target: this, inprocServices.Logger);
+            _rpc = stream.CreateStreamJsonRpc(target: this, inprocServices.Logger);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
