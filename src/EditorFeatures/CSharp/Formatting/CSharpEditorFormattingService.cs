@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         public async Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (!options.GetOption(FeatureOnOffOptions.AutoFormattingOnReturn))
+            if (!options.GetOption(FormattingOptions.AutoFormattingOnReturn))
             {
                 return null;
             }

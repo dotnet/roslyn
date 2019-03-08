@@ -4,11 +4,11 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var indentationLineFromBuffer = snapshot.GetLineFromLineNumber(indentationLine);
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-            var blankLineIndenter = (IBlankLineIndentationService)document.GetLanguageService<ISynchronousIndentationService>();
+            var blankLineIndenter = document.GetLanguageService<Indentation.IIndentationService>();
             var indentStyle = workspace.Options.GetOption(FormattingOptions.SmartIndent, GetLanguageName());
             var blankLineIndentResult = blankLineIndenter.GetBlankLineIndentation(
                 document, indentationLine, indentStyle, CancellationToken.None);

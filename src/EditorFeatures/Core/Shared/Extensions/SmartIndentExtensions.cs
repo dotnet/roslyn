@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Indentation
 {
     internal static class SmartIndentExtensions
     {

@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 {
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
         protected abstract string Wrap_every_item { get; }
 
-        protected AbstractSeparatedSyntaxListWrapper(IBlankLineIndentationService indentationService)
+        protected AbstractSeparatedSyntaxListWrapper(Indentation.IIndentationService indentationService)
             : base(indentationService)
         {
         }

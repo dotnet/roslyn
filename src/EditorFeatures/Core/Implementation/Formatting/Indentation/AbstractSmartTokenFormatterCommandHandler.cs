@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 return;
             }
 
-            var indentationService = document.GetLanguageService<ISynchronousIndentationService>();
+            var indentationService = document.GetLanguageService<CodeAnalysis.Indentation.IIndentationService>();
             var indentation = indentationService.GetDesiredIndentation(document,
                 currentPosition.GetContainingLine().LineNumber, cancellationToken);
 

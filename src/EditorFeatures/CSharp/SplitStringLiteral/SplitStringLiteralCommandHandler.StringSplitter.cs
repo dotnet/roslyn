@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -150,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             {
                 var newDocument = Document.WithSyntaxRoot(newRoot);
 
-                var indentationService = (IBlankLineIndentationService)newDocument.GetLanguageService<ISynchronousIndentationService>();
+                var indentationService = newDocument.GetLanguageService<Indentation.IIndentationService>();
                 var originalLineNumber = SourceText.Lines.GetLineFromPosition(CursorPosition).LineNumber;
 
                 var desiredIndentation = indentationService.GetBlankLineIndentation(

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Indentation
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
@@ -19,8 +20,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
     <Order(After:=PredefinedCommandHandlerNames.Rename)>
     Friend Class SmartTokenFormatterCommandHandler
         Inherits AbstractSmartTokenFormatterCommandHandler
-
-        Private ReadOnly _formattingRules As IEnumerable(Of AbstractFormattingRule)
 
         <ImportingConstructor()>
         Public Sub New(undoHistoryRegistry As ITextUndoHistoryRegistry,

@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
 {
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.BinaryExpression
         private readonly IPrecedenceService _precedenceService;
 
         protected AbstractBinaryExpressionWrapper(
-            IBlankLineIndentationService indentationService,
+            Indentation.IIndentationService indentationService,
             ISyntaxFactsService syntaxFacts,
             IPrecedenceService precedenceService) : base(indentationService)
         {

@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping
     /// </summary>
     internal abstract partial class AbstractSyntaxWrapper : ISyntaxWrapper
     {
-        protected IBlankLineIndentationService IndentationService { get; }
+        protected Indentation.IIndentationService IndentationService { get; }
 
-        protected AbstractSyntaxWrapper(IBlankLineIndentationService indentationService)
+        protected AbstractSyntaxWrapper(Indentation.IIndentationService indentationService)
         {
             this.IndentationService = indentationService;
         }
