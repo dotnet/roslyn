@@ -27,7 +27,7 @@ class C
         var x1 = stackalloc RefS[10];
         var x2 = stackalloc RefG<string>[10];
         var x3 = stackalloc RefG<int>[10];
-        var x4 = stackalloc System.TypedReference[10];
+        var x4 = stackalloc System.TypedReference[10]; // Note: this should be disallowed by adding a dummy field to the ref assembly for TypedReference
         var x5 = stackalloc System.ArgIterator[10];
         var x6 = stackalloc System.RuntimeArgumentHandle[10];
 
