@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !targetType.HasType ||
                 targetType.IsValueType ||
                 targetType.CanBeAssignedNull ||
-                valueType.State == NullableFlowState.NotNull)
+                valueType.IsNotNull)
             {
                 return false;
             }
@@ -1155,17 +1155,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.StateWhenFalse[mainSlot] = whenFalse;
             }
 
-            if (whenTrue == NullableFlowState.NotNull || whenFalse == NullableFlowState.NotNull)
+            if (whenTrue.IsNotNull()|| whenFalse.IsNotNull())
             {
                 var slotBuilder = ArrayBuilder<int>.GetInstance();
                 GetSlotsToMarkAsNotNullable(expression, slotBuilder);
 
                 // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
-                if (whenTrue == NullableFlowState.NotNull)
+                if (whenTrue.IsNotNull())
                 {
                     MarkSlotsAsNotNull(slotBuilder, ref StateWhenTrue);
                 }
-                else if (whenFalse == NullableFlowState.NotNull)
+                else if (whenFalse.IsNotNull())
                 {
                     MarkSlotsAsNotNull(slotBuilder, ref StateWhenFalse);
                 }
@@ -1554,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argumentTypes = arguments.SelectAsArray((arg, self) =>
                 self.VisitRvalueWithState(arg), this);
             var argumentsWithAnnotations = argumentTypes.SelectAsArray((arg, self) =>
-                arg.ToTypeSymbolWithAnnotations().AsSpeakable(), this);
+                arg.ToTypeSymbolWithAnnotations(), this);
 
             if (argumentsWithAnnotations.All(argType => argType.HasType))
             {
@@ -1654,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Set top-level nullability on inferred element type
-                inferredType = TypeSymbolWithAnnotations.Create(inferredType.TypeSymbol, BestTypeInferrer.GetNullableAnnotation(resultTypes)).AsSpeakable();
+                inferredType = TypeSymbolWithAnnotations.Create(inferredType.TypeSymbol, BestTypeInferrer.GetNullableAnnotation(resultTypes));
 
                 for (int i = 0; i < n; i++)
                 {
@@ -1796,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)methodOpt != null && methodOpt.ParameterCount == 2)
                 {
                     return operatorKind.IsLifted() && !operatorKind.IsComparison()
-                        ? LiftedReturnType(methodOpt.ReturnType, leftType.State.JoinForFlowAnalysisBranches(rightType.State))
+                        ? LiftedReturnType(methodOpt.ReturnType, leftType.State.Join(rightType.State))
                         : methodOpt.ReturnType.ToTypeWithState();
                 }
             }
@@ -1805,7 +1805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (operatorKind.Operator() | operatorKind.OperandTypes())
                 {
                     case BinaryOperatorKind.DelegateCombination:
-                        resultState = leftType.State.MeetForFlowAnalysisFinally(rightType.State);
+                        resultState = leftType.State.Meet(rightType.State);
                         break;
                     case BinaryOperatorKind.DelegateRemoval:
                         resultState = NullableFlowState.MaybeNull; // Delegate removal can produce null.
@@ -1818,7 +1818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (operatorKind.IsLifted())
             {
-                resultState = leftType.State.JoinForFlowAnalysisBranches(rightType.State);
+                resultState = leftType.State.Join(rightType.State);
             }
 
             return new TypeWithState(resultType, resultState);
@@ -2094,7 +2094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
 
-            TypeWithState resultType = GetNullCoalescingResultType(leftOperand, currentLeftType, rightOperand, rightResult, targetType.TypeSymbol);
+            TypeWithState resultType = GetNullCoalescingResultType(currentLeftType, rightResult, targetType.TypeSymbol);
             ResultType = resultType;
 
             if (leftSlot > 0)
@@ -2120,7 +2120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rightResult = VisitRvalueWithState(rightOperand);
                 // Should be able to use rightResult for the result of the operator but
                 // binding may have generated a different result type in the case of errors.
-                ResultType = new TypeWithState(node.Type, getNullableState(rightOperand, rightResult));
+                ResultType = new TypeWithState(node.Type, rightResult.State);
                 return null;
             }
 
@@ -2167,18 +2167,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind);
             }
 
-            ResultType = GetNullCoalescingResultType(leftOperand, leftResult, rightOperand, rightResult, resultType);
+            ResultType = GetNullCoalescingResultType(leftResult, rightResult, resultType);
             return null;
-
-            NullableFlowState getNullableState(BoundExpression e, TypeWithState t)
-            {
-                if (t.HasNullType)
-                {
-                    return GetNullableAnnotation(e).IsAnyNullable() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
-                }
-
-                return t.State;
-            }
 
             TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
@@ -2215,43 +2205,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.DefaultExpression:
                 case BoundKind.Literal:
-                    {
-                        return (expr.ConstantValue?.IsNull != false) ? NullableAnnotation.NotNullable : NullableAnnotation.Nullable;
-                    }
+                    return (expr.ConstantValue?.IsNull != false) ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;
                 case BoundKind.ExpressionWithNullability:
                     return ((BoundExpressionWithNullability)expr).NullableAnnotation;
                 case BoundKind.MethodGroup:
                 case BoundKind.UnboundLambda:
-                    return NullableAnnotation.NotNullable;
+                    return NullableAnnotation.NotAnnotated;
                 default:
                     Debug.Assert(false); // unexpected value
-                    return NullableAnnotation.Unknown;
+                    return NullableAnnotation.Oblivious;
             }
         }
 
-        private static TypeWithState GetNullCoalescingResultType(BoundExpression leftOperand, TypeWithState leftResult, BoundExpression rightOperand, TypeWithState rightResult, TypeSymbol resultType)
+        private static TypeWithState GetNullCoalescingResultType(TypeWithState leftResult, TypeWithState rightResult, TypeSymbol resultType)
         {
-            NullableFlowState resultState;
-            if (getNullableState(leftOperand, leftResult) == NullableFlowState.NotNull)
-            {
-                resultState = getNullableState(leftOperand, leftResult);
-            }
-            else
-            {
-                resultState = getNullableState(rightOperand, rightResult);
-            }
-
+            NullableFlowState resultState = leftResult.State.Meet(rightResult.State);
             return new TypeWithState(resultType, resultState);
-
-            NullableFlowState getNullableState(BoundExpression e, TypeWithState t)
-            {
-                if (t.HasNullType)
-                {
-                    return GetNullableAnnotation(e).IsAnyNullable() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
-                }
-
-                return t.State;
-            }
         }
 
         public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
@@ -2407,7 +2376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     visitResult = TypeSymbolWithAnnotations.Create(resultType,
-                                                                   convertedConsequenceResult.NullableAnnotation.JoinForFixingLowerBounds(convertedAlternativeResult.NullableAnnotation));
+                        convertedConsequenceResult.NullableAnnotation.Join(convertedAlternativeResult.NullableAnnotation));
                 }
             }
             else
@@ -2424,7 +2393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    resultNullableAnnotation = getNullableAnnotation(consequence, consequenceResult).JoinForFixingLowerBounds(getNullableAnnotation(alternative, alternativeResult));
+                    resultNullableAnnotation = getNullableAnnotation(consequence, consequenceResult).Join(getNullableAnnotation(alternative, alternativeResult));
                 }
 
                 visitResult = TypeSymbolWithAnnotations.Create(node.Type.SetUnknownNullabilityForReferenceTypes(), resultNullableAnnotation);
@@ -2441,9 +2410,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (expr.IsLiteralNullOrDefault())
                 {
-                    return NullableAnnotation.Nullable;
+                    return NullableAnnotation.Annotated;
                 }
-                return NullableAnnotation.Unknown;
+                return NullableAnnotation.Oblivious;
             }
 
             (BoundExpression, Conversion, TypeSymbolWithAnnotations) visitConditionalOperand(LocalState state, BoundExpression operand)
@@ -3194,7 +3163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameterRefKinds,
                 arguments,
                 ref useSiteDiagnostics,
-                getTypeWithAnnotationOpt: s_getTypeWithSpeakableAnnotations);
+                getTypeWithAnnotationOpt: s_getTypeWithAnnotations);
 
             if (!result.Success)
             {
@@ -3204,9 +3173,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return definition.Construct(result.InferredTypeArguments);
         }
 
-        // Note: although only tuple types can have nested types that are unspeakable, we make all nested types speakable to be sure
-        private readonly static Func<BoundExpression, TypeSymbolWithAnnotations> s_getTypeWithSpeakableAnnotations =
-            (expr) => TypeSymbolWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr)).SetSpeakableNullabilityForReferenceTypes();
+        private readonly static Func<BoundExpression, TypeSymbolWithAnnotations> s_getTypeWithAnnotations =
+            (expr) => TypeSymbolWithAnnotations.Create(expr.Type, GetNullableAnnotation(expr));
 
         private ImmutableArray<BoundExpression> GetArgumentsForMethodTypeInference(ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitResult> argumentResults)
         {
@@ -3242,7 +3210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                 {
                     // 'out var' doesn't contribute to inference
-                    return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Unknown, type: null);
+                    return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Oblivious, type: null);
                 }
                 return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.NullableAnnotation, argumentType.TypeSymbol);
             }
@@ -3876,7 +3844,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var lambda = (BoundLambda)operandOpt;
                         var delegateType = targetType.GetDelegateType();
                         var unboundLambda = lambda.UnboundLambda;
-                        var methodSignatureOpt = unboundLambda.HasExplicitlyTypedParameterList ? null : delegateType?.DelegateInvokeMethod;
                         var variableState = GetVariableState();
                         Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: variableState);
                         if (reportRemainingWarnings)
@@ -4040,7 +4007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (operandType.Type?.IsNullableType() == true && !targetType.IsNullableType())
                     {
                         // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
-                        if (reportTopLevelWarnings && operandType.MaybeNull)
+                        if (reportTopLevelWarnings && operandType.MayBeNull)
                         {
                             ReportSafetyDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, node.Syntax);
                         }
@@ -4089,7 +4056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 resultState = NullableFlowState.NotNull;
             }
-            else if (fromExplicitCast && targetTypeWithNullability.NullableAnnotation == NullableAnnotation.Annotated && !targetType.IsNullableType())
+            else if (fromExplicitCast && targetTypeWithNullability.NullableAnnotation.IsAnnotated() && !targetType.IsNullableType())
             {
                 // An explicit cast to a nullable reference type introduces nullability
                 resultState = NullableFlowState.MaybeNull;
@@ -4138,7 +4105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = typeNeedsLifting
                 ? compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(returnType))
                 : returnType.TypeSymbol;
-            NullableFlowState state = returnType.ToTypeWithState().State.JoinForFlowAnalysisBranches(operandState);
+            NullableFlowState state = returnType.ToTypeWithState().State.Join(operandState);
             return new TypeWithState(type, state);
         }
 
@@ -4260,7 +4227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitThisOrBaseReference(BoundExpression node)
         {
             var rvalueResult = new TypeWithState(node.Type, NullableFlowState.NotNull);
-            var lvalueResult = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.NotNullable);
+            var lvalueResult = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
             SetResult(rvalueResult, lvalueResult);
         }
 
@@ -4945,7 +4912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AssignmentKind.Assignment,
                             reportTopLevelWarnings: false,
                             reportRemainingWarnings: false);
-                        if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsAnyNotNullable() && result.MaybeNull)
+                        if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsNotAnnotated() && result.MayBeNull)
                         {
                             ReportNonSafetyDiagnostic(node.IterationVariableType.Syntax);
                         }
@@ -5379,13 +5346,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.Expression);
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
-
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
-
-            // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
-            NullableAnnotation nullableAnnotation = InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableMethods));
-            var result = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
+            var result = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
             LvalueResultType = result;
             return null;
         }
@@ -5495,14 +5458,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // after indices have been visited, and only if the receiver has not changed.
             CheckPossibleNullReceiver(receiver);
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
-
             Debug.Assert(node.Type.IsDynamic());
-
-            // https://github.com/dotnet/roslyn/issues/29893 Update applicable members based on inferred argument types.
-            NullableAnnotation nullableAnnotation = (object)node.Type != null && !node.Type.IsValueType ?
-                InferResultNullabilityFromApplicableCandidates(StaticCast<Symbol>.From(node.ApplicableIndexers)) :
-                NullableAnnotation.Unknown;
-            LvalueResultType = TypeSymbolWithAnnotations.Create(node.Type, nullableAnnotation);
+            var result = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
+            LvalueResultType = result;
             return null;
         }
 
@@ -5519,7 +5477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                 Debug.Assert(receiverOpt.Type is null || AreCloseEnough(receiverOpt.Type, resultTypeSymbol));
 #endif
-                if (ResultType.MaybeNull)
+                if (ResultType.MayBeNull)
                 {
                     bool isValueType = resultTypeSymbol.IsValueType;
                     if (isValueType && (!checkNullableValueType || !resultTypeSymbol.IsNullableTypeOrTypeParameter() || resultTypeSymbol.GetNullableUnderlyingType().IsErrorType()))
@@ -5548,44 +5506,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-        }
-
-        private NullableAnnotation InferResultNullabilityFromApplicableCandidates(ImmutableArray<Symbol> applicableMembers)
-        {
-            if (applicableMembers.IsDefaultOrEmpty)
-            {
-                return NullableAnnotation.Unknown;
-            }
-
-            NullableAnnotation result = NullableAnnotation.NotNullable;
-
-            foreach (Symbol member in applicableMembers)
-            {
-                TypeSymbolWithAnnotations type = member.GetTypeOrReturnType();
-
-                if (type.IsReferenceType)
-                {
-                    NullableAnnotation memberResult = type.GetValueNullableAnnotation();
-                    if (memberResult.IsAnyNullable())
-                    {
-                        // At least one candidate can produce null, assume dynamic access can produce null as well
-                        result = NullableAnnotation.Nullable;
-                        break;
-                    }
-                    else if (memberResult == NullableAnnotation.Unknown)
-                    {
-                        // At least one candidate can produce result of an unknown nullability.
-                        // At best, dynamic access can produce result of an unknown nullability as well.
-                        result = NullableAnnotation.Unknown;
-                    }
-                }
-                else if (!type.IsValueType)
-                {
-                    result = NullableAnnotation.Unknown;
-                }
-            }
-
-            return result;
         }
 
         public override BoundNode VisitQueryClause(BoundQueryClause node)
@@ -5660,7 +5580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // null
                 // null!
                 // Other (typed) expression, including suppressed ones
-                if (result.MaybeNull)
+                if (result.MayBeNull)
                 {
                     ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
                 }
@@ -5751,7 +5671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 NullableFlowState selfState = self[slot];
                 NullableFlowState otherState = other[slot];
-                NullableFlowState union = selfState.MeetForFlowAnalysisFinally(otherState);
+                NullableFlowState union = selfState.Meet(otherState);
 
                 if (selfState != union)
                 {
@@ -5782,7 +5702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int slot = 1; slot < self.Capacity; slot++)
             {
                 NullableFlowState selfAnnotation = self[slot];
-                NullableFlowState intersection = selfAnnotation.JoinForFlowAnalysisBranches(other[slot]);
+                NullableFlowState intersection = selfAnnotation.Join(other[slot]);
                 if (selfAnnotation != intersection)
                 {
                     self[slot] = intersection;

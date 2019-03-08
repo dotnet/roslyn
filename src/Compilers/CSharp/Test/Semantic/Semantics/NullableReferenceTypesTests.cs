@@ -5794,53 +5794,53 @@ namespace System
             comp0.VerifyDiagnostics();
             var compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
             var metadataRefs0 = new[] { comp0.EmitToImageReference() };
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp0).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp0).NullableAnnotation);
 
             // ... used in 7.0.
             var comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
 
             // ... used in 8.0.
             comp1 = CreateCompilation(source1, references: compRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
 
             // 8.0 library
             comp0 = CreateCompilation(source0);
             comp0.VerifyDiagnostics();
             compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
             metadataRefs0 = new[] { comp0.EmitToImageReference() };
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp0).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp0).NullableAnnotation);
 
             // ... used in 7.0.
             comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
 
             // ... used in 8.0.
             comp1 = CreateCompilation(source1, references: compRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
 
             comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: compRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: metadataRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
 
             // 8.0 library
             comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
@@ -5913,15 +5913,15 @@ public class C
             void verify(Compilation c)
             {
                 c.VerifyDiagnostics();
-                Assert.Equal(NullableAnnotation.Unknown, c.GetMember<FieldSymbol>("C.F").Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Unknown, c.GetMember<EventSymbol>("C.E").Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Unknown, c.GetMember<PropertySymbol>("C.P").Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<FieldSymbol>("C.F").Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<EventSymbol>("C.E").Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<PropertySymbol>("C.P").Type.NullableAnnotation);
                 var indexer = c.GetMember<PropertySymbol>("C.this[]");
-                Assert.Equal(NullableAnnotation.Unknown, indexer.Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Unknown, indexer.Parameters[0].Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, indexer.Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, indexer.Parameters[0].Type.NullableAnnotation);
                 var method = c.GetMember<MethodSymbol>("C.M");
-                Assert.Equal(NullableAnnotation.Unknown, method.ReturnType.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Unknown, method.Parameters[0].Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, method.ReturnType.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, method.Parameters[0].Type.NullableAnnotation);
             }
 
             var comp1A = CreateCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) });
@@ -5960,8 +5960,8 @@ public class C
             void verifyTuple(TypeSymbolWithAnnotations type)
             {
                 var tuple = (TupleTypeSymbol)type.TypeSymbol;
-                Assert.Equal(NullableAnnotation.Unknown, tuple.TupleElements[0].Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Unknown, tuple.TupleElements[1].Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, tuple.TupleElements[0].Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, tuple.TupleElements[1].Type.NullableAnnotation);
             }
 
             void verify(Compilation c)
@@ -6001,13 +6001,13 @@ class D : C<B>, I<B>
             var derivedType = comp.GetMember<NamedTypeSymbol>("D");
             var baseType = derivedType.BaseTypeNoUseSiteDiagnostics;
             var constraintType = baseType.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, constraintType.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, constraintType.NullableAnnotation);
             var interfaceType = derivedType.Interfaces().Single();
             constraintType = interfaceType.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, constraintType.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, constraintType.NullableAnnotation);
             var method = baseType.GetMember<MethodSymbol>("M");
             constraintType = method.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, constraintType.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, constraintType.NullableAnnotation);
         }
 
         [Fact]
@@ -6027,15 +6027,15 @@ class C : I<string>
             var type = comp.GetMember<NamedTypeSymbol>("C");
             var interfaceType = type.Interfaces().Single();
             var typeArg = interfaceType.TypeArgumentsNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, typeArg.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
             var method = type.GetMember<MethodSymbol>("I<System.String>.F");
-            Assert.Equal(NullableAnnotation.Unknown, method.ReturnType.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, method.ReturnType.NullableAnnotation);
             typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, typeArg.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
             var parameter = method.Parameters.Single();
-            Assert.Equal(NullableAnnotation.Unknown, parameter.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, parameter.Type.NullableAnnotation);
             typeArg = ((NamedTypeSymbol)parameter.Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, typeArg.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
         }
 
         [Fact]
@@ -7289,12 +7289,12 @@ class B : A
             var method = comp.GetMember<MethodSymbol>("A.F");
             var typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0];
             Assert.True(typeArg.IsValueType);
-            Assert.Equal(NullableAnnotation.Unknown, typeArg.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
 
             method = comp.GetMember<MethodSymbol>("B.F");
             typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0];
             Assert.True(typeArg.IsValueType);
-            Assert.Equal(NullableAnnotation.Unknown, typeArg.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
 
             // https://github.com/dotnet/roslyn/issues/29843: Test all combinations of base and derived
             // including explicit Nullable<T>.
@@ -8118,14 +8118,14 @@ class C3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 11)
                 );
 
-            verify("C1.F1", "System.String", NullableAnnotation.Unknown);
+            verify("C1.F1", "System.String", NullableAnnotation.Oblivious);
             verify("C1.F2", "System.String?", NullableAnnotation.Annotated);
-            verify("C1.F3", "System.Int32", NullableAnnotation.Unknown);
+            verify("C1.F3", "System.Int32", NullableAnnotation.Oblivious);
             verify("C1.F4", "System.Int32?", NullableAnnotation.Annotated);
             verify("C1.F5", "System.Int32?", NullableAnnotation.Annotated);
-            verify("C2.F1", "System.String", NullableAnnotation.Unknown);
+            verify("C2.F1", "System.String", NullableAnnotation.Oblivious);
             verify("C2.F2", "System.String?", NullableAnnotation.Annotated);
-            verify("C2.F3", "System.Int32", NullableAnnotation.Unknown);
+            verify("C2.F3", "System.Int32", NullableAnnotation.Oblivious);
             verify("C2.F4", "System.Int32?", NullableAnnotation.Annotated);
             verify("C2.F5", "System.Int32?", NullableAnnotation.Annotated);
             verify("C3.F1", "System.String!", NullableAnnotation.NotAnnotated);
@@ -8214,18 +8214,18 @@ class C3
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(19, 5)
             );
 
-            verify("C1.F1", "T", NullableAnnotation.Unknown);
+            verify("C1.F1", "T", NullableAnnotation.Oblivious);
             verify("C1.F2", "T?", NullableAnnotation.Annotated);
-            verify("C1.F3", "T", NullableAnnotation.Unknown);
+            verify("C1.F3", "T", NullableAnnotation.Oblivious);
             verify("C1.F4", "T?", NullableAnnotation.Annotated);
-            verify("C1.F5", "T", NullableAnnotation.Unknown);
+            verify("C1.F5", "T", NullableAnnotation.Oblivious);
             verify("C1.F6", "T?", NullableAnnotation.Annotated);
             verify("C1.F7", "T?", NullableAnnotation.Annotated);
-            verify("C2.F1", "T", NullableAnnotation.Unknown);
+            verify("C2.F1", "T", NullableAnnotation.Oblivious);
             verify("C2.F2", "T?", NullableAnnotation.Annotated);
-            verify("C2.F3", "T", NullableAnnotation.Unknown);
+            verify("C2.F3", "T", NullableAnnotation.Oblivious);
             verify("C2.F4", "T?", NullableAnnotation.Annotated);
-            verify("C2.F5", "T", NullableAnnotation.Unknown);
+            verify("C2.F5", "T", NullableAnnotation.Oblivious);
             verify("C2.F6", "T?", NullableAnnotation.Annotated);
             verify("C2.F7", "T?", NullableAnnotation.Annotated);
             verify("C3.F1", "T", NullableAnnotation.NotAnnotated);
@@ -21018,6 +21018,7 @@ class C
 
         // https://github.com/dotnet/roslyn/issues/29869: Review /*T:...*/ and diagnostics.
         [Fact]
+        [WorkItem(33664, "https://github.com/dotnet/roslyn/issues/33664")]
         public void ConditionalOperator_14()
         {
             var source =
@@ -22798,7 +22799,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -23086,7 +23087,7 @@ class CL1
             var type = symbol.Type;
             Assert.True(type.IsErrorType());
             Assert.Equal("var", type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, type.NullableAnnotation);
         }
 
         [Fact]
@@ -23114,15 +23115,15 @@ class CL1
 
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);  // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: false
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);  // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: false
 
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
 
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[2]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
         }
 
         [Fact]
@@ -28677,11 +28678,7 @@ class CL0
 }
 " }, options: WithNonNullTypesTrue());
 
-            c.VerifyDiagnostics(
-                // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         dynamic y1 = x1[(dynamic)0];
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1[(dynamic)0]").WithLocation(9, 22)
-                );
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -28720,11 +28717,7 @@ class CL0
 }
 " }, options: WithNonNullTypesTrue());
 
-            c.VerifyDiagnostics(
-                 // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         dynamic y1 = x1[(dynamic)0];
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1[(dynamic)0]").WithLocation(9, 22)
-                );
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -28763,11 +28756,7 @@ class CL0
 }
 " }, options: WithNonNullTypesTrue());
 
-            c.VerifyDiagnostics(
-                 // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         dynamic y1 = x1[(dynamic)0];
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1[(dynamic)0]").WithLocation(9, 22)
-                );
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -28965,9 +28954,6 @@ class CL1
 " }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
-                // (14,26): warning CS8601: Possible null reference assignment.
-                //         x2[(dynamic)0] = y2;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2").WithLocation(14, 26),
                 // (15,17): warning CS8601: Possible null reference assignment.
                 //         z2[0] = y2;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y2").WithLocation(15, 17)
@@ -29092,11 +29078,7 @@ class CL0
 }
 " }, options: WithNonNullTypesTrue());
 
-            c.VerifyDiagnostics(
-                 // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         dynamic y1 = x1.M1((dynamic)0);
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1.M1((dynamic)0)").WithLocation(9, 22)
-                );
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -29133,11 +29115,7 @@ class CL0
 }
 " }, options: WithNonNullTypesTrue());
 
-            c.VerifyDiagnostics(
-                 // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         dynamic y1 = x1.M1((dynamic)0);
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1.M1((dynamic)0)").WithLocation(9, 22)
-                );
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -29174,11 +29152,7 @@ class CL0
 }
 " }, options: WithNonNullTypesTrue());
 
-            c.VerifyDiagnostics(
-                 // (9,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         dynamic y1 = x1.M1((dynamic)0);
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1.M1((dynamic)0)").WithLocation(9, 22)
-                );
+            c.VerifyDiagnostics();
         }
 
         [Fact]
@@ -29958,10 +29932,10 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnyNullable());
+            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -29993,7 +29967,7 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnyNullable());
+            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString(true));
             Assert.Equal(NullableAnnotation.Annotated, symbol.Type.NullableAnnotation);
@@ -30040,11 +30014,11 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             // https://github.com/dotnet/roslyn/issues/29856: Is T correct?
             Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -30078,10 +30052,10 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("T?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnyNullable());
+            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("T?", symbol.Type.ToTestDisplayString(true));
-            Assert.True(symbol.Type.NullableAnnotation.IsAnyNullable());
+            Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
         }
 
         [Fact]
@@ -31707,8 +31681,7 @@ class CL4 : CL3 {}
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)x14").WithLocation(82, 23),
                 // (87,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object u15 = x15;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x15").WithLocation(87, 22)
-                );
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x15").WithLocation(87, 22));
         }
 
         [Fact]
@@ -42124,10 +42097,10 @@ static class E
                 // (14,31): warning CS8619: Nullability of reference types in value of type '(object x, object? y)' doesn't match target type '(object, object)'.
                 //         (object, object) v1 = (x, y); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y)").WithArguments("(object x, object? y)", "(object, object)").WithLocation(14, 31),
-                // (16,13): warning CS8620: Nullability of reference types in argument of type '(string x, string? y)' doesn't match target type '(string, string)' for parameter 't' in 'void E.F1A((string, string) t)'.
+                // (16,13): warning CS8620: Argument of type '(string x, string? y)' cannot be used as an input of type '(string, string)' for parameter 't' in 'void E.F1A((string, string) t)' due to differences in the nullability of reference types.
                 //         F1A((x, y)); // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(string x, string? y)", "(string, string)", "t", "void E.F1A((string, string) t)").WithLocation(16, 13),
-                // (18,13): warning CS8620: Nullability of reference types in argument of type '(object x, object? y)' doesn't match target type '(object, object)' for parameter 't' in 'void E.F1C((object, object) t)'.
+                // (18,13): warning CS8620: Argument of type '(object x, object? y)' cannot be used as an input of type '(object, object)' for parameter 't' in 'void E.F1C((object, object) t)' due to differences in the nullability of reference types.
                 //         F1C((x, y)); // 4
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(object x, object? y)", "(object, object)", "t", "void E.F1C((object, object) t)").WithLocation(18, 13),
                 // (27,37): warning CS8619: Nullability of reference types in value of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object>, A<object>)'.
@@ -42142,10 +42115,10 @@ static class E
                 // (30,40): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'I<object?>'.
                 //         (I<object?>, I<object?>) w2 = (x, y); // 8
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<object>", "I<object?>").WithLocation(30, 40),
-                // (31,13): warning CS8620: Nullability of reference types in argument of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object>, A<object>)' for parameter 't' in 'void E.F2A((A<object>, A<object>) t)'.
+                // (31,13): warning CS8620: Argument of type '(A<object> x, A<object?> y)' cannot be used as an input of type '(A<object>, A<object>)' for parameter 't' in 'void E.F2A((A<object>, A<object>) t)' due to differences in the nullability of reference types.
                 //         F2A((x, y)); // 9
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(A<object> x, A<object?> y)", "(A<object>, A<object>)", "t", "void E.F2A((A<object>, A<object>) t)").WithLocation(31, 13),
-                // (32,13): warning CS8620: Nullability of reference types in argument of type '(A<object> x, A<object?> y)' doesn't match target type '(A<object?>, A<object?>)' for parameter 't' in 'void E.F2B((A<object?>, A<object?>) t)'.
+                // (32,13): warning CS8620: Argument of type '(A<object> x, A<object?> y)' cannot be used as an input of type '(A<object?>, A<object?>)' for parameter 't' in 'void E.F2B((A<object?>, A<object?>) t)' due to differences in the nullability of reference types.
                 //         F2B((x, y)); // 10
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "(x, y)").WithArguments("(A<object> x, A<object?> y)", "(A<object?>, A<object?>)", "t", "void E.F2B((A<object?>, A<object?>) t)").WithLocation(32, 13),
                 // (33,17): warning CS8619: Nullability of reference types in value of type 'A<object?>' doesn't match target type 'I<object>'.
@@ -42178,22 +42151,18 @@ static class E
                 // (57,17): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
                 //         F4A((x, y)); // 20
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(57, 17),
-                // (64,22): warning CS8619: Nullability of reference types in value of type '(T u, T)' doesn't match target type '(T, T)'.
-                //         (T,  T) t5 = (u, default(T));
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(u, default(T))").WithArguments("(T u, T)", "(T, T)").WithLocation(64, 22),
-                // (64,26): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (64,26): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         (T,  T) t5 = (u, default(T));
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(64, 26),
                 // (65,31): warning CS8619: Nullability of reference types in value of type '(object?, object? u)' doesn't match target type '(object, object)'.
                 //         (object, object) v5 = (default(T), u); // 21
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(default(T), u)").WithArguments("(object?, object? u)", "(object, object)").WithLocation(65, 31),
-                // (65,32): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (65,32): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         (object, object) v5 = (default(T), u); // 21
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(65, 32),
-                // (66,34): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (66,34): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         (object?, object?) w5 = (default(T), u);
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(66, 34)
-                );
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(66, 34));
         }
 
         [Fact]
@@ -42266,22 +42235,18 @@ static class E
                 // (31,48): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
                 //         (IOut<object>, IOut<object>)? v4 = (x, y); // 8
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(31, 48),
-                // (36,23): warning CS8619: Nullability of reference types in value of type '(T u, T)' doesn't match target type '(T, T)?'.
-                //         (T,  T)? t5 = (u, default(T)); // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(u, default(T))").WithArguments("(T u, T)", "(T, T)?").WithLocation(36, 23),
-                // (36,27): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (36,27): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         (T,  T)? t5 = (u, default(T)); // 9
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(36, 27),
                 // (37,32): warning CS8619: Nullability of reference types in value of type '(object?, object? u)' doesn't match target type '(object, object)?'.
                 //         (object, object)? v5 = (default(T), u); // 10
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(default(T), u)").WithArguments("(object?, object? u)", "(object, object)?").WithLocation(37, 32),
-                // (37,33): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (37,33): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         (object, object)? v5 = (default(T), u); // 10
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(37, 33),
-                // (38,35): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (38,35): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         (object?, object?)? w5 = (default(T), u);
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(38, 35)
-                );
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(38, 35));
         }
 
         [Fact]
@@ -42432,13 +42397,10 @@ class D
                 // (31,52): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
                 //         var v4 = ((IOut<object>, IOut<object>))(x, y); // 8
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(31, 52),
-                // (36,18): warning CS8619: Nullability of reference types in value of type '(U t, U)' doesn't match target type '(U, U)'.
-                //         var t5 = ((U, U))(t, default(T)); // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((U, U))(t, default(T))").WithArguments("(U t, U)", "(U, U)").WithLocation(36, 18),
                 // (36,27): warning CS8601: Possible null reference assignment.
                 //         var t5 = ((U, U))(t, default(T)); // 9
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(36, 27),
-                // (36,30): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (36,30): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         var t5 = ((U, U))(t, default(T)); // 9
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(36, 30),
                 // (36,30): warning CS8601: Possible null reference assignment.
@@ -42447,7 +42409,7 @@ class D
                 // (37,18): warning CS8619: Nullability of reference types in value of type '(object?, object? t)' doesn't match target type '(object, object)'.
                 //         var v5 = ((object, object))(default(T), t); // 10
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((object, object))(default(T), t)").WithArguments("(object?, object? t)", "(object, object)").WithLocation(37, 18),
-                // (37,37): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (37,37): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         var v5 = ((object, object))(default(T), t); // 10
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(37, 37),
                 // (37,37): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -42456,10 +42418,9 @@ class D
                 // (37,49): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var v5 = ((object, object))(default(T), t); // 10
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "t").WithLocation(37, 49),
-                // (38,39): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (38,39): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         var w5 = ((object?, object?))(default(T), t);
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(38, 39)
-                );
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(38, 39));
         }
 
         [Fact]
@@ -42538,13 +42499,10 @@ class D
                 // (31,53): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'IOut<object>'.
                 //         var v4 = ((IOut<object>, IOut<object>)?)(x, y); // 8
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "IOut<object>").WithLocation(31, 53),
-                // (36,18): warning CS8619: Nullability of reference types in value of type '(U t, U)' doesn't match target type '(U, U)?'.
-                //         var t5 = ((U, U)?)(t, default(T)); // 9
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((U, U)?)(t, default(T))").WithArguments("(U t, U)", "(U, U)?").WithLocation(36, 18),
                 // (36,28): warning CS8601: Possible null reference assignment.
                 //         var t5 = ((U, U)?)(t, default(T)); // 9
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t").WithLocation(36, 28),
-                // (36,31): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (36,31): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         var t5 = ((U, U)?)(t, default(T)); // 9
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(36, 31),
                 // (36,31): warning CS8601: Possible null reference assignment.
@@ -42553,7 +42511,7 @@ class D
                 // (37,18): warning CS8619: Nullability of reference types in value of type '(object?, object? t)' doesn't match target type '(object, object)?'.
                 //         var v5 = ((object, object)?)(default(T), t); // 10
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((object, object)?)(default(T), t)").WithArguments("(object?, object? t)", "(object, object)?").WithLocation(37, 18),
-                // (37,38): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (37,38): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         var v5 = ((object, object)?)(default(T), t); // 10
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(37, 38),
                 // (37,38): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -42562,10 +42520,9 @@ class D
                 // (37,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var v5 = ((object, object)?)(default(T), t); // 10
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "t").WithLocation(37, 50),
-                // (38,40): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                // (38,40): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //         var w5 = ((object?, object?)?)(default(T), t);
-                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(38, 40)
-                );
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(38, 40));
         }
 
         [Fact]
@@ -61093,7 +61050,7 @@ class B {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal(NullableAnnotation.Unknown, f1.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, f1.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -63376,14 +63333,14 @@ static class E
 public class G<T>
 {
     public T t = default(T)!;
-    public (T, U) M<U>(U u) => (t, u)!;
+    public (T, U) M<U>(U u) => (t, u);
 }
 public delegate (T, U) MyDelegate<T, U>(U u);
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
             // https://github.com/dotnet/roslyn/issues/33637
-            // comp.VerifyTypes();
+            //comp.VerifyTypes();
         }
 
         [WorkItem(33638, "https://github.com/dotnet/roslyn/issues/33638")]
@@ -63401,13 +63358,7 @@ public class C
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            comp.VerifyDiagnostics(
-                // (3,37): warning CS8619: Nullability of reference types in value of type '(T t, U u)' doesn't match target type '(T, U)'.
-                //     public (T, U) M<U>(T t, U u) => (t, u);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(t, u)").WithArguments("(T t, U u)", "(T, U)").WithLocation(3, 37),
-                // (7,40): warning CS8619: Nullability of reference types in value of type '(T t, U u)' doesn't match target type '(T, U)'.
-                //     public (T, U) M<T, U>(T t, U u) => (t, u);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(t, u)").WithArguments("(T t, U u)", "(T, U)").WithLocation(7, 40));
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(30562, "https://github.com/dotnet/roslyn/issues/30562")]
@@ -68128,8 +68079,11 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9));
         }
 
         [Fact]
@@ -68152,8 +68106,11 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9));
         }
 
         [Fact]
@@ -68175,8 +68132,11 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(8, 9));
         }
 
         [Fact]
@@ -68198,7 +68158,6 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         z0.ToString();
@@ -68308,8 +68267,11 @@ class Outer
     }
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,10): warning CS8602: Possible dereference of a null reference.
+                //         (true ? x0 : y0).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "true ? x0 : y0").WithLocation(7, 10));
         }
 
         [Fact]
@@ -68332,12 +68294,14 @@ class Outer
     ref S M1<S>(S x) => throw null!;
 }
 ";
-
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         M1(z0).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(z0)").WithLocation(10, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(z0)").WithLocation(10, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(12, 9));
         }
 
         [Fact]
@@ -68361,8 +68325,11 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(10, 9));
         }
 
         [Fact]
@@ -68387,12 +68354,14 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         M1(z0).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(z0)").WithLocation(9, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(z0)").WithLocation(9, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(11, 9));
         }
 
         [Fact]
@@ -68415,8 +68384,11 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9));
         }
 
         [Fact]
@@ -68439,8 +68411,11 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9));
         }
 
         [Fact]
@@ -68504,8 +68479,11 @@ class Outer
     }
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (7,10): warning CS8602: Possible dereference of a null reference.
+                //         (false ? x0 : y0).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "false ? x0 : y0").WithLocation(7, 10));
         }
 
         [Fact]
@@ -68549,12 +68527,14 @@ class Outer
     ref S M1<S>(S x) => throw null!;
 }
 ";
-
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         M1(z0).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(z0)").WithLocation(10, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(z0)").WithLocation(10, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(12, 9));
         }
 
         [Fact]
@@ -68579,12 +68559,14 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         M1(z0).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(z0)").WithLocation(9, 9)
-                );
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1(z0)").WithLocation(9, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(11, 9));
         }
 
         [Fact]
@@ -68608,8 +68590,11 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(10, 9));
         }
 
         [Fact]
@@ -68632,8 +68617,11 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9));
         }
 
         [Fact]
@@ -68684,8 +68672,11 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-
-            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
+            CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         z0.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z0").WithLocation(9, 9));
         }
 
         [Fact]
@@ -74708,31 +74699,30 @@ class Program
         }
 
         private readonly static NullableAnnotation[] s_AllNullableAnnotations = (NullableAnnotation[])Enum.GetValues(typeof(NullableAnnotation));
-        private readonly static NullableAnnotation[] s_AllSpeakableNullableAnnotations = new[] { NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated, NullableAnnotation.Annotated };
         private readonly static NullableFlowState[] s_AllNullableFlowStates = (NullableFlowState[])Enum.GetValues(typeof(NullableFlowState));
 
         [Fact]
-        public void TestJoinForFixingLowerBounds()
+        public void TestJoinForNullableAnnotations()
         {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
-            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.JoinForFixingLowerBounds(inputs[i], inputs[j]);
+            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Oblivious, NullableAnnotation.NotAnnotated };
+            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.Join(inputs[i], inputs[j]);
 
             var expected = new NullableAnnotation[3, 3]
             {
                 { NullableAnnotation.Annotated,    NullableAnnotation.Annotated,    NullableAnnotation.Annotated     },
-                { NullableAnnotation.Annotated,    NullableAnnotation.Unknown,      NullableAnnotation.Unknown       },
-                { NullableAnnotation.Annotated,    NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated  },
+                { NullableAnnotation.Annotated,    NullableAnnotation.Oblivious,      NullableAnnotation.Oblivious       },
+                { NullableAnnotation.Annotated,    NullableAnnotation.Oblivious,      NullableAnnotation.NotAnnotated  },
             };
 
             AssertEqual(expected, getResult, inputs.Length);
         }
 
         [Fact]
-        public void TestJoinForFlowAnalysisBranches()
+        public void TestJoinForNullableFlowStates()
         {
             var inputs = new[] { NullableFlowState.NotNull, NullableFlowState.MaybeNull };
 
-            Func<int, int, NullableFlowState> getResult = (i, j) => inputs[i].JoinForFlowAnalysisBranches(inputs[j]);
+            Func<int, int, NullableFlowState> getResult = (i, j) => inputs[i].Join(inputs[j]);
 
             var expected = new NullableFlowState[2, 2]
             {
@@ -74744,15 +74734,15 @@ class Program
         }
 
         [Fact]
-        public void TestMeetForFixingUpperBounds()
+        public void TestMeetForNullableAnnotations()
         {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
-            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.MeetForFixingUpperBounds(inputs[i], inputs[j]);
+            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Oblivious, NullableAnnotation.NotAnnotated };
+            Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.Meet(inputs[i], inputs[j]);
 
             var expected = new NullableAnnotation[3, 3]
             {
-                { NullableAnnotation.Annotated,    NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated  },
-                { NullableAnnotation.Unknown,      NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated  },
+                { NullableAnnotation.Annotated,    NullableAnnotation.Oblivious,      NullableAnnotation.NotAnnotated  },
+                { NullableAnnotation.Oblivious,      NullableAnnotation.Oblivious,      NullableAnnotation.NotAnnotated  },
                 { NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated  },
             };
 
@@ -74760,10 +74750,10 @@ class Program
         }
 
         [Fact]
-        public void TestMeetForFlowAnalysisFinally()
+        public void TestMeetForNullableFlowStates()
         {
             var inputs = new[] { NullableFlowState.NotNull, NullableFlowState.MaybeNull };
-            Func<int, int, NullableFlowState> getResult = (i, j) => inputs[i].MeetForFlowAnalysisFinally(inputs[j]);
+            Func<int, int, NullableFlowState> getResult = (i, j) => inputs[i].Meet(inputs[j]);
 
             var expected = new NullableFlowState[2, 2]
             {
@@ -74777,33 +74767,14 @@ class Program
         [Fact]
         public void TestEnsureCompatible()
         {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
+            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Oblivious, NullableAnnotation.NotAnnotated };
             Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.EnsureCompatible(inputs[i], inputs[j]);
 
             var expected = new NullableAnnotation[3, 3]
             {
                 { NullableAnnotation.Annotated,    NullableAnnotation.Annotated,    NullableAnnotation.NotAnnotated  },
-                { NullableAnnotation.Annotated,    NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated  },
+                { NullableAnnotation.Annotated,    NullableAnnotation.Oblivious,      NullableAnnotation.NotAnnotated  },
                 { NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated  },
-            };
-
-            AssertEqual(expected, getResult, inputs.Length);
-        }
-
-        [Fact]
-        public void TestEnsureCompatibleForTuples_IsPossiblyNullableReferenceTypeTypeParameterFalse()
-        {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Nullable, NullableAnnotation.Unknown, NullableAnnotation.NotNullable, NullableAnnotation.NotAnnotated };
-
-            Func<int, int, NullableAnnotation> getResult = (i, j) => inputs[i].EnsureCompatibleForTuples(inputs[j]);
-
-            var expected = new NullableAnnotation[5, 5]
-            {
-                { NullableAnnotation.Annotated,    NullableAnnotation.Nullable,     NullableAnnotation.Annotated,    NullableAnnotation.NotNullable,  NullableAnnotation.NotAnnotated },
-                { NullableAnnotation.Nullable,     NullableAnnotation.Nullable,     NullableAnnotation.Nullable,     NullableAnnotation.NotNullable,  NullableAnnotation.NotAnnotated },
-                { NullableAnnotation.Annotated,    NullableAnnotation.Nullable,     NullableAnnotation.Unknown,      NullableAnnotation.NotNullable,  NullableAnnotation.NotAnnotated },
-                { NullableAnnotation.NotNullable,  NullableAnnotation.NotNullable,  NullableAnnotation.NotNullable,  NullableAnnotation.NotNullable,  NullableAnnotation.NotNullable  },
-                { NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotNullable,  NullableAnnotation.NotAnnotated },
             };
 
             AssertEqual(expected, getResult, inputs.Length);
@@ -74820,16 +74791,42 @@ class Program
         }
 
         [Fact]
-        public void TestJoinForFixingLowerBoundsIsAssociative()
+        public void TestAbsorptionForNullableAnnotations()
         {
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
-                    foreach (var c in s_AllSpeakableNullableAnnotations)
+                    Assert.Equal(a, a.Meet(a.Join(b)));
+                    Assert.Equal(a, a.Join(a.Meet(b)));
+                }
+            }
+        }
+
+        [Fact]
+        public void TestAbsorptionForNullableFlowStates()
+        {
+            foreach (var a in s_AllNullableFlowStates)
+            {
+                foreach (var b in s_AllNullableFlowStates)
+                {
+                    Assert.Equal(a, a.Meet(a.Join(b)));
+                    Assert.Equal(a, a.Join(a.Meet(b)));
+                }
+            }
+        }
+
+        [Fact]
+        public void TestJoinForNullableAnnotationsIsAssociative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    foreach (var c in s_AllNullableAnnotations)
                     {
-                        var leftFirst = a.JoinForFixingLowerBounds(b).JoinForFixingLowerBounds(c);
-                        var rightFirst = a.JoinForFixingLowerBounds(b.JoinForFixingLowerBounds(c));
+                        var leftFirst = a.Join(b).Join(c);
+                        var rightFirst = a.Join(b.Join(c));
                         Assert.Equal(leftFirst, rightFirst);
                     }
                 }
@@ -74837,7 +74834,7 @@ class Program
         }
 
         [Fact]
-        public void TestJoinForFlowAnalysisBranchesIsAssociative()
+        public void TestJoinForNullableFlowStatesIsAssociative()
         {
             foreach (var a in s_AllNullableFlowStates)
             {
@@ -74845,8 +74842,8 @@ class Program
                 {
                     foreach (var c in s_AllNullableFlowStates)
                     {
-                        var leftFirst = a.JoinForFlowAnalysisBranches(b).JoinForFlowAnalysisBranches(c);
-                        var rightFirst = a.JoinForFlowAnalysisBranches(b.JoinForFlowAnalysisBranches(c));
+                        var leftFirst = a.Join(b).Join(c);
+                        var rightFirst = a.Join(b.Join(c));
                         Assert.Equal(leftFirst, rightFirst);
                     }
                 }
@@ -74854,16 +74851,16 @@ class Program
         }
 
         [Fact]
-        public void TestMeetForFixingUpperBoundsIsAssociative()
+        public void TestMeetForNullableAnnotationsIsAssociative()
         {
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
-                    foreach (var c in s_AllSpeakableNullableAnnotations)
+                    foreach (var c in s_AllNullableAnnotations)
                     {
-                        var leftFirst = a.MeetForFixingUpperBounds(b).MeetForFixingUpperBounds(c);
-                        var rightFirst = a.MeetForFixingUpperBounds(b.MeetForFixingUpperBounds(c));
+                        var leftFirst = a.Meet(b).Meet(c);
+                        var rightFirst = a.Meet(b.Meet(c));
                         Assert.Equal(leftFirst, rightFirst);
                     }
                 }
@@ -74871,7 +74868,7 @@ class Program
         }
 
         [Fact]
-        public void TestMeetForFlowAnalysisFinallyIsAssociative()
+        public void TestMeetForNullableFlowStatesIsAssociative()
         {
             foreach (var a in s_AllNullableFlowStates)
             {
@@ -74879,8 +74876,8 @@ class Program
                 {
                     foreach (var c in s_AllNullableFlowStates)
                     {
-                        var leftFirst = a.MeetForFlowAnalysisFinally(b).MeetForFlowAnalysisFinally(c);
-                        var rightFirst = a.MeetForFlowAnalysisFinally(b.MeetForFlowAnalysisFinally(c));
+                        var leftFirst = a.Meet(b).Meet(c);
+                        var rightFirst = a.Meet(b.Meet(c));
                         Assert.Equal(leftFirst, rightFirst);
                     }
                 }
@@ -74891,11 +74888,11 @@ class Program
         public void TestEnsureCompatibleIsAssociative()
         {
             Func<bool, bool> identity = x => x;
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
-                    foreach (var c in s_AllSpeakableNullableAnnotations)
+                    foreach (var c in s_AllNullableAnnotations)
                     {
                         foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
                         {
@@ -74909,60 +74906,57 @@ class Program
         }
 
         [Fact]
-        public void TestJoinForFixingLowerBoundsIsCommutative()
+        public void TestJoinForNullableAnnotationsIsCommutative()
         {
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
-                    var leftFirst = a.JoinForFixingLowerBounds(b);
-                    var rightFirst = b.JoinForFixingLowerBounds(a);
+                    var leftFirst = a.Join(b);
+                    var rightFirst = b.Join(a);
                     Assert.Equal(leftFirst, rightFirst);
                 }
             }
         }
 
         [Fact]
-        public void TestJoinForFlowAnalysisBranchesIsCommutative()
+        public void TestJoinForNullableFlowStatesIsCommutative()
         {
             Func<bool, bool> identity = x => x;
             foreach (var a in s_AllNullableFlowStates)
             {
                 foreach (var b in s_AllNullableFlowStates)
                 {
-                    foreach (bool isPossiblyNullableReferenceTypeTypeParameter in new[] { true, false })
-                    {
-                        var leftFirst = a.JoinForFlowAnalysisBranches(b);
-                        var rightFirst = b.JoinForFlowAnalysisBranches(a);
-                        Assert.Equal(leftFirst, rightFirst);
-                    }
-                }
-            }
-        }
-
-        [Fact]
-        public void TestMeetForFixingUpperBoundsIsCommutative()
-        {
-            foreach (var a in s_AllSpeakableNullableAnnotations)
-            {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
-                {
-                    var leftFirst = a.MeetForFixingUpperBounds(b);
-                    var rightFirst = b.MeetForFixingUpperBounds(a);
+                    var leftFirst = a.Join(b);
+                    var rightFirst = b.Join(a);
                     Assert.Equal(leftFirst, rightFirst);
                 }
             }
         }
 
         [Fact]
-        public void TestMeetForFlowAnalysisFinallyIsCommutative()
+        public void TestMeetForNullableAnnotationsIsCommutative()
+        {
+            foreach (var a in s_AllNullableAnnotations)
+            {
+                foreach (var b in s_AllNullableAnnotations)
+                {
+                    var leftFirst = a.Meet(b);
+                    var rightFirst = b.Meet(a);
+                    Assert.Equal(leftFirst, rightFirst);
+                }
+            }
+        }
+
+        [Fact]
+        public void TestMeetForNullableFlowStatesIsCommutative()
         {
             foreach (var a in s_AllNullableFlowStates)
             {
                 foreach (var b in s_AllNullableFlowStates)
                 {
-                    var leftFirst = a.MeetForFlowAnalysisFinally(b);
-                    var rightFirst = b.MeetForFlowAnalysisFinally(a);
+                    var leftFirst = a.Meet(b);
+                    var rightFirst = b.Meet(a);
                     Assert.Equal(leftFirst, rightFirst);
                 }
             }
@@ -74971,9 +74965,9 @@ class Program
         [Fact]
         public void TestEnsureCompatibleIsCommutative()
         {
-            foreach (var a in s_AllSpeakableNullableAnnotations)
+            foreach (var a in s_AllNullableAnnotations)
             {
-                foreach (var b in s_AllSpeakableNullableAnnotations)
+                foreach (var b in s_AllNullableAnnotations)
                 {
                     var leftFirst = a.EnsureCompatible(b);
                     var rightFirst = b.EnsureCompatible(a);
@@ -75531,10 +75525,14 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             comp.VerifyDiagnostics(
                 // (5,13): warning CS8629: Nullable value type may be null.
                 //         _ = (T)(x1 != null ? x1 : y1); // 1
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)(x1 != null ? x1 : y1)").WithLocation(5, 13));
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)(x1 != null ? x1 : y1)").WithLocation(5, 13),
+                // (10,13): warning CS8629: Nullable value type may be null.
+                //         _ = (T)(x2 != null ? x2 : y2);
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(T)(x2 != null ? x2 : y2)").WithLocation(10, 13));
         }
 
         [Fact]
