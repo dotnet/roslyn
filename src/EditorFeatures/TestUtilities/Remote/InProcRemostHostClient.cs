@@ -63,12 +63,16 @@ namespace Roslyn.Test.Utilities.Remote
             _inprocServices = inprocServices;
             _remotableDataRpc = remotableDataRpc;
 
-            var jsonFormatter = new JsonMessageFormatter();
-            jsonFormatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+            var jsonFormatter = new JsonMessageFormatter()
+            {
+                JsonSerializer = { Converters = { AggregateJsonConverter.Instance } }
+            };
 
-            _rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter), target: this);
-            _rpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
-            _rpc.TraceSource = inprocServices.Logger;
+            _rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter), target: this)
+            {
+                CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
+                TraceSource = inprocServices.Logger
+            };
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;

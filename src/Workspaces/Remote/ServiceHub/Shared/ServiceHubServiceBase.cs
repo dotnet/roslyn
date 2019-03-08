@@ -55,12 +55,16 @@ namespace Microsoft.CodeAnalysis.Remote
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
             // all sub type must explicitly start JsonRpc once everything is
             // setup
-            var jsonFormatter = new JsonMessageFormatter();
-            jsonFormatter.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
+            var jsonFormatter = new JsonMessageFormatter()
+            {
+                JsonSerializer = { Converters = { AggregateJsonConverter.Instance } }
+            };
 
-            Rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter), this);
-            Rpc.CancelLocallyInvokedMethodsWhenConnectionIsClosed = true;
-            Rpc.TraceSource = Logger;
+            Rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter), this)
+            {
+                CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
+                TraceSource = Logger
+            };
 
             Rpc.Disconnected += OnRpcDisconnected;
         }
