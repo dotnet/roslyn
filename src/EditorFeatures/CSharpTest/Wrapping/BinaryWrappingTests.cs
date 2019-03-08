@@ -623,5 +623,39 @@ BeginningOfLine,
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInField_Already_Wrapped_Beginning()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    bool v =
+        [||]a && b && c;
+}",
+BeginningOfLine,
+@"class C {
+    bool v =
+        a
+        && b
+        && c;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
+        public async Task TestInField_Already_Wrapped_End()
+        {
+            await TestAllWrappingCasesAsync(
+@"class C {
+    bool v =
+        [||]a && b && c;
+}",
+EndOfLine,
+@"class C {
+    bool v =
+        a &&
+        b &&
+        c;
+}");
+        }
     }
 }
