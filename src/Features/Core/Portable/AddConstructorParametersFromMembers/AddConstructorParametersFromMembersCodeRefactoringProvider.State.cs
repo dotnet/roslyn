@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
-    internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
+    internal partial class AbstractAddConstructorParametersFromMembersCodeRefactoringProvider
     {
         private class State
         {
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             public ImmutableArray<IParameterSymbol> MissingParameters { get; private set; }
 
             public static State Generate(
-                AddConstructorParametersFromMembersCodeRefactoringProvider service,
+                AbstractAddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers)
             {
                 var state = new State();
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
 
             private bool TryInitialize(
-                AddConstructorParametersFromMembersCodeRefactoringProvider service,
+                AbstractAddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers)
             {
                 if (!selectedMembers.All(IsWritableInstanceFieldOrProperty))
