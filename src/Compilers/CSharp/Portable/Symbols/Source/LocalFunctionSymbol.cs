@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
         private TypeWithAnnotations _lazyReturnType;
-        private TypeSymbol _iteratorElementType;
+        private TypeWithAnnotations _iteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Replace with IsStatic after fixing https://github.com/dotnet/roslyn/issues/27719.
         internal bool IsStaticLocalFunction => _syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
 
-        internal override TypeSymbol IteratorElementType
+        internal override TypeSymbolWithAnnotations IteratorElementType
         {
             get
             {
@@ -297,8 +297,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             set
             {
-                Debug.Assert((object)_iteratorElementType == null || TypeSymbol.Equals(_iteratorElementType, value, TypeCompareKind.ConsiderEverything2));
-                Interlocked.CompareExchange(ref _iteratorElementType, value, null);
+                Debug.Assert(_iteratorElementType.IsDefault || TypeSymbol.Equals(_iteratorElementType.TypeSymbol, value.TypeSymbol, TypeCompareKind.ConsiderEverything2));
+                _iteratorElementType = value;
             }
         }
 
