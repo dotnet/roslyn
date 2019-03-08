@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _returnTypesOpt.Clear();
             }
             this.Diagnostics.Clear();
-            ParameterSymbol methodThisParameter = MethodThisParameter;
+            ((MethodSymbol)_symbol).TryGetThisParameter(out var methodThisParameter);
             this.State = TopState();                   // entry point is reachable
             this.regionPlace = RegionPlace.Before;
             EnterParameters();                               // with parameters assigned
@@ -293,7 +293,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAttribute attribute,
             DiagnosticBag diagnostics)
         {
-            if (attribute.Constructor is null)
+            if (attribute.Constructor is null ||
+                !compilation.SyntaxTrees.Contains(attribute.SyntaxTree))
             {
                 return;
             }
