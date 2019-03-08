@@ -1852,11 +1852,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // learn from non-null constant
             BoundExpression operandComparedToNonNull = null;
-            if (skipImplicitNullableConversions(binary.Left).ConstantValue?.IsNull == false)
+            if (isNonNullConstant(binary.Left))
             {
                 operandComparedToNonNull = binary.Right;
             }
-            else if (skipImplicitNullableConversions(binary.Right).ConstantValue?.IsNull == false)
+            else if (isNonNullConstant(binary.Right))
             {
                 operandComparedToNonNull = binary.Left;
             }
@@ -1871,11 +1871,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BinaryOperatorKind.GreaterThanOrEqual:
                     case BinaryOperatorKind.LessThanOrEqual:
                         operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
-                        splitAndLearnFromNonNullTest(operandComparedToNonNull, caseToLearn: true);
+                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: true);
                         return;
                     case BinaryOperatorKind.NotEqual:
                         operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
-                        splitAndLearnFromNonNullTest(operandComparedToNonNull, caseToLearn: false);
+                        splitAndLearnFromNonNullTest(operandComparedToNonNull, whenTrue: false);
                         return;
                     default:
                         break;
@@ -1902,7 +1902,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
                     bool nonNullCase = op != BinaryOperatorKind.Equal; // true represents WhenTrue
-                    splitAndLearnFromNonNullTest(operandComparedToNull, caseToLearn: nonNullCase);
+                    splitAndLearnFromNonNullTest(operandComparedToNull, whenTrue: nonNullCase);
 
                     var operandWithoutConversion = RemoveConversion(operandComparedToNull, includeExplicitConversions: true).expression;
                     int slot = MakeSlot(operandWithoutConversion);
@@ -1924,19 +1924,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return possiblyConversion;
             }
 
-            // If caseToLearn is true, we'll learn in the when-true branch, otherwise in the when-false branch.
-            void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNull, bool caseToLearn)
+            void splitAndLearnFromNonNullTest(BoundExpression operandComparedToNull, bool whenTrue)
             {
                 var slotBuilder = ArrayBuilder<int>.GetInstance();
                 GetSlotsToMarkAsNotNullable(operandComparedToNull, slotBuilder);
                 if (slotBuilder.Count != 0)
                 {
                     Split();
-                    ref LocalState stateToUpdate = ref caseToLearn ? ref this.StateWhenTrue : ref this.StateWhenFalse;
+                    ref LocalState stateToUpdate = ref whenTrue ? ref this.StateWhenTrue : ref this.StateWhenFalse;
                     MarkSlotsAsNotNull(slotBuilder, ref stateToUpdate);
                 }
                 slotBuilder.Free();
             }
+
+            static bool isNonNullConstant(BoundExpression expr)
+                => skipImplicitNullableConversions(expr).ConstantValue?.IsNull == false;
         }
 
         /// <summary>

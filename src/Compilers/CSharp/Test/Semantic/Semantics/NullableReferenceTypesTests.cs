@@ -63426,17 +63426,17 @@ class Program
         foreach (var x in x1) { } // 1
         foreach (var x in x1) { }
     }
-    static void F3(object[]? x1, object[]? y1)
+    static void F2(object[]? x1, object[]? y1)
     {
         foreach (var y in y1) { } // 2
         y1.GetEnumerator();
     }
-    static void F5(Enumerable? x2, Enumerable? y2)
+    static void F3(Enumerable? x2, Enumerable? y2)
     {
         foreach (var x in x2) { } // 3
         foreach (var x in x2) { }
     }
-    static void F7(Enumerable? x2, Enumerable? y2)
+    static void F4(Enumerable? x2, Enumerable? y2)
     {
         y2.GetEnumerator(); // 4
         foreach (var y in y2) { }
