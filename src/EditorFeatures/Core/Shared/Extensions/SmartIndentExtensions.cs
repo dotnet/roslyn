@@ -4,11 +4,11 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Indentation
+namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
-    internal static class SmartIndentExtensions
+    internal static class IndentationResultExtensions
     {
-        public static int GetIndentation(this IndentationResult result, ITextView textView, ITextSnapshotLine lineToBeIndented)
+        public static int GetIndentation(this Indentation.IndentationResult result, ITextView textView, ITextSnapshotLine lineToBeIndented)
         {
             var position = new SnapshotPoint(lineToBeIndented.Snapshot, result.BasePosition);
             var pointInSurfaceSnapshot = textView.BufferGraph.MapUpToSnapshot(position, PointTrackingMode.Positive, PositionAffinity.Successor, textView.TextSnapshot);

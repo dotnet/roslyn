@@ -2,7 +2,7 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.Indentation;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
