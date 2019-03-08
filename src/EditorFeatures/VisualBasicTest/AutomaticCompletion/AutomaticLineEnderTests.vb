@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
 Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
@@ -245,10 +246,11 @@ End Module
 
         Friend Overrides Function CreateCommandHandler(
             undoRegistry As ITextUndoHistoryRegistry,
-            editorOperations As IEditorOperationsFactoryService
+            editorOperations As IEditorOperationsFactoryService,
+            asyncCompletionBroker As IAsyncCompletionBroker
         ) As IChainedCommandHandler(Of AutomaticLineEnderCommandArgs)
 
-            Return New AutomaticLineEnderCommandHandler(undoRegistry, editorOperations)
+            Return New AutomaticLineEnderCommandHandler(undoRegistry, editorOperations, asyncCompletionBroker)
         End Function
 
         Protected Overrides Function CreateNextHandler(workspace As TestWorkspace) As Action
