@@ -53,7 +53,10 @@ namespace Roslyn.Test.Utilities
 
                 threadStartedEvent.Wait();
                 DispatcherSynchronizationContext = synchronizationContext;
-            };
+            }
+
+            // Work around the WeakEventTable Shutdown race conditions
+            AppContext.SetSwitch("Switch.MS.Internal.DoNotInvokeInWeakEventTableShutdownListener", isEnabled: true);
         }
 
         public DispatcherSynchronizationContext DispatcherSynchronizationContext
