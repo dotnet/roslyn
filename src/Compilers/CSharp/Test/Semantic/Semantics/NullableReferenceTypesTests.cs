@@ -82276,7 +82276,7 @@ class G<T>
             var source =
 @"class Node
 {
-    public Node? Next;
+    public Node? Next = null!;
     static void M1(Node node)
     {
         try
@@ -82288,7 +82288,7 @@ class G<T>
             Mout(out node); // might set node to one in which node.Next == null
         }
 
-        node.Next.ToString(); // warning: node.Next might be null
+        node.Next.ToString(); // 1
     }
     static void M2()
     {
@@ -82302,7 +82302,7 @@ class G<T>
             if (node is null) {} else {}
         }
 
-        node.ToString(); // warning: node might be null
+        node.ToString(); // 2
     }
     static void M3()
     {
@@ -82316,21 +82316,43 @@ class G<T>
             node ??= node;
         }
 
-        node.ToString(); // warning: node might be null
+        node.ToString(); // 3
+    }
+    static void M4()
+    {
+        Node? node = null;
+        Mout(out node);
+        if (node == null) {} else {}
+        node.ToString(); // 4
+    }
+    static void M5()
+    {
+        Node? node = null;
+        try
+        {
+            Mout(out node);
+        }
+        finally
+        {
+            if (node == null) {} else {}
+        }
+
+        node.ToString(); // 5
     }
     static void Mout(out Node node) => node = null!;
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/pull/33929: Once we report (4) we should also report (5).
             comp.VerifyDiagnostics(
                 // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         node.Next.ToString(); // warning: node.Next might be null
+                //         node.Next.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node.Next").WithLocation(15, 9),
                 // (29,9): warning CS8602: Possible dereference of a null reference.
-                //         node.ToString(); // warning: node might be null
+                //         node.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(29, 9),
                 // (43,9): warning CS8602: Possible dereference of a null reference.
-                //         node.ToString(); // warning: node might be null
+                //         node.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(43, 9));
         }
     }
