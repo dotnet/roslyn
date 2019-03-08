@@ -19503,9 +19503,6 @@ class CL1
                 // (26,36): warning CS8602: Possible dereference of a null reference.
                 //         CL1 z4 = x4 != null ? x4 : x4.M1();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x4").WithLocation(26, 36),
-                // (38,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         string z6 = y6 != null ? y6 : x6.M2();
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y6 != null ? y6 : x6.M2()").WithLocation(38, 21),
                 // (44,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         string z7 = y7 != null ? y7 : x7.M2();
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y7 != null ? y7 : x7.M2()").WithLocation(44, 21)
@@ -34411,6 +34408,49 @@ class C
                 );
         }
 
+        [Fact]
+        public void LearnFromNullTest_IncludingConstants()
+        {
+            var source = @"
+class C
+{
+    void F()
+    {
+        const string s1 = """";
+        if (s1 == null)
+            s1.ToString(); // 1
+
+        if (null == s1)
+            s1.ToString(); // 2
+
+        if (s1 != null)
+            s1.ToString();
+        else
+            s1.ToString(); // 3
+
+        if (null != s1)
+            s1.ToString();
+        else
+            s1.ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS0162: Unreachable code detected
+                //             s1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "s1").WithLocation(8, 13),
+                // (11,13): warning CS0162: Unreachable code detected
+                //             s1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "s1").WithLocation(11, 13),
+                // (16,13): warning CS0162: Unreachable code detected
+                //             s1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "s1").WithLocation(16, 13),
+                // (21,13): warning CS0162: Unreachable code detected
+                //             s1.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "s1").WithLocation(21, 13)
+                );
+        }
+
         [Fact, WorkItem(31906, "https://github.com/dotnet/roslyn/issues/31906")]
         public void LearnFromNullTest_NotEqualsConstant()
         {
@@ -34422,12 +34462,12 @@ class C
         if (s?.Length != 1)
             s.ToString(); // 1
         else
-            s.ToString(); // 2
+            s.ToString();
 
         if (1 != s2?.Length)
-            s2.ToString(); // 3
+            s2.ToString(); // 2
         else
-            s2.ToString(); // 4
+            s2.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -34435,15 +34475,9 @@ class C
                 // (7,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 13),
-                // (9,13): warning CS8602: Possible dereference of a null reference.
-                //             s.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
                 // (12,13): warning CS8602: Possible dereference of a null reference.
-                //             s2.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(12, 13),
-                // (14,13): warning CS8602: Possible dereference of a null reference.
-                //             s2.ToString(); // 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(14, 13)
+                //             s2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(12, 13)
                 );
         }
 

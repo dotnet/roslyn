@@ -1873,6 +1873,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
                         splitAndLearnFromNonNullTest(operandComparedToNonNull, caseToLearn: true);
                         return;
+                    case BinaryOperatorKind.NotEqual:
+                        operandComparedToNonNull = SkipReferenceConversions(operandComparedToNonNull);
+                        splitAndLearnFromNonNullTest(operandComparedToNonNull, caseToLearn: false);
+                        return;
                     default:
                         break;
                 };
@@ -1912,19 +1916,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundExpression skipImplicitNullableConversions(BoundExpression possiblyConversion)
             {
-                while (possiblyConversion.Kind == BoundKind.Conversion)
+                while (possiblyConversion.Kind == BoundKind.Conversion &&
+                    possiblyConversion is BoundConversion { ConversionKind: ConversionKind.ImplicitNullable, Operand: var operand })
                 {
-                    var conversion = (BoundConversion)possiblyConversion;
-                    switch (conversion.ConversionKind)
-                    {
-                        case ConversionKind.ImplicitNullable:
-                            possiblyConversion = conversion.Operand;
-                            break;
-                        default:
-                            return possiblyConversion;
-                    }
+                    possiblyConversion = operand;
                 }
-
                 return possiblyConversion;
             }
 
