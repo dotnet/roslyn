@@ -1845,7 +1845,7 @@ namespace Foo
 
         [WorkItem(33890, "https://github.com/dotnet/roslyn/issues/33890")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsSyncNamespace)]
-        public async Task ChangeNamespace_ExternsionMethodInReducedForm()
+        public async Task ChangeNamespace_ExtensionMethodInReducedForm()
         {
             var defaultNamespace = "A";
 
