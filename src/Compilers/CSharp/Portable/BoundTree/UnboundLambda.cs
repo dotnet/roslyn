@@ -976,27 +976,9 @@ haveLambdaBodyAndBinders:
             if (codeCompare != 0)
                 return codeCompare;
 
-            // According to a previous comment:
-            //
-            // "ToString fails for a diagnostic with an error code that does not prevent successful delegate conversion.
-            //  Also,the order doesn't matter, since all such diagnostics will be dropped."
-            //
-            // Currently we no longer call Diagnostic.ToString(), but call ToString() on the arguments.
-            // However since we were unable to reproduce this exception, it is possible it came from the arguments.
-            // Besides, the arguments can sometimes be Symbols, for which ToString is an expensive operation, so this is probably an optimization.
-            if (!ErrorFacts.PreventsSuccessfulDelegateConversion(xCode))
-            {
-                return codeCompare;
-            }
-
-            if (x.Arguments is null && y.Arguments is null)
-                return 0;
-            if (x.Arguments is null)
-                return -1;
-            if (y.Arguments is null)
-                return 1;
-
-            for (int i = 0, n = Math.Min(x.Arguments.Count, y.Arguments.Count); i < n; i++)
+            var nx = x.Arguments?.Count ?? 0;
+            var ny = y.Arguments?.Count ?? 0;
+            for (int i = 0, n = Math.Min(nx, ny); i < n; i++)
             {
                 object argx = x.Arguments[i];
                 object argy = y.Arguments[i];
@@ -1006,7 +988,7 @@ haveLambdaBodyAndBinders:
                     return argCompare;
             }
 
-            return x.Arguments.Count - y.Arguments.Count;
+            return nx - ny;
         }
     }
 
