@@ -206,6 +206,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
             AnalysisEntityFactory = new AnalysisEntityFactory(
                 DataFlowAnalysisContext.ControlFlowGraph,
+                DataFlowAnalysisContext.WellKnownTypeProvider,
                 getPointsToAbstractValueOpt: (analysisContext.PointsToAnalysisResultOpt != null || IsPointsToAnalysis) ?
                     GetPointsToAbstractValue :
                     (Func<IOperation, PointsToAbstractValue>)null,

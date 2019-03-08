@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
     public sealed class AnalysisEntityFactory
     {
         private readonly ControlFlowGraph _controlFlowGraph;
+        private readonly WellKnownTypeProvider _wellKnownTypeProvider;
         private readonly Dictionary<IOperation, AnalysisEntity> _analysisEntityMap;
         private readonly Dictionary<ITupleOperation, ImmutableArray<AnalysisEntity>> _tupleElementEntitiesMap;
         private readonly Dictionary<CaptureId, AnalysisEntity> _captureIdEntityMap;
@@ -31,8 +32,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         private readonly Func<IOperation, AnalysisEntity> _interproceduralGetAnalysisEntityForFlowCaptureOpt;
         private readonly Func<ISymbol, ImmutableStack<IOperation>> _getInterproceduralCallStackForOwningSymbol;
 
-        public AnalysisEntityFactory(
+        internal AnalysisEntityFactory(
             ControlFlowGraph controlFlowGraph,
+            WellKnownTypeProvider wellKnownTypeProvider,
             Func<IOperation, PointsToAbstractValue> getPointsToAbstractValueOpt,
             Func<bool> getIsInsideAnonymousObjectInitializer,
             Func<CaptureId, bool> getIsLValueFlowCapture,
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             Func<ISymbol, ImmutableStack<IOperation>> getInterproceduralCallStackForOwningSymbol)
         {
             _controlFlowGraph = controlFlowGraph;
+            _wellKnownTypeProvider = wellKnownTypeProvider;
             _getPointsToAbstractValueOpt = getPointsToAbstractValueOpt;
             _getIsInsideAnonymousObjectInitializer = getIsInsideAnonymousObjectInitializer;
             _getIsLValueFlowCapture = getIsLValueFlowCapture;
@@ -200,12 +203,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 case IFlowCaptureOperation flowCapture:
                     analysisEntity = GetOrCreateForFlowCapture(flowCapture.Id, flowCapture.Value.Type, flowCapture);
-                    Debug.Assert(analysisEntity.Type == null || analysisEntity.Type.Equals(flowCapture.Value.Type));
                     break;
 
                 case IFlowCaptureReferenceOperation flowCaptureReference:
                     analysisEntity = GetOrCreateForFlowCapture(flowCaptureReference.Id, flowCaptureReference.Type, flowCaptureReference);
-                    Debug.Assert(analysisEntity.Type == null || analysisEntity.Type.Equals(flowCaptureReference.Type));
                     break;
 
                 case IDeclarationExpressionOperation declarationExpression:
@@ -385,6 +386,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         private AnalysisEntity GetOrCreateForFlowCapture(CaptureId captureId, ITypeSymbol type, IOperation flowCaptureOrReference)
         {
+            // Type can be null for capture of operations with OperationKind.None
+            type = type ?? _wellKnownTypeProvider.Compilation.GetSpecialType(SpecialType.System_Object);
+
             var interproceduralFlowCaptureEntityOpt = _interproceduralGetAnalysisEntityForFlowCaptureOpt?.Invoke(flowCaptureOrReference);
             if (interproceduralFlowCaptureEntityOpt != null)
             {
