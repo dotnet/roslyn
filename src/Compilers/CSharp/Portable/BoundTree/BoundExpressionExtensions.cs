@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)expr;
-                        return local.IsNullableUnknown ? NullableAnnotation.Unknown : local.LocalSymbol.Type.NullableAnnotation;
+                        return local.IsNullableUnknown ? NullableAnnotation.Oblivious : local.LocalSymbol.Type.NullableAnnotation;
                     }
                 case BoundKind.Parameter:
                     return ((BoundParameter)expr).ParameterSymbol.Type.NullableAnnotation;
@@ -243,9 +243,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     return ((BoundCall)expr).Method.ReturnType.NullableAnnotation;
                 case BoundKind.Conversion:
-                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType.NullableAnnotation ?? NullableAnnotation.Unknown;
+                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType.NullableAnnotation ?? NullableAnnotation.Oblivious;
                 case BoundKind.BinaryOperator:
-                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.NullableAnnotation ?? NullableAnnotation.Unknown;
+                    return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.NullableAnnotation ?? NullableAnnotation.Oblivious;
                 case BoundKind.NullCoalescingOperator:
                     {
                         var op = (BoundNullCoalescingOperator)expr;
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return NullableAnnotation.Unknown;
+            return NullableAnnotation.Oblivious;
         }
     }
 }

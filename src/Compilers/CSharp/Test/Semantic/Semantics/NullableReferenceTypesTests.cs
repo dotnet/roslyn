@@ -5796,53 +5796,53 @@ namespace System
             comp0.VerifyDiagnostics();
             var compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
             var metadataRefs0 = new[] { comp0.EmitToImageReference() };
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp0).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp0).NullableAnnotation);
 
             // ... used in 7.0.
             var comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
 
             // ... used in 8.0.
             comp1 = CreateCompilation(source1, references: compRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
 
             // 8.0 library
             comp0 = CreateCompilation(source0);
             comp0.VerifyDiagnostics();
             compRefs0 = new MetadataReference[] { new CSharpCompilationReference(comp0) };
             metadataRefs0 = new[] { comp0.EmitToImageReference() };
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp0).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp0).NullableAnnotation);
 
             // ... used in 7.0.
             comp1 = CreateCompilation(source1, references: compRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0, parseOptions: TestOptions.Regular7);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
 
             // ... used in 8.0.
             comp1 = CreateCompilation(source1, references: compRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(source1, references: metadataRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
 
             comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: compRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
             comp1 = CreateCompilation(new[] { source1 }, options: WithNonNullTypesTrue(), references: metadataRefs0);
             comp1.VerifyDiagnostics();
-            Assert.Equal(NullableAnnotation.Unknown, getParameterType(comp1).NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, getParameterType(comp1).NullableAnnotation);
 
             // 8.0 library
             comp0 = CreateCompilation(new[] { source0 }, options: WithNonNullTypesTrue());
@@ -5915,15 +5915,15 @@ public class C
             void verify(Compilation c)
             {
                 c.VerifyDiagnostics();
-                Assert.Equal(NullableAnnotation.Unknown, c.GetMember<FieldSymbol>("C.F").Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Unknown, c.GetMember<EventSymbol>("C.E").Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Unknown, c.GetMember<PropertySymbol>("C.P").Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<FieldSymbol>("C.F").Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<EventSymbol>("C.E").Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, c.GetMember<PropertySymbol>("C.P").Type.NullableAnnotation);
                 var indexer = c.GetMember<PropertySymbol>("C.this[]");
-                Assert.Equal(NullableAnnotation.Unknown, indexer.Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Unknown, indexer.Parameters[0].Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, indexer.Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, indexer.Parameters[0].Type.NullableAnnotation);
                 var method = c.GetMember<MethodSymbol>("C.M");
-                Assert.Equal(NullableAnnotation.Unknown, method.ReturnType.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Unknown, method.Parameters[0].Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, method.ReturnType.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, method.Parameters[0].Type.NullableAnnotation);
             }
 
             var comp1A = CreateCompilation(source1, references: new MetadataReference[] { new CSharpCompilationReference(comp0) });
@@ -5962,8 +5962,8 @@ public class C
             void verifyTuple(TypeSymbolWithAnnotations type)
             {
                 var tuple = (TupleTypeSymbol)type.TypeSymbol;
-                Assert.Equal(NullableAnnotation.Unknown, tuple.TupleElements[0].Type.NullableAnnotation);
-                Assert.Equal(NullableAnnotation.Unknown, tuple.TupleElements[1].Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, tuple.TupleElements[0].Type.NullableAnnotation);
+                Assert.Equal(NullableAnnotation.Oblivious, tuple.TupleElements[1].Type.NullableAnnotation);
             }
 
             void verify(Compilation c)
@@ -6003,13 +6003,13 @@ class D : C<B>, I<B>
             var derivedType = comp.GetMember<NamedTypeSymbol>("D");
             var baseType = derivedType.BaseTypeNoUseSiteDiagnostics;
             var constraintType = baseType.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, constraintType.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, constraintType.NullableAnnotation);
             var interfaceType = derivedType.Interfaces().Single();
             constraintType = interfaceType.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, constraintType.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, constraintType.NullableAnnotation);
             var method = baseType.GetMember<MethodSymbol>("M");
             constraintType = method.TypeParameters.Single().ConstraintTypesNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, constraintType.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, constraintType.NullableAnnotation);
         }
 
         [Fact]
@@ -6029,15 +6029,15 @@ class C : I<string>
             var type = comp.GetMember<NamedTypeSymbol>("C");
             var interfaceType = type.Interfaces().Single();
             var typeArg = interfaceType.TypeArgumentsNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, typeArg.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
             var method = type.GetMember<MethodSymbol>("I<System.String>.F");
-            Assert.Equal(NullableAnnotation.Unknown, method.ReturnType.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, method.ReturnType.NullableAnnotation);
             typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, typeArg.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
             var parameter = method.Parameters.Single();
-            Assert.Equal(NullableAnnotation.Unknown, parameter.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, parameter.Type.NullableAnnotation);
             typeArg = ((NamedTypeSymbol)parameter.Type.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single();
-            Assert.Equal(NullableAnnotation.Unknown, typeArg.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
         }
 
         [Fact]
@@ -7291,12 +7291,12 @@ class B : A
             var method = comp.GetMember<MethodSymbol>("A.F");
             var typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0];
             Assert.True(typeArg.IsValueType);
-            Assert.Equal(NullableAnnotation.Unknown, typeArg.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
 
             method = comp.GetMember<MethodSymbol>("B.F");
             typeArg = ((NamedTypeSymbol)method.ReturnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics[0];
             Assert.True(typeArg.IsValueType);
-            Assert.Equal(NullableAnnotation.Unknown, typeArg.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
 
             // https://github.com/dotnet/roslyn/issues/29843: Test all combinations of base and derived
             // including explicit Nullable<T>.
@@ -8120,14 +8120,14 @@ class C3
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(15, 11)
                 );
 
-            verify("C1.F1", "System.String", NullableAnnotation.Unknown);
+            verify("C1.F1", "System.String", NullableAnnotation.Oblivious);
             verify("C1.F2", "System.String?", NullableAnnotation.Annotated);
-            verify("C1.F3", "System.Int32", NullableAnnotation.Unknown);
+            verify("C1.F3", "System.Int32", NullableAnnotation.Oblivious);
             verify("C1.F4", "System.Int32?", NullableAnnotation.Annotated);
             verify("C1.F5", "System.Int32?", NullableAnnotation.Annotated);
-            verify("C2.F1", "System.String", NullableAnnotation.Unknown);
+            verify("C2.F1", "System.String", NullableAnnotation.Oblivious);
             verify("C2.F2", "System.String?", NullableAnnotation.Annotated);
-            verify("C2.F3", "System.Int32", NullableAnnotation.Unknown);
+            verify("C2.F3", "System.Int32", NullableAnnotation.Oblivious);
             verify("C2.F4", "System.Int32?", NullableAnnotation.Annotated);
             verify("C2.F5", "System.Int32?", NullableAnnotation.Annotated);
             verify("C3.F1", "System.String!", NullableAnnotation.NotAnnotated);
@@ -8216,18 +8216,18 @@ class C3
                 Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(19, 5)
             );
 
-            verify("C1.F1", "T", NullableAnnotation.Unknown);
+            verify("C1.F1", "T", NullableAnnotation.Oblivious);
             verify("C1.F2", "T?", NullableAnnotation.Annotated);
-            verify("C1.F3", "T", NullableAnnotation.Unknown);
+            verify("C1.F3", "T", NullableAnnotation.Oblivious);
             verify("C1.F4", "T?", NullableAnnotation.Annotated);
-            verify("C1.F5", "T", NullableAnnotation.Unknown);
+            verify("C1.F5", "T", NullableAnnotation.Oblivious);
             verify("C1.F6", "T?", NullableAnnotation.Annotated);
             verify("C1.F7", "T?", NullableAnnotation.Annotated);
-            verify("C2.F1", "T", NullableAnnotation.Unknown);
+            verify("C2.F1", "T", NullableAnnotation.Oblivious);
             verify("C2.F2", "T?", NullableAnnotation.Annotated);
-            verify("C2.F3", "T", NullableAnnotation.Unknown);
+            verify("C2.F3", "T", NullableAnnotation.Oblivious);
             verify("C2.F4", "T?", NullableAnnotation.Annotated);
-            verify("C2.F5", "T", NullableAnnotation.Unknown);
+            verify("C2.F5", "T", NullableAnnotation.Oblivious);
             verify("C2.F6", "T?", NullableAnnotation.Annotated);
             verify("C2.F7", "T?", NullableAnnotation.Annotated);
             verify("C3.F1", "T", NullableAnnotation.NotAnnotated);
@@ -22783,7 +22783,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -23071,7 +23071,7 @@ class CL1
             var type = symbol.Type;
             Assert.True(type.IsErrorType());
             Assert.Equal("var", type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, type.NullableAnnotation);
         }
 
         [Fact]
@@ -23099,15 +23099,15 @@ class CL1
 
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);  // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: false
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);  // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: false
 
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
 
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[2]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation); // https://github.com/dotnet/roslyn/issues/29856: Inferred nullability: true
         }
 
         [Fact]
@@ -29919,7 +29919,7 @@ class C
             Assert.True(symbol.Type.NullableAnnotation.IsAnnotated());
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -29998,11 +29998,11 @@ class C
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             // https://github.com/dotnet/roslyn/issues/29856: Is T correct?
             Assert.Equal("T", symbol.Type.ToTestDisplayString(true));
-            Assert.Equal(NullableAnnotation.Unknown, symbol.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -60737,7 +60737,7 @@ class B {}
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             var f1 = comp.GetMember<FieldSymbol>("A.F1");
-            Assert.Equal(NullableAnnotation.Unknown, f1.Type.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, f1.Type.NullableAnnotation);
         }
 
         [Fact]
@@ -74404,14 +74404,14 @@ class Program
         [Fact]
         public void TestJoinForNullableAnnotations()
         {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
+            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Oblivious, NullableAnnotation.NotAnnotated };
             Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.Join(inputs[i], inputs[j]);
 
             var expected = new NullableAnnotation[3, 3]
             {
                 { NullableAnnotation.Annotated,    NullableAnnotation.Annotated,    NullableAnnotation.Annotated     },
-                { NullableAnnotation.Annotated,    NullableAnnotation.Unknown,      NullableAnnotation.Unknown       },
-                { NullableAnnotation.Annotated,    NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated  },
+                { NullableAnnotation.Annotated,    NullableAnnotation.Oblivious,      NullableAnnotation.Oblivious       },
+                { NullableAnnotation.Annotated,    NullableAnnotation.Oblivious,      NullableAnnotation.NotAnnotated  },
             };
 
             AssertEqual(expected, getResult, inputs.Length);
@@ -74436,13 +74436,13 @@ class Program
         [Fact]
         public void TestMeetForNullableAnnotations()
         {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
+            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Oblivious, NullableAnnotation.NotAnnotated };
             Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.Meet(inputs[i], inputs[j]);
 
             var expected = new NullableAnnotation[3, 3]
             {
-                { NullableAnnotation.Annotated,    NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated  },
-                { NullableAnnotation.Unknown,      NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated  },
+                { NullableAnnotation.Annotated,    NullableAnnotation.Oblivious,      NullableAnnotation.NotAnnotated  },
+                { NullableAnnotation.Oblivious,      NullableAnnotation.Oblivious,      NullableAnnotation.NotAnnotated  },
                 { NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated  },
             };
 
@@ -74467,13 +74467,13 @@ class Program
         [Fact]
         public void TestEnsureCompatible()
         {
-            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Unknown, NullableAnnotation.NotAnnotated };
+            var inputs = new[] { NullableAnnotation.Annotated, NullableAnnotation.Oblivious, NullableAnnotation.NotAnnotated };
             Func<int, int, NullableAnnotation> getResult = (i, j) => NullableAnnotationExtensions.EnsureCompatible(inputs[i], inputs[j]);
 
             var expected = new NullableAnnotation[3, 3]
             {
                 { NullableAnnotation.Annotated,    NullableAnnotation.Annotated,    NullableAnnotation.NotAnnotated  },
-                { NullableAnnotation.Annotated,    NullableAnnotation.Unknown,      NullableAnnotation.NotAnnotated  },
+                { NullableAnnotation.Annotated,    NullableAnnotation.Oblivious,      NullableAnnotation.NotAnnotated  },
                 { NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated, NullableAnnotation.NotAnnotated  },
             };
 

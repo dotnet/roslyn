@@ -1281,7 +1281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/33635 : We should preserve the return nullability from the
             // selected method of the method group, possibly turning oblivious into non-null.
-            NullableAnnotation returnIsNullable = NullableAnnotation.Unknown;
+            NullableAnnotation returnIsNullable = NullableAnnotation.Oblivious;
             LowerBoundInference(TypeSymbolWithAnnotations.Create(returnType, returnIsNullable), delegateReturnType, ref useSiteDiagnostics);
 
             return true;

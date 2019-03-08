@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !targetType.HasType ||
                 targetType.IsValueType ||
                 targetType.CanBeAssignedNull ||
-                valueType.State == NullableFlowState.NotNull)
+                valueType.IsNotNull)
             {
                 return false;
             }
@@ -1155,17 +1155,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.StateWhenFalse[mainSlot] = whenFalse;
             }
 
-            if (whenTrue == NullableFlowState.NotNull || whenFalse == NullableFlowState.NotNull)
+            if (whenTrue.IsNotNull()|| whenFalse.IsNotNull())
             {
                 var slotBuilder = ArrayBuilder<int>.GetInstance();
                 GetSlotsToMarkAsNotNullable(expression, slotBuilder);
 
                 // Set all nested conditional slots. For example in a?.b?.c we'll set a, b, and c.
-                if (whenTrue == NullableFlowState.NotNull)
+                if (whenTrue.IsNotNull())
                 {
                     MarkSlotsAsNotNull(slotBuilder, ref StateWhenTrue);
                 }
-                else if (whenFalse == NullableFlowState.NotNull)
+                else if (whenFalse.IsNotNull())
                 {
                     MarkSlotsAsNotNull(slotBuilder, ref StateWhenFalse);
                 }
@@ -2156,7 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return NullableAnnotation.NotAnnotated;
                 default:
                     Debug.Assert(false); // unexpected value
-                    return NullableAnnotation.Unknown;
+                    return NullableAnnotation.Oblivious;
             }
         }
 
@@ -2355,7 +2355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return NullableAnnotation.Annotated;
                 }
-                return NullableAnnotation.Unknown;
+                return NullableAnnotation.Oblivious;
             }
 
             (BoundExpression, Conversion, TypeSymbolWithAnnotations) visitConditionalOperand(LocalState state, BoundExpression operand)
@@ -3153,7 +3153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                 {
                     // 'out var' doesn't contribute to inference
-                    return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Unknown, type: null);
+                    return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Oblivious, type: null);
                 }
                 return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.NullableAnnotation, argumentType.TypeSymbol);
             }
@@ -3950,7 +3950,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (operandType.Type?.IsNullableType() == true && !targetType.IsNullableType())
                     {
                         // Explicit conversion of Nullable<T> to T is equivalent to Nullable<T>.Value.
-                        if (reportTopLevelWarnings && operandType.MaybeNull)
+                        if (reportTopLevelWarnings && operandType.MayBeNull)
                         {
                             ReportSafetyDiagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, node.Syntax);
                         }
@@ -4855,7 +4855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AssignmentKind.Assignment,
                             reportTopLevelWarnings: false,
                             reportRemainingWarnings: false);
-                        if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsNotAnnotated() && result.MaybeNull)
+                        if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsNotAnnotated() && result.MayBeNull)
                         {
                             ReportNonSafetyDiagnostic(node.IterationVariableType.Syntax);
                         }
@@ -5291,7 +5291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
-            var result = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.Unknown);
+            var result = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
             LvalueResultType = result;
             return null;
         }
@@ -5402,7 +5402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CheckPossibleNullReceiver(receiver);
             VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt);
             Debug.Assert(node.Type.IsDynamic());
-            var result = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.Unknown);
+            var result = TypeSymbolWithAnnotations.Create(node.Type, NullableAnnotation.Oblivious);
             LvalueResultType = result;
             return null;
         }
@@ -5420,7 +5420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                 Debug.Assert(receiverOpt.Type is null || AreCloseEnough(receiverOpt.Type, resultTypeSymbol));
 #endif
-                if (ResultType.MaybeNull)
+                if (ResultType.MayBeNull)
                 {
                     bool isValueType = resultTypeSymbol.IsValueType;
                     if (isValueType && (!checkNullableValueType || !resultTypeSymbol.IsNullableTypeOrTypeParameter() || resultTypeSymbol.GetNullableUnderlyingType().IsErrorType()))
@@ -5523,7 +5523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // null
                 // null!
                 // Other (typed) expression, including suppressed ones
-                if (result.MaybeNull)
+                if (result.MayBeNull)
                 {
                     ReportSafetyDiagnostic(ErrorCode.WRN_PossibleNull, expr.Syntax);
                 }

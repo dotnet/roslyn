@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class NullableFlowStateExtensions
     {
-        public static bool MaybeNull(this NullableFlowState state) => state == NullableFlowState.MaybeNull;
+        public static bool MayBeNull(this NullableFlowState state) => state == NullableFlowState.MaybeNull;
 
         public static bool IsNotNull(this NullableFlowState state) => state == NullableFlowState.NotNull;
 
@@ -12,18 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Join nullable flow states from distinct branches during flow analysis.
         /// The result is <see cref="NullableFlowState.MaybeNull"/> if either operand is that.
         /// </summary>
-        public static NullableFlowState Join(this NullableFlowState a, NullableFlowState b)
-        {
-            return (a > b) ? a : b;
-        }
+        public static NullableFlowState Join(this NullableFlowState a, NullableFlowState b) => (a > b) ? a : b;
 
         /// <summary>
         /// Meet two nullable flow states from distinct states for the meet (union) operation in flow analysis.
         /// The result is <see cref="NullableFlowState.NotNull"/> if either operand is that.
         /// </summary>
-        public static NullableFlowState Meet(this NullableFlowState a, NullableFlowState b)
-        {
-            return (a < b) ? a : b;
-        }
+        public static NullableFlowState Meet(this NullableFlowState a, NullableFlowState b) => (a < b) ? a : b;
     }
 }

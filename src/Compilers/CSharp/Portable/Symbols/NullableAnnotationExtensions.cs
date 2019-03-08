@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsNotAnnotated(this NullableAnnotation annotation) => annotation == NullableAnnotation.NotAnnotated;
 
-        public static bool IsOblivious(this NullableAnnotation annotation) => annotation == NullableAnnotation.Unknown;
+        public static bool IsOblivious(this NullableAnnotation annotation) => annotation == NullableAnnotation.Oblivious;
 
         /// <summary>
         /// Join nullable annotations from the set of lower bounds for fixing a type parameter.
