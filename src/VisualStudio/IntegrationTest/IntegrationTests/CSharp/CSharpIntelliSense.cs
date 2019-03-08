@@ -331,7 +331,7 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [ConditionalWpfFact(typeof(LegacyCompletionCondition)), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(33822, "https://github.com/dotnet/roslyn/issues/33822")]
         public void EnsureTheCaretIsVisibleAfterALongEdit()
         {
