@@ -5,5 +5,6 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypeNames
     {
         public const string SystemAppContext = "System.AppContext";
+        public const string SystemWebMvcValidateInputAttribute = "System.Web.Mvc.ValidateInputAttribute";
     }
 }
