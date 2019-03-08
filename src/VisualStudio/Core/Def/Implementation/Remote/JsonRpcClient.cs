@@ -36,18 +36,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Workspace = workspace;
             _logger = logger;
 
+            _rpc = CreateStreamJsonRpc(stream, target, logger);
+            _rpc.Disconnected += OnDisconnected;
+        }
+
+        public static JsonRpc CreateStreamJsonRpc(Stream stream, object target, TraceSource logger)
+        {
             var jsonFormatter = new JsonMessageFormatter()
             {
                 JsonSerializer = { Converters = { AggregateJsonConverter.Instance } }
             };
 
-            _rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter), target)
+            return new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter), target)
             {
                 CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
                 TraceSource = logger
             };
-
-            _rpc.Disconnected += OnDisconnected;
         }
 
         public Workspace Workspace

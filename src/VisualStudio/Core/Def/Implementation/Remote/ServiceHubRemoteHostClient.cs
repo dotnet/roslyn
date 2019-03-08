@@ -131,16 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             _connectionManager = connectionManager;
 
-            var jsonFormatter = new JsonMessageFormatter()
-            {
-                JsonSerializer = { Converters = { AggregateJsonConverter.Instance } }
-            };
-
-            _rpc = new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter), target: this)
-            {
-                CancelLocallyInvokedMethodsWhenConnectionIsClosed = true,
-                TraceSource = logger
-            };
+            _rpc = JsonRpcEx.CreateStreamJsonRpc(stream, target: this, logger);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
