@@ -2,27 +2,12 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <PropertyGroup Condition="'$(CopyrightMicrosoft)' != ''">
+  <PropertyGroup>
     <Copyright>$(CopyrightMicrosoft)</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-  </PropertyGroup>
-  
-  <PropertyGroup>
-    <RepositoryUrl>https://github.com/dotnet/roslyn</RepositoryUrl>
-    <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>
-    
-    <!-- Package Settings -->
-    <PackageLicenseUrl Condition="'$(PackageLicenseExpression)' == ''">$(RepositoryUrl)/blob/master/License.txt</PackageLicenseUrl>
-    <!-- The SPDX name for the source license. See https://spdx.org/licenses/. -->
-    <PackageLicenseType Condition="'$(PackageLicenseExpression)' == ''">Apache-2.0</PackageLicenseType>
+    <RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</RepositoryRawUrl>   
     <PackageIconUrl>https://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
-    <PackageProjectUrl>https://github.com/dotnet/roslyn</PackageProjectUrl>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
-    <!--
-      Suppress a warning about upcoming deprecation of PackageLicenseUrl. When embedding licenses are supported,
-      replace PackageLicenseUrl with PackageLicenseExpression. See https://github.com/dotnet/roslyn/issues/31589 for details
-    -->
-    <NoWarn>$(NoWarn);NU5125</NoWarn>
     
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
