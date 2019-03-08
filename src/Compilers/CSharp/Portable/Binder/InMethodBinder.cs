@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeSymbolWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             RefKind refKind = _methodSymbol.RefKind;
             TypeSymbol returnType = _methodSymbol.ReturnType;
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and deduce an iterator element type from the return type.  If we didn't do this, the 
                 // TypeInfo.ConvertedType of the yield statement would always be an error type.  However, we will 
                 // not mutate any state (i.e. we won't store the result).
-                return GetIteratorElementTypeFromReturnType(refKind, returnType, node, diagnostics).elementType ?? CreateErrorType();
+                return TypeSymbolWithAnnotations.Create(GetIteratorElementTypeFromReturnType(refKind, returnType, node, diagnostics).elementType ?? CreateErrorType());
             }
 
             if (_iteratorInfo == IteratorInfo.Empty)
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.AddRange(_iteratorInfo.ElementTypeDiagnostics);
             }
 
-            return _iteratorInfo.ElementType;
+            return TypeSymbolWithAnnotations.Create(_iteratorInfo.ElementType);
         }
 
         private (TypeSymbol elementType, bool asyncInterface) GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
