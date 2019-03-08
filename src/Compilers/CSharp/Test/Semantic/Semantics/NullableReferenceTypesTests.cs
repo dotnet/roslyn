@@ -82269,5 +82269,69 @@ class G<T>
                 //         G<string> g1 = g; // 5
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "g").WithArguments("G<string?>", "G<string>").WithLocation(17, 24));
         }
+
+        [Fact, WorkItem(33446, "https://github.com/dotnet/roslyn/issues/33446")]
+        public void NullInferencesInFinallyClause()
+        {
+            var source =
+@"class Node
+{
+    public Node? Next;
+    static void M1(Node node)
+    {
+        try
+        {
+            Mout(out node.Next);
+        }
+        finally
+        {
+            Mout(out node); // might set node to one in which node.Next == null
+        }
+
+        node.Next.ToString(); // warning: node.Next might be null
+    }
+    static void M2()
+    {
+        Node? node = null;
+        try
+        {
+            Mout(out node);
+        }
+        finally
+        {
+            if (node is null) {} else {}
+        }
+
+        node.ToString(); // warning: node might be null
+    }
+    static void M3()
+    {
+        Node? node = null;
+        try
+        {
+            Mout(out node);
+        }
+        finally
+        {
+            node ??= node;
+        }
+
+        node.ToString(); // warning: node might be null
+    }
+    static void Mout(out Node node) => node = null!;
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         node.Next.ToString(); // warning: node.Next might be null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node.Next").WithLocation(15, 9),
+                // (29,9): warning CS8602: Possible dereference of a null reference.
+                //         node.ToString(); // warning: node might be null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(29, 9),
+                // (43,9): warning CS8602: Possible dereference of a null reference.
+                //         node.ToString(); // warning: node might be null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(43, 9));
+        }
     }
 }
