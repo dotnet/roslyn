@@ -31,7 +31,9 @@ namespace Test.Utilities
             {
                 if (s_systemRuntimeFacadeRef == null)
                 {
+#pragma warning disable CA2000 // Dispose objects before losing scope - Dispose ownership transfer at 'AssemblyMetadata.GetReference'
                     s_systemRuntimeFacadeRef = AssemblyMetadata.CreateFromImage(ReferenceAssemblies_V45_Facades.System_Runtime).GetReference(display: "System.Runtime.dll");
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 
                 return s_systemRuntimeFacadeRef;
@@ -45,7 +47,9 @@ namespace Test.Utilities
             {
                 if (s_systemThreadingFacadeRef == null)
                 {
+#pragma warning disable CA2000 // Dispose objects before losing scope - Dispose ownership transfer at 'AssemblyMetadata.GetReference'
                     s_systemThreadingFacadeRef = AssemblyMetadata.CreateFromImage(ReferenceAssemblies_V45_Facades.System_Threading).GetReference(display: "System.Threading.dll");
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 
                 return s_systemThreadingFacadeRef;
@@ -59,7 +63,9 @@ namespace Test.Utilities
             {
                 if (s_systemThreadingTasksFacadeRef == null)
                 {
+#pragma warning disable CA2000 // Dispose objects before losing scope - Dispose ownership transfer at 'AssemblyMetadata.GetReference'
                     s_systemThreadingTasksFacadeRef = AssemblyMetadata.CreateFromImage(ReferenceAssemblies_V45_Facades.System_Threading_Tasks).GetReference(display: "System.Threading.Tasks.dll");
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 
                 return s_systemThreadingTasksFacadeRef;

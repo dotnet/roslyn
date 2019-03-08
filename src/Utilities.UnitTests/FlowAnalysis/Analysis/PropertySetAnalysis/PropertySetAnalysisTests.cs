@@ -68,73 +68,76 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 $"Could not find code block to analyze.  Does your test code have {StartString} and {EndString} around the braces of block to analyze?");
             ISymbol symbol = syntaxNode.Parent.GetDeclaredOrReferencedSymbol(model);
 
-            ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
-                PropertySetAnalysis.GetOrComputeHazardousUsages(
-                    operation.GetEnclosingControlFlowGraph(),
-                    compilation,
-                    symbol,
-                    propertySetAnalysisParameters.TypeToTrack,
-                    propertySetAnalysisParameters.ConstructorMapper,
-                    propertySetAnalysisParameters.PropertyMapperCollection,
-                    propertySetAnalysisParameters.HazardousUsageEvaluatorCollection,
-                    InterproceduralAnalysisConfiguration.Create(
-                        new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
-                        ImmutableArray<DiagnosticDescriptor>.Empty,
-                        InterproceduralAnalysisKind.None,
-                        new CancellationTokenSource().Token,
-                        defaultMaxInterproceduralMethodCallChain: 1));
-            try
+            using (var cancellationSource = new CancellationTokenSource())
             {
-                Assert.Equal(expectedResults.Length, actual.Count);
-                foreach ((int Line, int Column, string Method, HazardousUsageEvaluationResult Result) in expectedResults)
+                ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> actual =
+                    PropertySetAnalysis.GetOrComputeHazardousUsages(
+                        operation.GetEnclosingControlFlowGraph(),
+                        compilation,
+                        symbol,
+                        propertySetAnalysisParameters.TypeToTrack,
+                        propertySetAnalysisParameters.ConstructorMapper,
+                        propertySetAnalysisParameters.PropertyMapperCollection,
+                        propertySetAnalysisParameters.HazardousUsageEvaluatorCollection,
+                        InterproceduralAnalysisConfiguration.Create(
+                            new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty),
+                            ImmutableArray<DiagnosticDescriptor>.Empty,
+                            InterproceduralAnalysisKind.None,
+                            cancellationSource.Token,
+                            defaultMaxInterproceduralMethodCallChain: 1));
+                try
                 {
-                    HazardousUsageEvaluationResult? actualResult = null;
-                    foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
+                    Assert.Equal(expectedResults.Length, actual.Count);
+                    foreach ((int Line, int Column, string Method, HazardousUsageEvaluationResult Result) in expectedResults)
                     {
-                        FileLinePositionSpan span = kvp.Key.Location.GetLineSpan();
-                        if (span.Path != CSharpDefaultFilePath)
+                        HazardousUsageEvaluationResult? actualResult = null;
+                        foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
                         {
-                            // Only looking in the first file, so that expectedResults doesn't have to specify a filename.
-                            continue;
+                            FileLinePositionSpan span = kvp.Key.Location.GetLineSpan();
+                            if (span.Path != CSharpDefaultFilePath)
+                            {
+                                // Only looking in the first file, so that expectedResults doesn't have to specify a filename.
+                                continue;
+                            }
+
+                            if (span.StartLinePosition.Line + 1 == Line
+                                && span.StartLinePosition.Character + 1 == Column
+                                && kvp.Key.Method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) == Method)
+                            {
+                                actualResult = kvp.Value;
+                                break;
+                            }
                         }
 
-                        if (span.StartLinePosition.Line + 1 == Line
-                            && span.StartLinePosition.Character + 1 == Column
-                            && kvp.Key.Method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat) == Method)
-                        {
-                            actualResult = kvp.Value;
-                            break;
-                        }
+                        Assert.True(
+                            actualResult.HasValue,
+                            $"Could not find expected result Line {Line} Column {Column} Method {Method} Result {Result}");
+                        Assert.True(
+                            actualResult == Result,
+                            $"Expected {Result}, Actual {actualResult}, for Line {Line} Column {Column} Method {Method}");
+                    }
+                }
+                catch (XunitException)
+                {
+                    TestOutput.WriteLine("PropertySetAnalysis actual results:");
+                    TestOutput.WriteLine("============================");
+                    if (actual == null)
+                    {
+                        throw;
                     }
 
-                    Assert.True(
-                        actualResult.HasValue,
-                        $"Could not find expected result Line {Line} Column {Column} Method {Method} Result {Result}");
-                    Assert.True(
-                        actualResult == Result,
-                        $"Expected {Result}, Actual {actualResult}, for Line {Line} Column {Column} Method {Method}");
-                }
-            }
-            catch (XunitException)
-            {
-                TestOutput.WriteLine("PropertySetAnalysis actual results:");
-                TestOutput.WriteLine("============================");
-                if (actual == null)
-                {
+                    foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
+                    {
+                        LinePosition linePosition = kvp.Key.Location.GetLineSpan().StartLinePosition;
+                        int lineNumber = linePosition.Line + 1;
+                        int columnNumber = linePosition.Character + 1;
+                        TestOutput.WriteLine(
+                            $"Line {lineNumber}, Column {columnNumber}, Method {kvp.Key.Method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}: {kvp.Value}");
+                    }
+                    TestOutput.WriteLine("============================");
+
                     throw;
                 }
-
-                foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in actual)
-                {
-                    LinePosition linePosition = kvp.Key.Location.GetLineSpan().StartLinePosition;
-                    int lineNumber = linePosition.Line + 1;
-                    int columnNumber = linePosition.Character + 1;
-                    TestOutput.WriteLine(
-                        $"Line {lineNumber}, Column {columnNumber}, Method {kvp.Key.Method.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)}: {kvp.Value}");
-                }
-                TestOutput.WriteLine("============================");
-
-                throw;
             }
         }
 

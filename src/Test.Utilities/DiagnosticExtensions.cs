@@ -42,15 +42,16 @@ namespace Test.Utilities
                 }
             }
 
-            AnalyzerDriver driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, new AnalyzerManager(analyzersArray), onAnalyzerException, null, false, out Compilation newCompilation, CancellationToken.None);
-
-            ImmutableArray<Diagnostic> diagnostics = newCompilation.GetDiagnostics();
-            if (validationMode != TestValidationMode.AllowCompileErrors)
+            using (var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, new AnalyzerManager(analyzersArray), onAnalyzerException, null, false, out Compilation newCompilation, CancellationToken.None))
             {
-                CompilationUtils.ValidateNoCompileErrors(diagnostics);
-            }
+                ImmutableArray<Diagnostic> diagnostics = newCompilation.GetDiagnostics();
+                if (validationMode != TestValidationMode.AllowCompileErrors)
+                {
+                    CompilationUtils.ValidateNoCompileErrors(diagnostics);
+                }
 
-            return driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
+                return driver.GetDiagnosticsAsync(newCompilation).Result.AddRange(exceptionDiagnostics);
+            }
         }
     }
 }
