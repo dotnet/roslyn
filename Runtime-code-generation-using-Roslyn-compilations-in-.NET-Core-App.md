@@ -26,6 +26,8 @@ This is what the compiler does when invoked from msbuild. You need to decide wha
 
 To find out what reference assemblies you need and where to get them you can create an empty .NET Core library, set the target framework to the one you need to target, build using ```msbuild /v:detailed``` and look for ```csc.exe``` invocation in msbuild output. The command line will list all references the C# compiler uses to build the library (look for ```/reference``` command line arguments).
 
+Alternatively, projects that use .NET SDK can set `PreserveCompilationContext` build property to `true`. Publishing such project will produce reference assemblies for the framework the project targets to a `ref` sub-directory of the `publish` directory.
+
 This approach has the benefit of stable APIs - the reference assemblies will never change, so your code will work on future versions of CoreCLR runtimes.
 
 ---
