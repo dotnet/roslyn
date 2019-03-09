@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             CompilationUnitSyntax root,
             TextLine line,
             OptionSet optionSet,
-            out SyntaxToken token,
-            CancellationToken cancellationToken)
+            out SyntaxToken token)
         {
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(root);

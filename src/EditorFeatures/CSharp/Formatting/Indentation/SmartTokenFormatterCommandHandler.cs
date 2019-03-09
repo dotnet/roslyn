@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             OptionSet options, out SyntaxToken token, CancellationToken cancellationToken)
         {
             return CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                formattingRules, (CompilationUnitSyntax)root, line, options, out token, cancellationToken);
+                formattingRules, (CompilationUnitSyntax)root, line, options, out token);
         }
 
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position)
