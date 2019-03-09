@@ -165,15 +165,15 @@
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>
     <SystemIOPipesAccessControlVersion>4.3.0</SystemIOPipesAccessControlVersion>
-    <SystemMemoryVersion>4.5.1</SystemMemoryVersion>
+    <SystemMemoryVersion>4.5.2</SystemMemoryVersion>
     <SystemReflectionMetadataVersion>1.6.0</SystemReflectionMetadataVersion>
-    <SystemRuntimeCompilerServicesUnsafeVersion>4.5.0</SystemRuntimeCompilerServicesUnsafeVersion>
+    <SystemRuntimeCompilerServicesUnsafeVersion>4.5.2</SystemRuntimeCompilerServicesUnsafeVersion>
     <SystemTextEncodingCodePagesVersion>4.5.0</SystemTextEncodingCodePagesVersion>
     <SystemTextEncodingExtensionsVersion>4.3.0</SystemTextEncodingExtensionsVersion>
     <SystemThreadingTasksDataflowVersion>4.5.24</SystemThreadingTasksDataflowVersion>
     <!-- We need System.ValueTuple assembly version at least 4.0.3.0 on net47 to make F5 work against Dev15 - see https://github.com/dotnet/roslyn/issues/29705 -->
     <SystemValueTupleVersion>4.5.0</SystemValueTupleVersion>
-    <SystemThreadingTasksExtensionsVersion>4.5.0</SystemThreadingTasksExtensionsVersion>
+    <SystemThreadingTasksExtensionsVersion>4.5.2</SystemThreadingTasksExtensionsVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
     <MicrosoftVSSDKBuildToolsVersion>15.8.68-develop-g109a00ff</MicrosoftVSSDKBuildToolsVersion>
