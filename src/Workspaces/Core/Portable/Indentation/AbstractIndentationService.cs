@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -47,12 +48,38 @@ namespace Microsoft.CodeAnalysis.Indentation
             // the next line).  If we're in the latter case, we defer to the Formatting engine
             // as we need it to use all its rules to determine where the appropriate location is
             // for the following tokens to go.
-            if (indenter.ShouldUseTokenFormatter())
+            if (indenter.ShouldUseTokenIndenter(out var token))
             {
-                return null;
+                return UseTokenIndenter(document, token, cancellationToken);
             }
 
             return indenter.GetDesiredIndentation(indentStyle);
+        }
+
+        private IndentationResult UseTokenIndenter(
+            Document document, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            var formattingRules = this.GetFormattingRules(document, currentPosition.Position);
+
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var formatter = CreateSmartTokenFormatter(documentOptions, formattingRules, root);
+            var changes = formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (changes.Count == 0)
+            {
+                return false;
+            }
+        }
+
+        protected abstract AbstractTokenIndenter CreateTokenIndenter(AbstractIndenter indenter);
+
+        protected abstract class AbstractTokenIndenter
+        {
+            public IndentationResult GetDesiredIndentation()
+            {
+
+                throw new NotImplementedException();
+            }
         }
 
         public IndentationResult GetBlankLineIndentation(
