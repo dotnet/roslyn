@@ -49,7 +49,7 @@
 
     <Error Text="Unknown OS" Condition="'$(RuntimeIdentifier)' == ''" />
 
-    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="Publish"/>
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="Publish" Properties="NoBuild=true"/>
 
     <Touch Files="$(_IlasmIncrementalBuildMarker)" AlwaysCreate="true">
       <Output TaskParameter="TouchedFiles" ItemName="FileWrites"/>
