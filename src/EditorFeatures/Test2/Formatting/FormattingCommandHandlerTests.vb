@@ -35,7 +35,10 @@ class TestClass
                 Assert.Equal("            u", state.GetLineTextFromCaretPosition())
 
                 ' Until close paren is typed.  Then, we should align the usings
-                state.SendTypeChars("sing (obj)")
+                state.SendTypeChars("sing (obj")
+                Assert.Equal("            using (obj", state.GetLineTextFromCaretPosition())
+
+                state.SendTypeChars(")")
                 Assert.Equal("        using (obj)", state.GetLineTextFromCaretPosition())
 
                 state.SendReturn()
