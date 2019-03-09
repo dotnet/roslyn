@@ -127,7 +127,7 @@ int y;
     static void Main(string[] args)
     {
         using (null)
-                using (null)$$
+            using (null)$$
     }
 }
 ";
@@ -137,12 +137,12 @@ int y;
     static void Main(string[] args)
     {
         using (null)
-        using (null)$$
+        using (null)
     }
 }
 ";
 
-            AssertFormatAfterTypeChar(expected, code);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WpfFact]
@@ -165,12 +165,12 @@ int y;
     static void Main(string[] args)
     {
         using (null)
-                for (;;)$$
+                for (;;)
     }
 }
 ";
 
-            AssertFormatAfterTypeChar(expected, code);
+            AssertFormatAfterTypeChar(code, expected);
         }
 
         [WorkItem(977133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977133")]
