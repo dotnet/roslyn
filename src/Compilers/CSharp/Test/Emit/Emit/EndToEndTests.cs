@@ -12,6 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class EndToEndTests : EmitMetadataTestBase
     {
+
+#if DEBUG
+        public static bool IsDebug => true;
+#else
+        public static bool IsDebug => false;
+#endif
+
+
         /// <summary>
         /// These tests are very sensitive to stack size hence we use a fresh thread to ensure there 
         /// is a consistent stack size for them to execute in. 
@@ -27,26 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             thread.Join();
         }
 
-
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle.
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
         [Fact]
         public void OverflowOnFluentCall()
         {
-
             int numberFluentCalls = 0;
-
-#if DEBUG
-            bool isDebug = true;
-#else
-            bool isDebug = false;
-#endif
-
             // TODO: Number of frames was reduced by 50 to pass tests. We need to return to original counts after https://github.com/dotnet/roslyn/issues/25603
             // is fixed to determine the bug here
             switch (IntPtr.Size * 8)
             {
+<<<<<<< HEAD
                 case 32 when isDebug:
                     numberFluentCalls = 510;
                     break;
@@ -58,6 +58,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                     break;
                 case 64 when !isDebug:
                     numberFluentCalls = 620;
+=======
+                case 32 when IsDebug:
+                    numberFluentCalls = 460;
+                    break;
+                case 32 when !IsDebug:
+                    numberFluentCalls = 1000;
+                    break;
+                case 64 when IsDebug:
+                    numberFluentCalls = 175;
+                    break;
+                case 64 when !IsDebug:
+                    numberFluentCalls = 570;
+>>>>>>> PR feedback
                     break;
                 default:
                     throw new Exception($"unexpected pointer size {IntPtr.Size}");
@@ -107,54 +120,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         public void DeeplyNestedGeneric()
         {
-            int nestingLevel = 500;
-            var builder = new StringBuilder();
-            builder.AppendLine(@"
+
+            int nestingLevel = (IntPtr.Size * 8) switch
+            {
+                32 when IsDebug => 500,
+                32 when !IsDebug => 500,
+                64 when IsDebug => 500,
+                64 when !IsDebug => 500,
+                _ => throw new Exception($"unexpected pointer size {IntPtr.Size}")
+            };
+
+            // Un-comment loop below and use above commands to figure out the new limits
+            for (int i = 0; i < nestingLevel; i = i + 10)
+            {
+                Console.WriteLine($"Depth: {i}");
+                runDeeplyNestedGenericTest(i);
+            }
+            runDeeplyNestedGenericTest(nestingLevel);
+
+            void runDeeplyNestedGenericTest(int nestingLevel)
+            {
+                var builder = new StringBuilder();
+                builder.AppendLine(@"
 using System;
 
 public class Test
 {
     public static int Main()
     {
-        #pragma warning disable 219
 ");
 
-            for (var i = 0; i < nestingLevel; i++)
-            {
-                if (i > 0)
+                for (var i = 0; i < nestingLevel; i++)
                 {
-                    builder.Append('.');
+                    if (i > 0)
+                    {
+                        builder.Append('.');
+                    }
+                    builder.Append($"MyStruct{i}<int>");
                 }
-                builder.Append($"MyStruct{i}<int>");
-            }
 
-            builder.AppendLine(" local;");
-            builder.AppendLine(@"
-        #pragma warning restore 219
+                builder.AppendLine(" local;");
+                builder.AppendLine(@"
         Console.WriteLine(""Pass"");
     }
 }");
 
-            genType(0);
+                generateTypeDefinition(0);
 
-            var source = builder.ToString();
+                var source = builder.ToString();
 
-            RunInThread(() =>
-            {
-                var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
-                CompileAndVerify(compilation, expectedOutput: "Pass");
-            });
-
-            void genType(int level)
-            {
-                if (level >= nestingLevel)
+                RunInThread(() =>
                 {
-                    return;
-                }
+                    var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+                    CompileAndVerify(compilation, expectedOutput: "Pass");
+                });
 
-                builder.AppendLine($"public struct MyStruct{level}<T{level}> {{");
-                genType(level + 1);
-                builder.AppendLine("}");
+                void generateTypeDefinition(int level)
+                {
+                    if (level >= nestingLevel)
+                    {
+                        return;
+                    }
+
+                    builder.AppendLine($"public struct MyStruct{level}<T{level}> {{");
+                    generateTypeDefinition(level + 1);
+                    builder.AppendLine("}");
+                }
             }
         }
     }

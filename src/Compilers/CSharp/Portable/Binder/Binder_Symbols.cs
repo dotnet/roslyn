@@ -348,8 +348,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Bind the syntax into a namespace, type or alias symbol. 
         /// </summary>
         /// <remarks>
-        /// This method is used in deeply recursive parts of the compiler. Specifically this and <see cref="BindQualifiedName(ExpressionSyntax, SimpleNameSyntax, DiagnosticBag, ConsList{TypeSymbol}, bool)"/>
-        /// are mutually recursive. The non-recursive parts of this method tend to reserve siginficantly large 
+        /// This method is used in deeply recursive parts of the compiler. Specifically this and
+        /// <see cref="BindQualifiedName(ExpressionSyntax, SimpleNameSyntax, DiagnosticBag, ConsList{TypeSymbol}, bool)"/>
+        /// are mutually recursive. The non-recursive parts of this method tend to reserve significantly large 
         /// stack frames due to their use of large struct like <see cref="TypeSymbolWithAnnotations"/>.
         ///
         /// To keep the stack frame size on recursive paths small the non-recursive parts are factored into local 
