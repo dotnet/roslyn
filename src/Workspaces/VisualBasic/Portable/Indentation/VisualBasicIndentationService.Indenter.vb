@@ -24,9 +24,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 MyBase.New(syntaxFacts, syntaxTree, rules, optionSet, line, cancellationToken)
             End Sub
 
-            Public Overrides Function ShouldUseTokenIndenter() As Boolean
+            Public Overrides Function ShouldUseTokenIndenter(ByRef token As SyntaxToken) As Boolean
                 Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Rules, DirectCast(Root, CompilationUnitSyntax), LineToBeIndented, OptionSet, Nothing, CancellationToken)
+                    Rules, DirectCast(Root, CompilationUnitSyntax), LineToBeIndented, OptionSet, token, CancellationToken)
             End Function
 
             Protected Overrides Function GetDesiredIndentationWorker(

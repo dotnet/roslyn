@@ -50,39 +50,30 @@ namespace Microsoft.CodeAnalysis.Indentation
             // for the following tokens to go.
             if (indenter.ShouldUseTokenIndenter(out var token))
             {
-                return UseTokenIndenter(document, token, cancellationToken);
+                return null; // UseTokenIndenter(document, token, cancellationToken);
             }
 
             return indenter.GetDesiredIndentation(indentStyle);
         }
 
-        private IndentationResult UseTokenIndenter(
-            Document document, SyntaxToken token, CancellationToken cancellationToken)
-        {
-            var formattingRules = this.GetFormattingRules(document, currentPosition.Position);
+        //private IndentationResult UseTokenIndenter(
+        //    Document document, SyntaxToken token, CancellationToken cancellationToken)
+        //{
+        //    var formattingRules = this.GetFormattingRules(document, currentPosition.Position);
 
-            var root = document.GetSyntaxRootSynchronously(cancellationToken);
-            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var formatter = CreateSmartTokenFormatter(documentOptions, formattingRules, root);
-            var changes = formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (changes.Count == 0)
-            {
-                return false;
-            }
-        }
+        //    var root = document.GetSyntaxRootSynchronously(cancellationToken);
+        //    var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+        //    var formatter = CreateSmartTokenFormatter(documentOptions, formattingRules, root);
+        //    var changes = formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).WaitAndGetResult(cancellationToken);
+        //    if (changes.Count == 0)
+        //    {
+        //        return false;
+        //    }
+        //}
 
-        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root);
+        //protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root);
 
-        protected abstract AbstractTokenIndenter CreateTokenIndenter(AbstractIndenter indenter);
-
-        protected abstract class AbstractTokenIndenter
-        {
-            public IndentationResult GetDesiredIndentation()
-            {
-
-                throw new NotImplementedException();
-            }
-        }
+        // protected abstract AbstractTokenIndenter CreateTokenIndenter(AbstractIndenter indenter);
 
         public IndentationResult GetBlankLineIndentation(
             Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)

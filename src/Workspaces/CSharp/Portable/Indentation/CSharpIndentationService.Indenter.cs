@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             {
             }
 
-            public override bool ShouldUseTokenIndenter()
+            public override bool ShouldUseTokenIndenter(out SyntaxToken syntaxToken)
                 => ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Rules, Root, LineToBeIndented, OptionSet, out _, CancellationToken);
+                    Rules, Root, LineToBeIndented, OptionSet, out syntaxToken, CancellationToken);
 
             protected override IndentationResult GetDesiredIndentationWorker(
                 SyntaxToken token, TextLine previousLine, int lastNonWhitespacePosition)
