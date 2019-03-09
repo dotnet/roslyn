@@ -75,11 +75,6 @@ namespace Microsoft.CodeAnalysis.Indentation
                     return new IndentationResult(basePosition: 0, offset: 0);
                 }
 
-                if (this.TryGetSmartTokenIndentation(out var indentationResult))
-                {
-                    return indentationResult;
-                }
-
                 // find previous line that is not blank.  this will skip over things like preprocessor
                 // regions and inactive code.
                 var previousLineOpt = GetPreviousNonBlankOrPreprocessorLine();
@@ -120,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                     token, previousNonWhitespaceOrPreprocessorLine, lastNonWhitespacePosition);
             }
 
-            private bool TryGetSmartTokenIndentation(out IndentationResult indentationResult)
+            public bool TryGetSmartTokenIndentation(out IndentationResult indentationResult)
             {
                 indentationResult = default;
                 if (!ShouldUseTokenIndenter(out var token))

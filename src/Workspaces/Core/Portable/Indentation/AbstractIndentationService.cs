@@ -40,6 +40,12 @@ namespace Microsoft.CodeAnalysis.Indentation
                 return new IndentationResult(basePosition: 0, offset: 0);
             }
 
+            if (indentStyle == FormattingOptions.IndentStyle.Smart &&
+                indenter.TryGetSmartTokenIndentation(out var indentationResult))
+            {
+                return indentationResult;
+            }
+
             return indenter.GetDesiredIndentation(indentStyle);
         }
 
