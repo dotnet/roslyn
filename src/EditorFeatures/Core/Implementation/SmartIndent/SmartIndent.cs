@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 var newService = document.GetLanguageService<NewIndentationService>();
                 if (newService != null)
                 {
-                    var result = newService.GetDesiredIndentation(document, lineToBeIndented.LineNumber, cancellationToken);
+                    var result = newService.GetIndentation(document, lineToBeIndented.LineNumber, cancellationToken);
                     return result.GetIndentation(_textView, lineToBeIndented);
                 }
 

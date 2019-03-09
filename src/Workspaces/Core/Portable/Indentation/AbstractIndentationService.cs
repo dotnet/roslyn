@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             return formattingRules;
         }
 
-        public IndentationResult GetDesiredIndentation(
+        public IndentationResult GetIndentation(
             Document document, int lineNumber,
             FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
         {

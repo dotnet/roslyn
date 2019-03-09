@@ -45,21 +45,21 @@ namespace Microsoft.CodeAnalysis.Indentation
         /// <summary>
         /// Determines the desired indentation of a given line.
         /// </summary>
-        IndentationResult GetDesiredIndentation(
+        IndentationResult GetIndentation(
             Document document, int lineNumber,
             FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken);
     }
 
     internal static class IIndentationServiceExtensions
     {
-        public static IndentationResult GetDesiredIndentation(
+        public static IndentationResult GetIndentation(
             this IIndentationService service, Document document,
             int lineNumber, CancellationToken cancellationToken)
         {
             var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             var style = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
 
-            return service.GetDesiredIndentation(document, lineNumber, style, cancellationToken);
+            return service.GetIndentation(document, lineNumber, style, cancellationToken);
         }
     }
 }
