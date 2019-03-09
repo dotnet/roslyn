@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.Indentation
             }
         }
 
+        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root);
+
         protected abstract AbstractTokenIndenter CreateTokenIndenter(AbstractIndenter indenter);
 
         protected abstract class AbstractTokenIndenter
