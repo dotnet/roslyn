@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Visit the given type and, in the case of compound types, visit all "sub type".
         /// One of the predicates will be invoked at each type. If the type is a
-        /// TypeSymbolWithAnnotations, <paramref name="typeWithAnnotationsPredicateOpt"/>
+        /// TypeWithAnnotations, <paramref name="typeWithAnnotationsPredicateOpt"/>
         /// will be invoked; otherwise <paramref name="typePredicateOpt"/> will be invoked.
         /// If the corresponding predicate returns true for any type,
         /// traversal stops and that type is returned from this method. Otherwise if traversal

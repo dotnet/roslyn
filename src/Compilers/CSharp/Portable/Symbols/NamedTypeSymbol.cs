@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(params TypeSymbol[] typeArguments)
         {
-            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass TypeSymbolWithAnnotations[] instead of TypeSymbol[].
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass TypeWithAnnotations[] instead of TypeSymbol[].
             return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false);
         }
 
@@ -968,7 +968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parameters in the type.</param>
         public NamedTypeSymbol Construct(ImmutableArray<TypeSymbol> typeArguments)
         {
-            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass ImmutableArray<TypeSymbolWithAnnotations> instead of ImmutableArray<TypeSymbol>.
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass ImmutableArray<TypeWithAnnotations> instead of ImmutableArray<TypeSymbol>.
             return ConstructWithoutModifiers(typeArguments, false);
         }
 
@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="typeArguments"></param>
         public NamedTypeSymbol Construct(IEnumerable<TypeSymbol> typeArguments)
         {
-            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass IEnumerable<TypeSymbolWithAnnotations> instead of IEnumerable<TypeSymbol>.
+            // https://github.com/dotnet/roslyn/issues/30064: We should fix the callers to pass IEnumerable<TypeWithAnnotations> instead of IEnumerable<TypeSymbol>.
             return ConstructWithoutModifiers(typeArguments.AsImmutableOrNull(), false);
         }
 

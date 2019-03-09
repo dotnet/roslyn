@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TypeWithAnnotations> builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             foreach (var type in types)
             {
-                builder.Add(type.ToTypeSymbolWithAnnotations());
+                builder.Add(type.ToTypeWithAnnotations());
             }
             var result = GetNullableAnnotation(builder);
             builder.Free();

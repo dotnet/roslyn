@@ -1116,7 +1116,7 @@ IL_0010:  ret
                     out error,
                     testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtTypeWithAnnotations.SpecialType);
                 methodData.VerifyIL(
     @"{
   // Code size       17 (0x11)
@@ -1156,7 +1156,7 @@ IL_0010:  ret
                     out error,
                     testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Char, ((PointerTypeSymbol)methodData.Method.ReturnType).PointedAtTypeWithAnnotations.SpecialType);
                 methodData.VerifyIL(
     @"{
   // Code size       21 (0x15)

@@ -242,7 +242,7 @@ enum E
         private static void AssertIsIntPtrPointer(ITypeSymbol returnType)
         {
             Assert.Equal(TypeKind.Pointer, returnType.TypeKind);
-            Assert.Equal(SpecialType.System_IntPtr, ((PointerTypeSymbol)returnType).PointedAtType.SpecialType);
+            Assert.Equal(SpecialType.System_IntPtr, ((PointerTypeSymbol)returnType).PointedAtTypeWithAnnotations.SpecialType);
         }
     }
 }

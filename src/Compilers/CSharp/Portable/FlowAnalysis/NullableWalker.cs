@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get => _visitResult.RValueType;
             set
             {
-                SetResult(resultType: value, lvalueType: value.ToTypeSymbolWithAnnotations());
+                SetResult(resultType: value, lvalueType: value.ToTypeWithAnnotations());
             }
         }
 
@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // No variable declared for discard (`i is var _`)
                         if ((object)variable != null)
                         {
-                            var variableType = expressionResultType.ToTypeSymbolWithAnnotations();
+                            var variableType = expressionResultType.ToTypeWithAnnotations();
                             _variableTypes[variable] = variableType;
                             TrackNullableStateForAssignment(expression, variableType, GetOrCreateSlot(variable), expressionResultType);
                         }
@@ -1203,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = VisitRvalueWithState(expr);
                 if (_returnTypesOpt != null)
                 {
-                    _returnTypesOpt.Add((node, result.ToTypeSymbolWithAnnotations()));
+                    _returnTypesOpt.Add((node, result.ToTypeWithAnnotations()));
                 }
             }
 
@@ -1304,7 +1304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         valueType = type.ToTypeWithState();
                     }
 
-                    type = valueType.ToTypeSymbolWithAnnotations();
+                    type = valueType.ToTypeWithAnnotations();
                     _variableTypes[local] = type;
                 }
             }
@@ -1326,7 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)resultType.Type != _invalidType.Type);
             Debug.Assert(AreCloseEnough(resultType.Type, node.Type));
 #endif
-            _callbackOpt?.Invoke(node, resultType.ToTypeSymbolWithAnnotations());
+            _callbackOpt?.Invoke(node, resultType.ToTypeWithAnnotations());
 
             if (node.IsSuppressed || node.HasAnyErrors || !wasReachable)
             {
@@ -1554,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argumentTypes = arguments.SelectAsArray((arg, self) =>
                 self.VisitRvalueWithState(arg), this);
             var argumentsWithAnnotations = argumentTypes.SelectAsArray((arg, self) =>
-                arg.ToTypeSymbolWithAnnotations(), this);
+                arg.ToTypeWithAnnotations(), this);
 
             if (argumentsWithAnnotations.All(argType => argType.HasType))
             {
@@ -1622,7 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressions[i], resultTypes[i].ToTypeSymbolWithAnnotations()));
+                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressions[i], resultTypes[i].ToTypeWithAnnotations()));
             }
             var placeholders = placeholderBuilder.ToImmutableAndFree();
 
@@ -1715,7 +1715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion conversion = conversionsWithoutNullability.ClassifyConversionFromExpression(placeholder, bestType, ref useSiteDiagnostics);
                     resultTypes[i] = walker.ApplyConversion(placeholder, placeholder, conversion, bestTypeWithObliviousAnnotation, resultTypes[i].ToTypeWithState(),
                         checkConversion: false, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Return,
-                        reportRemainingWarnings: false, reportTopLevelWarnings: false).ToTypeSymbolWithAnnotations();
+                        reportRemainingWarnings: false, reportTopLevelWarnings: false).ToTypeWithAnnotations();
                 }
 
                 // Set top-level nullability on inferred type
@@ -2345,7 +2345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
                         AssignmentKind.Assignment,
-                        reportTopLevelWarnings: false).ToTypeSymbolWithAnnotations();
+                        reportTopLevelWarnings: false).ToTypeWithAnnotations();
                 }
 
                 if (!isConstantTrue)
@@ -2360,7 +2360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         fromExplicitCast: false,
                         useLegacyWarnings: false,
                         AssignmentKind.Assignment,
-                        reportTopLevelWarnings: false).ToTypeSymbolWithAnnotations();
+                        reportTopLevelWarnings: false).ToTypeWithAnnotations();
                 }
 
                 if (!convertedAlternativeResult.HasType)
@@ -2434,7 +2434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ResultType = ResultType.WithNotNullState();
                     }
 
-                    resultWithAnnotation = ResultType.ToTypeSymbolWithAnnotations();
+                    resultWithAnnotation = ResultType.ToTypeWithAnnotations();
                 }
 
                 return (operand, conversion, resultWithAnnotation);
@@ -3189,7 +3189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var argumentResult = argumentResults[i].LValueType;
                 if (!argumentResult.HasType)
-                    argumentResult = argumentResults[i].RValueType.ToTypeSymbolWithAnnotations();
+                    argumentResult = argumentResults[i].RValueType.ToTypeWithAnnotations();
                 builder.Add(getArgumentForMethodTypeInference(arguments[i], argumentResult));
             }
             return builder.ToImmutableAndFree();
@@ -3594,7 +3594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var arguments = node.Arguments;
             ImmutableArray<TypeWithState> elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalueWithState(a), this);
-            ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations = elementTypes.SelectAsArray(a => a.ToTypeSymbolWithAnnotations());
+            ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations = elementTypes.SelectAsArray(a => a.ToTypeWithAnnotations());
             var tupleOpt = (TupleTypeSymbol)node.Type;
             if (tupleOpt is null)
             {
@@ -4582,7 +4582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultOfIncrementType = incrementOperator.ReturnTypeWithAnnotations.ToTypeWithState();
                 }
 
-                var operandTypeWithAnnotations = operandType.ToTypeSymbolWithAnnotations();
+                var operandTypeWithAnnotations = operandType.ToTypeWithAnnotations();
                 resultOfIncrementType = ApplyConversion(
                     node,
                     node,

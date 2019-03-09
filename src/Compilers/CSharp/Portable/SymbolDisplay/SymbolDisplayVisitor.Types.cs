@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor
     {
-        private void VisitTypeSymbolWithAnnotations(TypeWithAnnotations type, AbstractSymbolDisplayVisitor visitorOpt = null)
+        private void VisitTypeWithAnnotations(TypeWithAnnotations type, AbstractSymbolDisplayVisitor visitorOpt = null)
         {
             var visitor = visitorOpt ?? this.NotFirstVisitor;
             var typeSymbol = type.Type;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (underlyingTypeWithAnnotations.HasType)
             {
-                VisitTypeSymbolWithAnnotations(underlyingTypeWithAnnotations);
+                VisitTypeWithAnnotations(underlyingTypeWithAnnotations);
             }
             else
             {
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitTypeSymbolWithAnnotations(pointer.PointedAtTypeWithAnnotations);
+                VisitTypeWithAnnotations(pointer.PointedAtTypeWithAnnotations);
             }
 
             if (!this.isFirstSymbolVisited)
@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        VisitTypeSymbolWithAnnotations(typeArgumentsWithAnnotations.GetValueOrDefault()[i], visitor);
+                        VisitTypeWithAnnotations(typeArgumentsWithAnnotations.GetValueOrDefault()[i], visitor);
                     }
 
                     if (!modifiers.IsDefault)
@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (annotatedConstraints.HasValue)
                                 {
-                                    VisitTypeSymbolWithAnnotations(annotatedConstraints.GetValueOrDefault()[i], this.NotFirstVisitor);
+                                    VisitTypeWithAnnotations(annotatedConstraints.GetValueOrDefault()[i], this.NotFirstVisitor);
                                 }
                                 else
                                 {

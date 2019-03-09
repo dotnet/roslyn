@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal readonly struct TypeWithAnnotations : IFormattable
     {
         /// <summary>
-        /// A builder for lazy instances of TypeSymbolWithAnnotations.
+        /// A builder for lazy instances of TypeWithAnnotations.
         /// </summary>
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         internal struct Builder
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             /// returned true; and IsNull will return true until all fields are initialized.
             /// This method does not guarantee that all fields will be set by the same
             /// caller. Instead, the expectation is that all callers will attempt to initialize
-            /// the builder with equivalent TypeSymbolWithAnnotations instances where
+            /// the builder with equivalent TypeWithAnnotations instances where
             /// different fields of the builder may be assigned from different instances.
             /// </remarks>
             internal bool InterlockedInitialize(TypeWithAnnotations type)
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             /// <summary>
-            /// Create immutable TypeSymbolWithAnnotations instance.
+            /// Create immutable TypeWithAnnotations instance.
             /// </summary>
             internal TypeWithAnnotations ToType()
             {
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Additional data or behavior beyond the core TypeSymbolWithAnnotations.
+        /// Additional data or behavior beyond the core TypeWithAnnotations.
         /// </summary>
         private abstract class Extensions
         {

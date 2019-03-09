@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var local = symbol as LocalSymbol;
                 if ((object)local != null)
                 {
-                    VisitTypeSymbolWithAnnotations(local.TypeWithAnnotations);
+                    VisitTypeWithAnnotations(local.TypeWithAnnotations);
                 }
                 else
                 {

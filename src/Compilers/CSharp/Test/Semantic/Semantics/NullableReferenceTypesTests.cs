@@ -60114,7 +60114,7 @@ class Program
 
         [WorkItem(29049, "https://github.com/dotnet/roslyn/issues/29049")]
         [Fact]
-        public void TypeSymbolWithAnnotations_GetHashCode()
+        public void TypeWithAnnotations_GetHashCode()
         {
             var source =
 @"interface I<T> { }

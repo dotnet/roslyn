@@ -1576,7 +1576,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion Abstract base type checks
 
-        [Obsolete("Use TypeSymbolWithAnnotations.Is method.", true)]
+        [Obsolete("Use TypeWithAnnotations.Is method.", true)]
         internal bool Equals(TypeWithAnnotations other)
         {
             throw ExceptionUtilities.Unreachable;

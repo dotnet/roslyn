@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public void Deconstruct(out TypeSymbol type, out NullableFlowState state) => (type, state) = (Type, State);
         public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
         public TypeWithState WithNotNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
-        public TypeWithAnnotations ToTypeSymbolWithAnnotations()
+        public TypeWithAnnotations ToTypeWithAnnotations()
         {
             NullableAnnotation annotation = this.State.IsNotNull() || Type?.CanContainNull() == false || Type?.IsTypeParameterDisallowingAnnotation() == true
                 ? NullableAnnotation.NotAnnotated : NullableAnnotation.Annotated;

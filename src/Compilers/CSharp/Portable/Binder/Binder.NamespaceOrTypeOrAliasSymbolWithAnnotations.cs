@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(typeWithAnnotations.HasType);
                 _typeWithAnnotations = typeWithAnnotations;
                 _symbol = null;
-                _isNullableEnabled = false; // Not meaningful for a TypeSymbolWithAnnotations, it already baked the fact into its content.
+                _isNullableEnabled = false; // Not meaningful for a TypeWithAnnotations, it already baked the fact into its content.
             }
 
             private NamespaceOrTypeOrAliasSymbolWithAnnotations(Symbol symbol, bool isNullableEnabled)
