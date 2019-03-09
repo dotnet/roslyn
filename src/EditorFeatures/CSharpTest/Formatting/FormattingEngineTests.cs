@@ -86,7 +86,7 @@ int y;
 }
 ";
 
-            AssertFormatWithPaste(expected, code, allowDocumentChanges: true);
+            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true);
         }
 
         [WpfFact]
@@ -114,7 +114,7 @@ int y;
 }
 ";
 
-            AssertFormatWithPaste(expected, code, allowDocumentChanges: false);
+            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: false);
         }
 
         [WpfFact]
@@ -137,12 +137,12 @@ int y;
     static void Main(string[] args)
     {
         using (null)
-        using (null)
+        using (null)$$
     }
 }
 ";
 
-            AssertFormatAfterTypeChar(code, expected);
+            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
         [WpfFact]
@@ -165,12 +165,12 @@ int y;
     static void Main(string[] args)
     {
         using (null)
-                for (;;)
+                for (;;)$$
     }
 }
 ";
 
-            AssertFormatAfterTypeChar(code, expected);
+            AssertFormatWithPasteOrReturn(expected, code, allowDocumentChanges: true, isPaste: false);
         }
 
         [WorkItem(977133, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/977133")]
