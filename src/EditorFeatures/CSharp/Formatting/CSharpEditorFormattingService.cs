@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(document, tokenBeforeCaret)).Concat(Formatter.GetDefaultFormattingRules(document));
+            return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(tokenBeforeCaret)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
         public Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return changes;
         }
 
-        private IEnumerable<AbstractFormattingRule> GetTypingRules(Document document, SyntaxToken tokenBeforeCaret)
+        private IEnumerable<AbstractFormattingRule> GetTypingRules(SyntaxToken tokenBeforeCaret)
         {
             // Typing introduces several challenges around formatting.  
             // Historically we've shipped several triggers that cause formatting to happen directly while typing.
