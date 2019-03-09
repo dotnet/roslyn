@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Indentation
     {
         protected abstract AbstractFormattingRule GetSpecializedIndentationFormattingRule();
 
+        protected abstract IEnumerable<AbstractFormattingRule> GetTokenFormattingRules(Document document, int position);
+
         private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position)
         {
             var workspace = document.Project.Solution.Workspace;
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             return formattingRules;
         }
 
-        public virtual IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
+        public IndentationResult? GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
         {
             var indenter = GetIndenter(document, lineNumber, cancellationToken);
 
@@ -50,30 +52,34 @@ namespace Microsoft.CodeAnalysis.Indentation
             // for the following tokens to go.
             if (indenter.ShouldUseTokenIndenter(out var token))
             {
-                return null; // UseTokenIndenter(document, token, cancellationToken);
+                return UseTokenIndenter(document, lineNumber, token, cancellationToken);
             }
 
             return indenter.GetDesiredIndentation(indentStyle);
         }
 
-        //private IndentationResult UseTokenIndenter(
-        //    Document document, SyntaxToken token, CancellationToken cancellationToken)
-        //{
-        //    var formattingRules = this.GetFormattingRules(document, currentPosition.Position);
+        private IndentationResult UseTokenIndenter(
+            Document document, int lineNumber, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var sourceText = root.SyntaxTree.GetText(cancellationToken);
+            var lineToBeIndented = sourceText.Lines[lineNumber];
 
-        //    var root = document.GetSyntaxRootSynchronously(cancellationToken);
-        //    var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-        //    var formatter = CreateSmartTokenFormatter(documentOptions, formattingRules, root);
-        //    var changes = formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).WaitAndGetResult(cancellationToken);
-        //    if (changes.Count == 0)
-        //    {
-        //        return false;
-        //    }
-        //}
+            var formattingRules = this.GetTokenFormattingRules(document, lineToBeIndented.Start);
 
-        //protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root);
+            var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var formatter = CreateSmartTokenFormatter(documentOptions, formattingRules, root);
+            var changes = formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).WaitAndGetResult(cancellationToken);
+            if (changes.Count == 0)
+            {
+                var indentation = lineToBeIndented.GetFirstNonWhitespacePosition();
+                return new IndentationResult(0, indentation ?? lineToBeIndented.End);
+            }
 
-        // protected abstract AbstractTokenIndenter CreateTokenIndenter(AbstractIndenter indenter);
+            return new IndentationResult(0, lineToBeIndented.End);
+        }
+
+        protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root);
 
         public IndentationResult GetBlankLineIndentation(
             Document document, int lineNumber, FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)

@@ -106,6 +106,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                    token.IsKind(SyntaxKind.EndOfFileToken);
         }
 
+        protected override IEnumerable<AbstractFormattingRule> GetTokenFormattingRules(
+            Document document, int position)
+        {
+            var workspace = document.Project.Solution.Workspace;
+            var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+            return formattingRuleFactory.CreateRule(document, position).Concat(Formatter.GetDefaultFormattingRules(document));
+        }
+
+        protected override ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
+        {
+            return new CSharpSmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
+        }
+
         private class FormattingRule : AbstractFormattingRule
         {
             public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
