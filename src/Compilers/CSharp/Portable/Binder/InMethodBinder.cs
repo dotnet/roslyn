@@ -182,12 +182,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _iteratorInfo.ElementType;
         }
 
-        //private (TypeSymbol elementType, bool asyncInterface) GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
-        //{
-        //    (TypeSymbolWithAnnotations elementType, bool asyncInterface) = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocationNode, diagnostics);
-        //    return (elementType.TypeSymbol, asyncInterface);
-        //}
-
         // If an element type is found, we also return whether the interface is meant to be used with async.
         internal static (TypeSymbolWithAnnotations elementType, bool asyncInterface) GetIteratorElementTypeFromReturnType(CSharpCompilation compilation,
             RefKind refKind, TypeSymbolWithAnnotations returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
