@@ -88,6 +88,161 @@ namespace System
     }
 }";
 
+        [Fact, WorkItem(33289, "https://github.com/dotnet/roslyn/issues/33289")]
+        public void ConditionalReceiver()
+        {
+            var comp = CreateCompilation(@"
+public class Container<T>
+{
+    public T Field = default!;
+}
+
+class C
+{
+    static void M(string? s)
+    {
+        var x = Create(s);
+        _ = x /*T:Container<string?>?*/;
+        x?.Field.ToString(); // 1
+    }
+
+    public static Container<U>? Create<U>(U u) => new Container<U>();
+}", options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (13,11): warning CS8602: Possible dereference of a null reference.
+                //         x?.Field.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Field").WithLocation(13, 11)
+                );
+        }
+
+        [Fact, WorkItem(33289, "https://github.com/dotnet/roslyn/issues/33289")]
+        public void ConditionalReceiver_Chained()
+        {
+            var comp = CreateCompilation(@"
+public class Container<T>
+{
+    public T Field = default!;
+}
+
+class C
+{
+    static void M(string? s)
+    {
+        var x = Create(s);
+        if (x is null) return;
+        _ = x /*T:Container<string?>!*/;
+        x?.Field.ToString(); // 1
+
+        x = Create(s);
+        if (x is null) return;
+        x.Field?.ToString();
+    }
+
+    public static Container<U>? Create<U>(U u) => new Container<U>();
+}", options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (14,11): warning CS8602: Possible dereference of a null reference.
+                //         x?.Field.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Field").WithLocation(14, 11)
+                );
+        }
+
+        [Fact, WorkItem(33289, "https://github.com/dotnet/roslyn/issues/33289")]
+        public void ConditionalReceiver_Chained_Inversed()
+        {
+            var comp = CreateCompilation(@"
+public class Container<T>
+{
+    public T Field = default!;
+}
+
+class C
+{
+    static void M(string s)
+    {
+        var x = Create(s);
+        _ = x /*T:Container<string!>?*/;
+        x?.Field.ToString();
+
+        x = Create(s);
+        x.Field?.ToString(); // 1
+    }
+
+    public static Container<U>? Create<U>(U u) => new Container<U>();
+}", options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Field?.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(16, 9)
+                );
+        }
+
+        [Fact, WorkItem(33289, "https://github.com/dotnet/roslyn/issues/33289")]
+        public void ConditionalReceiver_Nested()
+        {
+            var comp = CreateCompilation(@"
+public class Container<T>
+{
+    public T Field = default!;
+}
+
+class C
+{
+    static void M(string? s1, string s2)
+    {
+        var x = Create(s1);
+        var y = Create(s2);
+        x?.Field /*1*/
+            .Extension(y?.Field.ToString());
+    }
+
+    public static Container<U>? Create<U>(U u) => new Container<U>();
+}
+public static class Extensions
+{
+    public static void Extension(this string s, object? o) => throw null!;
+}", options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (13,11): warning CS8604: Possible null reference argument for parameter 's' in 'void Extensions.Extension(string s, object? o)'.
+                //         x?.Field /*1*/
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, ".Field").WithArguments("s", "void Extensions.Extension(string s, object? o)").WithLocation(13, 11)
+                );
+        }
+
+        [Fact, WorkItem(33289, "https://github.com/dotnet/roslyn/issues/33289")]
+        public void ConditionalReceiver_MiscTypes()
+        {
+            var comp = CreateCompilation(@"
+public class Container<T>
+{
+    public T M() => default!;
+}
+class C
+{
+    static void M<T>(int i, Missing m, string s, T t)
+    {
+        Create(i)?.M().ToString();
+        Create(m)?.M().ToString();
+        Create(s)?.M().ToString();
+        Create(t)?.M().ToString(); // 1
+    }
+
+    public static Container<U>? Create<U>(U u) => new Container<U>();
+}", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,29): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void M<T>(int i, Missing m, string s, T t)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(8, 29),
+                // (13,19): warning CS8602: Possible dereference of a null reference.
+                //         Create(t)?.M().ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".M()").WithLocation(13, 19)
+                );
+        }
+
         [Fact, WorkItem(33537, "https://github.com/dotnet/roslyn/issues/33537")]
         public void SuppressOnNullLiteralInAs()
         {

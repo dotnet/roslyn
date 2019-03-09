@@ -120,6 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private VisitResult _visitResult;
 
         /// <summary>
+        /// The visit result of the receiver for the current conditional access.
+        ///
+        /// For example: A conditional invocation uses a placeholder as a receiver. By storing the
+        /// visit result from the actual receiver ahead of time, we can give this placeholder a correct result.
+        /// </summary>
+        private VisitResult _currentConditionalReceiverVisitResult;
+
+        /// <summary>
         /// The result type represents the state of the last visited expression.
         /// </summary>
         private TypeWithState ResultType
@@ -2229,6 +2237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var receiver = node.Receiver;
             var receiverType = VisitRvalueWithState(receiver);
+            _currentConditionalReceiverVisitResult = _visitResult;
 
             var receiverState = this.State.Clone();
             if (IsConstantNull(node.Receiver))
@@ -2264,6 +2273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSafetyDiagnostic(ErrorCode.WRN_ConditionalAccessMayReturnNull, node.Syntax, node.Type);
             }
 
+            _currentConditionalReceiverVisitResult = default;
             ResultType = new TypeWithState(type, resultState);
             return null;
         }
@@ -2455,11 +2465,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
         {
-            var result = base.VisitConditionalReceiver(node);
-            // https://github.com/dotnet/roslyn/issues/29956 ConditionalReceiver does not
-            // have a result type. Should this be moved to ConditionalAccess?
-            SetNotNullResult(node);
-            return result;
+            var rvalueType = _currentConditionalReceiverVisitResult.RValueType.Type;
+            if (rvalueType?.IsNullableType() == true)
+            {
+                rvalueType = rvalueType.GetNullableUnderlyingTypeWithAnnotations().TypeSymbol;
+            }
+            ResultType = new TypeWithState(rvalueType, NullableFlowState.NotNull);
+            return null;
         }
 
         public override BoundNode VisitCall(BoundCall node)
