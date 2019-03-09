@@ -2889,9 +2889,7 @@ End Class
                 Dim point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor)
 
                 TestIndentation(
-                    workspace, point.Value,
-                    expectedIndentation, expectedBlankLineIndentation,
-                    projectedDocument.GetTextView(), subjectDocument)
+                    point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument)
             End Using
         End Sub
 
