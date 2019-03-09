@@ -27,8 +27,17 @@
       <SuggestedBindingRedirects Include="Microsoft.CodeAnalysis.VisualBasic, Version=0.0.0.0, Culture=neutral, PublicKeyToken=$(PublicKeyToken)">
         <MaxVersion>$(AssemblyVersion)</MaxVersion>
       </SuggestedBindingRedirects>
+      <SuggestedBindingRedirects Include="System.Buffers, Version=0.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+        <MaxVersion>4.0.2.0</MaxVersion>
+      </SuggestedBindingRedirects>
       <SuggestedBindingRedirects Include="System.Collections.Immutable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
         <MaxVersion>1.2.3.0</MaxVersion>
+      </SuggestedBindingRedirects>
+      <SuggestedBindingRedirects Include="System.Memory, Version=0.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+        <MaxVersion>4.0.1.0</MaxVersion>
+      </SuggestedBindingRedirects>
+      <SuggestedBindingRedirects Include="System.Numerics.Vectors, Version=0.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
+        <MaxVersion>4.1.3.0</MaxVersion>
       </SuggestedBindingRedirects>
       <SuggestedBindingRedirects Include="System.Reflection.Metadata, Version=0.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
         <MaxVersion>1.4.3.0</MaxVersion>
