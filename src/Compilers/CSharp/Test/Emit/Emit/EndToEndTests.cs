@@ -1,4 +1,6 @@
-﻿using Roslyn.Test.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Roslyn.Test.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,12 +29,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         /// <param name="action"></param>
         private static void RunInThread(Action action)
         {
+            Exception exception = null;
             var thread = new System.Threading.Thread(() =>
             {
-                action();
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    exception = ex;
+                }
             }, 0);
+
             thread.Start();
             thread.Join();
+
+            if (!(exception is null))
+            {
+                throw exception;
+            }
         }
 
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
@@ -106,18 +122,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         public void DeeplyNestedGeneric()
         {
-
             int nestingLevel = (IntPtr.Size * 8) switch
             {
-                32 when IsDebug => 500,
-                32 when !IsDebug => 500,
-                64 when IsDebug => 500,
-                64 when !IsDebug => 500,
+                32 when IsDebug => 100,
+                32 when !IsDebug => 100,
+                64 when IsDebug => 100,
+                64 when !IsDebug => 100,
                 _ => throw new Exception($"unexpected pointer size {IntPtr.Size}")
             };
 
             // Un-comment loop below and use above commands to figure out the new limits
-            for (int i = 0; i < nestingLevel; i = i + 10)
+            Console.WriteLine($"{IsDebug} {IntPtr.Size}");
+            for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
             {
                 Console.WriteLine($"Depth: {i}");
                 runDeeplyNestedGenericTest(i);
@@ -128,11 +144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             {
                 var builder = new StringBuilder();
                 builder.AppendLine(@"
+#pragma warning disable 168 // Unused local
 using System;
 
 public class Test
 {
-    public static int Main()
+    public static void Main(string[] args)
     {
 ");
 
@@ -151,27 +168,22 @@ public class Test
     }
 }");
 
-                generateTypeDefinition(0);
+                for (int i = 0; i < nestingLevel; i++)
+                {
+                    builder.AppendLine($"public struct MyStruct{i}<T{i}> {{");
+                }
+                for (int i = 0; i < nestingLevel; i++)
+                {
+                    builder.AppendLine("}");
+                }
 
                 var source = builder.ToString();
-
                 RunInThread(() =>
                 {
                     var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+                    compilation.VerifyDiagnostics();
                     CompileAndVerify(compilation, expectedOutput: "Pass");
                 });
-
-                void generateTypeDefinition(int level)
-                {
-                    if (level >= nestingLevel)
-                    {
-                        return;
-                    }
-
-                    builder.AppendLine($"public struct MyStruct{level}<T{level}> {{");
-                    generateTypeDefinition(level + 1);
-                    builder.AppendLine("}");
-                }
             }
         }
     }
