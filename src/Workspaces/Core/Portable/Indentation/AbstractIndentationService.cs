@@ -78,7 +78,9 @@ namespace Microsoft.CodeAnalysis.Indentation
                 var offset = updatedLine.GetFirstNonWhitespaceOffset();
                 if (offset != null)
                 {
-                    return new IndentationResult(basePosition: 0, offset.Value);
+                    return new IndentationResult(
+                        basePosition: lineToBeIndented.Start, 
+                        offset: offset.Value);
                 }
             }
 
