@@ -6,10 +6,28 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class EndToEndTests : EmitMetadataTestBase
     {
+        /// <summary>
+        /// These tests are very sensitive to stack size hence we use a fresh thread to ensure there 
+        /// is a consistent stack size for them to execute in. 
+        /// </summary>
+        /// <param name="action"></param>
+        private static void RunInThread(Action action)
+        {
+            var thread = new System.Threading.Thread(() =>
+            {
+                action();
+            }, 0);
+            thread.Start();
+            thread.Join();
+        }
+
+
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle.
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
@@ -75,16 +93,68 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 }");
 
                 var source = builder.ToString();
-
-                var thread = new System.Threading.Thread(() =>
+                RunInThread(() =>
                 {
                     var options = new CSharpCompilationOptions(outputKind: OutputKind.DynamicallyLinkedLibrary, concurrentBuild: false);
                     var compilation = CreateCompilation(source, options: options);
                     compilation.VerifyDiagnostics();
                     compilation.EmitToArray();
-                }, 0);
-                thread.Start();
-                thread.Join();
+                });
+            }
+        }
+
+        [Fact]
+        [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
+        public void DeeplyNestedGeneric()
+        {
+            int nestingLevel = 500;
+            var builder = new StringBuilder();
+            builder.AppendLine(@"
+using System;
+
+public class Test
+{
+    public static int Main()
+    {
+        #pragma warning disable 219
+");
+
+            for (var i = 0; i < nestingLevel; i++)
+            {
+                if (i > 0)
+                {
+                    builder.Append('.');
+                }
+                builder.Append($"MyStruct{i}<int>");
+            }
+
+            builder.AppendLine(" local;");
+            builder.AppendLine(@"
+        #pragma warning restore 219
+        Console.WriteLine(""Pass"");
+    }
+}");
+
+            genType(0);
+
+            var source = builder.ToString();
+
+            RunInThread(() =>
+            {
+                var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+                CompileAndVerify(compilation, expectedOutput: "Pass");
+            });
+
+            void genType(int level)
+            {
+                if (level >= nestingLevel)
+                {
+                    return;
+                }
+
+                builder.AppendLine($"public struct MyStruct{level}<T{level}> {{");
+                genType(level + 1);
+                builder.AppendLine("}");
             }
         }
     }
