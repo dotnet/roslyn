@@ -78134,6 +78134,50 @@ class Program
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(S?)F").WithArguments("method", "S?").WithLocation(6, 18));
         }
 
+        [WorkItem(33174, "https://github.com/dotnet/roslyn/issues/33174")]
+        [Fact]
+        public void NullableCtor()
+        {
+            var source =
+@"
+static class Program
+{
+    static void Main()
+    {
+        int? x = null;
+
+        x.GetHashCode(); // ok
+
+        x.Extension();  // ok
+
+        x.GetType(); // warning1
+
+        int? y = null;
+        y.MemberwiseClone(); // warning2
+
+        y.Lalala(); // does not exist
+    }
+
+    static void Extension(this int? self) { }
+}
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8629: Nullable value type may be null.
+                //         x.GetType(); // warning1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "x").WithLocation(12, 9),
+                // (15,9): warning CS8629: Nullable value type may be null.
+                //         y.MemberwiseClone(); // warning2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y").WithLocation(15, 9),
+                // (15,11): error CS1540: Cannot access protected member 'object.MemberwiseClone()' via a qualifier of type 'int?'; the qualifier must be of type 'Program' (or derived from it)
+                //         y.MemberwiseClone(); // warning2
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "MemberwiseClone").WithArguments("object.MemberwiseClone()", "int?", "Program").WithLocation(15, 11),
+                // (17,11): error CS1061: 'int?' does not contain a definition for 'Lalala' and no accessible extension method 'Lalala' accepting a first argument of type 'int?' could be found (are you missing a using directive or an assembly reference?)
+                //         y.Lalala(); // does not exist
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Lalala").WithArguments("int?", "Lalala").WithLocation(17, 11)
+            );
+        }
+
         [WorkItem(33330, "https://github.com/dotnet/roslyn/issues/33330")]
         [Fact]
         public void NullableT_32()

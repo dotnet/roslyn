@@ -2504,9 +2504,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverOpt != null && node.Method.MethodKind != MethodKind.Constructor)
             {
                 receiverType = VisitRvalueWithState(receiverOpt);
+
+                // methods which are members of nullable (ex: ToString, GetHashCode) can be invoked on null receiver.
+                // However, inherited methods (ex: GetType) are invoked on a boxed value (since base types are reference types)
+                // and therefore in those cases nullable receivers should be checked for nullness.
+                bool checkNullableValueType = false;
+
+                var type = receiverType.Type;
+                var method = node.Method;
+                if (!method.IsStatic && 
+                    type?.IsNullableType() == true &&
+                    method.ContainingType.IsReferenceType)
+                {
+                    checkNullableValueType = true;
+                }
+
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.
-                CheckPossibleNullReceiver(receiverOpt);
+                CheckPossibleNullReceiver(receiverOpt, checkNullableValueType);
             }
 
             return receiverType;
