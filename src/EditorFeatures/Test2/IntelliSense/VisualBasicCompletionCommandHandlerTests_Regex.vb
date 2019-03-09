@@ -41,7 +41,7 @@ end class
 Imports System.Text.RegularExpressions
 class c
     sub goo()
-        Dim r = New Regex("$$")
+        dim r = New Regex("$$")
     end sub
 end class
 ]]></Document>)
@@ -61,7 +61,7 @@ end class
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("New Regex(""[^-]"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-                Await state.AssertLineTextAroundCaret("        Dim r = New Regex(""[^", "-]"")")
+                Await state.AssertLineTextAroundCaret("        dim r = New Regex(""[^", "-]"")")
             End Using
         End Function
 
