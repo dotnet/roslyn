@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                     if (offset != null)
                     {
                         indentationResult = new IndentationResult(
-                            basePosition: updatedLine.Start,
+                            basePosition: LineToBeIndented.Start,
                             offset: offset.Value);
                     }
                 }
