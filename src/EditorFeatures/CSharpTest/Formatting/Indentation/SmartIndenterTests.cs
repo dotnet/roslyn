@@ -418,7 +418,7 @@ namespace NS
             AssertSmartIndent(
                 code,
                 indentationLine: 7,
-                expectedIndentation: null,
+                expectedIndentation: 4,
                 expectedBlankLineIndentation: 8);
         }
 
