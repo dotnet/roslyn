@@ -12,8 +12,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
         Inherits AbstractGoToDefinitionService
 
         <ImportingConstructor>
-        Public Sub New(<ImportMany> streamingPresenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)), <ImportMany> symbolicNavigationServices As IEnumerable(Of Lazy(Of ISymbolicNavigationService
-        )))
+        Public Sub New(<ImportMany> streamingPresenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)),
+                       <ImportMany> symbolicNavigationServices As IEnumerable(Of Lazy(Of ISymbolicNavigationService)))
             MyBase.New(streamingPresenters, symbolicNavigationServices)
         End Sub
     End Class
