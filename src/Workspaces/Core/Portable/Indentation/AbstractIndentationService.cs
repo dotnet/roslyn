@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Indentation
             // the next line).  If we're in the latter case, we defer to the Formatting engine
             // as we need it to use all its rules to determine where the appropriate location is
             // for the following tokens to go.
-            if (indenter.ShouldUseFormatterIfAvailable())
+            if (indenter.ShouldUseTokenFormatter())
             {
                 return null;
             }

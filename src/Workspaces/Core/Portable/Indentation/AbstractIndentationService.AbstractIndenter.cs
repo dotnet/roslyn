@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                     tokenStream: null);
             }
 
-            public abstract bool ShouldUseFormatterIfAvailable();
+            public abstract bool ShouldUseTokenFormatter();
 
             public IndentationResult GetDesiredIndentation(FormattingOptions.IndentStyle indentStyle)
             {

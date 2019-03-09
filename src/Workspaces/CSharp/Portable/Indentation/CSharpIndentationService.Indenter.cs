@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             {
             }
 
-            public override bool ShouldUseFormatterIfAvailable()
+            public override bool ShouldUseTokenFormatter()
                 => ShouldUseSmartTokenFormatterInsteadOfIndenter(
                     Rules, Root, LineToBeIndented, OptionSet, out _, CancellationToken);
 
