@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         public bool SupportsFormatDocument => true;
         public bool SupportsFormatOnPaste => true;
         public bool SupportsFormatSelection => true;
-        public bool SupportsFormatOnReturn => true;
+        public bool SupportsFormatOnReturn => false;
 
         public bool SupportsFormattingOnTypedCharacter(Document document, char ch)
         {
