@@ -42,7 +42,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
 
         protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root);
 
-        protected abstract bool UseSmartTokenFormatter(SyntaxNode root, TextLine line, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet options, CancellationToken cancellationToken);
+        protected abstract bool UseSmartTokenFormatter(
+            SyntaxNode root, TextLine line, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet options,
+            out SyntaxToken token, CancellationToken cancellationToken);
+
         protected abstract bool IsInvalidToken(SyntaxToken token);
 
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position);
@@ -307,14 +310,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             var line = position.GetContainingLine().AsTextLine();
             var root = document.GetSyntaxRootSynchronously(cancellationToken);
             var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            if (!UseSmartTokenFormatter(root, line, formattingRules, options, cancellationToken))
-            {
-                return false;
-            }
-
-            var firstNonWhitespacePosition = line.GetFirstNonWhitespacePosition();
-            var token = root.FindToken(firstNonWhitespacePosition.Value);
-            if (IsInvalidToken(token))
+            if (!UseSmartTokenFormatter(
+                    root, line, formattingRules, options,
+                    out var token, cancellationToken))
             {
                 return false;
             }

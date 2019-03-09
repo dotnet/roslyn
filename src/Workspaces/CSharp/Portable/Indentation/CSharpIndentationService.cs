@@ -43,11 +43,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             CompilationUnitSyntax root,
             TextLine line,
             OptionSet optionSet,
+            out SyntaxToken token,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(formattingRules);
             Contract.ThrowIfNull(root);
 
+            token = default;
             if (!optionSet.GetOption(FormattingOptions.AutoFormattingOnReturn, LanguageNames.CSharp))
             {
                 return false;
@@ -64,7 +66,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
                 return false;
             }
 
-            var token = root.FindToken(firstNonWhitespacePosition.Value);
+            token = root.FindToken(firstNonWhitespacePosition.Value);
+            if (IsInvalidToken(token))
+            {
+                return false;
+            }
+
             if (token.IsKind(SyntaxKind.None) ||
                 token.SpanStart != firstNonWhitespacePosition)
             {
@@ -90,6 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             // We're pressing enter between two tokens, have the formatter figure out hte appropriate
             // indentation.
             return true;
+        }
+
+        private static bool IsInvalidToken(SyntaxToken token)
+        {
+            // invalid token to be formatted
+            return token.IsKind(SyntaxKind.None) ||
+                   token.IsKind(SyntaxKind.EndOfDirectiveToken) ||
+                   token.IsKind(SyntaxKind.EndOfFileToken);
         }
 
         private class FormattingRule : AbstractFormattingRule

@@ -46,6 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 root As CompilationUnitSyntax,
                 line As TextLine,
                 optionSet As OptionSet,
+                ByRef token As SyntaxToken,
                 CancellationToken As CancellationToken,
                 Optional neverUseWhenHavingMissingToken As Boolean = True) As Boolean
 
@@ -56,7 +57,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             End If
 
             ' enter on token only works when first token on line is first text on line
-            Dim token = root.FindToken(firstNonWhitespacePosition.Value)
+            token = root.FindToken(firstNonWhitespacePosition.Value)
+            If IsInvalidToken(token) Then
+                Return False
+            End If
+
             If token.Kind = SyntaxKind.None OrElse token.SpanStart <> firstNonWhitespacePosition Then
                 Return False
             End If
@@ -97,6 +102,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Dim startNode = token.Parent
 
             Dim currentNode = startNode
+            Dim localToken = token
             Do While currentNode IsNot Nothing
                 Dim operations = FormattingOperations.GetAlignTokensOperations(
                     formattingRules, currentNode, optionSet:=optionSet)
@@ -107,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
                 End If
 
                 ' make sure we have the given token as one of tokens to be aligned to the base token
-                Dim match = operations.FirstOrDefault(Function(o) o.Tokens.Contains(token))
+                Dim match = operations.FirstOrDefault(Function(o) o.Tokens.Contains(localToken))
                 If match IsNot Nothing Then
                     Return True
                 End If
@@ -117,6 +123,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
             ' no indentation operation, nothing to do for smart token formatter
             Return False
+        End Function
+
+        Private Shared Function IsInvalidToken(token As SyntaxToken) As Boolean
+            ' invalid token to be formatted
+            Return token.Kind = SyntaxKind.None OrElse
+                   token.Kind = SyntaxKind.EndOfFileToken
         End Function
     End Class
 End Namespace

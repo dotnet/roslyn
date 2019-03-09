@@ -26,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
 
             Public Overrides Function ShouldUseFormatterIfAvailable() As Boolean
                 Return ShouldUseSmartTokenFormatterInsteadOfIndenter(
-                    Rules, DirectCast(Root, CompilationUnitSyntax), LineToBeIndented, OptionSet, CancellationToken)
+                    Rules, DirectCast(Root, CompilationUnitSyntax), LineToBeIndented, OptionSet, Nothing, CancellationToken)
             End Function
 
             Protected Overrides Function GetDesiredIndentationWorker(
