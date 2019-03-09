@@ -70,13 +70,19 @@ namespace Microsoft.CodeAnalysis.Indentation
             var documentOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var formatter = CreateSmartTokenFormatter(documentOptions, formattingRules, root);
             var changes = formatter.FormatTokenAsync(document.Project.Solution.Workspace, token, cancellationToken).WaitAndGetResult(cancellationToken);
-            if (changes.Count == 0)
+
+            var updatedSourceText = sourceText.WithChanges(changes);
+            if (lineNumber < updatedSourceText.Lines.Count)
             {
-                var indentation = lineToBeIndented.GetFirstNonWhitespacePosition();
-                return new IndentationResult(0, indentation ?? lineToBeIndented.End);
+                var updatedLine = updatedSourceText.Lines[lineNumber];
+                var offset = updatedLine.GetFirstNonWhitespaceOffset();
+                if (offset != null)
+                {
+                    return new IndentationResult(basePosition: 0, offset.Value);
+                }
             }
 
-            return new IndentationResult(0, lineToBeIndented.End);
+            return default;
         }
 
         protected abstract ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root);
