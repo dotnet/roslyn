@@ -151,34 +151,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     _ => false
                 };
 
-        private static bool IsFlowAnalysisNamespace(INamespaceSymbol namespaceSymbol)
-        {
-            return GetNameParts(namespaceSymbol).SequenceEqual(
-                new[]
-                {
-                    nameof(System),
-                    nameof(System.Diagnostics),
-                    nameof(System.Diagnostics.CodeAnalysis)
-                });
-
-            static List<string> GetNameParts(INamespaceSymbol namespaceSymbol)
-            {
-                var result = new List<string>();
-                AddNameParts(namespaceSymbol, result);
-                return result;
-            }
-
-            static void AddNameParts(INamespaceSymbol namespaceSymbol, List<string> result)
-            {
-                if (namespaceSymbol is null || namespaceSymbol.IsGlobalNamespace)
-                {
-                    return;
-                }
-
-                AddNameParts(namespaceSymbol.ContainingNamespace, result);
-                result.Add(namespaceSymbol.Name);
-            }
-        }
+        private static bool IsFlowAnalysisNamespace(INamespaceSymbol namespaceSymbol) =>
+            namespaceSymbol.Name == nameof(System.Diagnostics.CodeAnalysis) &&
+            namespaceSymbol.ContainingNamespace?.Name == nameof(System.Diagnostics) &&
+            namespaceSymbol.ContainingNamespace.ContainingNamespace?.Name == nameof(System) &&
+            namespaceSymbol.ContainingNamespace.ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true;
 
         public static int GetPreferredIndex(int index, IList<bool> availableIndices, bool forward)
         {
