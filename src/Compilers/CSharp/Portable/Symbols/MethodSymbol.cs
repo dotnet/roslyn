@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal virtual TypeSymbolWithAnnotations IteratorElementType
         {
-            get { return default; }
+            get { return TypeSymbolWithAnnotations.Create(null); }
             set { throw ExceptionUtilities.Unreachable; }
         }
 

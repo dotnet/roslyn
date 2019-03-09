@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (TypeSymbolWithAnnotations elementType, bool asyncInterface) = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, elementTypeDiagnostics);
 
                 Location errorLocation = _methodSymbol.Locations[0];
-                if ((object)elementType == null)
+                if (elementType.IsDefault)
                 {
                     if (refKind != RefKind.None)
                     {
