@@ -46,31 +46,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             // is fixed to determine the bug here
             switch (IntPtr.Size * 8)
             {
-<<<<<<< HEAD
-                case 32 when isDebug:
+                case 32 when IsDebug:
                     numberFluentCalls = 510;
                     break;
-                case 32 when !isDebug:
+                case 32 when !IsDebug:
                     numberFluentCalls = 1350;
                     break;
-                case 64 when isDebug:
+                case 64 when IsDebug:
                     numberFluentCalls = 225;
                     break;
-                case 64 when !isDebug:
-                    numberFluentCalls = 620;
-=======
-                case 32 when IsDebug:
-                    numberFluentCalls = 460;
-                    break;
-                case 32 when !IsDebug:
-                    numberFluentCalls = 1000;
-                    break;
-                case 64 when IsDebug:
-                    numberFluentCalls = 175;
-                    break;
                 case 64 when !IsDebug:
-                    numberFluentCalls = 570;
->>>>>>> PR feedback
+                    numberFluentCalls = 620;
                     break;
                 default:
                     throw new Exception($"unexpected pointer size {IntPtr.Size}");
