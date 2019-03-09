@@ -58,9 +58,6 @@
     <ExpectedDependency Include="System.Runtime.CompilerServices.Unsafe" OptimizeAssemblies="lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll" />
     <ExpectedDependency Include="System.Text.Encoding.CodePages" OptimizeAssemblies="lib/netstandard2.0/System.Text.Encoding.CodePages.dll" />
     <ExpectedDependency Include="System.Numerics.Vectors"/>
-    <ExpectedDependency Include="Nerdbank.Streams"/>
-    <ExpectedDependency Include="System.IO.Pipelines"/>
-    <ExpectedDependency Include="System.ValueTuple"/>
 
     <!--
       Do not overwrite optimization data for this binary for now.
@@ -108,6 +105,9 @@
       <_Dependency Remove="Newtonsoft.Json"/>
       <_Dependency Remove="stdole"/>
       <_Dependency Remove="StreamJsonRpc"/>
+      <_Dependency Remove="Nerdbank.Streams"/>
+      <_Dependency Remove="System.IO.Pipelines"/>
+      <_Dependency Remove="System.ValueTuple"/>
       <_Dependency Remove="System.Threading.Tasks.Dataflow"/>
       <_Dependency Remove="VSLangProj"/>
       <_Dependency Remove="VSLangProj2"/>
