@@ -48,11 +48,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Return VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 formattingRules, DirectCast(root, CompilationUnitSyntax), line, options, token, cancellationToken, neverUseWhenHavingMissingToken:=False)
         End Function
-
-        Protected Overrides Function IsInvalidToken(token As SyntaxToken) As Boolean
-            ' invalid token to be formatted
-            Return token.Kind = SyntaxKind.None OrElse
-                   token.Kind = SyntaxKind.EndOfFileToken
-        End Function
     End Class
 End Namespace

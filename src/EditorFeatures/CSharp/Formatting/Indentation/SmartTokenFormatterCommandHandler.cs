@@ -55,13 +55,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
             return formattingRuleFactory.CreateRule(document, position).Concat(Formatter.GetDefaultFormattingRules(document));
         }
-
-        protected override bool IsInvalidToken(SyntaxToken token)
-        {
-            // invalid token to be formatted
-            return token.IsKind(SyntaxKind.None) ||
-                   token.IsKind(SyntaxKind.EndOfDirectiveToken) ||
-                   token.IsKind(SyntaxKind.EndOfFileToken);
-        }
     }
 }

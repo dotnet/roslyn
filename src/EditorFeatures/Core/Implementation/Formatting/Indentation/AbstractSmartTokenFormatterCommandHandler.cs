@@ -46,8 +46,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
             SyntaxNode root, TextLine line, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet options,
             out SyntaxToken token, CancellationToken cancellationToken);
 
-        protected abstract bool IsInvalidToken(SyntaxToken token);
-
         protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position);
 
         /// <returns>True if any change is made.</returns>
