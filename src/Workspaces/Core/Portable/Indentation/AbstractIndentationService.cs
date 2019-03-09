@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Indentation
                 if (offset != null)
                 {
                     return new IndentationResult(
-                        basePosition: lineToBeIndented.Start, 
+                        basePosition: lineToBeIndented.Start,
                         offset: offset.Value);
                 }
             }
