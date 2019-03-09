@@ -237,33 +237,31 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     || TryFindNonTrackedTypeHazardousUsageEvaluator(out hazardousUsageEvaluator, out propertySetInstance))
                 {
                     PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
-                    bool hasFlagged = false;
-                    bool hasMaybeFlagged = false;
+                    HazardousUsageEvaluationResult result = HazardousUsageEvaluationResult.Unflagged;
                     foreach (AbstractLocation location in pointsToAbstractValue.Locations)
                     {
                         PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
 
                         HazardousUsageEvaluationResult evaluationResult = hazardousUsageEvaluator.Evaluator(method, locationAbstractValue);
-                        if (evaluationResult == HazardousUsageEvaluationResult.Flagged)
-                        {
-                            hasFlagged = true;
-                        }
-                        else if (evaluationResult == HazardousUsageEvaluationResult.MaybeFlagged)
-                        {
-                            hasMaybeFlagged = true;
-                        }
+                        result = this.MergeHazardousUsageEvaluationResult(result, evaluationResult);
                     }
 
-                    (Location, IMethodSymbol) key = (originalOperation.Syntax.GetLocation(), method);
-                    if (hasFlagged && !hasMaybeFlagged)
+                    if (result != HazardousUsageEvaluationResult.Unflagged)
                     {
-                        this._hazardousUsageBuilder.Add(key, HazardousUsageEvaluationResult.Flagged);
+                        (Location, IMethodSymbol) key = (originalOperation.Syntax.GetLocation(), method);
+                        if (this._hazardousUsageBuilder.TryGetValue(key, out HazardousUsageEvaluationResult existingResult))
+                        {
+                            this._hazardousUsageBuilder[key] = this.MergeHazardousUsageEvaluationResult(result, existingResult);
+                        }
+                        else
+                        {
+                            this._hazardousUsageBuilder.Add(key, result);
+                        }
                     }
-                    else if ((hasFlagged || hasMaybeFlagged)
-                        && !this._hazardousUsageBuilder.ContainsKey(key))   // Keep existing value, if there is one.
-                    {
-                        this._hazardousUsageBuilder.Add(key, HazardousUsageEvaluationResult.MaybeFlagged);
-                    }
+                }
+                else
+                {
+                    this.MergeInterproceduralResults(originalOperation);
                 }
 
                 return baseValue;
@@ -297,6 +295,57 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                     }
 
                     return false;
+                }
+            }
+
+            public override PropertySetAbstractValue VisitInvocation_LocalFunction(IMethodSymbol localFunction, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, PropertySetAbstractValue defaultValue)
+            {
+                PropertySetAbstractValue baseValue = base.VisitInvocation_LocalFunction(localFunction, visitedArguments, originalOperation, defaultValue);
+                this.MergeInterproceduralResults(originalOperation);
+                return baseValue;
+            }
+
+            public override PropertySetAbstractValue VisitInvocation_Lambda(IFlowAnonymousFunctionOperation lambda, ImmutableArray<IArgumentOperation> visitedArguments, IOperation originalOperation, PropertySetAbstractValue defaultValue)
+            {
+                PropertySetAbstractValue baseValue = base.VisitInvocation_Lambda(lambda, visitedArguments, originalOperation, defaultValue);
+                this.MergeInterproceduralResults(originalOperation);
+                return baseValue;
+            }
+
+            private void MergeInterproceduralResults(IOperation originalOperation)
+            {
+                if (!this.TryGetInterproceduralAnalysisResult(originalOperation, out PropertySetAnalysisResult subResult)
+                    || subResult.HazardousUsages.IsEmpty)
+                {
+                    return;
+                }
+
+                foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp in subResult.HazardousUsages)
+                {
+                    if (this._hazardousUsageBuilder.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
+                    {
+                        this._hazardousUsageBuilder[kvp.Key] = this.MergeHazardousUsageEvaluationResult(kvp.Value, existingValue);
+                    }
+                    else
+                    {
+                        this._hazardousUsageBuilder.Add(kvp.Key, kvp.Value);
+                    }
+                }
+            }
+
+            private HazardousUsageEvaluationResult MergeHazardousUsageEvaluationResult(HazardousUsageEvaluationResult r1, HazardousUsageEvaluationResult r2)
+            {
+                if (r1 == HazardousUsageEvaluationResult.Flagged || r2 == HazardousUsageEvaluationResult.Flagged)
+                {
+                    return HazardousUsageEvaluationResult.Flagged;
+                }
+                else if (r1 == HazardousUsageEvaluationResult.MaybeFlagged || r2 == HazardousUsageEvaluationResult.MaybeFlagged)
+                {
+                    return HazardousUsageEvaluationResult.MaybeFlagged;
+                }
+                else
+                {
+                    return HazardousUsageEvaluationResult.Unflagged;
                 }
             }
 
