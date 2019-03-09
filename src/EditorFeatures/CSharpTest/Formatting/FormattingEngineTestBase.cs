@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             }
         }
 
-        protected static void AssertFormatWithPasteOrReturn(string expectedWithMarker, string codeWithMarker, bool allowDocumentChanges, bool isPaste = true)
+        protected static void AssertFormatWithPaste(string expectedWithMarker, string codeWithMarker, bool allowDocumentChanges)
         {
             using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
             {
@@ -174,19 +174,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 // get original buffer
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
-                if (isPaste)
-                {
-                    var commandHandler = workspace.GetService<FormatCommandHandler>();
-                    var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
-                    commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
-                }
-                else
-                {
-                    // Return Key Command
-                    var commandHandler = workspace.GetService<FormatCommandHandler>();
-                    var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
-                    commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
-                }
+                var commandHandler = workspace.GetService<FormatCommandHandler>();
+                var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
+                commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
 
                 MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);
 

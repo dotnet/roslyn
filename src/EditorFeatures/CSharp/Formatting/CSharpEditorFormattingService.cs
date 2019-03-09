@@ -128,50 +128,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(document, tokenBeforeCaret)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        public async Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
-        {
-            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            if (!options.GetOption(FeatureOnOffOptions.AutoFormattingOnReturn))
-            {
-                return null;
-            }
-
-            // first, find the token user just typed.
-            SyntaxToken token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
-            if (token.IsMissing)
-            {
-                return null;
-            }
-
-            var formattingRules = this.GetFormattingRules(document, caretPosition, token);
-
-            string text = null;
-            if (IsInvalidToken(token, ref text))
-            {
-                return null;
-            }
-
-            // Check to see if the token is ')' and also the parent is a using statement. If not, bail
-            if (TokenShouldNotFormatOnReturn(token))
-            {
-                return null;
-            }
-
-            // if formatting range fails, do format token one at least
-            var changes = await FormatRangeAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
-            if (changes.Count > 0)
-            {
-                return changes;
-            }
-
-            // if we can't, do normal smart indentation
-            return await FormatTokenAsync(document, token, formattingRules, cancellationToken).ConfigureAwait(false);
-        }
-
-        private static bool TokenShouldNotFormatOnReturn(SyntaxToken token)
-        {
-            return !token.IsKind(SyntaxKind.CloseParenToken) || !token.Parent.IsKind(SyntaxKind.UsingStatement);
-        }
+        public Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
+            => SpecializedTasks.Default<IList<TextChange>>();
 
         private static async Task<bool> TokenShouldNotFormatOnTypeCharAsync(
             SyntaxToken token, CancellationToken cancellationToken)
@@ -462,33 +420,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 default:
                     return true;
             }
-        }
-
-        private bool IsInvalidToken(char typedChar, SyntaxToken token)
-        {
-            string text = null;
-            if (IsInvalidToken(token, ref text))
-            {
-                return true;
-            }
-
-            return text[0] != typedChar;
-        }
-
-        private bool IsInvalidToken(SyntaxToken token, ref string text)
-        {
-            if (IsInvalidTokenKind(token))
-            {
-                return true;
-            }
-
-            text = token.ToString();
-            if (text.Length != 1)
-            {
-                return true;
-            }
-
-            return false;
         }
 
         private bool IsInvalidTokenKind(SyntaxToken token)
