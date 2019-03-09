@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var blankLineIndenter = document.GetLanguageService<Indentation.IIndentationService>();
             var indentStyle = workspace.Options.GetOption(FormattingOptions.SmartIndent, GetLanguageName());
-            var blankLineIndentResult = blankLineIndenter.GetBlankLineIndentation(
+            var blankLineIndentResult = blankLineIndenter.GetDesiredIndentation(
                 document, indentationLine, indentStyle, CancellationToken.None);
 
             var blankLineIndentation = blankLineIndentResult.GetIndentation(textView, indentationLineFromBuffer);

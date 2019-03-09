@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 var indentationService = newDocument.GetLanguageService<Indentation.IIndentationService>();
                 var originalLineNumber = SourceText.Lines.GetLineFromPosition(CursorPosition).LineNumber;
 
-                var desiredIndentation = indentationService.GetBlankLineIndentation(
+                var desiredIndentation = indentationService.GetDesiredIndentation(
                     newDocument, originalLineNumber + 1, _indentStyle, CancellationToken);
 
                 var newSourceText = newDocument.GetSyntaxRootSynchronously(CancellationToken).SyntaxTree.GetText(CancellationToken);

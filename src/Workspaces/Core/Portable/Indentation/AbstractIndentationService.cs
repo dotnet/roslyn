@@ -1,14 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -29,18 +26,20 @@ namespace Microsoft.CodeAnalysis.Indentation
             return formattingRules;
         }
 
-        public IndentationResult GetDesiredIndentation(Document document, int lineNumber, CancellationToken cancellationToken)
+        public IndentationResult GetDesiredIndentation(
+            Document document, int lineNumber,
+            FormattingOptions.IndentStyle indentStyle, CancellationToken cancellationToken)
         {
             var indenter = GetIndenter(document, lineNumber, cancellationToken);
 
-            var indentStyle = indenter.OptionSet.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
             if (indentStyle == FormattingOptions.IndentStyle.None)
             {
                 // If there is no indent style, then do nothing.
                 return new IndentationResult(basePosition: 0, offset: 0);
             }
 
-            if (indenter.TryGetSmartTokenIndentation(out var indentationResult))
+            if (indentStyle == FormattingOptions.IndentStyle.Smart &&
+                indenter.TryGetSmartTokenIndentation(out var indentationResult))
             {
                 return indentationResult;
             }

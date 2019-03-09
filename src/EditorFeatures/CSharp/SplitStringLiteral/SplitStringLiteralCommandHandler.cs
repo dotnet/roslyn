@@ -80,15 +80,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             {
                 var options = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                 var enabled = options.GetOption(SplitStringLiteralOptions.Enabled);
-                var indentStyle = options.GetOption(FormattingOptions.SmartIndent, document.Project.Language);
 
                 if (enabled)
                 {
                     using (var transaction = CaretPreservingEditTransaction.TryCreate(
                         CSharpEditorResources.Split_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        var cursorPosition = SplitStringLiteral(
-                            subjectBuffer, document, options, caret, CancellationToken.None);
+                        var cursorPosition = SplitStringLiteral(document, options, caret, CancellationToken.None);
 
                         if (cursorPosition != null)
                         {
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         }
 
         private int? SplitStringLiteral(
-            ITextBuffer subjectBuffer, Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken)
+            Document document, DocumentOptionSet options, int position, CancellationToken cancellationToken)
         {
             var useTabs = options.GetOption(FormattingOptions.UseTabs);
             var tabSize = options.GetOption(FormattingOptions.TabSize);
