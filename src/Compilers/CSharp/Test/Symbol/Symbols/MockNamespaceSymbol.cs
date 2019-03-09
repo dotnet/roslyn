@@ -97,5 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 return ImmutableArray.Create<SyntaxReference>();
             }
         }
+
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return SyntaxReferenceEnumerable.Empty;
+            }
+        }
     }
 }

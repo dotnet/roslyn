@@ -106,6 +106,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return SyntaxReferenceEnumerable.Empty;
+            }
+        }
+
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;

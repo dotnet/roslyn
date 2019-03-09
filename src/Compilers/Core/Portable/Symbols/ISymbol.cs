@@ -175,6 +175,8 @@ namespace Microsoft.CodeAnalysis
         /// </returns>
         ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get; }
 
+        SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable { get; }
+
         /// <summary>
         /// Gets the attributes for the symbol. Returns an empty <see cref="IEnumerable{ISymbolAttribute}"/>
         /// if there are no attributes.

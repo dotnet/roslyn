@@ -48,6 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+            {
+                get
+                {
+                    return SyntaxReferenceEnumerable.Empty;
+                }
+            }
+
             public override int Ordinal
             {
                 get { return _ordinal; }

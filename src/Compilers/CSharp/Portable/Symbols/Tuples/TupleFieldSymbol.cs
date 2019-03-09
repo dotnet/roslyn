@@ -181,6 +181,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                if (_isImplicitlyDeclared)
+                {
+                    return SyntaxReferenceEnumerable.Empty;
+                }
+
+                return new SyntaxReferenceEnumerable(this, (symbol, index) => DeclaringSyntaxReferenceEnumerableMoveNextHelper<CSharpSyntaxNode>(((TupleElementFieldSymbol)symbol)._locations, index));
+            }
+        }
+
         public override bool IsImplicitlyDeclared
         {
             get

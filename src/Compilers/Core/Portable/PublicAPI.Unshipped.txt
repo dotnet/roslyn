@@ -1,5 +1,6 @@
 *REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
 Microsoft.CodeAnalysis.IFieldSymbol.IsFixedSizeBuffer.get -> bool
+Microsoft.CodeAnalysis.ISymbol.DeclaringSyntaxReferencesEnumerable.get -> Microsoft.CodeAnalysis.SyntaxReferenceEnumerable
 Microsoft.CodeAnalysis.ITypeSymbol.IsRefLikeType.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsUnmanagedType.get -> bool
 Microsoft.CodeAnalysis.OperationKind.Binary = 32 -> Microsoft.CodeAnalysis.OperationKind
@@ -29,6 +30,16 @@ Microsoft.CodeAnalysis.Operations.ISwitchExpressionArmOperation.Value.get -> Mic
 Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation
 Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation.Arms.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.ISwitchExpressionArmOperation>
 Microsoft.CodeAnalysis.Operations.ISwitchExpressionOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.SyntaxReferenceEnumerable
+Microsoft.CodeAnalysis.SyntaxReferenceEnumerable.Empty.get -> Microsoft.CodeAnalysis.SyntaxReferenceEnumerable
+Microsoft.CodeAnalysis.SyntaxReferenceEnumerable.GetEnumerator() -> Microsoft.CodeAnalysis.SyntaxReferenceEnumerator
+Microsoft.CodeAnalysis.SyntaxReferenceEnumerable.SyntaxReferenceEnumerable(Microsoft.CodeAnalysis.ISymbol symbol, System.Func<Microsoft.CodeAnalysis.ISymbol, int, (int? nextIndex, Microsoft.CodeAnalysis.SyntaxReference syntaxReference)> moveNext) -> void
+Microsoft.CodeAnalysis.SyntaxReferenceEnumerator
+Microsoft.CodeAnalysis.SyntaxReferenceEnumerator.Current.get -> Microsoft.CodeAnalysis.SyntaxReference
+Microsoft.CodeAnalysis.SyntaxReferenceEnumerator.Dispose() -> void
+Microsoft.CodeAnalysis.SyntaxReferenceEnumerator.MoveNext() -> bool
+Microsoft.CodeAnalysis.SyntaxReferenceEnumerator.Reset() -> void
+Microsoft.CodeAnalysis.SyntaxReferenceEnumerator.SyntaxReferenceEnumerator(Microsoft.CodeAnalysis.ISymbol symbol, System.Func<Microsoft.CodeAnalysis.ISymbol, int, (int? nextIndex, Microsoft.CodeAnalysis.SyntaxReference syntaxReference)> moveNext) -> void
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.GetSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>

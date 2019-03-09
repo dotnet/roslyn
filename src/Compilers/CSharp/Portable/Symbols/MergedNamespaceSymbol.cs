@@ -280,6 +280,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                if (_namespacesToMerge.Length == 0)
+                {
+                    return SyntaxReferenceEnumerable.Empty;
+                }
+                else if (_namespacesToMerge.Length == 1)
+                {
+                    return _namespacesToMerge[0].DeclaringSyntaxReferencesEnumerable;
+                }
+                else
+                {
+                    SyntaxReferenceEnumerator enumerator = default;
+                    return new SyntaxReferenceEnumerable(
+                        this,
+                        (symbol, index) =>
+                        {
+                            for (int namespaceIndex = index; namespaceIndex < _namespacesToMerge.Length;)
+                            {
+                                if (namespaceIndex >= 0 && enumerator.MoveNext())
+                                {
+                                    return (index, enumerator.Current);
+                                }
+
+                                namespaceIndex++;
+                                if (namespaceIndex < _namespacesToMerge.Length)
+                                {
+                                    enumerator = _namespacesToMerge[namespaceIndex].DeclaringSyntaxReferencesEnumerable.GetEnumerator();
+                                }
+                            }
+
+                            return default;
+                        });
+                }
+            }
+        }
+
         internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string name, int arity, LookupOptions options)
         {
             foreach (NamespaceSymbol namespaceSymbol in _namespacesToMerge)

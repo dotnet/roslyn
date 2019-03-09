@@ -58,6 +58,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalVariable.DeclaringSyntaxReferences; }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get { return _originalVariable.DeclaringSyntaxReferencesEnumerable; }
+        }
+
         internal override SyntaxNode GetDeclaratorSyntax()
         {
             return _originalVariable.GetDeclaratorSyntax();

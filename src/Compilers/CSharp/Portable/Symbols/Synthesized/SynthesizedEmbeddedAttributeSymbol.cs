@@ -87,6 +87,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable => SyntaxReferenceEnumerable.Empty;
+
         public override bool IsStatic => false;
 
         public override bool IsRefLikeType => false;

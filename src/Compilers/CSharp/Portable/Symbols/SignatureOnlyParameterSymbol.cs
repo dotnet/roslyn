@@ -79,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { throw ExceptionUtilities.Unreachable; } }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable { get { throw ExceptionUtilities.Unreachable; } }
+
         public override AssemblySymbol ContainingAssembly { get { throw ExceptionUtilities.Unreachable; } }
 
         internal override ModuleSymbol ContainingModule { get { throw ExceptionUtilities.Unreachable; } }

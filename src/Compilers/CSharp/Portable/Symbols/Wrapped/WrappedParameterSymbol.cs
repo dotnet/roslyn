@@ -68,6 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.DeclaringSyntaxReferences; }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get { return _underlyingParameter.DeclaringSyntaxReferencesEnumerable; }
+        }
+
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             return _underlyingParameter.GetAttributes();

@@ -59,6 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences { get { return ImmutableArray<SyntaxReference>.Empty; } }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable { get { return SyntaxReferenceEnumerable.Empty; } }
+
         public override Accessibility DeclaredAccessibility { get { return Accessibility.NotApplicable; } }
 
         public override bool IsStatic { get { return false; } }

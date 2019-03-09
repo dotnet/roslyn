@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRefs = syntaxRefs;
         }
 
-        public override ImmutableArray<Location> Locations
+        public override sealed ImmutableArray<Location> Locations
         {
             get
             {
@@ -44,11 +44,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        public override sealed ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
         {
             get
             {
                 return _syntaxRefs;
+            }
+        }
+
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return new SyntaxReferenceEnumerable(
+                    this,
+                    (symbol, index) =>
+                    {
+                        var syntaxReferences = ((SourceTypeParameterSymbolBase)symbol).DeclaringSyntaxReferences;
+                        if (index + 1 < syntaxReferences.Length)
+                        {
+                            return (index + 1, syntaxReferences[index + 1]);
+                        }
+
+                        return default;
+                    });
             }
         }
 

@@ -129,6 +129,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_syntaxOpt == null) ? ImmutableArray<SyntaxReference>.Empty : ImmutableArray.Create(_syntaxOpt.GetReference()); }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                if (_syntaxOpt is null)
+                {
+                    return SyntaxReferenceEnumerable.Empty;
+                }
+
+                return new SyntaxReferenceEnumerable(
+                    this,
+                    (symbol, index) =>
+                    {
+                        if (index != -1)
+                        {
+                            return default;
+                        }
+
+                        return (0, ((SynthesizedLocal)symbol)._syntaxOpt.GetReference());
+                    });
+            }
+        }
+
         internal override SyntaxNode GetDeclaratorSyntax()
         {
             Debug.Assert(_syntaxOpt != null);

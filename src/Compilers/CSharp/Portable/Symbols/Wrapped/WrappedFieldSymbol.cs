@@ -180,6 +180,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return _underlyingField.DeclaringSyntaxReferencesEnumerable;
+            }
+        }
+
         public override bool IsStatic
         {
             get

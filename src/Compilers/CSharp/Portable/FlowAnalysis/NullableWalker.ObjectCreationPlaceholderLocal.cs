@@ -68,6 +68,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+            {
+                get
+                {
+                    return SyntaxReferenceEnumerable.Empty;
+                }
+            }
+
             public override ImmutableArray<Location> Locations
             {
                 get

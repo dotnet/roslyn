@@ -349,6 +349,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get
+            {
+                return SyntaxReferenceEnumerable.Empty;
+            }
+        }
+
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
             if (_lazyCustomAttributes.IsDefault)

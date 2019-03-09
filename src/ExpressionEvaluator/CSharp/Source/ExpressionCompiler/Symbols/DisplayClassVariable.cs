@@ -135,6 +135,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 get { throw ExceptionUtilities.Unreachable; }
             }
 
+            public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+            {
+                get { throw ExceptionUtilities.Unreachable; }
+            }
+
             public override bool IsConst
             {
                 get { return false; }

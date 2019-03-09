@@ -95,6 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+            {
+                get
+                {
+                    return new SyntaxReferenceEnumerable(this, (symbol, index) => DeclaringSyntaxReferenceEnumerableMoveNextHelper<AnonymousObjectMemberDeclaratorSyntax>(((AnonymousTypePropertySymbol)symbol).Locations, index));
+                }
+            }
+
             public override bool IsStatic
             {
                 get { return false; }

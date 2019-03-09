@@ -110,6 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
             => ImmutableArray<SyntaxReference>.Empty;
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+            => SyntaxReferenceEnumerable.Empty;
+
         internal override bool HasRuntimeSpecialName
             => false;
 

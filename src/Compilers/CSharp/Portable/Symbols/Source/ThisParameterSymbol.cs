@@ -69,6 +69,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<SyntaxReference>.Empty; }
         }
 
+        public override SyntaxReferenceEnumerable DeclaringSyntaxReferencesEnumerable
+        {
+            get { return SyntaxReferenceEnumerable.Empty; }
+        }
+
         public override Symbol ContainingSymbol
         {
             get { return (Symbol)_containingMethod ?? _containingType; }
