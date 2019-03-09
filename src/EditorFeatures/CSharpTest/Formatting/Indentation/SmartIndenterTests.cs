@@ -115,7 +115,7 @@ class Class
             AssertSmartIndent(
                 code,
                 indentationLine: 6,
-                expectedIndentation: null,
+                expectedIndentation: 0,
                 expectedBlankLineIndentation: 0,
                 indentStyle: IndentStyle.None);
         }
@@ -418,7 +418,7 @@ namespace NS
             AssertSmartIndent(
                 code,
                 indentationLine: 7,
-                expectedIndentation: 4,
+                expectedIndentation: 8,
                 expectedBlankLineIndentation: 8);
         }
 

@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         }
 
         protected override AbstractIndenter GetIndenter(
-            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
+            Document document, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
         {
             return new Indenter(
-                syntaxFacts, syntaxTree, formattingRules,
+                document, syntaxTree, formattingRules,
                 optionSet, lineToBeIndented, cancellationToken);
         }
 
@@ -104,19 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
             return token.IsKind(SyntaxKind.None) ||
                    token.IsKind(SyntaxKind.EndOfDirectiveToken) ||
                    token.IsKind(SyntaxKind.EndOfFileToken);
-        }
-
-        protected override IEnumerable<AbstractFormattingRule> GetTokenFormattingRules(
-            Document document, int position)
-        {
-            var workspace = document.Project.Solution.Workspace;
-            var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            return formattingRuleFactory.CreateRule(document, position).Concat(Formatter.GetDefaultFormattingRules(document));
-        }
-
-        protected override ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
-        {
-            return new CSharpSmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
         }
 
         private class FormattingRule : AbstractFormattingRule

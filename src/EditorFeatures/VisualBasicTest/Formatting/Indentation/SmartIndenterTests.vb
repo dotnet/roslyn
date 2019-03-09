@@ -2482,7 +2482,7 @@ End Namespace
             AssertSmartIndent(
                 code,
                 indentationLine:=3,
-                expectedIndentation:=Nothing,
+                expectedIndentation:=0,
                 expectedBlankLineIndentation:=0,
                 indentStyle:=FormattingOptions.IndentStyle.None)
         End Sub

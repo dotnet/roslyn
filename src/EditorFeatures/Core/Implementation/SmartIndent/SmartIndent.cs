@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 if (newService != null)
                 {
                     var result = newService.GetDesiredIndentation(document, lineToBeIndented.LineNumber, cancellationToken);
-                    return result?.GetIndentation(_textView, lineToBeIndented);
+                    return result.GetIndentation(_textView, lineToBeIndented);
                 }
 
                 // If we don't have a feature-layer service, try to fall back to the legacy

@@ -33,13 +33,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             Return _specializedIndentationRule
         End Function
 
-        Protected Overrides Function GetIndenter(syntaxFacts As ISyntaxFactsService,
+        Protected Overrides Function GetIndenter(document As Document,
                                                  syntaxTree As SyntaxTree,
                                                  lineToBeIndented As TextLine,
                                                  formattingRules As IEnumerable(Of AbstractFormattingRule),
                                                  optionSet As OptionSet,
                                                  cancellationToken As CancellationToken) As AbstractIndenter
-            Return New Indenter(syntaxFacts, syntaxTree, formattingRules, optionSet, lineToBeIndented, cancellationToken)
+            Return New Indenter(document, syntaxTree, formattingRules, optionSet, lineToBeIndented, cancellationToken)
         End Function
 
         Public Overloads Shared Function ShouldUseSmartTokenFormatterInsteadOfIndenter(
@@ -130,16 +130,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Indentation
             ' invalid token to be formatted
             Return token.Kind = SyntaxKind.None OrElse
                    token.Kind = SyntaxKind.EndOfFileToken
-        End Function
-
-        Protected Overrides Function GetTokenFormattingRules(document As Document, position As Integer) As IEnumerable(Of AbstractFormattingRule)
-            Dim ws = document.Project.Solution.Workspace
-            Dim formattingRuleFactory = ws.Services.GetService(Of IHostDependentFormattingRuleFactoryService)()
-            Return {New SpecialFormattingRule(), formattingRuleFactory.CreateRule(document, position)}.Concat(Formatter.GetDefaultFormattingRules(document))
-        End Function
-
-        Protected Overrides Function CreateSmartTokenFormatter(optionSet As OptionSet, formattingRules As IEnumerable(Of AbstractFormattingRule), root As SyntaxNode) As ISmartTokenFormatter
-            Return New VisualBasicSmartTokenFormatter(optionSet, formattingRules, DirectCast(root, CompilationUnitSyntax))
         End Function
     End Class
 End Namespace
