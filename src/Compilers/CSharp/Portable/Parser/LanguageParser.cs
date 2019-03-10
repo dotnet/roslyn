@@ -6194,7 +6194,7 @@ done:
                                 return false; // Permit `new (int, int)?(t)` (creation) and `new (int, int) ? x : y` (conditional)
                             return true;
                         }
-                    case SyntaxKind.AsteriskToken when type.Kind != SyntaxKind.ArrayType:
+                    case SyntaxKind.AsteriskToken:
                         switch (mode)
                         {
                             case ParseTypeMode.AfterIs:
