@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
@@ -10,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     internal class ResettableDelay
     {
         private readonly int _delayInMilliseconds;
+        private readonly INotifyBlockedOnCompletion _notifyBlockedOnCompletion;
         private readonly TaskCompletionSource<object> _taskCompletionSource;
 
         private int _lastSetTime;
@@ -21,10 +23,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         /// </summary>
         /// <param name="delayInMilliseconds">The time to delay before completing the task</param>
         /// <param name="foregroundTaskScheduler">Optional.  If used, the delay won't start until the supplied TaskScheduler schedules the delay to begin.</param>
-        public ResettableDelay(int delayInMilliseconds, TaskScheduler foregroundTaskScheduler = null)
+        public ResettableDelay(int delayInMilliseconds, INotifyBlockedOnCompletion notifyBlockedOnCompletion, TaskScheduler foregroundTaskScheduler = null)
         {
             Contract.ThrowIfFalse(delayInMilliseconds >= 50, "Perf, only use delays >= 50ms");
             _delayInMilliseconds = delayInMilliseconds;
+            _notifyBlockedOnCompletion = notifyBlockedOnCompletion;
 
             _taskCompletionSource = new TaskCompletionSource<object>();
             Reset();
@@ -52,8 +55,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             do
             {
-                // Keep delaying until at least delayInMilliseconds has elapsed since lastSetTime 
-                await Task.Delay(_delayInMilliseconds).ConfigureAwait(continueOnCapturedContext);
+                var blockedOnCompletion = _notifyBlockedOnCompletion.BlockedOnCompletion;
+                try
+                {
+                    // Keep delaying until at least delayInMilliseconds has elapsed since lastSetTime 
+                    await Task.Delay(_delayInMilliseconds, blockedOnCompletion).ConfigureAwait(continueOnCapturedContext);
+                }
+                catch (OperationCanceledException) when (blockedOnCompletion.IsCancellationRequested)
+                {
+                    break;
+                }
             }
             while (Environment.TickCount - _lastSetTime < _delayInMilliseconds);
 

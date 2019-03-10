@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
 
                     eventSource.SendUpdateEvent();
 
-                    await asyncListener.CreateWaitTask();
+                    await asyncListener.CreateWaitTask(willBlockOnCompletion: true);
 
                     var tags = tagger.GetTags(snapshotSpans);
 

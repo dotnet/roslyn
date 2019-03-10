@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         bool TrackActiveTokens { get; set; }
         ImmutableArray<AsynchronousOperationListener.DiagnosticAsyncToken> ActiveDiagnosticTokens { get; }
 
-        Task CreateWaitTask();
+        Task CreateWaitTask(bool willBlockOnCompletion);
         bool HasPendingWork { get; }
     }
 }

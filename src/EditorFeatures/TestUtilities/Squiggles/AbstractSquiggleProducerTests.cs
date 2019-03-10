@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
-                    await wrapper.WaitForTags();
+                    await wrapper.WaitForTags(willBlockOnCompletion: true);
 
                     var analyzerDiagnostics = await wrapper.AnalyzerService.GetDiagnosticsAsync(workspace.CurrentSolution);
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
                 {
                     source.RaiseDiagnosticsUpdated(updateArgs);
 
-                    await wrapper.WaitForTags();
+                    await wrapper.WaitForTags(willBlockOnCompletion: true);
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray();

@@ -38,11 +38,11 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
             if (waitForWorkspaceFirst)
             {
                 // at least wait for the workspace to finish processing everything.
-                var task = workspaceWaiter.CreateWaitTask();
+                var task = workspaceWaiter.CreateWaitTask(willBlockOnCompletion: true);
                 task.Wait(cancellationTokenSource.Token);
             }
 
-            var waitTask = featureWaiter.CreateWaitTask();
+            var waitTask = featureWaiter.CreateWaitTask(willBlockOnCompletion: true);
             WaitForTask(waitTask, cancellationTokenSource.Token);
 
             // Debugging trick: don't let the listeners collection get optimized away during execution.
@@ -60,6 +60,7 @@ namespace Roslyn.Hosting.Diagnostics.Waiters
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
         {
             var task = _provider.WaitAllAsync(
+                willBlockOnCompletion: true,
                 featureNames,
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
                 eventProcessingAction: () => Dispatcher.CurrentDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle));

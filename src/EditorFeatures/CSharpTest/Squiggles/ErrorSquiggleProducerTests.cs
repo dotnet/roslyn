@@ -178,7 +178,7 @@ class Program
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
-                    await wrapper.WaitForTags();
+                    await wrapper.WaitForTags(willBlockOnCompletion: true);
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -190,7 +190,7 @@ class Program
                     // Now remove the document.
                     workspace.CloseDocument(workspace.Documents.First().Id);
                     workspace.OnDocumentRemoved(workspace.Documents.First().Id);
-                    await wrapper.WaitForTags();
+                    await wrapper.WaitForTags(willBlockOnCompletion: true);
                     spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
                     // And we should have no errors for this document.
@@ -208,7 +208,7 @@ class Program
                 var tagger = wrapper.TaggerProvider.CreateTagger<IErrorTag>(workspace.Documents.First().GetTextBuffer());
                 using (var disposable = tagger as IDisposable)
                 {
-                    await wrapper.WaitForTags();
+                    await wrapper.WaitForTags(willBlockOnCompletion: true);
 
                     var snapshot = workspace.Documents.First().GetTextBuffer().CurrentSnapshot;
                     var spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
@@ -221,7 +221,7 @@ class Program
                     workspace.CloseDocument(workspace.Documents.First().Id);
                     workspace.OnDocumentRemoved(workspace.Documents.First().Id);
                     workspace.OnProjectRemoved(workspace.Projects.First().Id);
-                    await wrapper.WaitForTags();
+                    await wrapper.WaitForTags(willBlockOnCompletion: true);
                     spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToList();
 
                     // And we should have no errors for this document.

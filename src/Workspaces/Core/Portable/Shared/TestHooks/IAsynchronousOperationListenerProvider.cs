@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// loop, dig into the waiters and see all of the active <see cref="IAsyncToken"/> values 
         /// representing the remaining work.
         /// </remarks>
-        public async Task WaitAllAsync(string[] featureNames = null, Action eventProcessingAction = null)
+        public async Task WaitAllAsync(bool willBlockOnCompletion, string[] featureNames = null, Action eventProcessingAction = null)
         {
             var smallTimeout = TimeSpan.FromMilliseconds(10);
 
@@ -130,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             while (true)
             {
                 var waiters = GetCandidateWaiters(featureNames);
-                tasks = waiters.Select(x => x.CreateWaitTask()).Where(t => !t.IsCompleted).ToArray();
+                tasks = waiters.Select(x => x.CreateWaitTask(willBlockOnCompletion)).Where(t => !t.IsCompleted).ToArray();
 
                 if (tasks.Length == 0)
                 {
@@ -230,6 +231,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         private class NullOperationListener : IAsynchronousOperationListener
         {
+            public CancellationToken BlockedOnCompletion => default;
+
             public IAsyncToken BeginAsyncOperation(
                 string name,
                 object tag = null,

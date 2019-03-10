@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         private readonly string _featureName;
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
+        private CancellationTokenSource _blockedOnCompletionTokenSource;
+        private CancellationToken _blockedOnCompletionToken;
 
         private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
         private int _counter;
@@ -30,8 +32,12 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public AsynchronousOperationListener(string featureName, bool enableDiagnosticTokens)
         {
             _featureName = featureName;
+            _blockedOnCompletionTokenSource = new CancellationTokenSource();
+            _blockedOnCompletionToken = _blockedOnCompletionTokenSource.Token;
             TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
         }
+
+        public CancellationToken BlockedOnCompletion => _blockedOnCompletionToken;
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
         {
@@ -72,6 +78,8 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
 
                 _pendingTasks.Clear();
+                _blockedOnCompletionTokenSource = new CancellationTokenSource();
+                _blockedOnCompletionToken = _blockedOnCompletionTokenSource.Token;
             }
 
             if (_trackActiveTokens)
@@ -94,13 +102,24 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        public Task CreateWaitTask()
+        public Task CreateWaitTask(bool willBlockOnCompletion)
         {
+            if (willBlockOnCompletion && _counter > 0)
+            {
+                _blockedOnCompletionTokenSource.Cancel();
+            }
+
             using (_gate.DisposableWait(CancellationToken.None))
             {
                 if (_counter == 0)
                 {
                     // There is nothing to wait for, so we are immediately done
+                    if (_blockedOnCompletionTokenSource.IsCancellationRequested)
+                    {
+                        _blockedOnCompletionTokenSource = new CancellationTokenSource();
+                        _blockedOnCompletionToken = _blockedOnCompletionTokenSource.Token;
+                    }
+
                     return Task.CompletedTask;
                 }
                 else

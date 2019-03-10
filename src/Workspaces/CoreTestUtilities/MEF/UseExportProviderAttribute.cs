@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         try
                         {
-                            var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync();
+                            var waiter = ((AsynchronousOperationListenerProvider)listenerProvider).WaitAllDispatcherOperationAndTasksAsync(willBlockOnCompletion: true);
                             waiter.JoinUsingDispatcher(timeoutTokenSource.Token);
                         }
                         catch (OperationCanceledException ex) when (timeoutTokenSource.IsCancellationRequested)
