@@ -7846,7 +7846,7 @@ unsafe class C
                     Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("C").WithLocation(33, 5),
                     // (7,5): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('object')
                     //     object* _object;
-                    Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object").WithLocation(7, 5)
+                    Diagnostic(ErrorCode.ERR_ManagedAddr, "object*").WithArguments("object").WithLocation(7, 5));
         }
 
         [Fact]
