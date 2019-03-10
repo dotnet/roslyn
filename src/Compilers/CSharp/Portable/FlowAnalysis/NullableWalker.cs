@@ -553,9 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return getPlaceholderSlot(node);
                 case BoundKind.ConditionalReceiver:
                     {
-                        int slot = _lastConditionalAccessSlot;
-                        _lastConditionalAccessSlot = -1;
-                        return slot;
+                        return _lastConditionalAccessSlot;
                     }
                 default:
                     // If there was a placeholder local for this node, we should
@@ -1958,7 +1956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void GetSlotsToMarkAsNotNullable(BoundExpression operand, ArrayBuilder<int> slotBuilder)
         {
             Debug.Assert(operand != null);
-            Debug.Assert(_lastConditionalAccessSlot == -1);
+            var previousConditionalAccessSlot = _lastConditionalAccessSlot;
 
             while (true)
             {
@@ -1986,9 +1984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         slot = MakeSlot(conditional.Receiver);
                         if (slot > 0)
                         {
-                            // If we got a slot we must have processed the previous conditional receiver.
-                            Debug.Assert(_lastConditionalAccessSlot == -1);
-
                             // We need to continue the walk regardless of whether the receiver should be updated.
                             var receiverType = conditional.Receiver.Type;
                             if (PossiblyNullableType(receiverType))
@@ -2027,19 +2022,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         slot = MakeSlot(operand);
                         if (slot > 0 && PossiblyNullableType(operand.Type))
                         {
-                            // If we got a slot then all previous BoundCondtionalReceivers must have been handled.
-                            Debug.Assert(_lastConditionalAccessSlot == -1);
-
                             slotBuilder.Add(slot);
                         }
 
                         break;
                 }
 
-                // If we didn't get a slot, it's possible that the current _lastConditionalSlot was never processed,
-                // so we reset before leaving the function.
-                _lastConditionalAccessSlot = -1;
-
+                _lastConditionalAccessSlot = previousConditionalAccessSlot;
                 return;
             }
         }
@@ -2238,17 +2227,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = node.Receiver;
             var receiverType = VisitRvalueWithState(receiver);
             _currentConditionalReceiverVisitResult = _visitResult;
+            var previousConditionalAccessSlot = _lastConditionalAccessSlot;
 
             var receiverState = this.State.Clone();
             if (IsConstantNull(node.Receiver))
             {
                 SetUnreachable();
+                _lastConditionalAccessSlot = -1;
             }
             else
             {
                 // In the right-hand-side, the left-hand-side is known to be non-null.
-                // https://github.com/dotnet/roslyn/issues/33347: This should probably be using GetSlotsToMarkAsNotNullable() rather than marking only one slot
                 int slot = MakeSlot(SkipReferenceConversions(receiver));
+                _lastConditionalAccessSlot = slot;
                 if (slot > 0)
                 {
                     if (slot >= this.State.Capacity) Normalize(ref this.State);
@@ -2274,6 +2265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _currentConditionalReceiverVisitResult = default;
+            _lastConditionalAccessSlot = previousConditionalAccessSlot;
             ResultType = new TypeWithState(type, resultState);
             return null;
         }
