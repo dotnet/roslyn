@@ -243,6 +243,23 @@ class C
                 );
         }
 
+        [Fact, WorkItem(26810, "https://github.com/dotnet/roslyn/issues/26810")]
+        public void LockStatement()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void F(object? maybeNull)
+    {
+        lock (maybeNull) { }
+    }
+}", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,15): warning CS8602: Possible dereference of a null reference.
+                //         lock (maybeNull) { }
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "maybeNull").WithLocation(6, 15));
+        }
+
         [Fact, WorkItem(33537, "https://github.com/dotnet/roslyn/issues/33537")]
         public void SuppressOnNullLiteralInAs()
         {
