@@ -558,7 +558,12 @@ class Variable
                 state.SendTypeChars("a")
                 Await state.AssertSelectedCompletionItem(displayText:="as", isSoftSelected:=True)
                 state.SendReturn()
-                Assert.Contains("(var a, var a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+
+                Dim caretLine = state.GetLineFromCurrentCaretPosition()
+                Assert.Contains("            )", caretLine.GetText(), StringComparison.Ordinal)
+
+                Dim previousLine = caretLine.Snapshot.Lines(caretLine.LineNumber - 1)
+                Assert.Contains("(var a, var a", previousLine.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -620,7 +625,12 @@ class Variable
 
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("(var as, var a", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+
+                Dim caretLine = state.GetLineFromCurrentCaretPosition()
+                Assert.Contains("            )", caretLine.GetText(), StringComparison.Ordinal)
+
+                Dim previousLine = caretLine.Snapshot.Lines(caretLine.LineNumber - 1)
+                Assert.Contains("(var as, var a", previousLine.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
