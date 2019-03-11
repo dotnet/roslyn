@@ -791,16 +791,16 @@ public struct S
         [Fact]
         public void RefReturningReadOnlyMethod()
         {
-            // PROTOTYPE: would be good to add some more mutation here
-            // as well as expected diagnostics once that part of the feature is ready.
             var csharp = @"
 public struct S
 {
     private static int f1;
-    public readonly ref int M1() => ref f1;
+    public readonly ref int M1_1() => ref f1; // ok
+    public readonly ref readonly int M1_2() => ref f1; // ok
 
     private static readonly int f2;
-    public readonly ref readonly int M2() => ref f2;
+    public readonly ref int M2_1() => ref f2; // error
+    public readonly ref readonly int M2_2() => ref f2; // ok
 
     private static readonly int f3;
     public ref readonly int M3()
@@ -811,7 +811,10 @@ public struct S
 }
 ";
             var comp = CreateCompilation(csharp);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (9,43): error CS8161: A static readonly field cannot be returned by writable reference
+                //     public readonly ref int M2_1() => ref f2; // error
+                Diagnostic(ErrorCode.ERR_RefReturnReadonlyStatic, "f2").WithLocation(9, 43));
         }
 
         [Fact]
