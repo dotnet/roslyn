@@ -358,10 +358,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                         break;
                 }
             }
+#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception)
             {
                 // Catch all arithmetic exceptions, and conservatively bail out.
             }
+#pragma warning restore CA1031 // Do not catch general exception types
 
             return false;
         }
