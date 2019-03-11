@@ -14,14 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class EndToEndTests : EmitMetadataTestBase
     {
-
-#if DEBUG
-        public static bool IsDebug => true;
-#else
-        public static bool IsDebug => false;
-#endif
-
-
         /// <summary>
         /// These tests are very sensitive to stack size hence we use a fresh thread to ensure there 
         /// is a consistent stack size for them to execute in. 
@@ -57,26 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void OverflowOnFluentCall()
         {
-            int numberFluentCalls = 0;
-            // TODO: Number of frames was reduced by 50 to pass tests. We need to return to original counts after https://github.com/dotnet/roslyn/issues/25603
-            // is fixed to determine the bug here
-            switch (IntPtr.Size * 8)
+            int numberFluentCalls = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
-                case 32 when IsDebug:
-                    numberFluentCalls = 510;
-                    break;
-                case 32 when !IsDebug:
-                    numberFluentCalls = 1350;
-                    break;
-                case 64 when IsDebug:
-                    numberFluentCalls = 225;
-                    break;
-                case 64 when !IsDebug:
-                    numberFluentCalls = 620;
-                    break;
-                default:
-                    throw new Exception($"unexpected pointer size {IntPtr.Size}");
-            }
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 510,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1350,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 225,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 620,
+                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
+            };
 
             // <path>\xunit.console.exe "<path>\CSharpCompilerEmitTest\Roslyn.Compilers.CSharp.Emit.UnitTests.dll"  -noshadow -verbose -class "Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.EndToEndTests"
             // <path>\xunit.console.x86.exe "<path>\CSharpCompilerEmitTest\Roslyn.Compilers.CSharp.Emit.UnitTests.dll"  -noshadow -verbose -class "Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.EndToEndTests"
@@ -122,22 +102,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         public void DeeplyNestedGeneric()
         {
-            int nestingLevel = (IntPtr.Size * 8) switch
+            // The actual tolerance level of the compiler for nested generics is in excess of 1,000 
+            // members. The problem is that the time it takes to compute that is on the order of 
+            // tens of minutes which makes it impractical as a unit test. Instead for release builds
+            // we simply ensure that a reasonable tolerance level is supported. 
+            //
+            // This does mean we don't get the full regression testing for release builds. But our 
+            // debug builds can be tested to their full tolerance hence they will catch any regressions
+            // in this area.
+            const int minimumReleaseTolerance = 550;
+            int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
-                32 when IsDebug => 100,
-                32 when !IsDebug => 100,
-                64 when IsDebug => 100,
-                64 when !IsDebug => 100,
-                _ => throw new Exception($"unexpected pointer size {IntPtr.Size}")
+                _ when ExecutionConditionUtil.IsCoreClrUnix => minimumReleaseTolerance,
+                _ when ExecutionConditionUtil.IsMonoDesktop => minimumReleaseTolerance,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 270,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => minimumReleaseTolerance,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 170,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => minimumReleaseTolerance,
+                _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
             // Un-comment loop below and use above commands to figure out the new limits
-            Console.WriteLine($"{IsDebug} {IntPtr.Size}");
-            for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
-            {
-                Console.WriteLine($"Depth: {i}");
-                runDeeplyNestedGenericTest(i);
-            }
+            // for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
+            // {
+            //     var start = DateTime.UtcNow;
+            //     Console.Write($"Depth: {i}");
+            //     runDeeplyNestedGenericTest(i);
+            //     Console.WriteLine($" - {DateTime.UtcNow - start}");
+            // }
+
             runDeeplyNestedGenericTest(nestingLevel);
 
             void runDeeplyNestedGenericTest(int nestingLevel)
