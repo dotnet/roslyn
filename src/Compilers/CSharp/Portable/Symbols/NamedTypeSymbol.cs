@@ -395,14 +395,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsManagedType
+        internal override ManagedKind ManagedKind
         {
             get
             {
                 // CONSIDER: we could cache this, but it's only expensive for non-special struct types
                 // that are pointed to.  For now, only cache on SourceMemberContainerSymbol since it fits
                 // nicely into the flags variable.
-                return BaseTypeAnalysis.IsManagedType(this);
+                return BaseTypeAnalysis.GetManagedKind(this);
             }
         }
 
@@ -1005,9 +1005,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
 
-        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsNullFunction = type => type.IsNull;
+        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsNullFunction = type => !type.HasType;
 
-        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => !type.IsNull && type.IsErrorType();
+        internal static readonly Func<TypeSymbolWithAnnotations, bool> TypeSymbolIsErrorType = type => type.HasType && type.IsErrorType();
 
         private NamedTypeSymbol ConstructWithoutModifiers(ImmutableArray<TypeSymbol> typeArguments, bool unbound)
         {

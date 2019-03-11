@@ -37,17 +37,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
         {
         }
 
-        protected override ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<IFormattingRule> formattingRules, SyntaxNode root)
+        protected override ISmartTokenFormatter CreateSmartTokenFormatter(OptionSet optionSet, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode root)
         {
             return new SmartTokenFormatter(optionSet, formattingRules, (CompilationUnitSyntax)root);
         }
 
-        protected override bool UseSmartTokenFormatter(SyntaxNode root, TextLine line, IEnumerable<IFormattingRule> formattingRules, OptionSet options, CancellationToken cancellationToken)
+        protected override bool UseSmartTokenFormatter(SyntaxNode root, TextLine line, IEnumerable<AbstractFormattingRule> formattingRules, OptionSet options, CancellationToken cancellationToken)
         {
             return CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, (CompilationUnitSyntax)root, line, options, cancellationToken);
         }
 
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position)
+        protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document, int position)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();

@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
@@ -74,8 +73,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             registrationService.Register(this);
         }
 
-        public event EventHandler<bool> BuildStarted;
+        public event EventHandler<BuildProgress> BuildProgressChanged;
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
+        public event EventHandler DiagnosticsCleared { add { } remove { } }
 
         public bool IsInProgress => BuildInprogressState != null;
 
@@ -97,8 +97,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             var asyncToken = _listener.BeginAsyncOperation("ClearErrors");
             _taskQueue.ScheduleTask(() =>
             {
-                // record the project as built only if we are in build.
-                // otherwise (such as closing solution or removing project), no need to record it
+                // this will get called if the project is actually built by "build" command.
+                // we track what project has been built, so that later we can clear any stale live errors
+                // if build give us no errors for this project
                 state?.Built(projectId);
 
                 ClearProjectErrors(state?.Solution ?? _workspace.CurrentSolution, projectId);
@@ -156,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             if (e.Activated)
             {
                 // build just started, create the state and fire build in progress event.
-                var state = GetOrCreateInprogressState();
+                _ = GetOrCreateInprogressState();
                 return;
             }
 
@@ -354,9 +355,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private static ArgumentKey CreateArgumentKey(object id) => new ArgumentKey(id);
 
-        private void RaiseBuildStarted(bool started)
+        private void RaiseBuildProgressChanged(BuildProgress progress)
         {
-            BuildStarted?.Invoke(this, started);
+            BuildProgressChanged?.Invoke(this, progress);
         }
 
         #region not supported
@@ -369,12 +370,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         }
         #endregion
 
+        internal enum BuildProgress
+        {
+            Started,
+            Updated,
+            Done
+        }
+
         private class InprogressState
         {
             private int _incrementDoNotAccessDirectly = 0;
 
             private readonly ExternalErrorDiagnosticUpdateSource _owner;
-            private readonly HashSet<ProjectId> _builtProjects = new HashSet<ProjectId>();
+            private readonly HashSet<ProjectId> _projectsBuilt = new HashSet<ProjectId>();
+            private readonly HashSet<ProjectId> _projectsWithErrors = new HashSet<ProjectId>();
 
             private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _allDiagnosticIdMap = new Dictionary<ProjectId, ImmutableHashSet<string>>();
             private readonly Dictionary<ProjectId, ImmutableHashSet<string>> _liveDiagnosticIdMap = new Dictionary<ProjectId, ImmutableHashSet<string>>();
@@ -388,14 +397,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 Solution = solution;
 
                 // let people know build has started
-                _owner.RaiseBuildStarted(started: true);
+                _owner.RaiseBuildProgressChanged(BuildProgress.Started);
             }
 
             public Solution Solution { get; }
 
             public void Done()
             {
-                _owner.RaiseBuildStarted(started: false);
+                _owner.RaiseBuildProgressChanged(BuildProgress.Done);
             }
 
             public bool SupportedDiagnosticId(ProjectId projectId, string id)
@@ -436,22 +445,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
             public void Built(ProjectId projectId)
             {
-                _builtProjects.Add(projectId);
-            }
-
-            public IEnumerable<ProjectId> GetProjectsBuilt()
-            {
-                return Solution.ProjectIds.Where(p => _builtProjects.Contains(p));
+                _projectsBuilt.Add(projectId);
             }
 
             public IEnumerable<ProjectId> GetProjectsWithErrors()
             {
-                return GetProjectIds().Where(p => Solution.GetProject(p) != null);
+                // filter out project that is no longer exist in IDE
+                // this can happen if user started a "build" and then remove a project from IDE
+                // before build finishes
+                return _projectsWithErrors.Where(p => Solution.GetProject(p) != null);
             }
 
             public IEnumerable<ProjectId> GetProjectsWithoutErrors()
             {
                 return GetProjectsBuilt().Except(GetProjectsWithErrors());
+
+                IEnumerable<ProjectId> GetProjectsBuilt()
+                {
+                    // filter out project that is no longer exist in IDE
+                    // this can happen if user started a "build" and then remove a project from IDE
+                    // before build finishes
+                    return Solution.ProjectIds.Where(p => _projectsBuilt.Contains(p));
+                }
             }
 
             public async Task<ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>>> GetLiveDiagnosticsPerProjectAsync()
@@ -556,18 +571,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 var errors = GetErrorSet(map, key);
                 foreach (var diagnostic in diagnostics)
                 {
-                    AddError(errors, diagnostic);
+                    AddError(errors, diagnostic, key);
                 }
             }
 
             private void AddError<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key, DiagnosticData diagnostic)
             {
                 var errors = GetErrorSet(map, key);
-                AddError(errors, diagnostic);
+                AddError(errors, diagnostic, key);
             }
 
-            private void AddError(Dictionary<DiagnosticData, int> errors, DiagnosticData diagnostic)
+            private void AddError<T>(Dictionary<DiagnosticData, int> errors, DiagnosticData diagnostic, T key)
             {
+                RecordProjectContainsErrors();
+
                 // add only new errors
                 if (!errors.TryGetValue(diagnostic, out _))
                 {
@@ -575,16 +592,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
                     errors.Add(diagnostic, GetNextIncrement());
                 }
-            }
 
-            private int GetNextIncrement()
-            {
-                return _incrementDoNotAccessDirectly++;
-            }
+                int GetNextIncrement()
+                {
+                    return _incrementDoNotAccessDirectly++;
+                }
 
-            private IEnumerable<ProjectId> GetProjectIds()
-            {
-                return _documentMap.Keys.Select(k => k.ProjectId).Concat(_projectMap.Keys).Distinct();
+                void RecordProjectContainsErrors()
+                {
+                    var projectId = (key is DocumentId documentId) ? documentId.ProjectId : (ProjectId)(object)key;
+
+                    if (!_projectsWithErrors.Add(projectId))
+                    {
+                        return;
+                    }
+
+                    // this will make build only error list to be updated per project rather than per solution.
+                    // basically this will make errors up to last project to show up in error list
+                    _owner._lastBuiltResult = GetBuildDiagnostics();
+                    _owner.RaiseBuildProgressChanged(BuildProgress.Updated);
+                }
             }
 
             private Dictionary<DiagnosticData, int> GetErrorSet<T>(Dictionary<T, Dictionary<DiagnosticData, int>> map, T key)

@@ -16,15 +16,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected abstract BoundExpression ShallowClone();
 
-        internal BoundExpression WithSuppression()
+        internal BoundExpression WithSuppression(bool suppress = true)
         {
-            if (this.IsSuppressed)
+            if (this.IsSuppressed == suppress)
             {
                 return this;
             }
 
+            // There is no scenario where suppression goes away
+            Debug.Assert(suppress || !this.IsSuppressed);
+
             var result = ShallowClone();
-            result.IsSuppressed = true;
+            result.IsSuppressed = suppress;
             return result;
         }
 

@@ -275,7 +275,7 @@ function Make-BootstrapBuild() {
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
 
-    $packageName = if ($msbuildEngine -eq 'dotnet') { "Microsoft.NETCore.Compilers" } else { "Microsoft.Net.Compilers" }
+    $packageName = "Microsoft.Net.Compilers.Toolset"
     $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
 
     Run-MSBuild $projectPath "/restore /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:ApplyPartialNgenOptimization=false" -logFileName "Bootstrap" -configuration $bootstrapConfiguration

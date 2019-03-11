@@ -96,6 +96,12 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
     </ProjectReference>
+    <ProjectReference Include="..\..\Interactive\csi\csi.csproj">
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <AdditionalProperties>TargetFramework=net472</AdditionalProperties>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />

@@ -81,12 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<string> elementNames,
             CSharpCompilation compilation,
             bool shouldCheckConstraints,
+            bool includeNullability,
             ImmutableArray<bool> errorPositions,
             CSharpSyntaxNode syntax = null,
             DiagnosticBag diagnostics = null)
         {
             Debug.Assert(!shouldCheckConstraints || (object)syntax != null);
             Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
+            Debug.Assert(!includeNullability || shouldCheckConstraints);
 
             int numElements = elementTypes.Length;
 
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
             if (shouldCheckConstraints && diagnostics != null)
             {
-                constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnostics);
+                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics);
             }
 
             return constructedType;
@@ -219,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TupleTypeSymbol WithElementTypes(ImmutableArray<TypeSymbolWithAnnotations> newElementTypes)
         {
             Debug.Assert(_elementTypes.Length == newElementTypes.Length);
-            Debug.Assert(newElementTypes.All(t => !t.IsNull));
+            Debug.Assert(newElementTypes.All(t => t.HasType));
 
             NamedTypeSymbol firstTupleType;
             NamedTypeSymbol chainedTupleType;
@@ -686,13 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return _underlyingType.IsManagedType;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => _underlyingType.ManagedKind;
 
         public override bool IsTupleType
         {
@@ -1526,11 +1522,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (variance)
                 {
                     case VarianceKind.In:
-                        return a.MeetForFlowAnalysisFinally(b);
+                        return a.MeetForFixingUpperBounds(b);
                     case VarianceKind.Out:
-                        return a.JoinForFlowAnalysisBranches(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
+                        return a.JoinForFixingLowerBounds(b);
                     case VarianceKind.None:
-                        return a.EnsureCompatibleForTuples(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
+                        return a.EnsureCompatibleForTuples(b);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(variance);
                 }

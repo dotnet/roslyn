@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="pointedAtType">The type being pointed at.</param>
         internal PointerTypeSymbol(TypeSymbolWithAnnotations pointedAtType)
         {
-            Debug.Assert(!pointedAtType.IsNull);
+            Debug.Assert(pointedAtType.HasType);
 
             _pointedAtType = pointedAtType;
         }
@@ -99,13 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => ManagedKind.Unmanaged;
 
         public sealed override bool IsRefLikeType
         {

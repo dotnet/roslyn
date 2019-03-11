@@ -36,8 +36,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 provider,
                 editorOptionsFactoryService,
                 refactorNotifyServices,
-                New LineAdjustmentFormattingRule(),
-                New EndRegionFormattingRule())
+                LineAdjustmentFormattingRule.Instance,
+                EndRegionFormattingRule.Instance)
 
             Me._commitBufferManagerFactory = commitBufferManagerFactory
         End Sub

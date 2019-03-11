@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             var textChange = change.TextChange;
             var triggerSnapshotSpan = new SnapshotSpan(triggerSnapshot, textChange.Span.ToSpan());
             var mappedSpan = triggerSnapshotSpan.TranslateTo(subjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
-            
+
             var adjustedNewText = AdjustForVirtualSpace(textChange, view, _editorOperationsFactoryService);
 
             using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // edit.Apply() may trigger changes made by extensions.
                 // updatedCurrentSnapshot will contain changes made by Roslyn but not by other extensions.
                 var updatedCurrentSnapshot = edit.Apply();
-                
+
                 if (change.NewPosition.HasValue)
                 {
                     // Roslyn knows how to positionate the caret in the snapshot we just created.

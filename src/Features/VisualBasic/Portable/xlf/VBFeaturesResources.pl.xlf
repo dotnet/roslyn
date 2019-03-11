@@ -72,6 +72,11 @@
         <target state="translated">Wprowadź instrukcję „Using”</target>
         <note>{Locked="Using"} "Using" is a VB keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="Make_0_inheritable">
+        <source>Make '{0}' inheritable</source>
+        <target state="new">Make '{0}' inheritable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Move_the_0_statement_to_line_1">
         <source>Move the '{0}' statement to line {1}.</source>
         <target state="translated">Przenieś instrukcję „{0}” do wiersza {1}.</target>

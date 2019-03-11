@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
 
             BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
+            ReportSuppressionIfNeeded(left, diagnostics);
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
@@ -2105,6 +2106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindAddressOfExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression operand = BindValue(node.Operand, diagnostics, BindValueKind.AddressOf);
+            ReportSuppressionIfNeeded(operand, diagnostics);
 
             bool hasErrors = operand.HasAnyErrors; // This would propagate automatically, but by reading it explicitly we can reduce cascading.
             bool isFixedStatementAddressOfExpression = SyntaxFacts.IsFixedStatementExpression(node);
@@ -2127,10 +2129,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
             if (!allowManagedAddressOf)
             {
-                if (!hasErrors && isManagedType)
+                if (!hasErrors)
                 {
-                    hasErrors = true;
-                    Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, operandType);
+                    hasErrors = CheckManagedAddr(operandType, node, diagnostics);
                 }
 
                 if (!hasErrors)
@@ -2282,6 +2283,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand = BindValue(node.Operand, diagnostics, GetUnaryAssignmentKind(node.Kind()));
             BoundLiteral constant = BindIntegralMinValConstants(node, operand, diagnostics);
             return constant ?? BindUnaryOperatorCore(node, node.OperatorToken.Text, operand, diagnostics);
+        }
+
+        private void ReportSuppressionIfNeeded(BoundExpression expr, DiagnosticBag diagnostics)
+        {
+            if (expr.IsSuppressed)
+            {
+                Error(diagnostics, ErrorCode.ERR_IllegalSuppression, expr.Syntax);
+            }
         }
 
         private BoundExpression BindUnaryOperatorCore(CSharpSyntaxNode node, string operatorText, BoundExpression operand, DiagnosticBag diagnostics)
@@ -3570,6 +3579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindNullCoalescingAssignmentOperator(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
             BoundExpression leftOperand = BindValue(node.Left, diagnostics, BindValueKind.CompoundAssignment);
+            ReportSuppressionIfNeeded(leftOperand, diagnostics);
             BoundExpression rightOperand = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
             // If either operand is bad, bail out preventing more cascading errors
