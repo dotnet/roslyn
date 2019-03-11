@@ -1164,7 +1164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetStateAndTrackForFinally(ref this.StateWhenFalse, mainSlot, whenFalse);
             }
 
-            if (whenTrue.IsNotNull()|| whenFalse.IsNotNull())
+            if (whenTrue.IsNotNull() || whenFalse.IsNotNull())
             {
                 var slotBuilder = ArrayBuilder<int>.GetInstance();
                 GetSlotsToMarkAsNotNullable(expression, slotBuilder);
@@ -1913,13 +1913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bool nonNullCase = op != BinaryOperatorKind.Equal; // true represents WhenTrue
                     splitAndLearnFromNonNullTest(operandComparedToNull, whenTrue: nonNullCase);
 
-                    var operandWithoutConversion = RemoveConversion(operandComparedToNull, includeExplicitConversions: true).expression;
-                    int slot = MakeSlot(operandWithoutConversion);
-                    if (slot > 0 && PossiblyNullableType(operandWithoutConversion.Type))
-                    {
-                        // `x == null` and `x != null` are pure null tests so update the null-state in the alternative branch too
-                        (nonNullCase ? ref StateWhenFalse : ref StateWhenTrue)[slot] = NullableFlowState.MaybeNull;
-                    }
+                    // `x == null` and `x != null` are pure null tests so update the null-state in the alternative branch too
+                    LearnFromNullTest(operandComparedToNull, ref nonNullCase ? ref StateWhenFalse : ref StateWhenTrue);
                 }
             }
 
@@ -2068,12 +2063,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             slotBuilder.Free();
         }
 
-        private void LearnFromNullTest(BoundExpression expression, ref LocalState state)
+        private void LearnFromNullTest(BoundExpression expression, ref LocalState state, int? optionalSlot = null)
         {
-            int slot = MakeSlot(expression);
-            if (slot > 0)
+            var expressionWithoutConversion = RemoveConversion(expression, includeExplicitConversions: true).expression;
+            var slot = MakeSlot(expressionWithoutConversion);
+            if (slot > 0 && PossiblyNullableType(expressionWithoutConversion.Type))
             {
-                state[slot] = NullableFlowState.MaybeNull;
+                SetStateAndTrackForFinally(ref state, slot, NullableFlowState.MaybeNull);
             }
         }
 
@@ -2113,12 +2109,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Join(ref this.State, ref leftState);
             TypeWithState resultType = GetNullCoalescingResultType(rightResult, targetType.TypeSymbol);
             ResultType = resultType;
-
-            if (leftSlot > 0)
-            {
-                SetStateAndTrackForFinally(ref this.State, leftSlot, resultType.State);
-            }
-
             return null;
         }
 

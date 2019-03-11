@@ -82838,7 +82838,7 @@ class G<T>
         Node? node = null;
         Mout(out node);
         if (node == null) {} else {}
-        node.ToString(); // NOT YET
+        node.ToString(); // 7
     }
     static void MN2()
     {
@@ -82852,7 +82852,7 @@ class G<T>
             if (node == null) {} else {}
         }
 
-        node.ToString(); // NOT YET
+        node.ToString(); // 8
     }
     static void Mout(out Node node) => node = null!;
 }
@@ -82877,7 +82877,13 @@ class G<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(83, 9),
                 // (97,9): warning CS8602: Possible dereference of a null reference.
                 //         node.ToString(); // 6
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(97, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(97, 9),
+                // (104,9): warning CS8602: Possible dereference of a null reference.
+                //         node.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(104, 9),
+                // (118,9): warning CS8602: Possible dereference of a null reference.
+                //         node.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(118, 9));
         }
     }
 }
