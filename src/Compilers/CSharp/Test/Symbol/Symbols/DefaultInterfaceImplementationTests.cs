@@ -7781,7 +7781,7 @@ class Test1 : Test2, I1
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation3, expectedOutput: "Test2.M1", verify: VerifyOnCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicitInTest2_10(m, Accessibility.Internal));
+            CompileAndVerify(compilation3, expectedOutput: "Test2.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicitInTest2_10(m, Accessibility.Internal));
 
             ValidateMethodModifiersExplicitInTest2_10(compilation3.SourceModule, Accessibility.Internal);
 
@@ -9514,12 +9514,12 @@ class Test1 : I1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
 M2
 M3",
                 symbolValidator: validate,
-                verify: VerifyOnCoreClr);
+                verify: VerifyOnMonoOrCoreClr);
 
             validate(compilation1.SourceModule);
 
@@ -9538,9 +9538,9 @@ class Test1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
-            CompileAndVerify(compilation2, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M2",
-                verify: VerifyOnCoreClr);
+                verify: VerifyOnMonoOrCoreClr);
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
@@ -9580,10 +9580,10 @@ class Test1
                                                      parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
 
-                CompileAndVerify(compilation4, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
 M2",
-                    verify: VerifyOnCoreClr);
+                    verify: VerifyOnMonoOrCoreClr);
 
                 var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
@@ -9934,7 +9934,7 @@ class Test1 : I1
 
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null, verify: VerifyOnCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.Protected));
+            CompileAndVerify(compilation1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null, verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.Protected));
 
             ValidateMethodModifiersExplicit_10(compilation1.SourceModule, Accessibility.Protected);
 
@@ -9994,7 +9994,7 @@ class Test1 : I1
 
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null, verify: VerifyOnCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedOrInternal));
+            CompileAndVerify(compilation1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null, verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedOrInternal));
 
             ValidateMethodModifiersExplicit_10(compilation1.SourceModule, Accessibility.ProtectedOrInternal);
 
@@ -10054,7 +10054,7 @@ class Test1 : I1
 
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null, verify: VerifyOnCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedAndInternal));
+            CompileAndVerify(compilation1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null, verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedAndInternal));
 
             ValidateMethodModifiersExplicit_10(compilation1.SourceModule, Accessibility.ProtectedAndInternal);
 
@@ -10227,8 +10227,8 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: validate1);
 
             validate1(compilation1.SourceModule);
@@ -10252,8 +10252,8 @@ class Test1 : I1
                                                      targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 CompileAndVerify(compilation3,
-                    expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                    verify: VerifyOnCoreClr,
+                    expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: validate1);
 
                 validate1(compilation3.SourceModule);
@@ -10315,8 +10315,8 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: validate1);
 
             validate1(compilation1.SourceModule);
@@ -10340,8 +10340,8 @@ class Test1 : I1
                                                      targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 CompileAndVerify(compilation3,
-                    expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                    verify: VerifyOnCoreClr,
+                    expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: validate1);
 
                 validate1(compilation3.SourceModule);
@@ -10403,8 +10403,8 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: validate1);
 
             validate1(compilation1.SourceModule);
@@ -10428,8 +10428,8 @@ class Test1 : I1
                                                      targetFramework: TargetFramework.NetStandardLatest);
                 Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 CompileAndVerify(compilation3,
-                    expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                    verify: VerifyOnCoreClr,
+                    expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: validate1);
 
                 validate1(compilation3.SourceModule);
@@ -12738,7 +12738,7 @@ class Test1 : I1
                                                  targetFramework: targetFramework,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation1, expectedOutput: !(targetFramework == TargetFramework.Standard || CoreClrShim.IsRunningOnCoreClr) ? null :
+            CompileAndVerify(compilation1, expectedOutput: !(targetFramework == TargetFramework.Standard || ExecutionConditionUtil.IsMonoOrCoreClr) ? null :
 @"get_P1
 set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementation_11);
 
@@ -12760,9 +12760,9 @@ set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImpleme
 
                 if (expected.Length == 0)
                 {
-                    CompileAndVerify(compilation3, expectedOutput: !(targetFramework == TargetFramework.Standard || CoreClrShim.IsRunningOnCoreClr) ? null :
+                    CompileAndVerify(compilation3, expectedOutput: !(targetFramework == TargetFramework.Standard || ExecutionConditionUtil.IsMonoOrCoreClr) ? null :
 @"get_P1
-set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImplementation_11);
+set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementation_11);
                 }
 
                 ValidatePropertyImplementation_11(compilation3.SourceModule);
@@ -17476,7 +17476,7 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 get_P2
@@ -17490,7 +17490,7 @@ set_P5
 get_P6
 set_P6",
                 symbolValidator: validate,
-                verify: VerifyOnCoreClr);
+                verify: VerifyOnMonoOrCoreClr);
 
             validate(compilation1.SourceModule);
 
@@ -17514,7 +17514,7 @@ class Test1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
-            CompileAndVerify(compilation2, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P2
 set_P2
 set_P4
@@ -17522,7 +17522,7 @@ get_P5
 set_P5
 set_P6
 ",
-                verify: VerifyOnCoreClr);
+                verify: VerifyOnMonoOrCoreClr);
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
@@ -17588,7 +17588,7 @@ class Test1
                                                      parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
 
-                CompileAndVerify(compilation4, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 get_P2
@@ -17599,19 +17599,19 @@ get_P5
 set_P5
 set_P6
 ",
-                    verify: VerifyOnCoreClr);
+                    verify: VerifyOnMonoOrCoreClr);
 
                 var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
 
-                CompileAndVerify(compilation5, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation5, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"set_P4
 get_P5
 set_P6
 ",
-                    verify: VerifyOnCoreClr);
+                    verify: VerifyOnMonoOrCoreClr);
 
                 var compilation6 = CreateCompilation(source5, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
@@ -25086,7 +25086,7 @@ class Test1 : I1
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe, targetFramework: targetFramework,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation1, expectedOutput: !(targetFramework == TargetFramework.Standard || CoreClrShim.IsRunningOnCoreClr) ? null :
+            CompileAndVerify(compilation1, expectedOutput: !(targetFramework == TargetFramework.Standard || ExecutionConditionUtil.IsMonoOrCoreClr) ? null :
 @"get_P1
 set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementation_11);
 
@@ -25106,9 +25106,9 @@ set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementa
 
                 if (expected.Length == 0)
                 {
-                    CompileAndVerify(compilation3, expectedOutput: !(targetFramework == TargetFramework.Standard || CoreClrShim.IsRunningOnCoreClr) ? null :
+                    CompileAndVerify(compilation3, expectedOutput: !(targetFramework == TargetFramework.Standard || ExecutionConditionUtil.IsMonoOrCoreClr) ? null :
 @"get_P1
-set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementation_11);
+set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementation_11);
                 }
 
                 ValidateEventImplementation_11(compilation3.SourceModule);
@@ -27358,13 +27358,13 @@ class Test1 : I1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 get_P2
 set_P2
 get_P3
-set_P3", symbolValidator: validate, verify: VerifyOnCoreClr);
+set_P3", symbolValidator: validate, verify: VerifyOnMonoOrCoreClr);
 
             validate(compilation1.SourceModule);
 
@@ -27384,10 +27384,10 @@ class Test1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
 
-            CompileAndVerify(compilation2, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P2
 set_P2",
-                verify: VerifyOnCoreClr);
+                verify: VerifyOnMonoOrCoreClr);
 
             var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
@@ -27432,12 +27432,12 @@ class Test1
                                                      parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
 
-                CompileAndVerify(compilation4, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 get_P2
 set_P2",
-                    verify: VerifyOnCoreClr);
+                    verify: VerifyOnMonoOrCoreClr);
 
                 var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
@@ -28169,7 +28169,7 @@ class Test1 : I1
 }
 ";
 
-            ValidateNestedTypes_01(source0 + source1, Accessibility.Protected, targetFramework: TargetFramework.NetStandardLatest, execute: CoreClrShim.IsRunningOnCoreClr, verify: VerifyOnCoreClr);
+            ValidateNestedTypes_01(source0 + source1, Accessibility.Protected, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -28259,12 +28259,12 @@ class Test1
                                                      targetFramework: TargetFramework.NetStandardLatest);
 
                 compilation4.VerifyDiagnostics();
-                CompileAndVerify(compilation4, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
 I1+T2
 I1+T3
 B",
-                    verify: VerifyOnCoreClr);
+                    verify: VerifyOnMonoOrCoreClr);
 
                 var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
@@ -28344,8 +28344,8 @@ class Test1
     }
 }
 ";
-            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedOrInternal, targetFramework: TargetFramework.NetStandardLatest, execute: CoreClrShim.IsRunningOnCoreClr, verify: VerifyOnCoreClr);
-            ValidateNestedTypes_01(source0 + source2, Accessibility.ProtectedOrInternal, targetFramework: TargetFramework.NetStandardLatest, execute: CoreClrShim.IsRunningOnCoreClr, verify: VerifyOnCoreClr);
+            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedOrInternal, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
+            ValidateNestedTypes_01(source0 + source2, Accessibility.ProtectedOrInternal, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -28386,12 +28386,12 @@ class Test1
                                                      targetFramework: TargetFramework.NetStandardLatest);
 
                 compilation4.VerifyDiagnostics();
-                CompileAndVerify(compilation4, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
 I1+T2
 I1+T3
 B",
-                    verify: VerifyOnCoreClr);
+                    verify: VerifyOnMonoOrCoreClr);
 
                 var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
                                                      references: new[] { reference },
@@ -28678,7 +28678,7 @@ class Test1
     }
 }
 ";
-            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedAndInternal, targetFramework: TargetFramework.NetStandardLatest, execute: CoreClrShim.IsRunningOnCoreClr, verify: VerifyOnCoreClr);
+            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedAndInternal, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -31402,7 +31402,7 @@ I4.M1
         }
 
         [Fact]
-        public void MethodImplementationInDerived_15()
+        public void MethodImplementationInDerived_28()
         {
             var source1 =
 @"
@@ -31472,11 +31472,11 @@ class Test1 : I1
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -31490,11 +31490,11 @@ I4.M1
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidateMethodImplementationInDerived_01);
             }
 
@@ -31515,17 +31515,17 @@ I4.M1
 
                 compilation5.VerifyDiagnostics();
                 CompileAndVerify(compilation5,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidateMethodImplementationInDerived_01);
             }
         }
 
         [Fact]
-        public void MethodImplementationInDerived_16()
+        public void MethodImplementationInDerived_29()
         {
             var source1 =
 @"
@@ -31595,11 +31595,11 @@ class Test1 : I1
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -31613,11 +31613,11 @@ I4.M1
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidateMethodImplementationInDerived_01);
             }
 
@@ -31638,17 +31638,17 @@ I4.M1
 
                 compilation5.VerifyDiagnostics();
                 CompileAndVerify(compilation5,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidateMethodImplementationInDerived_01);
             }
         }
 
         [Fact]
-        public void MethodImplementationInDerived_17()
+        public void MethodImplementationInDerived_30()
         {
             var source1 =
 @"
@@ -31718,11 +31718,11 @@ class Test1 : I1
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -31736,11 +31736,11 @@ I4.M1
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidateMethodImplementationInDerived_01);
             }
 
@@ -32821,12 +32821,12 @@ I4.M1.set
                 if (expected.Length == 0)
                 {
                     CompileAndVerify(compilation5,
-                        expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                        expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 I4.M1.set
 ",
-                        verify: VerifyOnCoreClr,
+                        verify: VerifyOnMonoOrCoreClr,
                         symbolValidator: ValidatePropertyImplementationInDerived_01);
                 }
             }
@@ -33686,7 +33686,7 @@ class Test1 : I1
         }
 
         [Fact]
-        public void PropertyImplementationInDerived_16()
+        public void PropertyImplementationInDerived_19()
         {
             var source1 =
 @"
@@ -33770,7 +33770,7 @@ class Test1 : I3
         }
 
         [Fact]
-        public void PropertyImplementationInDerived_19()
+        public void PropertyImplementationInDerived_20()
         {
             var source1 =
 @"
@@ -33838,7 +33838,7 @@ public interface I3 : I1
         }
 
         [Fact]
-        public void PropertyImplementationInDerived_20()
+        public void PropertyImplementationInDerived_21()
         {
             var source1 =
 @"
@@ -33906,7 +33906,7 @@ public interface I3 : I1
         }
 
         [Fact]
-        public void PropertyImplementationInDerived_21()
+        public void PropertyImplementationInDerived_22()
         {
             var source1 =
 @"
@@ -35592,13 +35592,13 @@ class Test1 : I1
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -35612,13 +35612,13 @@ I4.M1.remove
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidateEventImplementationInDerived_01);
             }
 
@@ -35639,13 +35639,13 @@ I4.M1.remove
 
                 compilation5.VerifyDiagnostics();
                 CompileAndVerify(compilation5,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidateEventImplementationInDerived_01);
             }
         }
@@ -35731,13 +35731,13 @@ class Test1 : I1
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -35751,13 +35751,13 @@ I4.M1.remove
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidateEventImplementationInDerived_01);
             }
 
@@ -35778,13 +35778,13 @@ I4.M1.remove
 
                 compilation5.VerifyDiagnostics();
                 CompileAndVerify(compilation5,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidateEventImplementationInDerived_01);
             }
         }
@@ -35870,13 +35870,13 @@ class Test1 : I1
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -35890,13 +35890,13 @@ I4.M1.remove
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidateEventImplementationInDerived_01);
             }
 
@@ -37441,11 +37441,11 @@ class Test2
 
             validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"123
 -2
 ",
-                verify: VerifyOnCoreClr, symbolValidator: validate);
+                verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
 
             var source2 =
 @"
@@ -37467,7 +37467,7 @@ class Test2 : I1
                                                      parseOptions: TestOptions.Regular,
                                                      targetFramework: TargetFramework.NetStandardLatest);
 
-                CompileAndVerify(compilation2, expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "1122" : null, verify: VerifyOnCoreClr);
+                CompileAndVerify(compilation2, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "1122" : null, verify: VerifyOnMonoOrCoreClr);
             }
 
             var source3 =
@@ -55162,8 +55162,6 @@ B
 C
 ", verify: VerifyOnMonoOrCoreClr);
         }
-", verify: VerifyOnCoreClr);
-        }
 
         [Fact]
         public void ExplicitBase_157()
@@ -55232,7 +55230,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 B
@@ -55240,7 +55238,7 @@ B
 B
 B
 B
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -55311,7 +55309,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 B
@@ -55319,7 +55317,7 @@ B
 B
 B
 B
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -55422,7 +55420,7 @@ class G : E
             var compilation2 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation2.VerifyDiagnostics();
 
-            CompileAndVerify(compilation2, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 B
@@ -55430,7 +55428,7 @@ B
 B
 B
 B
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -55521,7 +55519,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 B
@@ -55583,7 +55581,7 @@ B
 B
 set B
 C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -55675,7 +55673,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 B
@@ -55737,7 +55735,7 @@ B
 B
 set B
 C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -55924,7 +55922,7 @@ class G : E
             var compilation2 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation2.VerifyDiagnostics();
 
-            CompileAndVerify(compilation2, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 B
@@ -55986,7 +55984,7 @@ B
 B
 set B
 C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -56056,7 +56054,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 set B
@@ -56064,7 +56062,7 @@ B
 set B
 B
 set B
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -56135,7 +56133,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 set B
@@ -56143,7 +56141,7 @@ B
 set B
 B
 set B
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -56246,7 +56244,7 @@ class G : E
             var compilation2 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation2.VerifyDiagnostics();
 
-            CompileAndVerify(compilation2, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 set B
@@ -56254,7 +56252,7 @@ B
 set B
 B
 set B
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -56290,7 +56288,7 @@ class A : I2
             var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation0.VerifyDiagnostics();
 
-            CompileAndVerify(compilation0, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : @"M1", verify: VerifyOnCoreClr);
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
 
             var source2 = @"
 interface I2 : I1
@@ -56316,7 +56314,7 @@ class A : I3
             var compilation1 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : @"M1", verify: VerifyOnCoreClr);
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
 
             var source3 = @"
 interface I2 : I1
@@ -56365,7 +56363,7 @@ class A : I1<int>
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation0.VerifyDiagnostics();
 
-            CompileAndVerify(compilation0, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : @"M1", verify: VerifyOnCoreClr);
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -56404,7 +56402,7 @@ class A : I2<int>
             var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation0.VerifyDiagnostics();
 
-            CompileAndVerify(compilation0, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : @"M1", verify: VerifyOnCoreClr);
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
 
             var source2 = @"
 interface I2<T> : I3<T>
@@ -56430,7 +56428,7 @@ class A : I4
             var compilation1 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : @"M1", verify: VerifyOnCoreClr);
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
 
             var source3 = @"
 interface I2<T> : I3<T>
@@ -56567,7 +56565,7 @@ class A
             var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation0.VerifyDiagnostics();
 
-            CompileAndVerify(compilation0, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : @"M1", verify: VerifyOnCoreClr);
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
 
 
             var source3 = @"
@@ -56628,7 +56626,7 @@ class A
             var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation0.VerifyDiagnostics();
 
-            CompileAndVerify(compilation0, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : @"M1", verify: VerifyOnCoreClr);
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
         }
 
     }
