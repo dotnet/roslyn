@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _enclosing = oldEnclosing;
             }
         }
-        
+
         private void VisitRankSpecifiers(TypeSyntax type, Binder enclosing)
         {
             type.VisitRankSpecifiers((rankSpecifier, args) =>
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitRankSpecifiers(node.Declaration.Type, usingBinder);
+                VisitRankSpecifiers(declarationSyntax.Type, usingBinder);
 
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableDeclarationSyntax declaration = node.Declaration;
             if (declaration != null)
             {
-                VisitRankSpecifiers(node.Declaration.Type, binder);
+                VisitRankSpecifiers(declaration.Type, binder);
 
                 foreach (VariableDeclaratorSyntax variable in declaration.Variables)
                 {
@@ -707,16 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
-            node.Declaration.Type.VisitRankSpecifiers((rankSpecifier, localBinderFactory) =>
-            {
-                foreach (var size in rankSpecifier.Sizes)
-                {
-                    if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
-                    {
-                        localBinderFactory.Visit(size);
-                    }
-                }
-            }, this);
+            VisitRankSpecifiers(node.Declaration.Type, _enclosing);
 
             foreach (VariableDeclaratorSyntax decl in node.Declaration.Variables)
             {

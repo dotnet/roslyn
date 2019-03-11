@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _syntax.Declaration.Type.VisitRankSpecifiers((rankSpecifier, args) =>
                 {
-                    if (rankSpecifier.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                    foreach (var size in rankSpecifier.Sizes)
                     {
-                        foreach (var size in rankSpecifier.Sizes)
+                        if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
                         {
                             ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
                         }

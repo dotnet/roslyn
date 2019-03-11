@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // gather expression-declared variables from invalid array dimensions. eg. using(int[x is var y] z = new int[0])
                 declarationSyntax.Type.VisitRankSpecifiers((rankSpecifier, args) =>
                 {
-                    if (rankSpecifier.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                    foreach (var size in rankSpecifier.Sizes)
                     {
-                        foreach (var size in rankSpecifier.Sizes)
+                        if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
                         {
                             ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
                         }
