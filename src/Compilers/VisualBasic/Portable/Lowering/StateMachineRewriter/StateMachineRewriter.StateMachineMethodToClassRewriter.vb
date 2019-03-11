@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim oldSyntax As SyntaxNode = Me.F.Syntax
                 Me.F.Syntax = syntax
                 Dim result = Me.F.Me()
-                Debug.Assert(frameClass = result.Type)
+                Debug.Assert(TypeSymbol.Equals(frameClass, result.Type, TypeCompareKind.ConsiderEverything))
                 Me.F.Syntax = oldSyntax
                 Return result
             End Function
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
                     If local.IsByRef Then
-                        Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.AwaitSpill)
+                        Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.Spill)
                         Continue For
                     End If
 
@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim newLocal As LocalSymbol = Nothing
                 If Not LocalMap.TryGetValue(local, newLocal) Then
                     Dim newType = VisitType(local.Type)
-                    If newType = local.Type Then
+                    If TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything) Then
                         ' keeping same local
                         newLocal = local
                     Else

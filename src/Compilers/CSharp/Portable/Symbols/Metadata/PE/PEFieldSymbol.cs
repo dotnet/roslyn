@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void EnsureSignatureIsLoaded()
         {
-            if (_lazyType.IsNull)
+            if (_lazyType.IsDefault)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
                 bool isVolatile;

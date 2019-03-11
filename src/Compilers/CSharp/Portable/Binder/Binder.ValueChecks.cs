@@ -204,13 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                     break;
-
-                case BoundKind.SuppressNullableWarningExpression:
-                    {
-                        var outer = (BoundSuppressNullableWarningExpression)expr;
-                        var inner = CheckValue(outer.Expression, valueKind, diagnostics);
-                        return outer.Update(inner, inner.Type);
-                    }
             }
 
             bool hasResolutionErrors = false;
@@ -322,11 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.EventAccess:
                     return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
-
-                case BoundKind.SuppressNullableWarningExpression:
-                    // https://github.com/dotnet/roslyn/issues/29710 We can reach this assertion
-                    Debug.Assert(false);
-                    return CheckValueKind(node, ((BoundSuppressNullableWarningExpression)expr).Expression, valueKind, checkingReceiver, diagnostics);
             }
 
             // easy out for a very common RValue case.
@@ -383,8 +371,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                // array elements and pointer dereferencing are readwrite variables
+                // array access is readwrite variable if the indexing expression is not System.Range
                 case BoundKind.ArrayAccess:
+                    {
+                        if (RequiresRefAssignableVariable(valueKind))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                            return false;
+                        }
+
+                        var boundAccess = (BoundArrayAccess)expr;
+                        if (boundAccess.Indices.Length == 1 &&
+                            TypeSymbol.Equals(
+                                boundAccess.Indices[0].Type,
+                                Compilation.GetWellKnownType(WellKnownType.System_Range),
+                                TypeCompareKind.ConsiderEverything))
+                        {
+                            // Range indexer is an rvalue
+                            Error(diagnostics, GetStandardLvalueError(valueKind), node);
+                            return false;
+                        }
+                        return true;
+                    }
+
+                // pointer dereferencing is a readwrite variable
                 case BoundKind.PointerIndirectionOperator:
                 // The undocumented __refvalue(tr, T) expression results in a variable of type T.
                 case BoundKind.RefValueOperator:
@@ -921,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // change from Dev10 which reports this error for struct types only,
                     // not for type parameters constrained to "struct".
 
-                    Debug.Assert(!propertySymbol.Type.IsNull);
+                    Debug.Assert(propertySymbol.Type.HasType);
                     Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, expr.Syntax, propertySymbol);
                 }
                 else
@@ -1145,7 +1155,7 @@ moreArguments:
             }
 
             // check receiver if ref-like
-            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            if (receiverOpt?.Type?.IsRefLikeType == true)
             {
                 escapeScope = Math.Max(escapeScope, GetValEscape(receiverOpt, scopeOfTheContainingExpression));
             }
@@ -1261,7 +1271,7 @@ moreArguments:
             }
 
             // check receiver if ref-like
-            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            if (receiverOpt?.Type?.IsRefLikeType == true)
             {
                 return CheckValEscape(receiverOpt.Syntax, receiverOpt, escapeFrom, escapeTo, false, diagnostics);
             }
@@ -1294,7 +1304,7 @@ moreArguments:
 
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
-            if (receiverType?.IsByRefLikeType == true && receiverType?.IsReadOnly == false)
+            if (receiverType?.IsRefLikeType == true && receiverType?.IsReadOnly == false)
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
             }
@@ -1313,7 +1323,7 @@ moreArguments:
                     }
 
                     var paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
-                    if (parameters[paramIndex].RefKind.IsWritableReference() && argument.Type?.IsByRefLikeType == true)
+                    if (parameters[paramIndex].RefKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
                     {
                         escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                     }
@@ -1328,7 +1338,7 @@ moreArguments:
                     {
                         var argument = argListArgs[argIndex];
                         var refKind = argListRefKindsOpt.IsDefault ? RefKind.None : argListRefKindsOpt[argIndex];
-                        if (refKind.IsWritableReference() && argument.Type?.IsByRefLikeType == true)
+                        if (refKind.IsWritableReference() && argument.Type?.IsRefLikeType == true)
                         {
                             escapeTo = Math.Min(escapeTo, GetValEscape(argument, scopeOfTheContainingExpression));
                         }
@@ -1387,7 +1397,7 @@ moreArguments:
             //    They have "outer" val escape, so cannot be worse than escapeTo.
 
             // check val escape of receiver if ref-like
-            if (receiverOpt?.Type?.IsByRefLikeType == true)
+            if (receiverOpt?.Type?.IsRefLikeType == true)
             {
                 return CheckValEscape(receiverOpt.Syntax, receiverOpt, scopeOfTheContainingExpression, escapeTo, false, diagnostics);
             }
@@ -1448,7 +1458,7 @@ moreArguments:
 
                         if (parameter.RefKind == RefKind.In &&
                             inParametersMatchedWithArgs?[i] != true &&
-                            parameter.Type.TypeSymbol.IsByRefLikeType == false)
+                            parameter.Type.TypeSymbol.IsRefLikeType == false)
                         {
                             return parameter;
                         }
@@ -1632,7 +1642,7 @@ moreArguments:
         {
             Debug.Assert((object)field != null);
             Debug.Assert(RequiresAssignableVariable(kind));
-            Debug.Assert(!field.Type.IsNull);
+            Debug.Assert(field.Type.HasType);
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
             // (even though the latter message gives more explanation of why).
@@ -2157,7 +2167,7 @@ moreArguments:
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsByRefLikeType != true)
+            if (expr.Type?.IsRefLikeType != true)
             {
                 return Binder.ExternalScope;
             }
@@ -2227,7 +2237,7 @@ moreArguments:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsByRefLikeType)
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
                     {
                         // Already an error state.
                         return Binder.ExternalScope;
@@ -2361,6 +2371,11 @@ moreArguments:
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.DisposableValuePlaceholder:
+                    // Disposable value placeholder is only ever used to lookup a pattern dispose method
+                    // then immediately discarded. The actual expression will be generated during lowering 
+                    return scopeOfTheContainingExpression;
+
                 case BoundKind.PointerElementAccess:
                 case BoundKind.PointerIndirectionOperator:
                     // Unsafe code will always be allowed to escape.
@@ -2454,7 +2469,7 @@ moreArguments:
             }
 
             // to have local-referring values an expression must have a ref-like type
-            if (expr.Type?.IsByRefLikeType != true)
+            if (expr.Type?.IsRefLikeType != true)
             {
                 return true;
             }
@@ -2534,7 +2549,7 @@ moreArguments:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsByRefLikeType)
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsRefLikeType)
                     {
                         // Already an error state.
                         return true;
@@ -3022,10 +3037,10 @@ moreArguments:
                     return true;
 
                 case BoundKind.ConditionalOperator:
-                    var ternary = (BoundConditionalOperator)expression;
+                    var conditional = (BoundConditionalOperator)expression;
 
-                    // only ref ternary may be referenced as a variable
-                    if (!ternary.IsRef)
+                    // only ref conditional may be referenced as a variable
+                    if (!conditional.IsRef)
                     {
                         return false;
                     }
@@ -3033,8 +3048,8 @@ moreArguments:
                     // branch that has no home will need a temporary
                     // if both have no home, just say whole expression has no home 
                     // so we could just use one temp for the whole thing
-                    return HasHome(ternary.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
-                        && HasHome(ternary.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
+                    return HasHome(conditional.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
+                        && HasHome(conditional.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
 
                 default:
                     return false;

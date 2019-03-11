@@ -58,8 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overloads Function Equals(other As VisualBasicTypeInfo) As Boolean Implements IEquatable(Of VisualBasicTypeInfo).Equals
             Return _implicitConversion.Equals(other._implicitConversion) AndAlso
-                _type = other._type AndAlso
-                _convertedType = other._convertedType
+                TypeSymbol.Equals(_type, other._type, TypeCompareKind.ConsiderEverything) AndAlso
+                TypeSymbol.Equals(_convertedType, other._convertedType, TypeCompareKind.ConsiderEverything)
         End Function
 
         Public Overrides Function Equals(obj As Object) As Boolean

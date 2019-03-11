@@ -232,6 +232,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsParentKind(SyntaxKind.QualifiedName) && ((QualifiedNameSyntax)expression.Parent).Left == expression;
         }
 
+        public static bool IsLeftSideOfExplicitInterfaceSpecifier(this NameSyntax name)
+            => name.IsParentKind(SyntaxKind.ExplicitInterfaceSpecifier);
+
         public static bool IsExpressionOfInvocation(this ExpressionSyntax expression)
         {
             return
@@ -322,7 +325,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 }
             }
 
-            // TODO(cyrusn): Add more cases.
+            if (expression.IsParentKind(SyntaxKind.ConstantPattern))
+            {
+                return true;
+            }
+
+            // note: the above list is not intended to be exhaustive.  If more cases
+            // are discovered that should be considered 'constant' contexts in the 
+            // language, then this should be updated accordingly.
             return false;
         }
 

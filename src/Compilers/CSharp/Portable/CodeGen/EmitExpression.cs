@@ -3192,7 +3192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </remarks>
         private void EmitNullCoalescingOperator(BoundNullCoalescingOperator expr, bool used)
         {
-            Debug.Assert(expr.LeftConversion.IsIdentity, "coalesce with nontrivial left conversions are lowered into ternary.");
+            Debug.Assert(expr.LeftConversion.IsIdentity, "coalesce with nontrivial left conversions are lowered into conditional.");
             Debug.Assert(expr.Type.IsReferenceType);
 
             EmitExpression(expr.LeftOperand, used: true);
@@ -3242,7 +3242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         // Implicit casts are not emitted. As a result verifier may operate on a different 
-        // types from the types of operands when performing stack merges in coalesce/ternary.
+        // types from the types of operands when performing stack merges in coalesce/conditional.
         // Such differences are in general irrelevant since merging rules work the same way
         // for base and derived types.
         //
@@ -3334,7 +3334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return (to.IsDelegateType() && !TypeSymbol.Equals(to, from, TypeCompareKind.ConsiderEverything2)) ||
-                   (to.IsInterfaceType() && from.IsInterfaceType() && !from.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains((NamedTypeSymbol)to));
+                   (to.IsInterfaceType() && from.IsInterfaceType() && !from.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey((NamedTypeSymbol)to));
         }
 
         private void EmitStaticCast(TypeSymbol to, SyntaxNode syntax)
@@ -3359,6 +3359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitBox(TypeSymbol type, SyntaxNode syntaxNode)
         {
+            Debug.Assert(!type.IsRefLikeType);
+
             _builder.EmitOpCode(ILOpCode.Box);
             EmitSymbolToken(type, syntaxNode);
         }

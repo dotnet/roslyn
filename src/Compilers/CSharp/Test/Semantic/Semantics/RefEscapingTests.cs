@@ -13,6 +13,62 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     public class RefEscapingTests : CompilingTestBase
     {
         [Fact]
+        public void RefStructSemanticModel()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree(@"
+using System;
+struct S1 { }
+ref struct S2 { public S1 F1; }
+enum E1 { }
+class C<T>
+{
+    unsafe void M<U>() where U : unmanaged
+    {
+        Span<int> span = default;
+        var s1 = new S1();
+        var s2 = new S2();
+        var i0 = 0;
+        var e1 = new E1();
+        var o1 = new object();
+        var c1 = new C<int>();
+        var t1 = default(T);
+        var u1 = default(U);
+        void* p1 = null;
+        var a1 = new { X = 0 };
+        var a2 = new int[1];
+        var t2 = (0, 0);
+    }
+}", options: TestOptions.Regular7_3);
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            Assert.True(comp.GetDiagnostics().All(d => d.Severity != DiagnosticSeverity.Error));
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetRoot();
+
+            Assert.True(getLocalType("span").IsRefLikeType);
+            Assert.False(getLocalType("s1").IsRefLikeType);
+            Assert.True(getLocalType("s2").IsRefLikeType);
+            Assert.False(getLocalType("i0").IsRefLikeType);
+            Assert.False(getLocalType("t1").IsRefLikeType);
+            Assert.False(getLocalType("e1").IsRefLikeType);
+            Assert.False(getLocalType("o1").IsRefLikeType);
+            Assert.False(getLocalType("c1").IsRefLikeType);
+            Assert.False(getLocalType("t1").IsRefLikeType);
+            Assert.False(getLocalType("u1").IsRefLikeType);
+            Assert.False(getLocalType("p1").IsRefLikeType);
+            Assert.False(getLocalType("a1").IsRefLikeType);
+            Assert.False(getLocalType("a2").IsRefLikeType);
+            Assert.False(getLocalType("t2").IsRefLikeType);
+
+            ITypeSymbol getLocalType(string name)
+            {
+                var decl = root.DescendantNodes()
+                    .OfType<VariableDeclaratorSyntax>()
+                    .Single(n => n.Identifier.ValueText == name);
+                return ((ILocalSymbol)model.GetDeclaredSymbol(decl)).Type;
+            }
+        }
+
+        [Fact]
         public void RefStructUsing()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -30,7 +86,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,16): error CS1674: 'C.S2': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'C.S2': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var x = GetRefStruct())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = GetRefStruct()").WithArguments("C.S2").WithLocation(6, 16));
         }
@@ -2601,9 +2657,6 @@ public static class Extensions
                 // (8,28): error CS8350: This combination of arguments to 'Extensions.Deconstruct(ref Span<int>, out Span<int>, out Span<int>)' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
                 //         (global, global) = global;
                 Diagnostic(ErrorCode.ERR_CallArgMixing, "global").WithArguments("Extensions.Deconstruct(ref System.Span<int>, out System.Span<int>, out System.Span<int>)", "x").WithLocation(8, 28),
-                // (8,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Span<int>', with 2 out parameters and a void return type.
-                //         (global, global) = global;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "global").WithArguments("System.Span<int>", "2").WithLocation(8, 28),
                 // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
                 Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1)
             );

@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
 
                 return await solution.TryRunCodeAnalysisRemoteAsync(
-                    RemoteFeatureOptions.SymbolFinderEnabled,
                     serverCallback,
                     nameof(IRemoteSymbolFinder.FindReferencesAsync),
                     new object[]

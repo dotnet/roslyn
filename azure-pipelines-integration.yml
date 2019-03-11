@@ -2,11 +2,21 @@
 trigger:
 - master
 - master-vs-deps
+- dev16.0-preview3
+- dev16.0-preview3-vs-deps
+- dev16.0
+- dev16.0-vs-deps
 
-# Branches that trigger builds on PR   
+# Branches that trigger builds on PR
 pr:
 - master
 - master-vs-deps
+- features/*
+- demos/*
+- dev16.0-preview3
+- dev16.0-preview3-vs-deps
+- dev16.0
+- dev16.0-vs-deps
 
 jobs:
 - job: Windows_VisualStudio_Integration_Tests
@@ -18,13 +28,14 @@ jobs:
         _configuration: Debug
       release:
         _configuration: Release
-  timeoutInMinutes: 90
+  timeoutInMinutes: 135
 
   steps:
     - script: eng/cibuild.cmd -configuration $(_configuration) -prepareMachine -testVsi 
       displayName: Build and Test
 
-    - task: PublishTestResults@1
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
       inputs:
         testRunner: XUnit
         testResultsFiles: $(Build.SourcesDirectory)\artifacts\TestResults\$(_configuration)\*.xml

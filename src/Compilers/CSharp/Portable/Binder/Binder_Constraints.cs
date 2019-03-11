@@ -122,12 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             constraints |= TypeParameterConstraintKind.NullableReferenceType;
 
-                            DiagnosticInfo info = LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(Compilation, IsNullableEnabled(questionToken));
-
-                            if (!(info is null))
-                            {
-                                diagnostics.Add(info, questionToken.GetLocation());
-                            }
+                            LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(IsNullableEnabled(questionToken), questionToken.GetLocation(), diagnostics);
                         }
                         else if (IsNullableEnabled(constraintSyntax.ClassOrStructKeyword))
                         {
@@ -308,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SpecialType.System_Object:
-                    if (typeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
+                    if (typeWithAnnotations.NullableAnnotation.IsAnnotated())
                     {
                         // "Constraint cannot be special class '{0}'"
                         Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, typeWithAnnotations);

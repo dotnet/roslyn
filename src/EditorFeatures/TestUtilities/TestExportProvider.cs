@@ -103,10 +103,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                     typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
                 .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
-                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
-                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
+                .Concat(DesktopTestHelpers.GetAllTypesSubclassingType(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(AbstractFormattingRule)))
+                .Concat(DesktopTestHelpers.GetAllTypesSubclassingType(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(AbstractFormattingRule)))
                 .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
                 .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
@@ -114,11 +114,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 .Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions).Assembly, typeof(CodeAnalysis.Options.IOption)))
                 .Distinct()
                 .ToArray();
-        }
-
-        private static IExportProviderFactory CreateExportProviderFactoryWithCSharpAndVisualBasic()
-        {
-            return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic);
         }
 
         private static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()

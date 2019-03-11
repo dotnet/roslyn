@@ -1,8 +1,3 @@
-#!/usr/bin/env bash
-
-# Stop script if unbound variable found (use ${var:-} if intentional)
-set -u
-
 # Initialize variables if they aren't already defined.
 
 # CI mode - set to true on CI server for PR validation build or official build.
@@ -140,6 +135,13 @@ function InitializeDotNetCli {
   # build steps from using anything other than what we've downloaded.
   export PATH="$dotnet_root:$PATH"
 
+  if [[ $ci == true ]]; then
+    # Make Sure that our bootstrapped dotnet cli is avaliable in future steps of the Azure Pipelines build
+    echo "##vso[task.prependpath]$dotnet_root"
+    echo "##vso[task.setvariable variable=DOTNET_MULTILEVEL_LOOKUP]0"
+    echo "##vso[task.setvariable variable=DOTNET_SKIP_FIRST_TIME_EXPERIENCE]1"
+  fi
+
   # return value
   _InitializeDotNetCli="$dotnet_root"
 }
@@ -151,13 +153,16 @@ function InstallDotNetSdk {
   GetDotNetInstallScript "$root"
   local install_script=$_GetDotNetInstallScript
 
-  bash "$install_script" --version $version --install-dir "$root"
-  local lastexitcode=$?
-
-  if [[ $lastexitcode != 0 ]]; then
-    echo "Failed to install dotnet SDK (exit code '$lastexitcode')." >&2
-    ExitWithExitCode $lastexitcode
+  local arch_arg=""
+  if [[ $# == 3 ]]; then
+    arch_arg="--architecture $3"
   fi
+
+  bash "$install_script" --version $version --install-dir "$root" $arch_arg || {
+    local exit_code=$?
+    echo "Failed to install dotnet SDK (exit code '$exit_code')." >&2
+    ExitWithExitCode $exit_code
+  }
 }
 
 function GetDotNetInstallScript {
@@ -189,8 +194,9 @@ function InitializeBuildTool {
   
   InitializeDotNetCli $restore
 
-  # return value
+  # return values
   _InitializeBuildTool="$_InitializeDotNetCli/dotnet"  
+  _InitializeBuildToolCommand="msbuild"
 }
 
 function GetNuGetPackageCachePath {
@@ -232,11 +238,15 @@ function InitializeToolset {
     ExitWithExitCode 2
   fi
 
-  local toolset_restore_log="$log_dir/ToolsetRestore.binlog"
   local proj="$toolset_dir/restore.proj"
 
+  local bl=""
+  if [[ "$binary_log" == true ]]; then
+    bl="/bl:$log_dir/ToolsetRestore.binlog"
+  fi
+  
   echo '<Project Sdk="Microsoft.DotNet.Arcade.Sdk"/>' > "$proj"
-  MSBuild "$proj" /t:__WriteToolsetLocation /noconsolelogger /bl:"$toolset_restore_log" /p:__ToolsetLocationOutputFile="$toolset_location_file"
+  MSBuild "$proj" $bl /t:__WriteToolsetLocation /clp:ErrorsOnly\;NoSummary /p:__ToolsetLocationOutputFile="$toolset_location_file"
 
   local toolset_build_proj=`cat "$toolset_location_file"`
 
@@ -258,8 +268,8 @@ function ExitWithExitCode {
 
 function StopProcesses {
   echo "Killing running build processes..."
-  pkill -9 "dotnet"
-  pkill -9 "vbcscompiler"
+  pkill -9 "dotnet" || true
+  pkill -9 "vbcscompiler" || true
   return 0
 }
 
@@ -283,13 +293,11 @@ function MSBuild {
     warnaserror_switch="/warnaserror"
   fi
 
-  "$_InitializeBuildTool" msbuild /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch /p:TreatWarningsAsErrors=$warn_as_error "$@"
-  lastexitcode=$?
-
-  if [[ $lastexitcode != 0 ]]; then
-    echo "Build failed (exit code '$lastexitcode')." >&2
-    ExitWithExitCode $lastexitcode
-  fi
+  "$_InitializeBuildTool" "$_InitializeBuildToolCommand" /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch /p:TreatWarningsAsErrors=$warn_as_error /p:ContinuousIntegrationBuild=$ci "$@" || {
+    local exit_code=$?
+    echo "Build failed (exit code '$exit_code')." >&2
+    ExitWithExitCode $exit_code
+  }
 }
 
 ResolvePath "${BASH_SOURCE[0]}"
