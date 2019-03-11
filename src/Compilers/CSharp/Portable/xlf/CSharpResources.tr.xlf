@@ -398,7 +398,7 @@
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -544,7 +544,7 @@
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -1283,13 +1283,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">Null sabit değeri, boş değer atanamaz başvuruya veya kısıtlanmamış tür parametresine dönüştürülemiyor.</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">Null sabit değeri, boş değer atanamaz başvuruya veya kısıtlanmamış tür parametresine dönüştürülemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">Null sabit değeri, boş değer atanamaz başvuruya veya kısıtlanmamış tür parametresine dönüştürülemiyor.</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">Null sabit değeri, boş değer atanamaz başvuruya veya kısıtlanmamış tür parametresine dönüştürülemiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
@@ -1343,7 +1343,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">'{0}' türündeki bağımsız değişken için başvuru türlerinin boş değer atanabilirliği, '{3}' içindeki '{2}' parametresi için '{1}' hedef türüyle eşleşmiyor.</target>
         <note />
       </trans-unit>
@@ -1358,7 +1358,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">Bağımsız değişkendeki başvuru türlerinin boş değer atanabilirliği hedef tür ile eşleşmiyor.</target>
         <note />
       </trans-unit>
@@ -9399,8 +9399,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of an 'in' extension method '{0}' must be a value type.</source>
-        <target state="translated">in' genişletme metodu '{0}' için ilk parametre, değer türünde olmalıdır.</target>
+        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">in' genişletme metodu '{0}' için ilk parametre, değer türünde olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

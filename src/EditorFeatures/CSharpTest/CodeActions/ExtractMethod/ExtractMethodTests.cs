@@ -1423,7 +1423,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarForBuiltInTypes, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [WorkItem(15219, "https://github.com/dotnet/roslyn/issues/15219")]
@@ -1471,7 +1471,7 @@ class C
 
         return v;
     }
-}", options: Option(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
+}", options: Option(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CodeStyleOptions.TrueWithSuggestionEnforcement));
         }
 
         [Fact]
