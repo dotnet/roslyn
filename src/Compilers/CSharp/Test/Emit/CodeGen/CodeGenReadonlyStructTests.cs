@@ -1342,8 +1342,12 @@ public struct S
 ";
 
             var verifier = CompileAndVerify(csharp, expectedOutput: "123");
-            // PROTOTYPE: should warn about copying 'this' when calling M2
-            verifier.VerifyDiagnostics();
+
+            verifier.VerifyDiagnostics(
+                // (9,9): warning CS8655: Call to non-readonly member 'M2' from a 'readonly' member results in an implicit copy of 'this'.
+                //         M2();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M2").WithArguments("M2", "this").WithLocation(9, 9));
+
             verifier.VerifyIL("S.M1", @"
 {
   // Code size       51 (0x33)
@@ -1404,7 +1408,7 @@ public struct S
 ";
 
             var verifier = CompileAndVerify(csharp, expectedOutput: "123");
-            // PROTOTYPE: should warn about copying 's' when calling M2
+            // should warn about calling s.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S.M1", @"
 {

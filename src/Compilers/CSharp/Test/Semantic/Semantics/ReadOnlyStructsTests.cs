@@ -58,6 +58,8 @@ public readonly struct A
     void AssignField()
     {
         // error
+        this = default;
+        // error
         this.x = 1;
 
         A a = default;
@@ -71,9 +73,11 @@ public readonly struct A
                 //     int x;    
                 Diagnostic(ErrorCode.ERR_FieldsInRoStruct, "x").WithLocation(11, 9),
                 // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         this = default;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(16, 9),
+                // (18,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this.x = 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this").WithLocation(16, 9)
-    );
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this").WithLocation(18, 9));
         }
 
         [Fact()]
@@ -167,6 +171,8 @@ public struct A
     readonly void AssignField()
     {
         // error
+        this = default;
+        // error
         this.x = 1;
 
         A a = default;
@@ -177,8 +183,13 @@ public struct A
     }
 }
 ";
-            // PROTOTYPE: should give ERR_AssgReadonlyLocal
-            CreateCompilation(text).VerifyDiagnostics();
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         this = default;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(11, 9),
+                // (13,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         this.x = 1;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this").WithLocation(13, 9));
         }
 
         [Fact]
@@ -236,8 +247,10 @@ public struct S
 }
 ";
             var comp = CreateCompilation(csharp);
-            // PROTOTYPE: should give ERR_RefReadonlyLocal
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (15,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         M1(ref this); // error
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(15, 16));
         }
 
         [Fact]
@@ -270,8 +283,10 @@ public struct S
 }
 ";
             var comp = CreateCompilation(csharp);
-            // PROTOTYPE: should give ERR_RefReadonlyLocal
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (21,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         M1(ref f2); // error
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "f2").WithArguments("this").WithLocation(21, 16));
         }
 
         [Fact]
@@ -328,8 +343,10 @@ public struct S
 ";
 
             var verifier = CompileAndVerify(csharp, expectedOutput: "123");
-            // PROTOTYPE: should warn about copying 'this' when calling M
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (11,13): warning CS8655: Call to non-readonly member 'M' from a 'readonly' member results in an implicit copy of 'this'.
+                //             M();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M").WithArguments("M", "this").WithLocation(11, 13));
         }
 
         [Fact]
@@ -815,6 +832,32 @@ public struct S
                 // (5,21): error CS0106: The modifier 'readonly' is not valid for this item
                 //     public readonly S(int i) { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("readonly").WithLocation(5, 21));
+        }
+
+        [Fact]
+        public void ReadOnlyStruct_Constructor()
+        {
+            var csharp = @"
+public readonly struct S
+{
+    public readonly int i;
+    public S(int i)
+    {
+        this.i = i; // ok
+        M(ref this); // ok
+    }
+    public static void M(ref S s)
+    {
+        s.i = 42; // error
+        s = default; // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (12,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
+                //         s.i = 42; // error
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "s.i").WithLocation(12, 9));
         }
 
         [Fact]

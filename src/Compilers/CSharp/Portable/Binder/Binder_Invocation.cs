@@ -1010,6 +1010,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
+            CheckImplicitThisCopyInReadOnlyMember(receiver, method, diagnostics);
+
             if (invokedAsExtensionMethod)
             {
                 BoundExpression receiverArgument = analyzedArguments.Argument(0);
@@ -1133,6 +1135,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(node, receiver, method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                         argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
+        }
+
+        private void CheckImplicitThisCopyInReadOnlyMember(BoundExpression receiver, MethodSymbol method, DiagnosticBag diagnostics)
+        {
+            // For now we are warning only in implicit copy scenarios that are only possible with readonly members.
+            // Eventually we will warn on implicit value copies in more scenarios. See https://github.com/dotnet/roslyn/issues/33968.
+            if (receiver is BoundThisReference &&
+                receiver.Type.IsValueType &&
+                (ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true &&
+                !method.IsEffectivelyReadOnly &&
+                !method.IsStatic)
+            {
+                Error(diagnostics, ErrorCode.WRN_ImplicitCopyInReadOnlyMember, receiver.Syntax, method.Name, ThisParameterSymbol.SymbolName);
+            }
         }
 
         /// <param name="node">Invocation syntax node.</param>
