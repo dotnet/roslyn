@@ -878,6 +878,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to _Edit.
+        /// </summary>
+        internal static string Edit {
+            get {
+                return ResourceManager.GetString("Edit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit {0}.
+        /// </summary>
+        internal static string Edit_0 {
+            get {
+                return ResourceManager.GetString("Edit_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit item.
         /// </summary>
         internal static string Edit_item {

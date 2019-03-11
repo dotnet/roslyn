@@ -117,6 +117,16 @@
         <target state="new">Current Document</target>
         <note />
       </trans-unit>
+      <trans-unit id="Edit">
+        <source>_Edit</source>
+        <target state="new">_Edit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Edit_0">
+        <source>Edit {0}</source>
+        <target state="new">Edit {0}</target>
+        <note>{0} is a parameter description</note>
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">元素無效。</target>

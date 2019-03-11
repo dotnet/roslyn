@@ -122,22 +122,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
         }
 
+        public bool CanEdit
+        {
+            get
+            {
+                if (!SelectedIndex.HasValue)
+                {
+                    return false;
+                }
+
+                // Cannot edit `this` parameter
+                var index = SelectedIndex.Value;
+                if (index == 0 && _thisParameter != null)
+                {
+                    return false;
+                }
+
+                // Cannot edit params parameter
+                if (index >= (_thisParameter == null ? 0 : 1) + _parameterGroup1.Count + _parameterGroup2.Count)
+                {
+                    return false;
+                }
+
+                return !AllParameters[SelectedIndex.Value].IsRemoved;
+            }
+        }
+
         internal void Remove()
         {
             AllParameters[_selectedIndex.Value].IsRemoved = true;
-            NotifyPropertyChanged(nameof(AllParameters));
-            NotifyPropertyChanged(nameof(SignatureDisplay));
-            NotifyPropertyChanged(nameof(SignaturePreviewAutomationText));
-            NotifyPropertyChanged(nameof(IsOkButtonEnabled));
-            NotifyPropertyChanged(nameof(CanRemove));
-            NotifyPropertyChanged(nameof(RemoveAutomationText));
-            NotifyPropertyChanged(nameof(CanRestore));
-            NotifyPropertyChanged(nameof(RestoreAutomationText));
+            RemoveRestoreNotifyPropertyChanged();
         }
 
         internal void Restore()
         {
             AllParameters[_selectedIndex.Value].IsRemoved = false;
+            RemoveRestoreNotifyPropertyChanged();
+        }
+
+        internal void RemoveRestoreNotifyPropertyChanged()
+        {
             NotifyPropertyChanged(nameof(AllParameters));
             NotifyPropertyChanged(nameof(SignatureDisplay));
             NotifyPropertyChanged(nameof(SignaturePreviewAutomationText));
@@ -146,6 +170,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             NotifyPropertyChanged(nameof(RemoveAutomationText));
             NotifyPropertyChanged(nameof(CanRestore));
             NotifyPropertyChanged(nameof(RestoreAutomationText));
+            NotifyPropertyChanged(nameof(CanEdit));
+            NotifyPropertyChanged(nameof(EditAutomationText));
         }
 
         internal ParameterConfiguration GetParameterConfiguration()
@@ -388,6 +414,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 NotifyPropertyChanged(nameof(RemoveAutomationText));
                 NotifyPropertyChanged(nameof(CanRestore));
                 NotifyPropertyChanged(nameof(RestoreAutomationText));
+                NotifyPropertyChanged(nameof(CanEdit));
+                NotifyPropertyChanged(nameof(EditAutomationText));
             }
         }
 
@@ -440,6 +468,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
 
                 return string.Format(ServicesVSResources.Restore_0, AllParameters[SelectedIndex.Value].ParameterAutomationText);
+            }
+        }
+
+        public string EditAutomationText
+        {
+            get
+            {
+                if (!CanEdit)
+                {
+                    return string.Empty;
+                }
+
+                return string.Format(ServicesVSResources.Edit_0, AllParameters[SelectedIndex.Value].ParameterAutomationText);
             }
         }
 

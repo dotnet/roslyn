@@ -1356,4 +1356,11 @@ I agree to all of the foregoing:</value>
   <data name="CSharp_Visual_Basic_Language_Server_Client" xml:space="preserve">
     <value>C#/Visual Basic Language Server Client</value>
   </data>
+  <data name="Edit" xml:space="preserve">
+    <value>_Edit</value>
+  </data>
+  <data name="Edit_0" xml:space="preserve">
+    <value>Edit {0}</value>
+    <comment>{0} is a parameter description</comment>
+  </data>
 </root>

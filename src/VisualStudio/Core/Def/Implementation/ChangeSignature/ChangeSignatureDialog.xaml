@@ -9,8 +9,8 @@
     xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
     xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
     xmlns:imagingPlatformUI="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
-    Height="420" Width="560"
-    MinHeight="420" MinWidth="560"
+    Height="470" Width="560"
+    MinHeight="470" MinWidth="560"
     Title="{Binding ElementName=dialog, Path=ChangeSignatureDialogTitle}"
     HasHelpButton="True"
     ResizeMode="CanResizeWithGrip"
@@ -61,7 +61,7 @@
         <TextBlock Grid.Row="0" Height="Auto" Width="Auto" Padding="0,4,0,0" Text="{Binding ElementName=dialog, Path=Parameters}"/>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
-                <RowDefinition MinHeight="180"/>
+                <RowDefinition MinHeight="220"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -284,6 +284,15 @@
                         AutomationProperties.AutomationId="RestoreButton" 
                         AutomationProperties.Name="{Binding RestoreAutomationText}"
                         Content="{Binding ElementName=dialog, Path=Restore}" 
+                        Height="Auto" Width="Auto"/>
+
+                <vs:DialogButton
+                        Margin="9 29 0 0"
+                        IsEnabled="{Binding CanEdit, Mode=OneWay}"
+                        AutomationProperties.Name="{Binding EditAutomationText}"
+                        Click="Edit_Click"
+                        AutomationProperties.AutomationId="EditButton"
+                        Content="{Binding ElementName=dialog, Path=Edit}"
                         Height="Auto" Width="Auto"/>
             </StackPanel>
         </Grid>

@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string PreviewReferenceChanges { get { return ServicesVSResources.Preview_reference_changes; } }
         public string Remove { get { return ServicesVSResources.Re_move; } }
         public string Restore { get { return ServicesVSResources.Restore; } }
+        public string Edit { get { return ServicesVSResources.Edit; } }
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
 
@@ -120,6 +121,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 _viewModel.Restore();
                 Members.Items.Refresh();
+            }
+
+            SetFocusToSelectedRow();
+        }
+
+        private void Edit_Click(object sender, RoutedEventArgs e)
+        {
+            if (_viewModel.CanEdit)
+            {
+                // TODO
             }
 
             SetFocusToSelectedRow();
