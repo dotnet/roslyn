@@ -1393,23 +1393,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.NullableAnnotation == NullableAnnotation.Unknown ||
-                destination.NullableAnnotation == NullableAnnotation.Unknown)
+            if (source.NullableAnnotation.IsOblivious() || destination.NullableAnnotation.IsOblivious())
             {
                 return true;
             }
 
-            if (source.IsPossiblyNullableReferenceTypeTypeParameter() && !destination.IsPossiblyNullableReferenceTypeTypeParameter())
+            if (source.IsPossiblyNullableTypeTypeParameter() && !destination.IsPossiblyNullableTypeTypeParameter())
             {
-                return destination.NullableAnnotation.IsAnyNullable();
+                return destination.NullableAnnotation.IsAnnotated();
             }
 
-            if (destination.IsPossiblyNullableReferenceTypeTypeParameter() && !source.IsPossiblyNullableReferenceTypeTypeParameter())
+            if (destination.IsPossiblyNullableTypeTypeParameter() && !source.IsPossiblyNullableTypeTypeParameter())
             {
-                return source.NullableAnnotation.IsAnyNullable();
+                return source.NullableAnnotation.IsAnnotated();
             }
 
-            return source.NullableAnnotation.IsAnyNullable() == destination.NullableAnnotation.IsAnyNullable();
+            return source.NullableAnnotation.IsAnnotated() == destination.NullableAnnotation.IsAnnotated();
         }
 
         /// <summary>
@@ -1424,19 +1423,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (source.NullableAnnotation == NullableAnnotation.Unknown ||
-                destination.NullableAnnotation == NullableAnnotation.Unknown ||
-                destination.NullableAnnotation.IsAnyNullable())
+            if (source.NullableAnnotation.IsOblivious() || destination.NullableAnnotation.IsOblivious() || destination.NullableAnnotation.IsAnnotated())
             {
                 return true;
             }
 
-            if (source.IsPossiblyNullableReferenceTypeTypeParameter() && !destination.IsPossiblyNullableReferenceTypeTypeParameter())
+            if (source.IsPossiblyNullableTypeTypeParameter() && !destination.IsPossiblyNullableTypeTypeParameter())
             {
                 return false;
             }
 
-            return !source.NullableAnnotation.IsAnyNullable();
+            return !source.NullableAnnotation.IsAnnotated();
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)

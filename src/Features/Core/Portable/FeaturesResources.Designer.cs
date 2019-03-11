@@ -2350,6 +2350,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make readonly fields writable.
+        /// </summary>
+        internal static string Make_readonly_fields_writable {
+            get {
+                return ResourceManager.GetString("Make_readonly_fields_writable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Member name can be simplified.
         /// </summary>
         internal static string Member_name_can_be_simplified {
@@ -4562,6 +4571,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Warning_Method_overrides_symbol_from_metadata {
             get {
                 return ResourceManager.GetString("Warning_Method_overrides_symbol_from_metadata", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrap and align expression.
+        /// </summary>
+        internal static string Wrap_and_align_expression {
+            get {
+                return ResourceManager.GetString("Wrap_and_align_expression", resourceCulture);
             }
         }
         

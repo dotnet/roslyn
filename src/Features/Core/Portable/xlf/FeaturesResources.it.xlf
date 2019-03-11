@@ -202,6 +202,11 @@
         <target state="new">Introduce query variable</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_readonly_fields_writable">
+        <source>Make readonly fields writable</source>
+        <target state="new">Make readonly fields writable</target>
+        <note>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Invert_conditional">
         <source>Invert conditional</source>
         <target state="new">Invert conditional</target>
@@ -410,6 +415,11 @@
       <trans-unit id="Value_assigned_to_symbol_is_never_used">
         <source>Value assigned to symbol is never used</source>
         <target state="new">Value assigned to symbol is never used</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_and_align_expression">
+        <source>Wrap and align expression</source>
+        <target state="new">Wrap and align expression</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_every_argument">

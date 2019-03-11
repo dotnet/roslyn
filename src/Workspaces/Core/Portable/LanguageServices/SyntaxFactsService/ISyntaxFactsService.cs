@@ -171,6 +171,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetRightSideOfDot(SyntaxNode node);
 
         bool IsRightSideOfQualifiedName(SyntaxNode node);
+        bool IsLeftSideOfExplicitInterfaceSpecifier(SyntaxNode node);
 
         bool IsNameOfMemberAccessExpression(SyntaxNode node);
         bool IsExpressionOfMemberAccessExpression(SyntaxNode node);
@@ -228,6 +229,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsSimpleArgument(SyntaxNode node);
         bool IsArgument(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
+        bool IsTypeArgumentList(SyntaxNode node);
+        bool IsTypeConstraint(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
         bool LooksGeneric(SyntaxNode simpleName);
@@ -315,6 +318,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsInNamespaceOrTypeContext(SyntaxNode node);
 
+        bool IsBaseTypeList(SyntaxNode node);
+
         bool IsAnonymousFunction(SyntaxNode n);
 
         bool IsInConstantContext(SyntaxNode node);
@@ -398,7 +403,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);
 
-        ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);
+        ImmutableArray<SyntaxNode> GetSelectedFieldsAndProperties(SyntaxNode root, TextSpan textSpan, bool allowPartialSelection);
         bool IsOnTypeHeader(SyntaxNode root, int position);
         bool IsBetweenTypeMembers(SourceText sourceText, SyntaxNode root, int position);
 
