@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)
         {
-            var info = ModifierUtils.CheckAccessibility(_modifiers);
+            var info = ModifierUtils.CheckAccessibility(_modifiers, this);
             if (info != null)
             {
                 diagnostics.Add(new CSDiagnostic(info, location));
@@ -838,7 +838,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.New |
                                     DeclarationModifiers.Sealed |
                                     DeclarationModifiers.Abstract |
-                                    DeclarationModifiers.Virtual;
+                                    DeclarationModifiers.Virtual |
+                                    DeclarationModifiers.AccessibilityMask;
 
                 if (!isIndexer)
                 {
@@ -847,25 +848,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!isInterface)
                 {
-                    allowedModifiers |=
-                        DeclarationModifiers.AccessibilityMask |
-                        DeclarationModifiers.Override;
+                    allowedModifiers |= DeclarationModifiers.Override;
                 }
                 else
                 {
-                    const DeclarationModifiers allowedAccess = (DeclarationModifiers.AccessibilityMask & ~(DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal));
-
                     // This is needed to make sure we can detect 'public' modifier specified explicitly and
                     // check it against language version below.
                     defaultAccess = DeclarationModifiers.None;
 
-                    allowedModifiers |= allowedAccess;
                     defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
                                                                DeclarationModifiers.Abstract |
                                                                (isIndexer ? 0 : DeclarationModifiers.Static) |
                                                                DeclarationModifiers.Virtual |
                                                                DeclarationModifiers.Extern |
-                                                               allowedAccess;
+                                                               DeclarationModifiers.AccessibilityMask;
                 }
             }
 

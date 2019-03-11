@@ -253,7 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (((NamedTypeSymbol)containingSymbol).IsInterface)
                 {
                     defaultAccess = DeclarationModifiers.Public;
-                    allowedModifiers &= ~(DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal);
                 }
                 else
                 {
@@ -350,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)
                     {
-                        var info = ModifierUtils.CheckAccessibility(mods);
+                        var info = ModifierUtils.CheckAccessibility(mods, this);
                         if (info != null)
                         {
                             diagnostics.Add(info, self.Locations[0]);

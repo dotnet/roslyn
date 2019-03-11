@@ -321,11 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method = conversion.Method;
             bool hasErrors = false;
 
-            if (IsBadBaseAccess(syntax, receiverOpt, method, diagnostics))
-            {
-                hasErrors = true;
-            }
-
             NamedTypeSymbol delegateType = (NamedTypeSymbol)destination;
             if (MethodGroupConversionHasErrors(syntax, conversion, group.ReceiverOpt, conversion.IsExtensionMethod, delegateType, diagnostics))
             {
@@ -514,7 +509,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </returns>
         private bool MemberGroupFinalValidation(BoundExpression receiverOpt, MethodSymbol methodSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
         {
-            CheckRuntimeSupportForSymbolAccess(node, receiverOpt, methodSymbol, diagnostics);
+            if (!IsBadBaseAccess(node, receiverOpt, methodSymbol, diagnostics))
+            {
+                CheckRuntimeSupportForSymbolAccess(node, receiverOpt, methodSymbol, diagnostics);
+            }
 
             if (MemberGroupFinalValidationAccessibilityChecks(receiverOpt, methodSymbol, node, diagnostics, invokedAsExtensionMethod))
             {

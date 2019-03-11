@@ -1699,7 +1699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This PR can be used to find the relevant code and test files: https://github.com/dotnet/roslyn/pull/18045.
         ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
 
-        // Available 8707,
+        ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 8707,
         ERR_NotBaseOrImplementedInterface = 8708,
 
         #endregion diagnostics introduced for C# 8.0

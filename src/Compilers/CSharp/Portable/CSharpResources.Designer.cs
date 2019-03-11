@@ -9295,6 +9295,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Target runtime doesn&apos;t support &apos;protected&apos;, &apos;protected internal&apos;, or &apos;private protected&apos; accessibility for an interface member, or a type nested into an interface..
+        /// </summary>
+        internal static string ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember {
+            get {
+                return ResourceManager.GetString("ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type &apos;{1}&apos; exists in both &apos;{0}&apos; and &apos;{2}&apos;.
         /// </summary>
         internal static string ERR_SameFullNameAggAgg {
@@ -9475,7 +9484,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf).
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not have a predefined size, therefore sizeof can only be used in an unsafe context.
         /// </summary>
         internal static string ERR_SizeofUnsafe {
             get {

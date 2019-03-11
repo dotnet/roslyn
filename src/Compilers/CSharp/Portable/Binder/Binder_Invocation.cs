@@ -1122,11 +1122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDelegateCall = (object)delegateTypeOpt != null;
             if (!isDelegateCall)
             {
-                if (IsBadBaseAccess(node, receiver, method, diagnostics))
-                {
-                    gotError = true;
-                }
-
                 if (!method.IsStatic)
                 {
                     WarnOnAccessOfOffDefault(node.Kind() == SyntaxKind.InvocationExpression ?

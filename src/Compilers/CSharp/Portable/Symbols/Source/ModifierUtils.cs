@@ -117,8 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                         requiredVersionArgument);
                     }
                 }
-
-                // PROTOTYPE(DefaultInterfaceImplementation): Should we also check runtime support for some of the modifiers?
             }
         }
 
@@ -308,12 +306,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static CSDiagnosticInfo CheckAccessibility(DeclarationModifiers modifiers)
+        internal static CSDiagnosticInfo CheckAccessibility(DeclarationModifiers modifiers, Symbol symbol)
         {
             if (!IsValidAccessibility(modifiers))
             {
                 // error CS0107: More than one protection modifier
                 return new CSDiagnosticInfo(ErrorCode.ERR_BadMemberProtection);
+            }
+
+            if (symbol.Kind != SymbolKind.Method || (modifiers & DeclarationModifiers.Partial) == 0)
+            {
+                switch (modifiers & DeclarationModifiers.AccessibilityMask)
+                {
+                    case DeclarationModifiers.Protected:
+                    case DeclarationModifiers.ProtectedInternal:
+                    case DeclarationModifiers.PrivateProtected:
+
+                        if (symbol.ContainingType?.IsInterface == true && !symbol.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                        {
+                            return new CSDiagnosticInfo(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember);
+                        }
+                        break;
+                }
             }
 
             return null;

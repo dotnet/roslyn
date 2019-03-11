@@ -1025,6 +1025,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return false;
                     }
+
+                    CheckRuntimeSupportForSymbolAccess(node, receiver, setMethod, diagnostics);
                 }
             }
 
@@ -1066,6 +1068,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return false;
                     }
+
+                    CheckRuntimeSupportForSymbolAccess(node, receiver, getMethod, diagnostics);
                 }
             }
 

@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
             CheckModifiersForBody(syntax, location, diagnostics);
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckModifiersForBody(syntax, location, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -434,9 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.ContainingType.IsInterface && !isExplicitInterfaceImplementation)
             {
-                const DeclarationModifiers disallow = DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal;
-                allowedModifiers &= ~disallow;
-                defaultInterfaceImplementationModifiers = (DeclarationModifiers.AccessibilityMask & ~disallow);
+                defaultInterfaceImplementationModifiers = DeclarationModifiers.AccessibilityMask;
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);

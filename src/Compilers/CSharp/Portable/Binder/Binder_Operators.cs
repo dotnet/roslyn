@@ -271,6 +271,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     hasErrors = true;
                 }
+                else
+                {
+                    CheckRuntimeSupportForSymbolAccess(node, receiverOpt, method, diagnostics);
+                }
 
                 if (eventSymbol.IsWindowsRuntimeEvent)
                 {
