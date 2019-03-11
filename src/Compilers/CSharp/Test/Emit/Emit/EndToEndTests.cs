@@ -114,13 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             };
 
             // Un-comment loop below and use above commands to figure out the new limits
-            for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
-            {
-                var start = DateTime.UtcNow;
-                Console.Write($"Depth: {i}");
-                runDeeplyNestedGenericTest(i);
-                Console.WriteLine($" - {DateTime.UtcNow - start}");
-            }
+            // for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
+            // {
+            //     var start = DateTime.UtcNow;
+            //     Console.Write($"Depth: {i}");
+            //     runDeeplyNestedGenericTest(i);
+            //     Console.WriteLine($" - {DateTime.UtcNow - start}");
+            // }
 
             runDeeplyNestedGenericTest(nestingLevel);
 
