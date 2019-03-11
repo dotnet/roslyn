@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                         // stored in the table already.  If they don't match, don't read
                         // out the data value at all.
                         if (checksumOpt != null &&
-                            !ChecksumsMatch(connection, rowId, checksumOpt, cancellationToken))
+                            !ChecksumsMatch_MustRunInTransaction(connection, rowId, checksumOpt, cancellationToken))
                         {
                             return;
                         }
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 return null;
             }
 
-            private bool ChecksumsMatch(SqlConnection connection, long rowId, Checksum checksum, CancellationToken cancellationToken)
+            private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, long rowId, Checksum checksum, CancellationToken cancellationToken)
             {
                 using (var checksumStream = connection.ReadBlob_MustRunInTransaction(DataTableName, ChecksumColumnName, rowId))
                 using (var reader = ObjectReader.TryGetReader(checksumStream, cancellationToken))
