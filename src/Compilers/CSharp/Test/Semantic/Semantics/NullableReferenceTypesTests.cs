@@ -82588,20 +82588,20 @@ class Node
 public class C
 {
     public C? f;
-    int? Test1(C? c) => c?.f.M(c.f.ToString()); // nested use of `c.f` is safe
-    int? Test2(C? c) => c.f.M(c.f.ToString());
-    int M(string s) => s.Length;
+    void Test1(C? c) => c?.f.M(c.f.ToString()); // nested use of `c.f` is safe
+    void Test2(C? c) => c.f.M(c.f.ToString());
+    void M(string s) => throw null!;
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (5,27): warning CS8602: Possible dereference of a null reference.
-                //     int? Test1(C? c) => c?.f.M(c.f.ToString()); // nested use of `c.f` is safe
+                //     void Test1(C? c) => c?.f.M(c.f.ToString()); // nested use of `c.f` is safe
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".f").WithLocation(5, 27),
                 // (6,25): warning CS8602: Possible dereference of a null reference.
-                //     int? Test2(C? c) => c.f.M(c.f.ToString());
+                //     void Test2(C? c) => c.f.M(c.f.ToString());
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(6, 25),
                 // (6,25): warning CS8602: Possible dereference of a null reference.
-                //     int? Test2(C? c) => c.f.M(c.f.ToString());
+                //     void Test2(C? c) => c.f.M(c.f.ToString());
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c.f").WithLocation(6, 25)
                 );
         }
