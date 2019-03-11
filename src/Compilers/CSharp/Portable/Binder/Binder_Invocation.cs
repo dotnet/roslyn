@@ -1137,7 +1137,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
         }
 
-        private void CheckImplicitThisCopyInReadOnlyMember(BoundExpression receiver, MethodSymbol method, DiagnosticBag diagnostics)
+        /// <summary>
+        /// Returns false if an implicit 'this' copy will occur due to an instance member invocation in a readonly member.
+        /// </summary>
+        private bool CheckImplicitThisCopyInReadOnlyMember(BoundExpression receiver, MethodSymbol method, DiagnosticBag diagnostics)
         {
             // For now we are warning only in implicit copy scenarios that are only possible with readonly members.
             // Eventually we will warn on implicit value copies in more scenarios. See https://github.com/dotnet/roslyn/issues/33968.
@@ -1148,7 +1151,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !method.IsStatic)
             {
                 Error(diagnostics, ErrorCode.WRN_ImplicitCopyInReadOnlyMember, receiver.Syntax, method.Name, ThisParameterSymbol.SymbolName);
+                return false;
             }
+
+            return true;
         }
 
         /// <param name="node">Invocation syntax node.</param>

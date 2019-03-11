@@ -350,6 +350,48 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyAccessor_CallNormalGetAccessor()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+
+    public int P1
+    {
+        readonly get
+        {
+            // should create local copy
+            _ = P2; // warning
+            System.Console.Write(i);
+
+            // explicit local copy, no warning
+            var copy = this;
+            _ = copy.P2; // ok
+            System.Console.Write(copy.i);
+
+            return i;
+        }
+    }
+
+    int P2 => i = 23;
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        _ = s.P1;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+            verifier.VerifyDiagnostics(
+                // (11,17): warning CS8655: Call to non-readonly member 'get_P2' from a 'readonly' member results in an implicit copy of 'this'.
+                //             _ = P2;
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "P2").WithArguments("get_P2", "this").WithLocation(11, 17));
+        }
+
+        [Fact]
         public void ReadOnlyStruct_CallNormalMethodOnField()
         {
             var csharp = @"

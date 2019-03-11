@@ -1039,6 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
+                    CheckImplicitThisCopyInReadOnlyMember(receiver, getMethod, diagnostics);
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
                 }
             }
