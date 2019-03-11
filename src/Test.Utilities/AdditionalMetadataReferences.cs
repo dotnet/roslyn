@@ -17,8 +17,13 @@ namespace Test.Utilities
         internal static readonly MetadataReference WorkspacesReference = MetadataReference.CreateFromFile(typeof(Workspace).Assembly.Location);
         internal static readonly MetadataReference SystemDiagnosticsDebugReference = MetadataReference.CreateFromFile(typeof(Debug).Assembly.Location);
         internal static readonly MetadataReference SystemDataReference = MetadataReference.CreateFromFile(typeof(System.Data.DataSet).Assembly.Location);
-
-
+        internal static readonly MetadataReference SystemWebReference = MetadataReference.CreateFromFile(typeof(System.Web.HttpRequest).Assembly.Location);
+        internal static readonly MetadataReference SystemRuntimeSerialization = MetadataReference.CreateFromFile(typeof(System.Runtime.Serialization.NetDataContractSerializer).Assembly.Location);
+        internal static readonly MetadataReference SystemXmlLinq = MetadataReference.CreateFromFile(typeof(System.Xml.Linq.XAttribute).Assembly.Location);
+        internal static readonly MetadataReference TestReferenceAssembly = MetadataReference.CreateFromFile(typeof(OtherDll.OtherDllStaticMethods).Assembly.Location);
+        internal static readonly MetadataReference SystemDirectoryServices = MetadataReference.CreateFromFile(typeof(System.DirectoryServices.DirectoryEntry).Assembly.Location);
+        internal static readonly MetadataReference SystemXaml = MetadataReference.CreateFromFile(typeof(System.Xaml.XamlReader).Assembly.Location);
+        internal static readonly MetadataReference PresentationFramework = MetadataReference.CreateFromFile(typeof(System.Windows.Markup.XamlReader).Assembly.Location);
         private static MetadataReference s_systemRuntimeFacadeRef;
         public static MetadataReference SystemRuntimeFacadeRef
         {
@@ -26,7 +31,9 @@ namespace Test.Utilities
             {
                 if (s_systemRuntimeFacadeRef == null)
                 {
+#pragma warning disable CA2000 // Dispose objects before losing scope - Dispose ownership transfer at 'AssemblyMetadata.GetReference'
                     s_systemRuntimeFacadeRef = AssemblyMetadata.CreateFromImage(ReferenceAssemblies_V45_Facades.System_Runtime).GetReference(display: "System.Runtime.dll");
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 
                 return s_systemRuntimeFacadeRef;
@@ -40,7 +47,9 @@ namespace Test.Utilities
             {
                 if (s_systemThreadingFacadeRef == null)
                 {
+#pragma warning disable CA2000 // Dispose objects before losing scope - Dispose ownership transfer at 'AssemblyMetadata.GetReference'
                     s_systemThreadingFacadeRef = AssemblyMetadata.CreateFromImage(ReferenceAssemblies_V45_Facades.System_Threading).GetReference(display: "System.Threading.dll");
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 
                 return s_systemThreadingFacadeRef;
@@ -54,7 +63,9 @@ namespace Test.Utilities
             {
                 if (s_systemThreadingTasksFacadeRef == null)
                 {
+#pragma warning disable CA2000 // Dispose objects before losing scope - Dispose ownership transfer at 'AssemblyMetadata.GetReference'
                     s_systemThreadingTasksFacadeRef = AssemblyMetadata.CreateFromImage(ReferenceAssemblies_V45_Facades.System_Threading_Tasks).GetReference(display: "System.Threading.Tasks.dll");
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 }
 
                 return s_systemThreadingTasksFacadeRef;

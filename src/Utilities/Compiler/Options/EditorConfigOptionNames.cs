@@ -5,7 +5,7 @@ namespace Analyzer.Utilities
     /// <summary>
     /// Option names to configure analyzer execution through an .editorconfig file.
     /// </summary>
-    public static class EditorConfigOptionNames
+    internal static partial class EditorConfigOptionNames
     {
         // =============================================================================================================
         // NOTE: Keep this file in sync with documentation at '<%REPO_ROOT%>\docs\Analyzer Configuration.md'

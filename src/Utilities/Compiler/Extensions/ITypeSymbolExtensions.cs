@@ -23,8 +23,6 @@ namespace Analyzer.Utilities.Extensions
                 case SpecialType.System_UInt16:
                 case SpecialType.System_UInt32:
                 case SpecialType.System_UInt64:
-                case SpecialType.System_IntPtr:
-                case SpecialType.System_UIntPtr:
                 case SpecialType.System_SByte:
                 case SpecialType.System_Single:
                     return true;
@@ -180,6 +178,14 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool IsReferenceTypeOrNullableValueType(this ITypeSymbol typeSymbol)
             => typeSymbol != null && (typeSymbol.IsReferenceType || typeSymbol.IsNullableValueType());
+
+        public static bool IsNullableOfBoolean(this ITypeSymbol typeSymbol)
+            => typeSymbol.IsNullableValueType() && ((INamedTypeSymbol)typeSymbol).TypeArguments[0].SpecialType == SpecialType.System_Boolean;
+
+#if HAS_IOPERATION
+        public static ITypeSymbol GetUnderlyingValueTupleTypeOrThis(this ITypeSymbol typeSymbol)
+            => (typeSymbol as INamedTypeSymbol)?.TupleUnderlyingType ?? typeSymbol;
+#endif
 
         public static Accessibility DetermineMinimalAccessibility(this ITypeSymbol typeSymbol)
         {

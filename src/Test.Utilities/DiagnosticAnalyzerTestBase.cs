@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -25,7 +26,8 @@ namespace Test.Utilities
             None = 0b000,
             RemoveCodeAnalysis = 0b001,
             RemoveImmutable = 0b010,
-            RemoveSystemData = 0b100
+            RemoveSystemData = 0b100,
+            AddTestReferenceAssembly = 0b1000,
         }
 
         protected static readonly CompilationOptions s_CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
@@ -35,8 +37,8 @@ namespace Test.Utilities
         internal const string DefaultFilePathPrefix = "Test";
         internal const string CSharpDefaultFileExt = "cs";
         internal const string VisualBasicDefaultExt = "vb";
-        internal static readonly string CSharpDefaultFilePath = DefaultFilePathPrefix + 0 + "." + CSharpDefaultFileExt;
-        internal static readonly string VisualBasicDefaultFilePath = DefaultFilePathPrefix + 0 + "." + VisualBasicDefaultExt;
+        protected static readonly string CSharpDefaultFilePath = DefaultFilePathPrefix + 0 + "." + CSharpDefaultFileExt;
+        protected static readonly string VisualBasicDefaultFilePath = DefaultFilePathPrefix + 0 + "." + VisualBasicDefaultExt;
 
         private const string TestProjectName = "TestProject";
 
@@ -55,6 +57,9 @@ namespace Test.Utilities
         /// </summary>
         /// <returns></returns>
         protected abstract DiagnosticAnalyzer GetBasicDiagnosticAnalyzer();
+
+        private const string EditorConfigEnableCopyAnalysis = "dotnet_code_quality.copy_analysis = true";
+        protected FileAndSource GetEditorConfigToEnableCopyAnalysis() => GetEditorConfigAdditionalFile(EditorConfigEnableCopyAnalysis);
 
         protected bool PrintActualDiagnosticsOnFailure { get; set; }
 
@@ -81,6 +86,11 @@ namespace Test.Utilities
             return GetResultAt(VisualBasicDefaultFilePath, line, column, rule, messageArguments);
         }
 
+        protected static DiagnosticResult GetBasicResultAt(IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            return GetResultAt(VisualBasicDefaultFilePath, lineColumnPairs, rule, messageArguments);
+        }
+
         protected static DiagnosticResult GetCSharpResultAt(int line, int column, string id, string message)
         {
             return GetResultAt(CSharpDefaultFilePath, line, column, id, message);
@@ -94,6 +104,11 @@ namespace Test.Utilities
         protected static DiagnosticResult GetCSharpResultAt(int line, int column, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             return GetResultAt(CSharpDefaultFilePath, line, column, rule, messageArguments);
+        }
+
+        protected static DiagnosticResult GetCSharpResultAt(IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            return GetResultAt(CSharpDefaultFilePath, lineColumnPairs, rule, messageArguments);
         }
 
         protected static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string additionalFilePath, DiagnosticDescriptor rule, params object[] messageArguments)
@@ -120,6 +135,17 @@ namespace Test.Utilities
         private static DiagnosticResult GetResultAt(string path, int line, int column, DiagnosticDescriptor rule, params object[] messageArguments)
         {
             return new DiagnosticResult(rule).WithLocation(path, line, column).WithArguments(messageArguments);
+        }
+
+        private static DiagnosticResult GetResultAt(string path, IEnumerable<Tuple<int, int>> lineColumnPairs, DiagnosticDescriptor rule, params object[] messageArguments)
+        {
+            DiagnosticResult result = new DiagnosticResult(rule).WithArguments(messageArguments);
+            foreach (Tuple<int, int> pair in lineColumnPairs)
+            {
+                result = result.WithLocation(path, pair.Item1, pair.Item2);
+            }
+
+            return result;
         }
 
         private static (string path, LinePosition location)[] ParseResultLocations(string defaultPath, string[] locationStrings)
@@ -348,7 +374,9 @@ namespace Test.Utilities
 
             ProjectId projectId = ProjectId.CreateNewId(debugName: projectName);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - Current solution/project takes the dispose ownership of the created AdhocWorkspace
             Project project = (addToSolution ?? new AdhocWorkspace().CurrentSolution)
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 .AddProject(projectId, projectName, projectName, language)
                 .AddMetadataReference(projectId, MetadataReferences.CorlibReference)
                 .AddMetadataReference(projectId, MetadataReferences.SystemCoreReference)
@@ -359,9 +387,21 @@ namespace Test.Utilities
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemThreadingTaskFacadeRef)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.WorkspacesReference)
                 .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDiagnosticsDebugReference)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemWebReference)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlLinq)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeSerialization)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemDirectoryServices)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXaml)
+                .AddMetadataReference(projectId, AdditionalMetadataReferences.PresentationFramework)
                 .WithProjectCompilationOptions(projectId, options)
                 .WithProjectParseOptions(projectId, parseOptions)
                 .GetProject(projectId);
+
+            // Enable Flow-Analysis feature on the project
+            parseOptions = project.ParseOptions.WithFeatures(
+                project.ParseOptions.Features.Concat(
+                    SpecializedCollections.SingletonEnumerable(KeyValuePairUtil.Create("flow-analysis", "true"))));
+            project = project.WithParseOptions(parseOptions);
 
             if ((referenceFlags & ReferenceFlags.RemoveCodeAnalysis) != ReferenceFlags.RemoveCodeAnalysis)
             {
@@ -378,6 +418,11 @@ namespace Test.Utilities
             {
                 project = project.AddMetadataReference(AdditionalMetadataReferences.SystemDataReference)
                     .AddMetadataReference(AdditionalMetadataReferences.SystemXmlDataReference);
+            }
+
+            if ((referenceFlags & ReferenceFlags.AddTestReferenceAssembly) == ReferenceFlags.AddTestReferenceAssembly)
+            {
+                project = project.AddMetadataReference(AdditionalMetadataReferences.TestReferenceAssembly);
             }
 
             if (language == LanguageNames.VisualBasic)
@@ -469,6 +514,98 @@ namespace Test.Utilities
             return results;
         }
 
+        protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
+        {
+            return GetSyntaxNodeList(syntaxTree.GetRoot(), null);
+        }
+
+        protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
+        {
+            if (synList == null)
+                synList = new List<SyntaxNode>();
+
+            synList.Add(node);
+
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsNode)
+                    synList = GetSyntaxNodeList(child.AsNode(), synList);
+            }
+
+            return synList;
+        }
+
+        protected static (IOperation operation, SemanticModel model, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
+    where TSyntaxNode : SyntaxNode
+        {
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            if (syntaxNode == null)
+            {
+                return (null, null, null);
+            }
+
+            var operation = model.GetOperation(syntaxNode);
+            if (operation != null)
+            {
+                Assert.Same(model, operation.SemanticModel);
+            }
+            return (operation, model, syntaxNode);
+        }
+
+        protected const string StartString = "/*<bind>*/";
+        protected const string EndString = "/*</bind>*/";
+
+        protected static TNode GetSyntaxNodeOfTypeForBinding<TNode>(List<SyntaxNode> synList) where TNode : SyntaxNode
+        {
+            foreach (var node in synList.OfType<TNode>())
+            {
+                string exprFullText = node.ToFullString();
+                exprFullText = exprFullText.Trim();
+
+                if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
+                {
+                    if (exprFullText.Contains(EndString))
+                    {
+                        if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
+                        {
+                            return node;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        return node;
+                    }
+                }
+
+                if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
+                {
+                    if (exprFullText.Contains(StartString))
+                    {
+                        if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
+                        {
+                            return node;
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        return node;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private static Compilation EnableAnalyzer(DiagnosticAnalyzer analyzer, Compilation compilation)
         {
             return compilation.WithOptions(
@@ -477,7 +614,7 @@ namespace Test.Utilities
                     .WithSpecificDiagnosticOptions(
                         analyzer
                             .SupportedDiagnostics
-                            .Select(x => KeyValuePair.Create(x.Id, ReportDiagnostic.Default))
+                            .Select(x => KeyValuePairUtil.Create(x.Id, ReportDiagnostic.Default))
                             .ToImmutableDictionaryOrEmpty()));
         }
 
