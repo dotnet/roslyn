@@ -13,15 +13,5 @@ namespace Microsoft.CodeAnalysis.Host
         {
             return document?.Services.GetService<IDocumentOperationService>().CanApplyChange ?? false;
         }
-
-        public static bool SupportsDiagnostics(this TextDocument document)
-        {
-            return document?.State.SupportsDiagnostics() ?? false;
-        }
-
-        public static bool SupportsDiagnostics(this TextDocumentState document)
-        {
-            return document?.Services.GetService<IDocumentOperationService>().SupportDiagnostics ?? false;
-        }
     }
 }

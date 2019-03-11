@@ -13,10 +13,5 @@ namespace Microsoft.CodeAnalysis.Host
         /// document version of <see cref="Workspace.CanApplyChange(ApplyChangesKind)"/>
         /// </summary>
         bool CanApplyChange { get; }
-
-        /// <summary>
-        /// indicates whether this document supports diagnostics or not
-        /// </summary>
-        bool SupportDiagnostics { get; }
     }
 }

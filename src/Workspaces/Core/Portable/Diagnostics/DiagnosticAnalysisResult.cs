@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
 
             // filter out any document that doesn't support diagnostics.
             // g.Key == null means diagnostics on the project which assigned to "others" error category
-            var group = diagnostics.GroupBy(d => d.DocumentId).Where(g => g.Key == null || project.GetDocument(g.Key).SupportsDiagnostics()).ToList();
+            var group = diagnostics.GroupBy(d => d.DocumentId).ToList();
 
             var result = new DiagnosticAnalysisResult(
                 project.Id,
@@ -128,10 +128,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             ImmutableArray<DiagnosticData> others,
             ImmutableHashSet<DocumentId> documentIds = null)
         {
-            VerifyDocumentMap(project, syntaxLocalMap);
-            VerifyDocumentMap(project, semanticLocalMap);
-            VerifyDocumentMap(project, nonLocalMap);
-
             return new DiagnosticAnalysisResult(
                 project.Id,
                 version,
@@ -253,15 +249,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
             }
 
             return ImmutableHashSet.CreateRange(documents);
-        }
-
-        [Conditional("DEBUG")]
-        private static void VerifyDocumentMap(Project project, ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> map)
-        {
-            foreach (var documentId in map.Keys)
-            {
-                Debug.Assert(project.GetDocument(documentId)?.SupportsDiagnostics() == true);
-            }
         }
     }
 }

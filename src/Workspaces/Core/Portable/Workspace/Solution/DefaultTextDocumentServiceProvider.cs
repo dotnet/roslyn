@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis
             // even support rename through IDynamicFileInfoProvider pattern once we address that in next
             // iteration for razor. for now, we keep existing behavior
             public bool CanApplyChange => true;
-            public bool SupportDiagnostics => true;
         }
     }
 }

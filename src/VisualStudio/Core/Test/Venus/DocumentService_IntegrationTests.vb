@@ -206,15 +206,13 @@ class { }
 
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())
 
-                ' confirm diagnostic support is off for the document
-                Assert.False(document.SupportsDiagnostics())
-
                 ' register the workspace to the service
                 diagnosticService.CreateIncrementalAnalyzer(workspace)
 
                 ' confirm that IDE doesn't report the diagnostics
                 Dim diagnostics = Await diagnosticService.GetDiagnosticsAsync(workspace.CurrentSolution, documentId:=document.Id)
-                Assert.False(diagnostics.Any())
+                Dim diagnostic = Assert.Single(diagnostics)
+                Assert.Equal("CS1001", diagnostic.Id)
             End Using
         End Function
 
@@ -300,12 +298,6 @@ class { }
                 Public Shared ReadOnly Instance As DocumentOperations = New DocumentOperations()
 
                 Public ReadOnly Property CanApplyChange As Boolean Implements IDocumentOperationService.CanApplyChange
-                    Get
-                        Return False
-                    End Get
-                End Property
-
-                Public ReadOnly Property SupportDiagnostics As Boolean Implements IDocumentOperationService.SupportDiagnostics
                     Get
                         Return False
                     End Get

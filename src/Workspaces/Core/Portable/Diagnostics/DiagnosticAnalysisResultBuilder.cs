@@ -118,11 +118,6 @@ namespace Microsoft.CodeAnalysis.Workspaces.Diagnostics
                 return;
             }
 
-            if (!documentOpt.SupportsDiagnostics())
-            {
-                return;
-            }
-
             map = map ?? new Dictionary<DocumentId, List<DiagnosticData>>();
             map.GetOrAdd(documentOpt.Id, _ => new List<DiagnosticData>()).Add(DiagnosticData.Create(documentOpt, diagnostic));
 
