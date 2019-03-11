@@ -1135,32 +1135,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argsToParamsOpt: argsToParams, resultKind: LookupResultKind.Viable, binderOpt: this, type: returnType, hasErrors: gotError);
         }
 
-        private bool IsBindingModuleLevelAttribute()
-        {
-            if ((this.Flags & BinderFlags.InContextualAttributeBinder) == 0)
-            {
-                return false;
-            }
-
-            var current = this;
-
-            do
-            {
-                var contextualAttributeBinder = current as ContextualAttributeBinder;
-
-                if (contextualAttributeBinder != null)
-                {
-                    return (object)contextualAttributeBinder.AttributeTarget != null &&
-                           contextualAttributeBinder.AttributeTarget.Kind == SymbolKind.NetModule;
-                }
-
-                current = current.Next;
-            }
-            while (current != null);
-
-            throw ExceptionUtilities.Unreachable;
-        }
-
         /// <param name="node">Invocation syntax node.</param>
         /// <param name="expression">The syntax for the invoked method, including receiver.</param>
         private static Location GetLocationForOverloadResolutionDiagnostic(SyntaxNode node, SyntaxNode expression)
