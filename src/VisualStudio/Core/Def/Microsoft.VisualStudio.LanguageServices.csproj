@@ -53,6 +53,9 @@
     <Compile Update="Implementation\MoveToNamespace\MoveToNamespaceDialog.xaml.cs">
       <DependentUpon>MoveToNamespaceDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Update="Implementation\ChangeSignature\ParameterDetailsDialog.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Implementation\PickMembers\PickMembersDialog.xaml.cs">
       <DependentUpon>PickMembersDialog.xaml</DependentUpon>
     </Compile>
@@ -223,6 +226,7 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Implementation\MoveToNamespace\MoveToNamespaceDialog.xaml">
+    <Page Include="Implementation\ChangeSignature\ParameterDetailsDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Implementation\PickMembers\PickMembersDialog.xaml">

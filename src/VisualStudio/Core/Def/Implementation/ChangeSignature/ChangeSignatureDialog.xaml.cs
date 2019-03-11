@@ -130,7 +130,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             if (_viewModel.CanEdit)
             {
-                // TODO
+                var parameterViewModel = new ParameterDetailsDialogViewModel(null, _viewModel.AllParameters[Members.SelectedIndex].ParameterSymbol);
+                var dialog = new ParameterDetailsDialog(parameterViewModel);
+                var result = dialog.ShowModal();
+
+                if (result == true)
+                {
+                    // TODO
+                }
             }
 
             SetFocusToSelectedRow();

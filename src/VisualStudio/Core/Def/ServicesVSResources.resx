@@ -1363,4 +1363,7 @@ I agree to all of the foregoing:</value>
     <value>Edit {0}</value>
     <comment>{0} is a parameter description</comment>
   </data>
+  <data name="Parameter_Details" xml:space="preserve">
+    <value>Parameter Details</value>
+  </data>
 </root>

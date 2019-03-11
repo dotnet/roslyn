@@ -382,6 +382,11 @@
         <target state="new">Open Documents and Projects</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parameter_Details">
+        <source>Parameter Details</source>
+        <target state="new">Parameter Details</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Parameter_preferences_colon">
         <source>Parameter preferences:</source>
         <target state="translated">Parametre tercihleri:</target>

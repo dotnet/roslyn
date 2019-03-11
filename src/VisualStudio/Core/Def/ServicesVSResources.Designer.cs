@@ -2209,6 +2209,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter Details.
+        /// </summary>
+        internal static string Parameter_Details {
+            get {
+                return ResourceManager.GetString("Parameter_Details", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameter preferences:.
         /// </summary>
         internal static string Parameter_preferences_colon {
