@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// loop, dig into the waiters and see all of the active <see cref="IAsyncToken"/> values 
         /// representing the remaining work.
         /// </remarks>
-        public async Task WaitAllAsync(bool willBlockOnCompletion, string[] featureNames = null, Action eventProcessingAction = null)
+        public async Task WaitAllAsync(string[] featureNames = null, Action eventProcessingAction = null)
         {
             var smallTimeout = TimeSpan.FromMilliseconds(10);
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             while (true)
             {
                 var waiters = GetCandidateWaiters(featureNames);
-                tasks = waiters.Select(x => x.CreateWaitTask(willBlockOnCompletion)).Where(t => !t.IsCompleted).ToArray();
+                tasks = waiters.Select(x => x.CreateExpeditedWaitTask()).Where(t => !t.IsCompleted).ToArray();
 
                 if (tasks.Length == 0)
                 {

@@ -957,14 +957,14 @@ End Class";
                     // make sure global operaiton is actually started
                     // otherwise, solution crawler might processed event we are later waiting for
                     var operationWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.GlobalOperation);
-                    await operationWaiter.CreateWaitTask(willBlockOnCompletion: true);
+                    await operationWaiter.CreateExpeditedWaitTask();
 
                     // mutate solution
                     workspace.OnSolutionAdded(solution);
 
                     // wait for workspace events to be all processed
                     var workspaceWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.Workspace);
-                    await workspaceWaiter.CreateWaitTask(willBlockOnCompletion: true);
+                    await workspaceWaiter.CreateExpeditedWaitTask();
 
                     // now wait for semantic processor to finish
                     var crawlerListener = (AsynchronousOperationListener)GetListenerProvider(workspace.ExportProvider).GetListener(FeatureAttribute.SolutionCrawler);
@@ -1070,10 +1070,10 @@ End Class";
         private async Task WaitWaiterAsync(ExportProvider provider)
         {
             var workspaceWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.Workspace);
-            await workspaceWaiter.CreateWaitTask(willBlockOnCompletion: true);
+            await workspaceWaiter.CreateExpeditedWaitTask();
 
             var solutionCrawlerWaiter = GetListenerProvider(provider).GetWaiter(FeatureAttribute.SolutionCrawler);
-            await solutionCrawlerWaiter.CreateWaitTask(willBlockOnCompletion: true);
+            await solutionCrawlerWaiter.CreateExpeditedWaitTask();
         }
 
         private static SolutionInfo GetInitialSolutionInfoWithP2P()

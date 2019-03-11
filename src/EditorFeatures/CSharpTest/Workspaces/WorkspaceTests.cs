@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                                     .GetExportedValue<AsynchronousOperationListenerProvider>()
                                     .GetWaiter(FeatureAttribute.Workspace);
 
-            await workspaceWaiter.CreateWaitTask(willBlockOnCompletion: true);
+            await workspaceWaiter.CreateExpeditedWaitTask();
         }
 
         [Fact]

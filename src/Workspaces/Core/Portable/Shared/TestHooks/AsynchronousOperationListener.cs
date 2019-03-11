@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        public Task CreateWaitTask(bool willBlockOnCompletion)
+        public Task CreateExpeditedWaitTask()
         {
-            if (willBlockOnCompletion && _counter > 0)
+            if (_counter > 0)
             {
                 _blockedOnCompletionTokenSource.Cancel();
             }

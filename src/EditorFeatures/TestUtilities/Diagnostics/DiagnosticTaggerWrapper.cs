@@ -128,15 +128,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _registrationService.Unregister(_workspace);
         }
 
-        public async Task WaitForTags(bool willBlockOnCompletion)
+        public async Task WaitForTags()
         {
             if (_solutionCrawlerService != null)
             {
                 _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
             }
 
-            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask(willBlockOnCompletion);
-            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask(willBlockOnCompletion);
+            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateExpeditedWaitTask();
         }
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService
