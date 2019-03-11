@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)implicitImpl == null && seenTypeDeclaringInterface)
             {
                 // Check for default interface implementations
-                implicitImpl = FindMostSpecificImplementation(interfaceMember, implementingType, ref useSiteDiagnostics, diagnostics);
+                implicitImpl = FindMostSpecificImplementationInInterfaces(interfaceMember, implementingType, ref useSiteDiagnostics, diagnostics);
             }
 
 #if !DEBUG
@@ -996,13 +996,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return implicitImpl;
         }
 
-        private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, TypeSymbol implementingType,
-                                                             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-                                                             DiagnosticBag diagnostics)
+        private static Symbol FindMostSpecificImplementationInInterfaces(Symbol interfaceMember, TypeSymbol implementingType,
+                                                                         ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+                                                                         DiagnosticBag diagnostics)
         {
-            Symbol implicitImpl = FindMostSpecificImplementation(interfaceMember,
-                                                          implementingType,
-                                                          ref useSiteDiagnostics, out Symbol conflict1, out Symbol conflict2);
+            Symbol implicitImpl = FindMostSpecificImplementationInBases(interfaceMember,
+                                                                        implementingType,
+                                                                        ref useSiteDiagnostics, out Symbol conflict1, out Symbol conflict2);
 
             if ((object)conflict1 != null)
             {
@@ -1031,10 +1031,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Symbol conflictingImplementation1 = null;
             Symbol conflictingImplementation2 = null;
-            Symbol implementingMember = TypeSymbol.FindImplementationInInterface(method, baseInterface) ??
-                                        TypeSymbol.FindMostSpecificImplementation(method, baseInterface,
-                                                                    ref useSiteDiagnostics,
-                                                                    out conflictingImplementation1, out conflictingImplementation2);
+            Symbol implementingMember;
+            MultiDictionary<Symbol, Symbol>.ValueSet set = TypeSymbol.FindImplementationInInterface(method, baseInterface);
+
+            switch (set.Count)
+            {
+                case 0:
+                    implementingMember =  TypeSymbol.FindMostSpecificImplementationInBases(method, baseInterface,
+                                                                                           ref useSiteDiagnostics,
+                                                                                           out conflictingImplementation1, out conflictingImplementation2);
+                    break;
+                case 1:
+                    implementingMember = set.Single();
+                    break;
+                default:
+                    implementingMember = null;
+                    break;
+            }
+
             if (implementingMember is null)
             {
                 if (diagnosticsOpt != null)
@@ -1070,11 +1084,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, NamedTypeSymbol implementingInterface)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var implementingMember = FindImplementationInInterface(interfaceMember, implementingInterface) ??
-                                     FindMostSpecificImplementation(interfaceMember, implementingInterface,
-                                                                    ref useSiteDiagnostics,
-                                                                    out var _, out var _);
-            return implementingMember;
+            MultiDictionary<Symbol, Symbol>.ValueSet implementingMember = FindImplementationInInterface(interfaceMember, implementingInterface);
+
+            switch (implementingMember.Count)
+            {
+                case 0:
+                    return FindMostSpecificImplementationInBases(interfaceMember, implementingInterface,
+                                                                 ref useSiteDiagnostics,
+                                                                 out var _, out var _);
+                case 1:
+                    return implementingMember.Single();
+                default:
+                    return null;
+            }
         }
 
         /// <summary>
@@ -1082,16 +1104,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// if M1 is declared on interface T1, M2 is declared on interface T2, and 
         /// T1 contains T2 among its direct or indirect interfaces.
         /// </summary>
-        private static Symbol FindMostSpecificImplementation(Symbol interfaceMember,
-                                                             TypeSymbol implementingType,
-                                                             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-                                                             out Symbol conflictingImplementation1,
-                                                             out Symbol conflictingImplementation2)
+        private static Symbol FindMostSpecificImplementationInBases(
+            Symbol interfaceMember,
+            TypeSymbol implementingType,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            out Symbol conflictingImplementation1,
+            out Symbol conflictingImplementation2)
         {
-            conflictingImplementation1 = null;
-            conflictingImplementation2 = null;
-            Symbol implementation = null;
-            PooledHashSet<NamedTypeSymbol> shadowedInterfaces = null;
+            var implementations = ArrayBuilder<(MultiDictionary<Symbol, Symbol>.ValueSet MethodSet, MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> Bases)>.GetInstance();
 
             foreach (var interfaceType in implementingType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
@@ -1101,63 +1121,124 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                Symbol candidate = FindImplementationInInterface(interfaceMember, interfaceType);
+                MultiDictionary<Symbol, Symbol>.ValueSet candidate = FindImplementationInInterface(interfaceMember, interfaceType);
 
-                if ((object)candidate != null)
-                {
-                    if ((object)implementation == null)
-                    {
-                        implementation = candidate;
-                        shadowedInterfaces = PooledHashSet<NamedTypeSymbol>.GetInstance();
-                        shadowedInterfaces.AddAll(implementation.ContainingType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
-                    }
-                    else if (!shadowedInterfaces.Contains(interfaceType))
-                    {
-                        // we have a conflict
-                        conflictingImplementation1 = implementation;
-                        conflictingImplementation2 = candidate;
-                        implementation = null;
-                        break;
-                    }
-                }
-            }
-
-            if (shadowedInterfaces != null)
-            {
-                shadowedInterfaces.Free();
-            }
-
-            return implementation;
-        }
-
-        private static Symbol FindImplementationInInterface(Symbol interfaceMember, NamedTypeSymbol interfaceType)
-        {
-            Debug.Assert(interfaceType.IsInterface);
-
-            if (interfaceMember.ContainingType.Equals(interfaceType, TypeCompareKind.ConsiderEverything))
-            {
-                if (!interfaceMember.IsAbstract)
-                {
-                    return interfaceMember;
-                }
-
-                return null;
-            }
-
-            foreach (Symbol member in interfaceType.GetMembersUnordered())
-            {
-                if (member.Kind != interfaceMember.Kind)
+                if (candidate.Count == 0)
                 {
                     continue;
                 }
 
-                if (member.GetExplicitInterfaceImplementations().Contains(interfaceMember))
+                for (int i = 0; i < implementations.Count; i++)
                 {
-                    return member;
+                    (MultiDictionary<Symbol, Symbol>.ValueSet methodSet, MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> bases) = implementations[i];
+                    Symbol previous = methodSet.First();
+                    NamedTypeSymbol previousContainingType = previous.ContainingType;
+
+                    if (previousContainingType.Equals(interfaceType, TypeCompareKind.CLRSignatureCompareOptions))
+                    {
+                        // Last equivalent match wins
+                        implementations[i] = (candidate, bases);
+                        candidate = default;
+                        break;
+                    }
+
+                    if (bases == null)
+                    {
+                        Debug.Assert(implementations.Count == 1);
+                        bases = previousContainingType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                        implementations[i] = (methodSet, bases);
+                    }
+
+                    if (bases.ContainsKey(interfaceType))
+                    {
+                        // Previous candidate is more specific
+                        candidate = default;
+                        break;
+                    }
+                }
+
+                if (candidate.Count == 0)
+                {
+                    continue;
+                }
+
+                if (implementations.Count != 0)
+                {
+                    MultiDictionary<NamedTypeSymbol, NamedTypeSymbol> bases = interfaceType.InterfacesAndTheirBaseInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+
+                    for (int i = implementations.Count - 1; i >= 0; i--)
+                    {
+                        if (bases.ContainsKey(implementations[i].MethodSet.First().ContainingType))
+                        {
+                            // new candidate is more specific
+                            implementations.RemoveAt(i);
+                        }
+                    }
+
+                    implementations.Add((candidate, bases));
+                }
+                else
+                {
+                    implementations.Add((candidate, null));
                 }
             }
 
-            return null;
+            Symbol result;
+
+            switch (implementations.Count)
+            {
+                case 0:
+                    result = null;
+                    conflictingImplementation1 = null;
+                    conflictingImplementation2 = null;
+                    break;
+                case 1:
+                    MultiDictionary<Symbol, Symbol>.ValueSet methodSet = implementations[0].MethodSet;
+                    switch (methodSet.Count)
+                    {
+                        case 1:
+                            result = methodSet.Single();
+                            break;
+                        default:
+                            result = null;
+                            break;
+                    }
+
+                    conflictingImplementation1 = null;
+                    conflictingImplementation2 = null;
+                    break;
+                default:
+                    result = null;
+                    conflictingImplementation1 = implementations[0].MethodSet.First();
+                    conflictingImplementation2 = implementations[1].MethodSet.First();
+                    break;
+            }
+
+            implementations.Free();
+            return result;
+        }
+
+        private static MultiDictionary<Symbol, Symbol>.ValueSet FindImplementationInInterface(Symbol interfaceMember, NamedTypeSymbol interfaceType)
+        {
+            Debug.Assert(interfaceType.IsInterface);
+
+            NamedTypeSymbol containingType = interfaceMember.ContainingType;
+            if (containingType.Equals(interfaceType, TypeCompareKind.CLRSignatureCompareOptions))
+            {
+                if (!interfaceMember.IsAbstract)
+                {
+                    if (!containingType.Equals(interfaceType, TypeCompareKind.ConsiderEverything))
+                    {
+                        interfaceMember = interfaceMember.OriginalDefinition.SymbolAsMember(interfaceType);
+                    }
+
+                    return new MultiDictionary<Symbol, Symbol>.ValueSet(interfaceMember);
+                }
+
+                return default;
+            }
+
+            return interfaceType.GetExplicitImplementationForInterfaceMember(interfaceMember);
         }
 
         /// <summary>
@@ -1744,7 +1825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private MultiDictionary<Symbol, Symbol>.ValueSet GetExplicitImplementationForInterfaceMember(Symbol interfaceMember)
+        protected MultiDictionary<Symbol, Symbol>.ValueSet GetExplicitImplementationForInterfaceMember(Symbol interfaceMember)
         {
             var info = this.GetInterfaceInfo();
             if (info == s_noInterfaces)

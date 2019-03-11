@@ -16,15 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     [CompilerTrait(CompilerFeature.DefaultInterfaceImplementation)]
     public class DefaultInterfaceImplementationTests : CSharpTestBase
     {
-        /// <summary>
-        /// PROTOTYPE(DefaultInterfaceImplementation): This is a temporary workaround to unblock merge from master and avoid 
-        /// modifying a lot of tests in the process.
-        /// </summary>
-        private static class CoreClrShim
-        {
-            internal static bool IsRunningOnCoreClr => ExecutionConditionUtil.IsCoreClr;
-        }
-
         [Fact]
         [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
         public void MethodImplementation_011()
@@ -42,11 +33,11 @@ public interface I1
             ValidateMethodImplementation_011(source1);
         }
 
-        private static Verification VerifyOnCoreClr
+        private static Verification VerifyOnMonoOrCoreClr
         {
             get
             {
-                return CoreClrShim.IsRunningOnCoreClr ? Verification.Passes : Verification.Skipped;
+                return ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped;
             }
         }
 
@@ -80,8 +71,8 @@ public interface I1
                     Validate1(compilation1.SourceModule);
 
                     CompileAndVerify(compilation1,
-                                     expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                                     verify: VerifyOnCoreClr, symbolValidator: Validate1);
+                                     expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                                     verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
 
                     var source2 =
     typeKind + " Test2 " + @": I1
@@ -110,8 +101,8 @@ public interface I1
 
                         compilation2.VerifyDiagnostics();
                         CompileAndVerify(compilation2,
-                                         expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                                         verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                                         expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                                         verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
                     }
                 }
             }
@@ -198,8 +189,8 @@ class Test1 : I1
             Validate1(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test1 M1" : null,
-                             verify: VerifyOnCoreClr, symbolValidator: Validate1);
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test1 M1" : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
 
             var source2 =
 @"
@@ -230,8 +221,8 @@ class Test2 : I1
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2 M1" : null,
-                             verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test2 M1" : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetStandardLatest);
@@ -240,8 +231,8 @@ class Test2 : I1
             Validate2(compilation3.SourceModule);
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2 M1" : null,
-                             verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test2 M1" : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
         }
 
         [Fact]
@@ -284,8 +275,8 @@ class Test1 : I1
             Validate1(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test1 M1" : null,
-                             verify: VerifyOnCoreClr, symbolValidator: Validate1);
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test1 M1" : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
 
             var source2 =
 @"
@@ -316,8 +307,8 @@ class Test2 : I1
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2 M1" : null,
-                             verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test2 M1" : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  targetFramework: TargetFramework.NetStandardLatest);
@@ -327,8 +318,8 @@ class Test2 : I1
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2 M1" : null,
-                             verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                             expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test2 M1" : null,
+                             verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
         }
 
         [Fact]
@@ -386,10 +377,10 @@ class Test : I1 {}
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
 M2",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -454,10 +445,10 @@ class Test : I1 {}
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
 M2",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -526,10 +517,10 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"Test.M1
 Test.M2",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -598,10 +589,10 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"Test.M1
 Test.M2",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -648,8 +639,8 @@ class Test2 : I1 {}
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
 
             CompileAndVerify(compilation1,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -694,8 +685,8 @@ class Test2 : I1 {}
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
 
             CompileAndVerify(compilation1,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -743,8 +734,8 @@ class Test2 : I1
             Assert.Equal("void Test2.I1.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
 
             CompileAndVerify(compilation1,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2.M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test2.M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -792,8 +783,8 @@ class Test2 : I1
             Assert.Equal("void Test2.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
 
             CompileAndVerify(compilation1,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2.M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Test2.M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -844,10 +835,10 @@ class Test2 : I1 {}
             Assert.Same(m2, test1.FindImplementationForInterfaceMember(m2));
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
 2",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -898,10 +889,10 @@ class Test2 : I1 {}
             Assert.Same(m2, test1.FindImplementationForInterfaceMember(m2));
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M1
 2",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -956,10 +947,10 @@ class Test2 : I1
             Assert.Equal("System.Int32 Test2.I1.M2()", test1.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"Test2.M1
 2",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -1014,10 +1005,10 @@ class Test2 : I1
             Assert.Equal("System.Int32 Test2.M2()", test1.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"Test2.M1
 2",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -1296,7 +1287,7 @@ class Test2 : I1
 
             compilation2.VerifyDiagnostics();
 
-            CompileAndVerify(compilation2, verify: VerifyOnCoreClr,
+            CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
@@ -1432,8 +1423,8 @@ class Test1 : I2
             Assert.True(m1.IsMetadataVirtual());
 
             CompileAndVerify(compilation1,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var i1 = m.GlobalNamespace.GetTypeMember("I1");
@@ -1479,8 +1470,8 @@ class Test2 : I2
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
@@ -1501,8 +1492,8 @@ class Test2 : I2
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
@@ -1511,6 +1502,292 @@ class Test2 : I2
                     Assert.Equal("I2", interfaces[0].ToTestDisplayString());
                     Assert.Equal("I1", interfaces[1].ToTestDisplayString());
                 });
+        }
+
+        [Fact]
+        public void MethodImplementation_111()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I1<string?>
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I2", "I1<System.String>", "I1<System.String?>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2, I1<string?>
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementation_112()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I1<string?>, I2
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I1<System.String?>", "I2", "I1<System.String>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[0].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I1<string?>, I2
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementation_113()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I1<string?>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I3
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2, I3
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementation_114()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I1<string?>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I3, I2
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I3", "I1<System.String?>", "I2", "I1<System.String>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I3, I2
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I1.M1
+I1.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
         }
 
         [Fact]
@@ -1566,8 +1843,8 @@ class Test1 : I1
 
             Validate1(compilation1.SourceModule);
             CompileAndVerify(compilation1,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? expectedOutput : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             var source2 =
@@ -1595,8 +1872,8 @@ class Test2 : I1
             Validate2(compilation2.SourceModule);
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? expectedOutput : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
@@ -1607,8 +1884,8 @@ class Test2 : I1
             Validate2(compilation3.SourceModule);
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? expectedOutput : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate2);
         }
 
@@ -2133,7 +2410,7 @@ class Test : I1 {}
             ValidatePropertyImplementation_201(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"1
 2
 3
@@ -2145,7 +2422,7 @@ class Test : I1 {}
 8
 81
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -2248,7 +2525,7 @@ class Test : I1 {}
             ValidatePropertyImplementation_201(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"1
 2
 3
@@ -2260,7 +2537,7 @@ class Test : I1 {}
 8
 81
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -2373,7 +2650,7 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"100
 200
 300
@@ -2385,7 +2662,7 @@ class Test : I1
 800
 801
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -2498,7 +2775,7 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"100
 200
 300
@@ -2510,7 +2787,7 @@ class Test : I1
 800
 801
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -2919,7 +3196,7 @@ class Test2 : I1
 
             ValidatePropertyImplementation_501(compilation2.SourceModule, "Test2");
 
-            CompileAndVerify(compilation2, verify: VerifyOnCoreClr,
+            CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
@@ -3508,7 +3785,7 @@ class Test : I1 {}
             ValidateIndexerImplementation_201(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"1
 2
 3
@@ -3520,7 +3797,7 @@ class Test : I1 {}
 8
 81
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -3625,7 +3902,7 @@ class Test : I1 {}
             ValidateIndexerImplementation_201(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"1
 2
 3
@@ -3637,7 +3914,7 @@ class Test : I1 {}
 8
 81
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -3770,7 +4047,7 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"100
 200
 300
@@ -3782,7 +4059,7 @@ class Test : I1
 800
 801
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -3897,7 +4174,7 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"100
 200
 300
@@ -3909,7 +4186,7 @@ class Test : I1
 800
 801
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -4344,7 +4621,7 @@ class Test2 : I1
 
             ValidateIndexerImplementation_501(compilation2.SourceModule, "Test2");
 
-            CompileAndVerify(compilation2, verify: VerifyOnCoreClr,
+            CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
@@ -4494,7 +4771,7 @@ class Test2 : I1
             Validate2(compilation2.SourceModule);
             compilation2.VerifyDiagnostics();
             Assert.NotEmpty(expected);
-            CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
+            CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
         }
 
         private static void ValidateEventImplementationTest1_101(ModuleSymbol m, bool haveAdd, bool haveRemove)
@@ -4642,11 +4919,11 @@ class Test1 : I1
             Validate1(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"add E1
 remove E1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             var source2 =
@@ -4676,11 +4953,11 @@ class Test2 : I1
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"add E1
 remove E1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate2);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
@@ -4692,11 +4969,11 @@ remove E1
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"add E1
 remove E1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate2);
         }
 
@@ -4972,12 +5249,12 @@ class Test : I1 {}
             ValidateEventImplementation_201(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"add E7
 remove E7
 add E8
 remove E8",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -5048,12 +5325,12 @@ class Test : I1 {}
             ValidateEventImplementation_201(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"add E7
 remove E7
 add E8
 remove E8",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -5128,12 +5405,12 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"add E7
 remove E7
 add E8
 remove E8",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -5208,12 +5485,12 @@ class Test : I1
             Validate(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"add E7
 remove E7
 add E8
 remove E8",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -5515,7 +5792,7 @@ class Test2 : I1
 
             ValidateEventImplementation_501(compilation2.SourceModule, "Test2");
 
-            CompileAndVerify(compilation2, verify: VerifyOnCoreClr,
+            CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
@@ -5774,7 +6051,7 @@ class Test1 : I2
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M2
 123
 I1.M1
@@ -5836,7 +6113,7 @@ I2.set_P3
 I2.add_E3
 I2.remove_E3
 ",
-                verify: VerifyOnCoreClr);
+                verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -6052,7 +6329,7 @@ class Test1 : I2
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M2
 123
 I1.M1
@@ -6114,7 +6391,7 @@ I2.set_P3
 I2.add_E3
 I2.remove_E3
 ",
-                verify: VerifyOnCoreClr);
+                verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -6837,9 +7114,9 @@ class Test1 : I1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M4
-M1", verify: VerifyOnCoreClr, symbolValidator: Validate);
+M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -7219,7 +7496,7 @@ class Test1 : I1
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation1, expectedOutput: "M1", verify: VerifyOnCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.Internal));
+            CompileAndVerify(compilation1, expectedOutput: "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.Internal));
 
             ValidateMethodModifiersExplicit_10(compilation1.SourceModule, Accessibility.Internal);
 
@@ -7490,7 +7767,7 @@ class Test1 : Test2, I1
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation1, expectedOutput: "Test2.M1", verify: VerifyOnCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicitInTest2_10(m, Accessibility.Internal));
+            CompileAndVerify(compilation1, expectedOutput: "Test2.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicitInTest2_10(m, Accessibility.Internal));
 
             ValidateMethodModifiersExplicitInTest2_10(compilation1.SourceModule, Accessibility.Internal);
 
@@ -7511,7 +7788,7 @@ class Test1 : Test2, I1
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation4, expectedOutput: "Test2.M1", verify: VerifyOnCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicitInTest2_10(m, Accessibility.Internal));
+            CompileAndVerify(compilation4, expectedOutput: "Test2.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicitInTest2_10(m, Accessibility.Internal));
 
             ValidateMethodModifiersExplicitInTest2_10(compilation4.SourceModule, Accessibility.Internal);
         }
@@ -7795,7 +8072,7 @@ class Test1 : I1
                 Assert.Null(test1.FindImplementationForInterfaceMember(m1));
             }
 
-            CompileAndVerify(compilation1, expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null, verify: VerifyOnCoreClr, symbolValidator: Validate);
+            CompileAndVerify(compilation1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
             Validate(compilation1.SourceModule);
         }
 
@@ -8011,7 +8288,7 @@ class Test2 : I1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -8511,8 +8788,8 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation1.SourceModule);
@@ -8557,8 +8834,8 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation3.SourceModule);
@@ -8568,8 +8845,8 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
-                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
-                verify: VerifyOnCoreClr,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation4.SourceModule);
@@ -8790,10 +9067,10 @@ class Test2 : System.Attribute
 
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"M2
 M2",
-                verify: VerifyOnCoreClr);
+                verify: VerifyOnMonoOrCoreClr);
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
 
@@ -11893,7 +12170,7 @@ class Test1 : I1, I2, I3, I4, I5, I6, I7
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 get_P2
 set_P2
@@ -11904,7 +12181,7 @@ set_P5
 set_P6
 get_P7
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
@@ -12463,7 +12740,7 @@ class Test1 : I1
 
             CompileAndVerify(compilation1, expectedOutput: !(targetFramework == TargetFramework.Standard || CoreClrShim.IsRunningOnCoreClr) ? null :
 @"get_P1
-set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImplementation_11);
+set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementation_11);
 
             ValidatePropertyImplementation_11(compilation1.SourceModule);
 
@@ -12837,7 +13114,7 @@ class Test1 : Test2, I1
 
             CompileAndVerify(compilation1, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11);
+Test2.set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11);
 
             ValidatePropertyImplementationByBase_11(compilation1.SourceModule);
 
@@ -12851,7 +13128,7 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImpleme
 
             CompileAndVerify(compilation3, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11);
+Test2.set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11);
 
             ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
 
@@ -12860,7 +13137,7 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImpleme
 
             CompileAndVerify(compilation4, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11);
+Test2.set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11);
 
             ValidatePropertyImplementationByBase_11(compilation4.SourceModule);
         }
@@ -13318,7 +13595,7 @@ class Test7 : I7
             }
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 get_P2
 set_P2
@@ -13329,7 +13606,7 @@ set_P5
 set_P6
 get_P7
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
             Validate(compilation1.SourceModule);
         }
@@ -13847,7 +14124,7 @@ class Test2 : I1, I2, I3, I4, I5
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -14531,11 +14808,11 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation1.SourceModule);
@@ -14602,11 +14879,11 @@ set_P1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation3.SourceModule);
@@ -14616,11 +14893,11 @@ set_P1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation4.SourceModule);
@@ -14799,7 +15076,7 @@ class Test1 : I1, I2, I3, I4
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 get_P2
@@ -14809,7 +15086,7 @@ set_P3
 get_P4
 set_P4
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
@@ -14866,7 +15143,7 @@ set_P4
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void PropertyModifiers_23_00()
         {
             var source1 =
@@ -15381,7 +15658,7 @@ Test6.get_P6
 set_P6
 ";
 
-                CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : expectedOutput, verify: VerifyOnCoreClr, symbolValidator: Validate1);
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
 
                 var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(metadataImportOptions),
                                                      parseOptions: TestOptions.Regular,
@@ -15404,7 +15681,7 @@ set_P6
                     compilation3.VerifyDiagnostics();
                     Validate1(compilation3.SourceModule);
 
-                    CompileAndVerify(compilation3, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : expectedOutput, verify: VerifyOnCoreClr, symbolValidator: Validate1);
+                    CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : expectedOutput, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
                 }
             }
         }
@@ -16722,11 +16999,11 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation1.SourceModule);
@@ -16793,11 +17070,11 @@ set_P1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation3.SourceModule);
@@ -16807,11 +17084,11 @@ set_P1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation4.SourceModule);
@@ -20955,7 +21232,7 @@ class Test1 : I1, I2, I3, I4
             ValidatePropertyModifiers_22(source1, Accessibility.Internal);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void IndexerModifiers_23_00()
         {
             var source1 =
@@ -24244,13 +24521,13 @@ class Test1 : I1, I2
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 get_P2
 set_P2
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
@@ -24811,7 +25088,7 @@ class Test1 : I1
 
             CompileAndVerify(compilation1, expectedOutput: !(targetFramework == TargetFramework.Standard || CoreClrShim.IsRunningOnCoreClr) ? null :
 @"get_P1
-set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementation_11);
+set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementation_11);
 
             ValidateEventImplementation_11(compilation1.SourceModule);
 
@@ -25189,7 +25466,7 @@ class Test1 : Test2, I1
 
             CompileAndVerify(compilation1, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementationByBase_11);
+Test2.set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementationByBase_11);
 
             ValidateEventImplementationByBase_11(compilation1.SourceModule);
 
@@ -25203,7 +25480,7 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementa
 
             CompileAndVerify(compilation3, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementationByBase_11);
+Test2.set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementationByBase_11);
 
             ValidateEventImplementationByBase_11(compilation3.SourceModule);
 
@@ -25212,7 +25489,7 @@ Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementa
 
             CompileAndVerify(compilation4, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: VerifyOnCoreClr, symbolValidator: ValidateEventImplementationByBase_11);
+Test2.set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementationByBase_11);
 
             ValidateEventImplementationByBase_11(compilation4.SourceModule);
         }
@@ -25556,13 +25833,13 @@ class Test2 : I2
             }
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 get_P2
 set_P2
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
             Validate(compilation1.SourceModule);
         }
@@ -26067,7 +26344,7 @@ class Test2 : I1, I2, I3, I4, I5
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -26850,11 +27127,11 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation1.SourceModule);
@@ -26919,11 +27196,11 @@ set_P1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation3.SourceModule);
@@ -26933,11 +27210,11 @@ set_P1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"get_P1
 set_P1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
 
             Validate1(compilation4.SourceModule);
@@ -28538,11 +28815,11 @@ class Test1 : I1
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -28554,11 +28831,11 @@ I4.M1
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
@@ -28569,11 +28846,11 @@ I4.M1
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
         }
 
@@ -29099,7 +29376,7 @@ class Test1 : I1
                 Assert.Same(i1i2m1, i3.FindImplementationForInterfaceMember(i2m1));
             }
 
-            CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
@@ -29278,8 +29555,8 @@ class Test1 : I1
             }
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : "I2.M1",
-                verify: VerifyOnCoreClr,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "I2.M1",
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate1);
         }
 
@@ -29351,11 +29628,11 @@ class Test1 : I1
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -29367,11 +29644,11 @@ I4.M1
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
@@ -29382,11 +29659,11 @@ I4.M1
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -29427,7 +29704,7 @@ I4.M1
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void MethodImplementationInDerived_12()
         {
@@ -29501,7 +29778,7 @@ public interface I6 : I1, I2, I3, I5
                 Assert.Same(i5m1, i6.FindImplementationForInterfaceMember(i1m1));
             }
 
-            CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -29633,7 +29910,7 @@ class Test12 : I8
                     Assert.Null(i8.FindImplementationForInterfaceMember(i1m1));
                 }
 
-                CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
@@ -29643,7 +29920,7 @@ class Test12 : I8
                 compilation2.VerifyDiagnostics();
                 Validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
@@ -29675,13 +29952,13 @@ class Test12 : I8
                 }
 
                 CompileAndVerify(compilation4,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.I1.M1
 I5.I1.M1
 I5.I1.M1
 "
 ,
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: Validate4);
 
                 foreach (var ref2 in refs2)
@@ -29758,14 +30035,14 @@ I5.I1.M1
                     }
 
                     CompileAndVerify(compilation5,
-                        expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                        expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"Test8.I1.M1
 Test9.I1.M1
 Test10.M1
 Test11.M1
 Test12.M1
 ",
-                        verify: VerifyOnCoreClr,
+                        verify: VerifyOnMonoOrCoreClr,
                         symbolValidator: Validate5);
                 }
             }
@@ -29860,7 +30137,7 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void MethodImplementationInDerived_14()
         {
@@ -30000,13 +30277,13 @@ class Test2 : I2<long>
             }
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I1.M1
 I1.M2
 I2.I1.M1
 I2.I1.M2
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -30018,13 +30295,13 @@ I2.I1.M2
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I1.M1
 I1.M2
 I2.I1.M1
 I2.I1.M2
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
@@ -30035,14 +30312,1093 @@ I2.I1.M2
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I1.M1
 I1.M2
 I2.I1.M1
 I2.I1.M2
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_15()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1(); 
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string>.M1() 
+    {
+    }
+}
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 15),
+                // (2,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 19)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics(
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 15),
+                // (2,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 19)
+                );
+
+            test1 = compilation3.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_16()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1(); 
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string>.M1() 
+    {
+    }
+}
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3, I1<string>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                // (2,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(2, 7),
+                // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 15),
+                // (2,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 19),
+                // (2,23): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string>").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(2, 23)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>", "I1<System.String>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics(
+                // (2,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(2, 7),
+                // (2,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(2, 7),
+                // (2,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 15),
+                // (2,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 19),
+                // (2,23): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string>").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(2, 23)
+                );
+
+            test1 = compilation3.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>", "I1<System.String>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_17()
+        {
+            var source1 =
+@"
+public interface I1<T>
+{
+    void M1(); 
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string>.M1() 
+    {
+    }
+}
+
+#nullable enable
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+#nullable enable
+class Test1 : I2, I3, I1<string>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (3,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(3, 7),
+                // (3,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(3, 7),
+                // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(3, 15),
+                // (3,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(3, 19),
+                // (3,23): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string>").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(3, 23)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>", "I1<System.String>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics(
+                // (3,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(3, 7),
+                // (3,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(3, 7),
+                // (3,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(3, 15),
+                // (3,19): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I3").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(3, 19),
+                // (3,23): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string>").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(3, 23)
+                );
+
+            test1 = compilation3.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>", "I1<System.String>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[4].GetMember("M1")));
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_18()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1(); 
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string>.M1() 
+    {
+    }
+}
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I3, I1<string?>
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                // (4,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(4, 15),
+                // (4,23): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string?>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string?>").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string?>.M1()").WithLocation(4, 23)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+
+            var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics(
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                // (4,15): error CS8705: Interface member 'I1<string>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1<string>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(4, 15),
+                // (4,23): error CS8705: Interface member 'I1<string?>.M1()' does not have a most specific implementation. Neither 'I2.I1<string>.M1()', nor 'I3.I1<string>.M1()' are most specific.
+                // class Test1 : I2, I3, I1<string?>
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1<string?>").WithArguments("I1<string?>.M1()", "I2.I1<string>.M1()", "I3.I1<string>.M1()").WithLocation(4, 23)
+                );
+
+            test1 = compilation3.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_19()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1(); 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I2, I1<string?>
+{
+    void I1<string>.M1() 
+    {
+    }
+
+    void I1<string?>.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I3
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (13,18): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "I3").WithArguments("I1<string?>", "I3").WithLocation(13, 18),
+                // (13,18): error CS8646: 'I1<string>.M1()' is explicitly implemented more than once.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string>.M1()").WithLocation(13, 18),
+                // (13,18): error CS8646: 'I1<string?>.M1()' is explicitly implemented more than once.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string?>.M1()").WithLocation(13, 18)
+                );
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I3
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                // (4,15): error CS0535: 'Test1' does not implement interface member 'I1<string>.M1()'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15),
+                // (4,15): error CS0535: 'Test1' does not implement interface member 'I1<string?>.M1()'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1<string?>.M1()").WithLocation(4, 15)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I3", "I2", "I1<System.String>", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_20()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+        System.Console.WriteLine(""I3.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I3
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I2", "I1<System.String>", "I3", "I1<System.String?>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I3.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I3.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2, I3
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                    // (4,15): warning CS8644: 'Test1' does not implement interface member 'I1<string>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                    // class Test1 : I2, I3
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I3.M1
+I3.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_21()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I1<string?>
+{
+    void I1<string?>.M1() 
+    {
+        System.Console.WriteLine(""I3.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I3, I2
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I3", "I1<System.String?>", "I2", "I1<System.String>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I3.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I3.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I3, I2
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7),
+                    // (4,19): warning CS8644: 'Test1' does not implement interface member 'I1<string>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                    // class Test1 : I3, I2
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 19)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I3.M1
+I3.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void MethodImplementationInDerived_22()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2<T> : I1<T>
+{
+    void I1<T>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+
+public interface I3 : I2<string>
+{
+}
+
+public interface I4 : I2<string?>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I3, I4
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I3", "I2<System.String>", "I1<System.String>", "I4", "I2<System.String?>", "I1<System.String?>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I2<System.String?>.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I2<System.String?>.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[5].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I2<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I3, I4
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string?>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I3, I4
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void MethodImplementationInDerived_23()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1() 
+    {
+        System.Console.WriteLine(""I1.M1"");
+    } 
+}
+
+public interface I2<T> : I1<T>
+{
+    void I1<T>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+
+public interface I3 : I2<string>
+{
+}
+
+public interface I4 : I2<string?>
+{
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I4, I3
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I4", "I2<System.String?>", "I1<System.String?>", "I3", "I2<System.String>", "I1<System.String>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I2<System.String>.I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I2<System.String>.I1<System.String>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[5].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I2<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I4, I3
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I1<string>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I4, I3
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string>", "Test1").WithLocation(4, 7)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_24()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1();
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string?>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (11,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
+                //     void I1<string?>.M1() 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<string?>").WithLocation(11, 10)
+                );
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I2", "I1<System.String>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I2.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[1].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics();
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_25()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1();
+}
+
+public interface I2 : I1<string>
+{
+    void I1<string>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I1<string?>
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2, I1<string?>
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                    // (4,19): warning CS8644: 'Test1' does not implement interface member 'I1<string?>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                    // class Test1 : I2, I1<string?>
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I1<string?>").WithArguments("Test1", "I1<string?>.M1()").WithLocation(4, 19)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_26()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1();
+}
+
+public interface I2 : I1<string?>
+{
+    void I1<string>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2, I1<string?>
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (11,10): warning CS8643: Nullability of reference types in explicit interface specifier doesn't match interface implemented by the type.
+                //     void I1<string>.M1() 
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInExplicitlyImplementedInterface, "I1<string>").WithLocation(11, 10)
+                );
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation2.VerifyDiagnostics();
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I2.M1
+I2.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_27()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    void M1();
+}
+
+public interface I2<T>: I1<T>
+{
+    void I1<T>.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    } 
+}
+
+public interface I3<T> : I1<T>
+{
+    void I1<T>.M1() 
+    {
+        System.Console.WriteLine(""I3.M1"");
+    } 
+}
+
+public interface I4 : I2<string?>, I3<string?>
+{
+    void I1<string?>.M1() 
+    {
+        System.Console.WriteLine(""I4.M1"");
+    } 
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I2<string>, I3<string>, I4
+{
+    static void Main()
+    {
+        ((I1<string?>)new Test1()).M1();
+        ((I1<string>)new Test1()).M1();
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                        parseOptions: TestOptions.Regular,
+                                                        targetFramework: TargetFramework.NetStandardLatest);
+
+                var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+                Assert.Equal(new[] { "I2<System.String>", "I3<System.String>", "I1<System.String>", "I4", "I2<System.String?>", "I3<System.String?>", "I1<System.String?>" },
+                             test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+                Assert.Equal("void I4.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")).ToTestDisplayString());
+                Assert.Equal("void I4.I1<System.String?>.M1()", test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[6].GetMember("M1")).ToTestDisplayString());
+
+                compilation2.VerifyDiagnostics(
+                    // (4,7): warning CS8645: 'I2<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2<string>, I3<string>, I4
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I2<string?>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2<string>, I3<string>, I4
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                    // (4,7): warning CS8645: 'I3<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                    // class Test1 : I2<string>, I3<string>, I4
+                    Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I3<string?>", "Test1").WithLocation(4, 7),
+                    // (4,15): warning CS8644: 'Test1' does not implement interface member 'I1<string>.M1()'. Nullability of reference types in interface implemented by the base type doesn't match.
+                    // class Test1 : I2<string>, I3<string>, I4
+                    Diagnostic(ErrorCode.WRN_NullabilityMismatchInInterfaceImplementedByBase, "I2<string>").WithArguments("Test1", "I1<string>.M1()").WithLocation(4, 15)
+                    );
+
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+I4.M1
+I4.M1
+",
+                    verify: VerifyOnMonoOrCoreClr);
+            }
         }
 
         [Fact]
@@ -30484,11 +31840,11 @@ class Test1 : I1
                 ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
 
                 CompileAndVerify(compilation1,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidatePropertyImplementationInDerived_01);
 
                 var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: options,
@@ -30500,11 +31856,11 @@ I4.M1
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidatePropertyImplementationInDerived_01);
 
                 var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: options,
@@ -30515,11 +31871,11 @@ I4.M1
 
                 compilation3.VerifyDiagnostics();
                 CompileAndVerify(compilation3,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidatePropertyImplementationInDerived_01);
             }
         }
@@ -31189,7 +32545,7 @@ class Test1 : I1
                 VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i3, i2m1);
             }
 
-            CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
@@ -31417,12 +32773,12 @@ class Test1 : I1
             ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 I4.M1.set
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
@@ -31436,12 +32792,12 @@ I4.M1.set
 
                 compilation2.VerifyDiagnostics();
                 CompileAndVerify(compilation2,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 I4.M1.set
 ",
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: ValidatePropertyImplementationInDerived_01);
             }
 
@@ -31476,7 +32832,7 @@ I4.M1.set
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void PropertyImplementationInDerived_12()
         {
@@ -31720,7 +33076,7 @@ class Test12 : I8
                 VerifyFindImplementationForInterfaceMemberSame(i5m1, i6, i1m1);
             }
 
-            CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -31776,7 +33132,7 @@ class Test5 : I8
                     VerifyFindImplementationForInterfaceMemberSame(null, i8, i1m1);
                 }
 
-                CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
@@ -31786,7 +33142,7 @@ class Test5 : I8
                 compilation2.VerifyDiagnostics();
                 Validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
@@ -31818,7 +33174,7 @@ class Test5 : I8
                 }
 
                 CompileAndVerify(compilation4,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.I1.M1.get
 I2.I1.M1.set
 I5.I1.M1.get
@@ -31827,7 +33183,7 @@ I5.I1.M1.get
 I5.I1.M1.set
 "
 ,
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: Validate4);
 
                 foreach (var ref2 in refs2)
@@ -31888,7 +33244,7 @@ I5.I1.M1.set
                     }
 
                     CompileAndVerify(compilation5,
-                        expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                        expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"Test8.I1.M1.get
 Test8.I1.M1.set
 Test9.I1.M1.get
@@ -31900,7 +33256,7 @@ Test11.M1.set
 Test12.M1.get
 Test12.M1.set
 ",
-                        verify: VerifyOnCoreClr,
+                        verify: VerifyOnMonoOrCoreClr,
                         symbolValidator: Validate5);
                 }
             }
@@ -31971,7 +33327,7 @@ class Test1 : I2, I3
             compilation3.VerifyDiagnostics(expected2 ?? expected1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void PropertyImplementationInDerived_14()
         {
@@ -32087,13 +33443,13 @@ class Test2 : I2<long>
             }
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I1.M1.get
 I1.M1.set
 I2.I1.M1.get
 I2.I1.M1.set
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -32105,13 +33461,13 @@ I2.I1.M1.set
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I1.M1.get
 I1.M1.set
 I2.I1.M1.get
 I2.I1.M1.set
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
@@ -32122,13 +33478,13 @@ I2.I1.M1.set
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I1.M1.get
 I1.M1.set
 I2.I1.M1.get
 I2.I1.M1.set
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
         }
 
@@ -32327,6 +33683,90 @@ class Test1 : I1
                 //     private protected int I4.M1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private protected").WithLocation(19, 30)
                 );
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_16()
+        {
+            var source1 =
+@"
+#nullable enable
+
+public interface I1<T>
+{
+    int M1 {get; set;} 
+}
+
+public interface I2 : I1<string>
+{
+}
+
+public interface I3 : I2, I1<string?>
+{
+    int I1<string>.M1 
+    {
+        get => throw null!;
+        set => throw null!;
+    }
+
+    int I1<string?>.M1 
+    {
+        get => throw null!;
+        set => throw null!;
+    }
+}
+";
+
+            var source2 =
+@"
+#nullable enable 
+
+class Test1 : I3
+{
+}
+";
+
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics(
+                // (13,18): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'I3' with different nullability of reference types.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "I3").WithArguments("I1<string?>", "I3").WithLocation(13, 18),
+                // (13,18): error CS8646: 'I1<string>.M1' is explicitly implemented more than once.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string>.M1").WithLocation(13, 18),
+                // (13,18): error CS8646: 'I1<string?>.M1' is explicitly implemented more than once.
+                // public interface I3 : I2, I1<string?>
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "I3").WithArguments("I1<string?>.M1").WithLocation(13, 18),
+                // (21,21): error CS0102: The type 'I3' already contains a definition for 'I1<System.String>.M1'
+                //     int I1<string?>.M1 
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "M1").WithArguments("I3", "I1<System.String>.M1").WithLocation(21, 21)
+                );
+
+            var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                    parseOptions: TestOptions.Regular,
+                                                    targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics(
+                // (4,7): warning CS8645: 'I1<string?>' is already listed in the interface list on type 'Test1' with different nullability of reference types.
+                // class Test1 : I3
+                Diagnostic(ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList, "Test1").WithArguments("I1<string?>", "Test1").WithLocation(4, 7),
+                // (4,15): error CS0535: 'Test1' does not implement interface member 'I1<string>.M1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1<string>.M1").WithLocation(4, 15),
+                // (4,15): error CS0535: 'Test1' does not implement interface member 'I1<string?>.M1'
+                // class Test1 : I3
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test1", "I1<string?>.M1").WithLocation(4, 15)
+                );
+
+            var test1 = compilation2.GetTypeByMetadataName("Test1");
+
+            Assert.Equal(new[] { "I3", "I2", "I1<System.String>", "I1<System.String?>" },
+                         test1.AllInterfacesNoUseSiteDiagnostics.Select(i => i.ToTestDisplayString()));
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")));
+            Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
         }
 
         [Fact]
@@ -32610,13 +34050,13 @@ class Test1 : I1
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -32628,13 +34068,13 @@ I4.M1.remove
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
@@ -32645,13 +34085,13 @@ I4.M1.remove
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
         }
 
@@ -33348,13 +34788,13 @@ class Test1 : I1
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -33366,13 +34806,13 @@ I4.M1.remove
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
@@ -33383,13 +34823,13 @@ I4.M1.remove
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1.add
 I2.M1.remove
 I4.M1.add
 I4.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -33424,7 +34864,7 @@ I4.M1.remove
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void EventImplementationInDerived_12()
         {
@@ -33526,7 +34966,7 @@ public interface I6 : I1, I2, I3, I5
                 VerifyFindImplementationForInterfaceMemberSame(i5m1, i6, i1m1);
             }
 
-            CompileAndVerify(compilation1, verify: VerifyOnCoreClr, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -33701,7 +35141,7 @@ class Test12 : I8
                     VerifyFindImplementationForInterfaceMemberSame(null, i8, i1m1);
                 }
 
-                CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
 
                 compilation2 = CreateCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
@@ -33711,7 +35151,7 @@ class Test12 : I8
                 compilation2.VerifyDiagnostics();
                 Validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: VerifyOnCoreClr, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: VerifyOnMonoOrCoreClr, symbolValidator: Validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
@@ -33743,7 +35183,7 @@ class Test12 : I8
                 }
 
                 CompileAndVerify(compilation4,
-                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.I1.M1.add
 I2.I1.M1.remove
 I5.I1.M1.add
@@ -33752,7 +35192,7 @@ I5.I1.M1.add
 I5.I1.M1.remove
 "
 ,
-                    verify: VerifyOnCoreClr,
+                    verify: VerifyOnMonoOrCoreClr,
                     symbolValidator: Validate4);
 
                 foreach (var ref2 in refs2)
@@ -33829,7 +35269,7 @@ I5.I1.M1.remove
                     }
 
                     CompileAndVerify(compilation5,
-                        expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                        expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"Test8.I1.M1.add
 Test8.I1.M1.remove
 Test9.I1.M1.add
@@ -33841,7 +35281,7 @@ Test11.M1.remove
 Test12.M1.add
 Test12.M1.remove
 ",
-                        verify: VerifyOnCoreClr,
+                        verify: VerifyOnMonoOrCoreClr,
                         symbolValidator: Validate5);
                 }
             }
@@ -33914,7 +35354,7 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void EventImplementationInDerived_14()
         {
@@ -34026,13 +35466,13 @@ class Test2 : I2<long>
             }
 
             CompileAndVerify(compilation1,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I1.M1.add
 I1.M1.remove
 I2.I1.M1.add
 I2.I1.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -34044,13 +35484,13 @@ I2.I1.M1.remove
 
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I1.M1.add
 I1.M1.remove
 I2.I1.M1.add
 I2.I1.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
@@ -34061,13 +35501,13 @@ I2.I1.M1.remove
 
             compilation3.VerifyDiagnostics();
             CompileAndVerify(compilation3,
-                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I1.M1.add
 I1.M1.remove
 I2.I1.M1.add
 I2.I1.M1.remove
 ",
-                verify: VerifyOnCoreClr,
+                verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: Validate);
         }
 
@@ -35152,7 +36592,7 @@ public interface I3 : I1
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void IndexerImplementationInDerived_12()
         {
@@ -35436,7 +36876,7 @@ class Test1 : I2, I3
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void IndexerImplementationInDerived_14()
         {
@@ -36658,12 +38098,12 @@ class Test : I1
 
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I1..cctor
 I1.M1
 I1.I1
 ",
-                verify: VerifyOnCoreClr);
+                verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -36694,7 +38134,7 @@ class Test : I1
 
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : "I1.I1", verify: VerifyOnCoreClr);
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : "I1.I1", verify: VerifyOnMonoOrCoreClr);
         }
 
         /// <summary>
@@ -37580,7 +39020,7 @@ C6.M
                                                      parseOptions: TestOptions.Regular);
                 compilation3 = compilation3.AddReferences(refs.comp1);
 
-                CompileAndVerify(compilation3, verify: VerifyOnCoreClr, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation3, verify: VerifyOnMonoOrCoreClr, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"P20
 20
 M30
@@ -39658,7 +41098,7 @@ I2.+2
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void Operators_16()
         {
             var source1 =
@@ -39879,7 +41319,7 @@ I1.+
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void Operators_19()
         {
             var source1 =
@@ -43063,7 +44503,7 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 A
 B
@@ -43074,7 +44514,7 @@ C
 E
 B
 C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
             verifier.VerifyIL("D.Test",
 @"
 {
@@ -43167,7 +44607,7 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 A
 B
@@ -43179,7 +44619,7 @@ E
 B
 C
 "
-, verify: VerifyOnCoreClr);
+, verify: VerifyOnMonoOrCoreClr);
             verifier.VerifyIL("D.Test",
 @"
 {
@@ -43336,7 +44776,7 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 C
 C
@@ -43344,7 +44784,7 @@ C
 C
 C
 C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -43606,7 +45046,7 @@ class F : E
             var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation2.VerifyDiagnostics();
 
-            CompileAndVerify(compilation2, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 2
@@ -43614,7 +45054,7 @@ class F : E
 2
 1
 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
 
             var source3 = @"
 class A : B
@@ -43672,7 +45112,7 @@ interface B : I1, I2
             var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation3.VerifyDiagnostics();
 
-            CompileAndVerify(compilation3, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 2
@@ -43680,7 +45120,7 @@ interface B : I1, I2
 2
 1
 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -43814,7 +45254,7 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 A
 set A
@@ -43834,7 +45274,7 @@ B
 set B
 C
 set C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -43987,7 +45427,7 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 C
 set C
@@ -44001,7 +45441,7 @@ C
 set C
 C
 set C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -44544,7 +45984,7 @@ class F : E
             var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation2.VerifyDiagnostics();
 
-            CompileAndVerify(compilation2, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 set 2
@@ -44552,7 +45992,7 @@ set 2
 set 2
 1
 set 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -44628,7 +46068,7 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 A
 set A
@@ -44648,7 +46088,7 @@ B
 set B
 C
 set C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -44801,7 +46241,7 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 C
 set C
@@ -44815,7 +46255,7 @@ C
 set C
 C
 set C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -45343,7 +46783,7 @@ class F : E
             var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation2.VerifyDiagnostics();
 
-            CompileAndVerify(compilation2, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 set 2
@@ -45351,7 +46791,7 @@ set 2
 set 2
 1
 set 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
 
 
             var source3 = @"
@@ -45410,7 +46850,7 @@ interface B : I1, I2
             var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation3.VerifyDiagnostics();
 
-            CompileAndVerify(compilation3, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 set 2
@@ -45418,7 +46858,7 @@ set 2
 set 2
 1
 set 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -45494,7 +46934,7 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 add A
 remove A
@@ -45514,7 +46954,7 @@ add B
 remove B
 add C
 remove C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -45667,7 +47107,7 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 add C
 remove C
@@ -45681,7 +47121,7 @@ add C
 remove C
 add C
 remove C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -46001,7 +47441,7 @@ class F : E
             var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation2.VerifyDiagnostics();
 
-            CompileAndVerify(compilation2, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 add 1
 remove 2
@@ -46009,7 +47449,7 @@ add 1
 remove 2
 add 1
 remove 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -47156,7 +48596,7 @@ interface D
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 D
@@ -47176,7 +48616,7 @@ D
 B
 D
 D
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
 
             verifier.VerifyIL("F.Test",
 @"
@@ -47306,7 +48746,7 @@ interface D
 
             var verifier = CompileAndVerify(compilation1
 #if Issue33535_Is_Fixed // https://github.com/dotnet/roslyn/issues/33535
-                , expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                , expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 D
@@ -47319,7 +48759,7 @@ D
 D
 "
 #endif
-, verify: VerifyOnCoreClr);
+, verify: VerifyOnMonoOrCoreClr);
 
             verifier.VerifyIL("F.Test",
 @"
@@ -47463,13 +48903,13 @@ interface B : I1, I2
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 2
 1
 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -47511,11 +48951,11 @@ interface B : I1, I2
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -47598,7 +49038,7 @@ interface D
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 set B
@@ -47618,7 +49058,7 @@ D
 set D
 D
 set D
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -47733,13 +49173,13 @@ interface B : I1, I2
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 set 1
 2
 set 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -47822,7 +49262,7 @@ interface D
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 set B
@@ -47842,7 +49282,7 @@ D
 set D
 D
 set D
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -47957,13 +49397,13 @@ interface B : I1, I2
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 set 1
 2
 set 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -48007,13 +49447,13 @@ interface B : I1, I2
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 set 1
 2
 set 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -48096,7 +49536,7 @@ interface D
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 add B
 remove B
@@ -48116,7 +49556,7 @@ add D
 remove D
 add D
 remove D
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -48231,13 +49671,13 @@ interface B : I1, I2
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 add 1
 remove 1
 add 2
 remove 2
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
         }
 
         [Fact]
@@ -48307,7 +49747,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 B
@@ -48315,7 +49755,7 @@ B
 B
 B
 B
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
 
                 verifier.VerifyIL("F.Test",
 @"
@@ -48416,7 +49856,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 B
@@ -48425,7 +49865,7 @@ B
 B
 B
 "
-, verify: VerifyOnCoreClr);
+, verify: VerifyOnMonoOrCoreClr);
 
                 verifier.VerifyIL("F.Test",
  @"
@@ -48542,7 +49982,7 @@ class A : B
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_128()
         {
             var source1 = @"
@@ -48611,7 +50051,7 @@ class A : B
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_129()
         {
             var source1 = @"
@@ -48762,7 +50202,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 B
@@ -48824,7 +50264,7 @@ B
 B
 set B
 C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
 
                 verifier.VerifyIL("F.Test",
 @"
@@ -49006,7 +50446,7 @@ class A : B
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_132()
         {
             var source1 = @"
@@ -49105,7 +50545,7 @@ class A : B
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_133()
         {
             var source1 = @"
@@ -49194,7 +50634,7 @@ class A : B
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         [WorkItem(33256, "https://github.com/dotnet/roslyn/issues/33256")]
         public void ExplicitBase_134()
         {
@@ -50316,7 +51756,7 @@ set C
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         [WorkItem(33256, "https://github.com/dotnet/roslyn/issues/33256")]
         public void ExplicitBase_135()
         {
@@ -51382,7 +52822,7 @@ set C
 ");
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_136()
         {
             var ilSource = @"
@@ -51561,7 +53001,7 @@ class A : B
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_137()
         {
             var ilSource = @"
@@ -51819,7 +53259,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 B
@@ -51881,7 +53321,7 @@ B
 B
 set B
 C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
 
                 if (i == 0)
                 {
@@ -52088,7 +53528,7 @@ class A : B
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_140()
         {
             var source1 = @"
@@ -52197,7 +53637,7 @@ class A : B
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_141()
         {
             var source1 = @"
@@ -52366,7 +53806,7 @@ class G : E
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics();
 
-                var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 add B
 remove B
@@ -52374,7 +53814,7 @@ add B
 remove B
 add B
 remove B
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
 
                 verifier.VerifyIL("F.Test",
 @"
@@ -52453,7 +53893,7 @@ class A : B
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_144()
         {
             var source1 = @"
@@ -52559,7 +53999,7 @@ class A : B
             }
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_145()
         {
             var source1 = @"
@@ -52655,7 +54095,7 @@ class A : B
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         [WorkItem(33256, "https://github.com/dotnet/roslyn/issues/33256")]
         public void ExplicitBase_146()
         {
@@ -52849,7 +54289,7 @@ remove 2
 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_147()
         {
             var ilSource = @"
@@ -53027,7 +54467,7 @@ class A : B
                 );
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [ConditionalFact(typeof(MonoOrCoreClrOnly))]
         public void ExplicitBase_148()
         {
             var ilSource = @"
@@ -53250,7 +54690,7 @@ interface D
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 D
@@ -53261,7 +54701,7 @@ D
 B
 D
 D
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
 
             verifier.VerifyIL("F.Test",
 @"
@@ -53364,7 +54804,7 @@ interface D
 
             var verifier = CompileAndVerify(compilation1
 #if Issue33535_Is_Fixed // https://github.com/dotnet/roslyn/issues/33535
-                , expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                , expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 D
@@ -53377,7 +54817,7 @@ D
 D
 "
 #endif
-, verify: VerifyOnCoreClr);
+, verify: VerifyOnMonoOrCoreClr);
 
             verifier.VerifyIL("F.Test",
 @"
@@ -53496,7 +54936,7 @@ class G : E
                                                      references: references);
                 compilation3.VerifyDiagnostics();
 
-                CompileAndVerify(compilation3, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 C
@@ -53504,7 +54944,7 @@ B
 C
 B
 C
-", verify: VerifyOnCoreClr);
+", verify: VerifyOnMonoOrCoreClr);
             }
         }
 
@@ -53716,10 +55156,12 @@ interface C
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 C
+", verify: VerifyOnMonoOrCoreClr);
+        }
 ", verify: VerifyOnCoreClr);
         }
 
