@@ -1483,5 +1483,77 @@ public struct S
 ");
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ReadOnlyMethod_CallReadOnlyMethodOnField()
+        {
+            var csharp = @"
+public struct S1
+{
+    public readonly void M1() {}
+}
+
+public struct S2
+{
+    S1 s1;
+
+    public readonly void M2()
+    {
+        s1.M1();
+    }
+}
+";
+            var comp = CompileAndVerify(csharp);
+
+            comp.VerifyIL("S2.M2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S1 S2.s1""
+  IL_0006:  call       ""void S1.M1()""
+  IL_000b:  ret
+}");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallNormalMethodOnField()
+        {
+            var csharp = @"
+public struct S1
+{
+    public void M1() {}
+}
+
+public struct S2
+{
+    S1 s1;
+
+    public readonly void M2()
+    {
+        s1.M1();
+    }
+}
+";
+            var comp = CompileAndVerify(csharp);
+
+            comp.VerifyIL("S2.M2", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 S2.s1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""void S1.M1()""
+  IL_000e:  ret
+}");
+
+            // should warn about calling s2.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
+            comp.VerifyDiagnostics();
+        }
     }
 }

@@ -182,6 +182,38 @@ public struct A
         }
 
         [Fact]
+        public void ReadOnlyStruct_PassThisByRef()
+        {
+            var csharp = @"
+public readonly struct S
+{
+    public static void M1(ref S s) {}
+    public static void M2(in S s) {}
+
+    public void M3()
+    {
+        M1(ref this); // error
+        M2(in this); // ok
+    }
+
+    public readonly void M4()
+    {
+        M1(ref this); // error
+        M2(in this); // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         M1(ref this); // error
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(9, 16),
+                // (15,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         M1(ref this); // error
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(15, 16));
+        }
+
+        [Fact]
         public void ReadOnlyMethod_PassThisByRef()
         {
             var csharp = @"
@@ -190,13 +222,13 @@ public struct S
     public static void M1(ref S s) {}
     public static void M2(in S s) {}
 
-    public void M2()
+    public void M3()
     {
         M1(ref this); // ok
         M2(in this); // ok
     }
 
-    public readonly void M3()
+    public readonly void M4()
     {
         M1(ref this); // error
         M2(in this); // ok
@@ -329,6 +361,7 @@ public struct S2
     }
 }
 ";
+            // should warn about calling s2.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
             CompileAndVerify(csharp, expectedOutput: "0");
         }
 
@@ -341,11 +374,9 @@ public struct S1
     public S2 s2;
     public readonly void M1()
     {
-        // warn on local copy
         s2.M2();
         System.Console.Write(s2.i);
 
-        // no warning on explicit copy
         var copy = s2;
         copy.M2();
         System.Console.Write(copy.i);
