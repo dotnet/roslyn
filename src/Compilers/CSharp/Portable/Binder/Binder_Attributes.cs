@@ -185,10 +185,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var attribute = new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
 
-            if (Compilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
-            {
-                NullableWalker.Analyze(Compilation, attribute, diagnostics);
-            }
+            NullableWalker.AnalyzeIfNeeded(Compilation, attribute, diagnostics);
+
             return attribute;
         }
         private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, DiagnosticBag diagnostics)
@@ -501,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return namedArgumentType;
         }
 
-        protected virtual MethodSymbol BindAttributeConstructor(
+        protected MethodSymbol BindAttributeConstructor(
             AttributeSyntax node,
             NamedTypeSymbol attributeType,
             AnalyzedArguments boundConstructorArguments,

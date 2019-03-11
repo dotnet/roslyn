@@ -261,11 +261,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _returnTypesOpt.Clear();
             }
             this.Diagnostics.Clear();
-            ((MethodSymbol)_symbol).TryGetThisParameter(out var methodThisParameter);
+            ParameterSymbol methodThisParameter = MethodThisParameter;
             this.State = TopState();                   // entry point is reachable
             this.regionPlace = RegionPlace.Before;
             EnterParameters();                               // with parameters assigned
-            if ((object)methodThisParameter != null)
+            if (!(methodThisParameter is null))
             {
                 EnterParameter(methodThisParameter, methodThisParameter.Type);
             }
@@ -288,12 +288,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             Analyze(compilation, method, node, diagnostics, useMethodSignatureReturnType: false, useMethodSignatureParameterTypes: false, methodSignatureOpt: null, returnTypes: null, initialState: null, callbackOpt);
         }
 
-        internal static void Analyze(
+        internal static void AnalyzeIfNeeded(
             CSharpCompilation compilation,
             BoundAttribute attribute,
             DiagnosticBag diagnostics)
         {
-            if (attribute.Constructor is null ||
+            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() ||
+                attribute.Constructor is null ||
                 !compilation.SyntaxTrees.Contains(attribute.SyntaxTree))
             {
                 return;
@@ -5741,9 +5742,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(assignment);
             }
 
-            var result = base.VisitAttribute(node);
             SetNotNullResult(node);
-            return result;
+            return null;
         }
 
         protected override string Dump(LocalState state)
