@@ -154,6 +154,255 @@ interface I1
             );
         }
 
+        [Fact]
+        public void WriteableInstanceFields_ReadOnlyMethod()
+        {
+            var text = @"
+public struct A
+{
+    public static int s;
+
+    public int x;
+
+    readonly void AssignField()
+    {
+        // error
+        this.x = 1;
+
+        A a = default;
+        // OK
+        a.x = 3;
+        // OK
+        s = 5;
+    }
+}
+";
+            // PROTOTYPE: should give ERR_AssgReadonlyLocal
+            CreateCompilation(text).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStruct_PassThisByRef()
+        {
+            var csharp = @"
+public readonly struct S
+{
+    public static void M1(ref S s) {}
+    public static void M2(in S s) {}
+
+    public void M3()
+    {
+        M1(ref this); // error
+        M2(in this); // ok
+    }
+
+    public readonly void M4()
+    {
+        M1(ref this); // error
+        M2(in this); // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (9,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         M1(ref this); // error
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(9, 16),
+                // (15,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         M1(ref this); // error
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(15, 16));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_PassThisByRef()
+        {
+            var csharp = @"
+public struct S
+{
+    public static void M1(ref S s) {}
+    public static void M2(in S s) {}
+
+    public void M3()
+    {
+        M1(ref this); // ok
+        M2(in this); // ok
+    }
+
+    public readonly void M4()
+    {
+        M1(ref this); // error
+        M2(in this); // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            // PROTOTYPE: should give ERR_RefReadonlyLocal
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_PassFieldByRef()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int f1;
+    public int f2;
+
+    public static void M1(ref int s) {}
+    public static void M2(in int s) {}
+
+    public void M3()
+    {
+        M1(ref f1); // ok
+        M1(ref f2); // ok
+        M2(in f1); // ok
+        M2(in f2); // ok
+    }
+
+    public readonly void M4()
+    {
+        M1(ref f1); // ok
+        M1(ref f2); // error
+        M2(in f1); // ok
+        M2(in f2); // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            // PROTOTYPE: should give ERR_RefReadonlyLocal
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallStaticMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int i;
+    public readonly int M1() => M2() + 1;
+    public static int M2() => i;
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyAccessor_CallNormalMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+
+    public int P
+    {
+        readonly get
+        {
+            // should create local copy
+            M();
+            System.Console.Write(i);
+
+            // explicit local copy, no warning
+            var copy = this;
+            copy.M();
+            System.Console.Write(copy.i);
+
+            return i;
+        }
+    }
+
+    void M()
+    {
+        i = 23;
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        _ = s.P;
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+            // PROTOTYPE: should warn about copying 'this' when calling M
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStruct_CallNormalMethodOnField()
+        {
+            var csharp = @"
+public readonly struct S1
+{
+    public readonly S2 s2;
+    public void M1()
+    {
+        s2.M2();
+    }
+}
+
+public struct S2
+{
+    public int i;
+    public void M2()
+    {
+        i = 42;
+    }
+
+    static void Main()
+    {
+        var s1 = new S1();
+        s1.M1();
+        System.Console.Write(s1.s2.i);
+    }
+}
+";
+            // should warn about calling s2.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
+            CompileAndVerify(csharp, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallNormalMethodOnField()
+        {
+            var csharp = @"
+public struct S1
+{
+    public S2 s2;
+    public readonly void M1()
+    {
+        s2.M2();
+        System.Console.Write(s2.i);
+
+        var copy = s2;
+        copy.M2();
+        System.Console.Write(copy.i);
+    }
+}
+
+public struct S2
+{
+    public int i;
+    public void M2()
+    {
+        i = 23;
+    }
+
+    static void Main()
+    {
+        var s1 = new S1() { s2 = new S2 { i = 1 } };
+        s1.M1();
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+            // should warn about calling s2.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
+            verifier.VerifyDiagnostics();
+        }
+
         private static string ilreadonlyStructWithWriteableFieldIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
        extends [mscorlib]System.Attribute
@@ -268,9 +517,9 @@ public struct S
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();
 
-            var method = (SourceMemberMethodSymbol)comp.GetMember<NamedTypeSymbol>("S").GetMember<MethodSymbol>("M");
-            // PROTOTYPE: add `public abstract bool IsReadOnly` to MethodSymbol and implement in subtypes?
-            Assert.True(method.IsReadOnly);
+            var method = comp.GetMember<NamedTypeSymbol>("S").GetMember<MethodSymbol>("M");
+            Assert.True(method.IsDeclaredReadOnly);
+            Assert.True(method.IsEffectivelyReadOnly);
         }
 
         [Fact]

@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }
-            else if (IsStatic && IsReadOnly && !_property.HasReadOnlyModifier)
+            else if (IsStatic && IsDeclaredReadOnly && !_property.HasReadOnlyModifier)
             {
                 // The modifier '{0}' is not valid for this item
                 diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
