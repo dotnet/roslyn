@@ -2505,7 +2505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 receiverType = VisitRvalueWithState(receiverOpt);
 
-                // methods which are members of nullable (ex: ToString, GetHashCode) can be invoked on null receiver.
+                // methods which are members of Nullable<T> (ex: ToString, GetHashCode) can be invoked on null receiver.
                 // However, inherited methods (ex: GetType) are invoked on a boxed value (since base types are reference types)
                 // and therefore in those cases nullable receivers should be checked for nullness.
                 bool checkNullableValueType = false;
