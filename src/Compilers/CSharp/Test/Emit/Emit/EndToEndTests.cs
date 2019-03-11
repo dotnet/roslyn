@@ -102,34 +102,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [WorkItem(33909, "https://github.com/dotnet/roslyn/issues/33909")]
         public void DeeplyNestedGeneric()
         {
-            // The actual tolerance level of the compiler for nested generics is in excess of 1,000 
-            // members. The problem is that the time it takes to compute that is on the order of 
-            // tens of minutes which makes it impractical as a unit test. Instead for release builds
-            // we simply ensure that a reasonable tolerance level is supported. 
-            //
-            // This does mean we don't get the full regression testing for release builds. But our 
-            // debug builds can be tested to their full tolerance hence they will catch any regressions
-            // in this area.
-            const int minimumReleaseTolerance = 550;
             int nestingLevel = (ExecutionConditionUtil.Architecture, ExecutionConditionUtil.Configuration) switch
             {
-                _ when ExecutionConditionUtil.IsCoreClrUnix => minimumReleaseTolerance,
-                _ when ExecutionConditionUtil.IsMonoDesktop => minimumReleaseTolerance,
+                _ when ExecutionConditionUtil.IsCoreClrUnix => 1200,
+                _ when ExecutionConditionUtil.IsMonoDesktop => 730,
                 (ExecutionArchitecture.x86, ExecutionConfiguration.Debug) => 270,
-                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => minimumReleaseTolerance,
+                (ExecutionArchitecture.x86, ExecutionConfiguration.Release) => 1290,
                 (ExecutionArchitecture.x64, ExecutionConfiguration.Debug) => 170,
-                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => minimumReleaseTolerance,
+                (ExecutionArchitecture.x64, ExecutionConfiguration.Release) => 730,
                 _ => throw new Exception($"Unexpected configuration {ExecutionConditionUtil.Architecture} {ExecutionConditionUtil.Configuration}")
             };
 
             // Un-comment loop below and use above commands to figure out the new limits
-            // for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
-            // {
-            //     var start = DateTime.UtcNow;
-            //     Console.Write($"Depth: {i}");
-            //     runDeeplyNestedGenericTest(i);
-            //     Console.WriteLine($" - {DateTime.UtcNow - start}");
-            // }
+            for (int i = nestingLevel; i < int.MaxValue; i = i + 10)
+            {
+                var start = DateTime.UtcNow;
+                Console.Write($"Depth: {i}");
+                runDeeplyNestedGenericTest(i);
+                Console.WriteLine($" - {DateTime.UtcNow - start}");
+            }
 
             runDeeplyNestedGenericTest(nestingLevel);
 
@@ -175,7 +166,10 @@ public class Test
                 {
                     var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
                     compilation.VerifyDiagnostics();
-                    CompileAndVerify(compilation, expectedOutput: "Pass");
+
+                    // PEVerify is skipped here as it doesn't scale to this level of nested generics. After 
+                    // about 600 levels of nesting it will not return in any reasonable amount of time.
+                    CompileAndVerify(compilation, expectedOutput: "Pass", verify: Verification.Skipped);
                 });
             }
         }
