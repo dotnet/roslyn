@@ -8711,6 +8711,111 @@ class Class : IInterface<string?>
 }}");
         }
 
+        // class Class<T> : IInterface<T?> where T : class
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestFlowAnalysisAttributeOnNonNullableReferenceTypeConstraint()
+        {
+            await TestInRegularAndScript1Async(
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
+}}
+
+class Class<T> : [|IInterface<T?>|] where T : class
+{{
+}}",
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
+}}
+
+class Class<T> : IInterface<T?> where T : class
+{{
+    public T MethodAllowNull(T value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    [return: NotNull]
+    public T MethodDisallowNull([DisallowNull] T value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
+        }
+
+        // class Class<T> : IInterface<T> where T : class?
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestFlowAnalysisAttributeOnNullableReferenceTypeConstraint()
+        {
+            await TestInRegularAndScript1Async(
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
+}}
+
+class Class<T> : [|IInterface<T>|] where T : class?
+{{
+}}",
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    T MethodAllowNull([AllowNull] T value);
+
+    [return: NotNull]
+    T MethodDisallowNull([DisallowNull] T value);
+}}
+
+class Class<T> : IInterface<T> where T : class?
+{{
+    public T MethodAllowNull(T value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public T MethodDisallowNull(T value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNonNullableValueType()
         {
