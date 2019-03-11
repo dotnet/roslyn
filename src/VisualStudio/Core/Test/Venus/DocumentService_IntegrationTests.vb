@@ -302,6 +302,13 @@ class { }
                         Return False
                     End Get
                 End Property
+
+                <Obsolete>
+                Public ReadOnly Property SupportDiagnostics As Boolean Implements IDocumentOperationService.SupportDiagnostics
+                    Get
+                        Throw Roslyn.Utilities.ExceptionUtilities.Unreachable
+                    End Get
+                End Property
             End Class
         End Class
 
