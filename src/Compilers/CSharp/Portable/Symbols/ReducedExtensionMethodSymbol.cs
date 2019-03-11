@@ -373,8 +373,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        // extension method has no 'this' parameter
-        internal override bool IsReadOnly => false;
+        // extension methods are static and therefore not readonly
+        internal override bool IsDeclaredReadOnly => false;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {

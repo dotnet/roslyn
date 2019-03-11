@@ -487,7 +487,8 @@ public struct S
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember<NamedTypeSymbol>("S").GetMember<MethodSymbol>("M");
-            Assert.True(method.IsReadOnly);
+            Assert.True(method.IsDeclaredReadOnly);
+            Assert.True(method.IsEffectivelyReadOnly);
         }
 
         [Fact]
