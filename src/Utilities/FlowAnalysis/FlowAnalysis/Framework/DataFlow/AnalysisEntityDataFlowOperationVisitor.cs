@@ -479,7 +479,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> argumentValues,
             IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
             IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
-            bool isLambdaOrLocalFunction)
+            bool isLambdaOrLocalFunction,
+            bool hasParameterWithDelegateType)
         {
             // PERF: For non-lambda and local functions + presence of points to values, we trim down
             // the initial analysis data passed as input to interprocedural analysis.
@@ -489,10 +490,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // All the remaining entities are not accessible in the callee and are excluded from the initial
             // interprocedural analysis data.
 
-            if (isLambdaOrLocalFunction || pointsToValuesOpt == null)
+            if (isLambdaOrLocalFunction || hasParameterWithDelegateType || pointsToValuesOpt == null)
             {
                 return base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt,
-                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
+                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
             }
 
             var candidateEntitiesBuilder = PooledHashSet<AnalysisEntity>.GetInstance();
@@ -662,11 +663,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         protected abstract void ApplyInterproceduralAnalysisResultCore(TAnalysisData resultData);
 
-        protected sealed override void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction, TAnalysisResult interproceduralResult)
+        protected sealed override void ApplyInterproceduralAnalysisResult(
+            TAnalysisData resultData,
+            bool isLambdaOrLocalFunction,
+            bool hasParameterWithDelegateType,
+            TAnalysisResult interproceduralResult)
         {
-            if (isLambdaOrLocalFunction)
+            if (isLambdaOrLocalFunction || hasParameterWithDelegateType)
             {
-                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, interproceduralResult);
+                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, interproceduralResult);
                 return;
             }
 

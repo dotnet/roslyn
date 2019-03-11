@@ -589,11 +589,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
                 ImmutableArray<ArgumentInfo<CopyAbstractValue>> argumentValues,
                 IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
                 IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
-                bool isLambdaOrLocalFunction)
+                bool isLambdaOrLocalFunction,
+                bool hasParameterWithDelegateType)
             {
                 copyValuesOpt = CurrentAnalysisData.CoreAnalysisData;
                 var initialAnalysisData = base.GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstanceOpt,
-                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
+                    thisOrMeInstanceForCallerOpt, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
                 AssertValidCopyAnalysisData(initialAnalysisData);
                 return initialAnalysisData;
             }
