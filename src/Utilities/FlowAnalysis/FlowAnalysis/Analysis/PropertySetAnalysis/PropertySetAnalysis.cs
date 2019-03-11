@@ -110,6 +110,28 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             return result.HazardousUsages;
         }
 
+        /// <summary>
+        /// When there are multiple hazardous usage evaluations for the same exact code, this prioritizes Flagged over MaybeFlagged, and MaybeFlagged over Unflagged.
+        /// </summary>
+        /// <param name="r1">First evaluation result.</param>
+        /// <param name="r2">Second evaluation result.</param>
+        /// <returns>Prioritized result.</returns>
+        public static HazardousUsageEvaluationResult MergeHazardousUsageEvaluationResult(HazardousUsageEvaluationResult r1, HazardousUsageEvaluationResult r2)
+        {
+            if (r1 == HazardousUsageEvaluationResult.Flagged || r2 == HazardousUsageEvaluationResult.Flagged)
+            {
+                return HazardousUsageEvaluationResult.Flagged;
+            }
+            else if (r1 == HazardousUsageEvaluationResult.MaybeFlagged || r2 == HazardousUsageEvaluationResult.MaybeFlagged)
+            {
+                return HazardousUsageEvaluationResult.MaybeFlagged;
+            }
+            else
+            {
+                return HazardousUsageEvaluationResult.Unflagged;
+            }
+        }
+
         private static PropertySetAnalysisResult GetOrComputeResultForAnalysisContext(PropertySetAnalysisContext analysisContext)
         {
             var operationVisitor = new PropertySetDataFlowOperationVisitor(analysisContext);

@@ -243,7 +243,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         PropertySetAbstractValue locationAbstractValue = this.GetAbstractValue(location);
 
                         HazardousUsageEvaluationResult evaluationResult = hazardousUsageEvaluator.Evaluator(method, locationAbstractValue);
-                        result = this.MergeHazardousUsageEvaluationResult(result, evaluationResult);
+                        result = MergeHazardousUsageEvaluationResult(result, evaluationResult);
                     }
 
                     if (result != HazardousUsageEvaluationResult.Unflagged)
@@ -251,7 +251,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                         (Location, IMethodSymbol) key = (originalOperation.Syntax.GetLocation(), method);
                         if (this._hazardousUsageBuilder.TryGetValue(key, out HazardousUsageEvaluationResult existingResult))
                         {
-                            this._hazardousUsageBuilder[key] = this.MergeHazardousUsageEvaluationResult(result, existingResult);
+                            this._hazardousUsageBuilder[key] = MergeHazardousUsageEvaluationResult(result, existingResult);
                         }
                         else
                         {
@@ -324,28 +324,12 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 {
                     if (this._hazardousUsageBuilder.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
                     {
-                        this._hazardousUsageBuilder[kvp.Key] = this.MergeHazardousUsageEvaluationResult(kvp.Value, existingValue);
+                        this._hazardousUsageBuilder[kvp.Key] = MergeHazardousUsageEvaluationResult(kvp.Value, existingValue);
                     }
                     else
                     {
                         this._hazardousUsageBuilder.Add(kvp.Key, kvp.Value);
                     }
-                }
-            }
-
-            private HazardousUsageEvaluationResult MergeHazardousUsageEvaluationResult(HazardousUsageEvaluationResult r1, HazardousUsageEvaluationResult r2)
-            {
-                if (r1 == HazardousUsageEvaluationResult.Flagged || r2 == HazardousUsageEvaluationResult.Flagged)
-                {
-                    return HazardousUsageEvaluationResult.Flagged;
-                }
-                else if (r1 == HazardousUsageEvaluationResult.MaybeFlagged || r2 == HazardousUsageEvaluationResult.MaybeFlagged)
-                {
-                    return HazardousUsageEvaluationResult.MaybeFlagged;
-                }
-                else
-                {
-                    return HazardousUsageEvaluationResult.Unflagged;
                 }
             }
 
