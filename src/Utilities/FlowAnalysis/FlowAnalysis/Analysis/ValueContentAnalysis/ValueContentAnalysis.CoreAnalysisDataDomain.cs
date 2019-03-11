@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
 
                 // Stop tracking values present in both branches if their is an assignment to different literal values from the back edge.
                 // Clone the input forwardEdgeAnalysisData to ensure we don't overwrite the input dictionary.
-                forwardEdgeAnalysisData = new CoreValueContentAnalysisData(forwardEdgeAnalysisData);
-                try
+                using (forwardEdgeAnalysisData = new CoreValueContentAnalysisData(forwardEdgeAnalysisData))
                 {
                     var keysInMap1 = forwardEdgeAnalysisData.Keys.ToList();
                     foreach (var key in keysInMap1)
@@ -54,10 +53,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
                     Debug.Assert(Compare(forwardEdgeAnalysisData, resultMap) <= 0);
                     Debug.Assert(Compare(backEdgeAnalysisData, resultMap) <= 0);
                     return resultMap;
-                }
-                finally
-                {
-                    forwardEdgeAnalysisData.Dispose();
                 }
             }
         }

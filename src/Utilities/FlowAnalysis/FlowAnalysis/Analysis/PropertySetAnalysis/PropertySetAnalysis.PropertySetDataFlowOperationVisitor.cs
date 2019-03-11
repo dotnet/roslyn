@@ -231,9 +231,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 // If we have a HazardousUsageEvaluator for a method within the tracked type,
                 // or for a method within a different type.
                 IOperation propertySetInstance = visitedInstance;
-                HazardousUsageEvaluator hazardousUsageEvaluator;
                 if ((visitedInstance?.Type == this.TrackedTypeSymbol
-                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out hazardousUsageEvaluator))
+                    && this.DataFlowAnalysisContext.HazardousUsageEvaluators.TryGetHazardousUsageEvaluator(method.MetadataName, out var hazardousUsageEvaluator))
                     || TryFindNonTrackedTypeHazardousUsageEvaluator(out hazardousUsageEvaluator, out propertySetInstance))
                 {
                     PointsToAbstractValue pointsToAbstractValue = this.GetPointsToAbstractValue(propertySetInstance);
