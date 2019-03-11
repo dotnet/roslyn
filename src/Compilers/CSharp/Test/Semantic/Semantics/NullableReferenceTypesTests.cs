@@ -78363,6 +78363,141 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(bool)(!i)").WithLocation(23, 13));
         }
 
+        [WorkItem(32626, "https://github.com/dotnet/roslyn/issues/32626")]
+        [Fact]
+        public void NullableCtor()
+        {
+            var source =
+@"
+using System;
+
+struct S
+{
+    internal object? F;
+}
+
+class Program
+{
+    static void Baseline()
+    {
+        S? x = new S();
+        x.Value.F.ToString(); // warning baseline
+
+        S? y = new S() { F = 2 };
+        y.Value.F.ToString(); // ok baseline
+    }
+
+    static void F()
+    {
+        S? x = new Nullable<S>(new S());
+        x.Value.F.ToString(); // warning
+
+        S? y = new Nullable<S>(new S() { F = 2 });
+        y.Value.F.ToString(); // ok
+    }
+}
+
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Value.F.ToString(); // warning baseline
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(14, 9),
+                // (23,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Value.F.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(23, 9)
+            );
+        }
+
+        [WorkItem(32626, "https://github.com/dotnet/roslyn/issues/32626")]
+        [Fact]
+        public void NullableCtorErr()
+        {
+            var source =
+@"
+using System;
+
+struct S
+{
+    internal object? F;
+}
+
+class Program
+{
+    static void F()
+    {
+        S? x = new S() { F = 2 };
+        x.Value.F.ToString(); // ok baseline
+
+        S? y = new Nullable<S>(1);
+        y.Value.F.ToString(); // warning 1
+
+        S? z = new Nullable<S>(null);
+        z.Value.F.ToString(); // warning 2
+    }
+}
+
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (16,32): error CS1503: Argument 1: cannot convert from 'int' to 'S'
+                //         S? y = new Nullable<S>(1);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "S").WithLocation(16, 32),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Value.F.ToString(); // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Value.F").WithLocation(17, 9),
+                // (19,32): error CS1503: Argument 1: cannot convert from '<null>' to 'S'
+                //         S? z = new Nullable<S>(null);
+                Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "S").WithLocation(19, 32),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         z.Value.F.ToString(); // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.Value.F").WithLocation(20, 9)
+            );
+        }
+
+        [WorkItem(32626, "https://github.com/dotnet/roslyn/issues/32626")]
+        [Fact]
+        public void NullableCtor1()
+        {
+            var source =
+@"
+using System;
+
+struct S
+{
+    internal object? F;
+}
+
+class Program
+{
+    static void F()
+    {
+        S? x = new Nullable<S>(new S() { F = 2 });
+        x.Value.F.ToString(); // ok
+
+        S? y = new Nullable<S>();
+        y.Value.F.ToString(); // warning 1
+
+        S? z = new Nullable<S>(default);
+        z.Value.F.ToString(); // warning 2
+    }
+}
+
+";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (17,9): warning CS8629: Nullable value type may be null.
+                //         y.Value.F.ToString(); // warning 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "y").WithLocation(17, 9),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Value.F.ToString(); // warning 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Value.F").WithLocation(17, 9),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         z.Value.F.ToString(); // warning 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.Value.F").WithLocation(20, 9)
+);
+        }
+
         [Fact]
         public void NullableT_AlwaysTrueOrFalse()
         {
