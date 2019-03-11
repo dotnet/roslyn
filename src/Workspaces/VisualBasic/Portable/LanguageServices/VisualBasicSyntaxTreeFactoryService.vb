@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.IO
 Imports System.Text
@@ -56,7 +57,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function CreateRecoverableTree(cacheKey As ProjectId, filePath As String, optionsOpt As ParseOptions, text As ValueSource(Of TextAndVersion), encoding As Encoding, root As SyntaxNode) As SyntaxTree
                 Debug.Assert(CanCreateRecoverableTree(root))
-                Return RecoverableSyntaxTree.CreateRecoverableTree(Me, cacheKey, filePath, If(optionsOpt, GetDefaultParseOptions()), text, encoding, DirectCast(root, CompilationUnitSyntax))
+                Return RecoverableSyntaxTree.CreateRecoverableTree(
+                    Me,
+                    cacheKey,
+                    filePath,
+                    If(optionsOpt, GetDefaultParseOptions()),
+                    text,
+                    encoding,
+                    DirectCast(root, CompilationUnitSyntax),
+                    diagnosticOptions:=Nothing)
             End Function
 
             Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode
