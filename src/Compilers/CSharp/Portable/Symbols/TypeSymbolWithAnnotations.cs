@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TypeWithState ForType(TypeSymbol type) => new TypeWithState(type, type?.CanContainNull() == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
         public TypeWithState(TypeSymbol type, NullableFlowState state) => (Type, State) = (type, state);
         public void Deconstruct(out TypeSymbol type, out NullableFlowState state) => (type, state) = (Type, State);
-        public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
+        public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay() ?? "<null>"}, State:{State}{"}"}";
         public TypeWithState WithNotNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
         public TypeSymbolWithAnnotations ToTypeSymbolWithAnnotations()
         {

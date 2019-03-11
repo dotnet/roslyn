@@ -11155,7 +11155,7 @@ namespace a
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0622ERR_ArrayInitToNonArrayType()
         {
             var text = @"
@@ -11170,7 +11170,7 @@ public class Test
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_ArrayInitToNonArrayType, Line = 6, Column = 18 } });
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0623ERR_ArrayInitInBadPlace()
         {
             var text = @"
@@ -11735,7 +11735,7 @@ var goo = 4, bar = 4.5;
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, "var"));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0820ERR_ImplicitlyTypedVariableAssignedArrayInitializer()
         {
             var text = @"
@@ -11914,7 +11914,7 @@ public class C
                     new ErrorDescription { Code = (int)ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, Line = 36, Column = 17 }});
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0828ERR_AnonymousTypePropertyAssignedBadValue()
         {
             var text = @"
@@ -11930,7 +11930,7 @@ public class C
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, Line = 6, Column = 23 } });
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0828ERR_AnonymousTypePropertyAssignedBadValue_2()
         {
             var text = @"
@@ -11945,7 +11945,7 @@ public class C
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, Line = 6, Column = 23 } });
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0828ERR_AnonymousTypePropertyAssignedBadValue_3()
         {
             var text = @"
@@ -11960,7 +11960,7 @@ public class C
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, Line = 6, Column = 23 } });
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0828ERR_AnonymousTypePropertyAssignedBadValue_4()
         {
             var text = @"
@@ -11975,7 +11975,7 @@ public class C
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, Line = 6, Column = 23 } });
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0828ERR_AnonymousTypePropertyAssignedBadValue_5()
         {
             var text = @"
@@ -12079,7 +12079,7 @@ public class C
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_AnonymousTypeDuplicatePropertyName, Line = 6, Column = 31 } });
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void CS0833ERR_AnonymousTypeDuplicatePropertyName_3()
         {
             var text = @"

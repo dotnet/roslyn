@@ -1058,7 +1058,7 @@ internal sealed class CustomSerializingType : ISerializable
         }
 
         [WorkItem(32287, "https://github.com/dotnet/roslyn/issues/32287")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_DeclarationPatternWithNullDeclaredSymbol()
         {
             await TestDiagnosticMissingAsync(

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void NoPiaObjectCreation_01()
         {
             string pia = @"
@@ -70,7 +70,7 @@ INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new 
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void NoPiaObjectCreation_02()
         {
             string pia = @"
@@ -177,7 +177,7 @@ INoPiaObjectCreationOperation (OperationKind.None, Type: ITest33) (Syntax: 'new 
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void NoPiaObjectCreationFlow_01()
         {
             string pia = @"
@@ -269,7 +269,7 @@ Block[B2] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void NoPiaObjectCreationFlow_02()
         {
             string pia = @"
@@ -426,7 +426,7 @@ Block[B2] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void NoPiaObjectCreationFlow_04()
         {
             string pia = @"

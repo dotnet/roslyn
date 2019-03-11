@@ -5172,7 +5172,7 @@ class C
                 }
             }
 
-            public ImmutableArray<Nullability> TypeArgumentsNullabilities
+            public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations
             {
                 get
                 {
@@ -5305,22 +5305,22 @@ class C
                 throw new NotImplementedException();
             }
 
-            public string ToDisplayString(Nullability topLevelNullability, SymbolDisplayFormat format = null)
+            public string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
             {
                 throw new NotImplementedException();
             }
 
-            public ImmutableArray<SymbolDisplayPart> ToDisplayParts(Nullability topLevelNullability, SymbolDisplayFormat format = null)
+            public ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
             {
                 throw new NotImplementedException();
             }
 
-            public string ToMinimalDisplayString(SemanticModel semanticModel, Nullability topLevelNullability, int position, SymbolDisplayFormat format = null)
+            public string ToMinimalDisplayString(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
             {
                 throw new NotImplementedException();
             }
 
-            public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, Nullability topLevelNullability, int position, SymbolDisplayFormat format = null)
+            public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, NullableFlowState topLevelNullability, int position, SymbolDisplayFormat format = null)
             {
                 throw new NotImplementedException();
             }

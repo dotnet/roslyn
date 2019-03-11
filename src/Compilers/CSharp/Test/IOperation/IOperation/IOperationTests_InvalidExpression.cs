@@ -439,7 +439,7 @@ IFieldInitializerOperation (Field: System.Int32 Program.x) (OperationKind.FieldI
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidArrayInitializer()
         {
             string source = @"
@@ -489,7 +489,7 @@ IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: n
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(17598, "https://github.com/dotnet/roslyn/issues/17598")]
         public void InvalidArrayCreation()
         {
             string source = @"
