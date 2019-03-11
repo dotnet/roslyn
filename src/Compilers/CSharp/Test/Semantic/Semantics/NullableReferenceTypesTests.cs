@@ -4755,7 +4755,7 @@ class E { }
                 //     public MyAttribute(string s, string s2 = null) { } //1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 46),
                 // (10,21): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                // [MyAttribute("str", null)] // 3
+                // [MyAttribute("str", null)] // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 21)
                 );
         }

@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() ||
                 attribute.Constructor is null ||
-                !compilation.SyntaxTrees.Contains(attribute.SyntaxTree))
+                !compilation.SyntaxTrees.Contains(attribute.SyntaxTree)) // don't analyze speculative attributes
             {
                 return;
             }
