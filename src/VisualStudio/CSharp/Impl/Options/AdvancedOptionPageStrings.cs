@@ -15,9 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_full_solution_analysis
             => ServicesVSResources.Enable_full_solution_analysis;
 
-        public static string Option_Perform_editor_feature_analysis_in_external_process
-            => ServicesVSResources.Perform_editor_feature_analysis_in_external_process;
-
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
 
@@ -167,6 +164,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;
 
         public static string Option_Report_invalid_placeholders_in_string_dot_format_calls =>
-            CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls; 
+            CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls;
+
+        public static string Option_Regular_Expressions =>
+            ServicesVSResources.Regular_Expressions;
+
+        public static string Option_Colorize_regular_expressions =>
+            ServicesVSResources.Colorize_regular_expressions;
+
+        public static string Option_Report_invalid_regular_expressions =>
+            ServicesVSResources.Report_invalid_regular_expressions;
+
+        public static string Option_Highlight_related_components_under_cursor =>
+            ServicesVSResources.Highlight_related_components_under_cursor;
+
+        public static string Option_Show_completion_list =>
+            ServicesVSResources.Show_completion_list;
+
+        public static string Option_Classifications =>
+            ServicesVSResources.Classifications;
+
+        public static string Option_Use_enhanced_colors_for_C_and_Basic =>
+            ServicesVSResources.Use_enhanced_colors_for_C_and_Basic;
     }
 }

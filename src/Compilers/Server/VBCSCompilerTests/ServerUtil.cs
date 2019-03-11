@@ -83,10 +83,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal static ServerData CreateServer(
             string pipeName = null,
             ICompilerServerHost compilerServerHost = null,
-            bool failingServer = false)
+            bool failingServer = false,
+            string tempPath = null)
         {
-            pipeName = pipeName ?? Guid.NewGuid().ToString();
+            // The total pipe path must be < 92 characters on Unix, so trim this down to 10 chars
+            pipeName = pipeName ?? Guid.NewGuid().ToString().Substring(0, 10);
             compilerServerHost = compilerServerHost ?? DesktopBuildServerController.CreateCompilerServerHost();
+            tempPath = tempPath ?? Path.GetTempPath();
             var clientConnectionHost = DesktopBuildServerController.CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
 
             if (failingServer)
@@ -106,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     DesktopBuildServerController.RunServer(
                         pipeName,
+                        tempPath,
                         clientConnectionHost,
                         listener,
                         keepAlive: TimeSpan.FromMilliseconds(-1),

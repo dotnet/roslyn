@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
@@ -32,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private SnapshotSpan? _cachedTaggedSpan_doNotAccessDirectly;
 
             public Tagger(SemanticClassificationBufferTaggerProvider owner, ITextBuffer subjectBuffer)
+                : base(owner.ThreadingContext)
             {
                 _owner = owner;
                 _subjectBuffer = subjectBuffer;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
             private Task ProduceTagsAsync<TClassificationService>(
                 TaggerContext<IClassificationTag> context,
-                DocumentSnapshotSpan documentSpan, 
+                DocumentSnapshotSpan documentSpan,
                 ClassificationTypeMap typeMap,
                 IClassificationDelegationService<TClassificationService> delegationService) where TClassificationService : class, ILanguageService
             {

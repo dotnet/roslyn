@@ -5598,8 +5598,8 @@ public class TestClass
             MethodSymbol lambdaSym = (MethodSymbol)(semanticInfo.Symbol);
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
-            Assert.Equal("System.String", lambdaSym.Parameters[0].Type.ToTestDisplayString());
-            Assert.Equal("System.Int32", lambdaSym.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.String", lambdaSym.Parameters[0].Type.TypeSymbol.ToTestDisplayString());
+            Assert.Equal("System.Int32", lambdaSym.ReturnType.TypeSymbol.ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -5635,7 +5635,7 @@ public class TestClass
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
             Assert.Equal(TypeKind.Error, lambdaSym.Parameters[0].Type.TypeKind);
-            Assert.Equal("System.Int32", lambdaSym.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.Int32", lambdaSym.ReturnType.TypeSymbol.ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -6279,7 +6279,7 @@ class Program
 
             // It's type is not equal to the SemanticInfo type, because that is
             // not an error type.
-            Assert.NotEqual(semanticInfo.Type, param.Type);
+            Assert.NotEqual(semanticInfo.Type, param.Type.TypeSymbol);
         }
 
         [Fact]
@@ -6713,10 +6713,6 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<InitializerExpressionSyntax>(sourceCode);
             Assert.Null(semanticInfo.Type);
-            //Assert.Equal("int[]", semanticInfo.Type.ToString());
-            //Assert.Equal("int[]", semanticInfo.ConvertedType.ToString());
-            //Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
-            //Assert.True(semanticInfo.IsCompileTimeConstant);
         }
 
         [Fact]
@@ -8913,20 +8909,26 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
-
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
-
-            Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+            CreateCompilation(sourceCode).VerifyDiagnostics(
+                // (12,30): error CS1003: Syntax error, ':' expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(12, 30),
+                // (12,30): error CS1513: } expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(12, 30),
+                // (12,44): error CS1002: ; expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ":").WithLocation(12, 44),
+                // (12,44): error CS1513: } expected
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ":").WithLocation(12, 44),
+                // (12,28): error CS1501: No overload for method 'Deconstruct' takes 0 arguments
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_BadArgCount, "()").WithArguments("Deconstruct", "0").WithLocation(12, 28),
+                // (12,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                //             case /*<bind>*/()=>3/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(12, 28)
+                );
         }
 
         [Fact]
@@ -8954,20 +8956,20 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
-
-            Assert.Null(semanticInfo.Type);
-            Assert.Equal("System.String", semanticInfo.ConvertedType.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
-
-            Assert.Equal("lambda expression", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-
-            Assert.Equal(0, semanticInfo.MethodGroup.Length);
-
-            Assert.False(semanticInfo.IsCompileTimeConstant);
+            CreateCompilation(sourceCode).VerifyDiagnostics(
+                // (13,30): error CS1003: Syntax error, ':' expected
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(":", "=>").WithLocation(13, 30),
+                // (13,30): error CS1513: } expected
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "=>").WithLocation(13, 30),
+                // (13,28): error CS1501: No overload for method 'Deconstruct' takes 0 arguments
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_BadArgCount, "()").WithArguments("Deconstruct", "0").WithLocation(13, 28),
+                // (13,28): error CS8129: No suitable Deconstruct instance or extension method was found for type 'string', with 0 out parameters and a void return type.
+                //             case /*<bind>*/()=>/*</bind>*/:
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("string", "0").WithLocation(13, 28)
+                );
         }
 
         [Fact]

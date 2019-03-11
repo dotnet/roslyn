@@ -38,6 +38,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 : CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
 
+        internal virtual bool ShouldSkipMessageDescriptionVerification(DiagnosticDescriptor descriptor)
+        {
+            if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+            {
+                if (!descriptor.IsEnabledByDefault || descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
+                {
+                    // The message only displayed if either enabled and not hidden, or configurable
+                    return true;
+                }
+            }
+            return false;
+        }
+
         [Fact]
         public void TestSupportedDiagnosticsMessageTitle()
         {
@@ -75,13 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
                 foreach (var descriptor in diagnosticAnalyzer.SupportedDiagnostics)
                 {
-                    if (descriptor.CustomTags.Contains(WellKnownDiagnosticTags.NotConfigurable))
+                    if (ShouldSkipMessageDescriptionVerification(descriptor))
                     {
-                        if (!descriptor.IsEnabledByDefault || descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
-                        {
-                            // The message only displayed if either enabled and not hidden, or configurable
-                            continue;
-                        }
+                        continue;
                     }
 
                     Assert.NotEqual("", descriptor.MessageFormat?.ToString() ?? "");
@@ -143,8 +152,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
-            return await GetDiagnosticAndFixesAsync(
+            var (resultDiagnostics, codeActions, actionToInvoke) = await GetDiagnosticAndFixesAsync(
                 dxs, provider, fixer, testDriver, document, span, annotation, parameters.index);
+
+            // If we are also testing non-fixable diagnostics,
+            // then the result diagnostics need to include all diagnostics,
+            // not just the fixable ones returned from GetDiagnosticAndFixesAsync.
+            if (parameters.retainNonFixableDiagnostics)
+            {
+                resultDiagnostics = diagnostics;
+            }
+
+            return (resultDiagnostics, codeActions, actionToInvoke);
         }
 
         protected async Task TestDiagnosticInfoAsync(
@@ -170,7 +189,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var testOptions = new TestParameters(parseOptions, compilationOptions, options);
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions))
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).Where(d => d.Id == diagnosticId);
+                var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
+                diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);
                 Assert.Equal(1, diagnostics.Count());
 
                 var hostDocument = workspace.Documents.Single(d => d.SelectedSpans.Any());

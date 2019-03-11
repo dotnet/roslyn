@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocal(ILocalSymbol symbol)
         {
-            if (symbol.IsRef && 
+            if (symbol.IsRef &&
                 format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
             {
                 AddKeyword(SyntaxKind.RefKeyword);
@@ -196,11 +197,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
             {
-                symbol.Type.Accept(this);
+                var local = symbol as LocalSymbol;
+                if ((object)local != null)
+                {
+                    VisitTypeSymbolWithAnnotations(local.Type);
+                }
+                else
+                {
+                    symbol.Type.Accept(this.NotFirstVisitor);
+                }
                 AddSpace();
             }
 
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
+            if (symbol.IsConst)
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name));
+            }
+            else
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
+            }
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
                 symbol.IsConst &&

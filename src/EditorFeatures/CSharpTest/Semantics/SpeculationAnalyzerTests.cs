@@ -151,9 +151,10 @@ class Program
     static void Main()
     {
         var c = new Class();
-        [|((IComparable)c).CompareTo(null)|];
+        var d = new Class();
+        [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(null)", true);
+}           ", "c.CompareTo(d)", true);
         }
 
         [Fact]
@@ -170,9 +171,10 @@ class Program
     static void Main()
     {
         var c = new Class();
-        [|((IComparable)c).CompareTo(null)|];
+        var d = new Class();
+        [|((IComparable)c).CompareTo(d)|];
     }
-}           ", "c.CompareTo(null)", false);
+}           ", "c.CompareTo(d)", false);
         }
 
         [Fact]
@@ -287,7 +289,7 @@ class Program
 using System.Collections;
 class Collection : IEnumerable
 {
-    public IEnumerator GetEnumerator() { return null; }
+    public IEnumerator GetEnumerator() { throw new System.NotImplementedException(); }
     public void Add(string s) { }
     public void Add(int i) { }
     void Main()
@@ -386,6 +388,106 @@ class Program
     }
 }
             ", "1", semanticChanges: true);
+        }
+
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerIndexerPropertyWithRedundantCast()
+        {
+            Test(code: @"
+class Indexer
+{
+    public int this[int x] { get { return x; } }
+}
+class A
+{
+    public Indexer Foo { get; } = new Indexer();
+}
+class B : A
+{
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        var y = ([|(A)b|]).Foo[1];
+    }
+}
+", replacementExpression: "b", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerIndexerPropertyWithRequiredCast()
+        {
+            Test(code: @"
+class Indexer
+{
+    public int this[int x] { get { return x; } }
+}
+class A
+{
+    public Indexer Foo { get; } = new Indexer();
+}
+class B : A
+{
+    public new Indexer Foo { get; } = new Indexer();
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        var y = ([|(A)b|]).Foo[1];
+    }
+}
+", replacementExpression: "b", semanticChanges: true);
+        }
+
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerDelegatePropertyWithRedundantCast()
+        {
+            Test(code: @"
+public delegate void MyDelegate();
+class A
+{
+    public MyDelegate Foo { get; }
+}
+class B : A
+{
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        ([|(A)b|]).Foo();
+    }
+}
+", replacementExpression: "b", semanticChanges: false);
+        }
+
+        [Fact, WorkItem(28412, "https://github.com/dotnet/roslyn/issues/28412")]
+        public void SpeculationAnalyzerDelegatePropertyWithRequiredCast()
+        {
+            Test(code: @"
+public delegate void MyDelegate();
+class A
+{
+    public MyDelegate Foo { get; }
+}
+class B : A
+{
+    public new MyDelegate Foo { get; }
+}
+class Program
+{
+    static void Main(string[] args)
+    {
+        var b = new B();
+        ([|(A)b|]).Foo();
+    }
+}
+", replacementExpression: "b", semanticChanges: true);
         }
 
         protected override SyntaxTree Parse(string text)

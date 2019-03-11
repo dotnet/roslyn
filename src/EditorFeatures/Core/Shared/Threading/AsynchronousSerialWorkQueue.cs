@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
 
         #endregion
 
-        public AsynchronousSerialWorkQueue(IAsynchronousOperationListener asyncListener)
-            : base(assertIsForeground: false)
+        public AsynchronousSerialWorkQueue(IThreadingContext threadingContext, IAsynchronousOperationListener asyncListener)
+            : base(threadingContext, assertIsForeground: false)
         {
             Contract.ThrowIfNull(asyncListener);
             _asyncListener = asyncListener;

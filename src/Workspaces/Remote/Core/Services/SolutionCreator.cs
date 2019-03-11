@@ -9,10 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
+using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -265,6 +267,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 project = project.Solution.WithProjectOutputRefFilePath(project.Id, newProjectInfo.OutputRefFilePath).GetProject(project.Id);
             }
 
+            if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectInfo.DefaultNamespace)
+            {
+                project = project.Solution.WithProjectDefaultNamespace(project.Id, newProjectInfo.DefaultNamespace).GetProject(project.Id);
+            }
+
             if (project.State.ProjectInfo.Attributes.HasAllInformation != newProjectInfo.HasAllInformation)
             {
                 project = project.Solution.WithHasAllInformation(project.Id, newProjectInfo.HasAllInformation).GetProject(project.Id);
@@ -370,19 +377,19 @@ namespace Microsoft.CodeAnalysis.Remote
             var newDocumentInfo = await _assetService.GetAssetAsync<DocumentInfo.DocumentAttributes>(infoChecksum, _cancellationToken).ConfigureAwait(false);
 
             // there is no api to change these once document is created
-            Contract.ThrowIfFalse(document.State.Info.Attributes.Id == newDocumentInfo.Id);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.Name == newDocumentInfo.Name);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.FilePath == newDocumentInfo.FilePath);
-            Contract.ThrowIfFalse(document.State.Info.Attributes.IsGenerated == newDocumentInfo.IsGenerated);
+            Contract.ThrowIfFalse(document.State.Attributes.Id == newDocumentInfo.Id);
+            Contract.ThrowIfFalse(document.State.Attributes.Name == newDocumentInfo.Name);
+            Contract.ThrowIfFalse(document.State.Attributes.FilePath == newDocumentInfo.FilePath);
+            Contract.ThrowIfFalse(document.State.Attributes.IsGenerated == newDocumentInfo.IsGenerated);
 
-            if (document.State.Info.Attributes.Folders != newDocumentInfo.Folders)
+            if (document.State.Attributes.Folders != newDocumentInfo.Folders)
             {
                 // additional document can't change folder once created
                 Contract.ThrowIfTrue(additionalText);
                 document = document.Project.Solution.WithDocumentFolders(document.Id, newDocumentInfo.Folders).GetDocument(document.Id);
             }
 
-            if (document.State.Info.Attributes.SourceCodeKind != newDocumentInfo.SourceCodeKind)
+            if (document.State.Attributes.SourceCodeKind != newDocumentInfo.SourceCodeKind)
             {
                 // additional document can't change sourcecode kind once created
                 Contract.ThrowIfTrue(additionalText);
@@ -514,7 +521,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
                 projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
                 compilationOptions, parseOptions,
-                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission).WithHasAllInformation(projectInfo.HasAllInformation);
+                documents, p2p, metadata, analyzers, additionals, projectInfo.IsSubmission)
+                .WithOutputRefFilePath(projectInfo.OutputRefFilePath)
+                .WithHasAllInformation(projectInfo.HasAllInformation)
+                .WithDefaultNamespace(projectInfo.DefaultNamespace);
         }
 
         private async Task<List<T>> CreateCollectionAsync<T>(ChecksumCollection collections)
@@ -617,63 +627,31 @@ namespace Microsoft.CodeAnalysis.Remote
             return builder.ToImmutableAndFree();
         }
 
-        private async Task ValidateChecksumAsync(Checksum givenSolutionChecksum, Solution solution)
+        private async Task ValidateChecksumAsync(Checksum checksumFromRequest, Solution incrementalSolutionBuilt)
         {
-            // have this to avoid error on async
-            await Task.CompletedTask.ConfigureAwait(false);
-
 #if DEBUG
-            var currentSolutionChecksum = await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false);
-
-            if (givenSolutionChecksum == currentSolutionChecksum)
+            var currentSolutionChecksum = await incrementalSolutionBuilt.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);
+            if (checksumFromRequest == currentSolutionChecksum)
             {
                 return;
             }
 
-            Contract.Requires(false, "checksum not same");
+            var solutionFromScratch = await CreateSolutionFromScratchAsync(checksumFromRequest).ConfigureAwait(false);
 
-            var map = solution.GetAssetMap();
-            await RemoveDuplicateChecksumsAsync(givenSolutionChecksum, map).ConfigureAwait(false);
+            await TestUtils.AssertChecksumsAsync(_assetService, checksumFromRequest, solutionFromScratch, incrementalSolutionBuilt).ConfigureAwait(false);
 
-            foreach (var kv in map.Where(kv => kv.Value is ChecksumWithChildren).ToList())
+            async Task<Solution> CreateSolutionFromScratchAsync(Checksum checksum)
             {
-                map.Remove(kv.Key);
-            }
+                var solutionInfo = await CreateSolutionInfoAsync(checksum).ConfigureAwait(false);
+                var workspace = new TemporaryWorkspace(solutionInfo);
 
-            var sb = new StringBuilder();
-            foreach (var kv in map)
-            {
-                sb.AppendLine($"{kv.Key.ToString()}, {kv.Value.ToString()}");
+                return workspace.CurrentSolution;
             }
+#else
 
-            Logger.Log(FunctionId.SolutionCreator_AssetDifferences, sb.ToString());
+            // have this to avoid error on async
+            await Task.CompletedTask.ConfigureAwait(false);
 #endif
-
-            return;
-        }
-
-        private async Task RemoveDuplicateChecksumsAsync(Checksum givenSolutionChecksum, Dictionary<Checksum, object> map)
-        {
-            var solutionChecksums = await _assetService.GetAssetAsync<SolutionStateChecksums>(givenSolutionChecksum, _cancellationToken).ConfigureAwait(false);
-            map.RemoveChecksums(solutionChecksums);
-
-            foreach (var projectChecksum in solutionChecksums.Projects)
-            {
-                var projectChecksums = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, _cancellationToken).ConfigureAwait(false);
-                map.RemoveChecksums(projectChecksums);
-
-                foreach (var documentChecksum in projectChecksums.Documents)
-                {
-                    var documentChecksums = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, _cancellationToken).ConfigureAwait(false);
-                    map.RemoveChecksums(documentChecksums);
-                }
-
-                foreach (var documentChecksum in projectChecksums.AdditionalDocuments)
-                {
-                    var documentChecksums = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, _cancellationToken).ConfigureAwait(false);
-                    map.RemoveChecksums(documentChecksums);
-                }
-            }
         }
     }
 }

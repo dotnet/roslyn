@@ -73,6 +73,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="additionalReferenceDirectories">A string representing additional reference paths.</param>
         ''' <returns>A CommandLineArguments object representing the parsed command line.</returns>
         Public Shadows Function Parse(args As IEnumerable(Of String), baseDirectory As String, sdkDirectory As String, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
+            Debug.Assert(baseDirectory Is Nothing OrElse PathUtilities.IsAbsolute(baseDirectory))
+
             Const GenerateFileNameForDocComment As String = "USE-OUTPUT-NAME"
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
@@ -118,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim embeddedFiles = New List(Of CommandLineSourceFile)()
             Dim embedAllSourceFiles = False
             Dim codepage As Encoding = Nothing
-            Dim checksumAlgorithm = SourceHashAlgorithm.Sha1
+            Dim checksumAlgorithm = SourceHashAlgorithm.Sha256
             Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
             Dim metadataReferences = New List(Of CommandLineReference)()
             Dim analyzers = New List(Of CommandLineAnalyzerReference)()
@@ -390,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Try
                             preferredUILang = New CultureInfo(value)
-                            If (CorLightup.Desktop.IsUserCustomCulture(preferredUILang)) Then
+                            If (preferredUILang.CultureTypes And CultureTypes.UserCustomCulture) <> 0 Then
                                 ' Do not use user custom cultures.
                                 preferredUILang = Nothing
                             End If
@@ -574,6 +576,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             sdkPaths.Clear()
                             sdkPaths.AddRange(ParseSeparatedPaths(value))
+                            Continue For
+
+                        Case "nosdkpath"
+                            sdkDirectory = Nothing
+                            sdkPaths.Clear()
                             Continue For
 
                         Case "instrument"
@@ -1160,7 +1167,6 @@ lVbRuntimePlus:
                             Continue For
 
                         Case "additionalfile"
-                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
                                 Continue For
@@ -1170,7 +1176,6 @@ lVbRuntimePlus:
                             Continue For
 
                         Case "embed"
-                            value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
                                 embedAllSourceFiles = True
                                 Continue For
@@ -1252,7 +1257,7 @@ lVbRuntimePlus:
             End If
 
             ' add additional reference paths if specified
-            If Not String.IsNullOrWhiteSpace(additionalReferenceDirectories) Then
+            If Not String.IsNullOrEmpty(additionalReferenceDirectories) Then
                 libPaths.AddRange(ParseSeparatedPaths(additionalReferenceDirectories))
             End If
 
@@ -1260,7 +1265,7 @@ lVbRuntimePlus:
             Dim searchPaths As ImmutableArray(Of String) = BuildSearchPaths(baseDirectory, sdkPaths, responsePaths, libPaths)
 
             ' Public sign doesn't use legacy search path settings
-            If publicSign AndAlso Not String.IsNullOrWhiteSpace(keyFileSetting) Then
+            If publicSign AndAlso Not String.IsNullOrEmpty(keyFileSetting) Then
                 keyFileSetting = ParseGenericPathToFile(keyFileSetting, diagnostics, baseDirectory)
             End If
 
@@ -1291,8 +1296,11 @@ lVbRuntimePlus:
 
             ' Dev10 searches for the keyfile in the current directory and assembly output directory.
             ' We always look to base directory and then examine the search paths.
-            keyFileSearchPaths.Add(baseDirectory)
-            If baseDirectory <> outputDirectory Then
+            If Not String.IsNullOrEmpty(baseDirectory) Then
+                keyFileSearchPaths.Add(baseDirectory)
+            End If
+
+            If Not String.IsNullOrEmpty(outputDirectory) AndAlso baseDirectory <> outputDirectory Then
                 keyFileSearchPaths.Add(outputDirectory)
             End If
 

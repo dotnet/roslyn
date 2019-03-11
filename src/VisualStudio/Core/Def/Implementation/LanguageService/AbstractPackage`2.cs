@@ -2,10 +2,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -16,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Remote;
 using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -91,19 +90,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
                 // start remote host
                 EnableRemoteHostClientService();
-
-                Workspace.AdviseSolutionEvents(solution);
             }
 
-            // Ensure services that must be created on the UI thread have been.
-            HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
-
-            LoadComponentsInUIContextOnceSolutionFullyLoaded(cancellationToken);
+            LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
         }
 
-        protected override void LoadComponentsInUIContext(CancellationToken cancellationToken)
+        protected override async Task LoadComponentsAsync(CancellationToken cancellationToken)
         {
-            ForegroundObject.AssertIsForeground();
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Ensure the nuget package services are initialized after we've loaded
             // the solution.
@@ -122,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             get
             {
-                ForegroundObject.AssertIsForeground();
+                ThreadHelper.ThrowIfNotOnUIThread();
 
                 return (IComponentModel)GetService(typeof(SComponentModel));
             }

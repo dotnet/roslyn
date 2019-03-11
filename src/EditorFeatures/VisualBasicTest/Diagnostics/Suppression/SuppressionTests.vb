@@ -2,7 +2,6 @@
 
 Option Strict Off
 Imports System.Collections.Immutable
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics

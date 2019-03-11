@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBConstLocalTests
         Inherits BasicTestBase
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestSimpleLocalConstants()
             Dim source =
 <compilation>
@@ -54,7 +54,7 @@ end class
 
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestLambdaLocalConstants()
             Dim source =
 <compilation>
@@ -119,7 +119,7 @@ end class
 
 #If False Then
         <WorkItem(11017)>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestIteratorLocalConstants()
             Dim text = <text>
 using System.Collections.Generic;
@@ -143,7 +143,7 @@ class C
 #End If
 
         <WorkItem(529101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529101")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestLocalConstantsTypes()
             Dim source = <compilation>
                              <file>

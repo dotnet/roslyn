@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Only an interface can be implemented.
             if (type.Symbol?.TypeKind == TypeKind.Interface)
             {
-                bool metadataTypeMatches(SymbolAndProjectIdSet s, INamedTypeSymbol t) 
+                bool metadataTypeMatches(SymbolAndProjectIdSet s, INamedTypeSymbol t)
                     => TypeDerivesFrom(s, t, transitive) || TypeImplementsFrom(s, t, transitive);
 
                 return FindTypesAsync(type, solution, projects,

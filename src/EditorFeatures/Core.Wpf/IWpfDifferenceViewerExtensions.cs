@@ -23,7 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             private double _width;
             private double _height;
 
-            public SizeToFitHelper(IWpfDifferenceViewer diffViewer, double minWidth)
+            public SizeToFitHelper(IThreadingContext threadingContext, IWpfDifferenceViewer diffViewer, double minWidth)
+                : base(threadingContext)
             {
                 _calculationStarted = 0;
                 _diffViewer = diffViewer;
@@ -138,9 +139,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
         }
 
-        public static Task SizeToFitAsync(this IWpfDifferenceViewer diffViewer, double minWidth = 400.0)
+        public static Task SizeToFitAsync(this IWpfDifferenceViewer diffViewer, IThreadingContext threadingContext, double minWidth = 400.0)
         {
-            var helper = new SizeToFitHelper(diffViewer, minWidth);
+            var helper = new SizeToFitHelper(threadingContext, diffViewer, minWidth);
             return helper.SizeToFitAsync();
         }
     }

@@ -12,14 +12,16 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerApiTest : TestBase
     {
         private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
-            1,
+            BuildProtocolConstants.ProtocolVersion,
             RequestLanguage.CSharpCompile,
+            BuildProtocolConstants.GetCommitHash(),
             ImmutableArray<BuildRequest.Argument>.Empty);
 
         private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
@@ -93,6 +95,7 @@ class Hello
             return new BuildRequest(
                 BuildProtocolConstants.ProtocolVersion,
                 RequestLanguage.CSharpCompile,
+                BuildProtocolConstants.GetCommitHash(),
                 builder.ToImmutable());
         }
 
@@ -312,7 +315,11 @@ class Hello
                 try
                 {
                     var host = new Mock<IClientConnectionHost>(MockBehavior.Strict);
-                    var result = DesktopBuildServerController.RunServer(pipeName, host.Object, keepAlive: null);
+                    var result = DesktopBuildServerController.RunServer(
+                        pipeName,
+                        Path.GetTempPath(),
+                        host.Object,
+                        keepAlive: null);
                     Assert.Equal(CommonCompiler.Failed, result);
                 }
                 finally
@@ -337,21 +344,15 @@ class Hello
                     var source = new TaskCompletionSource<bool>();
                     var thread = new Thread(_ =>
                     {
-                        Mutex mutex = null;
                         try
                         {
-                            Assert.True(Mutex.TryOpenExisting(mutexName, out mutex));
-                            Assert.False(mutex.WaitOne(millisecondsTimeout: 0));
+                            Assert.True(BuildServerConnection.WasServerMutexOpen(mutexName));
                             source.SetResult(true);
                         }
                         catch (Exception ex)
                         {
                             source.SetException(ex);
                             throw;
-                        }
-                        finally
-                        {
-                            mutex?.Dispose();
                         }
                     });
 
@@ -364,7 +365,11 @@ class Hello
                     return new TaskCompletionSource<IClientConnection>().Task;
                 });
 
-            var result = DesktopBuildServerController.RunServer(pipeName, host.Object, keepAlive: TimeSpan.FromSeconds(1));
+            var result = DesktopBuildServerController.RunServer(
+                pipeName,
+                Path.GetTempPath(),
+                host.Object,
+                keepAlive: TimeSpan.FromSeconds(1));
             Assert.Equal(CommonCompiler.Succeeded, result);
         }
 
@@ -510,6 +515,60 @@ class Hello
                     Assert.True(threw);
                 }
             }
+        }
+
+        [Fact]
+        public async Task IncorrectProtocolReturnsMismatchedVersionResponse()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(1, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+                Assert.Equal(BuildResponse.ResponseType.MismatchedVersion, buildResponse.Type);
+            }
+        }
+
+        [Fact]
+        public async Task IncorrectServerHashReturnsIncorrectHashResponse()
+        {
+            using (var serverData = ServerUtil.CreateServer())
+            {
+                var buildResponse = await ServerUtil.Send(serverData.PipeName, new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, "abc", new List<BuildRequest.Argument> { }));
+                Assert.Equal(BuildResponse.ResponseType.IncorrectHash, buildResponse.Type);
+            }
+        }
+
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [WorkItem(33452, "https://github.com/dotnet/roslyn/issues/33452")]
+        public void QuotePipeName_Desktop()
+        {
+            var serverInfo = BuildServerConnection.GetServerProcessInfo(@"q:\tools", "name with space");
+            Assert.Equal(@"q:\tools\VBCSCompiler.exe", serverInfo.processFilePath);
+            Assert.Equal(@"q:\tools\VBCSCompiler.exe", serverInfo.toolFilePath);
+            Assert.Equal(@"""-pipename:name with space""", serverInfo.commandLineArguments);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem(33452, "https://github.com/dotnet/roslyn/issues/33452")]
+        public void QuotePipeName_CoreClr()
+        {
+            var toolDir = ExecutionConditionUtil.IsWindows
+                ? @"q:\tools"
+                : "/tools";
+            var serverInfo = BuildServerConnection.GetServerProcessInfo(toolDir, "name with space");
+            var vbcsFilePath = Path.Combine(toolDir, "VBCSCompiler.dll");
+            Assert.Equal(vbcsFilePath, serverInfo.toolFilePath);
+            Assert.Equal($@"exec ""{vbcsFilePath}"" ""-pipename:name with space""", serverInfo.commandLineArguments);
+        }
+
+        [Theory]
+        [InlineData(@"name with space.T.basename", "name with space", true, "basename")]
+        [InlineData(@"ha_ha.T.basename", @"ha""ha", true, "basename")]
+        [InlineData(@"jared.T.ha_ha", @"jared", true, @"ha""ha")]
+        [InlineData(@"jared.F.ha_ha", @"jared", false, @"ha""ha")]
+        [InlineData(@"jared.F.ha_ha", @"jared", false, @"ha\ha")]
+        public void GetPipeNameCore(string expectedName, string userName, bool isAdmin, string basePipeName)
+        {
+            Assert.Equal(expectedName, BuildServerConnection.GetPipeNameCore(userName, isAdmin, basePipeName));
         }
     }
 }

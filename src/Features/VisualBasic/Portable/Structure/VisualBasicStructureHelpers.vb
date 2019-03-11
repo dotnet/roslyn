@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
                 Dim attributeOwner = firstToken.Parent.Parent
                 For Each child In attributeOwner.ChildNodesAndTokens
                     If child.Kind() <> SyntaxKind.AttributeList Then
-                        Return TextSpan.FromBounds(child.SpanStart, child.Span.End)
+                        Return TextSpan.FromBounds(child.SpanStart, blockNode.Span.End)
                     End If
                 Next
             End If

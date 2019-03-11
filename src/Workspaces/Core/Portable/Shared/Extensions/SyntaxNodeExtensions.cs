@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 yield return current;
 
-                current = current.GetParent();
+                current = current.GetParent(ascendOutOfTrivia: true);
             }
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     yield return tNode;
                 }
 
-                current = current.GetParent();
+                current = current.GetParent(ascendOutOfTrivia: true);
             }
         }
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return tNode;
                 }
 
-                current = current.GetParent();
+                current = current.GetParent(ascendOutOfTrivia: true);
             }
 
             return null;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     yield return tNode;
                 }
 
-                current = current.GetParent();
+                current = current.GetParent(ascendOutOfTrivia: true);
             }
         }
 
@@ -756,15 +756,26 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return node.WithLeadingTrivia(leadingTrivia).WithTrailingTrivia(trailingTrivia);
         }
 
-        private static SyntaxNode GetParent(this SyntaxNode node)
+        // Copy of the same function in SyntaxNode.cs
+        public static SyntaxNode GetParent(this SyntaxNode node, bool ascendOutOfTrivia)
         {
-            return node is IStructuredTriviaSyntax trivia ? trivia.ParentTrivia.Token.Parent : node.Parent;
+            var parent = node.Parent;
+            if (parent == null && ascendOutOfTrivia)
+            {
+                var structuredTrivia = node as IStructuredTriviaSyntax;
+                if (structuredTrivia != null)
+                {
+                    parent = structuredTrivia.ParentTrivia.Token.Parent;
+                }
+            }
+
+            return parent;
         }
 
         public static TNode FirstAncestorOrSelfUntil<TNode>(this SyntaxNode node, Func<SyntaxNode, bool> predicate)
             where TNode : SyntaxNode
         {
-            for (var current = node; current != null; current = current.GetParent())
+            for (var current = node; current != null; current = current.GetParent(ascendOutOfTrivia: true))
             {
                 if (current is TNode tnode)
                 {

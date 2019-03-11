@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static bool IsRefOrOut(this IParameterSymbol symbol)
         {
-            switch(symbol.RefKind)
+            switch (symbol.RefKind)
             {
                 case RefKind.Ref:
                 case RefKind.Out:

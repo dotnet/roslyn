@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         End Function
 
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub DefaultVersionResource()
             Dim source =
 <compilation name="Win32VerNoAttrs">
@@ -107,7 +107,7 @@ End Class
             Assert.Equal(" ", fileVer.LegalCopyright)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ResourcesInCoff()
             'this is to test that resources coming from a COFF can be added to a binary.
             Dim source =
@@ -180,7 +180,7 @@ End Class
             Assert.Equal("Microsoft Corporation", fileVer.CompanyName)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub FaultyResourceDataProvider()
             Dim c1 = VisualBasicCompilation.Create("goo", references:={MscorlibRef}, options:=TestOptions.ReleaseDll)
             Dim result = c1.Emit(New MemoryStream(),
@@ -298,7 +298,7 @@ End Module
                 Diagnostic(ERRID.ERR_UnableToOpenResourceFile1).WithArguments("some.dotted.NAME", New NotSupportedException().Message))
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.TestExecutionNeedsWindowsTypes)>
         Public Sub ResourceWithAttrSettings()
             Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Win32VerAttrs">

@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private string GetSourceLine(string filePath, int lineNumber)
         {
             using (var invisibleEditor = new InvisibleEditor(
-                _serviceProvider, filePath, projectOpt: null, needsSave: false, needsUndoDisabled: false))
+                _serviceProvider, filePath, hierarchyOpt: null, needsSave: false, needsUndoDisabled: false))
             {
                 var vsTextLines = invisibleEditor.VsTextLines;
                 if (vsTextLines != null &&
@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 IServiceProvider serviceProvider,
                 string filePath,
                 int lineNumber,
-                int charOffset) 
+                int charOffset)
                 : base(tags, displayParts, ImmutableArray<TaggedText>.Empty,
                        originationParts: default,
                        sourceSpans: default,
@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 var shellOpenDocument = (IVsUIShellOpenDocument)_serviceProvider.GetService(typeof(SVsUIShellOpenDocument));
                 var textViewGuid = VSConstants.LOGVIEWID.TextView_guid;
                 if (shellOpenDocument.OpenDocumentViaProject(
-                        _filePath, ref textViewGuid, out var oleServiceProvider, 
+                        _filePath, ref textViewGuid, out var oleServiceProvider,
                         out var hierarchy, out var itemid, out var frame) == VSConstants.S_OK)
                 {
                     frame.Show();
@@ -152,8 +152,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                     }
 
                     return textManager.NavigateToLineAndColumn(
-                        lines, VSConstants.LOGVIEWID.TextView_guid, 
-                        _lineNumber, _charOffset, 
+                        lines, VSConstants.LOGVIEWID.TextView_guid,
+                        _lineNumber, _charOffset,
                         _lineNumber, _charOffset) == VSConstants.S_OK;
                 }
                 finally

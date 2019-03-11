@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBExternalSourceDirectiveTests
         Inherits BasicTestBase
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TwoMethodsOnlyOneWithMapping()
             Dim source =
 <compilation>
@@ -67,7 +67,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TwoMethodsOnlyOneWithMultipleMappingsAndRewriting()
             Dim source =
 <compilation>
@@ -168,7 +168,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub EmptyExternalSourceWillBeIgnored()
             Dim source =
 <compilation>
@@ -240,7 +240,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MultipleEmptyExternalSourceWillBeIgnored()
             Dim source =
 <compilation>
@@ -318,7 +318,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MultipleEmptyExternalSourceWithNonEmptyExternalSource()
             Dim source =
 <compilation>
@@ -373,7 +373,7 @@ End Class
             options:=PdbValidationOptions.SkipConversionValidation)
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub MultipleEmptyExternalSourceWithNonEmptyExternalSourceFollowedByEmptyExternalSource()
             Dim source =
 <compilation>
@@ -433,7 +433,7 @@ End Class
             ' and thus there Is no entry point record either.
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub TestPartialClassFieldInitializersWithExternalSource()
             Dim source =
 <compilation>
@@ -549,7 +549,7 @@ End Class
 </symbols>)
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IllegalExternalSourceUsageShouldNotAssert_1()
             Dim source =
 <compilation>
@@ -576,7 +576,7 @@ End Class
                                                               Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IllegalExternalSourceUsageShouldNotAssert_2()
             Dim source =
 <compilation>
@@ -602,7 +602,7 @@ End Class
                                                               Diagnostic(ERRID.ERR_ExpectedDeclaration, "boo"))
         End Sub
 
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IllegalExternalSourceUsageShouldNotAssert_3()
             Dim source =
 <compilation>
@@ -631,7 +631,7 @@ End Class
         End Sub
 
         <WorkItem(545302, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545302")>
-        <Fact()>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub IllegalExternalSourceUsageShouldNotAssert_4()
             Dim source =
 <compilation>
@@ -653,7 +653,7 @@ End Module
         End Sub
 
         <WorkItem(545307, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545307")>
-        <Fact>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub OverflowLineNumbers()
             Dim source =
     <compilation>
@@ -730,7 +730,8 @@ End Module
 </symbols>, format:=DebugInformationFormat.Pdb)
         End Sub
 
-        <Fact, WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")>
+        <WorkItem(846584, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/846584")>
+        <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub RelativePathForExternalSource()
             Dim source =
 <compilation>

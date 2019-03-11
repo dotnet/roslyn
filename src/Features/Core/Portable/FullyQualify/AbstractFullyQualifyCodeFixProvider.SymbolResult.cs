@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -36,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
 
             public int CompareTo(SymbolResult other)
             {
-                Contract.Requires(this.Symbol is INamespaceSymbol || !((INamedTypeSymbol)this.Symbol).IsGenericType);
-                Contract.Requires(other.Symbol is INamespaceSymbol || !((INamedTypeSymbol)other.Symbol).IsGenericType);
+                Debug.Assert(this.Symbol is INamespaceSymbol || !((INamedTypeSymbol)this.Symbol).IsGenericType);
+                Debug.Assert(other.Symbol is INamespaceSymbol || !((INamedTypeSymbol)other.Symbol).IsGenericType);
 
                 var diff = this.Weight - other.Weight;
                 if (diff != 0)

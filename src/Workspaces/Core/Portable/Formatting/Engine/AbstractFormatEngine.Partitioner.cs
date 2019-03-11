@@ -15,17 +15,14 @@ namespace Microsoft.CodeAnalysis.Formatting
             private const int MinimumItemsPerPartition = 30000;
 
             private readonly FormattingContext _context;
-            private readonly TokenStream _tokenStream;
             private readonly TokenPairWithOperations[] _operationPairs;
 
-            public Partitioner(FormattingContext context, TokenStream tokenStream, TokenPairWithOperations[] operationPairs)
+            public Partitioner(FormattingContext context, TokenPairWithOperations[] operationPairs)
             {
                 Contract.ThrowIfNull(context);
-                Contract.ThrowIfNull(tokenStream);
                 Contract.ThrowIfNull(operationPairs);
 
                 _context = context;
-                _tokenStream = tokenStream;
                 _operationPairs = operationPairs;
             }
 
@@ -68,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                             break;
                         }
 
-                        var nextTokenWithIndex = _tokenStream.GetTokenData(nextToken);
+                        var nextTokenWithIndex = _context.TokenStream.GetTokenData(nextToken);
                         if (nextTokenWithIndex.IndexInStream < 0)
                         {
                             // first token for next partition is out side of valid token stream

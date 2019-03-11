@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 Imports Microsoft.CodeAnalysis.CodeRefactorings
@@ -116,6 +116,193 @@ End Class",
     End Sub
 End Class",
 index:=1)
+        End Function
+
+        <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestAddParamtersToConstructorBySelectOneMember() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Private i As Integer
+    [|Private k As Integer|]
+    Private j As Integer
+    Public Sub New(i As Integer, j As Integer)
+        Me.i = i
+        Me.j = j
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private k As Integer
+    Private j As Integer
+    Public Sub New(i As Integer, j As Integer, k As Integer)
+        Me.i = i
+        Me.j = j
+        Me.k = k
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestParametersAreStillRightIfMembersAreOutOfOrder() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    [|Private i As Integer
+    Private k As Integer
+    Private j As Integer|]
+    Public Sub New(i As Integer, j As Integer)
+        Me.i = i
+        Me.j = j
+    End Sub
+End Class",
+"Class Program
+    [|Private i As Integer
+    Private k As Integer
+    Private j As Integer|]
+    Public Sub New(i As Integer, j As Integer, k As Integer)
+        Me.i = i
+        Me.j = j
+        Me.k = k
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestNormalProperty() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class Program
+    [|Private i As Integer
+    Property Hello As Integer = 1|]
+    Public Sub New(i As Integer)
+    End Sub
+End Class",
+"
+Class Program
+    Private i As Integer
+    Property Hello As Integer = 1
+    Public Sub New(i As Integer, hello As Integer)
+        Me.Hello = hello
+    End Sub
+End Class"
+            )
+        End Function
+
+        <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestMissingIfFieldsAndPropertyAlreadyExists() As Task
+            Await TestMissingAsync(
+"
+Class Program
+    [|Private i As Integer
+    Property Hello As Integer = 1|]
+    Public Sub New(i As Integer, hello As Integer)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestConstructorWithNoParameters() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class Program
+    [|Private i As Integer
+    Property Hello As Integer = 1|]
+    Public Sub New()
+    End Sub
+End Class",
+"
+Class Program
+    [|Private i As Integer
+    Property Hello As Integer = 1|]
+    Public Sub New(i As Integer, hello As Integer)
+        Me.i = i
+        Me.Hello = hello
+    End Sub
+End Class"
+)
+        End Function
+
+        <WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestDefaultConstructor() As Task
+            Await TestMissingAsync(
+"
+Class Program
+    [|Private i As Integer|]
+End Class"
+)
+        End Function
+
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestPartialSelection() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Private i As Integer
+    Private [|s|] As String
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Public Sub New(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestMultiplePartialSelection() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Private i As Integer
+    Private [|s As String
+    Private j|] As Integer
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Private j As Integer
+    Public Sub New(i As Integer, s As String, j As Integer)
+        Me.i = i
+        Me.s = s
+        Me.j = j
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
+        Public Async Function TestMultiplePartialSelection2() As Task
+            Await TestInRegularAndScriptAsync(
+"Class Program
+    Private i As Integer
+    Private [|s As String
+    Private |]j As Integer
+    Public Sub New(i As Integer)
+        Me.i = i
+    End Sub
+End Class",
+"Class Program
+    Private i As Integer
+    Private s As String
+    Private j As Integer
+    Public Sub New(i As Integer, s As String)
+        Me.i = i
+        Me.s = s
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

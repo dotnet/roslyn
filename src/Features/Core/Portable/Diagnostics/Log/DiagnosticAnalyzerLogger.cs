@@ -44,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             }));
         }
 
-        public static void LogAnalyzerCrashCount(DiagnosticAnalyzer analyzer, Exception ex, LogAggregator logAggregator, ProjectId projectId)
+        public static void LogAnalyzerCrashCount(DiagnosticAnalyzer analyzer, Exception ex, LogAggregator logAggregatorOpt)
         {
-            if (logAggregator == null || analyzer == null || ex == null || ex is OperationCanceledException)
+            if (logAggregatorOpt == null || analyzer == null || ex == null || ex is OperationCanceledException)
             {
                 return;
             }
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Log
             // TODO: once we create description manager, pass that into here.
             bool telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(analyzer, null);
             var tuple = ValueTuple.Create(telemetry, analyzer.GetType(), ex.GetType());
-            logAggregator.IncreaseCount(tuple);
+            logAggregatorOpt.IncreaseCount(tuple);
         }
 
         public static void LogAnalyzerCrashCountSummary(int correlationId, LogAggregator logAggregator)

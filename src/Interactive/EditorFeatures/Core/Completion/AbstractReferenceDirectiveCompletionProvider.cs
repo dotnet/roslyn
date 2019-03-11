@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
     internal abstract class AbstractReferenceDirectiveCompletionProvider : AbstractDirectivePathCompletionProvider
     {
         private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(
-            filterCharacterRules: ImmutableArray<CharacterSetModificationRule>.Empty, 
+            filterCharacterRules: ImmutableArray<CharacterSetModificationRule>.Empty,
             commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, GetCommitCharacters())),
             enterKeyRule: EnterKeyRule.Never,
             selectionBehavior: CompletionItemSelectionBehavior.HardSelection);

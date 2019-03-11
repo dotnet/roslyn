@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -142,11 +141,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             if (updateUIWhenDone)
             {
                 asyncToken = _asyncListener.BeginAsyncOperation(GetType().Name + ".StartSelectedItemUpdateTask.UpdateUI");
-                _selectedItemInfoTask.SafeContinueWith(
-                    t => PushSelectedItemsToPresenter(t.Result),
+                _selectedItemInfoTask.SafeContinueWithFromAsync(
+                    async t =>
+                    {
+                        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        PushSelectedItemsToPresenter(t.Result);
+                    },
                     cancellationToken,
-                    TaskContinuationOptions.OnlyOnRanToCompletion,
-                    ForegroundTaskScheduler).CompletesAsyncOperation(asyncToken);
+                    TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
             }
         }
 

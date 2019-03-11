@@ -7,7 +7,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
@@ -30,8 +29,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Finished
         }
 
-        private static int s_instanceId = 0;
-
         private readonly JsonRpc _rpc;
         private readonly ConnectionManager _connectionManager;
 
@@ -51,21 +48,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
+            try
             {
-                var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
-                var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
+                using (Logger.LogBlock(FunctionId.ServiceHubRemoteHostClient_CreateAsync, cancellationToken))
+                {
+                    var primary = new HubClient("ManagedLanguage.IDE.RemoteHostClient");
+                    var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
 
-                // Retry (with timeout) until we can connect to RemoteHost (service hub process). 
-                // we are seeing cases where we failed to connect to service hub process when a machine is under heavy load.
-                // (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/481103 as one of example)
-                var instance = await Connections.RetryRemoteCallAsync<IOException, ServiceHubRemoteHostClient>(
-                    workspace, () => CreateWorkerAsync(workspace, primary, timeout, cancellationToken), timeout, cancellationToken).ConfigureAwait(false);
+                    // Retry (with timeout) until we can connect to RemoteHost (service hub process). 
+                    // we are seeing cases where we failed to connect to service hub process when a machine is under heavy load.
+                    // (see https://devdiv.visualstudio.com/DevDiv/_workitems/edit/481103 as one of example)
+                    var instance = await Connections.RetryRemoteCallAsync<IOException, ServiceHubRemoteHostClient>(
+                        workspace, () => CreateWorkerAsync(workspace, primary, timeout, cancellationToken), timeout, cancellationToken).ConfigureAwait(false);
 
-                instance.Started();
+                    instance.Started();
 
-                // return instance
-                return instance;
+                    // return instance
+                    return instance;
+                }
+            }
+            catch (SoftCrashException)
+            {
+                // at this point, we should have shown info bar (RemoteHostCrashInfoBar.ShowInfoBar) to users
+                // returning null here will disable OOP for this VS session. 
+                // * Note * this is not trying to recover the exception. but giving users to time
+                // to clean up before restart VS
+                return null;
             }
         }
 
@@ -75,9 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             try
             {
                 // let each client to have unique id so that we can distinguish different clients when service is restarted
-                var currentInstanceId = Interlocked.Add(ref s_instanceId, 1);
-
-                var current = $"VS ({Process.GetCurrentProcess().Id}) ({currentInstanceId})";
+                var current = CreateClientId(Process.GetCurrentProcess().Id.ToString());
 
                 var hostGroup = new HostGroup(current);
                 var remoteHostStream = await Connections.RequestServiceAsync(workspace, primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
@@ -133,6 +139,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
+        public override string ClientId => _connectionManager.HostGroup.Id;
+
         public override Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             return _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
@@ -156,6 +164,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected -= OnRpcDisconnected;
             _rpc.Dispose();
             _connectionManager.Shutdown();
+        }
+
+        public HostGroup HostGroup
+        {
+            get
+            {
+                Debug.Assert(_connectionManager.HostGroup.Id == ClientId);
+                return _connectionManager.HostGroup;
+            }
         }
 
         private void RegisterGlobalOperationNotifications()

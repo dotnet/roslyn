@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             _scopeId = scopeId;
 
-            AssetService = new AssetService(_scopeId, storage, SolutionService.PrimaryWorkspace);
+            AssetService = new AssetService(_scopeId, storage, SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>());
             SolutionService = new SolutionService(AssetService);
             CompilationService = new CompilationService(SolutionService);
         }

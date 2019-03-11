@@ -173,12 +173,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         }
 
         [Fact]
-        public void GetLineAndColumnTest()
+        public void GetLineAndCharacterTest()
         {
             var snapshot = GetSampleCodeSnapshot();
-            snapshot.GetLineAndColumn(16, out var line, out var col);
+            snapshot.GetLineAndCharacter(16, out var line, out var character);
             Assert.Equal(3, line);
-            Assert.Equal(1, col);
+            Assert.Equal(1, character);
         }
 
         private string GetLeadingWhitespaceOfLineAtPosition(string code, int position)

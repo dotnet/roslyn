@@ -26,7 +26,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
         public string DisplayName => ServicesVSResources.Sync_Class_View;
 
         protected AbstractSyncClassViewCommandHandler(
+            IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider)
+            : base(threadingContext)
         {
             Contract.ThrowIfNull(serviceProvider);
 

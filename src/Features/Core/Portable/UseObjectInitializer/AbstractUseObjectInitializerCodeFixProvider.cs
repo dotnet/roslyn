@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
 
         protected abstract TStatementSyntax GetNewStatement(
-            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation, 
+            TStatementSyntax statement, TObjectCreationExpressionSyntax objectCreation,
             ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

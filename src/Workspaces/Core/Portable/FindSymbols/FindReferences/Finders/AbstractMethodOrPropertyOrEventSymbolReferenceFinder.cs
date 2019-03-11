@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -21,6 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<TSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             // Static methods can't cascade.
@@ -57,6 +56,46 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             }
 
             return ImmutableArray<SymbolAndProjectId>.Empty;
+        }
+
+        protected ImmutableArray<IMethodSymbol> GetReferencedAccessorSymbols(
+            ISyntaxFactsService syntaxFacts, ISemanticFactsService semanticFacts,
+            SemanticModel model, IPropertySymbol property, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            if (syntaxFacts.IsForEachStatement(node))
+            {
+                var symbols = semanticFacts.GetForEachSymbols(model, node);
+
+                // the only accessor method referenced in a foreach-statement is the .Current's
+                // get-accessor
+                return ImmutableArray.Create(symbols.CurrentProperty.GetMethod);
+            }
+
+            if (semanticFacts.IsWrittenTo(model, node, cancellationToken))
+            {
+                // if it was only written to, then only the setter was referenced.
+                // if it was written *and* read, then both accessors were referenced.
+                return semanticFacts.IsOnlyWrittenTo(model, node, cancellationToken)
+                    ? ImmutableArray.Create(property.SetMethod)
+                    : ImmutableArray.Create(property.GetMethod, property.SetMethod);
+            }
+            else
+            {
+                // Wasn't written. This could be a normal read, or it could be neither a read nor
+                // write. Example of this include:
+                //
+                // 1) referencing through something like nameof().
+                // 2) referencing in a cref in a doc-comment.
+                //
+                // This list is thought to be complete.  However, if new examples are found, they
+                // can be added here.
+                var inNameOf = semanticFacts.IsInsideNameOfExpression(model, node, cancellationToken);
+                var inStructuredTrivia = node.IsPartOfStructuredTrivia();
+
+                return inNameOf || inStructuredTrivia
+                    ? ImmutableArray<IMethodSymbol>.Empty
+                    : ImmutableArray.Create(property.GetMethod);
+            }
         }
     }
 }

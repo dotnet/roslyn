@@ -81,16 +81,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return token.Kind() == SyntaxKind.CloseParenToken && token.Parent.Kind() == SyntaxKind.ParameterList;
         }
 
-        public static bool IsOpenParenInArgumentList(this SyntaxToken token)
+        public static bool IsOpenParenInArgumentListOrPositionalPattern(this SyntaxToken token)
         {
             return token.Kind() == SyntaxKind.OpenParenToken &&
-                (token.Parent.IsKind(SyntaxKind.ArgumentList) || token.Parent.IsKind(SyntaxKind.AttributeArgumentList));
+                IsTokenInArgumentListOrPositionalPattern(token);
         }
 
-        public static bool IsCloseParenInArgumentList(this SyntaxToken token)
+        public static bool IsCloseParenInArgumentListOrPositionalPattern(this SyntaxToken token)
         {
             return token.Kind() == SyntaxKind.CloseParenToken &&
-                (token.Parent.IsKind(SyntaxKind.ArgumentList) || token.Parent.IsKind(SyntaxKind.AttributeArgumentList));
+                IsTokenInArgumentListOrPositionalPattern(token);
+        }
+
+        private static bool IsTokenInArgumentListOrPositionalPattern(SyntaxToken token)
+        {
+            // Argument lists
+            if (token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.AttributeArgumentList))
+            {
+                return true;
+            }
+
+            // Positional patterns
+            if (token.Parent.IsKind(SyntaxKindEx.PositionalPatternClause) && token.Parent.Parent.IsKind(SyntaxKindEx.RecursivePattern))
+            {
+                // Avoid treating tuple expressions as positional patterns for formatting
+                return token.Parent.Parent.GetFirstToken() != token;
+            }
+
+            return false;
         }
 
         public static bool IsColonInTypeBaseList(this SyntaxToken token)
@@ -332,6 +350,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                      (token.Parent is AnonymousObjectCreationExpressionSyntax));
         }
 
+        public static bool IsColonInCasePatternSwitchLabel(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.ColonToken && token.Parent is CasePatternSwitchLabelSyntax;
+
+        public static bool IsColonInSwitchExpressionArm(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.ColonToken && token.Parent.IsKind(SyntaxKindEx.SwitchExpressionArm);
+
+        public static bool IsCommaInSwitchExpression(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKindEx.SwitchExpression);
+
+        public static bool IsCommaInPropertyPatternClause(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent.IsKind(SyntaxKindEx.PropertyPatternClause);
+
         public static bool IsIdentifierInLabeledStatement(this SyntaxToken token)
         {
             var labeledStatement = token.Parent as LabeledStatementSyntax;
@@ -549,6 +579,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return currentToken.Kind() == SyntaxKind.OpenParenToken &&
                 currentToken.Parent is ParenthesizedVariableDesignationSyntax &&
                 currentToken.Parent.Parent is DeclarationExpressionSyntax;
+        }
+
+        /// <summary>
+        /// Check whether the currentToken is a comma and is a delimiter between arguments inside a tuple expression.
+        /// </summary>
+        public static bool IsCommaInTupleExpression(this SyntaxToken currentToken)
+        {
+            return currentToken.IsKind(SyntaxKind.CommaToken) &&
+                currentToken.Parent.IsKind(SyntaxKind.TupleExpression);
         }
     }
 }

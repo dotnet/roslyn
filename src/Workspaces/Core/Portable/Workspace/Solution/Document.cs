@@ -43,16 +43,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool HasInfoChanged(Document otherDocument)
         {
-            return DocumentState.Info != otherDocument.DocumentState.Info
+            return DocumentState.Attributes != otherDocument.DocumentState.Attributes
                 || DocumentState.SourceCodeKind != otherDocument.SourceCodeKind;
-        }
-
-        /// <summary>
-        /// Gets a <see cref="DocumentInfo"/> for this document w/o the content.
-        /// </summary>
-        internal DocumentInfo GetDocumentInfoWithoutContent()
-        {
-            return DocumentState.Info.WithSourceCodeKind(DocumentState.SourceCodeKind);
         }
 
         internal bool HasTextChanged(Document otherDocument)

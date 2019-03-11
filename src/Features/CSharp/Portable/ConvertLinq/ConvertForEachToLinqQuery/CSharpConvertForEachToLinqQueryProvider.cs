@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
         protected override ForEachInfo<ForEachStatementSyntax, StatementSyntax> CreateForEachInfo(
             ForEachStatementSyntax forEachStatement,
-            SemanticModel semanticModel)
+            SemanticModel semanticModel,
+            bool convertLocalDeclarations)
         {
             var identifiersBuilder = ArrayBuilder<SyntaxToken>.GetInstance();
             identifiersBuilder.Add(forEachStatement.Identifier);
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                                 var statement = array[i];
                                 if (!(statement is LocalDeclarationStatementSyntax localDeclarationStatement &&
                                     TryProcessLocalDeclarationStatement(localDeclarationStatement)))
-                                {                                 
+                                {
                                     // If this one is a local function declaration or has an empty initializer, stop processing.
                                     statementsCannotBeConverted = array.Skip(i).ToArray();
                                     break;
@@ -161,6 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             // Try to prepare variable declarations to be converted into separate let clauses.
             bool TryProcessLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement)
             {
+                if (!convertLocalDeclarations)
+                {
+                    return false;
+                }
+
                 // Do not support declarations without initialization.
                 // int a = 0, b, c = 0;
                 if (localDeclarationStatement.Declaration.Variables.All(variable => variable.Initializer != null))

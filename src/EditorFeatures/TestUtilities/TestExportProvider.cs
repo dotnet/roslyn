@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -92,7 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.Execution.SerializerServiceFactory),
                 typeof(CodeAnalysis.Shared.TestHooks.AsynchronousOperationListenerProvider),
                 typeof(PrimaryWorkspace),
-                typeof(TestExportProvider)
+                typeof(TestExportProvider),
+                typeof(ThreadingContext),
             };
 
             return ServiceTestExportProvider.GetLanguageNeutralTypes()
@@ -101,10 +103,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                     typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
                 .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
-                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
-                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
-                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
+                .Concat(DesktopTestHelpers.GetAllTypesSubclassingType(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(AbstractFormattingRule)))
+                .Concat(DesktopTestHelpers.GetAllTypesSubclassingType(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(AbstractFormattingRule)))
                 .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
                     typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
                 .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
@@ -112,11 +114,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 .Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions).Assembly, typeof(CodeAnalysis.Options.IOption)))
                 .Distinct()
                 .ToArray();
-        }
-
-        private static IExportProviderFactory CreateExportProviderFactoryWithCSharpAndVisualBasic()
-        {
-            return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic);
         }
 
         private static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()

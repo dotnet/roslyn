@@ -18,11 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public IntelliSenseCommandHandler(
                CompletionCommandHandler completionCommandHandler,
-               SignatureHelpCommandHandler signatureHelpCommandHandler,
-               QuickInfoCommandHandlerAndSourceProvider quickInfoCommandHandler)
+               SignatureHelpCommandHandler signatureHelpCommandHandler)
             : base(completionCommandHandler,
-                   signatureHelpCommandHandler,
-                   quickInfoCommandHandler)
+                   signatureHelpCommandHandler)
         {
         }
     }

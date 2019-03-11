@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (expression.Kind)
             {
+                case BoundKind.AwaitExpression:
+                    return VisitAwaitExpression((BoundAwaitExpression)expression, used: false);
+
                 case BoundKind.AssignmentOperator:
                     // Avoid extra temporary by indicating the expression value is not used.
                     return VisitAssignmentOperator((BoundAssignmentOperator)expression, used: false);

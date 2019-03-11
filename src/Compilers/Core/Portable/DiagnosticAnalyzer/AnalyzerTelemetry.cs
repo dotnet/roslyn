@@ -40,6 +40,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
         public int SymbolActionsCount { get; set; } = 0;
 
         /// <summary>
+        /// Count of registered symbol start actions.
+        /// </summary>
+        public int SymbolStartActionsCount { get; set; } = 0;
+
+        /// <summary>
+        /// Count of registered symbol end actions.
+        /// </summary>
+        public int SymbolEndActionsCount { get; set; } = 0;
+
+        /// <summary>
         /// Count of registered syntax node actions.
         /// </summary>
         public int SyntaxNodeActionsCount { get; set; } = 0;
@@ -98,6 +108,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Telemetry
             SyntaxTreeActionsCount = actionCounts.SyntaxTreeActionsCount;
             SemanticModelActionsCount = actionCounts.SemanticModelActionsCount;
             SymbolActionsCount = actionCounts.SymbolActionsCount;
+            SymbolStartActionsCount = actionCounts.SymbolStartActionsCount;
+            SymbolEndActionsCount = actionCounts.SymbolEndActionsCount;
             SyntaxNodeActionsCount = actionCounts.SyntaxNodeActionsCount;
 
             CodeBlockStartActionsCount = actionCounts.CodeBlockStartActionsCount;

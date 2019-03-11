@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Packaging
         bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName);
 
         bool TryInstallPackage(Workspace workspace, DocumentId documentId,
-            string source, string packageName, 
+            string source, string packageName,
             string versionOpt, bool includePrerelease,
             CancellationToken cancellationToken);
 

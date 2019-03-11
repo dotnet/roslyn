@@ -48,6 +48,12 @@
       <PdbFile Condition="'$(PdbFile)' == '' AND '$(OutputType)' == 'winmdobj' AND '$(_DebugSymbolsProduced)' == 'true'">$(IntermediateOutputPath)$(TargetName).compile.pdb</PdbFile>
     </PropertyGroup>
 
+    <PropertyGroup>
+      <LangVersion Condition="'$(LangVersion)' == '' AND
+        (('$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND '$(TargetFrameworkVersion)' == 'v3.0') OR
+         ('$(TargetFrameworkIdentifier)' == '.NETStandard' AND '$(TargetFrameworkVersion)' == 'v2.1'))">preview</LangVersion>
+    </PropertyGroup>
+
     <!-- Condition is to filter out the _CoreCompileResourceInputs so that it doesn't pass in culture resources to the compiler -->
     <Csc Condition="'%(_CoreCompileResourceInputs.WithCulture)' != 'true'"
          AdditionalLibPaths="$(AdditionalLibPaths)"
@@ -65,6 +71,7 @@
          DefineConstants="$(DefineConstants)"
          DelaySign="$(DelaySign)"
          DisabledWarnings="$(NoWarn)"
+         DisableSdkPath="$(DisableSdkPath)"
          DocumentationFile="@(DocFileItem)"
          EmbedAllSources="$(EmbedAllSources)"
          EmbeddedFiles="@(EmbeddedFiles)"
@@ -88,6 +95,7 @@
          NoLogo="$(NoLogo)"
          NoStandardLib="$(NoCompilerStandardLib)"
          NoWin32Manifest="$(NoWin32Manifest)"
+         NullableContextOptions="$(NullableContextOptions)"
          Optimize="$(Optimize)"
          Deterministic="$(Deterministic)"
          PublicSign="$(PublicSign)"
@@ -99,6 +107,7 @@
          PreferredUILang="$(PreferredUILang)"
          ProvideCommandLineArgs="$(ProvideCommandLineArgs)"
          References="@(ReferencePathWithRefAssemblies)"
+         RefOnly="$(ProduceOnlyReferenceAssembly)"
          ReportAnalyzer="$(ReportAnalyzer)"
          Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
          ResponseFiles="$(CompilerResponseFile)"

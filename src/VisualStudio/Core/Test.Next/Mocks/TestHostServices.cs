@@ -2,9 +2,9 @@
 
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
+using Microsoft.VisualStudio.LanguageServices;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
 {
@@ -12,8 +12,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Mocks
     {
         public static HostServices CreateHostServices(ExportProvider exportProvider = null)
         {
-            exportProvider = exportProvider ?? CreateMinimalExportProvider();
-            return MefV1HostServices.Create(exportProvider.AsExportProvider());
+            return VisualStudioMefHostServices.Create(exportProvider ?? CreateMinimalExportProvider());
         }
 
         public static ExportProvider CreateMinimalExportProvider()

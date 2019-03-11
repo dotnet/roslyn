@@ -47,12 +47,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             throw new NotImplementedException();
         }
 
-        public string GetOutputFileName()
-        {
-            // in-proc compiler, return the output we got set.
-            return this.ObjOutputPath;
-        }
-
         public object CreateParser()
         {
             throw new NotImplementedException();

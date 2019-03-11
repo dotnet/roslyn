@@ -2,7 +2,6 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Classification
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
@@ -39,6 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 Dim listenerProvider = exportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
 
                 Dim provider = New SemanticClassificationViewTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ISemanticChangeNotificationService),
                     workspace.GetService(Of ClassificationTypeMap),
@@ -81,6 +81,37 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
 
             Assert.NotNull(run)
         End Sub
+
+        <WpfFact, WorkItem(13753, "https://github.com/dotnet/roslyn/issues/13753")>
+        Public Async Function TestWrongDocument() As Task
+            Dim workspaceDefinition =
+            <Workspace>
+                <Project Language="NoCompilation" AssemblyName="NoCompilationAssembly" CommonReferencesPortable="true">
+                    <Document>
+                        var x = {}; // e.g., TypeScript code or anything else that doesn't support compilations
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferencesPortable="true">
+                </Project>
+            </Workspace>
+
+            Dim exportProvider = ExportProviderCache _
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic()) _
+                .CreateExportProvider()
+
+            Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
+                Dim project = workspace.CurrentSolution.Projects.First(Function(p) p.Language = LanguageNames.CSharp)
+                Dim classificationService = project.LanguageServices.GetService(Of IClassificationService)()
+
+                Dim wrongDocument = workspace.CurrentSolution.Projects.First(Function(p) p.Language = "NoCompilation").Documents.First()
+                Dim text = Await wrongDocument.GetTextAsync(CancellationToken.None)
+
+                ' make sure we don't crash with wrong document
+                Dim result = New List(Of ClassifiedSpan)()
+                Await classificationService.AddSyntacticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), result, CancellationToken.None)
+                Await classificationService.AddSemanticClassificationsAsync(wrongDocument, New TextSpan(0, text.Length), result, CancellationToken.None)
+            End Using
+        End Function
 
 #Disable Warning BC40000 ' Type or member is obsolete
         <ExportLanguageService(GetType(IEditorClassificationService), "NoCompilation"), [Shared]>

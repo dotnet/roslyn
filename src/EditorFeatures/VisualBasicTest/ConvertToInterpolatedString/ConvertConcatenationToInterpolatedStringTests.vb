@@ -320,5 +320,149 @@ Public Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestMissingWithSelectionOnEntireToBeInterpolatedString() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = [|""string"" & 1|]
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestMissingWithSelectionOnPartOfToBeInterpolatedString() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = [|""string"" & 1|] & ""string""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestMissingWithSelectionExceedingToBeInterpolatedString() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        [|dim v = ""string"" & 1|]
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithCaretBeforeNonStringToken() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = [||]3 & ""string"" & 1 & ""string""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""{3}string{1}string""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithCaretAfterNonStringToken() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = 3[||] & ""string"" & 1 & ""string""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""{3}string{1}string""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithCaretBeforeAmpersandToken() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = 3 [||]& ""string"" & 1 & ""string""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""{3}string{1}string""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithCaretAfterAmpersandToken() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = 3 &[||] ""string"" & 1 & ""string""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""{3}string{1}string""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithCaretBeforeLastAmpersandToken() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = 3 & ""string"" & 1 [||]& ""string""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""{3}string{1}string""
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(16981, "https://github.com/dotnet/roslyn/issues/16981")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
+        Public Async Function TestWithCaretAfterLastAmpersandToken() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class C
+    Sub M()
+        dim v = 3 & ""string"" & 1 &[||] ""string""
+    End Sub
+End Class",
+"
+Public Class C
+    Sub M()
+        dim v = $""{3}string{1}string""
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

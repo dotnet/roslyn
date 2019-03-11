@@ -14,18 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         private readonly YieldStatementSyntax _yieldBreakStatement;
 
         public YieldReturnConverter(
-            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo, 
-            YieldStatementSyntax yieldReturnStatement, 
-            YieldStatementSyntax yieldBreakStatement) 
+            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+            YieldStatementSyntax yieldReturnStatement,
+            YieldStatementSyntax yieldBreakStatement)
             : base(forEachInfo)
         {
             _yieldReturnStatement = yieldReturnStatement;
             _yieldBreakStatement = yieldBreakStatement;
         }
 
-        public override void Convert(SyntaxEditor editor, CancellationToken cancellationToken)
+        public override void Convert(SyntaxEditor editor, bool convertToQuery, CancellationToken cancellationToken)
         {
-            var queryExpression = CreateQueryExpression(
+            var queryOrLinqInvocationExpression = CreateQueryExpressionOrLinqInvocation(
                selectExpression: _yieldReturnStatement.Expression,
                leadingTokensForSelect: new[] { _yieldReturnStatement.YieldKeyword, _yieldReturnStatement.ReturnOrBreakKeyword },
                trailingTokensForSelect: _yieldBreakStatement != null
@@ -33,11 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                                                 _yieldBreakStatement.YieldKeyword,
                                                 _yieldBreakStatement.ReturnOrBreakKeyword,
                                                 _yieldBreakStatement.SemicolonToken }
-                                        : new[] { _yieldReturnStatement.SemicolonToken });
+                                        : new[] { _yieldReturnStatement.SemicolonToken },
+               convertToQuery: convertToQuery);
 
             editor.ReplaceNode(
-                ForEachInfo.ForEachStatement, 
-                SyntaxFactory.ReturnStatement(queryExpression).WithAdditionalAnnotations(Formatter.Annotation));
+                ForEachInfo.ForEachStatement,
+                SyntaxFactory.ReturnStatement(queryOrLinqInvocationExpression).WithAdditionalAnnotations(Formatter.Annotation));
 
             // Delete the yield break just after the loop.
             if (_yieldBreakStatement != null)

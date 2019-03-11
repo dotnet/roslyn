@@ -889,6 +889,22 @@ public class B
                      .WithLocation(1, 1));
         }
 
+        [Fact, WorkItem(30453, "https://github.com/dotnet/roslyn/issues/30453")]
+        public void TestAnalyzerWithNullDescriptor()
+        {
+            string source = @"";
+            var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithNullDescriptor() };
+            var analyzerFullName = "Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithNullDescriptor";
+            string message = new ArgumentException(string.Format(CodeAnalysisResources.SupportedDiagnosticsHasNullDescriptor, analyzerFullName), "SupportedDiagnostics").Message;
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                     expected: Diagnostic("AD0001")
+                     .WithArguments(analyzerFullName, "System.ArgumentException", message)
+                     .WithLocation(1, 1));
+        }
+
         [Fact, WorkItem(25748, "https://github.com/dotnet/roslyn/issues/25748")]
         public void TestReportingDiagnosticWithCSharpCompilerId()
         {
@@ -906,7 +922,7 @@ public class B
         {
             string source = @"";
             var analyzers = new DiagnosticAnalyzer[] { new AnalyzerWithBasicCompilerDiagnosticId() };
-            
+
             CreateCompilationWithMscorlib45(source)
                 .VerifyDiagnostics()
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: false,
@@ -1209,7 +1225,6 @@ class MyClass
 
             TestEffectiveSeverity(DiagnosticSeverity.Warning, expectedEffectiveSeverity: ReportDiagnostic.Suppress, generalOption: generalOption, isEnabledByDefault: enabledByDefault);
         }
-
 
         [Fact()]
         [WorkItem(1107500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107500")]
@@ -2440,7 +2455,7 @@ internal class Derived : Base
         {
             string source = @"class C { void M(int p = 0) { int x = 1 + 2; } }";
 
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            var compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
                 // (1,35): warning CS0219: The variable 'x' is assigned but its value is never used
                 // class C { void M(int p = 0) { int x = 1 + 2; } }
@@ -2465,7 +2480,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x = 1 + 2')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32, Constant: 3) (Syntax: '1 + 2')
                   Left: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                   Right: 
@@ -2542,6 +2557,425 @@ Block[B2] - Exit
                     ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, actualFlowGraph);
                 }
             }
+        }
+
+        private static void TestSymbolStartAnalyzerCore(SymbolStartAnalyzer analyzer, params DiagnosticDescription[] diagnostics)
+        {
+            TestSymbolStartAnalyzerCore(new DiagnosticAnalyzer[] { analyzer }, diagnostics);
+        }
+
+        private static void TestSymbolStartAnalyzerCore(DiagnosticAnalyzer[] analyzers, params DiagnosticDescription[] diagnostics)
+        {
+            var source = @"
+#pragma warning disable CS0219 // unused local
+#pragma warning disable CS0067 // unused event
+
+class C1
+{
+    void M1() { int localInTypeInGlobalNamespace = 0; }
+}
+
+class C2
+{
+    class NestedType
+    {
+        void M2() { int localInNestedType = 0; }
+    }
+}
+
+namespace N1 { }
+
+namespace N2
+{
+    namespace N3
+    {
+        class C3
+        {
+            void M3(int p) { int localInTypeInNamespace = 0; }
+            void M4() { }
+        }
+    }
+}
+
+namespace N2.N3
+{
+    class C4
+    {
+        public int f1 = 0;
+    }
+}
+
+namespace N4
+{
+    class C5
+    {
+        void M5() { }
+    }
+    class C6
+    {
+        void M6() { }
+        void M7() { }
+    }
+}
+
+namespace N5
+{
+    partial class C7
+    {
+        void M8() { }
+        int P1 { get; set; }
+        public event System.EventHandler e1;
+    }
+    partial class C7
+    {
+        void M9() { }
+        void M10() { }
+    }
+}
+";
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree });
+            compilation.VerifyDiagnostics();
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: diagnostics);
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_NamedType()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType),
+                Diagnostic("SymbolStartRuleId").WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C7", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Namespace()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Namespace),
+                Diagnostic("SymbolStartRuleId").WithArguments("N1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N5", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Method()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Method),
+                Diagnostic("SymbolStartRuleId").WithArguments("M1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M7", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M8", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M9", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M10", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("get_P1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("set_P1", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Field()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Field),
+                Diagnostic("SymbolStartRuleId").WithArguments("f1", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Property()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Property),
+                Diagnostic("SymbolStartRuleId").WithArguments("P1", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Event()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Event),
+                Diagnostic("SymbolStartRuleId").WithArguments("e1", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_Parameter()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Parameter));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_MultipleAnalyzers_NamespaceAndMethods()
+        {
+            var analyzer1 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Namespace, analyzerId: 1);
+            var analyzer2 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Method, analyzerId: 2);
+
+            TestSymbolStartAnalyzerCore(new DiagnosticAnalyzer[] { analyzer1, analyzer2 },
+                Diagnostic("SymbolStartRuleId").WithArguments("N1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M1", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M2", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M3", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M4", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M5", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M6", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M7", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M8", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M9", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M10", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("get_P1", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("set_P1", "Analyzer2").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_MultipleAnalyzers_NamedTypeAndMethods()
+        {
+            var analyzer1 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, analyzerId: 1);
+            var analyzer2 = new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Method, analyzerId: 2);
+
+            TestSymbolStartAnalyzerCore(new DiagnosticAnalyzer[] { analyzer1, analyzer2 },
+                Diagnostic("SymbolStartRuleId").WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C7", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M1", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M2", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M3", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M4", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M5", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M6", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M7", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M8", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M9", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M10", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("get_P1", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("set_P1", "Analyzer2").WithLocation(1, 1));
+        }
+
+        [Fact]
+        private void TestSymbolStartAnalyzer_MultipleAnalyzers_AllSymbolKinds()
+        {
+            testCore("SymbolStartTopLevelRuleId", topLevel: true);
+            testCore("SymbolStartRuleId", topLevel: false);
+
+            void testCore(string ruleId, bool topLevel)
+            {
+                var symbolKinds = new[] { SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Method,
+                    SymbolKind.Property, SymbolKind.Event, SymbolKind.Field, SymbolKind.Parameter };
+
+                var analyzers = new DiagnosticAnalyzer[symbolKinds.Length];
+                for (int i = 0; i < symbolKinds.Length; i++)
+                {
+                    analyzers[i] = new SymbolStartAnalyzer(topLevel, symbolKinds[i], analyzerId: i + 1);
+                }
+
+                TestSymbolStartAnalyzerCore(analyzers,
+                    Diagnostic(ruleId).WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C1", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C2", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C3", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C4", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C5", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C6", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("C7", "Analyzer1").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("N1", "Analyzer2").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("N2", "Analyzer2").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("N3", "Analyzer2").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("N4", "Analyzer2").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("N5", "Analyzer2").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M1", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M2", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M3", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M4", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M5", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M6", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M7", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M8", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M9", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("M10", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("get_P1", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("set_P1", "Analyzer3").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("P1", "Analyzer4").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("e1", "Analyzer5").WithLocation(1, 1),
+                    Diagnostic(ruleId).WithArguments("f1", "Analyzer6").WithLocation(1, 1));
+            }
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_NestedOperationAction_Inside_Namespace()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.Namespace, OperationKind.VariableDeclarationGroup),
+                Diagnostic("SymbolStartRuleId").WithArguments("N1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("N3", "M3", "int localInTypeInNamespace = 0;", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_NestedOperationAction_Inside_NamedType()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.VariableDeclarationGroup),
+                Diagnostic("SymbolStartRuleId").WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C7", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("C1", "M1", "int localInTypeInGlobalNamespace = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("NestedType", "M2", "int localInNestedType = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("C3", "M3", "int localInTypeInNamespace = 0;", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_NestedOperationAction_Inside_Method()
+        {
+            TestSymbolStartAnalyzerCore(new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.Method, OperationKind.VariableDeclarationGroup),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M7", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M8", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M9", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("M10", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("get_P1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("set_P1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M1", "M1", "int localInTypeInGlobalNamespace = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M2", "M2", "int localInNestedType = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M3", "M3", "int localInTypeInNamespace = 0;", "Analyzer1").WithLocation(1, 1));
+        }
+
+        [Fact]
+        public void TestSymbolStartAnalyzer_NestedOperationAction_Inside_AllSymbolKinds()
+        {
+            var symbolKinds = new[] { SymbolKind.NamedType, SymbolKind.Namespace, SymbolKind.Method,
+                    SymbolKind.Property, SymbolKind.Event, SymbolKind.Field, SymbolKind.Parameter };
+
+            var analyzers = new DiagnosticAnalyzer[symbolKinds.Length];
+            for (int i = 0; i < symbolKinds.Length; i++)
+            {
+                analyzers[i] = new SymbolStartAnalyzer(topLevelAction: false, symbolKinds[i], OperationKind.VariableDeclarationGroup, analyzerId: i + 1);
+            }
+
+            TestSymbolStartAnalyzerCore(analyzers,
+                Diagnostic("SymbolStartRuleId").WithArguments("NestedType", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C1", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C2", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C3", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C4", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C5", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C6", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("C7", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("C1", "M1", "int localInTypeInGlobalNamespace = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("NestedType", "M2", "int localInNestedType = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("C3", "M3", "int localInTypeInNamespace = 0;", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N1", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N2", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N3", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N4", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("N5", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("N3", "M3", "int localInTypeInNamespace = 0;", "Analyzer2").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M1", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M2", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M3", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M4", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M5", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M6", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M7", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M8", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M9", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("M10", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("get_P1", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("set_P1", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M1", "M1", "int localInTypeInGlobalNamespace = 0;", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M2", "M2", "int localInNestedType = 0;", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("OperationRuleId").WithArguments("M3", "M3", "int localInTypeInNamespace = 0;", "Analyzer3").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("P1", "Analyzer4").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("e1", "Analyzer5").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("f1", "Analyzer6").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public void TestInvocationInPartialMethod()
+        {
+            string source1 = @"
+static partial class B
+{
+    static partial void PartialMethod();
+}";
+            string source2 = @"
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        M();
+    }
+
+    private static void M() { }
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType, OperationKind.Invocation) };
+
+            var expected = new[] {
+                Diagnostic("OperationRuleId").WithArguments("B", "PartialMethod", "M()", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartRuleId").WithArguments("B", "Analyzer1").WithLocation(1, 1)
+            };
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
+        }
+
+        [Fact, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/32702")]
+        public void TestFieldReferenceInPartialMethod()
+        {
+            string source1 = @"
+static partial class B
+{
+    static partial void PartialMethod();
+}";
+            string source2 = @"
+static partial class B
+{
+    static partial void PartialMethod()
+    {
+        var x = _field;
+    }
+
+    private static int _field = 0;
+}";
+
+            var compilation = CreateCompilationWithMscorlib45(new[] { source1, source2 });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new SymbolStartAnalyzer(topLevelAction: true, SymbolKind.NamedType, OperationKind.FieldReference) };
+
+            var expected = new[] {
+                Diagnostic("OperationRuleId").WithArguments("B", "PartialMethod", "_field", "Analyzer1").WithLocation(1, 1),
+                Diagnostic("SymbolStartTopLevelRuleId").WithArguments("B", "Analyzer1").WithLocation(1, 1)
+            };
+
+            compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
         }
     }
 }

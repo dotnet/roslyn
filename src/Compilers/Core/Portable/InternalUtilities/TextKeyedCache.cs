@@ -51,13 +51,13 @@ namespace Roslyn.Utilities
         // local cache
         // simple fast and not threadsafe cache 
         // with limited size and "last add wins" expiration policy
-        private readonly (string Text, int HashCode, T Item)[] _localTable = new(string Text, int HashCode, T Item)[LocalSize];
+        private readonly (string Text, int HashCode, T Item)[] _localTable = new (string Text, int HashCode, T Item)[LocalSize];
 
         // shared threadsafe cache
         // slightly slower than local cache
         // we read this cache when having a miss in local cache
         // writes to local cache will update shared cache as well.
-        private static readonly (int HashCode, SharedEntryValue Entry)[] s_sharedTable = new(int HashCode, SharedEntryValue Entry)[SharedSize];
+        private static readonly (int HashCode, SharedEntryValue Entry)[] s_sharedTable = new (int HashCode, SharedEntryValue Entry)[SharedSize];
 
         // store a reference to shared cache locally
         // accessing a static field of a generic type could be nontrivial
@@ -118,7 +118,7 @@ namespace Roslyn.Utilities
 
             if (text != null && localSlot.HashCode == hashCode)
             {
-                if (StringTable.TextEquals(text, chars, start, len))
+                if (StringTable.TextEquals(text, chars.AsSpan(start, len)))
                 {
                     return localSlot.Item;
                 }
@@ -155,7 +155,7 @@ namespace Roslyn.Utilities
 
                 if (e != null)
                 {
-                    if (hash == hashCode && StringTable.TextEquals(e.Text, chars, start, len))
+                    if (hash == hashCode && StringTable.TextEquals(e.Text, chars.AsSpan(start, len)))
                     {
                         break;
                     }
@@ -215,7 +215,7 @@ namespace Roslyn.Utilities
             var i1 = NextRandom() & SharedBucketSizeMask;
             idx = (idx + ((i1 * i1 + i1) / 2)) & SharedSizeMask;
 
-        foundIdx:
+foundIdx:
             arr[idx].HashCode = hashCode;
             Volatile.Write(ref arr[idx].Entry, e);
         }

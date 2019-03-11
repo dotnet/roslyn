@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             }
 
             return arguments.FirstOrDefault(
-                argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase)) 
+                argument => string.Equals(GetArgumentName(argument, syntaxFactsService), StringFormatArguments.ParamsArgumentNames[index], StringComparison.OrdinalIgnoreCase))
                 ?? arguments[index];
         }
 

@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     }
 
                     builder.Add(node);
-                    break; 
+                    break;
             }
 
             return BoundBlock.SynthesizedNoLocals(node.Syntax, builder.ToImmutableAndFree());
@@ -71,12 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                 // Generate assignment to local. The assignment will
                 // be rewritten in PlaceholderLocalRewriter.
+                var type = local.Type.TypeSymbol;
                 var assignment = new BoundAssignmentOperator(
                     syntax,
-                    new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type),
+                    new BoundLocal(syntax, local, constantValueOpt: null, type: type),
                     initializer,
                     false,
-                    local.Type);
+                    type);
                 statements.Add(new BoundExpressionStatement(syntax, assignment));
             }
         }
@@ -102,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var typeType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var stringType = compilation.GetSpecialType(SpecialType.System_String);
             var guidConstructor = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Guid__ctor);
-            var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type), null, typeType);
+            var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type.TypeSymbol), null, typeType);
             var name = new BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType);
             bool hasCustomTypeInfoPayload;
             var customTypeInfoPayload = GetCustomTypeInfoPayload(local, syntax, compilation, out hasCustomTypeInfoPayload);
@@ -134,16 +135,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var byteArrayType = ArrayTypeSymbol.CreateSZArray(
                 compilation.Assembly,
-                compilation.GetSpecialType(SpecialType.System_Byte));
+                TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte)));
 
-            var bytes = compilation.GetCustomTypeInfoPayload(local.Type, customModifiersCount: 0, refKind: RefKind.None);
+            var bytes = compilation.GetCustomTypeInfoPayload(local.Type.TypeSymbol, customModifiersCount: 0, refKind: RefKind.None);
             hasCustomTypeInfoPayload = bytes != null;
             if (!hasCustomTypeInfoPayload)
             {
                 return new BoundLiteral(syntax, ConstantValue.Null, byteArrayType);
             }
 
-            var byteType = byteArrayType.ElementType;
+            var byteType = byteArrayType.ElementType.TypeSymbol;
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
 
             var numBytes = bytes.Count;

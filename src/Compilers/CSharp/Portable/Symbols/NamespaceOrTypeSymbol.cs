@@ -111,13 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Default implementation is to use ordered version. When performance indicates, we specialize to have
             // separate implementation.
 
-#if DEBUG
-            // In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            // more obviously.
-            return GetMembers().DeOrder();
-#else
-            return GetMembers();
-#endif
+            return GetMembers().ConditionallyDeOrder();
         }
 
         /// <summary>
@@ -138,13 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Default implementation is to use ordered version. When performance indicates, we specialize to have
             // separate implementation.
 
-#if DEBUG
-            // In DEBUG, swap first and last elements so that use of Unordered in a place it isn't warranted is caught
-            // more obviously.
-            return GetTypeMembers().DeOrder();
-#else
-            return GetTypeMembers();
-#endif
+            return GetTypeMembers().ConditionallyDeOrder();
         }
 
         /// <summary>
@@ -336,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-        Done:
+Done:
             if ((object)namedType == null)
             {
                 if (isTopLevel)

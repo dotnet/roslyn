@@ -33,22 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
                 Return Nothing
             End If
 
-            ' check whether there Is any comments or line continuation within foreach statement
-            ' if they do, we don't support conversion.
-            For Each trivia In forEachBlock.ForEachStatement.DescendantTrivia()
-                If trivia.Span.End <= scope.Start OrElse
-                   scope.End <= trivia.Span.Start Then
-                    Continue For
-                End If
-
-                If trivia.Kind() <> SyntaxKind.WhitespaceTrivia AndAlso
-                   trivia.Kind() <> SyntaxKind.EndOfLineTrivia AndAlso
-                   trivia.Kind() <> SyntaxKind.LineContinuationTrivia Then
-                    ' we don't know what to do with these
-                    Return Nothing
-                End If
-            Next
-
             Return forEachBlock
         End Function
 
@@ -100,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForEachToFor
             Dim nextStatement = forEachBlock.NextStatement
 
             If nextStatement.ControlVariables.Count > 0 Then
-                Contract.Requires(nextStatement.ControlVariables.Count = 1)
+                Debug.Assert(nextStatement.ControlVariables.Count = 1)
 
                 Dim controlVariable As SyntaxNode = nextStatement.ControlVariables(0)
                 controlVariable = generator.IdentifierName(

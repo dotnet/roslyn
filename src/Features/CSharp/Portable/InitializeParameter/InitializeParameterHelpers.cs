@@ -19,21 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             || node is LocalFunctionStatementSyntax
             || node is AnonymousFunctionExpressionSyntax;
 
-        public static IBlockOperation GetBlockOperation(SyntaxNode functionDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            var bodyOpt = GetBody(functionDeclaration);
-            if (bodyOpt == null)
-            {
-                return null;
-            }
-
-            // body might be an expression in a lambda - in that case we wouldn't get a block operation out of that
-            return functionDeclaration is AnonymousFunctionExpressionSyntax
-                ? ((IAnonymousFunctionOperation)semanticModel.GetOperation(functionDeclaration, cancellationToken)).Body
-                : (IBlockOperation)semanticModel.GetOperation(bodyOpt, cancellationToken);
-        }
-
-        private static SyntaxNode GetBody(SyntaxNode functionDeclaration)
+        public static SyntaxNode GetBody(SyntaxNode functionDeclaration)
         {
             switch (functionDeclaration)
             {
@@ -154,8 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
                     return arrowClause.TryConvertToStatement(semicolonToken, createReturnStatementForExpression, out statement);
                 case ExpressionSyntax expression:
                     // must be an expression lambda
-                    statement = ArrowExpressionClauseSyntaxExtensions.ConvertToStatement(expression, semicolonToken, createReturnStatementForExpression);
-                    return true;
+                    return expression.TryConvertToStatement(semicolonToken, createReturnStatementForExpression, out statement);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(body);
             }

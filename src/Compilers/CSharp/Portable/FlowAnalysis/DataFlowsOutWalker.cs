@@ -109,6 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return ((BoundDeclarationPattern)node).Variable as LocalSymbol;
                         }
 
+                    case BoundKind.RecursivePattern:
+                        {
+                            return ((BoundRecursivePattern)node).Variable as LocalSymbol;
+                        }
+
                     case BoundKind.FieldAccess:
                         {
                             var fieldAccess = (BoundFieldAccess)node;
@@ -238,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If the field access is reported as unassigned it should mean the original local
                 // or parameter flows out, so we should get the symbol associated with the expression
-                _dataFlowsOut.Add(symbol.Kind == SymbolKind.Field ? GetNonFieldSymbol(slot) : symbol);
+                _dataFlowsOut.Add(symbol.Kind == SymbolKind.Field ? GetNonMemberSymbol(slot) : symbol);
             }
 
             base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);

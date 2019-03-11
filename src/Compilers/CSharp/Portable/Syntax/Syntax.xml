@@ -376,6 +376,7 @@
     <Kind Name="PreDecrementExpression"/>
     <Kind Name="AddressOfExpression"/>
     <Kind Name="PointerIndirectionExpression"/>
+    <Kind Name="IndexExpression"/>
     <Field Name="OperatorToken" Type="SyntaxToken">
       <Kind Name="PlusToken"/>
       <Kind Name="MinusToken"/>
@@ -385,6 +386,7 @@
       <Kind Name="MinusMinusToken"/>
       <Kind Name="AmpersandToken"/>
       <Kind Name="AsteriskToken"/>
+      <Kind Name="CaretToken"/>"
       <PropertyComment>
         <summary>SyntaxToken representing the kind of the operator of the prefix unary expression.</summary>
       </PropertyComment>
@@ -424,6 +426,7 @@
   <Node Name="PostfixUnaryExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="PostIncrementExpression"/>
     <Kind Name="PostDecrementExpression"/>
+    <Kind Name="SuppressNullableWarningExpression"/>
     <Field Name="Operand" Type="ExpressionSyntax">
       <PropertyComment>
         <summary>ExpressionSyntax representing the operand of the postfix unary expression.</summary>
@@ -432,6 +435,7 @@
     <Field Name="OperatorToken" Type="SyntaxToken">
       <Kind Name="PlusPlusToken"/>
       <Kind Name="MinusMinusToken"/>
+      <Kind Name="ExclamationToken"/>
       <PropertyComment>
         <summary>SyntaxToken representing the kind of the operator of the postfix unary expression.</summary>
       </PropertyComment>
@@ -529,6 +533,31 @@
       <summary>Creates an ElementBindingExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="RangeExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="RangeExpression"/>
+    <Field Name="LeftOperand" Type="ExpressionSyntax" Optional="true">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the left of the range operator.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OperatorToken" Type="SyntaxToken">
+      <Kind Name="DotDotToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the operator of the range expression.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="RightOperand" Type="ExpressionSyntax" Optional="true">
+      <PropertyComment>
+        <summary>ExpressionSyntax node representing the expression on the right of the range operator.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a range expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an RangeExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="ImplicitElementAccessSyntax" Base="ExpressionSyntax">
     <Kind Name="ImplicitElementAccess"/>
     <Field Name="ArgumentList" Type="BracketedArgumentListSyntax">
@@ -620,6 +649,7 @@
       <Kind Name="OrAssignmentExpression"/>
       <Kind Name="LeftShiftAssignmentExpression"/>
       <Kind Name="RightShiftAssignmentExpression"/>
+      <Kind Name="CoalesceAssignmentExpression" />
       <Field Name="Left" Type="ExpressionSyntax">
         <PropertyComment>
           <summary>ExpressionSyntax node representing the expression on the left of the assignment operator.</summary>
@@ -637,6 +667,7 @@
         <Kind Name="BarEqualsToken"/>
         <Kind Name="LessThanLessThanEqualsToken"/>
         <Kind Name="GreaterThanGreaterThanEqualsToken"/>
+        <Kind Name="QuestionQuestionEqualsToken" />
         <PropertyComment>
           <summary>SyntaxToken representing the operator of the assignment expression.</summary>
         </PropertyComment>
@@ -1755,13 +1786,61 @@
     <Field Name="Condition" Type="ExpressionSyntax"/>
   </Node>
   <AbstractNode Name="PatternSyntax" Base="CSharpSyntaxNode" />
+  <Node Name="DiscardPatternSyntax" Base="PatternSyntax">
+    <Kind Name="DiscardPattern" />
+    <Field Name="UnderscoreToken" Type="SyntaxToken">
+      <Kind Name="UnderscoreToken"/>
+    </Field>
+  </Node>
   <Node Name="DeclarationPatternSyntax" Base="PatternSyntax">
     <Kind Name="DeclarationPattern" />
-    <Field Name="Type" Type="TypeSyntax" />
+    <Field Name="Type" Type="TypeSyntax"/>
     <Field Name="Designation" Type="VariableDesignationSyntax">
       <Kind Name="SingleVariableDesignation"/>
       <Kind Name="DiscardDesignation"/>
     </Field>
+  </Node>
+  <Node Name="VarPatternSyntax" Base="PatternSyntax">
+    <Kind Name="VarPattern" />
+    <Field Name="VarKeyword" Type="SyntaxToken">
+      <Kind Name="VarKeyword"/>
+    </Field>
+    <Field Name="Designation" Type="VariableDesignationSyntax"/>
+  </Node>
+  <Node Name="RecursivePatternSyntax" Base="PatternSyntax">
+    <Kind Name="RecursivePattern" />
+    <Field Name="Type" Type="TypeSyntax" Optional="true" />
+    <Field Name="PositionalPatternClause" Type="PositionalPatternClauseSyntax" Optional="true" />
+    <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true" />
+    <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
+      <Kind Name="SingleVariableDesignation"/>
+      <Kind Name="DiscardDesignation"/>
+    </Field>
+  </Node>
+  <Node Name="PositionalPatternClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="PositionalPatternClause"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternSyntax&gt;"/>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <Kind Name="CloseParenToken"/>
+    </Field>
+  </Node>
+  <Node Name="PropertyPatternClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="PropertyPatternClause"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternSyntax&gt;"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+  </Node>
+  <Node Name="SubpatternSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="Subpattern"/>
+    <Field Name="NameColon" Type="NameColonSyntax" Optional="true" />
+    <Field Name="Pattern" Type="PatternSyntax" />
   </Node>
   <Node Name="ConstantPatternSyntax" Base="PatternSyntax">
     <Kind Name="ConstantPattern"/>
@@ -1771,6 +1850,7 @@
       </PropertyComment>
     </Field>
   </Node>
+
   <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />
   <Node Name="InterpolatedStringTextSyntax" Base="InterpolatedStringContentSyntax">
     <Kind Name="InterpolatedStringText"/>
@@ -1853,6 +1933,12 @@
 
   <Node Name="LocalDeclarationStatementSyntax" Base="StatementSyntax">
     <Kind Name="LocalDeclarationStatement"/>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
+    <Field Name="UsingKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="UsingKeyword"/>
+    </Field>
     <Field Name="Modifiers" Type="SyntaxList&lt;SyntaxToken&gt;">
       <PropertyComment>
         <summary>Gets the modifier list.</summary>
@@ -1888,7 +1974,6 @@
     </Field>
     <Field Name="Value" Type="ExpressionSyntax"/>
   </Node>
-
   <AbstractNode Name="VariableDesignationSyntax" Base="CSharpSyntaxNode">
   </AbstractNode>
   <Node Name="SingleVariableDesignationSyntax" Base="VariableDesignationSyntax">
@@ -1939,7 +2024,7 @@
     <Field Name="ColonToken" Type="SyntaxToken">
       <Kind Name="ColonToken"/>
       <PropertyComment>
-        <summary>Gets a SyntaxToken that represents the colon succeeding the statement's label.</summary>
+        <summary>Gets a SyntaxToken that represents the colon following the statement's label.</summary>
       </PropertyComment>
     </Field>
     <Field Name="Statement" Type="StatementSyntax"/>
@@ -2111,6 +2196,9 @@
 
   <!-- Because there are two forms of the foreach loop, we make an abstract base. -->
   <AbstractNode Name="CommonForEachStatementSyntax" Base="StatementSyntax">
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="ForEachKeyword" Type="SyntaxToken">
       <Kind Name="ForEachKeyword"/>
     </Field>
@@ -2130,6 +2218,9 @@
   <Node Name="ForEachStatementSyntax" Base="CommonForEachStatementSyntax">
     <!-- This is the existing C# 6 node. -->
     <Kind Name="ForEachStatement"/>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="ForEachKeyword"/>
     </Field>
@@ -2157,6 +2248,9 @@
        into) the old one. -->
   <Node Name="ForEachVariableStatementSyntax" Base="CommonForEachStatementSyntax">
     <Kind Name="ForEachVariableStatement"/>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true" Override="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="ForEachKeyword" Type="SyntaxToken" Override="true">
       <Kind Name="ForEachKeyword"/>
     </Field>
@@ -2168,7 +2262,7 @@
         <summary>
            The variable(s) of the loop. In correct code this is a tuple
            literal, declaration expression with a tuple designator, or
-           a wildcard syntax in the form of a simple identifier. In broken
+           a discard syntax in the form of a simple identifier. In broken
            code it could be something else.
         </summary>
       </PropertyComment>
@@ -2183,8 +2277,15 @@
     <Field Name="Statement" Type="StatementSyntax" Override="true"/>
   </Node>
 
+  <!--
+  - using (...) { ... }
+  - await using (...) { ... }
+  -->
   <Node Name="UsingStatementSyntax" Base="StatementSyntax">
     <Kind Name="UsingStatement"/>
+    <Field Name="AwaitKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="AwaitKeyword"/>
+    </Field>
     <Field Name="UsingKeyword" Type="SyntaxToken">
       <Kind Name="UsingKeyword"/>
     </Field>
@@ -2198,6 +2299,7 @@
     </Field>
     <Field Name="Statement" Type="StatementSyntax"/>
   </Node>
+
   <Node Name="FixedStatementSyntax" Base="StatementSyntax">
     <Kind Name="FixedStatement"/>
     <Field Name="FixedKeyword" Type="SyntaxToken">
@@ -2316,6 +2418,7 @@
       <summary>Creates a ElseClauseSyntax node</summary>
     </FactoryComment>
   </Node>
+
   <Node Name="SwitchStatementSyntax" Base="StatementSyntax">
     <Kind Name="SwitchStatement"/>
     <Field Name="SwitchKeyword" Type="SyntaxToken">
@@ -2326,11 +2429,11 @@
         </summary>
       </PropertyComment>
     </Field>
-    <Field Name="OpenParenToken" Type="SyntaxToken">
+    <Field Name="OpenParenToken" Type="SyntaxToken" Optional="true">
       <Kind Name="OpenParenToken"/>
       <PropertyComment>
         <summary>
-          Gets a SyntaxToken that represents the open parenthesis preceding the switch expression.
+          Gets a SyntaxToken that represents the open parenthesis preceding the switch governing expression.
         </summary>
       </PropertyComment>
     </Field>
@@ -2341,11 +2444,11 @@
         </summary>
       </PropertyComment>
     </Field>
-    <Field Name="CloseParenToken" Type="SyntaxToken">
+    <Field Name="CloseParenToken" Type="SyntaxToken" Optional="true">
       <Kind Name="CloseParenToken"/>
       <PropertyComment>
         <summary>
-          Gets a SyntaxToken that represents the close parenthesis succeeding the switch expression.
+          Gets a SyntaxToken that represents the close parenthesis following the switch governing expression.
         </summary>
       </PropertyComment>
     </Field>
@@ -2368,7 +2471,7 @@
       <Kind Name="CloseBraceToken"/>
       <PropertyComment>
         <summary>
-          Gets a SyntaxToken that represents the open braces succeeding the switch sections.
+          Gets a SyntaxToken that represents the open braces following the switch sections.
         </summary>
       </PropertyComment>
     </Field>
@@ -2485,6 +2588,31 @@
       <summary>Creates a DefaultSwitchLabelSyntax node.</summary>
     </FactoryComment>
   </Node>
+
+  <Node Name="SwitchExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="SwitchExpression"/>
+    <Field Name="GoverningExpression" Type="ExpressionSyntax"/>
+    <Field Name="SwitchKeyword" Type="SyntaxToken">
+      <Kind Name="SwitchKeyword"/>
+    </Field>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Arms" Type="SeparatedSyntaxList&lt;SwitchExpressionArmSyntax&gt;"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+  </Node>
+  <Node Name="SwitchExpressionArmSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="SwitchExpressionArm"/>
+    <Field Name="Pattern" Type="PatternSyntax"/>
+    <Field Name="WhenClause" Type="WhenClauseSyntax" Optional="true"/>
+    <Field Name="EqualsGreaterThanToken" Type="SyntaxToken">
+      <Kind Name="EqualsGreaterThanToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+  </Node>
+
   <Node Name="TryStatementSyntax" Base="StatementSyntax">
     <Kind Name="TryStatement"/>
     <Field Name="TryKeyword" Type="SyntaxToken">
@@ -2536,6 +2664,7 @@
     </Field>
     <Field Name="Block" Type="BlockSyntax"/>
   </Node>
+
   <!-- Declarations -->
   <Node Name="CompilationUnitSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CompilationUnit"/>
@@ -3132,6 +3261,12 @@
       </PropertyComment>
       <Kind Name="ClassKeyword"/>
       <Kind Name="StructKeyword"/>
+    </Field>
+    <Field Name="QuestionToken" Type="SyntaxToken" Optional="true">
+      <Kind Name="QuestionToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the question mark.</summary>
+      </PropertyComment>
     </Field>
   </Node>
   <Node Name="TypeConstraintSyntax" Base="TypeParameterConstraintSyntax">
@@ -4263,6 +4398,11 @@
     <Field Name="DisableOrRestoreKeyword" Type="SyntaxToken">
       <Kind Name="DisableKeyword"/>
       <Kind Name="RestoreKeyword"/>
+      <Kind Name="EnableKeyword"/>
+      <Kind Name="SafeOnlyKeyword"/>
+    </Field>
+    <Field Name="NullableKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="NullableKeyword"/>
     </Field>
     <Field Name="ErrorCodes" Type="SeparatedSyntaxList&lt;ExpressionSyntax&gt;"/>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
@@ -4334,6 +4474,25 @@
     </Field>
     <Field Name="ExclamationToken" Type="SyntaxToken">
       <Kind Name="ExclamationToken"/>
+    </Field>
+    <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
+      <Kind Name="EndOfDirectiveToken"/>
+    </Field>
+    <Field Name="IsActive" Type="bool" Override="true"/>
+  </Node>
+  <Node Name="NullableDirectiveTriviaSyntax" Base="DirectiveTriviaSyntax">
+    <Kind Name="NullableDirectiveTrivia"/>
+    <Field Name="HashToken" Type="SyntaxToken" Override="true">
+      <Kind Name="HashToken"/>
+    </Field>
+    <Field Name="NullableKeyword" Type="SyntaxToken">
+      <Kind Name="NullableKeyword"/>
+    </Field>
+    <Field Name="SettingToken" Type="SyntaxToken">
+      <Kind Name="EnableKeyword"/>
+      <Kind Name="DisableKeyword"/>
+      <Kind Name="RestoreKeyword"/>
+      <Kind Name="SafeOnlyKeyword"/>
     </Field>
     <Field Name="EndOfDirectiveToken" Type="SyntaxToken" Override="true">
       <Kind Name="EndOfDirectiveToken"/>

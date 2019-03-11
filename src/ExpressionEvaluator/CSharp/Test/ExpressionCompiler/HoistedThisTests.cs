@@ -961,7 +961,7 @@ class C
                 var testData = new CompilationTestData();
                 context.CompileExpression("42", out error, testData);
                 Assert.Null(error);
-                Assert.Equal(1, testData.Methods.Count);
+                Assert.Equal(1, testData.GetExplicitlyDeclaredMethods().Length);
             });
         }
 
@@ -996,7 +996,7 @@ class C
             methodData.VerifyIL(expectedIL);
             var method = (MethodSymbol)methodData.Method;
             VerifyTypeParameters(method);
-            Assert.Equal(expectedType, method.ReturnType.ToTestDisplayString());
+            Assert.Equal(expectedType, method.ReturnType.TypeSymbol.ToTestDisplayString());
         }
 
         private void VerifyNoThis(string source, string methodName)

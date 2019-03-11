@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             var sx99 = s + x99;
             var sx1000 = s + new string('x', 1000);
             var sx100000000 = s + new string('x', 100000000);
-            
+
             Assert.Equal(0.900, lcs.ComputeDistance(s, sx9), precision: 3);
             Assert.Equal(0.990, lcs.ComputeDistance(s, sx99), precision: 3);
             Assert.Equal(1.000, lcs.ComputeDistance(s, sx1000), precision: 3);

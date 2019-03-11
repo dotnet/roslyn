@@ -44,10 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private Workspace _workspace;
 
         public NavigationBarController(
+            IThreadingContext threadingContext,
             INavigationBarPresenter presenter,
             ITextBuffer subjectBuffer,
             IWaitIndicator waitIndicator,
             IAsynchronousOperationListener asyncListener)
+            : base(threadingContext)
         {
             _presenter = presenter;
             _subjectBuffer = subjectBuffer;
@@ -92,8 +94,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
 
         private void ConnectToWorkspace(Workspace workspace)
         {
-            AssertIsForeground();
-
             // If we disconnected before the workspace ever connected, just disregard
             if (_disconnected)
             {
@@ -103,8 +103,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
             _workspace = workspace;
             _workspace.WorkspaceChanged += this.OnWorkspaceChanged;
 
-            // For the first time you open the file, we'll start immediately
-            StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
+            void connectToNewWorkspace()
+            {
+                // For the first time you open the file, we'll start immediately
+                StartModelUpdateAndSelectedItemUpdateTasks(modelUpdateDelay: 0, selectedItemUpdateDelay: 0, updateUIWhenDone: true);
+            }
+
+            if (IsForeground())
+            {
+                connectToNewWorkspace();
+            }
+            else
+            {
+                var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ConnectToWorkspace));
+                Task.Run(async () =>
+                {
+                    await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                    connectToNewWorkspace();
+                }).CompletesAsyncOperation(asyncToken);
+            }
         }
 
         private void DisconnectFromWorkspace()

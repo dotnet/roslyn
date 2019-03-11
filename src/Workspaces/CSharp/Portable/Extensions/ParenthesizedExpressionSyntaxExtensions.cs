@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -13,6 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool CanRemoveParentheses(this ParenthesizedExpressionSyntax node, SemanticModel semanticModel)
         {
+            if (node.OpenParenToken.IsMissing || node.CloseParenToken.IsMissing)
+            {
+                // int x = (3;
+                return false;
+            }
+
             var expression = node.Expression;
 
             // The 'direct' expression that contains this parenthesized node.  Note: in the case
@@ -23,6 +30,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var parentExpression = node.IsParentKind(SyntaxKind.ConstantPattern)
                 ? node.Parent.Parent as ExpressionSyntax
                 : node.Parent as ExpressionSyntax;
+
+            // Have to be careful if we would remove parens and cause a + and a + to become a ++.
+            // (same with - as well).
+            var tokenBeforeParen = node.GetFirstToken().GetPreviousToken();
+            var tokenAfterParen = node.Expression.GetFirstToken();
+            var previousChar = tokenBeforeParen.Text.LastOrDefault();
+            var nextChar = tokenAfterParen.Text.FirstOrDefault();
+
+            if ((previousChar == '+' && nextChar == '+') ||
+                (previousChar == '-' && nextChar == '-'))
+            {
+                return false;
+            }
 
             // Simplest cases:
             //   ((x)) -> (x)
@@ -206,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // case (x) when y: -> case x when y:
-            if (node.IsParentKind(SyntaxKind.ConstantPattern) && 
+            if (node.IsParentKind(SyntaxKind.ConstantPattern) &&
                 node.Parent.IsParentKind(SyntaxKind.CasePatternSwitchLabel))
             {
                 return true;
@@ -224,6 +244,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // If we have: (X)(++x) or (X)(--x), we don't want to remove the parens. doing so can
+            // make the ++/-- now associate with the previous part of the cast expression.
+            if (parentExpression.IsKind(SyntaxKind.CastExpression))
+            {
+                if (expression.IsKind(SyntaxKind.PreIncrementExpression) ||
+                    expression.IsKind(SyntaxKind.PreDecrementExpression))
+                {
+                    return false;
+                }
+            }
+
+            // (condition ? ref a : ref b ) = SomeValue, parenthesis can't be removed for when conditional expression appears at left
+            // This syntax is only allowed since C# 7.2
+            if (expression.IsKind(SyntaxKind.ConditionalExpression) &&
+                node.IsLeftSideOfAnyAssignExpression())
+            {
+                return false;
+            }
+
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
@@ -239,13 +278,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             InterpolationSyntax interpolation = null;
             foreach (var ancestor in node.Parent.AncestorsAndSelf())
             {
-                switch (ancestor.Kind())
+                if (ancestor.IsKind(SyntaxKind.ParenthesizedExpression))
                 {
-                    case SyntaxKind.ParenthesizedExpression:
-                        return false;
-                    case SyntaxKind.Interpolation:
-                        interpolation = (InterpolationSyntax)ancestor;
-                        break;
+                    return false;
+                }
+
+                if (ancestor.IsKind(SyntaxKind.Interpolation))
+                {
+                    interpolation = (InterpolationSyntax)ancestor;
+                    break;
                 }
             }
 
@@ -347,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         parentBinaryExpression.Right == node)
                     {
                         return !node.IsSafeToChangeAssociativity(
-                            node.Expression, parentBinaryExpression.Left, 
+                            node.Expression, parentBinaryExpression.Left,
                             parentBinaryExpression.Right, semanticModel);
                     }
 
@@ -433,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (expression.IsKind(
                         SyntaxKind.UnaryMinusExpression,
-                        SyntaxKind.UnaryPlusExpression, 
+                        SyntaxKind.UnaryPlusExpression,
                         SyntaxKind.PointerIndirectionExpression,
                         SyntaxKind.AddressOfExpression))
                 {

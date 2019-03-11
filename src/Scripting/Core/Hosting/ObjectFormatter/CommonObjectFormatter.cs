@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
             builder.AppendLine(e.Message);
 
-            var trace = new StackTrace(e, needFileInfo: true);
+            var trace = new StackTrace(e, fNeedFileInfo: true);
             foreach (var frame in trace.GetFrames())
             {
                 if (!Filter.Include(frame))

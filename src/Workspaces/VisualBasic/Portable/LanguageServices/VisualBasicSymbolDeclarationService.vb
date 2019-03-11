@@ -55,7 +55,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         begin = DirectCast(parent, EventBlockSyntax).EventStatement
 
                     Case SyntaxKind.VariableDeclarator
-                        begin = node
+                        If DirectCast(parent, VariableDeclaratorSyntax).Names.Count = 1 Then
+                            begin = node
+                        End If
                 End Select
             End If
 

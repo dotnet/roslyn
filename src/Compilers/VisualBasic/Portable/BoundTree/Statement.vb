@@ -46,25 +46,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Partial Friend Class BoundBadStatement
+        Implements IBoundInvalidNode
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
                 Return Me.ChildBoundNodes
             End Get
         End Property
-    End Class
 
-    Partial Friend Class BoundRedimStatement
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
+        Private ReadOnly Property IBoundInvalidNode_InvalidNodeChildren As ImmutableArray(Of BoundNode) Implements IBoundInvalidNode.InvalidNodeChildren
             Get
-                Return StaticCast(Of BoundNode).From(Me.Clauses)
-            End Get
-        End Property
-    End Class
-
-    Partial Friend Class BoundRedimClause
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return StaticCast(Of BoundNode).From(Me.Indices.Insert(0, Me.Operand))
+                Return ChildBoundNodes
             End Get
         End Property
     End Class
@@ -73,6 +64,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
                 Return StaticCast(Of BoundNode).From(Me.Clauses)
+            End Get
+        End Property
+    End Class
+
+    Partial Friend Class BoundRaiseEventStatement
+        Implements IBoundInvalidNode
+
+        Private ReadOnly Property IBoundInvalidNode_InvalidNodeChildren As ImmutableArray(Of BoundNode) Implements IBoundInvalidNode.InvalidNodeChildren
+            Get
+                Return ImmutableArray.Create(Of BoundNode)(Me.EventInvocation)
             End Get
         End Property
     End Class

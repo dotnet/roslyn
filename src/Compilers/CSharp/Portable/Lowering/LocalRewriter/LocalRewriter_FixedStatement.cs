@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (pinnedTemp.RefKind == RefKind.None)
                 {
                     // temp = null;
-                    cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), _factory.Null(pinnedTemp.Type));
+                    cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), _factory.Null(pinnedTemp.Type.TypeSymbol));
                 }
                 else
                 {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     cleanup[i] = _factory.Assignment(_factory.Local(pinnedTemp), new BoundPointerIndirectionOperator(
                         _factory.Syntax,
                         _factory.Default(new PointerTypeSymbol(pinnedTemp.Type)),
-                        pinnedTemp.Type),
+                        pinnedTemp.Type.TypeSymbol),
                         isRef: true);
                 }
             }
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return InitializeFixedStatementGetPinnable(localDecl, localSymbol, fixedCollectionInitializer, factory, out pinnedTemp);
             }
-            else if(fixedCollectionInitializer.Expression.Type.SpecialType == SpecialType.System_String)
+            else if (fixedCollectionInitializer.Expression.Type.SpecialType == SpecialType.System_String)
             {
                 return InitializeFixedStatementStringLocal(localDecl, localSymbol, fixedCollectionInitializer, factory, out pinnedTemp);
             }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return InitializeFixedStatementRegularLocal(localDecl, localSymbol, fixedCollectionInitializer, factory, out pinnedTemp);
-            } 
+            }
         }
 
         /// <summary>
@@ -239,14 +239,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             out LocalSymbol pinnedTemp)
         {
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
 
             // initializer expr should be either an address(&) of something or a fixed field access.
             // either should lower into addressof
             Debug.Assert(initializerExpr.Kind == BoundKind.AddressOfOperator);
 
-            TypeSymbol initializerType = ((PointerTypeSymbol)initializerExpr.Type).PointedAtType;
+            TypeSymbol initializerType = ((PointerTypeSymbol)initializerExpr.Type).PointedAtType.TypeSymbol;
 
             // initializer expressions are bound/lowered right into addressof operators here
             // that is a bit too far
@@ -258,12 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(declarator != null);
 
             pinnedTemp = factory.SynthesizedLocal(
-                initializerType, 
-                syntax: declarator, 
+                initializerType,
+                syntax: declarator,
                 isPinned: true,
                 //NOTE: different from the array and string cases
                 //      RefReadOnly to allow referring to readonly variables. (technically we only "read" through the temp anyways)
-                refKind: RefKind.RefReadOnly,  
+                refKind: RefKind.RefReadOnly,
                 kind: SynthesizedLocalKind.FixedReference);
 
             // NOTE: we pin the reference, not the pointer.
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             out LocalSymbol pinnedTemp)
         {
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
 
             var initializerType = initializerExpr.Type;
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // pinned ref int pinnedTemp
             pinnedTemp = factory.SynthesizedLocal(
-                getPinnableMethod.ReturnType,
+                getPinnableMethod.ReturnType.TypeSymbol,
                 syntax: declarator,
                 isPinned: true,
                 //NOTE: different from the array and string cases
@@ -348,13 +348,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // .GetPinnable()
-            var getPinnableCall = getPinnableMethod.IsStatic?
-                factory.Call(null, getPinnableMethod, callReceiver):
+            var getPinnableCall = getPinnableMethod.IsStatic ?
+                factory.Call(null, getPinnableMethod, callReceiver) :
                 factory.Call(callReceiver, getPinnableMethod);
 
             // temp =ref .GetPinnable()
             var tempAssignment = factory.AssignmentExpression(
-                factory.Local(pinnedTemp),                                                   
+                factory.Local(pinnedTemp),
                 getPinnableCall,
                 isRef: true);
 
@@ -372,8 +372,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // {pinnedTemp =ref .GetPinnable(), (int*)&pinnedTemp}
             BoundExpression pinAndGetPtr = factory.Sequence(
-                locals: ImmutableArray<LocalSymbol>.Empty, 
-                sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment), 
+                locals: ImmutableArray<LocalSymbol>.Empty,
+                sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
                 result: pointerValue);
 
             if (needNullCheck)
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             out LocalSymbol pinnedTemp)
         {
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
             TypeSymbol initializerType = initializerExpr.Type;
 
@@ -419,9 +419,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(declarator != null);
 
             pinnedTemp = factory.SynthesizedLocal(
-                initializerType, 
-                syntax: declarator, 
-                isPinned: true, 
+                initializerType,
+                syntax: declarator,
+                isPinned: true,
                 kind: SynthesizedLocalKind.FixedReference);
 
             // NOTE: we pin the string, not the pointer.
@@ -481,13 +481,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntheticBoundNodeFactory factory,
             out LocalSymbol pinnedTemp)
         {
-            TypeSymbol localType = localSymbol.Type;
+            TypeSymbol localType = localSymbol.Type.TypeSymbol;
             BoundExpression initializerExpr = VisitExpression(fixedInitializer.Expression);
             TypeSymbol initializerType = initializerExpr.Type;
 
             pinnedTemp = factory.SynthesizedLocal(initializerType, isPinned: true);
-            ArrayTypeSymbol arrayType = (ArrayTypeSymbol)pinnedTemp.Type;
-            TypeSymbol arrayElementType = arrayType.ElementType;
+            ArrayTypeSymbol arrayType = (ArrayTypeSymbol)pinnedTemp.Type.TypeSymbol;
+            TypeSymbolWithAnnotations arrayElementType = arrayType.ElementType;
 
             // NOTE: we pin the array, not the pointer.
             Debug.Assert(pinnedTemp.IsPinned);
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //(((temp = array) != null && temp.Length != 0) ? loc = &temp[0] : loc = null)
             BoundStatement localInit = factory.ExpressionStatement(
-                new BoundConditionalOperator(factory.Syntax,false, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType));
+                new BoundConditionalOperator(factory.Syntax, false, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType));
 
             return InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol, localInit);
         }

@@ -43,7 +43,7 @@ namespace BuildBoss
         }
 
         private bool CheckProjects(TextWriter textWriter, Dictionary<ProjectKey, SolutionProjectData> map)
-        { 
+        {
             var solutionMap = new Dictionary<ProjectKey, ProjectData>();
             foreach (var pair in map)
             {

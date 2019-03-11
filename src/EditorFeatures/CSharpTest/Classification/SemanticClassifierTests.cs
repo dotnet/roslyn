@@ -63,7 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestAsync(
 @"using M = System.Math;",
                 Class("M"),
-                Class("Math"));
+                Namespace("System"),
+                Class("Math"),
+                Static("Math"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -103,6 +105,7 @@ class C
     dynamic d = new dynamic();
 }",
                 Class("dynamic"),
+                Namespace("System"),
                 Class("EventArgs"),
                 Class("dynamic"),
                 Class("dynamic"));
@@ -251,7 +254,8 @@ class C
 class C
 {
     dynamic::Goo a;
-}");
+}",
+    Namespace("dynamic"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -522,6 +526,7 @@ class C
 class C
 {
 }",
+                Namespace("System"),
                 Class("Obsolete"));
         }
 
@@ -535,6 +540,7 @@ class A
 {
     [Obsolete]
 }",
+                Namespace("System"),
                 Class("Obsolete"));
         }
 
@@ -549,6 +555,7 @@ class A
 class MyAttribute : Attribute
 {
 }",
+                Namespace("System"),
                 Class("My"),
                 Class("Attribute"));
         }
@@ -571,12 +578,11 @@ class Base
 class Derived : Base
 {
 }",
+                Namespace("System"),
                 Class("Base"),
                 Class("My"),
-                Method("My"),
                 Class("Derived"),
                 Class("My"),
-                Method("My"),
                 Class("Attribute"),
                 Class("Base"));
         }
@@ -717,7 +723,8 @@ class Derived : Base
 }",
                 Class("T"),
                 Class("T"),
-                Field("T"));
+                Field("T"),
+                Static("T"));
         }
 
         /// <summary>
@@ -763,7 +770,8 @@ class Derived : Base
                 Class("T"),
                 Class("T"),
                 Class("T"),
-                Field("field"));
+                Field("field"),
+                Static("field"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -912,6 +920,7 @@ class Derived : Base
         }
     }
 }",
+                Namespace("T"),
                 Class("T"),
                 Class("T"));
         }
@@ -930,7 +939,10 @@ class Derived : Base
         }
     }
 }",
+                Namespace("T"),
+                Namespace("T"),
                 Class("T"),
+                Namespace("T"),
                 Class("T"));
         }
 
@@ -994,7 +1006,8 @@ class Derived : Base
                 Class("T"),
                 Class("H"),
                 Class("T"),
-                Field("f"));
+                Field("f"),
+                Static("f"));
         }
 
         /// <summary>
@@ -1047,6 +1060,7 @@ class C
     void M()
     {
         var x = new { String = "" }; } }",
+                Namespace("System"),
                 Keyword("var"),
                 Property("String"));
         }
@@ -1065,6 +1079,9 @@ class yield
         yield return yield;
     }
 }",
+                Namespace("System"),
+                Namespace("Collections"),
+                Namespace("Generic"),
                 Interface("IEnumerable"),
                 Class("yield"),
                 Class("yield"),
@@ -1098,6 +1115,8 @@ class C
 {
     global::System.String f;
 }",
+                Namespace("System"),
+                Namespace("System"),
                 Class("String"));
         }
 
@@ -1121,7 +1140,9 @@ class C
             await TestAsync(code,
                 code,
                 Options.Regular,
+                Namespace("System"),
                 Class("Str"),
+                Namespace("System"),
                 Class("String"),
                 Class("Str"),
                 Class("Nested"),
@@ -1130,8 +1151,40 @@ class C
                 Class("C"),
                 Class("Nested"),
                 Class("C"),
+                Namespace("System"),
                 Class("String"));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task Constructors()
+        {
+            await TestAsync(
+@"struct S
+{
+    public int i;
+
+    public S(int i)
+    {
+        this.i = i;
+    }
+}
+
+class C
+{
+    public C()
+    {
+        var s = new S(1);
+        var c = new C();
+    }
+}",
+                Field("i"),
+                Parameter("i"),
+                Keyword("var"),
+                Struct("S"),
+                Keyword("var"),
+                Class("C"));
+        }
+
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TypesOfClassMembers()
@@ -1202,7 +1255,11 @@ class C
         {
             await TestInMethodAsync(
 @"System.IO.BufferedStream b = new global::System.IO.BufferedStream();",
+                Namespace("System"),
+                Namespace("IO"),
                 Class("BufferedStream"),
+                Namespace("System"),
+                Namespace("IO"),
                 Class("BufferedStream"));
         }
 
@@ -1217,6 +1274,8 @@ class C
         global::System.IO.DriveType d;
     }
 }",
+                Namespace("System"),
+                Namespace("IO"),
                 Enum("DriveType"));
         }
 
@@ -1231,6 +1290,7 @@ class C
         global::System.AssemblyLoadEventHandler d;
     }
 }",
+                Namespace("System"),
                 Delegate("AssemblyLoadEventHandler"));
         }
 
@@ -1238,6 +1298,7 @@ class C
         public async Task NAQTypeNameMethodCall()
         {
             await TestInMethodAsync(@"global::System.String.Clone("");",
+                Namespace("System"),
                 Class("String"));
         }
 
@@ -1247,9 +1308,12 @@ class C
             await TestInMethodAsync(
 @"global::System.AppDomain.CurrentDomain.AssemblyLoad += 
             delegate (object sender, System.AssemblyLoadEventArgs args) {};",
+                Namespace("System"),
                 Class("AppDomain"),
                 Property("CurrentDomain"),
+                Static("CurrentDomain"),
                 Event("AssemblyLoad"),
+                Namespace("System"),
                 Class("AssemblyLoadEventArgs"));
         }
 
@@ -1265,8 +1329,11 @@ class C
         };
     }
 }",
+                Namespace("System"),
                 Delegate("Action"),
+                Namespace("System"),
                 Class("EventArgs"),
+                Namespace("System"),
                 Class("EventArgs"));
         }
 
@@ -1275,7 +1342,11 @@ class C
         {
             await TestInMethodAsync(
 @"global::System.Collections.DictionaryEntry de = new global::System.Collections.DictionaryEntry();",
+                Namespace("System"),
+                Namespace("Collections"),
                 Struct("DictionaryEntry"),
+                Namespace("System"),
+                Namespace("Collections"),
                 Struct("DictionaryEntry"));
         }
 
@@ -1287,6 +1358,7 @@ class C
             await TestAsync(code,
                 ParseOptions(Options.Regular),
                 Class("C"),
+                Static("M"),
                 Method("M"));
         }
 
@@ -1299,7 +1371,8 @@ class C
                 ParseOptions(Options.Script),
                 Class("Script"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1318,8 +1391,13 @@ namespace N
         }
     }
 }",
+                Namespace("@global"),
+                Namespace("N"),
+                Namespace("N"),
+                Namespace("N"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1338,8 +1416,13 @@ namespace N
         }
     }
 }",
+                Namespace("@global"),
+                Namespace("N"),
+                Namespace("N"),
+                Namespace("@global"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1358,8 +1441,13 @@ namespace N
         }
     }
 }",
+                Namespace("global"),
+                Namespace("N"),
+                Namespace("N"),
+                Namespace("global"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1378,8 +1466,13 @@ namespace N
         }
     }
 }",
+                Namespace("goo"),
+                Namespace("N"),
+                Namespace("N"),
+                Namespace("goo"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1398,8 +1491,13 @@ namespace N
         }
     }
 }",
+                Namespace("goo"),
+                Namespace("N"),
+                Namespace("N"),
+                Namespace("goo"),
                 Class("C"),
-                Method("M"));
+                Method("M"),
+                Static("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1423,7 +1521,11 @@ namespace A
         }
     }
 }",
-                Class("D"));
+                Namespace("A"),
+                Namespace("B"),
+                Class("D"),
+                Namespace("A"),
+                Namespace("B"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1447,7 +1549,11 @@ namespace A
         }
     }
 }",
-                Class("D"));
+                Namespace("A"),
+                Namespace("B"),
+                Class("D"),
+                Namespace("A"),
+                Namespace("B"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1463,6 +1569,10 @@ class C
         IO::BinaryReader b;
     }
 }",
+                Namespace("IO"),
+                Namespace("System"),
+                Namespace("IO"),
+                Namespace("IO"),
                 Class("BinaryReader"));
         }
 
@@ -1524,18 +1634,32 @@ namespace MyNameSpace
     {
     }
 }",
+                Namespace("rabbit"),
+                Namespace("MyNameSpace"),
+                Namespace("rabbit"),
                 Class("MyClass2"),
+                Static("method"),
                 Method("method"),
+                Namespace("rabbit"),
                 Class("MyClass2"),
                 Event("myEvent"),
+                Namespace("rabbit"),
                 Enum("MyEnum"),
+                Namespace("rabbit"),
                 Struct("MyStruct"),
+                Namespace("rabbit"),
                 Class("MyClass2"),
+                Static("MyProp"),
                 Property("MyProp"),
+                Namespace("rabbit"),
                 Class("MyClass2"),
+                Static("myField"),
                 Field("myField"),
+                Namespace("rabbit"),
                 Class("MyClass2"),
                 Delegate("MyDelegate"),
+                Namespace("MyNameSpace"),
+                Namespace("OtherNamespace"),
                 Delegate("MyDelegate"));
         }
 
@@ -1582,10 +1706,15 @@ class Outer
         }
     }
 }",
+                Namespace("System"),
                 Class("Console"),
+                Static("Console"),
                 Method("WriteLine"),
+                Static("WriteLine"),
                 Class("Console"),
-                Method("WriteLine"));
+                Static("Console"),
+                Method("WriteLine"),
+                Static("WriteLine"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1610,6 +1739,7 @@ class C
         Int32 i;
     }
 }",
+                Namespace("System"),
                 Enum("ConsoleColor"),
                 Struct("Int32"));
         }
@@ -1664,6 +1794,7 @@ class Obsolete : Attribute
 class ObsoleteAttribute : Attribute
 {
 }",
+                Namespace("System"),
                 Class("Serializable"),
                 Class("SerializableAttribute"),
                 Class("Obsolete"),
@@ -1680,7 +1811,11 @@ class ObsoleteAttribute : Attribute
 
 namespace Roslyn.Compilers.Internal
 {
-}");
+}",
+    Namespace("System"),
+    Namespace("Roslyn"),
+    Namespace("Compilers"),
+    Namespace("Internal"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1766,7 +1901,9 @@ static class Program
 
 class var<T>
 {
-}", Keyword("var"));
+}",
+    Namespace("System"),
+    Keyword("var"));
         }
 
         [WorkItem(541154, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541154")]
@@ -1790,6 +1927,7 @@ class B : A
         var x = 1;
     }
 }",
+                Namespace("System"),
                 Class("A"),
                 Keyword("var"));
         }
@@ -1914,6 +2052,7 @@ public class X : B<X>
                 Class("var"),
                 Keyword("var"),
                 Method("GetVarT"),
+                Static("GetVarT"),
                 Keyword("var"),
                 Class("var"));
         }
@@ -2095,6 +2234,10 @@ class C
     [DllImport(""abc"", CallingConvention = CallingConvention)]
     static extern void M();
 }",
+                Namespace("System"),
+                Namespace("System"),
+                Namespace("Runtime"),
+                Namespace("InteropServices"),
                 Class("DllImport"),
                 Field("CallingConvention"),
                 Enum("CallingConvention"));
@@ -2185,6 +2328,7 @@ struct Type<T>
                     var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
                     var provider = new SemanticClassificationViewTaggerProvider(
+                        workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                         workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                         workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                         workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
@@ -2216,6 +2360,7 @@ struct Type<T>
                 var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
                 var provider = new SemanticClassificationBufferTaggerProvider(
+                    workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
                     workspace.ExportProvider.GetExportedValue<IForegroundNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ISemanticChangeNotificationService>(),
                     workspace.ExportProvider.GetExportedValue<ClassificationTypeMap>(),
@@ -2292,7 +2437,7 @@ class MyClass
     public MyClass(int x)
     {
     }
-}", Method("MyClass"));
+}", Class("MyClass"));
         }
 
         [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
@@ -2310,7 +2455,7 @@ class MyClass
     }
 }",
     Class("MyClass"),
-    Method("MyClass"));
+    Class("MyClass"));
         }
 
         [WorkItem(13174, "https://github.com/dotnet/roslyn/issues/13174")]
@@ -2330,11 +2475,23 @@ namespace ConsoleApplication1
             Debug.Assert(args?.Length < 2);
         }
     }
-}", Class("Debug"), Method("Assert"), Parameter("args"), Property("Length"));
+}",
+    Namespace("System"),
+    Namespace("Diagnostics"),
+    Namespace("System"),
+    Namespace("Threading"),
+    Namespace("Tasks"),
+    Namespace("ConsoleApplication1"),
+    Class("Debug"),
+    Static("Debug"),
+    Method("Assert"),
+    Static("Assert"),
+    Parameter("args"),
+    Property("Length"));
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30855"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarInPattern1()
         {
             await TestAsync(
@@ -2351,7 +2508,7 @@ class Program
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/30855"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestVarInPattern2()
         {
             await TestAsync(
@@ -2387,7 +2544,15 @@ namespace AliasTest
         }
     }
 }",
-    Keyword("var"), Class("List"));
+    Namespace("System"),
+    Namespace("Col"),
+    Namespace("System"),
+    Namespace("Collections"),
+    Namespace("Generic"),
+    Namespace("AliasTest"),
+    Keyword("var"),
+    Namespace("Col"),
+    Class("List"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2429,6 +2594,7 @@ namespace OtherScope
     interface unmanaged {}
 }
 class X<T> where T : unmanaged { }",
+                Namespace("OtherScope"),
                 TypeParameter("T"),
                 Keyword("unmanaged"));
         }
@@ -2470,6 +2636,7 @@ class X
 {
     void M<T>() where T : unmanaged { }
 }",
+                Namespace("OtherScope"),
                 TypeParameter("T"),
                 Keyword("unmanaged"));
         }
@@ -2502,8 +2669,488 @@ namespace OtherScope
     interface unmanaged {}
 }
 delegate void D<T>() where T : unmanaged;",
+                Namespace("OtherScope"),
                 TypeParameter("T"),
                 Keyword("unmanaged"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex1()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+
+    void Goo()
+    {
+        var r = new Regex(@""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"");
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Class("Regex"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("t"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("u"),
+Regex.OtherEscape("0020"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.CharacterClass("["),
+Regex.CharacterClass("^"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("p"),
+Regex.CharacterClass("{"),
+Regex.CharacterClass("Lu"),
+Regex.CharacterClass("}"),
+Regex.Text("-a"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("w"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("s"),
+Regex.Text("a"),
+Regex.CharacterClass("-"),
+Regex.Text("z"),
+Regex.CharacterClass("-"),
+Regex.CharacterClass("["),
+Regex.Text("m"),
+Regex.CharacterClass("-"),
+Regex.Text("p"),
+Regex.CharacterClass("]"),
+Regex.CharacterClass("]"),
+Regex.Quantifier("+"),
+Regex.Quantifier("?"),
+Regex.Comment("(?#comment)"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Anchor("\\"),
+Regex.Anchor("b"),
+Regex.Anchor("\\"),
+Regex.Anchor("G"),
+Regex.Anchor("\\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Grouping("?"),
+Regex.Grouping("<"),
+Regex.Grouping("name"),
+Regex.Grouping(">"),
+Regex.Text("sub"),
+Regex.Grouping(")"),
+Regex.Quantifier("{"),
+Regex.Quantifier("0"),
+Regex.Quantifier(","),
+Regex.Quantifier("5"),
+Regex.Quantifier("}"),
+Regex.Quantifier("?"),
+Regex.Anchor("^"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex2()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+
+    void Goo()
+    {
+        // language=regex
+        var r = @""$(\a\t\u0020)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"";
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("t"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("u"),
+Regex.OtherEscape("0020"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.CharacterClass("["),
+Regex.CharacterClass("^"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("p"),
+Regex.CharacterClass("{"),
+Regex.CharacterClass("Lu"),
+Regex.CharacterClass("}"),
+Regex.Text("-a"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("w"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("s"),
+Regex.Text("a"),
+Regex.CharacterClass("-"),
+Regex.Text("z"),
+Regex.CharacterClass("-"),
+Regex.CharacterClass("["),
+Regex.Text("m"),
+Regex.CharacterClass("-"),
+Regex.Text("p"),
+Regex.CharacterClass("]"),
+Regex.CharacterClass("]"),
+Regex.Quantifier("+"),
+Regex.Quantifier("?"),
+Regex.Comment("(?#comment)"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Anchor("\\"),
+Regex.Anchor("b"),
+Regex.Anchor("\\"),
+Regex.Anchor("G"),
+Regex.Anchor("\\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Grouping("?"),
+Regex.Grouping("<"),
+Regex.Grouping("name"),
+Regex.Grouping(">"),
+Regex.Text("sub"),
+Regex.Grouping(")"),
+Regex.Quantifier("{"),
+Regex.Quantifier("0"),
+Regex.Quantifier(","),
+Regex.Quantifier("5"),
+Regex.Quantifier("}"),
+Regex.Quantifier("?"),
+Regex.Anchor("^"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex3()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* language=regex */@""$(\a\t\u0020\\)|[^\p{Lu}-a\w\sa-z-[m-p]]+?(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"";
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("t"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("u"),
+Regex.OtherEscape("0020"),
+Regex.SelfEscapedCharacter("\\"),
+Regex.SelfEscapedCharacter("\\"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.CharacterClass("["),
+Regex.CharacterClass("^"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("p"),
+Regex.CharacterClass("{"),
+Regex.CharacterClass("Lu"),
+Regex.CharacterClass("}"),
+Regex.Text("-a"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("w"),
+Regex.CharacterClass("\\"),
+Regex.CharacterClass("s"),
+Regex.Text("a"),
+Regex.CharacterClass("-"),
+Regex.Text("z"),
+Regex.CharacterClass("-"),
+Regex.CharacterClass("["),
+Regex.Text("m"),
+Regex.CharacterClass("-"),
+Regex.Text("p"),
+Regex.CharacterClass("]"),
+Regex.CharacterClass("]"),
+Regex.Quantifier("+"),
+Regex.Quantifier("?"),
+Regex.Comment("(?#comment)"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Anchor("\\"),
+Regex.Anchor("b"),
+Regex.Anchor("\\"),
+Regex.Anchor("G"),
+Regex.Anchor("\\"),
+Regex.Anchor("z"),
+Regex.Grouping(")"),
+Regex.Alternation("|"),
+Regex.Grouping("("),
+Regex.Grouping("?"),
+Regex.Grouping("<"),
+Regex.Grouping("name"),
+Regex.Grouping(">"),
+Regex.Text("sub"),
+Regex.Grouping(")"),
+Regex.Quantifier("{"),
+Regex.Quantifier("0"),
+Regex.Quantifier(","),
+Regex.Quantifier("5"),
+Regex.Quantifier("}"),
+Regex.Quantifier("?"),
+Regex.Anchor("^"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex4()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regex */@""$\a(?#comment)"";
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex5()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regexp */@""$\a(?#comment)"";
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex6()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regexp */@""$\a(?#comment) # not end of line comment"";
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(" # not end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex7()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang=regexp,ignorepatternwhitespace */@""$\a(?#comment) # is end of line comment"";
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex8()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = /* lang = regexp , ignorepatternwhitespace */@""$\a(?#comment) # is end of line comment"";
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex9()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = new Regex(@""$\a(?#comment) # is end of line comment"", RegexOptions.IgnorePatternWhitespace);
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Class("Regex"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Comment("# is end of line comment"),
+Enum("RegexOptions"),
+EnumMember("IgnorePatternWhitespace"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex10()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void Goo()
+    {
+        var r = new Regex(@""$\a(?#comment) # is not end of line comment"");
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Class("Regex"),
+Regex.Anchor("$"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.Comment("(?#comment)"),
+Regex.Text(" # is not end of line comment"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestRegex11()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    // language=regex
+    private static string myRegex = @""$(\a\t\u0020)"";
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Regex.Anchor("$"),
+Regex.Grouping("("),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("a"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("t"),
+Regex.OtherEscape("\\"),
+Regex.OtherEscape("u"),
+Regex.OtherEscape("0020"),
+Regex.Grouping(")"));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestIncompleteRegexLeadingToStringInsideSkippedTokensInsideADirective()
+        {
+            await TestAsync(
+@"
+using System.Text.RegularExpressions;
+
+class Program
+{
+    void M()
+    {
+        // not terminating this string caused us to eat up to the quote on the next line.
+        // we then treated #comment as a directive with a lot of skipped tokens on it, including
+        // a skipped token for "";
+        //
+        // Because it's a comment on a directive, special lexing rules apply (i.e. no escape
+        // characters are supposed, and we want our system to bail there and not try to validate
+        // it.
+        var r = new Regex(@""$;
+        var s = /* language=regex */ @""(?#comment)|(\b\G\z)|(?<name>sub){0,5}?^"";
+    }
+}",
+Namespace("System"),
+Namespace("Text"),
+Namespace("RegularExpressions"),
+Keyword("var"),
+Class("Regex"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -2552,8 +3199,218 @@ class X
         void M<T>() where T : unmanaged { }
     }
 }",
+                Namespace("OtherScope"),
                 TypeParameter("T"),
                 Keyword("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape1()
+        {
+            await TestInMethodAsync(@"var goo = ""goo\r\nbar"";",
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape2()
+        {
+            await TestInMethodAsync(@"var goo = @""goo\r\nbar"";",
+                Keyword("var"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape3()
+        {
+            await TestInMethodAsync(@"var goo = $""goo{{1}}bar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape4()
+        {
+            await TestInMethodAsync(@"var goo = $@""goo{{1}}bar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape5()
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{{1}}\nbar"";",
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"{{"),
+                Escape(@"}}"),
+                Escape(@"\n"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape6()
+        {
+            await TestInMethodAsync(@"var goo = $@""goo\r{{1}}\nbar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape7()
+        {
+            await TestInMethodAsync(@"var goo = $""goo\r{1}\nbar"";",
+                Keyword("var"),
+                Escape(@"\r"),
+                Escape(@"\n"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestStringEscape8()
+        {
+            await TestInMethodAsync(@"var goo = $@""{{goo{1}bar}}"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [WorkItem(29451, "https://github.com/dotnet/roslyn/issues/29451")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestDirectiveStringLiteral()
+        {
+            await TestInMethodAsync(@"#line 1 ""a\b""");
+        }
+
+        [WorkItem(30378, "https://github.com/dotnet/roslyn/issues/30378")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestFormatSpecifierInInterpolation()
+        {
+            await TestInMethodAsync(@"var goo = $""goo{{1:0000}}bar"";",
+                Keyword("var"),
+                Escape(@"{{"),
+                Escape(@"}}"));
+        }
+
+        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOverloadedOperator_BinaryExpression()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        var a = 1 + 1;
+        var b = new True() + new True();
+    }
+}
+class True
+{
+    public static True operator +(True a, True b)
+    {
+         return new True();
+    }
+}",
+                Keyword("var"),
+                Keyword("var"),
+                Class("True"),
+                OverloadedOperators.Plus,
+                Class("True"),
+                Class("True"),
+                Class("True"),
+                Class("True"),
+                Class("True"));
+        }
+
+        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOverloadedOperator_PrefixUnaryExpression()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        var a = !false;
+        var b = !new True();
+    }
+}
+class True
+{
+    public static bool operator !(True a)
+    {
+         return false;
+    }
+}",
+                Keyword("var"),
+                Keyword("var"),
+                OverloadedOperators.Exclamation,
+                Class("True"),
+                Class("True"));
+        }
+
+        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOverloadedOperator_PostfixUnaryExpression()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        var a = 1;
+        a++;
+        var b = new True();
+        b++;
+    }
+}
+class True
+{
+    public static True operator ++(True a)
+    {
+         return new True();
+    }
+}",
+                Keyword("var"),
+                Local("a"),
+                Keyword("var"),
+                Class("True"),
+                Local("b"),
+                OverloadedOperators.PlusPlus,
+                Class("True"),
+                Class("True"),
+                Class("True"));
+        }
+
+        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOverloadedOperator_ConditionalExpression()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        var a = 1 == 1;
+        var b = new True() == new True();
+    }
+}
+class True
+{
+    public static bool operator ==(True a, True b)
+    {
+         return true;
+    }
+}",
+                Keyword("var"),
+                Keyword("var"),
+                Class("True"),
+                OverloadedOperators.EqualsEquals,
+                Class("True"),
+                Class("True"),
+                Class("True"));
         }
     }
 }

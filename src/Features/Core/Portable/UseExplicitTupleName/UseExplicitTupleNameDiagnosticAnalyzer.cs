@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis.Operations;
 namespace Microsoft.CodeAnalysis.UseExplicitTupleName
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class UseExplicitTupleNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         public const string ElementName = nameof(ElementName);
 
-        public UseExplicitTupleNameDiagnosticAnalyzer() 
+        public UseExplicitTupleNameDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_explicitly_provided_tuple_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Prefer_explicitly_provided_tuple_element_name), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
@@ -37,7 +37,13 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
                 return;
             }
 
+            // We only create a diagnostic if the option's value is set to true.
             var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
+            if (!option.Value)
+            {
+                return;
+            }
+
             var severity = option.Notification.Severity;
             if (severity == ReportDiagnostic.Suppress)
             {

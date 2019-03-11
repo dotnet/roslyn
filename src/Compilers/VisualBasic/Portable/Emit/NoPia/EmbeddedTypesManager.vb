@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
                     type = Nothing
                 End If
 
-                If Interlocked.CompareExchange(Of NamedTypeSymbol)(_lazySystemStringType, type, ErrorTypeSymbol.UnknownResultType) = ErrorTypeSymbol.UnknownResultType Then
+                If TypeSymbol.Equals(Interlocked.CompareExchange(Of NamedTypeSymbol)(_lazySystemStringType, type, ErrorTypeSymbol.UnknownResultType), ErrorTypeSymbol.UnknownResultType, TypeCompareKind.ConsiderEverything) Then
                     If info IsNot Nothing Then
                         ReportDiagnostic(diagnostics, syntaxNodeOpt, info)
                     End If
@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             ' We do not expect this method to be called on a different thread once GetTypes is called.
             VerifyNotFrozen()
 
-            Dim noPiaIndexer = New Cci.NoPiaReferenceIndexer(New EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly:=False, includePrivateMembers:=True))
+            Dim noPiaIndexer = New Cci.TypeReferenceIndexer(New EmitContext(ModuleBeingBuilt, syntaxNodeOpt, diagnostics, metadataOnly:=False, includePrivateMembers:=True))
 
             ' Make sure we embed all types referenced by the type declaration: implemented interfaces, etc.
             noPiaIndexer.VisitTypeDefinitionNoMembers(embedded)

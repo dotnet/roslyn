@@ -401,9 +401,9 @@ public class Test : short { }
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (2,14): error CS0509: 'Test': cannot derive from sealed type 'short'
+                // (2,21): error CS0509: 'Test': cannot derive from sealed type 'short'
                 // public class Test : short { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "Test").WithArguments("Test", "short"));
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "short").WithArguments("Test", "short"));
 
             var sourceAssembly = (SourceAssemblySymbol)comp.Assembly;
             var sourceType = sourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
@@ -752,6 +752,11 @@ class C1<T>
 
     internal abstract class SymbolChecker
     {
+        public void CheckSymbols(TypeSymbolWithAnnotations a, TypeSymbolWithAnnotations b, bool recurse)
+        {
+            CheckSymbols(a.TypeSymbol, b.TypeSymbol, recurse);
+        }
+
         public void CheckSymbols(Symbol a, Symbol b, bool recurse)
         {
             Assert.Equal(a == null, b == null);
@@ -897,7 +902,7 @@ class C1<T>
                 case SymbolKind.NamedType:
                     {
                         var retargeting = symbol as RetargetingNamedTypeSymbol;
-                        return (retargeting != null) ? retargeting.UnderlyingNamedType : symbol;
+                        return ((object)retargeting != null) ? retargeting.UnderlyingNamedType : symbol;
                     }
                 case SymbolKind.Field:
                     return ((RetargetingFieldSymbol)symbol).UnderlyingField;

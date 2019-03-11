@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
-    internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntaxKind> 
+    internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntaxKind>
         : SyntaxEditorBasedCodeFixProvider
         where TSyntaxKind : struct
     {
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             var title = GetTitle(diagnosticId, syntaxFacts.ConvertToSingleLine(node).ToString());
 
             context.RegisterCodeFix(new MyCodeAction(
-                title, 
+                title,
                 c => this.FixAsync(context.Document, context.Diagnostics[0], c),
                 diagnosticId), context.Diagnostics);
         }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             foreach (var diagnostic in diagnostics)
             {
                 var node = GetNodeToSimplify(
-                    root, model, diagnostic.Location.SourceSpan, 
+                    root, model, diagnostic.Location.SourceSpan,
                     documentOptions, out var diagnosticId, cancellationToken);
 
                 if (node == null)

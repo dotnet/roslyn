@@ -38,7 +38,6 @@ class C
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingType").WithArguments("MissingType"));
         }
 
-
         [Fact]
         public void TestErrorNullLiteralCollection()
         {
@@ -1201,7 +1200,7 @@ class C
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Unboxing, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1233,7 +1232,7 @@ class C
             Assert.Equal("System.CharEnumerator System.String.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Char System.CharEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.CharEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1276,7 +1275,7 @@ class Enumerator
             Assert.Equal("Enumerator Enumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 Enumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean Enumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1319,7 +1318,7 @@ struct Enumerator
             Assert.Equal("Enumerator Enumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 Enumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean Enumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.False(info.NeedsDisposeMethod); // Definitely not disposable
+            Assert.False(info.NeedsDisposal); // Definitely not disposable
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.EnumeratorConversion.Kind);
@@ -1351,7 +1350,7 @@ class C
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1390,7 +1389,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<int>
             Assert.Equal("System.Collections.Generic.IEnumerator<System.Int32> System.Collections.Generic.IEnumerable<System.Int32>.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Collections.Generic.IEnumerator<System.Int32>.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString()); //NB: not on generic interface
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1431,7 +1430,7 @@ class Enumerable : System.Collections.Generic.IEnumerable<Enumerable.Hidden>
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1469,7 +1468,7 @@ class Enumerable : System.Collections.IEnumerable
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1501,7 +1500,7 @@ class C
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Unboxing, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1531,7 +1530,7 @@ class C
             Assert.Equal("System.CharEnumerator System.String.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Char System.CharEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.CharEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1616,7 +1615,7 @@ class C
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.ImplicitReference, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.ExplicitReference, info.CurrentConversion.Kind); //object to C.var
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1646,7 +1645,7 @@ class C
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.ImplicitDynamic, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1678,7 +1677,7 @@ class C
             Assert.Equal("System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.ImplicitDynamic, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -1718,7 +1717,7 @@ public class Enumerable<T>
             Assert.Equal("T Enumerable<T>.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object System.Collections.IEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.Collections.IEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
@@ -1801,7 +1800,7 @@ interface MyEnumerator
             Assert.Equal("T Enumerable<T>.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Object MyEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean MyEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
@@ -1847,7 +1846,7 @@ struct Enumerator
             Assert.Equal("Enumerator Enumerable.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 Enumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean Enumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.False(info.NeedsDisposeMethod); // Definitely not disposable
+            Assert.False(info.NeedsDisposal); // Definitely not disposable
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.EnumeratorConversion.Kind);
@@ -1873,7 +1872,7 @@ public class Test
   }
 }
 ";
-            var boundNode = GetBoundForEachStatement(text,
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular,
                 // (6,13): error CS1525: Invalid expression term 'int'
                 //     foreach(int; i < 5; i++)
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 13),
@@ -2241,9 +2240,67 @@ class C
 ";
             var comp = CreateEmptyCompilation(text);
             comp.VerifyDiagnostics(
-                // (30,27): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
-                //         foreach (var c in e) { }
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "e").WithArguments("System.Nullable`1", "get_Value"));
+                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 55)
+                );
+        }
+
+        [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
+        [Fact]
+        public void MissingNullableValue_CSharp7()
+        {
+            var text = @"
+namespace System
+{
+    public class Object { }
+
+    public class ValueType {}
+    public struct Void { }
+    public struct Nullable<T> { }
+    public struct Boolean { }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IEnumerable<T>
+    {
+        IEnumerator<T> GetEnumerator();
+    }
+
+    public interface IEnumerator<T>
+    {
+        T Current { get; }
+        bool MoveNext();
+    }
+}
+
+class C
+{
+    void Goo(System.Collections.Generic.IEnumerable<C>? e)
+    {
+        foreach (var c in e) { }
+    }
+}
+";
+            var expected = new[]
+            {
+                // (28,55): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(28, 55)
+            };
+            var comp = CreateEmptyCompilation(text, parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularDefault, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateEmptyCompilation(text, parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
+            comp.VerifyDiagnostics(
+                // (28,55): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     void Goo(System.Collections.Generic.IEnumerable<C>? e)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(28, 55)
+                );
         }
 
         [WorkItem(798000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798000")]
@@ -3000,7 +3057,7 @@ namespace System.Collections
             Assert.Equal("System.CharEnumerator System.String.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
             Assert.Equal("System.Char System.CharEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
             Assert.Equal("System.Boolean System.CharEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
-            Assert.True(info.NeedsDisposeMethod);
+            Assert.True(info.NeedsDisposal);
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
             Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
@@ -3009,11 +3066,77 @@ namespace System.Collections
             Assert.Equal(SpecialType.System_Char, boundNode.IterationVariables.Single().Type.SpecialType);
         }
 
-
-
-        private static BoundForEachStatement GetBoundForEachStatement(string text, params DiagnosticDescription[] diagnostics)
+        [Fact]
+        public void TestPatternDisposeRefStruct()
         {
-            var tree = Parse(text);
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+ref struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+    public void Dispose() {  }
+}";
+
+            var boundNode = GetBoundForEachStatement(text);
+            var enumeratorInfo = boundNode.EnumeratorInfoOpt;
+
+            Assert.Equal("void DisposableEnumerator.Dispose()", enumeratorInfo.DisposeMethod.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestPatternDisposeRefStruct_7_3()
+        {
+            var text = @"
+class C
+{
+    static void Main()
+    {
+        foreach (var x in new Enumerable1())
+        {
+            System.Console.WriteLine(x);
+        }
+    }
+}
+
+class Enumerable1
+{
+    public DisposableEnumerator GetEnumerator() { return new DisposableEnumerator(); }
+}
+
+ref struct DisposableEnumerator
+{
+    int x;
+    public int Current { get { return x; } }
+    public bool MoveNext() { return ++x < 4; }
+    public void Dispose() {  }
+}";
+
+            var boundNode = GetBoundForEachStatement(text, TestOptions.Regular7_3);
+            var enumeratorInfo = boundNode.EnumeratorInfoOpt;
+
+            Assert.Null(enumeratorInfo.DisposeMethod);
+        }
+
+        private static BoundForEachStatement GetBoundForEachStatement(string text, CSharpParseOptions options = null, params DiagnosticDescription[] diagnostics)
+        {
+            var tree = Parse(text, options: options);
             var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
 
             comp.VerifyDiagnostics(diagnostics);
@@ -3040,16 +3163,28 @@ namespace System.Collections
                 Assert.Equal(enumeratorInfo.CurrentPropertyGetter, statementInfo.CurrentProperty.GetMethod);
                 Assert.Equal(enumeratorInfo.MoveNextMethod, statementInfo.MoveNextMethod);
 
-                if (enumeratorInfo.NeedsDisposeMethod)
+                if (enumeratorInfo.NeedsDisposal)
                 {
-                    Assert.Equal("void System.IDisposable.Dispose()", statementInfo.DisposeMethod.ToTestDisplayString());
+                    if (!(enumeratorInfo.DisposeMethod is null))
+                    {
+                        Assert.Equal(enumeratorInfo.DisposeMethod, statementInfo.DisposeMethod);
+                    }
+                    else if (enumeratorInfo.IsAsync)
+                    {
+                        Assert.Equal("System.ValueTask System.IAsyncDisposable.DisposeAsync()", statementInfo.DisposeMethod.ToTestDisplayString());
+                    }
+                    else
+                    {
+                        Assert.Equal("void System.IDisposable.Dispose()", statementInfo.DisposeMethod.ToTestDisplayString());
+
+                    }
                 }
                 else
                 {
                     Assert.Null(statementInfo.DisposeMethod);
                 }
 
-                Assert.Equal(enumeratorInfo.ElementType, statementInfo.ElementType);
+                Assert.Equal(enumeratorInfo.ElementType.TypeSymbol, statementInfo.ElementType);
                 Assert.Equal(boundNode.ElementConversion, statementInfo.ElementConversion);
                 Assert.Equal(enumeratorInfo.CurrentConversion, statementInfo.CurrentConversion);
             }
@@ -3327,6 +3462,116 @@ class C
                 // (18,35): error CS8176: Iterators cannot have by-reference locals
                 //         foreach (ref readonly int x in new E())
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 35));
+        }
+
+
+        [Fact]
+        [WorkItem(30016, "https://github.com/dotnet/roslyn/issues/30016")]
+        public void ForEachIteratorWithCurrentRefKind_DontPassFieldByValue()
+        {
+            var source = @"
+using System;
+struct S1
+{
+    public int A;
+}
+class C
+{
+    public static void Main()
+    {
+        Span<S1> items = new Span<S1>(new S1[1]);
+        foreach (ref var t in items) t.A++; 
+        Console.WriteLine(items[0].A);
+    }
+}";
+            var comp = CreateCompilationWithMscorlibAndSpan(source, options: TestOptions.ReleaseDebugExe).VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "1");
+        }
+
+        [WorkItem(32334, "https://github.com/dotnet/roslyn/issues/32334")]
+        [Fact]
+        public void SuppressForEachMissingMemberErrorOnErrorType()
+        {
+            CreateCompilation(@"
+using System;
+using System.Collections.Generic;
+class C
+{
+    void Goo()
+    {
+
+        var nonsense = Nonsense;
+        //Should not have error
+        foreach(var item in nonsense) {}
+
+        var nonsense2 = new Nonsense();
+        //Should not have error
+        foreach(var item in nonsense2) {}
+
+        var lazyNonsense = default(Lazy<Nonsense>);
+        //Should have error
+        foreach(var item in lazyNonsense) {}
+
+        var listNonsense = new List<Nonsense>();
+        //Should not have error
+        foreach(var item in listNonsense) {}
+
+        var nonsenseArray = new Nonsense[0];
+        //Should not have error
+        foreach(var item in nonsenseArray) {}
+
+        var stringNonsense = new String.Nonsense();
+        //Should not have error
+        foreach(var item in stringNonsense) {}
+
+        var nonsenseString = new Nonsense.String();
+        //Should not have error
+        foreach(var item in nonsenseString) {}
+
+        Nonsense? nullableNonsense = default;
+        //Should not have error
+        foreach(var item in nullableNonsense) {}
+
+        var nonsenseTuple = (new Nonsense(), 42);
+        //Should have error
+        foreach(var item in nonsenseTuple) {}
+    }
+}
+").VerifyDiagnostics(
+                // (9,24): error CS0103: The name 'Nonsense' does not exist in the current context
+                //         var nonsense = Nonsense;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Nonsense").WithArguments("Nonsense").WithLocation(9, 24),
+                // (13,29): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var nonsense2 = new Nonsense();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(13, 29),
+                // (17,41): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var lazyNonsense = default(Lazy<Nonsense>);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(17, 41),
+                // (19,29): error CS1579: foreach statement cannot operate on variables of type 'Lazy<Nonsense>' because 'Lazy<Nonsense>' does not contain a public instance definition for 'GetEnumerator'
+                //         foreach(var item in lazyNonsense) {}
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "lazyNonsense").WithArguments("System.Lazy<Nonsense>", "GetEnumerator").WithLocation(19, 29),
+                // (21,37): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var listNonsense = new List<Nonsense>();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(21, 37),
+                // (25,33): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var nonsenseArray = new Nonsense[0];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(25, 33),
+                // (29,41): error CS0426: The type name 'Nonsense' does not exist in the type 'string'
+                //         var stringNonsense = new String.Nonsense();
+                Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "Nonsense").WithArguments("Nonsense", "string").WithLocation(29, 41),
+                // (33,34): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var nonsenseString = new Nonsense.String();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(33, 34),
+                // (37,9): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         Nonsense? nullableNonsense = default;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(37, 9),
+                // (41,34): error CS0246: The type or namespace name 'Nonsense' could not be found (are you missing a using directive or an assembly reference?)
+                //         var nonsenseTuple = (new Nonsense(), 42);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Nonsense").WithArguments("Nonsense").WithLocation(41, 34),
+                // (43,29): error CS1579: foreach statement cannot operate on variables of type '(Nonsense, int)' because '(Nonsense, int)' does not contain a public instance definition for 'GetEnumerator'
+                //         foreach(var item in nonsenseTuple) {}
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "nonsenseTuple").WithArguments("(Nonsense, int)", "GetEnumerator").WithLocation(43, 29));
         }
     }
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -104,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry
         {
             if (!_pendingScopes.TryRemove(blockId, out var value))
             {
-                Contract.Requires(false, "when can this happen?");
+                Debug.Assert(false, "when can this happen?");
                 return;
             }
 

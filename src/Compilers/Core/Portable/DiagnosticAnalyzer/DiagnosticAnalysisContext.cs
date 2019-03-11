@@ -85,6 +85,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds);
 
         /// <summary>
+        /// Register an action to be executed at start of semantic analysis of an <see cref="ISymbol"/> and its members with an appropriate Kind.
+        /// </summary>
+        /// <param name="action">Action to be executed.</param>
+        /// <param name="symbolKind">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches the given <see cref="SymbolKind"/>.</param>
+        public virtual void RegisterSymbolStartAction(Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Register an action to be executed at the start of semantic analysis of a method body or an expression appearing outside a method body.
         /// A code block start action can register other actions and/or collect state information to be used in diagnostic analysis,
         /// but cannot itself report any <see cref="Diagnostic"/>s.
@@ -337,6 +347,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
         public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds);
+
+        /// <summary>
+        /// Register an action to be executed at start of semantic analysis of an <see cref="ISymbol"/> and its members with an appropriate Kind.
+        /// </summary>
+        /// <param name="action">Action to be executed.</param>
+        /// <param name="symbolKind">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches the given <see cref="SymbolKind"/>.</param>
+        public virtual void RegisterSymbolStartAction(Action<SymbolStartAnalysisContext> action, SymbolKind symbolKind)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Register an action to be executed at the start of semantic analysis of a method body or an expression appearing outside a method body.
@@ -687,6 +707,123 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 _reportDiagnostic(diagnostic);
             }
         }
+    }
+
+    /// <summary>
+    /// Context for a symbol start action to analyze a symbol and its members.
+    /// A symbol start/end action can use a <see cref="SymbolStartAnalysisContext"/> to report <see cref="Diagnostic"/>s about code within a <see cref="ISymbol"/> and its members.
+    /// </summary>
+    public abstract class SymbolStartAnalysisContext
+    {
+        /// <summary>
+        /// <see cref="ISymbol"/> that is the subject of the analysis.
+        /// </summary>
+        public ISymbol Symbol { get; }
+
+        /// <summary>
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="ISymbol"/>.
+        /// </summary>
+        public Compilation Compilation { get; }
+
+        /// <summary>
+        /// Options specified for the analysis.
+        /// </summary>
+        public AnalyzerOptions Options { get; }
+
+        /// <summary>
+        /// Token to check for requested cancellation of the analysis.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
+
+        public SymbolStartAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        {
+            Symbol = symbol;
+            Compilation = compilation;
+            Options = options;
+            CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Register an action to be executed at end of semantic analysis of an <see cref="ISymbol"/> and its members.
+        /// A symbol end action reports <see cref="Diagnostic"/>s about the code within a <see cref="Symbol"/> and its members.
+        /// </summary>
+        /// <param name="action">Action to be executed at compilation end.</param>
+        public abstract void RegisterSymbolEndAction(Action<SymbolAnalysisContext> action);
+
+        /// <summary>
+        /// Register an action to be executed at the start of semantic analysis of a method body or an expression appearing outside a method body.
+        /// A code block start action can register other actions and/or collect state information to be used in diagnostic analysis,
+        /// but cannot itself report any <see cref="Diagnostic"/>s.
+        /// </summary>
+        /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
+        /// <param name="action">Action to be executed at the start of semantic analysis of a code block.</param>
+        public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
+
+        /// <summary> 
+        /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
+        /// A code block action reports <see cref="Diagnostic"/>s about code blocks. 
+        /// </summary> 
+        /// <param name="action">Action to be executed for a code block.</param> 
+        public abstract void RegisterCodeBlockAction(Action<CodeBlockAnalysisContext> action);
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/> with an appropriate Kind.
+        /// A syntax node action can report <see cref="Diagnostic"/>s about <see cref="SyntaxNode"/>s, and can also collect
+        /// state information to be used by other syntax node actions or code block end actions.
+        /// </summary>
+        /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
+        /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
+        /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
+        public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
+        {
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrEmpty());
+        }
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/> with an appropriate Kind.
+        /// A syntax node action can report <see cref="Diagnostic"/>s about <see cref="SyntaxNode"/>s, and can also collect
+        /// state information to be used by other syntax node actions or code block end actions.
+        /// </summary>
+        /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
+        /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
+        /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
+
+        /// <summary>
+        /// Register an action to be executed at the start of semantic analysis of a method body or an expression appearing outside a method body.
+        /// An operation block start action can register other actions and/or collect state information to be used in diagnostic analysis,
+        /// but cannot itself report any <see cref="Diagnostic"/>s.
+        /// </summary>
+        /// <param name="action">Action to be executed at the start of semantic analysis of an operation block.</param>
+        public abstract void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action);
+
+        /// <summary> 
+        /// Register an action to be executed after semantic analysis of a method body or an expression appearing outside a method body. 
+        /// An operation block action reports <see cref="Diagnostic"/>s about operation blocks. 
+        /// </summary> 
+        /// <param name="action">Action to be executed for an operation block.</param> 
+        public abstract void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action);
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
+        /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
+        /// state information to be used by other operation actions or code block end actions.
+        /// </summary>
+        /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
+        /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        public void RegisterOperationAction(Action<OperationAnalysisContext> action, params OperationKind[] operationKinds)
+        {
+            this.RegisterOperationAction(action, operationKinds.AsImmutableOrEmpty());
+        }
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="IOperation"/> with an appropriate Kind.
+        /// An operation action can report <see cref="Diagnostic"/>s about <see cref="IOperation"/>s, and can also collect
+        /// state information to be used by other operation actions or code block end actions.
+        /// </summary>
+        /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
+        /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
+        public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
     }
 
     /// <summary>

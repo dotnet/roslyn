@@ -109,7 +109,7 @@ namespace Roslyn.Utilities
         /// Get directory name from path.
         /// </summary>
         /// <remarks>
-        /// Unlike <see cref="System.IO.Path.GetDirectoryName"/> it doesn't check for invalid path characters
+        /// Unlike <see cref="System.IO.Path.GetDirectoryName(string)"/> it doesn't check for invalid path characters
         /// </remarks>
         /// <returns>Prefix of path that represents a directory</returns>
         public static string GetDirectoryName(string path)
@@ -627,8 +627,8 @@ namespace Roslyn.Utilities
                 return true;
             }
 
-            return IsUnixLikePlatform 
-                ? x == y 
+            return IsUnixLikePlatform
+                ? x == y
                 : char.ToUpperInvariant(x) == char.ToUpperInvariant(y);
         }
 
@@ -687,7 +687,7 @@ namespace Roslyn.Utilities
         }
 
         /// <summary>
-        /// Unfortunatelly, we cannot depend on Path.GetInvalidPathChars() or Path.GetInvalidFileNameChars()
+        /// Unfortunately, we cannot depend on Path.GetInvalidPathChars() or Path.GetInvalidFileNameChars()
         /// From MSDN: The array returned from this method is not guaranteed to contain the complete set of characters
         /// that are invalid in file and directory names. The full set of invalid characters can vary by file system.
         /// https://msdn.microsoft.com/en-us/library/system.io.path.getinvalidfilenamechars.aspx

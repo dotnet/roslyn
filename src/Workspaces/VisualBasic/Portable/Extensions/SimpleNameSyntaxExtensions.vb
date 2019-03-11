@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SimpleNameSyntaxExtensions
         <Extension()>
         Public Function GetLeftSideOfDot(name As SimpleNameSyntax) As ExpressionSyntax
-            Contract.Requires(IsMemberAccessExpressionName(name) OrElse IsRightSideOfQualifiedName(name))
+            Debug.Assert(IsMemberAccessExpressionName(name) OrElse IsRightSideOfQualifiedName(name))
             If IsMemberAccessExpressionName(name) Then
                 Return DirectCast(name.Parent, MemberAccessExpressionSyntax).Expression
             Else

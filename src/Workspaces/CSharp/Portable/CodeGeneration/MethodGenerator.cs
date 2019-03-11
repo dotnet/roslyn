@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public static MethodDeclarationSyntax GenerateMethodDeclaration(
-            IMethodSymbol method, CodeGenerationDestination destination, 
+            IMethodSymbol method, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options,
             ParseOptions parseOptions)
         {
@@ -81,12 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static MethodDeclarationSyntax GenerateMethodDeclarationWorker(
-            IMethodSymbol method, CodeGenerationDestination destination, 
+            IMethodSymbol method, CodeGenerationDestination destination,
             Workspace workspace, CodeGenerationOptions options, ParseOptions parseOptions)
         {
-            var hasNoBody = !options.GenerateMethodBodies ||
-                            destination == CodeGenerationDestination.InterfaceType ||
-                            method.IsAbstract;
+            // Don't rely on destination to decide if method body should be generated.
+            // Users of this service need to express their intention explicitly, either by  
+            // setting `CodeGenerationOptions.GenerateMethodBodies` to true, or making 
+            // `method` abstract. This would provide more flexibility.
+            var hasNoBody = !options.GenerateMethodBodies || method.IsAbstract;
 
             var explicitInterfaceSpecifier = GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations);
 
@@ -114,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (methodDeclaration.ExpressionBody == null)
             {
                 var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods).Value;
-                if (methodDeclaration.Body.TryConvertToExpressionBody(
+                if (methodDeclaration.Body.TryConvertToArrowExpressionBody(
                         methodDeclaration.Kind(), options, expressionBodyPreference,
                         out var expressionBody, out var semicolonToken))
                 {

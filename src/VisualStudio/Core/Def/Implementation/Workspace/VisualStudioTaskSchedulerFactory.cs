@@ -3,73 +3,66 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Editor.Implementation.Workspaces;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Utilities;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
-using System.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
     [ExportWorkspaceService(typeof(IWorkspaceTaskSchedulerFactory), ServiceLayer.Host), Shared]
     internal class VisualStudioTaskSchedulerFactory : EditorTaskSchedulerFactory
     {
+        private readonly IThreadingContext _threadingContext;
+
         [ImportingConstructor]
-        public VisualStudioTaskSchedulerFactory(IAsynchronousOperationListenerProvider listenerProvider)
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public VisualStudioTaskSchedulerFactory(IThreadingContext threadingContext, IAsynchronousOperationListenerProvider listenerProvider)
             : base(listenerProvider)
         {
+            _threadingContext = threadingContext;
         }
 
         public override IWorkspaceTaskScheduler CreateEventingTaskQueue()
         {
-            // When we are creating the workspace, we might not actually have established what the UI thread is, since
-            // we might be getting created via MEF. So we'll allow the queue to be created now, and once we actually need
-            // to queue something we'll then start using the task queue from there.
-            // In Visual Studio, we raise these events on the UI thread. At this point we should know
-            // exactly which thread that is.
-            return new VisualStudioTaskScheduler(this);
+            return new WorkspaceTaskQueue(this, new JoinableTaskFactoryTaskScheduler(_threadingContext.JoinableTaskFactory));
         }
 
-        private class VisualStudioTaskScheduler : IWorkspaceTaskScheduler
+        private class JoinableTaskFactoryTaskScheduler : TaskScheduler
         {
-            private readonly Lazy<WorkspaceTaskQueue> _queue;
-            private readonly WorkspaceTaskSchedulerFactory _factory;
+            private readonly JoinableTaskFactory _joinableTaskFactory;
 
-            public VisualStudioTaskScheduler(WorkspaceTaskSchedulerFactory factory)
+            public JoinableTaskFactoryTaskScheduler(JoinableTaskFactory joinableTaskFactory)
             {
-                _factory = factory;
-                _queue = new Lazy<WorkspaceTaskQueue>(CreateQueue);
+                _joinableTaskFactory = joinableTaskFactory;
             }
 
-            private WorkspaceTaskQueue CreateQueue()
+            public override int MaximumConcurrencyLevel => 1;
+
+            protected override IEnumerable<Task> GetScheduledTasks() => null;
+
+            protected override void QueueTask(Task task)
             {
-                // At this point, we have to know what the UI thread is.
-                Contract.ThrowIfTrue(ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.Kind == ForegroundThreadDataKind.Unknown);
-                return new WorkspaceTaskQueue(_factory, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
+                _joinableTaskFactory.RunAsync(async () =>
+                {
+                    await _joinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true);
+                    TryExecuteTask(task);
+                });
             }
 
-            public Task ScheduleTask(Action taskAction, string taskName, CancellationToken cancellationToken = default)
+            protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
             {
-                return _queue.Value.ScheduleTask(taskAction, taskName, cancellationToken);
-            }
+                if (_joinableTaskFactory.Context.IsOnMainThread)
+                {
+                    return TryExecuteTask(task);
+                }
 
-            public Task<T> ScheduleTask<T>(Func<T> taskFunc, string taskName, CancellationToken cancellationToken = default)
-            {
-                return _queue.Value.ScheduleTask(taskFunc, taskName, cancellationToken);
-            }
-
-            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default)
-            {
-                return _queue.Value.ScheduleTask(taskFunc, taskName, cancellationToken);
-            }
-
-            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default)
-            {
-                return _queue.Value.ScheduleTask(taskFunc, taskName, cancellationToken);
+                return false;
             }
         }
     }

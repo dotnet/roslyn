@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -15,16 +17,23 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         private const string module1FileName = "Module1.vb";
 
-        public BasicEditAndContinue(VisualStudioInstanceFactory instanceFactory) : base(instanceFactory)
+        public BasicEditAndContinue(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
+        }
+
+        protected override string LanguageName => LanguageNames.VisualBasic;
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync();
+
             VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var testProj = new ProjectUtils.Project("TestProj");
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        protected override string LanguageName => LanguageNames.VisualBasic;
-
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [WpfFact]
         public void UpdateActiveStatementLeafNode()
         {
             VisualStudio.Editor.SetText(@"
@@ -55,7 +64,7 @@ End Module
             VisualStudio.Debugger.CheckExpression("names(1)", "String", "\"bar\"");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [WpfFact]
         public void AddTryCatchAroundActiveStatement()
         {
             VisualStudio.Editor.SetText(@"
@@ -83,7 +92,7 @@ End Try");
             VisualStudio.Editor.Verify.CurrentLineText("End Try");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [WpfFact]
         public void EditLambdaExpression()
         {
             VisualStudio.Editor.SetText(@"
@@ -114,7 +123,7 @@ End Module");
             VisualStudio.ErrorList.Verify.NoBuildErrors();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [WpfFact]
         public void EnCWhileDebuggingFromImmediateWindow()
         {
             VisualStudio.Editor.SetText(@"
@@ -137,7 +146,7 @@ End Module");
             VisualStudio.Debugger.ExecuteStatement("Module1.Main()");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [WpfFact]
         private void SetupMultiProjectSolution()
         {
             var basicLibrary = new ProjectUtils.Project("BasicLibrary1");
@@ -179,7 +188,7 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [WpfFact]
         public void MultiProjectDebuggingWhereNotAllModulesAreLoaded()
         {
             SetupMultiProjectSolution();
@@ -190,7 +199,7 @@ End Module
             VisualStudio.ErrorList.Verify.NoErrors();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [WpfFact]
         public void DocumentStateTrackingReadonlyInRunMode()
         {
             SetupMultiProjectSolution();
@@ -209,7 +218,7 @@ End Module
 ");
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.Debugger.Go(waitForBreakMode: false);
-            VisualStudio.ActivateMainWindow(skipAttachingThreads: true);
+            VisualStudio.ActivateMainWindow();
             VisualStudio.SolutionExplorer.OpenFile(project, module1FileName);
 
             VisualStudio.SendKeys.Send(VirtualKey.T);
@@ -233,14 +242,14 @@ End Module
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
             VisualStudio.SendKeys.Send(VirtualKey.T);
 
-            string microsoftVisualStudionDialogName = "Microsoft Visual Studio";
-            VisualStudio.Dialog.VerifyOpen(microsoftVisualStudionDialogName);
-            VisualStudio.Dialog.Click(microsoftVisualStudionDialogName, "OK");
-            VisualStudio.Dialog.VerifyClosed(microsoftVisualStudionDialogName);
+            string microsoftVisualStudioDialogName = "Microsoft Visual Studio";
+            VisualStudio.Dialog.VerifyOpen(microsoftVisualStudioDialogName);
+            VisualStudio.Dialog.Click(microsoftVisualStudioDialogName, "OK");
+            VisualStudio.Dialog.VerifyClosed(microsoftVisualStudioDialogName);
             VisualStudio.Editor.Verify.IsProjectItemDirty(expectedValue: false);
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [WpfFact]
         public void LocalsWindowUpdatesAfterLocalGetsItsTypeUpdatedDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -263,7 +272,7 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("goo", "Single", "10");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [WpfFact]
         public void LocalsWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"
@@ -296,7 +305,7 @@ End Module
             VisualStudio.LocalsWindow.Verify.CheckEntry("lLng", "Long", "444");
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/21925")]
+        [WpfFact]
         public void WatchWindowUpdatesCorrectlyDuringEnC()
         {
             VisualStudio.Editor.SetText(@"

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
         {
             Contract.ThrowIfNull(root);
             Contract.ThrowIfTrue(textSpan.IsEmpty);
-            Contract.Requires(Enum.GetNames(typeof(TriviaLocation)).Length == TriviaLocationsCount);
+            Debug.Assert(Enum.GetNames(typeof(TriviaLocation)).Length == TriviaLocationsCount);
 
             var tokens = GetTokensAtEdges(root, textSpan);
 

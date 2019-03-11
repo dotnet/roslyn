@@ -22,6 +22,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
             }
         }
 
+        internal static async Task GenerateAndVerifySourceLineAsync(string source, string language, string expected)
+        {
+            using (var context = TestContext.Create(language, sourceWithSymbolReference: source))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                var document = context.GetDocument(metadataAsSourceFile);
+                var text = await document.GetTextAsync();
+                var line = text.Lines.GetLineFromPosition(metadataAsSourceFile.IdentifierLocation.SourceSpan.Start);
+                var lineText = line.ToString().Trim();
+
+                Assert.Equal(expected, lineText);
+            }
+        }
+
         internal static async Task TestNotReusedOnAssemblyDiffersAsync(string projectLanguage)
         {
             var metadataSources = new[]

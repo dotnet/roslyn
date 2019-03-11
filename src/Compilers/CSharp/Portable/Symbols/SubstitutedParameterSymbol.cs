@@ -2,8 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -42,40 +40,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol; }
         }
 
-        public override TypeSymbol Type
+        public override TypeSymbolWithAnnotations Type
         {
             get
             {
                 var mapOrType = _mapOrType;
-                var type = mapOrType as TypeSymbol;
-                if (type != null)
+                if (mapOrType is TypeSymbolWithAnnotations type)
                 {
                     return type;
                 }
 
-                TypeWithModifiers substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.Type);
+                TypeSymbolWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.Type);
 
-                type = substituted.Type;
-
-                if (substituted.CustomModifiers.IsEmpty && 
-                    this._underlyingParameter.CustomModifiers.IsEmpty &&
+                if (substituted.CustomModifiers.IsEmpty &&
+                    this._underlyingParameter.Type.CustomModifiers.IsEmpty &&
                     this._underlyingParameter.RefCustomModifiers.IsEmpty)
                 {
-                    _mapOrType = type;
+                    _mapOrType = substituted;
                 }
 
-                return type;
+                return substituted;
             }
         }
 
-        public override ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                var map = _mapOrType as TypeMap;
-                return map != null ? map.SubstituteCustomModifiers(this._underlyingParameter.Type, this._underlyingParameter.CustomModifiers) : this._underlyingParameter.CustomModifiers;
-            }
-        }
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

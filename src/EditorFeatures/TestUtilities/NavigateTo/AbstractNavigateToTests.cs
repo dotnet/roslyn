@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
@@ -75,12 +74,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             await TestAsync(content, BodyWrapper, outOfProcess: false);
 
             Assert.Contains((true, null), testedCombinations);
-            Assert.Contains((true, typeof(FirstDocIsActiveDocumentTrackingService)), testedCombinations);
             Assert.Contains((true, typeof(FirstDocIsVisibleDocumentTrackingService)), testedCombinations);
             Assert.Contains((true, typeof(FirstDocIsActiveAndVisibleDocumentTrackingService)), testedCombinations);
 
             Assert.Contains((false, null), testedCombinations);
-            Assert.Contains((false, typeof(FirstDocIsActiveDocumentTrackingService)), testedCombinations);
             Assert.Contains((false, typeof(FirstDocIsVisibleDocumentTrackingService)), testedCombinations);
             Assert.Contains((false, typeof(FirstDocIsActiveAndVisibleDocumentTrackingService)), testedCombinations);
 
@@ -90,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             Task BodyWrapper(TestWorkspace workspace)
             {
                 // Track the current test setup
-                var outOfProcess = workspace.Options.GetOption(RemoteFeatureOptions.OutOfProcessAllowed);
+                var outOfProcess = workspace.Options.GetOption(RemoteHostOptions.RemoteHostTest);
                 var documentTrackingServiceType = workspace.Services.GetService<IDocumentTrackingService>()?.GetType();
                 testedCombinations.Add((outOfProcess, documentTrackingServiceType));
 
@@ -102,21 +99,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         private async Task TestAsync(string content, Func<TestWorkspace, Task> body, bool outOfProcess)
         {
             await TestAsync(content, body, outOfProcess, null);
-            await TestAsync(content, body, outOfProcess, w => new FirstDocIsActiveDocumentTrackingService(w.Workspace));
             await TestAsync(content, body, outOfProcess, w => new FirstDocIsVisibleDocumentTrackingService(w.Workspace));
             await TestAsync(content, body, outOfProcess, w => new FirstDocIsActiveAndVisibleDocumentTrackingService(w.Workspace));
         }
 
         private async Task TestAsync(
-            string content, Func<TestWorkspace, Task> body, bool outOfProcess, 
+            string content, Func<TestWorkspace, Task> body, bool outOfProcess,
             Func<HostWorkspaceServices, IDocumentTrackingService> createTrackingService)
         {
             using (var workspace = SetupWorkspace(content, createTrackingService))
             {
-                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
-                                                     .WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
-                                                     .WithChangedOption(RemoteFeatureOptions.NavigateToEnabled, outOfProcess);
-
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess);
                 await body(workspace);
             }
         }
@@ -178,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         }
 
         internal void VerifyNavigateToResultItem(
-            NavigateToItem result, string name, string displayMarkup, 
+            NavigateToItem result, string name, string displayMarkup,
             PatternMatchKind matchKind, string navigateToItemKind,
             Glyph glyph, string additionalInfo = null)
         {
@@ -238,25 +231,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             return result;
         }
 
-        private class FirstDocIsActiveDocumentTrackingService : IDocumentTrackingService
-        {
-            private readonly Workspace _workspace;
-
-            public FirstDocIsActiveDocumentTrackingService(Workspace workspace)
-            {
-                _workspace = workspace;
-            }
-
-            public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
-            public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
-
-            public DocumentId GetActiveDocument()
-                => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
-
-            public ImmutableArray<DocumentId> GetVisibleDocuments()
-                => ImmutableArray<DocumentId>.Empty;
-        }
-
         private class FirstDocIsVisibleDocumentTrackingService : IDocumentTrackingService
         {
             private readonly Workspace _workspace;
@@ -269,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
-            public DocumentId GetActiveDocument()
+            public DocumentId TryGetActiveDocument()
                 => null;
 
             public ImmutableArray<DocumentId> GetVisibleDocuments()
@@ -288,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             public event EventHandler<DocumentId> ActiveDocumentChanged { add { } remove { } }
             public event EventHandler<EventArgs> NonRoslynBufferTextChanged { add { } remove { } }
 
-            public DocumentId GetActiveDocument()
+            public DocumentId TryGetActiveDocument()
                 => _workspace.CurrentSolution.Projects.First().DocumentIds.First();
 
             public ImmutableArray<DocumentId> GetVisibleDocuments()

@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IStreamingFindReferencesProgress _progress;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
+        private readonly FindReferencesSearchOptions _options;
 
         /// <summary>
         /// Mapping from a document to the list of reference locations found in it.  Kept around so
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             ImmutableArray<IReferenceFinder> finders,
             IStreamingFindReferencesProgress progress,
+            FindReferencesSearchOptions options,
             CancellationToken cancellationToken)
         {
             _documents = documents;
@@ -48,6 +50,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _progress = progress;
             _cancellationToken = cancellationToken;
             _dependencyGraph = solution.GetProjectDependencyGraph();
+            _options = options;
 
             _progressTracker = new StreamingProgressTracker(progress.ReportProgressAsync);
         }
@@ -88,10 +91,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // it.
                 // For each connected component, we'll process the individual projects from bottom to
                 // top.  i.e. we'll first process the projects with no dependencies.  Then the projects
-                // that depend on those projects, and so and.  This way we always have creates the 
+                // that depend on those projects, and so on.  This way we always have created the 
                 // dependent compilations when they're needed by later projects.  If we went the other
                 // way (i.e. processed the projects with lots of project dependencies first), then we'd
-                // have to create all their depedent compilations in order to get their compilation.
+                // have to create all their dependent compilations in order to get their compilation.
                 // This would be very expensive and would take a lot of time before we got our first
                 // result.
                 var connectedProjects = _dependencyGraph.GetDependencySets(_cancellationToken);
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     foreach (var finder in documentToFinderList.Value)
                     {
-                        Contract.Requires(set.Add(finder));
+                        Debug.Assert(set.Add(finder));
                     }
                 }
             }

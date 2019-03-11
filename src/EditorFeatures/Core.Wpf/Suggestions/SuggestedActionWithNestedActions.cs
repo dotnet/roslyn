@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 
@@ -19,10 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         public readonly SuggestedActionSet NestedActionSet;
 
         public SuggestedActionWithNestedActions(
-            SuggestedActionsSourceProvider sourceProvider, Workspace workspace, 
-            ITextBuffer subjectBuffer, object provider, 
-            CodeAction codeAction, SuggestedActionSet nestedActionSet) 
-            : base(sourceProvider, workspace, subjectBuffer, provider, codeAction)
+            IThreadingContext threadingContext,
+            SuggestedActionsSourceProvider sourceProvider, Workspace workspace,
+            ITextBuffer subjectBuffer, object provider,
+            CodeAction codeAction, SuggestedActionSet nestedActionSet)
+            : base(threadingContext, sourceProvider, workspace, subjectBuffer, provider, codeAction)
         {
             NestedActionSet = nestedActionSet;
         }

@@ -91,6 +91,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute);
         }
 
+        public static TypeSymbolWithAnnotations DecodeTupleTypesIfApplicable(
+            TypeSymbolWithAnnotations metadataType,
+            EntityHandle targetHandle,
+            PEModuleSymbol containingModule)
+        {
+            ImmutableArray<string> elementNames;
+            var hasTupleElementNamesAttribute = containingModule
+                .Module
+                .HasTupleElementNamesAttribute(targetHandle, out elementNames);
+
+            // If we have the TupleElementNamesAttribute, but no names, that's
+            // bad metadata
+            if (hasTupleElementNamesAttribute && elementNames.IsDefaultOrEmpty)
+            {
+                return TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
+            }
+
+            TypeSymbol type = metadataType.TypeSymbol;
+            TypeSymbol decoded = DecodeTupleTypesInternal(type, elementNames, hasTupleElementNamesAttribute);
+            return (object)decoded == (object)type ?
+                metadataType :
+                TypeSymbolWithAnnotations.Create(decoded, metadataType.NullableAnnotation, metadataType.CustomModifiers);
+        }
+
         public static TypeSymbol DecodeTupleTypesIfApplicable(
             TypeSymbol metadataType,
             ImmutableArray<string> elementNames)
@@ -159,9 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // flow up a SubstituteWith/Without tuple unification to the top level
                     // of the type map and change DecodeOrThrow to call into the substitution
                     // without unification instead.
-                    return type.IsTupleType
-                        ? DecodeNamedType(type.TupleUnderlyingType)
-                        : DecodeNamedType((NamedTypeSymbol)type);
+                    return DecodeNamedType(type.IsTupleType ? type.TupleUnderlyingType : (NamedTypeSymbol)type);
 
                 case SymbolKind.ArrayType:
                     return DecodeArrayType((ArrayTypeSymbol)type);
@@ -197,10 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var typeArgsChanged = typeArgs != decodedArgs;
             if (typeArgsChanged || containerChanged)
             {
-                var newTypeArgs = type.HasTypeArgumentsCustomModifiers
-                    ? decodedArgs.SelectAsArray((t, i, m) => new TypeWithModifiers(t, m.GetTypeArgumentCustomModifiers(i)), type)
-                    : decodedArgs.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers);
-
                 if (containerChanged)
                 {
                     decodedType = decodedType.OriginalDefinition.AsMember(decodedContainingType);
@@ -208,10 +226,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // not a tuple, since we know all tuple-compatible types (System.ValueTuple)
                     // are not nested types. Thus, it is safe to return without checking if
                     // Inner is a tuple.
-                    return decodedType.ConstructIfGeneric(newTypeArgs);
+                    return decodedType.ConstructIfGeneric(decodedArgs);
                 }
 
-                decodedType = type.ConstructedFrom.Construct(newTypeArgs, unbound: false);
+                decodedType = type.ConstructedFrom.Construct(decodedArgs, unbound: false);
             }
 
             // Now decode into a tuple, if it is one
@@ -228,21 +246,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return decodedType;
         }
 
-        private ImmutableArray<TypeSymbol> DecodeTypeArguments(ImmutableArray<TypeSymbol> typeArgs)
+        private ImmutableArray<TypeSymbolWithAnnotations> DecodeTypeArguments(ImmutableArray<TypeSymbolWithAnnotations> typeArgs)
         {
             if (typeArgs.IsEmpty)
             {
                 return typeArgs;
             }
 
-            var decodedArgs = ArrayBuilder<TypeSymbol>.GetInstance(typeArgs.Length);
+            var decodedArgs = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(typeArgs.Length);
             var anyDecoded = false;
             // Visit the type arguments in reverse
             for (int i = typeArgs.Length - 1; i >= 0; i--)
             {
-                var typeArg = typeArgs[i];
-                var decoded = DecodeType(typeArg);
-                anyDecoded |= !ReferenceEquals(decoded, typeArg);
+                TypeSymbolWithAnnotations typeArg = typeArgs[i];
+                TypeSymbolWithAnnotations decoded = DecodeTypeInternal(typeArg);
+                anyDecoded |= !decoded.IsSameAs(typeArg);
                 decodedArgs.Add(decoded);
             }
 
@@ -258,10 +276,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ArrayTypeSymbol DecodeArrayType(ArrayTypeSymbol type)
         {
-            var decodedElementType = DecodeType(type.ElementType);
-            return ReferenceEquals(decodedElementType, type.ElementType)
-                ? type
-                : type.WithElementType(decodedElementType);
+            TypeSymbolWithAnnotations decodedElementType = DecodeTypeInternal(type.ElementType);
+            return type.WithElementType(decodedElementType);
+        }
+
+        private TypeSymbolWithAnnotations DecodeTypeInternal(TypeSymbolWithAnnotations typeWithAnnotations)
+        {
+            TypeSymbol type = typeWithAnnotations.TypeSymbol;
+            TypeSymbol decoded = DecodeType(type);
+            return ReferenceEquals(decoded, type) ?
+                typeWithAnnotations :
+                TypeSymbolWithAnnotations.Create(decoded, typeWithAnnotations.NullableAnnotation, typeWithAnnotations.CustomModifiers);
         }
 
         private ImmutableArray<string> EatElementNamesIfAvailable(int numberOfElements)

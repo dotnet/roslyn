@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -376,34 +377,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var includeDiagnosticMessagesAsComments = (language == CSharp);
             int indentDepth = (language == CSharp) ? 4 : 1;
 
-            StringBuilder assertText = new StringBuilder();
+            if (IsSortedOrEmpty(expected))
+            {
+                // If this is a new test (empty expectations) or a test that's already sorted,
+                // we sort the actual diagnostics to minimize diff noise as diagnostics change.
+                actual = Sort(actual);
+            }
+
+            var assertText = new StringBuilder();
             assertText.AppendLine();
 
             // write out the error baseline as method calls
             int i;
             assertText.AppendLine("Expected:");
-            var expectedText = new StringBuilder();
-            for (i = 0; i < expected.Length; i++)
+            var expectedText = ArrayBuilder<string>.GetInstance();
+            foreach (var d in expected)
             {
-                var d = expected[i];
-                AppendDiagnosticDescription(expectedText, d, indentDepth);
-
-                if (i < expected.Length - 1)
-                {
-                    expectedText.Append(",");
-                }
-
-                expectedText.AppendLine();
+                expectedText.Add(GetDiagnosticDescription(d, indentDepth));
             }
-            assertText.Append(expectedText);
+            GetCommaSeparatedLines(assertText, expectedText);
 
             // write out the actual results as method calls (copy/paste this to update baseline)
             assertText.AppendLine("Actual:");
-            var actualText = new StringBuilder();
+            var actualText = ArrayBuilder<string>.GetInstance();
             var e = actual.GetEnumerator();
             for (i = 0; e.MoveNext(); i++)
             {
-                var d = e.Current;
+                Diagnostic d = e.Current;
                 string message = d.ToString();
                 if (Regex.Match(message, @"{\d+}").Success)
                 {
@@ -413,7 +413,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (i > 0)
                 {
                     assertText.AppendLine(",");
-                    actualText.AppendLine(",");
                 }
 
                 if (includeDiagnosticMessagesAsComments)
@@ -437,30 +436,99 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     diffDescription = expected[idx];
                 }
-                AppendDiagnosticDescription(assertText, description, indentDepth);
-                AppendDiagnosticDescription(actualText, diffDescription, indentDepth);
+                assertText.Append(GetDiagnosticDescription(description, indentDepth));
+                actualText.Add(GetDiagnosticDescription(diffDescription, indentDepth));
             }
             if (i > 0)
             {
                 assertText.AppendLine();
-                actualText.AppendLine();
             }
 
             assertText.AppendLine("Diff:");
-            assertText.Append(DiffUtil.DiffReport(expectedText.ToString(), actualText.ToString()));
+            assertText.Append(DiffUtil.DiffReport(expectedText, actualText, separator: Environment.NewLine));
+
+            actualText.Free();
+            expectedText.Free();
 
             return assertText.ToString();
         }
 
-        private static void AppendDiagnosticDescription(StringBuilder sb, DiagnosticDescription d, int indentDepth)
+        private static IEnumerable<Diagnostic> Sort(IEnumerable<Diagnostic> diagnostics)
         {
-            Indent(sb, indentDepth);
-            sb.Append(d.ToString());
+            return diagnostics.OrderBy(d => d.Location.GetMappedLineSpan().StartLinePosition, LinePositionComparer.Instance);
+        }
+
+        private static bool IsSortedOrEmpty(DiagnosticDescription[] diagnostics)
+        {
+            var comparer = LinePositionComparer.Instance;
+            DiagnosticDescription last = null;
+            foreach (var diagnostic in diagnostics)
+            {
+                if (diagnostic._startPosition == null)
+                {
+                    return false;
+                }
+                if (last != null && comparer.Compare(last._startPosition, diagnostic._startPosition) > 0)
+                {
+                    return false;
+                }
+                last = diagnostic;
+            }
+            return true;
+        }
+
+        private static string GetDiagnosticDescription(DiagnosticDescription d, int indentDepth)
+        {
+            return new string(' ', 4 * indentDepth) + d.ToString();
         }
 
         private static void Indent(StringBuilder sb, int count)
         {
             sb.Append(' ', 4 * count);
+        }
+
+        private static void GetCommaSeparatedLines(StringBuilder sb, ArrayBuilder<string> lines)
+        {
+            int n = lines.Count;
+            for (int i = 0; i < n; i++)
+            {
+                sb.Append(lines[i]);
+                if (i < n - 1)
+                {
+                    sb.Append(',');
+                }
+                sb.AppendLine();
+            }
+        }
+
+        private class LinePositionComparer : IComparer<LinePosition?>
+        {
+            internal static LinePositionComparer Instance = new LinePositionComparer();
+
+            public int Compare(LinePosition? x, LinePosition? y)
+            {
+                if (x == null)
+                {
+                    if (y == null)
+                    {
+                        return 0;
+                    }
+                    return -1;
+                }
+
+                if (y == null)
+                {
+                    return 1;
+                }
+
+                int lineDiff = x.Value.Line.CompareTo(y.Value.Line);
+                if (lineDiff != 0)
+                {
+                    return lineDiff;
+                }
+
+                return x.Value.Character.CompareTo(y.Value.Character);
+            }
         }
     }
 }

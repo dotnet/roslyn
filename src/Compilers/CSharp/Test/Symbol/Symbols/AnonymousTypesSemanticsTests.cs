@@ -1317,7 +1317,7 @@ public class ClassA
     }
 }";
             var data = Compile(source, 1,
-                // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (var v1 =    new { }   )
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 =    new { }").WithArguments("<empty anonymous type>")
             );
@@ -1354,7 +1354,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
   Initializer: 
     null";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
                 //         using (/*<bind>*/var v1 = new { }/*</bind>*/)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 = new { }").WithArguments("<empty anonymous type>").WithLocation(6, 26)
             };
@@ -1705,6 +1705,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
 
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
         [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
         [ClrOnlyFact]
         public void TestAnonymousTypeInsideGroupBy_Enumerable()

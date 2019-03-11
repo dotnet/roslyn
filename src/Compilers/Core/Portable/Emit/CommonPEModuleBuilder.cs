@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Emit
         internal IEnumerable<Cci.IWin32Resource> Win32Resources;
         internal Cci.ResourceSection Win32ResourceSection;
         internal Stream SourceLinkStreamOpt;
-        
+
         internal Cci.IMethodReference PEEntryPoint;
         internal Cci.IMethodReference DebugEntryPoint;
-       
+
         private readonly ConcurrentDictionary<IMethodSymbol, Cci.IMethodBody> _methodBodyMap;
         private readonly TokenMap<Cci.IReference> _referencesInILMap = new TokenMap<Cci.IReference>();
         private readonly ItemTokenMap<string> _stringsInILMap = new ItemTokenMap<string>();
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public abstract Cci.ITypeReference GetPlatformType(Cci.PlatformType platformType, EmitContext context);
         public abstract bool IsPlatformType(Cci.ITypeReference typeRef, Cci.PlatformType platformType);
         public abstract IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context);
-        
+
         /// <summary>
         /// A list of the files that constitute the assembly. Empty for netmodule. These are not the source language files that may have been
         /// used to compile the assembly, but the files that contain constituent modules of a multi-module assembly as well
@@ -176,7 +176,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// provide a basis for approximating the capacities of
         /// various databases used during Emit.
         /// </summary>
-        public int HintNumberOfMethodDefinitions => _methodBodyMap.Count;
+        public int HintNumberOfMethodDefinitions
+            // Try to guess at the size of tables to prevent re-allocation. The method body
+            // map is pretty close, but unfortunately it tends to undercount. x1.5 seems like
+            // a healthy amount of room based on compiling Roslyn.
+            => (int)(_methodBodyMap.Count * 1.5);
 
         internal Cci.IMethodBody GetMethodBody(IMethodSymbol methodSymbol)
         {
@@ -343,9 +347,16 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
         }
-        
+
         public ImmutableArray<Cci.ManagedResource> GetResources(EmitContext context)
         {
+            if (context.IsRefAssembly)
+            {
+                // Manifest resources are not included in ref assemblies
+                // Ref assemblies don't support added modules
+                return ImmutableArray<Cci.ManagedResource>.Empty;
+            }
+
             if (_lazyManagedResources.IsDefault)
             {
                 var builder = ArrayBuilder<Cci.ManagedResource>.GetInstance();
@@ -369,9 +380,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public IEnumerable<EmbeddedText> EmbeddedTexts
         {
-            get 
-            { 
-                return _embeddedTexts; 
+            get
+            {
+                return _embeddedTexts;
             }
             set
             {
@@ -428,7 +439,7 @@ namespace Microsoft.CodeAnalysis.Emit
             IEnumerable<ResourceDescription> manifestResources,
             OutputKind outputKind,
             EmitOptions emitOptions,
-            TModuleCompilationState compilationState) 
+            TModuleCompilationState compilationState)
             : base(manifestResources, emitOptions, outputKind, serializationProperties, compilation)
         {
             Debug.Assert(sourceModule != null);
@@ -446,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal override IAssemblySymbol CommonCorLibrary => CorLibrary;
         internal abstract TAssemblySymbol CorLibrary { get; }
-        
+
         internal abstract Cci.INamedTypeReference GetSystemType(TSyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.INamedTypeReference GetSpecialType(SpecialType specialType, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
 
@@ -477,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         public override IEnumerable<Cci.INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
-            Cci.NoPiaReferenceIndexer noPiaIndexer = null;
+            Cci.TypeReferenceIndexer typeReferenceIndexer = null;
             HashSet<string> names;
 
             // First time through, we need to collect emitted names of all top level types.
@@ -490,30 +501,34 @@ namespace Microsoft.CodeAnalysis.Emit
                 names = null;
             }
 
-            // First time through, we need to push things through NoPiaReferenceIndexer
+            // First time through, we need to push things through TypeReferenceIndexer
             // to make sure we collect all to be embedded NoPia types and members.
             if (EmbeddedTypesManagerOpt != null && !EmbeddedTypesManagerOpt.IsFrozen)
             {
-                noPiaIndexer = new Cci.NoPiaReferenceIndexer(context);
+                typeReferenceIndexer = new Cci.TypeReferenceIndexer(context);
                 Debug.Assert(names != null);
-                this.Dispatch(noPiaIndexer);
+
+                // Run this reference indexer on the assembly- and module-level attributes first.
+                // We'll run it on all other types below.
+                // The purpose is to trigger Translate on all types.
+                this.Dispatch(typeReferenceIndexer);
             }
 
             AddTopLevelType(names, _rootModuleType);
-            VisitTopLevelType(noPiaIndexer, _rootModuleType);
+            VisitTopLevelType(typeReferenceIndexer, _rootModuleType);
             yield return _rootModuleType;
 
             foreach (var type in this.GetAnonymousTypes(context))
             {
                 AddTopLevelType(names, type);
-                VisitTopLevelType(noPiaIndexer, type);
+                VisitTopLevelType(typeReferenceIndexer, type);
                 yield return type;
             }
 
             foreach (var type in this.GetTopLevelTypesCore(context))
             {
                 AddTopLevelType(names, type);
-                VisitTopLevelType(noPiaIndexer, type);
+                VisitTopLevelType(typeReferenceIndexer, type);
                 yield return type;
             }
 
@@ -521,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Emit
             if (privateImpl != null)
             {
                 AddTopLevelType(names, privateImpl);
-                VisitTopLevelType(noPiaIndexer, privateImpl);
+                VisitTopLevelType(typeReferenceIndexer, privateImpl);
                 yield return privateImpl;
             }
 
@@ -564,7 +579,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal sealed override Compilation CommonCompilation => Compilation;
         internal sealed override CommonModuleCompilationState CommonModuleCompilationState => CompilationState;
         internal sealed override CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt => EmbeddedTypesManagerOpt;
-        
+
         internal MetadataConstant CreateConstant(
             TTypeSymbol type,
             object value,
@@ -579,7 +594,7 @@ namespace Microsoft.CodeAnalysis.Emit
             names?.Add(MetadataHelpers.BuildQualifiedName(type.NamespaceName, Cci.MetadataWriter.GetMangledName(type)));
         }
 
-        private static void VisitTopLevelType(Cci.NoPiaReferenceIndexer noPiaIndexer, Cci.INamespaceTypeDefinition type)
+        private static void VisitTopLevelType(Cci.TypeReferenceIndexer noPiaIndexer, Cci.INamespaceTypeDefinition type)
         {
             noPiaIndexer?.Visit((Cci.ITypeDefinition)type);
         }

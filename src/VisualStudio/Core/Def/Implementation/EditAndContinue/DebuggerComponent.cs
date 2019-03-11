@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
         /// </summary>
         private static readonly Guid ManagedEditAndContinueServiceId = new Guid("A96BBE03-0408-41E3-8613-6086FD494B43");
 
-        public static ThreadInitializer ManagedEditAndContinueService() 
+        public static ThreadInitializer ManagedEditAndContinueService()
             => new ThreadInitializer(ManagedEditAndContinueServiceId);
 
         public struct ThreadInitializer : IDisposable

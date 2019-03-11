@@ -3437,7 +3437,7 @@ End Module
                           End Sub
                      End Module
 
-            ]]>, Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, vbLf),
+            ]]>, Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, Environment.NewLine),
                  Diagnostic(ERRID.ERR_IllegalXmlWhiteSpace, "                                    "))
     End Sub
 

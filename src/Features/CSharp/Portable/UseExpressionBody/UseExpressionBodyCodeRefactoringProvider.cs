@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseExpressionBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper, 
+                        document, root, declaration, optionSet, helper,
                         useExpressionBody: true, cancellationToken: c)));
                 succeeded = true;
             }
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 context.RegisterRefactoring(new MyCodeAction(
                     helper.UseBlockBodyTitle.ToString(),
                     c => UpdateDocumentAsync(
-                        document, root, declaration, optionSet, helper, 
+                        document, root, declaration, optionSet, helper,
                         useExpressionBody: false, cancellationToken: c)));
                 succeeded = true;
             }
@@ -116,13 +116,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             return null;
         }
 
-        private Task<Document> UpdateDocumentAsync(
+        private async Task<Document> UpdateDocumentAsync(
             Document document, SyntaxNode root, SyntaxNode declaration,
             OptionSet options, UseExpressionBodyHelper helper, bool useExpressionBody,
             CancellationToken cancellationToken)
         {
             var parseOptions = root.SyntaxTree.Options;
-            var updatedDeclaration = helper.Update(declaration, options, parseOptions, useExpressionBody);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var updatedDeclaration = helper.Update(semanticModel, declaration, options, parseOptions, useExpressionBody);
 
             var parent = declaration is AccessorDeclarationSyntax
                 ? declaration.Parent
@@ -131,12 +132,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
             var newRoot = root.ReplaceNode(parent, updatedParent);
-            return Task.FromResult(document.WithSyntaxRoot(newRoot));
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

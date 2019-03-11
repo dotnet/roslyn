@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
         // Checks that the expression is "0".
         protected override bool CanReplaceInitialization(
-            ExpressionSyntax expression, 
+            ExpressionSyntax expression,
             CancellationToken cancellationToken)
             => expression is LiteralExpressionSyntax literalExpression && literalExpression.Token.ValueText == "0";
 
@@ -39,11 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         ///  
         ///  Output:
         ///  counter += queryGenerated.Count();
-        protected override StatementSyntax CreateDefaultStatement(QueryExpressionSyntax queryExpression, ExpressionSyntax expression)
+        protected override StatementSyntax CreateDefaultStatement(ExpressionSyntax queryOrLinqInvocationExpression, ExpressionSyntax expression)
             => SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.AssignmentExpression(
                     SyntaxKind.AddAssignmentExpression,
                     expression,
-                    CreateInvocationExpression(queryExpression)));
+                    CreateInvocationExpression(queryOrLinqInvocationExpression)));
     }
 }

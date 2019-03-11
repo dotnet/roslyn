@@ -369,17 +369,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void ZipAsArray()
         {
             var empty = ImmutableArray.Create<object>();
-            Assert.True(empty.SequenceEqual(empty.ZipAsArray(empty, (item1, item2)  => item1)));
+            Assert.True(empty.SequenceEqual(empty.ZipAsArray(empty, (item1, item2) => item1)));
 
             var single1 = ImmutableArray.Create(1);
             var single2 = ImmutableArray.Create(10);
             var single3 = ImmutableArray.Create(11);
-            Assert.True(single3.SequenceEqual(single1.ZipAsArray(single2, (item1, item2)  => item1 + item2)));
+            Assert.True(single3.SequenceEqual(single1.ZipAsArray(single2, (item1, item2) => item1 + item2)));
 
             var pair1 = ImmutableArray.Create(1, 2);
             var pair2 = ImmutableArray.Create(10, 11);
             var pair3 = ImmutableArray.Create(11, 13);
-            Assert.True(pair3.SequenceEqual(pair1.ZipAsArray(pair2, (item1, item2)  => item1 + item2)));
+            Assert.True(pair3.SequenceEqual(pair1.ZipAsArray(pair2, (item1, item2) => item1 + item2)));
 
             var triple1 = ImmutableArray.Create(1, 2, 3);
             var triple2 = ImmutableArray.Create(10, 11, 12);
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var quin2 = ImmutableArray.Create(10, 11, 12, 13, 14);
             var quin3 = ImmutableArray.Create(11, 13, 15, 17, 19);
             Assert.True(quin3.SequenceEqual(quin1.ZipAsArray(quin2, (item1, item2) => item1 + item2)));
-         }
+        }
 
         [Fact]
         public void WhereAsArray()

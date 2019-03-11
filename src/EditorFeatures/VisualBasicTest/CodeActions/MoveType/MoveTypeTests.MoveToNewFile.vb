@@ -63,14 +63,14 @@ End Class
 "
             Dim codeAfterMove =
 "
-Public Partial Class Class1
+Partial Public Class Class1
 End Class
 "
             Dim expectedDocumentName = "Class2.vb"
 
             Dim destinationDocumentText =
 "
-Public Partial Class Class1
+Partial Public Class Class1
     Class Class2
     End Class
 End Class
@@ -89,14 +89,14 @@ End Class
 "
             Dim codeAfterMove =
 "
-Public Partial Class Class1
+Partial Public Class Class1
 End Class
 "
             Dim expectedDocumentName = "Class1.Class2.vb"
 
             Dim destinationDocumentText =
 "
-Public Partial Class Class1
+Partial Public Class Class1
     Class Class2
     End Class
 End Class
@@ -119,14 +119,14 @@ End Class
             Dim codeAfterMove =
 "
 ''' Outer comment
-Public Partial Class Class1
+Partial Public Class Class1
 End Class
 "
             Dim expectedDocumentName = "Class1.Class2.vb"
 
             Dim destinationDocumentText =
 "
-Public Partial Class Class1
+Partial Public Class Class1
     ''' Inner comment
     Class Class2
     End Class

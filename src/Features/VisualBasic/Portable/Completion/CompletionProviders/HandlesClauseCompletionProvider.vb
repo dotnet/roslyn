@@ -118,11 +118,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                               symbol As ISymbol,
                                               context As SyntaxContext) As CompletionItem
 
-            Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
+            Dim texts = CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
 
             Return SymbolCompletionItem.CreateWithSymbolId(
-                displayText:=displayAndInsertionText.Item1,
-                insertionText:=displayAndInsertionText.Item2,
+                displayText:=texts.displayText,
+                displayTextSuffix:=texts.suffix,
+                insertionText:=texts.insertionText,
                 symbols:=ImmutableArray.Create(symbol),
                 contextPosition:=context.Position,
                 rules:=CompletionItemRules.Default)
@@ -137,10 +138,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return False
         End Function
 
-        Protected Overrides Function GetDisplayAndInsertionText(
-                symbol As ISymbol, context As SyntaxContext) As (displayText As String, insertionText As String)
+        Protected Overrides Function GetDisplayAndSuffixAndInsertionText(
+                symbol As ISymbol, context As SyntaxContext) As (displayText As String, suffix As String, insertionText As String)
 
-            Return CompletionUtilities.GetDisplayAndInsertionText(symbol, context)
+            Return CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context)
         End Function
 
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)

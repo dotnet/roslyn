@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 {
@@ -16,13 +14,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
         IWpfTextViewCreationListener
         where TTag : GraphicsTag
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IViewTagAggregatorFactoryService _tagAggregatorFactoryService;
         private readonly IAsynchronousOperationListener _asyncListener;
 
         protected AbstractAdornmentManagerProvider(
+            IThreadingContext threadingContext,
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
+            _threadingContext = threadingContext;
             _tagAggregatorFactoryService = tagAggregatorFactoryService;
             _asyncListener = listenerProvider.GetListener(this.FeatureAttributeName);
         }
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             }
 
             // the manager keeps itself alive by listening to text view events.
-            AdornmentManager<TTag>.Create(textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
+            AdornmentManager<TTag>.Create(_threadingContext, textView, _tagAggregatorFactoryService, _asyncListener, AdornmentLayerName);
         }
     }
 }

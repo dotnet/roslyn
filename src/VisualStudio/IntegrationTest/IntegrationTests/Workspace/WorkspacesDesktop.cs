@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Workspace
@@ -12,8 +13,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class WorkspacesDesktop : WorkspaceBase
     {
-        public WorkspacesDesktop(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, WellKnownProjectTemplates.ClassLibrary)
+        public WorkspacesDesktop(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
@@ -35,7 +36,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
             base.ProjectReference();
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.Workspace)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public override void ProjectProperties()
         {
             VisualStudio.SolutionExplorer.CreateSolution(nameof(WorkspacesDesktop));

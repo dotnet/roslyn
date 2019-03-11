@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             Document document,
             ImmutableArray<TextSpan> spans,
             OptionSet optionSet = null,
-            ImmutableArray<AbstractReducer> reducers = default, 
+            ImmutableArray<AbstractReducer> reducers = default,
             CancellationToken cancellationToken = default)
         {
             using (Logger.LogBlock(FunctionId.Simplifier_ReduceAsync, cancellationToken))
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Simplification
 
                 // Chaining of the Speculative SemanticModel (i.e. Generating a speculative SemanticModel from an existing Speculative SemanticModel) is not supported
                 // Hence make sure we always start working off of the actual SemanticModel instead of a speculative SemanticModel.
-                Contract.Assert(!semanticModel.IsSpeculativeSemanticModel);
+                Debug.Assert(!semanticModel.IsSpeculativeSemanticModel);
 
                 var root = await semanticModel.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 

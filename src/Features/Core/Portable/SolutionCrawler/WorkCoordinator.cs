@@ -505,7 +505,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
                     !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
                     !object.Equals(oldProject.Name, newProject.Name) ||
-                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions))
+                    !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions) ||
+                    !object.Equals(oldProject.DefaultNamespace, newProject.DefaultNamespace) ||
+                    !object.Equals(oldProject.OutputFilePath, newProject.OutputFilePath) ||
+                    !object.Equals(oldProject.OutputRefFilePath, newProject.OutputRefFilePath))
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);
                 }
@@ -735,26 +738,26 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     switch (projectOrDocumentId)
                     {
                         case ProjectId projectId:
-                        {
-                            var project = solution.GetProject(projectId);
-                            if (project != null)
                             {
-                                foreach (var document in project.Documents)
+                                var project = solution.GetProject(projectId);
+                                if (project != null)
+                                {
+                                    foreach (var document in project.Documents)
+                                    {
+                                        yield return document;
+                                    }
+                                }
+                                break;
+                            }
+                        case DocumentId documentId:
+                            {
+                                var document = solution.GetDocument(documentId);
+                                if (document != null)
                                 {
                                     yield return document;
                                 }
+                                break;
                             }
-                            break;
-                        }
-                        case DocumentId documentId:
-                        {
-                            var document = solution.GetDocument(documentId);
-                            if (document != null)
-                            {
-                                yield return document;
-                            }
-                            break;
-                        }
                     }
                 }
             }

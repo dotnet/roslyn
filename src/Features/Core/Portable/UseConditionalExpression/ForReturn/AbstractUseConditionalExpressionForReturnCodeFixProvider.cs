@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
         }
 
         protected override async Task FixOneAsync(
-            Document document, Diagnostic diagnostic, 
+            Document document, Diagnostic diagnostic,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Convert_to_conditional_expression, createChangedDocument, IDEDiagnosticIds.UseConditionalExpressionForReturnDiagnosticId)
             {
             }

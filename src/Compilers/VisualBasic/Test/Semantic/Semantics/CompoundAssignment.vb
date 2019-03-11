@@ -65,7 +65,7 @@ End Class
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
-            Dim verifier = CompileAndVerify(compilation, expectedOutput:="2" & vbCrLf & "4" & vbCrLf & "6" & vbCrLf & "7")
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="2" & Environment.NewLine & "4" & Environment.NewLine & "6" & Environment.NewLine & "7")
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <expected></expected>)
 
@@ -561,7 +561,7 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
-            Dim verifier = CompileAndVerify(compilation, expectedOutput:="123" & vbCrLf & "123")
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="123" & Environment.NewLine & "123")
 
             verifier.VerifyIL("Program.Main",
             <![CDATA[

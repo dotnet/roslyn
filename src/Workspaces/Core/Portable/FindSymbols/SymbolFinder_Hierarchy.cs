@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                         var bestMember = sourceMember ?? m;
-                        
+
                         if (IsOverride(solution, bestMember, symbol, cancellationToken))
                         {
                             results.Add(new SymbolAndProjectId(bestMember, type.ProjectId));
@@ -130,15 +131,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         foreach (var interfaceType in GetAllInterfaces(type))
                         {
-                            if (interfaceType.Symbol.MemberNames.Contains(symbol.Name))
+                            // We don't want to look inside this type if we can avoid it. So first
+                            // make sure that the interface even contains a symbol with the same
+                            // name as the symbol we're looking for.
+                            var nameToLookFor = symbol.IsPropertyAccessor()
+                                ? ((IMethodSymbol)symbol).AssociatedSymbol.Name
+                                : symbol.Name;
+                            if (interfaceType.Symbol.MemberNames.Contains(nameToLookFor))
                             {
                                 foreach (var m in GetMembers(interfaceType, symbol.Name))
                                 {
                                     var sourceMethod = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                                     var bestMethod = sourceMethod.Symbol != null ? sourceMethod : m;
 
-                                    var implementations = type.FindImplementationsForInterfaceMember(
-                                        bestMethod.Symbol, solution.Workspace, cancellationToken);
+                                    var implementations = await type.FindImplementationsForInterfaceMemberAsync(
+                                        bestMethod.Symbol, solution, cancellationToken).ConfigureAwait(false);
                                     foreach (var implementation in implementations)
                                     {
                                         if (implementation.Symbol != null &&
@@ -242,10 +249,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ImmutableArray<SymbolAndProjectId>.Builder results = null;
                 foreach (var t in allTypes.Convert<INamedTypeSymbol, ITypeSymbol>())
                 {
-                    foreach (var m in t.FindImplementationsForInterfaceMember(symbol, solution.Workspace, cancellationToken))
+                    var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbolAndProjectId.Symbol, solution, cancellationToken).ConfigureAwait(false);
+                    foreach (var implementation in implementations)
                     {
-                        var sourceDef = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
-                        var bestDef = sourceDef.Symbol != null ? sourceDef : m;
+                        var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);
+                        var bestDef = sourceDef.Symbol != null ? sourceDef : implementation;
                         if (IsAccessible(bestDef))
                         {
                             results = results ?? ImmutableArray.CreateBuilder<SymbolAndProjectId>();
@@ -591,7 +599,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // compilation from definition project must already exist.
             if (!definitionProject.TryGetCompilation(out definingCompilation))
             {
-                Contract.Requires(false, "How can compilation not exist?");
+                Debug.Assert(false, "How can compilation not exist?");
                 return false;
             }
 

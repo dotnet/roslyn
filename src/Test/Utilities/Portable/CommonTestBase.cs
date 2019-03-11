@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (parseOptions == null)
             {
-                parseOptions = CSharp.CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None);
+                parseOptions = CSharp.CSharpParseOptions.Default.WithLanguageVersion(CSharp.LanguageVersion.Default).WithDocumentationMode(DocumentationMode.None);
             }
 
             if (compilationOptions == null)
@@ -602,6 +602,38 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 node = node.Parent;
             }
         }
+
+        #endregion
+
+        #region Theory Helpers
+
+        public static IEnumerable<object[]> ExternalPdbFormats
+        {
+            get
+            {
+                if (ExecutionConditionUtil.IsWindows)
+                {
+                    return new List<object[]>()
+                    {
+                        new object[] { DebugInformationFormat.Pdb },
+                        new object[] { DebugInformationFormat.PortablePdb }
+                    };
+                }
+                else
+                {
+                    return new List<object[]>()
+                    {
+                        new object[] { DebugInformationFormat.PortablePdb }
+                    };
+                }
+            }
+        }
+
+        public static IEnumerable<object[]> PdbFormats =>
+            new List<object[]>(ExternalPdbFormats)
+            {
+                new object[] { DebugInformationFormat.Embedded }
+            };
 
         #endregion
     }

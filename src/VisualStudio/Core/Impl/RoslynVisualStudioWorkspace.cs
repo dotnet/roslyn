@@ -17,7 +17,10 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
+using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -31,8 +34,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         private RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
-            : base(exportProvider.AsExportProvider())
+            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
+            [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
+            : base(exportProvider, asyncServiceProvider)
         {
             _streamingPresenters = streamingPresenters;
 
@@ -42,58 +46,19 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
         }
 
-        public override EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId)
-        {
-            if (documentId == null)
-            {
-                throw new ArgumentNullException(nameof(documentId));
-            }
-
-            if (DeferredState == null)
-            {
-                // We haven't gotten any projects added yet, so we don't know where this came from
-                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
-            }
-
-            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
-            if (project == null)
-            {
-                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
-            }
-
-            var document = project.GetDocumentOrAdditionalDocument(documentId);
-            if (document == null)
-            {
-                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
-            }
-
-            if (project.ProjectCodeModel != null)
-            {
-                return project.ProjectCodeModel.GetOrCreateFileCodeModel(document.FilePath);
-            }
-
-            return null;
-        }
-
         internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)
-        {
-            var hostDocument = GetHostDocument(documentId);
-            return OpenInvisibleEditor(hostDocument);
-        }
-
-        internal override IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument hostDocument)
         {
             var globalUndoService = this.Services.GetService<IGlobalUndoService>();
             var needsUndoDisabled = false;
 
             // Do not save the file if is open and there is not a global undo transaction.
-            var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !hostDocument.IsOpen;
+            var needsSave = globalUndoService.IsGlobalTransactionOpen(this) || !this.IsDocumentOpen(documentId);
             if (needsSave)
             {
-                if (this.CurrentSolution.ContainsDocument(hostDocument.Id))
+                if (this.CurrentSolution.ContainsDocument(documentId))
                 {
                     // Disable undo on generated documents
-                    needsUndoDisabled = this.CurrentSolution.GetDocument(hostDocument.Id).IsGeneratedCode(CancellationToken.None);
+                    needsUndoDisabled = this.CurrentSolution.GetDocument(documentId).IsGeneratedCode(CancellationToken.None);
                 }
                 else
                 {
@@ -102,7 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, hostDocument.Project, needsSave, needsUndoDisabled);
+            var document = this.CurrentSolution.GetDocument(documentId) ?? this.CurrentSolution.GetAdditionalDocument(documentId);
+
+            return new InvisibleEditor(ServiceProvider.GlobalProvider, document.FilePath, GetHierarchy(documentId.ProjectId), needsSave, needsUndoDisabled);
         }
 
         private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)
@@ -140,14 +107,14 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            if (!TryResolveSymbol(symbol, project, cancellationToken, 
+            if (!TryResolveSymbol(symbol, project, cancellationToken,
                     out var searchSymbol, out var searchProject))
             {
                 return false;
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, 
+                searchSymbol, searchProject,
                 _streamingPresenters, cancellationToken);
         }
 

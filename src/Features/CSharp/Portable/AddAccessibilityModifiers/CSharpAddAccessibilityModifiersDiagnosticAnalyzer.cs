@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer 
+    internal class CSharpAddAccessibilityModifiersDiagnosticAnalyzer
         : AbstractAddAccessibilityModifiersDiagnosticAnalyzer<CompilationUnitSyntax>
     {
         public CSharpAddAccessibilityModifiersDiagnosticAnalyzer()
@@ -19,15 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
         }
 
         protected override void ProcessCompilationUnit(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
             CodeStyleOption<AccessibilityModifiersRequired> option, CompilationUnitSyntax compilationUnit)
         {
             ProcessMembers(context, generator, option, compilationUnit.Members);
         }
 
         private void ProcessMembers(
-            SyntaxTreeAnalysisContext context, SyntaxGenerator generator, 
-            CodeStyleOption<AccessibilityModifiersRequired> option, 
+            SyntaxTreeAnalysisContext context, SyntaxGenerator generator,
+            CodeStyleOption<AccessibilityModifiersRequired> option,
             SyntaxList<MemberDeclarationSyntax> members)
         {
             foreach (var memberDeclaration in members)

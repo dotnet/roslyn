@@ -22,7 +22,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String()) (Syntax: 'New String(0) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
@@ -81,7 +81,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M(dimension) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'dimension')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'dimension')
         Left: 
           ILocalReferenceOperation: dimension (OperationKind.LocalReference, Type: System.Int32, Constant: 1) (Syntax: 'dimension')
         Right: 
@@ -112,7 +112,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M(dimension) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
         Left: 
           IParameterReferenceOperation: dimension (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'dimension')
         Right: 
@@ -145,7 +145,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M(dimension) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
         Left: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'dimension')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -179,7 +179,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: M()) (Syntax: 'New M(Direc ... nteger)) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... n, Integer)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast( ... n, Integer)')
         Left: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: 'DirectCast( ... n, Integer)')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -236,7 +236,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C(1) {N ... C, Nothing}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
@@ -271,7 +271,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syntax: 'New C(2) {New C}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
         Right: 
@@ -307,7 +307,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsInvalid) (Syntax: 'New Integer(x(0)) {1, 2}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x(0)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'x(0)')
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'x(0)')
             Array reference: 
@@ -498,17 +498,17 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Byte(,,)) (Syntax: 'New Byte(0, 1, 2) {}')
   Dimension Sizes(3):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
         Right: 
@@ -630,7 +630,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()(,)) (Syntax: 'New Integer(0)(,) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
@@ -657,7 +657,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer ... ), x(1)) {}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x(0)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'x(0)')
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'x(0)')
             Array reference: 
@@ -666,7 +666,7 @@ IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Sy
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'x(0)')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'x(1)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'x(1)')
         Left: 
           IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Int32) (Syntax: 'x(1)')
             Array reference: 
@@ -697,12 +697,12 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer(1, 1) {}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
@@ -729,12 +729,12 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer(1, 1) {{}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
@@ -770,12 +770,12 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... 1) {{}, {}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
@@ -813,12 +813,12 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... 1) {{1, 2}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
@@ -853,12 +853,12 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... {1, 2}, {}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
@@ -895,12 +895,12 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer ... 2}, {1, 2}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
@@ -978,12 +978,12 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String(,), IsInvalid) (Syntax: 'New String(1,) {}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '')
         Left: 
           IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '')
             Children(0)
@@ -1046,7 +1046,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syntax: 'New C(c) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
         Left: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'c')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1084,7 +1084,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C(M()) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'M()')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'M()')
         Left: 
           IInvocationOperation ( Function C.M() As System.Int32) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'M()')
             Instance Receiver: 
@@ -1119,7 +1119,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: C()) (Syntax: 'New C(Direc ... nteger)) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
         Left: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32) (Syntax: 'DirectCast(M(), Integer)')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1157,7 +1157,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syntax: 'New C(M()) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
         Left: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1199,7 +1199,7 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: C(), IsInvalid) (Syntax: 'New C(Direc ... nteger)) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'DirectCast(M(), Integer)')
         Left: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid) (Syntax: 'DirectCast(M(), Integer)')
             Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1242,7 +1242,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
             IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsImplicit) (Syntax: 'x(2)')
               IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 'x(2)')
                 Dimension Sizes(1):
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '2')
                       Left: 
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
                       Right: 
@@ -1272,7 +1272,7 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String(), IsInvalid) (Syntax: 'New String(0.0) {}')
   Dimension Sizes(1):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '0.0')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '0.0')
         Left: 
           IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: '0.0')
             Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1323,7 +1323,7 @@ End Class
 IFieldInitializerOperation (Field: C.s1 As System.Int32()) (OperationKind.FieldInitializer, Type: null) (Syntax: 's1(10)')
   IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 's1(10)')
     Dimension Sizes(1):
-        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
           Left: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
           Right: 
@@ -1373,12 +1373,12 @@ End Class
             Dim expectedOperationTree = <![CDATA[
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ...  {v1, {v2}}')
   Dimension Sizes(2):
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
         Right: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
-      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
         Left: 
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
         Right: 
@@ -1441,7 +1441,7 @@ Block[B0] - Entry
                   Right: 
                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer(d1) {}')
                       Dimension Sizes(1):
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd1')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'd1')
                             Left: 
                               IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd1')
                             Right: 
@@ -1472,12 +1472,12 @@ Block[B0] - Entry
                   Right: 
                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer(d2, d3) {}')
                       Dimension Sizes(2):
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd2')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'd2')
                             Left: 
                               IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd2')
                             Right: 
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'd2')
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd3')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'd3')
                             Left: 
                               IParameterReferenceOperation: d3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd3')
                             Right: 
@@ -1494,14 +1494,14 @@ Block[B0] - Entry
                   Right: 
                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer ... {v2}, {v3}}')
                       Dimension Sizes(2):
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
                             Left: 
                               IFieldReferenceOperation: C.c1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c1')
                                 Instance Receiver: 
                                   null
                             Right: 
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c1')
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
                             Left: 
                               IFieldReferenceOperation: C.c2 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c2')
                                 Instance Receiver: 
@@ -1526,7 +1526,7 @@ Block[B0] - Entry
                   Right: 
                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()()) (Syntax: 'New Integer(d4)() {}')
                       Dimension Sizes(1):
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd4')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'd4')
                             Left: 
                               IParameterReferenceOperation: d4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd4')
                             Right: 
@@ -1543,7 +1543,7 @@ Block[B0] - Entry
                   Right: 
                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()()) (Syntax: 'New Integer ... ger() {v4}}')
                       Dimension Sizes(1):
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c3')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c3')
                             Left: 
                               IFieldReferenceOperation: C.c3 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c3')
                                 Instance Receiver: 
@@ -1669,12 +1669,12 @@ Block[B0] - Entry
                   Right: 
                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer ...  d2), c) {}')
                       Dimension Sizes(2):
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                             Left: 
                               IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                             Right: 
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'If(d1, d2)')
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'c')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'c')
                             Left: 
                               IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
                             Right: 
@@ -1778,12 +1778,12 @@ Block[B0] - Entry
                   Right: 
                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... , c) {{v1}}')
                       Dimension Sizes(2):
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                             Left: 
                               IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                             Right: 
                               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'If(d1, d2)')
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c')
                             Left: 
                               IFieldReferenceOperation: C.c As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c')
                                 Instance Receiver: 
@@ -1844,7 +1844,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'c')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'c')
                   Left: 
                     IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'c')
                   Right: 
@@ -1904,7 +1904,7 @@ Block[B0] - Entry
                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer ... d1, d2)) {}')
                       Dimension Sizes(2):
                           IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'c')
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                             Left: 
                               IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                             Right: 
@@ -1957,7 +1957,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c')
                   Left: 
                     IFieldReferenceOperation: C.c As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c')
                       Instance Receiver: 
@@ -2019,7 +2019,7 @@ Block[B0] - Entry
                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... d2)) {{v1}}')
                       Dimension Sizes(2):
                           IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c')
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                             Left: 
                               IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                             Right: 
@@ -2126,7 +2126,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(d1, d2)')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                       Right: 
@@ -2187,7 +2187,7 @@ Block[B0] - Entry
                     IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ... d4)) {{v1}}')
                       Dimension Sizes(2):
                           IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
-                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(d3, d4)')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(d3, d4)')
                             Left: 
                               IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(d3, d4)')
                             Right: 
@@ -2250,7 +2250,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
                   Left: 
                     IFieldReferenceOperation: C.c1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c1')
                       Instance Receiver: 
@@ -2362,7 +2362,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
                   Left: 
                     IFieldReferenceOperation: C.c1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c1')
                       Instance Receiver: 
@@ -2372,7 +2372,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
                   Left: 
                     IFieldReferenceOperation: C.c2 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c2')
                       Instance Receiver: 
@@ -2489,7 +2489,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
                   Left: 
                     IFieldReferenceOperation: C.c1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c1')
                       Instance Receiver: 
@@ -2605,7 +2605,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
                   Left: 
                     IFieldReferenceOperation: C.c1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c1')
                       Instance Receiver: 
@@ -2615,7 +2615,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
                   Left: 
                     IFieldReferenceOperation: C.c2 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c2')
                       Instance Receiver: 
@@ -2740,7 +2740,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
                   Left: 
                     IFieldReferenceOperation: C.c1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c1')
                       Instance Receiver: 
@@ -2750,7 +2750,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
                   Left: 
                     IFieldReferenceOperation: C.c2 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c2')
                       Instance Receiver: 
@@ -2870,7 +2870,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
                   Left: 
                     IFieldReferenceOperation: C.c1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c1')
                       Instance Receiver: 
@@ -3024,7 +3024,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
                   Left: 
                     IFieldReferenceOperation: C.c1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c1')
                       Instance Receiver: 
@@ -3034,7 +3034,7 @@ Block[B0] - Entry
 
             IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
               Value: 
-                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
+                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
                   Left: 
                     IFieldReferenceOperation: C.c2 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c2')
                       Instance Receiver: 
@@ -3240,7 +3240,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(d1, d2)')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                       Right: 
@@ -3444,7 +3444,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(d1, d2)')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                       Left: 
                         IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(d1, d2)')
                       Right: 
@@ -3501,7 +3501,7 @@ Block[B0] - Entry
             Statements (1)
                 IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(d3, d4)')
                   Value: 
-                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'If(d3, d4)')
+                    IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.Binary, Type: System.Int32, IsImplicit) (Syntax: 'If(d3, d4)')
                       Left: 
                         IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(d3, d4)')
                       Right: 

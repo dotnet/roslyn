@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             if (blockStatementOpt != null)
             {
                 if (!CanOffer(blockStatementOpt.Syntax))
-                { 
+                {
                     return ImmutableArray<CodeAction>.Empty;
                 }
 
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         private async Task<Document> AddNullCheckStatementAsync(
-            Document document, 
+            Document document,
             IParameterSymbol parameter,
             SyntaxNode functionDeclaration,
             IMethodSymbol method,

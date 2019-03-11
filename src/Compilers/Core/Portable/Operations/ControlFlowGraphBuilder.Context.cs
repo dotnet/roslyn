@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private Context GetCurrentContext()
         {
             return new Context(_currentImplicitInstance.ImplicitInstance, _currentImplicitInstance.AnonymousType,
-                               _currentImplicitInstance.AnonymousTypePropertyValues?.ToImmutableArray() ?? 
+                               _currentImplicitInstance.AnonymousTypePropertyValues?.ToImmutableArray() ??
                                    ImmutableArray<KeyValuePair<IPropertySymbol, IOperation>>.Empty);
         }
 

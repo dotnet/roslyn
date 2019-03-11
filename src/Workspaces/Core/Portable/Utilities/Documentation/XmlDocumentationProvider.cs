@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -36,6 +37,8 @@ namespace Microsoft.CodeAnalysis
             return new ContentBasedXmlDocumentationProvider(xmlDocCommentBytes);
         }
 
+        private static XmlDocumentationProvider DefaultXmlDocumentationProvider { get; } = new NullXmlDocumentationProvider();
+
         /// <summary>
         /// Creates an <see cref="XmlDocumentationProvider"/> from an XML documentation file.
         /// </summary>
@@ -43,6 +46,11 @@ namespace Microsoft.CodeAnalysis
         /// <returns>An <see cref="XmlDocumentationProvider"/>.</returns>
         public static XmlDocumentationProvider CreateFromFile(string xmlDocCommentFilePath)
         {
+            if (!File.Exists(xmlDocCommentFilePath))
+            {
+                return DefaultXmlDocumentationProvider;
+            }
+
             return new FileBasedXmlDocumentationProvider(xmlDocCommentFilePath);
         }
 
@@ -158,7 +166,7 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             public FileBasedXmlDocumentationProvider(string filePath)
             {
                 Contract.ThrowIfNull(filePath);
-                Contract.Requires(PathUtilities.IsAbsolute(filePath));
+                Debug.Assert(PathUtilities.IsAbsolute(filePath));
 
                 _filePath = filePath;
             }
@@ -177,6 +185,33 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             public override int GetHashCode()
             {
                 return _filePath.GetHashCode();
+            }
+        }
+
+        /// <summary>
+        /// A trivial XmlDocumentationProvider which never returns documentation.
+        /// </summary>
+        private sealed class NullXmlDocumentationProvider : XmlDocumentationProvider
+        {
+            protected override string GetDocumentationForSymbol(string documentationMemberID, CultureInfo preferredCulture, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                return "";
+            }
+
+            protected override Stream GetSourceStream(CancellationToken cancellationToken)
+            {
+                return new MemoryStream();
+            }
+
+            public override bool Equals(object obj)
+            {
+                // Only one instance is expected to exist, so reference equality is fine.
+                return (object)this == obj;
+            }
+
+            public override int GetHashCode()
+            {
+                return 0;
             }
         }
     }

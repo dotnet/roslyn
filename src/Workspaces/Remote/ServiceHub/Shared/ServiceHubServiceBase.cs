@@ -253,15 +253,20 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             if (!cancellationToken.IsCancellationRequested)
             {
-                LogError("Exception: " + ex.ToString());
-
-                LogExtraInformation(ex);
-
-                var callStack = new StackTrace().ToString();
-                LogError("From: " + callStack);
+                LogException(ex);
             }
 
             return false;
+        }
+
+        protected void LogException(Exception ex)
+        {
+            LogError("Exception: " + ex.ToString());
+
+            LogExtraInformation(ex);
+
+            var callStack = new StackTrace().ToString();
+            LogError("From: " + callStack);
         }
 
         private void LogExtraInformation(Exception ex)

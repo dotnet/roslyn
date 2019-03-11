@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     // we will re-enable it once the issue is addressed.
     // https://devdiv.visualstudio.com/DevDiv/_workitems?id=504089&_a=edit&triage=true 
     // [DiagnosticAnalyzer(LanguageNames.CSharp), Shared]
-    internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
         private static readonly SyntaxAnnotation s_referenceAnnotation = new SyntaxAnnotation();
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                                              .ToSet();
 
             var localName = NameGenerator.EnsureUniqueness(
-                ICodeDefinitionFactoryExtensions.GetLocalName(typeSymbol),
+                SyntaxGeneratorExtensions.GetLocalName(typeSymbol),
                 reservedNames).EscapeIdentifier();
 
             // Now, go and actually try to make the change.  This will allow us to see all the

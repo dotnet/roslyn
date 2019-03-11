@@ -3459,7 +3459,7 @@ class A
         var [|x|] = args[0];
         return x?.Length == 0;
     }
-}", 
+}",
 @"class A
 {
     bool M(string[] args)
@@ -3480,7 +3480,7 @@ class A
         var [|x|] = args.Length.ToString();
         var y = x?.ToString();
     }
-}", 
+}",
 @"class A
 {
     void M(string[] args)
@@ -3501,7 +3501,7 @@ class A
         var [|x|] = args[0]?.Length ?? 10;
         var y = x == 10 ? 10 : 4;
     }
-}", 
+}",
 @"class A
 {
     void M(string[] args)
@@ -3540,7 +3540,7 @@ class C
 
         return null;
     }
-}", 
+}",
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3601,7 +3601,7 @@ class C
 
         return null;
     }
-}", 
+}",
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3644,7 +3644,7 @@ class C
         var [|g|] = global::System.Guid.Empty;
         var s = $""{g}"";
     }
-}", 
+}",
 @"class A
 {
     void M()
@@ -3665,7 +3665,7 @@ class C
         var [|x|] = b ? 19 : 23;
         var s = $""{x}"";
     }
-}", 
+}",
 @"class A
 {
     bool M(bool b)
@@ -3686,7 +3686,7 @@ class C
         var [|x|] = b ? 19 : 23;
         var s = $""{x:x}"";
     }
-}", 
+}",
 @"class A
 {
     bool M(bool b)
@@ -3707,7 +3707,7 @@ class C
         var [|x|] = s.ToUpper();
         var y = $""{x}"";
     }
-}", 
+}",
 @"class A
 {
     public static void M(string s)
@@ -3719,6 +3719,28 @@ class C
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation_CSharp7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public void M()
+    {
+        var [|s1|] = $""hello"";
+        var s2 = string.Replace(s1, ""world"");
+    }
+}",
+@"class C
+{
+    public void M()
+    {
+        var s2 = string.Replace($""hello"", ""world"");
+    }
+}", parseOptions: TestOptions.Regular7);
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
         {
             await TestInRegularAndScriptAsync(
@@ -3729,7 +3751,7 @@ class C
         var [|s1|] = $""hello"";
         var s2 = string.Replace(s1, ""world"");
     }
-}", 
+}",
 @"class C
 {
     public void M()
@@ -3741,6 +3763,28 @@ class C
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontParenthesizeInterpolatedStringWithInterpolation_CSharp7()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public void M(int x)
+    {
+        var [|s1|] = $""hello {x}"";
+        var s2 = string.Replace(s1, ""world"");
+    }
+}",
+@"class C
+{
+    public void M(int x)
+    {
+        var s2 = string.Replace($""hello {x}"", ""world"");
+    }
+}", parseOptions: TestOptions.Regular7);
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/33108"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task DontParenthesizeInterpolatedStringWithInterpolation()
         {
             await TestInRegularAndScriptAsync(
@@ -3751,7 +3795,7 @@ class C
         var [|s1|] = $""hello {x}"";
         var s2 = string.Replace(s1, ""world"");
     }
-}", 
+}",
 @"class C
 {
     public void M(int x)
@@ -4542,8 +4586,8 @@ class C
 }");
         }
 
-        [Fact]
         [WorkItem(24791, "https://github.com/dotnet/roslyn/issues/24791")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineVariableDoesNotAddUnnecessaryCast()
         {
             await TestInRegularAndScriptAsync(
@@ -4567,7 +4611,7 @@ class C
         }
 
         [WorkItem(16819, "https://github.com/dotnet/roslyn/issues/16819")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
         public async Task InlineVariableDoesNotAddsDuplicateCast()
         {
             await TestInRegularAndScriptAsync(
@@ -4590,6 +4634,58 @@ class C
         Console.Write((Exception)null == new Exception());
     }
 }");
+        }
+
+        [WorkItem(30903, "https://github.com/dotnet/roslyn/issues/30903")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineVariableContainsAliasOfValueTupleType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using X = System.ValueTuple<int, int>;
+
+class C
+{
+    void M()
+    {
+        var [|x|] = (X)(0, 0);
+        var x2 = x;
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"using X = System.ValueTuple<int, int>;
+
+class C
+{
+    void M()
+    {
+        var x2 = (X)(0, 0);
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
+        }
+
+        [WorkItem(30903, "https://github.com/dotnet/roslyn/issues/30903")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task InlineVariableContainsAliasOfMixedValueTupleType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using X = System.ValueTuple<int, (int, int)>;
+
+class C
+{
+    void M()
+    {
+        var [|x|] = (X)(0, (0, 0));
+        var x2 = x;
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"using X = System.ValueTuple<int, (int, int)>;
+
+class C
+{
+    void M()
+    {
+        var x2 = (X)(0, (0, 0));
+    }
+}" + TestResources.NetFX.ValueTuple.tuplelib_cs);
         }
     }
 }

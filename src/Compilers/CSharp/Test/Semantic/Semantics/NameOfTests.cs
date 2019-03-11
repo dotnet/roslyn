@@ -547,16 +547,17 @@ class Program
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.MemberOrder)]
+        [Fact]
         public void TestNameofIndexerName()
         {
             var source = @"
+using System.Linq;
 class C
 {
     public static void Main(string[] args)
     {
         var t = typeof(C);
-        foreach (var m in t.GetMethods())
+        foreach (var m in t.GetMethods().Where(m => m.DeclaringType == t).OrderBy(m => m.Name))
         {
             System.Console.WriteLine(m.Name);
         }
@@ -568,13 +569,10 @@ class C
         get { return 0; }
     }
 }";
-            CompileAndVerify(source, expectedOutput: @"Main
-Other
-get__Other
-ToString
-Equals
-GetHashCode
-GetType");
+            CompileAndVerify(source, expectedOutput:
+@"get__Other
+Main
+Other");
         }
 
         [Fact]

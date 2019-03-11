@@ -17,7 +17,9 @@ namespace Roslyn.Test.Utilities
             // Executes the specified delegate asynchronously.  When it is 
             // complete mark the frame as complete so the dispatcher loop
             // pops out (stops).
+#pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
             var operation = dispatcher.BeginInvoke(
+#pragma warning restore VSTHRD001 // Avoid legacy thread switching APIs
                 DispatcherPriority.ApplicationIdle, callback, frame);
 
             // Start the loop.  It will process all items in the queue, then 

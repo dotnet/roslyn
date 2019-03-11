@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteSymbolFinder
     {
-        public Task FindReferencesAsync(SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs, CancellationToken cancellationToken)
+        public Task FindReferencesAsync(
+            SerializableSymbolAndProjectId symbolAndProjectIdArg, DocumentId[] documentArgs,
+            SerializableFindReferencesSearchOptions options, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async token =>
             {
@@ -44,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Remote
                                                  .ToImmutableHashSet();
 
                     await SymbolFinder.FindReferencesInCurrentProcessAsync(
-                        symbolAndProjectId.Value, solution,
-                        progressCallback, documents, token).ConfigureAwait(false);
+                        symbolAndProjectId.Value, solution, progressCallback,
+                        documents, options.Rehydrate(), token).ConfigureAwait(false);
                 }
             }, cancellationToken);
         }

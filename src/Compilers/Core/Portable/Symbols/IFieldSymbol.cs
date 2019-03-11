@@ -40,6 +40,13 @@ namespace Microsoft.CodeAnalysis
         bool IsVolatile { get; }
 
         /// <summary>
+        /// Returns true if this field was declared as "fixed".
+        /// Note that for a fixed-size buffer declaration, this.Type will be a pointer type, of which
+        /// the pointed-to type will be the declared element type of the fixed-size buffer.
+        /// </summary>
+        bool IsFixedSizeBuffer { get; }
+
+        /// <summary>
         /// Gets the type of this field.
         /// </summary>
         ITypeSymbol Type { get; }

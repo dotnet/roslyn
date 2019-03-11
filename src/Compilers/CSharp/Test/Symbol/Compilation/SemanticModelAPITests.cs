@@ -121,7 +121,7 @@ class C
         }
 
         [Fact]
-        public void LocalSymbolsAreDifferentArossSemanticModelsFromDifferentCompilations()
+        public void LocalSymbolsAreDifferentAcrossSemanticModelsFromDifferentCompilations()
         {
             var text = @"public class C { public void M() { int x = 10; } }";
             var tree = Parse(text);
@@ -297,7 +297,7 @@ class A : L
             var r = b.GetTypeMembers("R", 0).Single();
             var q = r.GetTypeMembers("Q", 0).Single();
             var v = a.GetMembers("v").Single() as FieldSymbol;
-            var s = v.Type;
+            var s = v.Type.TypeSymbol;
             Assert.Equal("B.R.Q.S", s.ToTestDisplayString());
             var sbase = s.BaseType();
             Assert.Equal("B.R.Q", sbase.ToTestDisplayString());
@@ -535,7 +535,7 @@ class Program
             var model = compilation.GetSemanticModel(tree1);
 
             var info = model.GetSymbolInfo(type);
-            Assert.Equal<Symbol>(compilation.GetSpecialType(SpecialType.System_String), (info.Symbol as ArrayTypeSymbol).ElementType);
+            Assert.Equal<Symbol>(compilation.GetSpecialType(SpecialType.System_String), (info.Symbol as ArrayTypeSymbol).ElementType.TypeSymbol);
         }
 
         [Fact]
@@ -625,7 +625,7 @@ class B {}
 
             var xDecl = mainDecl.Members[0] as FieldDeclarationSyntax;
             var xSym = mainType.GetMembers("x").Single() as FieldSymbol;
-            Assert.Equal<ISymbol>(abType, xSym.Type);
+            Assert.Equal<ISymbol>(abType, xSym.Type.TypeSymbol);
             var info = model.GetSymbolInfo((xDecl.Declaration.Type as QualifiedNameSyntax).Right);
             Assert.Equal(abType, info.Symbol);
         }
@@ -1546,7 +1546,7 @@ class Q
             var classQ = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Q");
             var fieldQ = classQ.GetMember<FieldSymbol>("q");
 
-            Assert.Equal(classQ, fieldQ.Type);
+            Assert.Equal(classQ, fieldQ.Type.TypeSymbol);
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -3571,7 +3571,7 @@ class Derived : Test
             var expr = identifier.FirstAncestorOrSelf<ArgumentSyntax>().Parent.Parent;
 
             var exprInfo = model.GetSymbolInfo(expr);
-            var firstParamType = ((Symbol)exprInfo.CandidateSymbols.Single()).GetParameterTypes().First();
+            var firstParamType = ((Symbol)exprInfo.CandidateSymbols.Single()).GetParameterTypes().First().TypeSymbol;
             Assert.Equal(actionType, firstParamType);
 
             var identifierInfo = model.GetTypeInfo(identifier);
