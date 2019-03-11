@@ -249,5 +249,507 @@ public class Program
                 Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "s.field").WithArguments("Program.s").WithLocation(8, 9)
                 );
         }
+
+        // PROTOTYPE: readonly members features should require C# 8.0 or greater
+
+        [Fact]
+        public void ReadOnlyStructMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int M()
+    {
+        return i;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+
+            var method = (SourceMemberMethodSymbol)comp.GetMember<NamedTypeSymbol>("S").GetMember<MethodSymbol>("M");
+            // PROTOTYPE: add `public abstract bool IsReadOnly` to MethodSymbol and implement in subtypes?
+            Assert.True(method.IsReadOnly);
+        }
+
+        [Fact]
+        public void ReadOnlyClass()
+        {
+            var csharp = @"
+using System;
+
+public readonly class C
+{
+    public readonly int M() => 42;
+    public readonly int P { get; set; }
+    public readonly int this[int i] => i;
+    public readonly event Action<EventArgs> E { add {} remove {} }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,23): error CS0106: The modifier 'readonly' is not valid for this item
+                // public readonly class C
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("readonly").WithLocation(4, 23),
+                // (6,25): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly int M() => 42;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(6, 25),
+                // (7,25): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly int P { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("readonly").WithLocation(7, 25),
+                // (8,25): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly int this[int i] => i;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("readonly").WithLocation(8, 25),
+                // (9,45): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly event Action<EventArgs> E { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("readonly").WithLocation(9, 45));
+        }
+
+        [Fact]
+        public void ReadOnlyInterface()
+        {
+            var csharp = @"
+using System;
+
+public readonly interface I
+{
+    readonly int M();
+    readonly int P { get; set; }
+    readonly int this[int i] { get; }
+    readonly event Action<EventArgs> E;
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,27): error CS0106: The modifier 'readonly' is not valid for this item
+                // public readonly interface I
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I").WithArguments("readonly").WithLocation(4, 27),
+                // (6,18): error CS0106: The modifier 'readonly' is not valid for this item
+                //     readonly int M();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(6, 18),
+                // (7,18): error CS0106: The modifier 'readonly' is not valid for this item
+                //     readonly int P { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("readonly").WithLocation(7, 18),
+                // (8,18): error CS0106: The modifier 'readonly' is not valid for this item
+                //     readonly int this[int i] { get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("readonly").WithLocation(8, 18),
+                // (9,38): error CS0106: The modifier 'readonly' is not valid for this item
+                //     readonly event Action<EventArgs> E;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("readonly").WithLocation(9, 38));
+        }
+
+        [Fact]
+        public void ReadOnlyEnum()
+        {
+            var csharp = @"
+public readonly enum E
+{
+    readonly A, readonly B
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (2,22): error CS0106: The modifier 'readonly' is not valid for this item
+                // public readonly enum E
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("readonly").WithLocation(2, 22),
+                // (3,2): error CS1041: Identifier expected; 'readonly' is a keyword
+                // {
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "").WithArguments("", "readonly").WithLocation(3, 2),
+                // (4,17): error CS1041: Identifier expected; 'readonly' is a keyword
+                //     readonly A, readonly B;
+                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "readonly").WithArguments("", "readonly").WithLocation(4, 17));
+        }
+
+        [Fact]
+        public void ReadOnlyStructStaticMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int i;
+    public static readonly int M()
+    {
+        return i;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly int M()
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(5, 32));
+        }
+
+        [Fact]
+        public void ReadOnlyStructProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public int P
+    {
+        readonly get
+        {
+            return i;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStructStaticProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int i;
+    public static int P
+    {
+        readonly get
+        {
+            return i;
+        }
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0106: The modifier 'readonly' is not valid for this item
+                //         readonly get
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(7, 18));
+        }
+
+        [Fact]
+        public void ReadOnlyStructStaticExpressionProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public static int i;
+    public static readonly int P => i;
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (5,32): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly int P => i;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("readonly").WithLocation(5, 32));
+        }
+
+        [Fact]
+        public void ReadOnlyStructExpressionProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int P => i;
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStructBlockProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int P { get { return i; } }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyAutoProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int P1 { readonly get; }
+    public readonly int P2 { get; }
+    public int P3 { readonly get; set; }
+    public int P4 { readonly get; readonly set; } // PROTOTYPE: readonly set on an auto-property should give an error
+    public readonly int P5 { get; set; } // PROTOTYPE: readonly set on an auto-property should give an error
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyProperty_RedundantReadOnlyAccessor()
+        {
+            var csharp = @"
+public struct S
+{
+    public readonly int P { readonly get; }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,38): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly int P { readonly get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(4, 38));
+        }
+
+        [Fact]
+        public void ReadOnlyStaticAutoProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public static readonly int P1 { get; set; }
+    public static int P2 { readonly get; }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,32): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(4, 32),
+                // (5,37): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static int P2 { readonly get; }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(5, 37));
+        }
+
+        [Fact]
+        public void RefReturningReadOnlyMethod()
+        {
+            // PROTOTYPE: would be good to add some more mutation here
+            // as well as expected diagnostics once that part of the feature is ready.
+            var csharp = @"
+public struct S
+{
+    private static int f1;
+    public readonly ref int M1() => ref f1;
+
+    private static readonly int f2;
+    public readonly ref readonly int M2() => ref f2;
+
+    private static readonly int f3;
+    public ref readonly int M3()
+    {
+        f1++;
+        return ref f3;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyConstructor()
+        {
+            var csharp = @"
+public struct S
+{
+    static readonly S() { }
+    public readonly S(int i) { }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,21): error CS0106: The modifier 'readonly' is not valid for this item
+                //     static readonly S() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("readonly").WithLocation(4, 21),
+                // (5,21): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly S(int i) { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("readonly").WithLocation(5, 21));
+        }
+
+        [Fact]
+        public void ReadOnlyDestructor()
+        {
+            var csharp = @"
+public struct S
+{
+    readonly ~S() { }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,15): error CS0106: The modifier 'readonly' is not valid for this item
+                //     readonly ~S() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("readonly").WithLocation(4, 15),
+                // (4,15): error CS0575: Only class types can contain destructors
+                //     readonly ~S() { }
+                Diagnostic(ErrorCode.ERR_OnlyClassesCanContainDestructors, "S").WithArguments("S.~S()").WithLocation(4, 15));
+        }
+
+        [Fact]
+        public void ReadOnlyOperator()
+        {
+            var csharp = @"
+public struct S
+{
+    public static readonly S operator +(S lhs, S rhs) => lhs;
+    public static readonly explicit operator int(S s) => 42;
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (4,39): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly S operator +(S lhs, S rhs) => lhs;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "+").WithArguments("readonly").WithLocation(4, 39),
+                // (5,46): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly explicit operator int(S s) => 42;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "int").WithArguments("readonly").WithLocation(5, 46));
+        }
+
+        [Fact]
+        public void ReadOnlyDelegate()
+        {
+            var csharp = @"
+public readonly delegate int Del();
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (2,30): error CS0106: The modifier 'readonly' is not valid for this item
+                // public readonly delegate int Del();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "Del").WithArguments("readonly").WithLocation(2, 30));
+        }
+
+        [Fact]
+        public void ReadOnlyIndexer()
+        {
+            var csharp = @"
+public struct S1
+{
+    public readonly int this[int i]
+    {
+        get => 42;
+        set {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyExpressionIndexer()
+        {
+            var csharp = @"
+public struct S1
+{
+    public readonly int this[int i] => 42;
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyGetExpressionIndexer()
+        {
+            var csharp = @"
+public struct S1
+{
+    public int this[int i]
+    {
+        readonly get => 42;
+        readonly set {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyFieldLikeEvent()
+        {
+            var csharp = @"
+using System;
+
+public struct S1
+{
+    public readonly event Action<EventArgs> E;
+    public void M() { E?.Invoke(new EventArgs()); }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (6,45): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public readonly event Action<EventArgs> E;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("readonly").WithLocation(6, 45));
+        }
+
+        [Fact]
+        public void ReadOnlyEventExplicitAddRemove()
+        {
+            var csharp = @"
+using System;
+
+public struct S1
+{
+    public readonly event Action<EventArgs> E
+    {
+        add {}
+        remove {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyStaticEvent()
+        {
+            var csharp = @"
+using System;
+
+public struct S1
+{
+    public static readonly event Action<EventArgs> E
+    {
+        add {}
+        remove {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (6,52): error CS0106: The modifier 'readonly' is not valid for this item
+                //     public static readonly event Action<EventArgs> E
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("readonly").WithLocation(6, 52));
+        }
+
+        [Fact]
+        public void ReadOnlyEventReadOnlyAccessors()
+        {
+            var csharp = @"
+using System;
+
+public struct S1
+{
+    public event Action<EventArgs> E
+    {
+        readonly add {}
+        readonly remove {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         readonly add {}
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "readonly").WithLocation(8, 9),
+                // (9,9): error CS1609: Modifiers cannot be placed on event accessor declarations
+                //         readonly remove {}
+                Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "readonly").WithLocation(9, 9));
+        }
     }
 }

@@ -410,7 +410,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             const DeclarationModifiers defaultAccess = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            const DeclarationModifiers allowedModifiers = DeclarationModifiers.AccessibilityMask;
+            DeclarationModifiers allowedModifiers = DeclarationModifiers.AccessibilityMask;
+            if (this.ContainingType.IsStructType() && !_property.HasReadOnlyModifier)
+            {
+                allowedModifiers |= DeclarationModifiers.ReadOnly;
+            }
+
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             // For interface, check there are no accessibility modifiers.
@@ -450,6 +455,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (ContainingType.IsSealed && localAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
+            }
+            else if (IsStatic && IsReadOnly && !_property.HasReadOnlyModifier)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
             }
         }
 

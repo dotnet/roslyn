@@ -627,6 +627,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.New) != 0; }
         }
 
+        internal bool HasReadOnlyModifier => (_modifiers & DeclarationModifiers.ReadOnly) != 0;
+
         public override MethodSymbol GetMethod
         {
             get { return _getMethod; }
@@ -813,6 +815,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (ContainingType.IsStructType())
+            {
+                allowedModifiers |= DeclarationModifiers.ReadOnly;
+            }
+
             if (!isInterface)
             {
                 allowedModifiers |=
@@ -889,6 +896,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // A static member '{0}' cannot be marked as override, virtual, or abstract
                 diagnostics.Add(ErrorCode.ERR_StaticNotVirtual, location, this);
+            }
+            else if (IsStatic && HasReadOnlyModifier)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
             }
             else if (IsOverride && (IsNew || IsVirtual))
             {
