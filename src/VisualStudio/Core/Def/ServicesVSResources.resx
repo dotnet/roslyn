@@ -1360,4 +1360,11 @@ I agree to all of the foregoing:</value>
     <value>Live Share C#/Visual Basic Language Server Client</value>
     <comment>'Live Share' is a product name and does not need to be localized.</comment>
   </data>
+  <data name="Edit" xml:space="preserve">
+    <value>_Edit</value>
+  </data>
+  <data name="Edit_0" xml:space="preserve">
+    <value>Edit {0}</value>
+    <comment>{0} is a parameter description</comment>
+  </data>
 </root>
