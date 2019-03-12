@@ -251,8 +251,7 @@ class Class1
 assertCaretPosition: true);
         }
 
-        // 🐛 This should work with async completion, but currently does not.
-        [ConditionalWpfFact(typeof(LegacyCompletionCondition)), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(33823, "https://github.com/dotnet/roslyn/issues/33823")]
         public void CommitOnShiftEnter()
         {
@@ -333,7 +332,7 @@ class Class1
 assertCaretPosition: true);
         }
 
-        [ConditionalWpfFact(typeof(LegacyCompletionCondition)), Trait(Traits.Feature, Traits.Features.Completion)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(33822, "https://github.com/dotnet/roslyn/issues/33822")]
         public void EnsureTheCaretIsVisibleAfterALongEdit()
         {
