@@ -423,33 +423,90 @@ class C
             var source = @"
 class C
     static void M()
+        i = 12
+        System.Console.Write(i)
         for (i = 1; i < 9; ++i)
             i += 123
+            System.Console.Write(i)
+        System.Console.Write(i)
     
 ";
             var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
 
-            comp.VerifyIL("C.M", @"
-{
-  // Code size       17 (0x11)
-  .maxstack  3
+            comp.VerifyIL("C.M", @"{
+  // Code size       40 (0x28)
+  .maxstack  2
   .locals init (int V_0) //i
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldc.i4.s   123
-  IL_0004:  stloc.0
-  IL_0005:  ldloc.0
-  IL_0006:  ldc.i4.1
-  IL_0007:  add
-  IL_0008:  stloc.0
-  IL_0009:  ldc.i4.s   123
-  IL_000b:  ldloc.0
-  IL_000c:  ldloc.0
-  IL_000d:  mul
-  IL_000e:  add
-  IL_000f:  stloc.0
-  IL_0010:  ret
+  IL_0000:  ldc.i4.s   12
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""void System.Console.Write(int)""
+  IL_0009:  ldc.i4.1
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_001c
+  IL_000d:  ldloc.0
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  add
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""void System.Console.Write(int)""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  stloc.0
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.s   9
+  IL_001f:  blt.s      IL_000d
+  IL_0021:  ldloc.0
+  IL_0022:  call       ""void System.Console.Write(int)""
+  IL_0027:  ret
+}");
+        }
+
+        [Fact]
+        public void TestILForSimplePythonFor123641243()
+        {
+            var source = @"
+class C
+    static void M()
+        i = 12
+        System.Console.Write(i)
+        foreach (i in System.Linq.Enumerable.Range(44,5))
+            System.Console.Write(i)
+        System.Console.Write(i)
+    
+";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.M", @"{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (int V_0) //i
+  IL_0000:  ldc.i4.s   12
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""void System.Console.Write(int)""
+  IL_0009:  ldc.i4.1
+  IL_000a:  stloc.0
+  IL_000b:  br.s       IL_001c
+  IL_000d:  ldloc.0
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  add
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""void System.Console.Write(int)""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  stloc.0
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.s   9
+  IL_001f:  blt.s      IL_000d
+  IL_0021:  ldloc.0
+  IL_0022:  call       ""void System.Console.Write(int)""
+  IL_0027:  ret
 }");
         }
 
@@ -459,11 +516,14 @@ class C
             var source = @"
 class C
     static void M()
-        i = 123
-        a = 321
-        i = 222
-        i += 1
-        a += 1
+        i = 123*3
+        System.Console.Write(i)
+        a = 321*3
+        System.Console.Write(a)
+        i = 222*3
+        System.Console.Write(i)
+        a = 333*3
+        System.Console.Write(a)
     
 ";
             var comp = CompileAndVerify(source);
@@ -471,24 +531,15 @@ class C
 
             comp.VerifyIL("C.M", @"
 {
-  // Code size       17 (0x11)
-  .maxstack  3
-  .locals init (int V_0) //i
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.0
-  IL_0002:  ldc.i4.s   123
-  IL_0004:  stloc.0
-  IL_0005:  ldloc.0
-  IL_0006:  ldc.i4.1
-  IL_0007:  add
-  IL_0008:  stloc.0
-  IL_0009:  ldc.i4.s   123
-  IL_000b:  ldloc.0
-  IL_000c:  ldloc.0
-  IL_000d:  mul
-  IL_000e:  add
-  IL_000f:  stloc.0
-  IL_0010:  ret
+  // Code size       28 (0x1c)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   123
+  IL_0002:  call       ""void System.Console.Write(int)""
+  IL_0007:  ldc.i4     0x141
+  IL_000c:  call       ""void System.Console.Write(int)""
+  IL_0011:  ldc.i4     0xde
+  IL_0016:  call       ""void System.Console.Write(int)""
+  IL_001b:  ret
 }");
         }
 

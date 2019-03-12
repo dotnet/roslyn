@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -55,18 +56,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var simpleExpression = exp as AssignmentExpressionSyntax;
                         var leftIdentifier = ((IdentifierNameSyntax)simpleExpression.Left).Identifier;
 
-                        if (locals.All(l => l.Name != leftIdentifier.Value))
+                        if (locals.All(l => l.Name != (string)leftIdentifier.Value))
                         {
-                            var localSymbol = SourceLocalSymbol.MakeLocal(
-                                                this.ContainingMemberOrLambda,
-                                                this,
-                                                true,
-                                                default(TypeSyntax),
-                                                leftIdentifier,
-                                                kind,
-                                                simpleExpression.Right);
+                            bool valid = true;
+                            for (Binder scope = this.Next; scope != null && valid; scope = scope.Next)
+                            {
+                                if (scope.Locals.Any(l => l.Name == (string)leftIdentifier.Value))
+                                {
+                                    valid = false;
+                                }
+                            }
 
-                            locals.Add(localSymbol);
+                            if (valid)
+                            {
+                                var localSymbol = SourceLocalSymbol.MakeLocal(
+                                                    this.ContainingMemberOrLambda,
+                                                    this,
+                                                    true,
+                                                    default(TypeSyntax),
+                                                    leftIdentifier,
+                                                    kind,
+                                                    simpleExpression.Right);
+
+                                locals.Add(localSymbol);
+                            }
                         }
 
                         ExpressionVariableFinder.FindExpressionVariables(this, locals, _syntax.Initializers);

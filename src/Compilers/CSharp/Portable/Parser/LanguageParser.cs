@@ -7911,7 +7911,8 @@ tryAgain:
                     return true;
                 case SyntaxKind.IdentifierName:
                     // e.g. `foreach (_ in e)`
-                    return ((IdentifierNameSyntax)variable).Identifier.ContextualKind == SyntaxKind.UnderscoreToken;
+                    // e.g. `foreach (i in e)` as implicit declaration
+                    return true;
                 default:
                     return false;
             }
@@ -8778,7 +8779,7 @@ tryAgain:
             {
                 semicolon = SyntaxFactory.MissingToken(SyntaxKind.SemicolonToken);
             }
-            else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken && 
+            else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken &&
                 expression.GetLastToken().TrailingTrivia.Last.Kind == SyntaxKind.EndOfLineTrivia)
             {
                 semicolon = this.CreateMissingToken(SyntaxKind.None, this.CurrentToken.Kind, reportError: false);

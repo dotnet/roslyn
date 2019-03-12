@@ -237,21 +237,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             LocalDeclarationKind kind = LocalDeclarationKind.RegularVariable;
                             var simpleExpression = exp.Expression as AssignmentExpressionSyntax;
-                            var leftIdentifier = ((IdentifierNameSyntax)simpleExpression.Left).Identifier;
 
-                            if (locals.All(l => l.Name != leftIdentifier.Value))
+                            if (simpleExpression.Left.Kind() == SyntaxKind.IdentifierName)
                             {
-                                var localSymbol = SourceLocalSymbol.MakeLocal(
-                                                    this.ContainingMemberOrLambda,
-                                                    this,
-                                                    true,
-                                                    default(TypeSyntax),
-                                                    leftIdentifier,
-                                                    kind,
-                                                    simpleExpression.Right,
-                                                    localDeclarationBinder2);
+                                var leftIdentifier = ((IdentifierNameSyntax)simpleExpression.Left).Identifier;
 
-                                locals.Add(localSymbol);
+                                if (locals.All(l => l.Name != (string)leftIdentifier.Value))
+                                {
+                                    var localSymbol = SourceLocalSymbol.MakeLocal(
+                                                        this.ContainingMemberOrLambda,
+                                                        this,
+                                                        true,
+                                                        default(TypeSyntax),
+                                                        leftIdentifier,
+                                                        kind,
+                                                        simpleExpression.Right,
+                                                        localDeclarationBinder2);
+
+                                    locals.Add(localSymbol);
+                                }
                             }
                         }
 
