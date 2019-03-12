@@ -16,14 +16,15 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
-    //[Export(typeof(VSCommanding.ICommandHandler))]
-    //[ContentType(ContentTypeNames.RoslynContentType)]
-    //[Name(PredefinedCommandHandlerNames.CommentSelection)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.CommentSelection)]
     internal class CommentUncommentSelectionCommandHandler :
         AbstractCommentSelectionCommandHandler,
         VSCommanding.ICommandHandler<CommentSelectionCommandArgs>,
@@ -189,22 +190,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             trackingSpans.Add(span.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive));
             InsertText(textChanges, span.Start, commentInfo.BlockCommentStartString);
             InsertText(textChanges, span.End, commentInfo.BlockCommentEndString);
-        }
-
-        /// <summary>
-        /// Record "Insert text" text changes.
-        /// </summary>
-        private void InsertText(List<TextChange> textChanges, int position, string text)
-        {
-            textChanges.Add(new TextChange(new TextSpan(position, 0), text));
-        }
-
-        /// <summary>
-        /// Record "Delete text" text changes.
-        /// </summary>
-        private void DeleteText(List<TextChange> textChanges, TextSpan span)
-        {
-            textChanges.Add(new TextChange(span, string.Empty));
         }
 
         /// <summary>

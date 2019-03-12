@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -24,12 +25,13 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
 {
+    /* TODO - Modify these once the toggle block comment handler is added.
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.CommentSelection)]
+    [Name(PredefinedCommandHandlerNames.CommentSelection)]*/
     internal class ToggleBlockCommentCommandHandler :
-        AbstractCommentSelectionCommandHandler,
-        VSCommanding.ICommandHandler<CommentSelectionCommandArgs>
+        AbstractCommentSelectionCommandHandler/*,
+        VSCommanding.ICommandHandler<CommentSelectionCommandArgs>*/
     {
         [ImportingConstructor]
         internal ToggleBlockCommentCommandHandler(
@@ -37,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             IEditorOperationsFactoryService editorOperationsFactoryService) : base(undoHistoryRegistry, editorOperationsFactoryService)
         { }
 
+        /* TODO - modify once the toggle block comment handler is added.
         public VSCommanding.CommandState GetCommandState(CommentSelectionCommandArgs args)
         {
             return GetCommandState(args.SubjectBuffer);
@@ -44,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
 
         public bool ExecuteCommand(CommentSelectionCommandArgs args, CommandExecutionContext context)
         {
-            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Toggle, context);
-        }
+            return ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Toggle, context);
+        }*/
 
         public override string DisplayName => EditorFeaturesResources.Toggle_Block_Comment;
 
@@ -68,6 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
         internal override void CollectEdits(Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans,
             List<TextChange> textChanges, List<CommentTrackingSpan> trackingSpans, Operation operation, CancellationToken cancellationToken)
         {
+            var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
+            if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynToggleBlockComment))
+            {
+                return;
+            }
+
             if (selectedSpans.IsEmpty())
             {
                 return;
@@ -229,16 +238,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             {
                 DeleteText(textChanges, new TextSpan(blockCommentMarkerPosition, commentInfo.BlockCommentEndString.Length));
             }
-        }
-
-        private static void InsertText(List<TextChange> textChanges, int position, string text)
-        {
-            textChanges.Add(new TextChange(new TextSpan(position, 0), text));
-        }
-
-        private static void DeleteText(List<TextChange> textChanges, TextSpan span)
-        {
-            textChanges.Add(new TextChange(span, string.Empty));
         }
 
         private static IEnumerable<Span> GetDescendentBlockCommentSpansFromRoot(SyntaxNode root)

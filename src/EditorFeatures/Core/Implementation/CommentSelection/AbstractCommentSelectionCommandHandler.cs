@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -59,6 +61,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 .ToImmutableArray();
             var newDocument = service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
+        }
+
+        /// <summary>
+        /// Record "Insert text" text changes.
+        /// </summary>
+        protected static void InsertText(List<TextChange> textChanges, int position, string text)
+        {
+            textChanges.Add(new TextChange(new TextSpan(position, 0), text));
+        }
+
+        /// <summary>
+        /// Record "Delete text" text changes.
+        /// </summary>
+        protected static void DeleteText(List<TextChange> textChanges, TextSpan span)
+        {
+            textChanges.Add(new TextChange(span, string.Empty));
         }
 
         private static ICommentSelectionService GetService(Document document)

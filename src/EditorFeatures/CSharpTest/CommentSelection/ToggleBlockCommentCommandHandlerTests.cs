@@ -2,23 +2,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
-using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -28,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
     [UseExportProvider]
     public class ToggleBlockCommentCommandHandlerTests
     {
-        private static string BlockCommentOpenMarker = "/*";
-        private static string BlockCommentCloseMarker = "*/";
+        private const string BlockCommentOpenMarker = "/*";
+        private const string BlockCommentCloseMarker = "*/";
 
         private class MockCommentSelectionService : AbstractCommentSelectionService
         {
@@ -1861,8 +1859,12 @@ class C
         private static void ToggleBlockCommentMultiple(string markup, string[] expectedText, IEnumerable<Span>[] expectedSelections)
         {
             Assert.Equal(expectedText.Length, expectedSelections.Length);
-            using (var workspace = TestWorkspace.CreateCSharp(markup))
+            var exportProvider = ExportProviderCache
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(MockToggleBlockCommentExperimentationService)))
+                .CreateExportProvider();
+            using (var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider))
             {
+
                 var doc = workspace.Documents.First();
                 SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
@@ -1872,7 +1874,7 @@ class C
                 var textView = doc.GetTextView();
                 var textBuffer = doc.GetTextBuffer();
 
-                for (int i = 0; i < expectedText.Length; i++)
+                for (var i = 0; i < expectedText.Length; i++)
                 {
                     commandHandler.ExecuteCommand(textView, textBuffer, Operation.Toggle, TestCommandExecutionContext.Create());
                     AssertCommentResult(doc.TextBuffer, textView, expectedText[i], expectedSelections[i]);
@@ -1904,6 +1906,15 @@ class C
                 textView.Selection.Select(new VirtualSnapshotPoint(snapshot, spans.First().Start),
                                           new VirtualSnapshotPoint(snapshot, spans.Last().End));
                 textView.Caret.MoveTo(new SnapshotPoint(snapshot, spans.Last().End));
+            }
+        }
+
+        [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), Shared]
+        private class MockToggleBlockCommentExperimentationService : IExperimentationService
+        {
+            public bool IsExperimentEnabled(string experimentName)
+            {
+                return WellKnownExperimentNames.RoslynToggleBlockComment.Equals(experimentName);
             }
         }
     }
