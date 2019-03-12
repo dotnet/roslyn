@@ -1443,14 +1443,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             NullableFlowState resultState = NullableFlowState.NotNull;
             if ((object)type != null)
             {
-                bool isTrackableStructType = EmptyStructTypeCache.IsTrackableStructType(type);
-                var constructor = (node as BoundObjectCreationExpression)?.Constructor;
-                bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
-
                 slot = GetOrCreateObjectCreationPlaceholderSlot(node);
                 if (slot > 0)
                 {
-                    if (isTrackableStructType)
+                    var constructor = (node as BoundObjectCreationExpression)?.Constructor;
+                    bool isDefaultValueTypeConstructor = constructor?.IsDefaultValueTypeConstructor() == true;
+
+                    if (EmptyStructTypeCache.IsTrackableStructType(type))
                     {
                         this.State[slot] = NullableFlowState.NotNull;
                         var tupleType = constructor?.ContainingType as TupleTypeSymbol;

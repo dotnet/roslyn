@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         private const string Tuple2NonNullable =
                     @"
-
 namespace System
 {
 #nullable enable
@@ -42,9 +41,7 @@ namespace System
             return """";
         }
     }
-}
-
-            ";
+}";
 
         private const string TupleRestNonNullable =
                     @"
@@ -51071,7 +51068,9 @@ class Program
 {
     static void F()
     {
-        A a = new B() { FA = 1, FB = null }; // 1
+        A a = new B() { FA = 1 };
+        a.FA.ToString();
+        a = new B() { FA = 2, FB = null }; // 1
         a.FA.ToString();
         ((B)a).FA.ToString();
         ((B)a).FB.ToString(); // 2
@@ -51079,12 +51078,12 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (13,38): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         A a = new B() { FA = 1, FB = null }; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 38),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
+                // (15,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         a = new B() { FA = 2, FB = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 36),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         ((B)a).FB.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((B)a).FB").WithLocation(16, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((B)a).FB").WithLocation(18, 9));
         }
 
         [Fact]
@@ -51235,12 +51234,10 @@ class Program
 }
 class Program
 {
-    static void F(object x, object? y)
+    static void F(object? x)
     {
-        if (((C)x).F() != null)
+        if (((C?)x)?.F() != null)
             ((C)x).F().ToString();
-        if (((C?)y)?.F() != null)
-            ((C)y).F().ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -51281,12 +51278,10 @@ class Program
 }
 class Program
 {
-    static void F(object x, object? y)
+    static void F(object? x)
     {
-        if (((I)x).F() != null)
+        if (((I?)x)?.F() != null)
             ((I)x).F().ToString();
-        if (((I?)y)?.F() != null)
-            ((I)y).F().ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -56189,9 +56184,9 @@ class C {
                 // (4,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable enable
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(4, 2),
-                // (5,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // #nullable enable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(5, 2),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(4, 2),
                 // (6,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         where T1 : object
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(6, 20),
@@ -56199,22 +56194,22 @@ class C {
                 //         (string?, string) t1;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(7, 16),
                 // (7,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         where T1 : object
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(7, 20),
+                // (7,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         where T2 : object
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(7, 20),
                 // (8,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T3 : object
+                //         where T2 : object
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(8, 20),
                 // (8,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T1 : object
+                //         where T3 : object
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(8, 20),
                 // (8,33): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Type t2 = typeof((string?, string));
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "?").WithArguments("nullable reference types").WithLocation(8, 33),
                 // (9,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         where T4 : object
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(9, 20),
-                // (9,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         where T2 : object
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "object").WithArguments("object generic type constraint").WithLocation(9, 20),
                 // (10,20): error CS8652: The feature 'object generic type constraint' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         where T5 : object
