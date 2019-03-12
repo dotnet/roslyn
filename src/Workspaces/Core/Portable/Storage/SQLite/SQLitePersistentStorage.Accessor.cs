@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             private void InsertOrReplaceBlob(
-                SqlConnection conection, TDatabaseId dataId, 
+                SqlConnection conection, TDatabaseId dataId,
                 byte[] checksumBytes, int checksumLength,
                 byte[] dataBytes, int dataLength)
             {
