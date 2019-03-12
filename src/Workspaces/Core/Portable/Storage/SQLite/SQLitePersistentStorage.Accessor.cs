@@ -269,11 +269,11 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             private void InsertOrReplaceBlob(
-                SqlConnection conection, TDatabaseId dataId,
+                SqlConnection connection, TDatabaseId dataId,
                 byte[] checksumBytes, int checksumLength,
                 byte[] dataBytes, int dataLength)
             {
-                using (var resettableStatement = conection.GetResettableStatement(
+                using (var resettableStatement = connection.GetResettableStatement(
                     $@"insert or replace into ""{this.DataTableName}""(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)"))
                 {
                     var statement = resettableStatement.Statement;
