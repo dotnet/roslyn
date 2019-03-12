@@ -448,9 +448,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (23,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (27,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         P2 = 2; // error
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P2").WithArguments("this").WithLocation(23, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P2").WithArguments("this").WithLocation(27, 9));
         }
 
         [Fact]

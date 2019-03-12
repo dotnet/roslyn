@@ -992,7 +992,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
 
-                    if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, BindValueKind.Assignable, diagnostics))
+                    var setValueKind = setMethod.IsEffectivelyReadOnly ? BindValueKind.RValue : BindValueKind.Assignable;
+                    if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, setValueKind, diagnostics))
                     {
                         return false;
                     }
@@ -2968,7 +2969,7 @@ moreArguments:
 
                     if (!IsAnyReadOnly(addressKind) && method.IsEffectivelyReadOnly)
                     {
-                        return method.MethodKind == MethodKind.Constructor;
+                        return false;
                     }
 
                     return true;
