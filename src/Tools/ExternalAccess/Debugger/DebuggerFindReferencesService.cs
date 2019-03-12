@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VsDebugPresentationPackage
+namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
 {
     [Export]
     [Shared]

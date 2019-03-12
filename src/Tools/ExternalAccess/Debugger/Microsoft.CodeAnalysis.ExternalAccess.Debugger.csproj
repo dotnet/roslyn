@@ -3,23 +3,23 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.VsDebugPresentationPackage</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.Debugger</RootNamespace>
     <TargetFramework>net472</TargetFramework>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
-    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.VsDebugPresentationPackage</PackageId>
+    <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Debugger</PackageId>
     <PackageDescription>
-      A supporting package for VsDebugPresentationPackage:
+      A supporting package for the Visual Studio debugger:
       [needs link]
     </PackageDescription>
   </PropertyGroup>
 
   <ItemGroup>
     <!--
-      ⚠ ONLY VSDEBUGPRESENTATIONPACKAGE ASSEMBLIES MAY BE ADDED HERE ⚠
+      ⚠ ONLY VISUAL STUDIO DEBUGGER ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.Debugger.VsDebugPresentationPackage" Key="$(VsDebugPresentationPackageKey)" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.Debugger.VsDebugPresentationPackage" Key="$(VisualStudioDebuggerKey)" />
   </ItemGroup>
 
   <ItemGroup>
