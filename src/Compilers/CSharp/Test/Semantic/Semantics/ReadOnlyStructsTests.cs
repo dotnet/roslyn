@@ -412,6 +412,48 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyMethod_CallSetAccessor()
+        {
+            var csharp = @"
+public class C
+{
+    public int P { get; set; }
+}
+
+public struct S
+{
+    C c;
+    public S(C c)
+    {
+        this.c = c;
+        P2 = 0;
+    }
+
+    static int P1 { get; set; }
+    int P2 { get; set; }
+    readonly int P3
+    {
+        get => 42;
+        set {}
+    }
+
+    public readonly void M()
+    {
+        P1 = 1; // ok
+        P2 = 2; // error
+        P3 = 2; // ok
+        c.P = 42; // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (23,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         P2 = 2; // error
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P2").WithArguments("this").WithLocation(23, 9));
+        }
+
+        [Fact]
         public void ReadOnlyStruct_CallNormalMethodOnField()
         {
             var csharp = @"
