@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     case ConversionKind.ImplicitTupleLiteral:
                     case ConversionKind.ExplicitTupleLiteral:
-                        switch (operandOpt.Kind)
+                        switch (operandOpt?.Kind)
                         {
                             case BoundKind.Conversion:
                                 {

@@ -43703,7 +43703,7 @@ class Program
                 //         u.Item2.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item2").WithLocation(11, 9),
                 // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         v.Item2.ToString(); // 5
+                //         v.Item2.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "v.Item2").WithLocation(13, 9));
             comp.VerifyTypes();
         }
@@ -51071,7 +51071,6 @@ class Program
         A a = new B() { FA = 1 };
         a.FA.ToString();
         a = new B() { FA = 2, FB = null }; // 1
-        a.FA.ToString();
         ((B)a).FA.ToString();
         ((B)a).FB.ToString(); // 2
     }
@@ -51081,9 +51080,9 @@ class Program
                 // (15,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         a = new B() { FA = 2, FB = null }; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 36),
-                // (18,9): warning CS8602: Possible dereference of a null reference.
+                // (17,9): warning CS8602: Possible dereference of a null reference.
                 //         ((B)a).FB.ToString(); // 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((B)a).FB").WithLocation(18, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((B)a).FB").WithLocation(17, 9));
         }
 
         [Fact]
@@ -51314,14 +51313,17 @@ class Program
         if (false ? false : b2 && (a = new B() { F = b1 }).F.Value)
         {
         }
+        if (false ? b2 && (a = new B() { F = null }).F.Value : true)
+        {
+        }
         _ = (a = new B() { F = null }).F.Value; // 1
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (22,13): warning CS8629: Nullable value type may be null.
+                // (25,13): warning CS8629: Nullable value type may be null.
                 //         _ = (a = new B() { F = null }).F.Value; // 1
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(a = new B() { F = null }).F").WithLocation(22, 13));
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(a = new B() { F = null }).F").WithLocation(25, 13));
         }
 
         [Fact]
