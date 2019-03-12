@@ -61,5 +61,10 @@ namespace Microsoft.CodeAnalysis
         /// (Review design for this option before shipping. See https://github.com/dotnet/roslyn/issues/26198)
         /// </summary>
         IncludeNullableReferenceTypeModifier = 1 << 6,
+
+        /// <summary>
+        /// Allow the use of <c>default</c> instead of <c>default(T)</c> where applicable.
+        /// </summary>
+        AllowDefaultLiteral = 1 << 7,
     }
 }

@@ -5,14 +5,15 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpReplIdeFeatures : AbstractInteractiveWindowTest
     {
-        public CSharpReplIdeFeatures(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpReplIdeFeatures(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 

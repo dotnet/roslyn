@@ -143,6 +143,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     Item("M(int i = 0)", Glyph.MethodPrivate)}))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        Public Async Function TestOptionalParameter2() As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            class C { void M(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) { } }
+                        </Document>
+                    </Project>
+                </Workspace>,
+                Item("C", Glyph.ClassInternal, children:={
+                    Item("M(CancellationToken cancellationToken = default)", Glyph.MethodPrivate)}))
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545274, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545274")>
         Public Async Function TestProperties() As Task
             Await AssertItemsAreAsync(

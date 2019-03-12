@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -330,6 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved, basesBeingResolved != null);
         }
 
+        /// <summary>
+        /// This method is used in deeply recursive parts of the compiler and requires a non-trivial amount of stack
+        /// space to execute. Preventing inlining here to keep recursive frames small.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
         internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindNamespaceOrTypeSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             var result = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics);
@@ -338,44 +344,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UnwrapAlias(result, diagnostics, syntax, basesBeingResolved);
         }
 
+        /// <summary>
+        /// Bind the syntax into a namespace, type or alias symbol. 
+        /// </summary>
+        /// <remarks>
+        /// This method is used in deeply recursive parts of the compiler. Specifically this and
+        /// <see cref="BindQualifiedName(ExpressionSyntax, SimpleNameSyntax, DiagnosticBag, ConsList{TypeSymbol}, bool)"/>
+        /// are mutually recursive. The non-recursive parts of this method tend to reserve significantly large 
+        /// stack frames due to their use of large struct like <see cref="TypeSymbolWithAnnotations"/>.
+        ///
+        /// To keep the stack frame size on recursive paths small the non-recursive parts are factored into local 
+        /// functions. This means we pay their stack penalty only when they are used. They are themselves big 
+        /// enough they should be disqualified from inlining. In the future when attributes are allowed on 
+        /// local functions we should explicitly mark them as <see cref="MethodImplOptions.NoInlining"/>
+        /// </remarks>
         internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindNamespaceOrTypeOrAliasSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<TypeSymbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
             switch (syntax.Kind())
             {
                 case SyntaxKind.NullableType:
-                    {
-                        var nullableSyntax = (NullableTypeSyntax)syntax;
-                        TypeSyntax typeArgumentSyntax = nullableSyntax.ElementType;
-                        TypeSymbolWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
-                        TypeSymbolWithAnnotations constructedType = typeArgument.SetIsAnnotated(Compilation);
-
-                        reportNullableReferenceTypesIfNeeded(nullableSyntax.QuestionToken, typeArgument);
-
-                        if (!ShouldCheckConstraints)
-                        {
-                            diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
-                        }
-                        else if (constructedType.IsNullableType())
-                        {
-                            ReportUseSiteDiagnostics(constructedType.TypeSymbol.OriginalDefinition, diagnostics, syntax);
-                            var type = (NamedTypeSymbol)constructedType.TypeSymbol;
-                            var location = syntax.Location;
-                            type.CheckConstraints(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics);
-                        }
-                        else if (constructedType.TypeSymbol.IsTypeParameterDisallowingAnnotation())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, syntax.Location);
-                        }
-
-                        return constructedType;
-                    }
+                    return bindNullable();
 
                 case SyntaxKind.PredefinedType:
-                    {
-                        var predefinedType = (PredefinedTypeSyntax)syntax;
-                        var type = BindPredefinedTypeSymbol(predefinedType, diagnostics);
-                        return TypeSymbolWithAnnotations.Create(IsNullableEnabled(predefinedType.Keyword), type);
-                    }
+                    return bindPredefined();
 
                 case SyntaxKind.IdentifierName:
                     return BindNonGenericSimpleNamespaceOrTypeOrAliasSymbol((IdentifierNameSyntax)syntax, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, qualifierOpt: null);
@@ -384,19 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindGenericSimpleNamespaceOrTypeOrAliasSymbol((GenericNameSyntax)syntax, diagnostics, basesBeingResolved, qualifierOpt: null);
 
                 case SyntaxKind.AliasQualifiedName:
-                    {
-                        var node = (AliasQualifiedNameSyntax)syntax;
-                        var bindingResult = BindNamespaceAliasSymbol(node.Alias, diagnostics);
-                        var alias = bindingResult as AliasSymbol;
-                        NamespaceOrTypeSymbol left = ((object)alias != null) ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
-
-                        if (left.Kind == SymbolKind.NamedType)
-                        {
-                            return TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(left, LookupResultKind.NotATypeOrNamespace, diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, node.Alias.Location, node.Alias.Identifier.Text)));
-                        }
-
-                        return this.BindSimpleNamespaceOrTypeOrAliasSymbol(node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left);
-                    }
+                    return bindAlias();
 
                 case SyntaxKind.QualifiedName:
                     {
@@ -416,24 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SyntaxKind.PointerType:
-                    {
-                        var node = (PointerTypeSyntax)syntax;
-                        var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
-                        ReportUnsafeIfNotAllowed(node, diagnostics);
-
-                        // Checking BinderFlags.GenericConstraintsClause to prevent cycles in binding
-                        if (Flags.HasFlag(BinderFlags.GenericConstraintsClause) && elementType.TypeKind == TypeKind.TypeParameter)
-                        {
-                            // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
-                            Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
-                        }
-                        else
-                        {
-                            CheckManagedAddr(elementType.TypeSymbol, node, diagnostics);
-                        }
-
-                        return TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(elementType));
-                    }
+                    return bindPointer();
 
                 case SyntaxKind.OmittedTypeArgument:
                     {
@@ -469,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var location = questionToken.GetLocation();
 
                 // Inside a method body or other executable code, we can question IsValueType without causing cycles.
-                if (!typeArgument.IsNull && !ShouldCheckConstraints)
+                if (typeArgument.HasType && !ShouldCheckConstraints)
                 {
                     LazyMissingNonNullTypesContextDiagnosticInfo.AddAll(isNullableEnabled, typeArgument, location, diagnostics);
                 }
@@ -477,6 +439,76 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     LazyMissingNonNullTypesContextDiagnosticInfo.ReportNullableReferenceTypesIfNeeded(isNullableEnabled, typeArgument, location, diagnostics);
                 }
+            }
+
+            NamespaceOrTypeOrAliasSymbolWithAnnotations bindNullable()
+            {
+                var nullableSyntax = (NullableTypeSyntax)syntax;
+                TypeSyntax typeArgumentSyntax = nullableSyntax.ElementType;
+                TypeSymbolWithAnnotations typeArgument = BindType(typeArgumentSyntax, diagnostics, basesBeingResolved);
+                TypeSymbolWithAnnotations constructedType = typeArgument.SetIsAnnotated(Compilation);
+
+                reportNullableReferenceTypesIfNeeded(nullableSyntax.QuestionToken, typeArgument);
+
+                if (!ShouldCheckConstraints)
+                {
+                    diagnostics.Add(new LazyUseSiteDiagnosticsInfoForNullableType(constructedType), syntax.GetLocation());
+                }
+                else if (constructedType.IsNullableType())
+                {
+                    ReportUseSiteDiagnostics(constructedType.TypeSymbol.OriginalDefinition, diagnostics, syntax);
+                    var type = (NamedTypeSymbol)constructedType.TypeSymbol;
+                    var location = syntax.Location;
+                    type.CheckConstraints(this.Compilation, this.Conversions, includeNullability: true, location, diagnostics);
+                }
+                else if (constructedType.TypeSymbol.IsTypeParameterDisallowingAnnotation())
+                {
+                    diagnostics.Add(ErrorCode.ERR_NullableUnconstrainedTypeParameter, syntax.Location);
+                }
+
+                return constructedType;
+            }
+
+            NamespaceOrTypeOrAliasSymbolWithAnnotations bindPredefined()
+            {
+                var predefinedType = (PredefinedTypeSyntax)syntax;
+                var type = BindPredefinedTypeSymbol(predefinedType, diagnostics);
+                return TypeSymbolWithAnnotations.Create(IsNullableEnabled(predefinedType.Keyword), type);
+            }
+
+            NamespaceOrTypeOrAliasSymbolWithAnnotations bindAlias()
+            {
+                var node = (AliasQualifiedNameSyntax)syntax;
+                var bindingResult = BindNamespaceAliasSymbol(node.Alias, diagnostics);
+                var alias = bindingResult as AliasSymbol;
+                NamespaceOrTypeSymbol left = ((object)alias != null) ? alias.Target : (NamespaceOrTypeSymbol)bindingResult;
+
+                if (left.Kind == SymbolKind.NamedType)
+                {
+                    return TypeSymbolWithAnnotations.Create(new ExtendedErrorTypeSymbol(left, LookupResultKind.NotATypeOrNamespace, diagnostics.Add(ErrorCode.ERR_ColColWithTypeAlias, node.Alias.Location, node.Alias.Identifier.Text)));
+                }
+
+                return this.BindSimpleNamespaceOrTypeOrAliasSymbol(node.Name, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics, left);
+            }
+
+            NamespaceOrTypeOrAliasSymbolWithAnnotations bindPointer()
+            {
+                var node = (PointerTypeSyntax)syntax;
+                var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
+                ReportUnsafeIfNotAllowed(node, diagnostics);
+
+                // Checking BinderFlags.GenericConstraintsClause to prevent cycles in binding
+                if (Flags.HasFlag(BinderFlags.GenericConstraintsClause) && elementType.TypeKind == TypeKind.TypeParameter)
+                {
+                    // Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                    Error(diagnostics, ErrorCode.ERR_BadConstraintType, node);
+                }
+                else
+                {
+                    CheckManagedAddr(elementType.TypeSymbol, node, diagnostics);
+                }
+
+                return TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(elementType));
             }
         }
 

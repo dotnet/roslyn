@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
                 var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<IList<AddImportFixData>>(
-                    RemoteFeatureOptions.AddImportEnabled,
                     callbackTarget,
                     nameof(IRemoteAddImportFeatureService.GetFixesAsync),
                     new object[]

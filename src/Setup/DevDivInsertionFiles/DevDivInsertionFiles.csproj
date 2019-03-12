@@ -56,7 +56,8 @@
     <ExpectedDependency Include="System.Reflection.Metadata" OptimizeAssemblies="lib/netstandard2.0/System.Reflection.Metadata.dll" UnsignAssemblies="lib/netstandard1.1/System.Reflection.Metadata.dll" />
     <ExpectedDependency Include="System.Memory"/>
     <ExpectedDependency Include="System.Runtime.CompilerServices.Unsafe" OptimizeAssemblies="lib/netstandard2.0/System.Runtime.CompilerServices.Unsafe.dll" />
-    <ExpectedDependency Include="System.Text.Encoding.CodePages" OptimizeAssemblies="lib/netstandard2.0/System.Text.Encoding.CodePages.dll" />
+    <!-- We do not have a training scenario that covers lib/netstandard2.0/System.Text.Encoding.CodePages.dll  -->
+    <ExpectedDependency Include="System.Text.Encoding.CodePages" />
     <ExpectedDependency Include="System.Numerics.Vectors"/>
 
     <!--
