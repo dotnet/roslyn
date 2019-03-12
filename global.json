@@ -2,7 +2,7 @@
   "tools": {
     "dotnet": "2.1.401",
     "vs": {
-      "version": "15.8"
+      "version": "16.0"
     },
     "xcopy-msbuild": "15.9.0-alpha"
   },
