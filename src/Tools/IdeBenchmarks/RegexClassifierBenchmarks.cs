@@ -11,45 +11,55 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace IdeBenchmarks
 {
-    [ShortRunJob]
     public class RegexClassifierBenchmarks
     {
+        private readonly UseExportProviderAttribute _useExportProviderAttribute = new UseExportProviderAttribute();
+
+        [Params(0, 1000, 10000)]
+        public int StringLength { get; set; }
+
+        [Params('a', '\\')]
+        public char RepeatElement { get; set; }
+
+        [IterationSetup]
+        public void IterationSetup()
+            => _useExportProviderAttribute.Before(null);
+
+        [IterationCleanup]
+        public void IterationCleanup()
+            => _useExportProviderAttribute.After(null);
+
         [Benchmark(Baseline = true, Description = "String literal")]
         public object TestStringLiteral()
         {
-            var code = @"
-class Program
-{
-    void Method()
-    {
-        // xanguage=regex
-        _ = @""aaaaaaaaaaaa"";
-    }
-}
-";
-
+            var code = CreateTestInput(isRegularExpression: false, element: RepeatElement, length: StringLength);
             return GetClassificationSpansAsync(code, new TextSpan(0, code.Length), parseOptions: null).Result;
         }
 
-        [Benchmark(Description = "Regular expression literal")]
-        public object TestRegexStringLiteral()
+        [Benchmark(Description = "Regular expression")]
+        public object TestEmptyRegexStringLiteral()
         {
-            var code = @"
+            var code = CreateTestInput(isRegularExpression: true, element: RepeatElement, length: StringLength);
+            return GetClassificationSpansAsync(code, new TextSpan(0, code.Length), parseOptions: null).Result;
+        }
+
+        private static string CreateTestInput(bool isRegularExpression, char element, int length)
+        {
+            return @"
 class Program
 {
     void Method()
     {
-        // language=regex
-        _ = @""aaaaaaaaaaaa"";
+        // " + (isRegularExpression ? "l" : "x") + @"anguage=regex
+        _ = """ + new string(element, element == '\\' ? 2 * length : length) + @""";
     }
 }
 ";
-
-            return GetClassificationSpansAsync(code, new TextSpan(0, code.Length), parseOptions: null).Result;
         }
 
         protected Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions parseOptions)
