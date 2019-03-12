@@ -96,13 +96,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
             else if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                !typeOpt.IsNullableType() && !typeOpt.IsValueType &&
+                !typeOpt.IsNullableType() && !typeOpt.Type.IsValueType &&
                 typeOpt.NullableAnnotation.IsAnnotated())
             {
                 return true;
             }
             else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                !typeOpt.IsValueType &&
+                !typeOpt.Type.IsValueType &&
                 typeOpt.NullableAnnotation.IsNotAnnotated() && !typeOpt.Type.IsTypeParameterDisallowingAnnotation())
             {
                 return true;

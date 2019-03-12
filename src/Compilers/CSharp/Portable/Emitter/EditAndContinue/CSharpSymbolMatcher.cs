@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
             {
-                var otherElementType = (TypeSymbol)this.Visit(symbol.ElementTypeWithAnnotations.Type);
+                var otherElementType = (TypeSymbol)this.Visit(symbol.ElementType);
                 if ((object)otherElementType == null)
                 {
                     // For a newly added type, there is no match in the previous generation, so it could be null.
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitPointerType(PointerTypeSymbol symbol)
             {
-                var otherPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtTypeWithAnnotations.Type);
+                var otherPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType);
                 if ((object)otherPointedAtType == null)
                 {
                     // For a newly added type, there is no match in the previous generation, so it could be null.
@@ -679,19 +679,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(other.ElementTypeWithAnnotations.CustomModifiers.IsEmpty);
 
                 return type.HasSameShapeAs(other) &&
-                    AreTypesEqual(type.ElementTypeWithAnnotations.Type, other.ElementTypeWithAnnotations.Type);
+                    AreTypesEqual(type.ElementType, other.ElementType);
             }
 
             private bool AreEventsEqual(EventSymbol @event, EventSymbol other)
             {
                 Debug.Assert(StringOrdinalComparer.Equals(@event.Name, other.Name));
-                return _comparer.Equals(@event.TypeWithAnnotations.Type, other.TypeWithAnnotations.Type);
+                return _comparer.Equals(@event.Type, other.Type);
             }
 
             private bool AreFieldsEqual(FieldSymbol field, FieldSymbol other)
             {
                 Debug.Assert(StringOrdinalComparer.Equals(field.Name, other.Name));
-                return _comparer.Equals(field.TypeWithAnnotations.Type, other.TypeWithAnnotations.Type);
+                return _comparer.Equals(field.Type, other.Type);
             }
 
             private bool AreMethodsEqual(MethodSymbol method, MethodSymbol other)
@@ -704,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 method = SubstituteTypeParameters(method);
                 other = SubstituteTypeParameters(other);
 
-                return _comparer.Equals(method.ReturnTypeWithAnnotations.Type, other.ReturnTypeWithAnnotations.Type) &&
+                return _comparer.Equals(method.ReturnType, other.ReturnType) &&
                     method.RefKind.Equals(other.RefKind) &&
                     method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
                     method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(parameter.Ordinal == other.Ordinal);
                 return StringOrdinalComparer.Equals(parameter.MetadataName, other.MetadataName) &&
                     (parameter.RefKind == other.RefKind) &&
-                    _comparer.Equals(parameter.TypeWithAnnotations.Type, other.TypeWithAnnotations.Type);
+                    _comparer.Equals(parameter.Type, other.Type);
             }
 
             private bool ArePointerTypesEqual(PointerTypeSymbol type, PointerTypeSymbol other)
@@ -752,13 +752,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(type.PointedAtTypeWithAnnotations.CustomModifiers.IsEmpty);
                 Debug.Assert(other.PointedAtTypeWithAnnotations.CustomModifiers.IsEmpty);
 
-                return AreTypesEqual(type.PointedAtTypeWithAnnotations.Type, other.PointedAtTypeWithAnnotations.Type);
+                return AreTypesEqual(type.PointedAtType, other.PointedAtType);
             }
 
             private bool ArePropertiesEqual(PropertySymbol property, PropertySymbol other)
             {
                 Debug.Assert(StringOrdinalComparer.Equals(property.MetadataName, other.MetadataName));
-                return _comparer.Equals(property.TypeWithAnnotations.Type, other.TypeWithAnnotations.Type) &&
+                return _comparer.Equals(property.Type, other.Type) &&
                     property.RefKind.Equals(other.RefKind) &&
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
             }
@@ -879,7 +879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
             {
-                var translatedElementType = (TypeSymbol)this.Visit(symbol.ElementTypeWithAnnotations.Type);
+                var translatedElementType = (TypeSymbol)this.Visit(symbol.ElementType);
                 var translatedModifiers = VisitCustomModifiers(symbol.ElementTypeWithAnnotations.CustomModifiers);
 
                 if (symbol.IsSZArray)
@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitPointerType(PointerTypeSymbol symbol)
             {
-                var translatedPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtTypeWithAnnotations.Type);
+                var translatedPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType);
                 var translatedModifiers = VisitCustomModifiers(symbol.PointedAtTypeWithAnnotations.CustomModifiers);
                 return new PointerTypeSymbol(symbol.PointedAtTypeWithAnnotations.WithTypeAndModifiers(translatedPointedAtType, translatedModifiers));
             }

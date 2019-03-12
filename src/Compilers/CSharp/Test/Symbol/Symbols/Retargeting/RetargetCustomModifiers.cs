@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             Assert.Equal(0, p5.TypeWithAnnotations.CustomModifiers.Length);
 
-            ArrayTypeSymbol p5Type = (ArrayTypeSymbol)p5.TypeWithAnnotations.Type;
+            ArrayTypeSymbol p5Type = (ArrayTypeSymbol)p5.Type;
 
-            Assert.Equal("System.Int32", p5Type.ElementTypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", p5Type.ElementType.ToTestDisplayString());
 
             Assert.Equal(1, p5Type.ElementTypeWithAnnotations.CustomModifiers.Length);
             var p5TypeMod = p5Type.ElementTypeWithAnnotations.CustomModifiers[0];
@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 
             Assert.Equal(0, p6.TypeWithAnnotations.CustomModifiers.Length);
 
-            PointerTypeSymbol p6Type = (PointerTypeSymbol)p6.TypeWithAnnotations.Type;
+            PointerTypeSymbol p6Type = (PointerTypeSymbol)p6.Type;
 
-            Assert.Equal("System.Int32", p6Type.PointedAtTypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", p6Type.PointedAtType.ToTestDisplayString());
 
             Assert.Equal(1, p6Type.PointedAtTypeWithAnnotations.CustomModifiers.Length);
             var p6TypeMod = p6Type.PointedAtTypeWithAnnotations.CustomModifiers[0];
@@ -163,7 +163,7 @@ public class Modifiers
 
             Assert.False(volatileFldMod.IsOptional);
             Assert.Equal("System.Runtime.CompilerServices.IsVolatile", volatileFldMod.Modifier.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Int32, volatileFld.TypeWithAnnotations.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, volatileFld.Type.SpecialType);
             Assert.Same(mscorlibAssembly, volatileFldMod.Modifier.ContainingAssembly);
 
             Assert.Equal("volatileFld", volatileFld.Name);

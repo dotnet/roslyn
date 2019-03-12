@@ -1019,7 +1019,7 @@ class C
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
             MethodSymbol methodSymbol = (MethodSymbol)bindInfo.Symbol;
-            TypeSymbol returnType = methodSymbol.ReturnTypeWithAnnotations.Type;
+            TypeSymbol returnType = methodSymbol.ReturnType;
             var symbols = model.LookupSymbols(0, returnType);
             Assert.Equal(0, symbols.Length);
         }
@@ -1162,7 +1162,7 @@ class C
             Assert.Equal(systemActionType, bindInfo.Type);
 
             var parameterSymbol = (ParameterSymbol)bindInfo.Symbol;
-            Assert.Equal(systemActionType, parameterSymbol.TypeWithAnnotations.Type);
+            Assert.Equal(systemActionType, parameterSymbol.Type);
             Assert.Equal("value", parameterSymbol.Name);
             Assert.Equal(MethodKind.EventAdd, ((MethodSymbol)parameterSymbol.ContainingSymbol).MethodKind);
         }
@@ -1191,7 +1191,7 @@ class C
             Assert.Equal(systemActionType, bindInfo.Type);
 
             var parameterSymbol = (ParameterSymbol)bindInfo.Symbol;
-            Assert.Equal(systemActionType, parameterSymbol.TypeWithAnnotations.Type);
+            Assert.Equal(systemActionType, parameterSymbol.Type);
             Assert.Equal("value", parameterSymbol.Name);
             Assert.Equal(MethodKind.EventRemove, ((MethodSymbol)parameterSymbol.ContainingSymbol).MethodKind);
         }
@@ -1807,8 +1807,8 @@ class Program
             Assert.Equal(CandidateReason.OverloadResolutionFailure, bindInfo.CandidateReason);
             var candidate = (MethodSymbol)bindInfo.CandidateSymbols.Single();
             Assert.Equal("void Test<System.Int32[]>.Method(params System.Int32[] arr)", candidate.ToTestDisplayString());
-            Assert.Equal(TypeKind.Array, candidate.Parameters.Last().TypeWithAnnotations.TypeKind);
-            Assert.Equal(TypeKind.TypeParameter, ((MethodSymbol)candidate.OriginalDefinition).Parameters.Last().TypeWithAnnotations.TypeKind);
+            Assert.Equal(TypeKind.Array, candidate.Parameters.Last().Type.TypeKind);
+            Assert.Equal(TypeKind.TypeParameter, ((MethodSymbol)candidate.OriginalDefinition).Parameters.Last().Type.TypeKind);
         }
 
         [WorkItem(542458, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542458")]
@@ -2724,7 +2724,7 @@ class C
             var symbol = symbolInfo.Symbol;
             Assert.Equal(SymbolKind.Local, symbol.Kind);
             Assert.Equal("c", symbol.Name);
-            Assert.Equal(type, ((LocalSymbol)symbol).TypeWithAnnotations.Type);
+            Assert.Equal(type, ((LocalSymbol)symbol).Type);
 
             var typeInfo = model.GetTypeInfo(expr);
             Assert.Equal(type, typeInfo.Type);
@@ -2795,7 +2795,7 @@ class C
             Assert.Equal(operatorSymbol, symbolInfo.Symbol);
 
             var method = (MethodSymbol)symbolInfo.Symbol;
-            var returnType = method.ReturnTypeWithAnnotations.Type;
+            var returnType = method.ReturnType;
 
             var typeInfo = model.GetTypeInfo(expr);
             Assert.Equal(returnType, typeInfo.Type);
@@ -3239,7 +3239,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var operators = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers(WellKnownMemberNames.AdditionOperatorName).Cast<MethodSymbol>();
-            var operatorSymbol = operators.Where(method => TypeSymbol.Equals(method.Parameters[0].TypeWithAnnotations.Type, method.Parameters[1].TypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2)).Single();
+            var operatorSymbol = operators.Where(method => TypeSymbol.Equals(method.Parameters[0].Type, method.Parameters[1].Type, TypeCompareKind.ConsiderEverything2)).Single();
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.NotNull(expr);
@@ -3324,7 +3324,7 @@ class Z
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             var mngMethod = (MethodSymbol)comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Z").GetMembers("MNG").First();
-            var gNullableType = mngMethod.ParameterTypesWithAnnotations[0].Type;
+            var gNullableType = mngMethod.GetParameterType(0);
             Assert.True(gNullableType.IsNullableType(), "MNG parameter is not a nullable type?");
             Assert.Equal(gType, gNullableType.StrippedType());
 
@@ -3390,7 +3390,7 @@ class Z
 
             var gType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             var mngMethod = (MethodSymbol)comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Z").GetMembers("MNG").First();
-            var gNullableType = mngMethod.ParameterTypesWithAnnotations[0].Type;
+            var gNullableType = mngMethod.GetParameterType(0);
             Assert.True(gNullableType.IsNullableType(), "MNG parameter is not a nullable type?");
             Assert.Equal(gType, gNullableType.StrippedType());
 
@@ -4059,7 +4059,7 @@ static class Program
             Assert.NotNull(reducedFrom1);
             Assert.Equal("System.Boolean Program.Any<System.Reflection.FieldInfo>(this System.Collections.Generic.ICollection<System.Reflection.FieldInfo> s, System.Func<System.Reflection.FieldInfo, System.Boolean> predicate)", reducedFrom1.ToTestDisplayString());
             Assert.Equal("Program", reducedFrom1.ReceiverType.ToTestDisplayString());
-            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom1.Parameters[0].TypeWithAnnotations.Type.OriginalDefinition).SpecialType);
+            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom1.Parameters[0].Type.OriginalDefinition).SpecialType);
 
             var speculativeSyntax = SyntaxFactory.ParseExpression("fields.Any((field => field.IsStatic))"); //cast removed
             Assert.Equal(SyntaxKind.InvocationExpression, speculativeSyntax.Kind());
@@ -4070,7 +4070,7 @@ static class Program
             Assert.Equal("Any", method2.Name);
             var reducedFrom2 = method2.CallsiteReducedFromMethod;
             Assert.NotNull(reducedFrom2);
-            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom2.Parameters[0].TypeWithAnnotations.Type.OriginalDefinition).SpecialType);
+            Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom2.Parameters[0].Type.OriginalDefinition).SpecialType);
 
             Assert.Equal(reducedFrom1, reducedFrom2);
             Assert.Equal(method1, method2);
@@ -4677,9 +4677,9 @@ class C : A
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
-            var paramType0 = methodBar.ParameterTypesWithAnnotations[0].Type;
+            var paramType0 = methodBar.GetParameterType(0);
             Assert.Equal(TypeKind.TypeParameter, paramType0.TypeKind);
-            var paramType1 = methodBar.ParameterTypesWithAnnotations[1].Type;
+            var paramType1 = methodBar.GetParameterType(1);
             Assert.Equal(TypeKind.Class, paramType1.TypeKind);
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
@@ -4722,9 +4722,9 @@ class C : A
             var classC = global.GetMember<NamedTypeSymbol>("C");
             var methodBar = classC.GetMember<MethodSymbol>("Bar");
 
-            var paramType0 = methodBar.ParameterTypesWithAnnotations[0].Type;
+            var paramType0 = methodBar.GetParameterType(0);
             Assert.Equal(TypeKind.TypeParameter, paramType0.TypeKind);
-            var paramType1 = methodBar.ParameterTypesWithAnnotations[1].Type;
+            var paramType1 = methodBar.GetParameterType(1);
             Assert.Equal(TypeKind.Class, paramType1.TypeKind);
 
             int position = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First().SpanStart;
@@ -4785,7 +4785,7 @@ class Test
             var symbolInfo = model.GetSymbolInfo(lambdaSyntax);
             var lambda = (MethodSymbol)symbolInfo.Symbol;
             Assert.False(lambda.ReturnsVoid);
-            Assert.Equal(SymbolKind.ErrorType, lambda.ReturnTypeWithAnnotations.Kind);
+            Assert.Equal(SymbolKind.ErrorType, lambda.ReturnType.Kind);
         }
 
         [Fact]

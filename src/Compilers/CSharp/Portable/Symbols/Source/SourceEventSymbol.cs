@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, location, Name);
             }
-            else if (this.TypeWithAnnotations.SpecialType == SpecialType.System_Void)
+            else if (this.Type.SpecialType == SpecialType.System_Void)
             {
                 // Diagnostic reported by parser.
             }
@@ -517,9 +517,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Dev10 reports different errors for field-like events (ERR_BadVisFieldType) and custom events (ERR_BadVisPropertyType).
                 // Both seem odd, so add a new one.
 
-                diagnostics.Add(ErrorCode.ERR_BadVisEventType, location, this, this.TypeWithAnnotations.Type);
+                diagnostics.Add(ErrorCode.ERR_BadVisEventType, location, this, this.Type);
             }
-            else if (!this.TypeWithAnnotations.Type.IsDelegateType() && !this.TypeWithAnnotations.IsErrorType())
+            else if (!this.Type.IsDelegateType() && !this.Type.IsErrorType())
             {
                 // Suppressed for error types.
                 diagnostics.Add(ErrorCode.ERR_EventNotDelegate, location, this);
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)eventWithCustomModifiers != null);
 
-            TypeSymbol overriddenEventType = eventWithCustomModifiers.TypeWithAnnotations.Type;
+            TypeSymbol overriddenEventType = eventWithCustomModifiers.Type;
 
             // We do an extra check before copying the type to handle the case where the overriding
             // event (incorrectly) has a different type than the overridden event.  In such cases,
@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = this.Locations[0];
 
             this.CheckModifiersAndType(diagnostics);
-            this.TypeWithAnnotations.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+            this.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
 
             if (this.TypeWithAnnotations.NeedsNullableAttribute())
             {

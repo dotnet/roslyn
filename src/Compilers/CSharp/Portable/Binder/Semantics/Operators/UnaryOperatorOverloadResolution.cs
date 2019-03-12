@@ -415,8 +415,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                TypeSymbol operandType = op.ParameterTypesWithAnnotations[0].Type;
-                TypeSymbol resultType = op.ReturnTypeWithAnnotations.Type;
+                TypeSymbol operandType = op.GetParameterType(0);
+                TypeSymbol resultType = op.ReturnType;
 
                 operators.Add(new UnaryOperatorSignature(UnaryOperatorKind.UserDefined | kind, operandType, resultType, op));
 

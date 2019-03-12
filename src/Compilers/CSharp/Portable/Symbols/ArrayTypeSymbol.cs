@@ -192,13 +192,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasDefaultSizesAndLowerBounds { get; }
 
         /// <summary>
-        /// Gets the type of the elements stored in the array.
+        /// Gets the type of the elements stored in the array along with its annotations.
         /// </summary>
         public TypeWithAnnotations ElementTypeWithAnnotations
         {
             get
             {
                 return _elementTypeWithAnnotations;
+            }
+        }
+
+        /// <summary>
+        /// Gets the type of the elements stored in the array.
+        /// </summary>
+        public TypeSymbol ElementType
+        {
+            get
+            {
+                return _elementTypeWithAnnotations.Type;
             }
         }
 
@@ -367,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var cur = (ArrayTypeSymbol)current;
                 hash = Hash.Combine(cur.Rank, hash);
-                current = cur.ElementTypeWithAnnotations.Type;
+                current = cur.ElementType;
             }
 
             return Hash.Combine(current, hash);
@@ -466,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ITypeSymbol IArrayTypeSymbol.ElementType
         {
-            get { return this.ElementTypeWithAnnotations.Type; }
+            get { return this.ElementType; }
         }
 
         ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers

@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // delegate Invoke method if Invoke has a Task-like return type.
             // Otherwise the return type is Task or Task<T>.
             NamedTypeSymbol taskType = null;
-            var delegateReturnType = delegateType?.GetDelegateType()?.DelegateInvokeMethod?.ReturnTypeWithAnnotations.Type as NamedTypeSymbol;
+            var delegateReturnType = delegateType?.GetDelegateType()?.DelegateInvokeMethod?.ReturnType as NamedTypeSymbol;
             if ((object)delegateReturnType != null && delegateReturnType.SpecialType != SpecialType.System_Void)
             {
                 object builderType;
@@ -349,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool GenerateSummaryErrors(DiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
         public bool IsAsync { get { return Data.IsAsync; } }
         public TypeWithAnnotations ParameterTypeWithAnnotations(int index) { return Data.ParameterTypeWithAnnotations(index); }
+        public TypeSymbol ParameterType(int index) { return ParameterTypeWithAnnotations(index).Type; }
         public Location ParameterLocation(int index) { return Data.ParameterLocation(index); }
         public string ParameterName(int index) { return Data.ParameterName(index); }
     }
@@ -464,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (IsAsync && invokeMethod.ReturnTypeWithAnnotations.Type.IsNonGenericTaskType(this.binder.Compilation))
+            if (IsAsync && invokeMethod.ReturnType.IsNonGenericTaskType(this.binder.Compilation))
             {
                 return false;
             }
@@ -598,7 +599,7 @@ haveLambdaBodyAndBinders:
                 var numParametersToCheck = Math.Min(targetParameterTypes.Length, ParameterCount);
                 for (int i = 0; i < numParametersToCheck; i++)
                 {
-                    if (targetParameterTypes[i].IsUnsafe())
+                    if (targetParameterTypes[i].Type.IsUnsafe())
                     {
                         this.binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics);
                     }
@@ -738,7 +739,7 @@ haveLambdaBodyAndBinders:
 
                     if (isAsync)
                     {
-                        var delegateReturnType = invoke.ReturnTypeWithAnnotations.Type as NamedTypeSymbol;
+                        var delegateReturnType = invoke.ReturnType as NamedTypeSymbol;
                         if ((object)delegateReturnType != null && delegateReturnType.SpecialType != SpecialType.System_Void)
                         {
                             if (delegateReturnType.IsCustomTaskType(out var builderType))

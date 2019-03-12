@@ -1432,7 +1432,7 @@ symIsHidden:;
                     break;
 
                 case SymbolKind.Property:
-                    type = ((PropertySymbol)symbol).TypeWithAnnotations.Type;
+                    type = ((PropertySymbol)symbol).Type;
                     break;
             }
 

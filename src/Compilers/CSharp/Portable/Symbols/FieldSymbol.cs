@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the type of this field.
+        /// Gets the type of this field along with its annotations.
         /// </summary>
         public TypeWithAnnotations TypeWithAnnotations
         {
@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return GetFieldType(ConsList<FieldSymbol>.Empty);
             }
         }
+
+        /// <summary>
+        /// Gets the type of this field.
+        /// </summary>
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         internal abstract TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound);
 
@@ -116,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // metadata constant unless they are of type decimal, because decimals are not regarded as constant by the CLR.
         public bool IsMetadataConstant
         {
-            get { return this.IsConst && (this.TypeWithAnnotations.SpecialType != SpecialType.System_Decimal); }
+            get { return this.IsConst && (this.Type.SpecialType != SpecialType.System_Decimal); }
         }
 
         /// <summary>
@@ -267,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.TypeWithAnnotations.IsPointerType();
+                return this.Type.IsPointerType();
             }
         }
 
@@ -451,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.TypeWithAnnotations.Type;
+                return this.Type;
             }
         }
 

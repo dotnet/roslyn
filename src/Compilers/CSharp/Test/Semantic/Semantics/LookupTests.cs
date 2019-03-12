@@ -1916,7 +1916,7 @@ class Program
             comp.VerifyDiagnostics();
 
             var ms = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").OfType<MethodSymbol>();
-            var m = ms.Where(mm => mm.Parameters[0].TypeWithAnnotations.SpecialType == SpecialType.System_Int32).Single();
+            var m = ms.Where(mm => mm.Parameters[0].Type.SpecialType == SpecialType.System_Int32).Single();
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);

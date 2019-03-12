@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Filter out methods with the wrong return type, since overload resolution won't catch these.
             sortedSymbols = sortedSymbols.WhereAsArray(symbol =>
-                symbol.Kind != SymbolKind.Method || TypeSymbol.Equals(((MethodSymbol)symbol).ReturnTypeWithAnnotations.Type, returnType, TypeCompareKind.ConsiderEverything2));
+                symbol.Kind != SymbolKind.Method || TypeSymbol.Equals(((MethodSymbol)symbol).ReturnType, returnType, TypeCompareKind.ConsiderEverything2));
 
             if (!sortedSymbols.Any())
             {
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < parameterSymbols.Length; i++)
                 {
-                    if (ContainsNestedTypeOfUnconstructedGenericType(parameterSymbols[i].TypeWithAnnotations.Type))
+                    if (ContainsNestedTypeOfUnconstructedGenericType(parameterSymbols[i].Type))
                     {
                         // This warning is new in Roslyn, because our better-defined semantics for
                         // cref lookup disallow some things that were possible in dev12.
@@ -524,9 +524,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (type.TypeKind)
             {
                 case TypeKind.Array:
-                    return ContainsNestedTypeOfUnconstructedGenericType(((ArrayTypeSymbol)type).ElementTypeWithAnnotations.Type);
+                    return ContainsNestedTypeOfUnconstructedGenericType(((ArrayTypeSymbol)type).ElementType);
                 case TypeKind.Pointer:
-                    return ContainsNestedTypeOfUnconstructedGenericType(((PointerTypeSymbol)type).PointedAtTypeWithAnnotations.Type);
+                    return ContainsNestedTypeOfUnconstructedGenericType(((PointerTypeSymbol)type).PointedAtType);
                 case TypeKind.Delegate:
                 case TypeKind.Class:
                 case TypeKind.Interface:

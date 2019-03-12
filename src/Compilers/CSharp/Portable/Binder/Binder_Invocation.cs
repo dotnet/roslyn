@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We still have to determine if it passes final validation.
 
             var methodResult = result.ValidResult;
-            var returnType = methodResult.Member.ReturnTypeWithAnnotations.Type;
+            var returnType = methodResult.Member.ReturnType;
             this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics);
 
             var method = methodResult.Member;
@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
                     Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
                     receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0),
-                        receiverParameter.TypeWithAnnotations.Type, diagnostics);
+                        receiverParameter.Type, diagnostics);
                 }
 
                 if (receiverParameter.RefKind == RefKind.Ref)
@@ -1451,13 +1451,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // look for a parameter by that name
                 foreach (var parameter in parameterList)
                 {
-                    if (parameter.Name == name) return parameter.TypeWithAnnotations.Type;
+                    if (parameter.Name == name) return parameter.Type;
                 }
 
                 return null;
             }
 
-            return (i < parameterList.Length) ? parameterList[i].TypeWithAnnotations.Type : null;
+            return (i < parameterList.Length) ? parameterList[i].Type : null;
             // CONSIDER: should we handle variable argument lists?
         }
 

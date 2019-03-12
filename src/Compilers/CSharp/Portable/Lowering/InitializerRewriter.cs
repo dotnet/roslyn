@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             fieldInit.Field,
                             constantValueOpt: null),
                         fieldInit.Value,
-                        fieldInit.Field.TypeWithAnnotations.Type)
+                        fieldInit.Field.Type)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = !fieldInit.Locals.IsEmpty || fieldInit.WasCompilerGenerated };
 

@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (value == null ||
                 !targetType.HasType ||
-                targetType.IsValueType ||
+                targetType.Type.IsValueType ||
                 targetType.CanBeAssignedNull ||
                 valueType.IsNotNull)
             {
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // https://github.com/dotnet/roslyn/issues/31395: We should copy all tracked state from `value` regardless of
                     // BoundNode type but we'll need to handle cycles (see NullableReferenceTypesTests.Members_FieldCycle_07).
                     // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
-                    if ((targetType.IsReferenceType && (value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.Type.IsAnonymousType)) ||
+                    if ((targetType.Type.IsReferenceType && (value.Kind == BoundKind.ObjectCreationExpression || value.Kind == BoundKind.AnonymousObjectCreationExpression || value.Kind == BoundKind.DynamicObjectCreationExpression || targetType.Type.IsAnonymousType)) ||
                         targetType.IsNullableType())
                     {
                         // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
@@ -1300,7 +1300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (valueType.HasNullType)
                     {
-                        Debug.Assert(type.IsErrorType());
+                        Debug.Assert(type.Type.IsErrorType());
                         valueType = type.ToTypeWithState();
                     }
 
@@ -2551,7 +2551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: false);
 
                 const FlowAnalysisAnnotations both = FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse;
-                if (parameter?.TypeWithAnnotations.SpecialType != SpecialType.System_Boolean)
+                if (parameter?.Type.SpecialType != SpecialType.System_Boolean)
                 {
                     // AssertsTrue and AssertsFalse must be applied to a bool parameter
                     annotations &= ~both;
@@ -2584,7 +2584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // NotNullWhenSense must be applied to a reference type, a nullable value type, or an unconstrained generic type
-                if ((annotations & whenSense) != 0 && !parameter.TypeWithAnnotations.Type.CanContainNull())
+                if ((annotations & whenSense) != 0 && !parameter.Type.CanContainNull())
                 {
                     annotations &= ~whenSense;
                 }
@@ -4873,7 +4873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitForEachIterationVariables(BoundForEachStatement node)
         {
             // declare and assign all iteration variables
-            TypeWithAnnotations sourceType = node.EnumeratorInfoOpt?.ElementType ?? default;
+            TypeWithAnnotations sourceType = node.EnumeratorInfoOpt?.ElementTypeWithAnnotations ?? default;
             TypeWithState sourceState = sourceType.ToTypeWithState();
             foreach (var iterationVariable in node.IterationVariables)
             {
@@ -4912,7 +4912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             AssignmentKind.Assignment,
                             reportTopLevelWarnings: false,
                             reportRemainingWarnings: false);
-                        if (destinationType.IsReferenceType && destinationType.NullableAnnotation.IsNotAnnotated() && result.MayBeNull)
+                        if (destinationType.Type.IsReferenceType && destinationType.NullableAnnotation.IsNotAnnotated() && result.MayBeNull)
                         {
                             ReportNonSafetyDiagnostic(node.IterationVariableType.Syntax);
                         }
@@ -5597,7 +5597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             var method = (MethodSymbol)_symbol;
             TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None,
-                method.ReturnTypeWithAnnotations.Type, errorLocationNode: null, diagnostics: null).elementType;
+                method.ReturnType, errorLocationNode: null, diagnostics: null).elementType;
 
             _ = VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, AssignmentKind.Return);
             return null;

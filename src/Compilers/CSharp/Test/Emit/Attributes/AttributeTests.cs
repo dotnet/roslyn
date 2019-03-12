@@ -2321,7 +2321,7 @@ class C
                 // 2) Has parameter attributes from delegate declaration syntax
                 var invokeMethod = delegateType.GetMethod("Invoke");
                 Assert.Equal(1, invokeMethod.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, returnTypeAttrType, TypeCompareKind.ConsiderEverything2)).Count());
-                Assert.Equal(typeParameters[0], invokeMethod.ReturnTypeWithAnnotations.Type);
+                Assert.Equal(typeParameters[0], invokeMethod.ReturnType);
                 var parameters = invokeMethod.GetParameters();
                 Assert.Equal(3, parameters.Length);
                 Assert.Equal("p1", parameters[0].Name);

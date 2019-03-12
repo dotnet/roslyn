@@ -565,9 +565,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (ParameterSymbol parameter in parameters)
             {
-                if (!IsCompliantType(parameter.TypeWithAnnotations.Type, context))
+                if (!IsCompliantType(parameter.Type, context))
                 {
-                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadArgType, parameter.Locations[0], parameter.TypeWithAnnotations.Type);
+                    this.AddDiagnostic(ErrorCode.WRN_CLS_BadArgType, parameter.Locations[0], parameter.Type);
                 }
             }
         }
@@ -708,20 +708,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SymbolKind.Field:
                     code = ErrorCode.WRN_CLS_BadFieldPropType;
-                    type = ((FieldSymbol)symbol).TypeWithAnnotations.Type;
+                    type = ((FieldSymbol)symbol).Type;
                     break;
                 case SymbolKind.Property:
                     code = ErrorCode.WRN_CLS_BadFieldPropType;
-                    type = ((PropertySymbol)symbol).TypeWithAnnotations.Type;
+                    type = ((PropertySymbol)symbol).Type;
                     break;
                 case SymbolKind.Event:
                     code = ErrorCode.WRN_CLS_BadFieldPropType;
-                    type = ((EventSymbol)symbol).TypeWithAnnotations.Type;
+                    type = ((EventSymbol)symbol).Type;
                     break;
                 case SymbolKind.Method:
                     code = ErrorCode.WRN_CLS_BadReturnType;
                     MethodSymbol method = (MethodSymbol)symbol;
-                    type = method.ReturnTypeWithAnnotations.Type;
+                    type = method.ReturnType;
 
                     if (method.MethodKind == MethodKind.DelegateInvoke)
                     {
@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (type.TypeKind)
             {
                 case TypeKind.Array:
-                    return IsCompliantType(((ArrayTypeSymbol)type).ElementTypeWithAnnotations.Type, context);
+                    return IsCompliantType(((ArrayTypeSymbol)type).ElementType, context);
                 case TypeKind.Dynamic:
                     // NOTE: It would probably be most correct to return 
                     // IsCompliantType(this.compilation.GetSpecialType(SpecialType.System_Object), context)
@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     sawArrayRankDifference = sawArrayRankDifference || xArrayType.Rank != yArrayType.Rank;
 
-                    bool elementTypesDiffer = !TypeSymbol.Equals(xArrayType.ElementTypeWithAnnotations.Type, yArrayType.ElementTypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2);
+                    bool elementTypesDiffer = !TypeSymbol.Equals(xArrayType.ElementType, yArrayType.ElementType, TypeCompareKind.ConsiderEverything2);
 
                     // You might expect that only unnamed-vs-unnamed would produce a warning, but
                     // dev11 reports unnamed-vs-anything.
@@ -1417,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsArrayOfArrays(ArrayTypeSymbol arrayType)
         {
-            return arrayType.ElementTypeWithAnnotations.Kind == SymbolKind.ArrayType;
+            return arrayType.ElementType.Kind == SymbolKind.ArrayType;
         }
     }
 }

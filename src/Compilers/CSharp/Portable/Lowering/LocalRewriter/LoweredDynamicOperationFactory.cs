@@ -650,13 +650,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var callSiteFieldAccess = _factory.Field(null, callSiteField);
             var callSiteArguments = GetCallSiteArguments(callSiteFieldAccess, loweredReceiver, loweredArguments, loweredRight);
 
-            var nullCallSite = _factory.Null(callSiteField.TypeWithAnnotations.Type);
+            var nullCallSite = _factory.Null(callSiteField.Type);
 
             var siteInitialization = _factory.Conditional(
                 _factory.ObjectEqual(callSiteFieldAccess, nullCallSite),
                 _factory.AssignmentExpression(callSiteFieldAccess, _factory.Call(null, callSiteFactoryMethod, binderConstruction)),
                 nullCallSite,
-                callSiteField.TypeWithAnnotations.Type);
+                callSiteField.Type);
 
             var siteInvocation = _factory.Call(
                 _factory.Field(callSiteFieldAccess, callSiteTargetField),

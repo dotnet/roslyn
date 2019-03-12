@@ -6030,11 +6030,11 @@ class C : I<string>
             Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
             var method = type.GetMember<MethodSymbol>("I<System.String>.F");
             Assert.Equal(NullableAnnotation.Oblivious, method.ReturnTypeWithAnnotations.NullableAnnotation);
-            typeArg = ((NamedTypeSymbol)method.ReturnTypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
+            typeArg = ((NamedTypeSymbol)method.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
             Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
             var parameter = method.Parameters.Single();
             Assert.Equal(NullableAnnotation.Oblivious, parameter.TypeWithAnnotations.NullableAnnotation);
-            typeArg = ((NamedTypeSymbol)parameter.TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
+            typeArg = ((NamedTypeSymbol)parameter.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single();
             Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
         }
 
@@ -7287,13 +7287,13 @@ class B : A
             comp.VerifyDiagnostics();
 
             var method = comp.GetMember<MethodSymbol>("A.F");
-            var typeArg = ((NamedTypeSymbol)method.ReturnTypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-            Assert.True(typeArg.IsValueType);
+            var typeArg = ((NamedTypeSymbol)method.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+            Assert.True(typeArg.Type.IsValueType);
             Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
 
             method = comp.GetMember<MethodSymbol>("B.F");
-            typeArg = ((NamedTypeSymbol)method.ReturnTypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-            Assert.True(typeArg.IsValueType);
+            typeArg = ((NamedTypeSymbol)method.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+            Assert.True(typeArg.Type.IsValueType);
             Assert.Equal(NullableAnnotation.Oblivious, typeArg.NullableAnnotation);
 
             // https://github.com/dotnet/roslyn/issues/29843: Test all combinations of base and derived
@@ -8394,7 +8394,7 @@ class B : A
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.True(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
-            Assert.True(m1.Parameters[0].TypeWithAnnotations.IsValueType);
+            Assert.True(m1.Parameters[0].Type.IsValueType);
             Assert.True(m1.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
         }
 
@@ -8434,13 +8434,13 @@ class B : A
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.False(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
             Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].TypeWithAnnotations.NullableAnnotation);
-            Assert.True(m1.Parameters[0].TypeWithAnnotations.IsReferenceType);
+            Assert.True(m1.Parameters[0].Type.IsReferenceType);
             Assert.False(m1.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
 
             var m2 = b.GetMember<MethodSymbol>("M2");
             Assert.False(m2.ReturnTypeWithAnnotations.IsNullableType());
             Assert.Equal(NullableAnnotation.Annotated, m2.ReturnTypeWithAnnotations.NullableAnnotation);
-            Assert.True(m2.ReturnTypeWithAnnotations.IsReferenceType);
+            Assert.True(m2.ReturnType.IsReferenceType);
             Assert.False(m2.OverriddenMethod.ReturnTypeWithAnnotations.IsNullableType());
         }
 
@@ -8626,12 +8626,12 @@ class C<T> {}
             var m3 = b.GetMember<MethodSymbol>("M3");
             var m4 = b.GetMember<MethodSymbol>("M4");
             var m5 = b.GetMember<MethodSymbol>("M5");
-            Assert.True(((NamedTypeSymbol)m3.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.True(((NamedTypeSymbol)m3.OverriddenMethod.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.True(((NamedTypeSymbol)m4.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.True(((NamedTypeSymbol)m4.OverriddenMethod.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.False(((NamedTypeSymbol)m5.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.False(((NamedTypeSymbol)m5.OverriddenMethod.Parameters[0].TypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m3.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m3.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m4.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m4.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.False(((NamedTypeSymbol)m5.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.False(((NamedTypeSymbol)m5.OverriddenMethod.Parameters[0].Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
         }
 
         [Fact]
@@ -8658,7 +8658,7 @@ class B : A
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.True(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
-            Assert.True(m1.Parameters[0].TypeWithAnnotations.Type.StrippedType().IsValueType);
+            Assert.True(m1.Parameters[0].Type.StrippedType().IsValueType);
             Assert.Null(m1.OverriddenMethod);
         }
 
@@ -8696,8 +8696,8 @@ class B : A
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.False(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
-            Assert.False(m1.Parameters[0].TypeWithAnnotations.Type.StrippedType().IsValueType);
-            Assert.False(m1.Parameters[0].TypeWithAnnotations.Type.StrippedType().IsReferenceType);
+            Assert.False(m1.Parameters[0].Type.StrippedType().IsValueType);
+            Assert.False(m1.Parameters[0].Type.StrippedType().IsReferenceType);
             Assert.Null(m1.OverriddenMethod);
         }
 
@@ -8861,8 +8861,8 @@ class C<T> {}
 
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(((NamedTypeSymbol)m1.ReturnTypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
-            Assert.True(((NamedTypeSymbol)m1.OverriddenMethod.ReturnTypeWithAnnotations.Type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.False(((NamedTypeSymbol)m1.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
+            Assert.True(((NamedTypeSymbol)m1.OverriddenMethod.ReturnType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].IsNullableType());
         }
 
         [Fact]
@@ -9037,7 +9037,7 @@ class B : A
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.False(m1.Parameters[0].TypeWithAnnotations.IsNullableType());
             Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].TypeWithAnnotations.NullableAnnotation);
-            Assert.True(m1.Parameters[0].TypeWithAnnotations.IsReferenceType);
+            Assert.True(m1.Parameters[0].Type.IsReferenceType);
             Assert.False(m1.OverriddenMethod.Parameters[0].TypeWithAnnotations.IsNullableType());
 
             var m4 = b.GetMember<MethodSymbol>("M4");
@@ -23085,7 +23085,7 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             var type = symbol.TypeWithAnnotations;
-            Assert.True(type.IsErrorType());
+            Assert.True(type.Type.IsErrorType());
             Assert.Equal("var", type.ToTestDisplayString());
             Assert.Equal(NullableAnnotation.Oblivious, type.NullableAnnotation);
         }

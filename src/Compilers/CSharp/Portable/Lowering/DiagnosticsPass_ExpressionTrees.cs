@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     if (p.TypeWithAnnotations.IsRestrictedType())
                     {
-                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.TypeWithAnnotations.Name);
+                        _diagnostics.Add(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, p.Locations[0], p.Type.Name);
                     }
                 }
 

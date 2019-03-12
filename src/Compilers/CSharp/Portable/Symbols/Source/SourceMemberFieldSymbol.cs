@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Synthesize DecimalConstantAttribute when the default value is of type decimal
             if (this.IsConst && value != null
-                && this.TypeWithAnnotations.SpecialType == SpecialType.System_Decimal)
+                && this.Type.SpecialType == SpecialType.System_Decimal)
             {
                 var data = GetDecodedWellKnownAttributeData();
 
@@ -496,7 +496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_FixedNotInStruct, ErrorLocation);
                     }
 
-                    var elementType = ((PointerTypeSymbol)type.Type).PointedAtTypeWithAnnotations.Type;
+                    var elementType = ((PointerTypeSymbol)type.Type).PointedAtType;
                     int elementSize = elementType.FixedBufferElementSizeInBytes();
                     if (elementSize == 0)
                     {
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
             var options = (CSharpParseOptions)SyntaxTree.Options;
-            TypeWithAnnotations.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, diagnostics);
+            Type.CheckAllConstraints(DeclaringCompilation, conversions, ErrorLocation, diagnostics);
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
         }
     }

@@ -174,13 +174,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (MethodSymbol op in declaringType.GetOperators(operatorName))
             {
                 // We might have a bad operator and be in an error recovery situation. Ignore it.
-                if (op.ReturnsVoid || op.ParameterCount != 1 || op.ReturnTypeWithAnnotations.TypeKind == TypeKind.Error)
+                if (op.ReturnsVoid || op.ParameterCount != 1 || op.ReturnType.TypeKind == TypeKind.Error)
                 {
                     continue;
                 }
 
-                TypeSymbol convertsFrom = op.ParameterTypesWithAnnotations[0].Type;
-                TypeSymbol convertsTo = op.ReturnTypeWithAnnotations.Type;
+                TypeSymbol convertsFrom = op.GetParameterType(0);
+                TypeSymbol convertsTo = op.ReturnType;
                 Conversion fromConversion = EncompassingExplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
                 Conversion toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
 

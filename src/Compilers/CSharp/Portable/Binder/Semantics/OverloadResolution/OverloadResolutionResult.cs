@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!mismatch.IsNull)
             {
                 var method = (MethodSymbol)(Symbol)mismatch.Member;
-                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnTypeWithAnnotations.Type);
+                diagnostics.Add(ErrorCode.ERR_BadRetType, location, method, method.ReturnType);
                 return true;
             }
 
@@ -973,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // without being violated on the method. Report that the constraint is violated on the 
             // formal parameter type.
 
-            TypeSymbol formalParameterType = method.ParameterTypesWithAnnotations[result.Result.BadParameter].Type;
+            TypeSymbol formalParameterType = method.GetParameterType(result.Result.BadParameter);
             formalParameterType.CheckAllConstraints((CSharpCompilation)compilation, conversions, includeNullability: false, location, diagnostics);
 
             return true;
@@ -1116,7 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argument.Kind != BoundKind.OutVariablePendingInference &&
                 argument.Kind != BoundKind.DiscardExpression)
             {
-                TypeSymbol parameterType = UnwrapIfParamsArray(parameter, isLastParameter) is TypeSymbol t ? t : parameter.TypeWithAnnotations.Type;
+                TypeSymbol parameterType = UnwrapIfParamsArray(parameter, isLastParameter) is TypeSymbol t ? t : parameter.Type;
 
                 // If the problem is that a lambda isn't convertible to the given type, also report why.
                 // The argument and parameter type might match, but may not have same in/out modifiers
@@ -1238,10 +1238,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We only try to unwrap parameters if they are a parameter array and are on the last position
             if (parameter.IsParams && isLastParameter)
             {
-                ArrayTypeSymbol arrayType = parameter.TypeWithAnnotations.Type as ArrayTypeSymbol;
+                ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
                 if ((object)arrayType != null && arrayType.IsSZArray)
                 {
-                    return arrayType.ElementTypeWithAnnotations.Type;
+                    return arrayType.ElementType;
                 }
             }
             return parameter;

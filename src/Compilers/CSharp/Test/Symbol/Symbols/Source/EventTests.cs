@@ -97,7 +97,7 @@ class C
             Assert.Equal(SymbolKind.Field, associatedField.Kind);
             Assert.Equal(Accessibility.Private, associatedField.DeclaredAccessibility);
             Assert.False(associatedField.IsStatic);
-            Assert.Equal(@event.TypeWithAnnotations.Type, associatedField.TypeWithAnnotations.Type);
+            Assert.Equal(@event.Type, associatedField.Type);
         }
 
         [Fact]
@@ -135,7 +135,7 @@ class C
             Assert.Equal(SymbolKind.Field, associatedField.Kind);
             Assert.Equal(Accessibility.Private, associatedField.DeclaredAccessibility);
             Assert.True(associatedField.IsStatic);
-            Assert.Equal(@event.TypeWithAnnotations.Type, associatedField.TypeWithAnnotations.Type);
+            Assert.Equal(@event.Type, associatedField.Type);
         }
 
         [Fact]
@@ -344,9 +344,9 @@ class A
                 var e2 = type.GetMember<EventSymbol>("E2");
                 var p = type.GetMember<PropertySymbol>("P");
 
-                Assert.Equal("System.Action<dynamic>", e1.TypeWithAnnotations.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<dynamic>", e2.TypeWithAnnotations.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<dynamic>", p.TypeWithAnnotations.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", e1.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", e2.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<dynamic>", p.Type.ToTestDisplayString());
 
                 Assert.Equal(1, e1.AddMethod.ParameterTypesWithAnnotations.Length);
                 Assert.Equal("System.Action<dynamic>", e1.AddMethod.ParameterTypesWithAnnotations[0].ToTestDisplayString());
@@ -604,8 +604,8 @@ public class CL2 : CL1
                 var e1 = type.GetMember<EventSymbol>("E1");
                 var e2 = type.GetMember<EventSymbol>("E2");
 
-                Assert.Equal("System.Action<System.Object>", e1.TypeWithAnnotations.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<System.Object>", e2.TypeWithAnnotations.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
             };
 
             CompileAndVerify(source: source, references: new[] { libAssemblyRef }, symbolValidator: validator);
@@ -636,8 +636,8 @@ public class CL2 : CL1
                 var e1 = type.GetMember<EventSymbol>("E1");
                 var e2 = type.GetMember<EventSymbol>("E2");
 
-                Assert.Equal("System.Action<System.Object>", e1.TypeWithAnnotations.Type.ToTestDisplayString());
-                Assert.Equal("System.Action<System.Object>", e2.TypeWithAnnotations.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e1.Type.ToTestDisplayString());
+                Assert.Equal("System.Action<System.Object>", e2.Type.ToTestDisplayString());
             };
 
             CompileAndVerify(source: source, references: new[] { libAssemblyRef }, symbolValidator: validator);
@@ -810,7 +810,7 @@ class D
             var comp = compVerifier.Compilation;
             var classSymbol = (PENamedTypeSymbol)comp.GetTypeByMetadataName("C");
             var eventSymbol = (PEEventSymbol)classSymbol.GetMember("E");
-            Assert.Equal("System.Action<System.Object>", eventSymbol.TypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal("System.Action<System.Object>", eventSymbol.Type.ToTestDisplayString());
         }
         #endregion
 
@@ -2215,19 +2215,19 @@ class Derived2 : Base
 
             var @base = global.GetMember<NamedTypeSymbol>("Base");
             var baseEvent = @base.GetMember<EventSymbol>("E");
-            var baseEventType = baseEvent.TypeWithAnnotations.Type;
+            var baseEventType = baseEvent.Type;
             Assert.Equal("System.Action<System.Int32 modopt(System.Int64) []>", baseEventType.ToTestDisplayString()); // Note modopt
 
             var derived1 = global.GetMember<NamedTypeSymbol>("Derived1");
             var event1 = derived1.GetMember<EventSymbol>("E");
-            Assert.Equal(baseEventType, event1.TypeWithAnnotations.Type);
-            Assert.Equal(baseEventType, event1.AssociatedField.TypeWithAnnotations.Type);
+            Assert.Equal(baseEventType, event1.Type);
+            Assert.Equal(baseEventType, event1.AssociatedField.Type);
             Assert.Equal(baseEventType, event1.AddMethod.ParameterTypesWithAnnotations.Single().Type);
             Assert.Equal(baseEventType, event1.RemoveMethod.ParameterTypesWithAnnotations.Single().Type);
 
             var derived2 = global.GetMember<NamedTypeSymbol>("Derived2");
             var event2 = derived2.GetMember<EventSymbol>("E");
-            Assert.Equal(baseEventType, event2.TypeWithAnnotations.Type);
+            Assert.Equal(baseEventType, event2.Type);
             Assert.Null(event2.AssociatedField);
             Assert.Equal(baseEventType, event2.AddMethod.ParameterTypesWithAnnotations.Single().Type);
             Assert.Equal(baseEventType, event2.RemoveMethod.ParameterTypesWithAnnotations.Single().Type);

@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression VisitArrayCreation(BoundArrayCreation node)
         {
             var arrayType = (ArrayTypeSymbol)node.Type;
-            var boundType = _bound.Typeof(arrayType.ElementTypeWithAnnotations.Type);
+            var boundType = _bound.Typeof(arrayType.ElementType);
             if (node.InitializerOpt != null)
             {
                 if (arrayType.IsSZArray)
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return
                 ((object)methodOpt == null) ? ExprFactory(opName, loweredLeft, loweredRight) :
-                    requiresLifted ? ExprFactory(opName, loweredLeft, loweredRight, _bound.Literal(isLifted && !TypeSymbol.Equals(methodOpt.ReturnTypeWithAnnotations.Type, type, TypeCompareKind.ConsiderEverything2)), _bound.MethodInfo(methodOpt)) :
+                    requiresLifted ? ExprFactory(opName, loweredLeft, loweredRight, _bound.Literal(isLifted && !TypeSymbol.Equals(methodOpt.ReturnType, type, TypeCompareKind.ConsiderEverything2)), _bound.MethodInfo(methodOpt)) :
                         ExprFactory(opName, loweredLeft, loweredRight, _bound.MethodInfo(methodOpt));
         }
 
@@ -617,14 +617,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var method = node.SymbolOpt;
                         var operandType = node.Operand.Type;
                         var strippedOperandType = operandType.StrippedType();
-                        var conversionInputType = method.Parameters[0].TypeWithAnnotations.Type;
+                        var conversionInputType = method.Parameters[0].Type;
                         var isLifted = !TypeSymbol.Equals(operandType, conversionInputType, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(strippedOperandType, conversionInputType, TypeCompareKind.ConsiderEverything2);
                         bool requireAdditionalCast =
                             !TypeSymbol.Equals(strippedOperandType, ((node.ConversionKind == ConversionKind.ExplicitUserDefined) ? conversionInputType : conversionInputType.StrippedType()), TypeCompareKind.ConsiderEverything2);
-                        var resultType = (isLifted && method.ReturnTypeWithAnnotations.Type.IsNonNullableValueType() && node.Type.IsNullableType()) ?
-                                            _nullableType.Construct(method.ReturnTypeWithAnnotations.Type) : method.ReturnTypeWithAnnotations.Type;
+                        var resultType = (isLifted && method.ReturnType.IsNonNullableValueType() && node.Type.IsNullableType()) ?
+                                            _nullableType.Construct(method.ReturnType) : method.ReturnType;
                         var e1 = requireAdditionalCast
-                            ? Convert(Visit(node.Operand), node.Operand.Type, method.Parameters[0].TypeWithAnnotations.Type, node.Checked, false)
+                            ? Convert(Visit(node.Operand), node.Operand.Type, method.Parameters[0].Type, node.Checked, false)
                             : Visit(node.Operand);
                         var e2 = ExprFactory("Convert", e1, _bound.Typeof(resultType), _bound.MethodInfo(method));
                         return Convert(e2, resultType, node.Type, node.Checked, false);
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters.Add(parameterReference);
                 var parameter = ExprFactory(
                     "Parameter",
-                    _bound.Typeof(_typeMap.SubstituteType(p.TypeWithAnnotations.Type).Type), _bound.Literal(p.Name));
+                    _bound.Typeof(_typeMap.SubstituteType(p.Type).Type), _bound.Literal(p.Name));
                 initializers.Add(_bound.AssignmentExpression(parameterReference, parameter));
                 _parameterMap[p] = parameterReference;
             }

@@ -916,7 +916,7 @@ unsafe class Test
                 Assert.Equal("obj1", obj1.Identifier.Text);
 
                 var obj1Value = model.GetSemanticInfoSummary(obj1.Initializer.Value);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj1Value.Type).PointedAtTypeWithAnnotations.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj1Value.Type).PointedAtType.SpecialType);
                 Assert.Equal("Test", obj1Value.ConvertedType.Name);
                 Assert.Equal(ConversionKind.ImplicitUserDefined, obj1Value.ImplicitConversion.Kind);
 
@@ -924,8 +924,8 @@ unsafe class Test
                 Assert.Equal("obj2", obj2.Identifier.Text);
 
                 var obj2Value = model.GetSemanticInfoSummary(obj2.Initializer.Value);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.Type).PointedAtTypeWithAnnotations.SpecialType);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtTypeWithAnnotations.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.Identity, obj2Value.ImplicitConversion.Kind);
 
                 var obj3 = variables.ElementAt(i + 2);
@@ -940,8 +940,8 @@ unsafe class Test
                 Assert.Equal("obj4", obj4.Identifier.Text);
 
                 var obj4Value = model.GetSemanticInfoSummary(obj4.Initializer.Value);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.Type).PointedAtTypeWithAnnotations.SpecialType);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtTypeWithAnnotations.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.Identity, obj4Value.ImplicitConversion.Kind);
 
                 var obj5 = variables.ElementAt(i + 4);
@@ -949,7 +949,7 @@ unsafe class Test
 
                 var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
                 Assert.Null(obj5Value.Type);
-                Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj5Value.ConvertedType).PointedAtTypeWithAnnotations.SpecialType);
+                Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
             }
         }
@@ -1027,8 +1027,8 @@ unsafe class Test
                 Assert.Equal("obj2", obj2.Identifier.Text);
 
                 var obj2Value = model.GetSemanticInfoSummary(obj2.Initializer.Value);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.Type).PointedAtTypeWithAnnotations.SpecialType);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtTypeWithAnnotations.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.Identity, obj2Value.ImplicitConversion.Kind);
 
                 var obj3 = variables.ElementAt(i + 2);
@@ -1043,8 +1043,8 @@ unsafe class Test
                 Assert.Equal("obj4", obj4.Identifier.Text);
 
                 var obj4Value = model.GetSemanticInfoSummary(obj4.Initializer.Value);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.Type).PointedAtTypeWithAnnotations.SpecialType);
-                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtTypeWithAnnotations.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.Type).PointedAtType.SpecialType);
+                Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.Identity, obj4Value.ImplicitConversion.Kind);
 
                 var obj5 = variables.ElementAt(i + 4);
@@ -1052,7 +1052,7 @@ unsafe class Test
 
                 var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
                 Assert.Null(obj5Value.Type);
-                Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj5Value.ConvertedType).PointedAtTypeWithAnnotations.SpecialType);
+                Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
                 Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
             }
         }

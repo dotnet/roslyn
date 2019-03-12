@@ -206,10 +206,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return false;
 
                 case SymbolKind.ArrayType:
-                    return IsOrClosedOverATypeFromAssemblies(((ArrayTypeSymbol)symbol).ElementTypeWithAnnotations.Type, assemblies);
+                    return IsOrClosedOverATypeFromAssemblies(((ArrayTypeSymbol)symbol).ElementType, assemblies);
 
                 case SymbolKind.PointerType:
-                    return IsOrClosedOverATypeFromAssemblies(((PointerTypeSymbol)symbol).PointedAtTypeWithAnnotations.Type, assemblies);
+                    return IsOrClosedOverATypeFromAssemblies(((PointerTypeSymbol)symbol).PointedAtType, assemblies);
 
                 case SymbolKind.DynamicType:
                     return false;

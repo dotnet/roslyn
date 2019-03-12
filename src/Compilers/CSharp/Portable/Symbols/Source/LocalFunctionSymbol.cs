@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool ReturnsVoid => ReturnTypeWithAnnotations.SpecialType == SpecialType.System_Void;
+        public override bool ReturnsVoid => ReturnType.SpecialType == SpecialType.System_Void;
 
         public override int Arity => TypeParameters.Length;
 

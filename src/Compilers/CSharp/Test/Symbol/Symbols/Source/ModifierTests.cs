@@ -158,8 +158,8 @@ struct S<T> where T : struct
             var substitutedArrayType = (ArrayTypeSymbol)typeMap.SubstituteType(arrayType).AsTypeSymbolOnly();
 
             // The map changed the types.
-            Assert.Equal(intType, substitutedPointerType.PointedAtTypeWithAnnotations.Type);
-            Assert.Equal(intType, substitutedArrayType.ElementTypeWithAnnotations.Type);
+            Assert.Equal(intType, substitutedPointerType.PointedAtType);
+            Assert.Equal(intType, substitutedArrayType.ElementType);
 
             // The map preserved the custom modifiers.
             Assert.Equal(customModifiers, substitutedPointerType.PointedAtTypeWithAnnotations.CustomModifiers);

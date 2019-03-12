@@ -151,8 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return false;
             }
             var typeSymbol = type.Type;
-            return (type.NullableAnnotation != NullableAnnotation.Oblivious && type.IsReferenceType && !type.IsErrorType()) ||
-                UsesIsNullable(type.Type, inProgress);
+            return (type.NullableAnnotation != NullableAnnotation.Oblivious && typeSymbol.IsReferenceType && !typeSymbol.IsErrorType()) ||
+                UsesIsNullable(typeSymbol, inProgress);
         }
 
         private bool UsesIsNullable(TypeSymbol type, ConsList<TypeParameterSymbol> inProgress)

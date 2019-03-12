@@ -65,8 +65,8 @@ class A {
             var a = global.GetTypeMembers("A", 0).Single();
             var sym = a.GetMembers("F").Single() as FieldSymbol;
 
-            Assert.Equal(TypeKind.Class, sym.TypeWithAnnotations.TypeKind);
-            Assert.Equal<TypeSymbol>(a, sym.TypeWithAnnotations.Type);
+            Assert.Equal(TypeKind.Class, sym.Type.TypeKind);
+            Assert.Equal<TypeSymbol>(a, sym.Type);
             Assert.Equal(Accessibility.Private, sym.DeclaredAccessibility);
             Assert.Equal(SymbolKind.Field, sym.Kind);
             Assert.False(sym.IsStatic);
@@ -92,14 +92,14 @@ class A {
             var global = comp.GlobalNamespace;
             var a = global.GetTypeMembers("A", 0).Single();
             var f = a.GetMembers("F").Single() as FieldSymbol;
-            Assert.Equal(TypeKind.Class, f.TypeWithAnnotations.TypeKind);
-            Assert.Equal<TypeSymbol>(a, f.TypeWithAnnotations.Type);
+            Assert.Equal(TypeKind.Class, f.Type.TypeKind);
+            Assert.Equal<TypeSymbol>(a, f.Type);
             Assert.Equal(Accessibility.Private, f.DeclaredAccessibility);
             var gs = a.GetMembers("G");
             Assert.Equal(2, gs.Length);
             foreach (var g in gs)
             {
-                Assert.Equal(a, (g as FieldSymbol).TypeWithAnnotations.Type); // duplicate, but all the same.
+                Assert.Equal(a, (g as FieldSymbol).Type); // duplicate, but all the same.
             }
 
             var errors = comp.GetDeclarationDiagnostics();
@@ -124,7 +124,7 @@ class A {
             Assert.Equal(2, fs.Length);
             foreach (var f in fs)
             {
-                Assert.Equal(a, (f as FieldSymbol).TypeWithAnnotations.Type);
+                Assert.Equal(a, (f as FieldSymbol).Type);
             }
         }
 
@@ -180,8 +180,8 @@ class A {
             var a = global.GetTypeMembers("A", 0).Single();
             var sym = a.GetMembers("F").Single() as FieldSymbol;
             Assert.Equal("System.Int32? A.F", sym.ToTestDisplayString());
-            Assert.Equal(TypeKind.Struct, sym.TypeWithAnnotations.TypeKind);
-            Assert.Equal("System.Int32?", sym.TypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, sym.Type.TypeKind);
+            Assert.Equal("System.Int32?", sym.Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -209,18 +209,18 @@ class A {
 
             var sym = type2.GetMembers("field1").Single() as FieldSymbol;
             Assert.Equal("System.Collections.Generic.List<T> C<T>.S<V>.field1", sym.ToTestDisplayString());
-            Assert.Equal(TypeKind.Class, sym.TypeWithAnnotations.TypeKind);
-            Assert.Equal("System.Collections.Generic.List<T>", sym.TypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, sym.Type.TypeKind);
+            Assert.Equal("System.Collections.Generic.List<T>", sym.Type.ToTestDisplayString());
 
             sym = type2.GetMembers("field2").Single() as FieldSymbol;
             Assert.Equal("System.Collections.Generic.IList<V> C<T>.S<V>.field2", sym.ToTestDisplayString());
-            Assert.Equal(TypeKind.Interface, sym.TypeWithAnnotations.TypeKind);
-            Assert.Equal("System.Collections.Generic.IList<V>", sym.TypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Interface, sym.Type.TypeKind);
+            Assert.Equal("System.Collections.Generic.IList<V>", sym.Type.ToTestDisplayString());
 
             sym = type2.GetMembers("field3").Single() as FieldSymbol;
             Assert.Equal("C<T>.S<System.String> C<T>.S<V>.field3", sym.ToTestDisplayString());
-            Assert.Equal(TypeKind.Struct, sym.TypeWithAnnotations.TypeKind);
-            Assert.Equal("C<T>.S<System.String>", sym.TypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Struct, sym.Type.TypeKind);
+            Assert.Equal("C<T>.S<System.String>", sym.Type.ToTestDisplayString());
         }
 
         [WorkItem(537401, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537401")]
@@ -239,7 +239,7 @@ class C1
             FieldSymbol ein = (FieldSymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
             Assert.Equal("C1.@in", ein.ToString());
-            NamedTypeSymbol dout = (NamedTypeSymbol)ein.TypeWithAnnotations.Type;
+            NamedTypeSymbol dout = (NamedTypeSymbol)ein.Type;
             Assert.Equal("out", dout.Name);
             Assert.Equal("@out", dout.ToString());
         }

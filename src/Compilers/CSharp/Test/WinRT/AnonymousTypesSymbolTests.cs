@@ -1118,7 +1118,7 @@ class Query
         {
             PropertySymbol property = this.GetMemberByName<PropertySymbol>(type, name);
             Assert.NotNull(property);
-            Assert.Equal(propType, property.TypeWithAnnotations.Type);
+            Assert.Equal(propType, property.Type);
             Assert.Equal(Accessibility.Public, property.DeclaredAccessibility);
             Assert.False(property.IsAbstract);
             Assert.False(property.IsIndexer);
@@ -1714,8 +1714,8 @@ class Program
             var statement4 = mainBlock.Statements[3] as LocalDeclarationStatementSyntax;
             var localA3 = model.GetDeclaredSymbol(statement3.Declaration.Variables[0]) as LocalSymbol;
             var localA4 = model.GetDeclaredSymbol(statement4.Declaration.Variables[0]) as LocalSymbol;
-            var typeA3 = localA3.TypeWithAnnotations.Type;
-            var typeA4 = localA4.TypeWithAnnotations.Type;
+            var typeA3 = localA3.Type;
+            var typeA4 = localA4.Type;
 
             // A3 and A4 should have different type objects, that compare equal. They should have 
             // different locations.

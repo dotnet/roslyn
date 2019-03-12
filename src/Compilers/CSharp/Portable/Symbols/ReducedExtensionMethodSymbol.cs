@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var conversions = new TypeConversions(method.ContainingAssembly.CorLibrary);
-            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].TypeWithAnnotations.Type, receiverType, ref useSiteDiagnostics);
+            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteDiagnostics);
             if (!conversion.Exists)
             {
                 return null;
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _reducedFrom.Parameters[0].TypeWithAnnotations.Type;
+                return _reducedFrom.Parameters[0].Type;
             }
         }
 

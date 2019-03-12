@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsNullableReference(TypeWithAnnotations type)
-            => !type.HasType || !(type.IsValueType || type.IsErrorType());
+        private static bool IsNullableReference(TypeSymbol type)
+            => type is null || !(type.IsValueType || type.IsErrorType());
 
-        protected override DiagnosticInfo ResolveInfo() => IsNullableReference(_type) ? _info : null;
+        protected override DiagnosticInfo ResolveInfo() => IsNullableReference(_type.Type) ? _info : null;
 
         /// <summary>
         /// A `?` annotation on a type that isn't a value type causes:
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static void ReportNullableReferenceTypesIfNeeded(bool isNullableEnabled, TypeWithAnnotations type, Location location, DiagnosticBag diagnostics)
         {
-            if (IsNullableReference(type))
+            if (IsNullableReference(type.Type))
             {
                 ReportNullableReferenceTypesIfNeeded(isNullableEnabled, location, diagnostics);
             }

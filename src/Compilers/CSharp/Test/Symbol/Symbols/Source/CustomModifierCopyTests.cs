@@ -324,12 +324,12 @@ class Derived : PropertyCustomModifierCombinations
         {
             if (!method.ReturnsVoid)
             {
-                CheckCustomModifier(inReturnType, ((ArrayTypeSymbol)method.ReturnTypeWithAnnotations.Type).ElementTypeWithAnnotations.CustomModifiers);
+                CheckCustomModifier(inReturnType, ((ArrayTypeSymbol)method.ReturnType).ElementTypeWithAnnotations.CustomModifiers);
                 CheckCustomModifier(onReturnType, method.ReturnTypeWithAnnotations.CustomModifiers);
             }
             if (method.Parameters.Any())
             {
-                CheckCustomModifier(inParameterType, ((ArrayTypeSymbol)method.Parameters.Single().TypeWithAnnotations.Type).ElementTypeWithAnnotations.CustomModifiers);
+                CheckCustomModifier(inParameterType, ((ArrayTypeSymbol)method.Parameters.Single().Type).ElementTypeWithAnnotations.CustomModifiers);
                 CheckCustomModifier(onParameterType, method.Parameters.Single().TypeWithAnnotations.CustomModifiers);
             }
         }
@@ -342,7 +342,7 @@ class Derived : PropertyCustomModifierCombinations
         /// <param name="onType">True if a custom modifier is expected on the return type.</param>
         private static void CheckPropertyCustomModifiers(PropertySymbol property, bool inType, bool onType)
         {
-            CheckCustomModifier(inType, ((ArrayTypeSymbol)property.TypeWithAnnotations.Type).ElementTypeWithAnnotations.CustomModifiers);
+            CheckCustomModifier(inType, ((ArrayTypeSymbol)property.Type).ElementTypeWithAnnotations.CustomModifiers);
             CheckCustomModifier(onType, property.TypeWithAnnotations.CustomModifiers);
         }
 
@@ -772,7 +772,7 @@ class C : I
             var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
 
             Assert.Equal(SpecialType.System_Object, interfaceMethod.ParameterTypesWithAnnotations.Single().SpecialType);
-            Assert.Equal(TypeKind.Dynamic, classMethod.ParameterTypesWithAnnotations.Single().TypeKind);
+            Assert.Equal(TypeKind.Dynamic, classMethod.ParameterTypesWithAnnotations.Single().Type.TypeKind);
 
             Assert.Equal("void C.I.M(dynamic modopt(System.Runtime.CompilerServices.IsLong) x)", classMethod.ToTestDisplayString());
         }
@@ -815,7 +815,7 @@ class C : I
             var interfaceMethod = global.GetMember<MethodSymbol>("I.M");
             var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
 
-            Assert.Equal(TypeKind.Dynamic, interfaceMethod.ParameterTypesWithAnnotations.Single().TypeKind);
+            Assert.Equal(TypeKind.Dynamic, interfaceMethod.ParameterTypesWithAnnotations.Single().Type.TypeKind);
             Assert.Equal(SpecialType.System_Object, classMethod.ParameterTypesWithAnnotations.Single().SpecialType);
 
             Assert.Equal("void C.I.M(System.Object modopt(System.Runtime.CompilerServices.IsLong) x)", classMethod.ToTestDisplayString());
@@ -860,15 +860,15 @@ class C : I
 
             Assert.Equal("(System.Object a, System.Object b) I.M((System.Object c, System.Object d) x)", interfaceMethod1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    interfaceMethod1.ReturnTypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    interfaceMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    interfaceMethod1.ParameterTypesWithAnnotations[0].Type.TupleUnderlyingType.ToTestDisplayString());
+                    interfaceMethod1.GetParameterType(0).TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object a, System.Object b) C.I.M((System.Object c, System.Object d) x)", classMethod1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod1.ReturnTypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod1.ParameterTypesWithAnnotations[0].Type.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod1.GetParameterType(0).TupleUnderlyingType.ToTestDisplayString());
 
             var source2 = @"
 class C : I
@@ -887,10 +887,10 @@ class C : I
 
             Assert.Equal("(System.Object a, System.Object b) C.I.M((System.Object, System.Object) x)", classMethod2.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                classMethod2.ReturnTypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                classMethod2.ParameterTypesWithAnnotations[0].Type.TupleUnderlyingType.ToTestDisplayString());
+                classMethod2.GetParameterType(0).TupleUnderlyingType.ToTestDisplayString());
 
             var source3 = @"
 class C : I
@@ -909,9 +909,9 @@ class C : I
 
             Assert.Equal("(System.Object, System.Object) C.I.M((System.Object c, System.Object d) x)", classMethod3.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod3.ReturnTypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod3.ReturnType.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod3.ParameterTypesWithAnnotations[0].Type.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod3.GetParameterType(0).TupleUnderlyingType.ToTestDisplayString());
 
             var source4 = @"
 class C : I
@@ -925,8 +925,8 @@ class C : I
             var classMethod4 = comp4.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMethod("M");
 
             Assert.Equal("(System.Object a, System.Object b) C.M((System.Object c, System.Object d) x)", classMethod4.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.ReturnTypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.ParameterTypesWithAnnotations[0].Type.TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
+            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.ReturnType.TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
+            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classMethod4.GetParameterType(0).TupleUnderlyingType.ToTestDisplayString()); // modopts not copied
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -980,11 +980,11 @@ class C : I
 
             Assert.Equal("(System.Object a, System.Object b) I.P { get; set; }", interfaceProperty1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    interfaceProperty1.TypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    interfaceProperty1.Type.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object a, System.Object b) C.I.P { get; set; }", classProperty1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classProperty1.TypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classProperty1.Type.TupleUnderlyingType.ToTestDisplayString());
 
             var source2 = @"
 class C : I
@@ -998,7 +998,7 @@ class C : I
             var classProperty2 = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("I.P");
 
             Assert.Equal("(System.Object, System.Object) C.I.P { get; set; }", classProperty2.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classProperty2.TypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classProperty2.Type.TupleUnderlyingType.ToTestDisplayString());
 
             var source3 = @"
 class C : I
@@ -1012,7 +1012,7 @@ class C : I
             var classProperty3 = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("P");
 
             Assert.Equal("(System.Object a, System.Object b) C.P { get; set; }", classProperty3.ToTestDisplayString());
-            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classProperty3.TypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+            Assert.Equal("System.ValueTuple<System.Object, System.Object>", classProperty3.Type.TupleUnderlyingType.ToTestDisplayString());
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1122,28 +1122,28 @@ class C : Base
 
             Assert.Equal("(System.Object a, System.Object b) Base.M((System.Object c, System.Object d) x)", baseMethod1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    baseMethod1.ReturnTypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    baseMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    baseMethod1.ParameterTypesWithAnnotations[0].Type.TupleUnderlyingType.ToTestDisplayString());
+                    baseMethod1.GetParameterType(0).TupleUnderlyingType.ToTestDisplayString());
 
             var baseProperty1 = comp1.GlobalNamespace.GetMember<PropertySymbol>("Base.P");
 
             Assert.Equal("(System.Object a, System.Object b) Base.P { get; set; }", baseProperty1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    baseProperty1.TypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    baseProperty1.Type.TupleUnderlyingType.ToTestDisplayString());
 
             var classProperty1 = comp1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("P");
             var classMethod1 = comp1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMethod("M");
 
             Assert.Equal("(System.Object a, System.Object b) C.P { get; set; }", classProperty1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classProperty1.TypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classProperty1.Type.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object a, System.Object b) C.M((System.Object c, System.Object d) y)", classMethod1.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod1.ReturnTypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod1.ReturnType.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod1.ParameterTypesWithAnnotations[0].Type.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod1.GetParameterType(0).TupleUnderlyingType.ToTestDisplayString());
 
             var source2 = @"
 class C : Base
@@ -1164,13 +1164,13 @@ class C : Base
 
             Assert.Equal("(System.Object, System.Object) C.P { get; set; }", classProperty2.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object, System.Object>",
-                    classProperty2.TypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classProperty2.Type.TupleUnderlyingType.ToTestDisplayString());
 
             Assert.Equal("(System.Object, System.Object) C.M((System.Object c, System.Object d) y)", classMethod2.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod2.ReturnTypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod2.ReturnType.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod2.ParameterTypesWithAnnotations[0].Type.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod2.GetParameterType(0).TupleUnderlyingType.ToTestDisplayString());
 
             var source3 = @"
 class C : Base
@@ -1190,9 +1190,9 @@ class C : Base
 
             Assert.Equal("(System.Object a, System.Object b) C.M((System.Object, System.Object) y)", classMethod3.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod3.ReturnTypeWithAnnotations.Type.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod3.ReturnType.TupleUnderlyingType.ToTestDisplayString());
             Assert.Equal("System.ValueTuple<System.Object modopt(System.Runtime.CompilerServices.IsLong), System.Object modopt(System.Runtime.CompilerServices.IsLong)>",
-                    classMethod3.ParameterTypesWithAnnotations[0].Type.TupleUnderlyingType.ToTestDisplayString());
+                    classMethod3.GetParameterType(0).TupleUnderlyingType.ToTestDisplayString());
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1233,8 +1233,8 @@ class C : I
             var interfaceMethod = global.GetMember<MethodSymbol>("I.M");
             var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
 
-            Assert.Equal(TypeKind.Dynamic, interfaceMethod.ReturnTypeWithAnnotations.TypeKind);
-            Assert.Equal(SpecialType.System_Object, classMethod.ReturnTypeWithAnnotations.SpecialType);
+            Assert.Equal(TypeKind.Dynamic, interfaceMethod.ReturnType.TypeKind);
+            Assert.Equal(SpecialType.System_Object, classMethod.ReturnType.SpecialType);
 
             Assert.Equal("System.Object modopt(System.Int32) C.I.M()", classMethod.ToTestDisplayString());
         }
@@ -1273,8 +1273,8 @@ class C : I
             var interfaceMethod = global.GetMember<NamedTypeSymbol>("I").GetMember<MethodSymbol>("M");
             var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
 
-            Assert.Equal(SpecialType.System_Object, interfaceMethod.ReturnTypeWithAnnotations.SpecialType);
-            Assert.Equal(TypeKind.Dynamic, classMethod.ReturnTypeWithAnnotations.TypeKind);
+            Assert.Equal(SpecialType.System_Object, interfaceMethod.ReturnType.SpecialType);
+            Assert.Equal(TypeKind.Dynamic, classMethod.ReturnType.TypeKind);
 
             Assert.Equal("dynamic modopt(System.Int32) C.I.M()", classMethod.ToTestDisplayString());
         }
@@ -1957,8 +1957,8 @@ class Implementation : I
                 {
                     return false;
                 }
-                var paramType = s.GetParameters().Single().TypeWithAnnotations.Type;
-                var comparisonType = isArrayType ? ((ArrayTypeSymbol)paramType).ElementTypeWithAnnotations.Type : paramType;
+                var paramType = s.GetParameters().Single().Type;
+                var comparisonType = isArrayType ? ((ArrayTypeSymbol)paramType).ElementType : paramType;
                 return comparisonType.SpecialType == paramSpecialType;
             };
         }

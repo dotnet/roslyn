@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var byrefReturnMethod = byrefReturn.GlobalNamespace.GetTypeMembers("ByRefReturn").Single().GetMembers("M").OfType<MethodSymbol>().Single();
             Assert.Equal(RefKind.Ref, byrefReturnMethod.RefKind);
-            Assert.Equal(TypeKind.Struct, byrefReturnMethod.ReturnTypeWithAnnotations.TypeKind);
+            Assert.Equal(TypeKind.Struct, byrefReturnMethod.ReturnType.TypeKind);
         }
 
         [Fact]

@@ -35,8 +35,8 @@ class A {
             Assert.Equal(true, m.ReturnsVoid);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
-            Assert.Equal(SymbolKind.NamedType, x.TypeWithAnnotations.Kind);
-            Assert.Equal("Int32", x.TypeWithAnnotations.Name); // fully qualified to work around a metadata reader bug
+            Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
+            Assert.Equal("Int32", x.Type.Name); // fully qualified to work around a metadata reader bug
             Assert.Equal(SymbolKind.Parameter, x.Kind);
             Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
         }
@@ -111,8 +111,8 @@ class A {
             Assert.Equal(MethodKind.Constructor, m.MethodKind);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
-            Assert.Equal(SymbolKind.NamedType, x.TypeWithAnnotations.Kind);
-            Assert.Equal("Int32", x.TypeWithAnnotations.Name); // fully qualified to work around a metadata reader bug
+            Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
+            Assert.Equal("Int32", x.Type.Name); // fully qualified to work around a metadata reader bug
             Assert.Equal(SymbolKind.Parameter, x.Kind);
             Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
         }
@@ -135,8 +135,8 @@ class A {
             Assert.Equal(MethodKind.Ordinary, m.MethodKind);
             var x = m.Parameters[0];
             Assert.Equal("x", x.Name);
-            Assert.Equal(SymbolKind.NamedType, x.TypeWithAnnotations.Kind);
-            Assert.Equal("Int32", x.TypeWithAnnotations.Name); // fully qualified to work around a metadata reader bug
+            Assert.Equal(SymbolKind.NamedType, x.Type.Kind);
+            Assert.Equal("Int32", x.Type.Name); // fully qualified to work around a metadata reader bug
             Assert.Equal(SymbolKind.Parameter, x.Kind);
             Assert.Equal(Accessibility.Private, m.DeclaredAccessibility);
         }
@@ -181,7 +181,7 @@ public class MyList<T>
             var t1 = mylist.TypeParameters[0];
             var add = mylist.GetMembers("Add").Single() as MethodSymbol;
             var element = add.Parameters[0];
-            var t2 = element.TypeWithAnnotations.Type;
+            var t2 = element.Type;
             Assert.Equal(t1, t2);
         }
 
@@ -333,8 +333,8 @@ public interface A {
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
             var t = m.TypeParameters[0];
-            Assert.Equal(t, m.Parameters[0].TypeWithAnnotations.Type);
-            Assert.Equal(t, m.ReturnTypeWithAnnotations.Type);
+            Assert.Equal(t, m.Parameters[0].Type);
+            Assert.Equal(t, m.ReturnType);
         }
 
         [WorkItem(931142, "DevDiv/Personal")]
@@ -354,7 +354,7 @@ public interface A {
             Assert.Equal(RefKind.Ref, p1.RefKind);
             Assert.Equal(RefKind.Out, p2.RefKind);
 
-            var refP = p1.TypeWithAnnotations.Type;
+            var refP = p1.Type;
             Assert.Equal(TypeKind.Class, refP.TypeKind);
             Assert.True(refP.IsReferenceType);
             Assert.False(refP.IsValueType);
@@ -362,7 +362,7 @@ public interface A {
             Assert.Equal(2, refP.GetMembers().Length); // M + generated constructor.
             Assert.Equal(1, refP.GetMembers("M").Length);
 
-            var outP = p2.TypeWithAnnotations.Type;
+            var outP = p2.Type;
             Assert.Equal(TypeKind.Struct, outP.TypeKind);
             Assert.False(outP.IsReferenceType);
             Assert.True(outP.IsValueType);
@@ -394,9 +394,9 @@ public interface A {
             var a = global.GetTypeMembers("A", 0).Single();
             var m = a.GetMembers("M").Single() as MethodSymbol;
             Assert.Equal(RefKind.Ref, m.RefKind);
-            Assert.Equal(TypeKind.Struct, m.ReturnTypeWithAnnotations.TypeKind);
-            Assert.False(m.ReturnTypeWithAnnotations.IsReferenceType);
-            Assert.True(m.ReturnTypeWithAnnotations.IsValueType);
+            Assert.Equal(TypeKind.Struct, m.ReturnType.TypeKind);
+            Assert.False(m.ReturnType.IsReferenceType);
+            Assert.True(m.ReturnType.IsValueType);
             var p1 = m.Parameters[0];
             Assert.Equal(RefKind.Ref, p1.RefKind);
 
@@ -1356,9 +1356,9 @@ public class C : B<int, long>
 
             var classBMethodMParameters = classBMethodM.Parameters;
             Assert.Equal(3, classBMethodMParameters.Length);
-            Assert.Equal(classBTypeArguments[0], classBMethodMParameters[0].TypeWithAnnotations.Type);
-            Assert.Equal(classBTypeArguments[1], classBMethodMParameters[1].TypeWithAnnotations.Type);
-            Assert.Equal(classBMethodMTypeParameters[0], classBMethodMParameters[2].TypeWithAnnotations.Type);
+            Assert.Equal(classBTypeArguments[0], classBMethodMParameters[0].Type);
+            Assert.Equal(classBTypeArguments[1], classBMethodMParameters[1].Type);
+            Assert.Equal(classBMethodMTypeParameters[0], classBMethodMParameters[2].Type);
 
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").Single();
 
@@ -1379,9 +1379,9 @@ public class C : B<int, long>
 
             var classCBaseMethodMParameters = classCBaseMethodM.Parameters;
             Assert.Equal(3, classCBaseMethodMParameters.Length);
-            Assert.Equal(classCBaseTypeArguments[0], classCBaseMethodMParameters[0].TypeWithAnnotations.Type);
-            Assert.Equal(classCBaseTypeArguments[1], classCBaseMethodMParameters[1].TypeWithAnnotations.Type);
-            Assert.Equal(classCBaseMethodMTypeParameters[0], classCBaseMethodMParameters[2].TypeWithAnnotations.Type);
+            Assert.Equal(classCBaseTypeArguments[0], classCBaseMethodMParameters[0].Type);
+            Assert.Equal(classCBaseTypeArguments[1], classCBaseMethodMParameters[1].Type);
+            Assert.Equal(classCBaseMethodMTypeParameters[0], classCBaseMethodMParameters[2].Type);
         }
 
         #region Regressions
@@ -1618,7 +1618,7 @@ class C1 : @int, @void
             MethodSymbol mreturn = (MethodSymbol)c1.GetMembers("@void.return").Single();
             Assert.Equal("@void.return", mreturn.Name);
             Assert.Equal("C1.@void.@return(@void)", mreturn.ToString());
-            NamedTypeSymbol rvoid = (NamedTypeSymbol)mreturn.ReturnTypeWithAnnotations.Type;
+            NamedTypeSymbol rvoid = (NamedTypeSymbol)mreturn.ReturnType;
             Assert.Equal("void", rvoid.Name);
             Assert.Equal("@void", rvoid.ToString());
             MethodSymbol mvoidreturn = (MethodSymbol)mreturn.ExplicitInterfaceImplementations.Single();
@@ -1895,7 +1895,7 @@ class C
             Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
             Assert.Equal(Accessibility.Private, staticConstructor.DeclaredAccessibility);
             Assert.True(staticConstructor.IsStatic, "Static constructor should be static");
-            Assert.Equal(SpecialType.System_Void, staticConstructor.ReturnTypeWithAnnotations.SpecialType);
+            Assert.Equal(SpecialType.System_Void, staticConstructor.ReturnType.SpecialType);
         }
 
         [Fact]
@@ -1919,7 +1919,7 @@ class C
             Assert.Equal(MethodKind.StaticConstructor, staticConstructor.MethodKind);
             Assert.Equal(Accessibility.Private, staticConstructor.DeclaredAccessibility);
             Assert.True(staticConstructor.IsStatic, "Static constructor should be static");
-            Assert.Equal(SpecialType.System_Void, staticConstructor.ReturnTypeWithAnnotations.SpecialType);
+            Assert.Equal(SpecialType.System_Void, staticConstructor.ReturnType.SpecialType);
         }
 
         [WorkItem(541834, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541834")]

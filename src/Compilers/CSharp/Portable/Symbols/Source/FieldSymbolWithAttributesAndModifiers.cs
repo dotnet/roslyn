@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.IsConst)
                 {
-                    if (this.TypeWithAnnotations.SpecialType == SpecialType.System_Decimal)
+                    if (this.Type.SpecialType == SpecialType.System_Decimal)
                     {
                         constValue = this.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);
 

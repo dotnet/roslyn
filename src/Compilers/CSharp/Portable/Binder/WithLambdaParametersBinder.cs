@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override TypeSymbol GetCurrentReturnType(out RefKind refKind)
         {
             refKind = lambdaSymbol.RefKind;
-            return lambdaSymbol.ReturnTypeWithAnnotations.Type;
+            return lambdaSymbol.ReturnType;
         }
 
         internal override Symbol ContainingMemberOrLambda

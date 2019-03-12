@@ -125,16 +125,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 explicitCastInCode: true,
                                 conversionGroupOpt: null,
                                 ConstantValue.NotAvailable,
-                                hostObjectField.TypeWithAnnotations.Type
+                                hostObjectField.Type
                             ),
-                            hostObjectField.TypeWithAnnotations.Type)
+                            hostObjectField.Type)
                         { WasCompilerGenerated = true })
                     { WasCompilerGenerated = true });
             }
 
             foreach (var field in synthesizedFields.FieldSymbols)
             {
-                var targetScriptType = (ImplicitNamedTypeSymbol)field.TypeWithAnnotations.Type;
+                var targetScriptType = (ImplicitNamedTypeSymbol)field.Type;
                 var targetSubmissionIndex = targetScriptType.DeclaringCompilation.GetSubmissionSlotIndex();
                 Debug.Assert(targetSubmissionIndex >= 0);
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!accessor.IsStatic)
             {
                 var thisSymbol = accessor.ThisParameter;
-                thisReference = new BoundThisReference(syntax, thisSymbol.TypeWithAnnotations.Type) { WasCompilerGenerated = true };
+                thisReference = new BoundThisReference(syntax, thisSymbol.Type) { WasCompilerGenerated = true };
             }
 
             var field = property.BackingField;
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         fieldAccess,
                         new BoundParameter(syntax, parameter) { WasCompilerGenerated = true },
-                        property.TypeWithAnnotations.Type)
+                        property.Type)
                     { WasCompilerGenerated = true });
             }
 
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol field = eventSymbol.AssociatedField;
             Debug.Assert((object)field != null);
 
-            NamedTypeSymbol fieldType = (NamedTypeSymbol)field.TypeWithAnnotations.Type;
+            NamedTypeSymbol fieldType = (NamedTypeSymbol)field.Type;
             Debug.Assert(fieldType.Name == "EventRegistrationTokenTable");
 
             MethodSymbol getOrCreateMethod = (MethodSymbol)Binder.GetWellKnownTypeMember(
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // _tokenTable
             BoundFieldAccess fieldAccess = new BoundFieldAccess(
                 syntax,
-                field.IsStatic ? null : new BoundThisReference(syntax, accessor.ThisParameter.TypeWithAnnotations.Type),
+                field.IsStatic ? null : new BoundThisReference(syntax, accessor.ThisParameter.Type),
                 field,
                 constantValueOpt: null)
             { WasCompilerGenerated = true };
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CSharpSyntaxNode syntax = eventSymbol.CSharpSyntaxNode;
 
-            TypeSymbol delegateType = eventSymbol.TypeWithAnnotations.Type;
+            TypeSymbol delegateType = eventSymbol.Type;
             MethodSymbol accessor = isAddMethod ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
             ParameterSymbol thisParameter = accessor.ThisParameter;
 
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundThisReference fieldReceiver = eventSymbol.IsStatic ?
                 null :
-                new BoundThisReference(syntax, thisParameter.TypeWithAnnotations.Type) { WasCompilerGenerated = true };
+                new BoundThisReference(syntax, thisParameter.Type) { WasCompilerGenerated = true };
 
             BoundFieldAccess boundBackingField = new BoundFieldAccess(syntax,
                 receiver: fieldReceiver,

@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // Bug - 2067
             Assert.Equal("System.StringComparer." + WellKnownMemberNames.InstanceConstructorName + "()", ctor.ToTestDisplayString());
             Assert.Equal(0, ctor.TypeParameters.Length);
-            Assert.Equal("Void", ctor.ReturnTypeWithAnnotations.Name);
+            Assert.Equal("Void", ctor.ReturnType.Name);
 
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, member1.TypeArgumentsWithAnnotations.Length);
             Assert.Equal(0, member1.TypeParameters.Length);
             Assert.Equal(6, member1.Parameters.Length);
-            Assert.Equal("Boolean", member1.ReturnTypeWithAnnotations.Name);
+            Assert.Equal("Boolean", member1.ReturnType.Name);
 
             Assert.Empty(compilation.GetDeclarationDiagnostics());
         }
@@ -259,10 +259,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(Accessibility.NotApplicable, p1.DeclaredAccessibility);
             Assert.Equal("pwzFilePath", p1.Name);
             Assert.Equal("System.String pwzKeyContainer", p2.ToTestDisplayString());
-            Assert.Equal("String", p2.TypeWithAnnotations.Name);
+            Assert.Equal("String", p2.Type.Name);
             Assert.True(p2.IsDefinition);
             Assert.Equal("System.Byte[] bKeyBlob", p3.ToTestDisplayString());
-            Assert.Equal("System.Byte[]", p3.TypeWithAnnotations.Type.ToTestDisplayString()); //array types do not have names - use ToTestDisplayString
+            Assert.Equal("System.Byte[]", p3.Type.ToTestDisplayString()); //array types do not have names - use ToTestDisplayString
 
             Assert.False(p1.IsStatic);
             Assert.False(p1.IsAbstract);
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // Assert.Null(p4.DefaultValue);
 
             Assert.Equal("ppbSignatureBlob", p5.Name);
-            Assert.Equal("IntPtr", p5.TypeWithAnnotations.Name);
+            Assert.Equal("IntPtr", p5.Type.Name);
             Assert.Equal(RefKind.Ref, p5.RefKind);
 
             Assert.Equal("out System.Int32 pcbSignatureBlob", p6.ToTestDisplayString());
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, member1.TypeArgumentsWithAnnotations.Length);
             Assert.Equal(0, member2.TypeParameters.Length);
             Assert.Equal(2, member1.Parameters.Length);
-            Assert.Equal("Boolean", member2.ReturnTypeWithAnnotations.Name);
+            Assert.Equal("Boolean", member2.ReturnType.Name);
             Assert.Equal("System.Boolean System.Collections.Generic.IDictionary<TKey, TValue>.TryGetValue(TKey key, out TValue value)", member2.ToTestDisplayString());
 
             Assert.Empty(compilation.GetDeclarationDiagnostics());

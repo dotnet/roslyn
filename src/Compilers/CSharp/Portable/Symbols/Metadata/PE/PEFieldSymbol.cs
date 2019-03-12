@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // If this is a Decimal, the constant value may come from DecimalConstantAttribute
 
-                if (this.TypeWithAnnotations.SpecialType == SpecialType.System_Decimal)
+                if (this.Type.SpecialType == SpecialType.System_Decimal)
                 {
                     ConstantValue defaultValue;
 
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private bool FilterOutDecimalConstantAttribute()
         {
             ConstantValue value;
-            return this.TypeWithAnnotations.SpecialType == SpecialType.System_Decimal &&
+            return this.Type.SpecialType == SpecialType.System_Decimal &&
                    (object)(value = GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false)) != null &&
                    value.Discriminator == ConstantValueTypeDiscriminator.Decimal;
         }

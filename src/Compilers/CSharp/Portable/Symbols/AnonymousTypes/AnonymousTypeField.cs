@@ -15,8 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>Anonymous type field location</summary>
         public readonly Location Location;
 
-        /// <summary>Anonymous type field type</summary>
+        /// <summary>Anonymous type field type with annotations</summary>
         public readonly TypeWithAnnotations TypeWithAnnotations;
+
+        /// <summary>Anonymous type field type</summary>
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         public AnonymousTypeField(string name, Location location, TypeWithAnnotations typeWithAnnotations)
         {

@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (!diagnostics.Add(location, useSiteDiagnostics))
                 {
-                    constraintType.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
+                    constraintType.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
                 }
             }
         }

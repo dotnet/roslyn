@@ -1252,15 +1252,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SymbolKind.Method:
                         var method = (MethodSymbol)interfaceMember;
                         interfaceMemberRefKind = method.RefKind;
-                        interfaceMemberReturnType = method.ReturnTypeWithAnnotations.Type;
+                        interfaceMemberReturnType = method.ReturnType;
                         break;
                     case SymbolKind.Property:
                         var property = (PropertySymbol)interfaceMember;
                         interfaceMemberRefKind = property.RefKind;
-                        interfaceMemberReturnType = property.TypeWithAnnotations.Type;
+                        interfaceMemberReturnType = property.Type;
                         break;
                     case SymbolKind.Event:
-                        interfaceMemberReturnType = ((EventSymbol)interfaceMember).TypeWithAnnotations.Type;
+                        interfaceMemberReturnType = ((EventSymbol)interfaceMember).Type;
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(interfaceMember.Kind);

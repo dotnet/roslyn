@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             //spec only applies this to non-void methods, but it falls out of our impl anyway
             IsVarianceUnsafe(
-                method.ReturnTypeWithAnnotations.Type,
+                method.ReturnType,
                 requireOutputSafety: true,
                 requireInputSafety: method.RefKind != RefKind.None,
                 context: method,
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (hasGetter || hasSetter)
             {
                 IsVarianceUnsafe(
-                    property.TypeWithAnnotations.Type,
+                    property.Type,
                     requireOutputSafety: hasGetter,
                     requireInputSafety: hasSetter || !(property.GetMethod?.RefKind == RefKind.None),
                     context: property,
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void CheckEventVarianceSafety(EventSymbol @event, DiagnosticBag diagnostics)
         {
             IsVarianceUnsafe(
-                @event.TypeWithAnnotations.Type,
+                @event.Type,
                 requireOutputSafety: false,
                 requireInputSafety: true,
                 context: @event,
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (ParameterSymbol param in parameters)
             {
                 IsVarianceUnsafe(
-                    param.TypeWithAnnotations.Type,
+                    param.Type,
                     requireOutputSafety: param.RefKind != RefKind.None,
                     requireInputSafety: true,
                     context: context,
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 case SymbolKind.ArrayType:
                     // 2) T is an array type with an output-unsafe [input-unsafe] element type
-                    return IsVarianceUnsafe(((ArrayTypeSymbol)type).ElementTypeWithAnnotations.Type, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
+                    return IsVarianceUnsafe(((ArrayTypeSymbol)type).ElementType, requireOutputSafety, requireInputSafety, context, locationProvider, locationArg, diagnostics);
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
                     var namedType = (NamedTypeSymbol)type.TupleUnderlyingTypeOrSelf();

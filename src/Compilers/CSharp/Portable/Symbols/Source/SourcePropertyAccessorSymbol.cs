@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return this.ReturnTypeWithAnnotations.SpecialType == SpecialType.System_Void; }
+            get { return this.ReturnType.SpecialType == SpecialType.System_Void; }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters

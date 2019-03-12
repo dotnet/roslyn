@@ -35,19 +35,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
                 var method = type.GetMember<MethodSymbol>("M1");
                 Assert.False(method.IsExtensionMethod);
                 var parameter = method.Parameters[0];
-                Assert.Equal(parameter.TypeWithAnnotations.SpecialType, SpecialType.System_Object);
+                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Object);
 
                 // Extension method.
                 method = type.GetMember<MethodSymbol>("M2");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.TypeWithAnnotations.SpecialType, SpecialType.System_Object);
+                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Object);
 
                 // Extension method with type parameters.
                 method = type.GetMember<MethodSymbol>("M3");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.TypeWithAnnotations.TypeKind, TypeKind.TypeParameter);
+                Assert.Equal(parameter.Type.TypeKind, TypeKind.TypeParameter);
             };
             CompileAndVerify(source, validator: validator, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
         }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, appendDefaultHeader: false);
 
             var refType = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("F").TypeWithAnnotations.Type;
+            var type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("F").Type;
 
             // Static method no args.
             var method = type.GetMember<MethodSymbol>("M1");
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             Assert.False(method.IsStatic);
             Assert.False(method.IsExtensionMethod);
 
-            type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("G").TypeWithAnnotations.Type;
+            type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("G").Type;
 
             // Static method no args.
             method = type.GetMember<MethodSymbol>("M1");
@@ -2438,7 +2438,7 @@ B");
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
                 // mscorlib.dll
-                var mscorlib = type.GetMember<FieldSymbol>("F").TypeWithAnnotations.Type.ContainingAssembly;
+                var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
                 Assert.Equal(RuntimeCorLibName.Name, mscorlib.Name);
                 // We assume every PE assembly may contain extension methods.
                 Assert.True(mscorlib.MightContainExtensionMethods);
@@ -2447,7 +2447,7 @@ B");
                 if (isFromSource)
                 {
                     // System.Core.dll
-                    var systemCore = type.GetMember<FieldSymbol>("G").TypeWithAnnotations.Type.ContainingAssembly;
+                    var systemCore = type.GetMember<FieldSymbol>("G").Type.ContainingAssembly;
                     Assert.True(systemCore.MightContainExtensionMethods);
                 }
 
@@ -2581,7 +2581,7 @@ internal static class C
             {
                 var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PEMethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
-                Assert.Equal(method.Parameters.Single().TypeWithAnnotations.SpecialType, SpecialType.System_Object);
+                Assert.Equal(method.Parameters.Single().Type.SpecialType, SpecialType.System_Object);
 
                 var attr = ((PEModuleSymbol)module).GetCustomAttributesForToken(method.Handle).Single();
                 Assert.Equal("System.Runtime.CompilerServices.ExtensionAttribute", attr.AttributeClass.ToTestDisplayString());
@@ -3947,13 +3947,13 @@ public static class C
                 var method = type.GetMember<MethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
                 var parameter = method.Parameters[0];
-                Assert.Equal(parameter.TypeWithAnnotations.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
                 Assert.Equal(RefKind.In, parameter.RefKind);
 
                 method = type.GetMember<MethodSymbol>("M2");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.TypeWithAnnotations.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
                 Assert.Equal(RefKind.In, parameter.RefKind);
             }
 
@@ -3977,13 +3977,13 @@ public static class C
                 var method = type.GetMember<MethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
                 var parameter = method.Parameters[0];
-                Assert.Equal(parameter.TypeWithAnnotations.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
 
                 method = type.GetMember<MethodSymbol>("M2");
                 Assert.True(method.IsExtensionMethod);
                 parameter = method.Parameters[0];
-                Assert.Equal(parameter.TypeWithAnnotations.SpecialType, SpecialType.System_Int32);
+                Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
             }
 

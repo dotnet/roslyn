@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked);
                 }
 
-                if (!TypeSymbol.Equals(rewrittenOperand.Type, conversion.Method.ParameterTypesWithAnnotations[0].Type, TypeCompareKind.ConsiderEverything2))
+                if (!TypeSymbol.Equals(rewrittenOperand.Type, conversion.Method.GetParameterType(0), TypeCompareKind.ConsiderEverything2))
                 {
                     rewrittenOperand = MakeConversionNode(
                         rewrittenOperand,
@@ -568,12 +568,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         @checked);
                 }
 
-                TypeSymbol userDefinedConversionRewrittenType = conversion.Method.ReturnTypeWithAnnotations.Type;
+                TypeSymbol userDefinedConversionRewrittenType = conversion.Method.ReturnType;
 
                 // Lifted conversion, wrap return type in Nullable
                 // The conversion only needs to happen for non-nullable valuetypes
                 if (rewrittenOperand.Type.IsNullableType() &&
-                        conversion.Method.ParameterTypesWithAnnotations[0].Type.Equals(rewrittenOperand.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions) &&
+                        conversion.Method.GetParameterType(0).Equals(rewrittenOperand.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions) &&
                         !userDefinedConversionRewrittenType.IsNullableType() &&
                         userDefinedConversionRewrittenType.IsValueType)
                 {
@@ -1015,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)conversion.Method != null && !conversion.Method.ReturnsVoid && conversion.Method.ParameterCount == 1);
             if (rewrittenOperand.Type.IsNullableType())
             {
-                var parameterType = conversion.Method.ParameterTypesWithAnnotations[0].Type;
+                var parameterType = conversion.Method.GetParameterType(0);
                 if (parameterType.Equals(rewrittenOperand.Type.GetNullableUnderlyingType(), TypeCompareKind.AllIgnoreOptions) &&
                     !parameterType.IsNullableType() &&
                     parameterType.IsValueType)
@@ -1040,9 +1040,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeLiftedUserDefinedConversionConsequence(BoundCall call, TypeSymbol resultType)
         {
-            if (call.Method.ReturnTypeWithAnnotations.Type.IsNonNullableValueType())
+            if (call.Method.ReturnType.IsNonNullableValueType())
             {
-                Debug.Assert(resultType.IsNullableType() && TypeSymbol.Equals(resultType.GetNullableUnderlyingType(), call.Method.ReturnTypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2));
+                Debug.Assert(resultType.IsNullableType() && TypeSymbol.Equals(resultType.GetNullableUnderlyingType(), call.Method.ReturnType, TypeCompareKind.ConsiderEverything2));
                 MethodSymbol ctor = UnsafeGetNullableMethod(call.Syntax, resultType, SpecialMember.System_Nullable_T__ctor);
                 return new BoundObjectCreationExpression(call.Syntax, ctor, null, call);
             }
@@ -1168,9 +1168,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenOperand = MakeConversionNode(rewrittenOperand, source.StrippedType(), @checked);
             }
 
-            rewrittenOperand = MakeConversionNode(rewrittenOperand, method.ParameterTypesWithAnnotations[0].Type, @checked);
+            rewrittenOperand = MakeConversionNode(rewrittenOperand, method.GetParameterType(0), @checked);
 
-            var returnType = method.ReturnTypeWithAnnotations.Type;
+            var returnType = method.ReturnType;
             Debug.Assert((object)returnType != null);
 
             if (_inExpressionLambda)
@@ -1365,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(TypeSymbol.Equals(method.ReturnTypeWithAnnotations.Type, toType, TypeCompareKind.ConsiderEverything2));
+                Debug.Assert(TypeSymbol.Equals(method.ReturnType, toType, TypeCompareKind.ConsiderEverything2));
                 return BoundCall.Synthesized(syntax, null, method, operand);
             }
         }
@@ -1381,13 +1381,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitUserDefined:
                     {
                         var meth = conversion.Method;
-                        Conversion fromConversion = TryMakeConversion(syntax, conversion.UserDefinedFromConversion, fromType, meth.Parameters[0].TypeWithAnnotations.Type);
+                        Conversion fromConversion = TryMakeConversion(syntax, conversion.UserDefinedFromConversion, fromType, meth.Parameters[0].Type);
                         if (!fromConversion.Exists)
                         {
                             return Conversion.NoConversion;
                         }
 
-                        Conversion toConversion = TryMakeConversion(syntax, conversion.UserDefinedToConversion, meth.ReturnTypeWithAnnotations.Type, toType);
+                        Conversion toConversion = TryMakeConversion(syntax, conversion.UserDefinedToConversion, meth.ReturnType, toType);
                         if (!toConversion.Exists)
                         {
                             return Conversion.NoConversion;
@@ -1478,13 +1478,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Conversion TryMakeUserDefinedConversion(SyntaxNode syntax, MethodSymbol meth, TypeSymbol fromType, TypeSymbol toType, bool isImplicit = true)
         {
-            Conversion fromConversion = TryMakeConversion(syntax, fromType, meth.Parameters[0].TypeWithAnnotations.Type);
+            Conversion fromConversion = TryMakeConversion(syntax, fromType, meth.Parameters[0].Type);
             if (!fromConversion.Exists)
             {
                 return Conversion.NoConversion;
             }
 
-            Conversion toConversion = TryMakeConversion(syntax, meth.ReturnTypeWithAnnotations.Type, toType);
+            Conversion toConversion = TryMakeConversion(syntax, meth.ReturnType, toType);
             if (!toConversion.Exists)
             {
                 return Conversion.NoConversion;

@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // always deduce the same type, or deduce that the type is an error.
 
             Debug.Assert((object)originalType == null ||
-                originalType.IsErrorType() && newType.IsErrorType() ||
+                originalType.IsErrorType() && newType.Type.IsErrorType() ||
                 TypeSymbol.Equals(originalType, newType.Type, TypeCompareKind.ConsiderEverything2));
 
             if ((object)originalType == null)
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Location initValueNodeLocation = _initializer.Value.Location;
                     var diagnostics = DiagnosticBag.GetInstance();
                     Debug.Assert(inProgress != this);
-                    var type = this.TypeWithAnnotations.Type;
+                    var type = this.Type;
                     if (boundInitValue == null)
                     {
                         var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinder);

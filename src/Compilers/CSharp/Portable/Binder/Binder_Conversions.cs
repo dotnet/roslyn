@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination: conversion.BestUserDefinedConversionAnalysis.FromType,
                 diagnostics: diagnostics);
 
-            TypeSymbol conversionParameterType = conversion.BestUserDefinedConversionAnalysis.Operator.ParameterTypesWithAnnotations[0].Type;
+            TypeSymbol conversionParameterType = conversion.BestUserDefinedConversionAnalysis.Operator.GetParameterType(0);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             if (conversion.BestUserDefinedConversionAnalysis.Kind == UserDefinedConversionAnalysisKind.ApplicableInNormalForm &&
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression userDefinedConversion;
 
-            TypeSymbol conversionReturnType = conversion.BestUserDefinedConversionAnalysis.Operator.ReturnTypeWithAnnotations.Type;
+            TypeSymbol conversionReturnType = conversion.BestUserDefinedConversionAnalysis.Operator.ReturnType;
             TypeSymbol conversionToType = conversion.BestUserDefinedConversionAnalysis.ToType;
             Conversion toConversion = conversion.UserDefinedToConversion;
 
@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
             Debug.Assert(!isExtensionMethod ||
-                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].TypeWithAnnotations.Type, receiverOpt.Type, ref useSiteDiagnostics).Exists && useSiteDiagnostics.IsNullOrEmpty()));
+                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt.Type, ref useSiteDiagnostics).Exists && useSiteDiagnostics.IsNullOrEmpty()));
 
             useSiteDiagnostics = null;
 
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
 
                 if (delegateParameter.RefKind != methodParameter.RefKind ||
-                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.TypeWithAnnotations.Type, methodParameter.TypeWithAnnotations.Type, ref useSiteDiagnostics))
+                    !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type, methodParameter.Type, ref useSiteDiagnostics))
                 {
                     // No overload for '{0}' matches delegate '{1}'
                     Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
@@ -787,8 +787,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var methodReturnType = method.ReturnTypeWithAnnotations.Type;
-            var delegateReturnType = delegateMethod.ReturnTypeWithAnnotations.Type;
+            var methodReturnType = method.ReturnType;
+            var delegateReturnType = delegateMethod.ReturnType;
             bool returnsMatch = delegateMethod.RefKind != RefKind.None ?
                                     // - Return types identity-convertible
                                     Conversions.HasIdentityConversion(methodReturnType, delegateReturnType) :
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!returnsMatch)
             {
-                Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnTypeWithAnnotations.Type);
+                Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            if (selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnTypeWithAnnotations.IsUnsafe())
+            if (selectedMethod.HasUnsafeParameter() || selectedMethod.ReturnType.IsUnsafe())
             {
                 return ReportUnsafeIfNotAllowed(syntax, diagnostics);
             }

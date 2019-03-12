@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             RefKind refKind = _methodSymbol.RefKind;
-            TypeSymbol returnType = _methodSymbol.ReturnTypeWithAnnotations.Type;
+            TypeSymbol returnType = _methodSymbol.ReturnType;
 
             if (!this.IsDirectlyInIterator)
             {

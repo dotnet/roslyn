@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If t1 is not a type parameter, then neither is t2
             Debug.Assert(t1.Type.IsTypeParameter() || !t2.Type.IsTypeParameter());
 
-            switch (t1.Kind)
+            switch (t1.Type.Kind)
             {
                 case SymbolKind.ArrayType:
                     {
@@ -283,9 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (type.Kind)
             {
                 case SymbolKind.ArrayType:
-                    return Contains(((ArrayTypeSymbol)type).ElementTypeWithAnnotations.Type, typeParam);
+                    return Contains(((ArrayTypeSymbol)type).ElementType, typeParam);
                 case SymbolKind.PointerType:
-                    return Contains(((PointerTypeSymbol)type).PointedAtTypeWithAnnotations.Type, typeParam);
+                    return Contains(((PointerTypeSymbol)type).PointedAtType, typeParam);
                 case SymbolKind.NamedType:
                 case SymbolKind.ErrorType:
                     {

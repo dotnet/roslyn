@@ -438,8 +438,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = (MethodSymbol)(Symbol)result.Member;
                 bool returnsMatch =
                     (object)returnType == null ||
-                    method.ReturnTypeWithAnnotations.Type.Equals(returnType, TypeCompareKind.AllIgnoreOptions) ||
-                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnTypeWithAnnotations.Type, returnType, ref useSiteDiagnostics);
+                    method.ReturnType.Equals(returnType, TypeCompareKind.AllIgnoreOptions) ||
+                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
                 if (!returnsMatch)
                 {
                     results[f] = new MemberResolutionResult<TMember>(
@@ -817,7 +817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we need to confirm the "arrayness" on the original definition because
             // it's possible that the type becomes an array as a result of substitution.
             ParameterSymbol final = member.GetParameters().Last();
-            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).TypeWithAnnotations.Type.IsSZArray();
+            return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
         private static bool IsOverride(Symbol overridden, Symbol overrider)
@@ -1439,11 +1439,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private TypeSymbol GetParameterType(ParameterSymbol parameter, MemberAnalysisResult result)
         {
-            var type = parameter.TypeWithAnnotations.Type;
+            var type = parameter.Type;
             if (result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
                 parameter.IsParams && type.IsSZArray())
             {
-                return ((ArrayTypeSymbol)type).ElementTypeWithAnnotations.Type;
+                return ((ArrayTypeSymbol)type).ElementType;
             }
             else
             {
@@ -2040,7 +2040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // between the two types.
                 Debug.Assert(arr1.HasSameShapeAs(arr2));
 
-                return MoreSpecificType(arr1.ElementTypeWithAnnotations.Type, arr2.ElementTypeWithAnnotations.Type, ref useSiteDiagnostics);
+                return MoreSpecificType(arr1.ElementType, arr2.ElementType, ref useSiteDiagnostics);
             }
 
             // SPEC EXTENSION: We apply the same rule to pointer types. 
@@ -2049,7 +2049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var p1 = (PointerTypeSymbol)t1;
                 var p2 = (PointerTypeSymbol)t2;
-                return MoreSpecificType(p1.PointedAtTypeWithAnnotations.Type, p2.PointedAtTypeWithAnnotations.Type, ref useSiteDiagnostics);
+                return MoreSpecificType(p1.PointedAtType, p2.PointedAtType, ref useSiteDiagnostics);
             }
 
             if (t1.IsDynamic() || t2.IsDynamic())
@@ -2242,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Kind == BoundKind.UnboundLambda &&
                 (object)(d = t.GetDelegateType()) != null &&
                 (object)(invoke = d.DelegateInvokeMethod) != null &&
-                (y = invoke.ReturnTypeWithAnnotations.Type).SpecialType != SpecialType.System_Void)
+                (y = invoke.ReturnType).SpecialType != SpecialType.System_Void)
             {
                 BoundLambda lambda = ((UnboundLambda)node).BindForReturnTypeInference(d);
 
@@ -2516,8 +2516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if ((object)invoke1 != null && (object)invoke2 != null)
                     {
-                        TypeSymbol r1 = invoke1.ReturnTypeWithAnnotations.Type;
-                        TypeSymbol r2 = invoke2.ReturnTypeWithAnnotations.Type;
+                        TypeSymbol r1 = invoke1.ReturnType;
+                        TypeSymbol r2 = invoke2.ReturnType;
                         BetterResult delegateResult = BetterResult.Neither;
 
                         if (r1.SpecialType != SpecialType.System_Void)
@@ -2635,8 +2635,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return true;
                         }
 
-                        TypeSymbol r1 = invoke1.ReturnTypeWithAnnotations.Type;
-                        TypeSymbol r2 = invoke2.ReturnTypeWithAnnotations.Type;
+                        TypeSymbol r1 = invoke1.ReturnType;
+                        TypeSymbol r2 = invoke2.ReturnType;
 
 #if DEBUG
                         if (fromTypeAnalysis)
@@ -2721,7 +2721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                if (!Conversions.HasIdentityConversion(param1.TypeWithAnnotations.Type, param2.TypeWithAnnotations.Type))
+                if (!Conversions.HasIdentityConversion(param1.Type, param2.Type))
                 {
                     return false;
                 }

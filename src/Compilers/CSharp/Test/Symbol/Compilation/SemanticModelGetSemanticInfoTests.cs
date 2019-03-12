@@ -5598,8 +5598,8 @@ public class TestClass
             MethodSymbol lambdaSym = (MethodSymbol)(semanticInfo.Symbol);
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
-            Assert.Equal("System.String", lambdaSym.Parameters[0].TypeWithAnnotations.Type.ToTestDisplayString());
-            Assert.Equal("System.Int32", lambdaSym.ReturnTypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal("System.String", lambdaSym.Parameters[0].Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", lambdaSym.ReturnType.ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -5634,8 +5634,8 @@ public class TestClass
             MethodSymbol lambdaSym = (MethodSymbol)(semanticInfo.Symbol);
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
-            Assert.Equal(TypeKind.Error, lambdaSym.Parameters[0].TypeWithAnnotations.TypeKind);
-            Assert.Equal("System.Int32", lambdaSym.ReturnTypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, lambdaSym.Parameters[0].Type.TypeKind);
+            Assert.Equal("System.Int32", lambdaSym.ReturnType.ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -6160,7 +6160,7 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest(sourceCode);
 
-            Assert.Equal(SpecialType.System_String, ((ArrayTypeSymbol)semanticInfo.Type).ElementTypeWithAnnotations.SpecialType);
+            Assert.Equal(SpecialType.System_String, ((ArrayTypeSymbol)semanticInfo.Type).ElementType.SpecialType);
             // CONSIDER: we could conceivable use the foreach collection type (vs the type of the collection expr).
             Assert.Equal(SpecialType.System_Collections_IEnumerable, semanticInfo.ConvertedType.SpecialType);
             Assert.Equal("args", semanticInfo.Symbol.Name);
@@ -6275,11 +6275,11 @@ class Program
 
             // Parameter's type is an error type, because Outer.Inner is inaccessible.
             ParameterSymbol param = (ParameterSymbol)semanticInfo.Symbol;
-            Assert.Equal(TypeKind.Error, param.TypeWithAnnotations.TypeKind);
+            Assert.Equal(TypeKind.Error, param.Type.TypeKind);
 
             // It's type is not equal to the SemanticInfo type, because that is
             // not an error type.
-            Assert.NotEqual(semanticInfo.Type, param.TypeWithAnnotations.Type);
+            Assert.NotEqual(semanticInfo.Type, param.Type);
         }
 
         [Fact]

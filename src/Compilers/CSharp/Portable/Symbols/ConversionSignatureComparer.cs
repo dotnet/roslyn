@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            return member1.ReturnTypeWithAnnotations.Type.Equals(member2.ReturnTypeWithAnnotations.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)
+            return member1.ReturnType.Equals(member2.ReturnType, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)
                 && member1.ParameterTypesWithAnnotations[0].Equals(member2.ParameterTypesWithAnnotations[0], TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
         }
 
@@ -56,12 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             int hash = 1;
-            hash = Hash.Combine(member.ReturnTypeWithAnnotations.Type.GetHashCode(), hash);
+            hash = Hash.Combine(member.ReturnType.GetHashCode(), hash);
             if (member.ParameterCount != 1)
             {
                 return hash;
             }
-            hash = Hash.Combine(member.ParameterTypesWithAnnotations[0].Type.GetHashCode(), hash);
+            hash = Hash.Combine(member.GetParameterType(0).GetHashCode(), hash);
             return hash;
         }
     }

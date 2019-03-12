@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method.IsTaskReturningAsync(F.Compilation))
             {
-                var returnType = (NamedTypeSymbol)method.ReturnTypeWithAnnotations.Type;
+                var returnType = (NamedTypeSymbol)method.ReturnType;
                 NamedTypeSymbol builderType;
                 MethodSymbol createBuilderMethod = null;
                 PropertySymbol taskProperty = null;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method.IsGenericTaskReturningAsync(F.Compilation))
             {
-                var returnType = (NamedTypeSymbol)method.ReturnTypeWithAnnotations.Type;
+                var returnType = (NamedTypeSymbol)method.ReturnType;
                 var resultType = returnType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Single().Type;
                 if (resultType.IsDynamic())
                 {
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method.IsStatic &&
                     method.ParameterCount == 0 &&
                     !method.IsGenericMethod &&
-                    method.ReturnTypeWithAnnotations.Type.Equals(builderType, TypeCompareKind.AllIgnoreOptions))
+                    method.ReturnType.Equals(builderType, TypeCompareKind.AllIgnoreOptions))
                 {
                     return method;
                 }
@@ -471,10 +471,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     !property.IsStatic &&
                     (property.ParameterCount == 0))
                 {
-                    if (!property.TypeWithAnnotations.Type.Equals(returnType, TypeCompareKind.AllIgnoreOptions))
+                    if (!property.Type.Equals(returnType, TypeCompareKind.AllIgnoreOptions))
                     {
                         var badTaskProperty = new CSDiagnostic(
-                            new CSDiagnosticInfo(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, builderType, returnType, property.TypeWithAnnotations.Type),
+                            new CSDiagnosticInfo(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty, builderType, returnType, property.Type),
                             F.Syntax.Location);
                         F.Diagnostics.Add(badTaskProperty);
                         return null;

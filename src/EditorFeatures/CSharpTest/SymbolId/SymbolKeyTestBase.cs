@@ -341,9 +341,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 foreach (var v in df.VariablesDeclared)
                 {
                     list.Add((Symbol)v);
-                    if (v is LocalSymbol local && (local.TypeWithAnnotations.Kind == SymbolKind.ArrayType || local.TypeWithAnnotations.Kind == SymbolKind.PointerType))
+                    if (v is LocalSymbol local && (local.Type.Kind == SymbolKind.ArrayType || local.Type.Kind == SymbolKind.PointerType))
                     {
-                        list.Add(local.TypeWithAnnotations.Type);
+                        list.Add(local.Type);
                     }
                 }
             }

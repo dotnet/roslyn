@@ -551,10 +551,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switch (capturedVariable.Kind)
                     {
                         case SymbolKind.Local:
-                            type = ((LocalSymbol)capturedVariable).TypeWithAnnotations.Type;
+                            type = ((LocalSymbol)capturedVariable).Type;
                             break;
                         case SymbolKind.Parameter:
-                            type = ((ParameterSymbol)capturedVariable).TypeWithAnnotations.Type;
+                            type = ((ParameterSymbol)capturedVariable).Type;
                             break;
                         default:
                             // This should only be called for captured variables, and captured

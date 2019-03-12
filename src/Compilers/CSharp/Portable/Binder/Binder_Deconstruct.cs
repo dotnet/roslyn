@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (deconstructMethod.ReturnTypeWithAnnotations.Type.GetSpecialTypeSafe() != SpecialType.System_Void)
+                if (deconstructMethod.ReturnType.GetSpecialTypeSafe() != SpecialType.System_Void)
                 {
                     return MissingDeconstruct(receiver, rightSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }

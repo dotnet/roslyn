@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(SymbolKind.Event, instanceEvent.Kind);
             Assert.False(instanceEvent.IsStatic);
-            Assert.Equal(eventTypeDisplayString, instanceEvent.TypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal(eventTypeDisplayString, instanceEvent.Type.ToTestDisplayString());
 
             CheckAccessorShape(instanceEvent.AddMethod, instanceEvent);
             CheckAccessorShape(instanceEvent.RemoveMethod, instanceEvent);
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(SymbolKind.Event, staticEvent.Kind);
             Assert.True(staticEvent.IsStatic);
-            Assert.Equal(eventTypeDisplayString, staticEvent.TypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal(eventTypeDisplayString, staticEvent.Type.ToTestDisplayString());
 
             CheckAccessorShape(staticEvent.AddMethod, staticEvent);
             CheckAccessorShape(staticEvent.RemoveMethod, staticEvent);
@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(@event.IsSealed, @accessor.IsSealed);
             Assert.Equal(@event.IsExtern, @accessor.IsExtern);
 
-            Assert.Equal(SpecialType.System_Void, accessor.ReturnTypeWithAnnotations.SpecialType);
-            Assert.Equal(@event.TypeWithAnnotations.Type, accessor.Parameters.Single().TypeWithAnnotations.Type);
+            Assert.Equal(SpecialType.System_Void, accessor.ReturnType.SpecialType);
+            Assert.Equal(@event.Type, accessor.Parameters.Single().Type);
         }
 
         [Fact]
@@ -128,10 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var mismatchedAddEvent = @class.GetMember<EventSymbol>("AddMismatch");
             var mismatchedRemoveEvent = @class.GetMember<EventSymbol>("RemoveMismatch");
 
-            Assert.NotEqual(mismatchedAddEvent.TypeWithAnnotations.Type, mismatchedAddEvent.AddMethod.Parameters.Single().TypeWithAnnotations.Type);
+            Assert.NotEqual(mismatchedAddEvent.Type, mismatchedAddEvent.AddMethod.Parameters.Single().Type);
             Assert.True(mismatchedAddEvent.MustCallMethodsDirectly);
 
-            Assert.NotEqual(mismatchedRemoveEvent.TypeWithAnnotations.Type, mismatchedRemoveEvent.RemoveMethod.Parameters.Single().TypeWithAnnotations.Type);
+            Assert.NotEqual(mismatchedRemoveEvent.Type, mismatchedRemoveEvent.RemoveMethod.Parameters.Single().Type);
             Assert.True(mismatchedRemoveEvent.MustCallMethodsDirectly);
         }
 
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var @class = globalNamespace.GetMember<NamedTypeSymbol>("NonDelegateEvent");
             var nonDelegateEvent = @class.GetMember<EventSymbol>("NonDelegate");
 
-            Assert.Equal(SpecialType.System_Int32, nonDelegateEvent.TypeWithAnnotations.SpecialType);
+            Assert.Equal(SpecialType.System_Int32, nonDelegateEvent.Type.SpecialType);
         }
 
         [Fact]
@@ -525,7 +525,7 @@ public class C
             Assert.NotNull(field);
 
             Assert.Equal(@event, field.AssociatedSymbol);
-            Assert.Equal(@event.TypeWithAnnotations.Type, field.TypeWithAnnotations.Type);
+            Assert.Equal(@event.Type, field.Type);
         }
 
         [Fact]

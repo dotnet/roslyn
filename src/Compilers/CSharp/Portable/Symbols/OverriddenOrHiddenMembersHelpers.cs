@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (ParameterSymbol param in currTypeBestMatch.GetParameters())
                 {
                     Debug.Assert(!(param.TypeWithAnnotations.CustomModifiers.Any() || param.RefCustomModifiers.Any()));
-                    Debug.Assert(!param.TypeWithAnnotations.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
+                    Debug.Assert(!param.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
                 }
 #endif
 
@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                            propertyType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)member;
-                    return @event.TypeWithAnnotations.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false); //can't have custom modifiers on (vs in) type
+                    return @event.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false); //can't have custom modifiers on (vs in) type
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return property.CustomModifierCount();
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)member;
-                    return @event.TypeWithAnnotations.Type.CustomModifierCount();
+                    return @event.Type.CustomModifierCount();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }

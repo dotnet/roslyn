@@ -200,9 +200,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract RefKind RefKind { get; }
 
         /// <summary>
-        /// Gets the return type of the method
+        /// Gets the return type of the method along with its annotations
         /// </summary>
         public abstract TypeWithAnnotations ReturnTypeWithAnnotations { get; }
+
+        /// <summary>
+        /// Gets the return type of the method
+        /// </summary>
+        public TypeSymbol ReturnType => ReturnTypeWithAnnotations.Type;
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters.
@@ -802,6 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _lazyParameterSignature.parameterTypesWithAnnotations;
             }
         }
+        internal TypeSymbol GetParameterType(int index) => ParameterTypesWithAnnotations[index].Type;
 
         /// <summary>
         /// Null if no parameter is ref/out. Otherwise the RefKind for each parameter.
@@ -1004,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnTypeWithAnnotations.Type;
+                return this.ReturnType;
             }
         }
 

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             ArrayTypeSymbol ats1 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(elementType), rank: 1);
             Assert.Equal(1, ats1.Rank);
             Assert.True(ats1.IsSZArray);
-            Assert.Same(elementType, ats1.ElementTypeWithAnnotations.Type);
+            Assert.Same(elementType, ats1.ElementType);
             Assert.Equal(SymbolKind.ArrayType, ats1.Kind);
             Assert.True(ats1.IsReferenceType);
             Assert.False(ats1.IsValueType);
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             ArrayTypeSymbol ats2 = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, TypeWithAnnotations.Create(elementType), rank: 2);
             Assert.Equal(2, ats2.Rank);
-            Assert.Same(elementType, ats2.ElementTypeWithAnnotations.Type);
+            Assert.Same(elementType, ats2.ElementType);
             Assert.Equal(SymbolKind.ArrayType, ats2.Kind);
             Assert.True(ats2.IsReferenceType);
             Assert.False(ats2.IsValueType);
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             NamedTypeSymbol pointedAtType = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>());   // this can be any type.
 
             PointerTypeSymbol pts1 = new PointerTypeSymbol(TypeWithAnnotations.Create(pointedAtType));
-            Assert.Same(pointedAtType, pts1.PointedAtTypeWithAnnotations.Type);
+            Assert.Same(pointedAtType, pts1.PointedAtType);
             Assert.Equal(SymbolKind.PointerType, pts1.Kind);
             Assert.False(pts1.IsReferenceType);
             Assert.True(pts1.IsValueType);

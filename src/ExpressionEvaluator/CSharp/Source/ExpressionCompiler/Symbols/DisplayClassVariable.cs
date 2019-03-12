@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal TypeSymbol Type
         {
-            get { return this.DisplayClassFields.Head.TypeWithAnnotations.Type; }
+            get { return this.DisplayClassFields.Head.Type; }
         }
 
         internal Symbol ContainingSymbol

@@ -324,13 +324,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
 
-            TypeSymbol transformedElementType = TransformType(arrayType.ElementTypeWithAnnotations.Type);
+            TypeSymbol transformedElementType = TransformType(arrayType.ElementType);
             if ((object)transformedElementType == null)
             {
                 return null;
             }
 
-            return TypeSymbol.Equals(transformedElementType, arrayType.ElementTypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2) ?
+            return TypeSymbol.Equals(transformedElementType, arrayType.ElementType, TypeCompareKind.ConsiderEverything2) ?
                 arrayType :
                 arrayType.IsSZArray ?
                     ArrayTypeSymbol.CreateSZArray(_containingAssembly, arrayType.ElementTypeWithAnnotations.WithTypeAndModifiers(transformedElementType, arrayType.ElementTypeWithAnnotations.CustomModifiers)) :
@@ -347,13 +347,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return null;
             }
 
-            TypeSymbol transformedPointedAtType = TransformType(pointerType.PointedAtTypeWithAnnotations.Type);
+            TypeSymbol transformedPointedAtType = TransformType(pointerType.PointedAtType);
             if ((object)transformedPointedAtType == null)
             {
                 return null;
             }
 
-            return TypeSymbol.Equals(transformedPointedAtType, pointerType.PointedAtTypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2) ?
+            return TypeSymbol.Equals(transformedPointedAtType, pointerType.PointedAtType, TypeCompareKind.ConsiderEverything2) ?
                 pointerType :
                 new PointerTypeSymbol(pointerType.PointedAtTypeWithAnnotations.WithTypeAndModifiers(transformedPointedAtType, pointerType.PointedAtTypeWithAnnotations.CustomModifiers));
         }

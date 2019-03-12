@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.IParameterTypeInformation.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(this.TypeWithAnnotations.Type,
+            return ((PEModuleBuilder)context.Module).Translate(this.Type,
                                                       syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                       diagnostics: context.Diagnostics);
         }
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 // default(struct), enum
-                type = this.TypeWithAnnotations.Type;
+                type = this.Type;
             }
 
             return ((PEModuleBuilder)context.Module).CreateConstant(type, constant.Value,

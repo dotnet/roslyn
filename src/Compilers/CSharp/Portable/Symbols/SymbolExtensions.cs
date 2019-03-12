@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0, n = array.Length; i < n; i++)
             {
                 var item = array[i];
-                if (item.HasType && item.Kind == kind)
+                if (item.HasType && item.Type.Kind == kind)
                 {
                     return true;
                 }

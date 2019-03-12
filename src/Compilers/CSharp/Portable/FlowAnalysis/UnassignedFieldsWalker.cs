@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var thisType = thisParameter.TypeWithAnnotations.Type;
+            var thisType = thisParameter.Type;
             Debug.Assert(thisType.IsDefinition);
 
             foreach (var member in thisType.GetMembersUnordered())
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
                 var fieldType = field.TypeWithAnnotations;
-                if (fieldType.IsValueType || fieldType.IsErrorType())
+                if (fieldType.Type.IsValueType || fieldType.Type.IsErrorType())
                 {
                     continue;
                 }

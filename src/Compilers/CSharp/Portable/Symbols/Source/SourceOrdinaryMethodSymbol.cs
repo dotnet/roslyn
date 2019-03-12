@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var loc = parameterSyntax.Type.Location;
                     diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type.Type);
                 }
-                else if (parameter0RefKind == RefKind.Ref && !parameter0Type.IsValueType)
+                else if (parameter0RefKind == RefKind.Ref && !parameter0Type.Type.IsValueType)
                 {
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
                 }
@@ -383,13 +383,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAsyncArgType, loc);
                 }
-                else if (parameter.TypeWithAnnotations.IsUnsafe())
+                else if (parameter.Type.IsUnsafe())
                 {
                     diagnostics.Add(ErrorCode.ERR_UnsafeAsyncArgType, loc);
                 }
-                else if (parameter.TypeWithAnnotations.IsRestrictedType())
+                else if (parameter.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.TypeWithAnnotations.Type);
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
                 }
             }
         }
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
             }
-            else if (ReturnTypeWithAnnotations.Type.IsBadAsyncReturn(this.DeclaringCompilation))
+            else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
             }
@@ -1024,11 +1024,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(syntax.ExplicitInterfaceSpecifier.Name), diagnostics);
             }
 
-            this.ReturnTypeWithAnnotations.CheckAllConstraints(DeclaringCompilation, conversions, this.Locations[0], diagnostics);
+            this.ReturnType.CheckAllConstraints(DeclaringCompilation, conversions, this.Locations[0], diagnostics);
 
             foreach (var parameter in this.Parameters)
             {
-                parameter.TypeWithAnnotations.CheckAllConstraints(DeclaringCompilation, conversions, parameter.Locations[0], diagnostics);
+                parameter.Type.CheckAllConstraints(DeclaringCompilation, conversions, parameter.Locations[0], diagnostics);
             }
 
             var implementingPart = this.SourcePartialImplementation;

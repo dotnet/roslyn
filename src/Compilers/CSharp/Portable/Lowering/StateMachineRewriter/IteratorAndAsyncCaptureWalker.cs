@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var kvp in lazyDisallowedCaptures)
                 {
                     var variable = kvp.Key;
-                    var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).TypeWithAnnotations.Type : ((ParameterSymbol)variable).TypeWithAnnotations.Type;
+                    var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
 
                     if (variable is SynthesizedLocal local && local.SynthesizedKind == SynthesizedLocalKind.Spill)
                     {
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CaptureVariable(Symbol variable, SyntaxNode syntax)
         {
-            var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).TypeWithAnnotations.Type : ((ParameterSymbol)variable).TypeWithAnnotations.Type;
+            var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
             if (type.IsRestrictedType())
             {
                 // error has already been reported.

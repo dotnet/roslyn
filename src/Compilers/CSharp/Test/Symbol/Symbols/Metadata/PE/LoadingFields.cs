@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var f6 = (FieldSymbol)csFields.GetMembers("F6").Single();
 
             Assert.Equal("F1", f1.Name);
-            Assert.Same(vbFields.TypeParameters[0], f1.TypeWithAnnotations.Type);
+            Assert.Same(vbFields.TypeParameters[0], f1.Type);
             Assert.False(f1.IsAbstract);
             Assert.False(f1.IsConst);
             Assert.True(f1.IsDefinition);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal(0, f1.TypeWithAnnotations.CustomModifiers.Length);
 
             Assert.Equal("F2", f2.Name);
-            Assert.Same(((PEModuleSymbol)module2).GetCorLibType(SpecialType.System_Int32), f2.TypeWithAnnotations.Type);
+            Assert.Same(((PEModuleSymbol)module2).GetCorLibType(SpecialType.System_Int32), f2.Type);
             Assert.False(f2.IsConst);
             Assert.True(f2.IsReadOnly);
             Assert.False(f2.IsStatic);

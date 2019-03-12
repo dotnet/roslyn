@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
                                     {
                                         declaredLocals = ImmutableArray<LocalSymbol>.Empty;
-                                        var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.TypeWithAnnotations.Type);
+                                        var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
                                         properties = default(ResultProperties);
                                         return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                                     });
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var local = method.LocalsForBinding[localIndex];
-                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.TypeWithAnnotations.Type);
+                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type);
                 properties = default(ResultProperties);
                 return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var name = local.Name;
                 if ((name != null) && (GeneratedNames.GetKind(name) == GeneratedNameKind.DisplayClassLocalOrField))
                 {
-                    var localType = local.TypeWithAnnotations.Type;
+                    var localType = local.Type;
                     if ((object)localType != null && displayClassTypes.Add(localType))
                     {
                         var instance = new DisplayClassInstanceFromLocal((EELocalSymbol)local);
@@ -1379,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
 
                 var field = (FieldSymbol)member;
-                var fieldType = field.TypeWithAnnotations.Type;
+                var fieldType = field.Type;
                 var fieldName = field.Name;
                 TryParseGeneratedName(fieldName, out var fieldKind, out var part);
 
@@ -1422,7 +1422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         private static bool IsDisplayClassParameter(ParameterSymbol parameter)
         {
-            var type = parameter.TypeWithAnnotations.Type;
+            var type = parameter.Type;
             var result = type.Kind == SymbolKind.NamedType && IsDisplayClassType((NamedTypeSymbol)type);
             Debug.Assert(!result || parameter.MetadataName == "");
             return result;
@@ -1711,7 +1711,7 @@ REPARSE:
 
             internal TypeSymbol Type
             {
-                get { return this.Fields.Any() ? this.Fields.Head.TypeWithAnnotations.Type : this.Instance.Type; }
+                get { return this.Fields.Any() ? this.Fields.Head.Type : this.Instance.Type; }
             }
 
             internal int Depth
@@ -1721,8 +1721,8 @@ REPARSE:
 
             internal DisplayClassInstanceAndFields FromField(FieldSymbol field)
             {
-                Debug.Assert(IsDisplayClassType(field.TypeWithAnnotations.Type) ||
-                    GeneratedNames.GetKind(field.TypeWithAnnotations.Type.Name) == GeneratedNameKind.AnonymousType);
+                Debug.Assert(IsDisplayClassType(field.Type) ||
+                    GeneratedNames.GetKind(field.Type.Name) == GeneratedNameKind.AnonymousType);
                 return new DisplayClassInstanceAndFields(this.Instance, this.Fields.Prepend(field));
             }
 

@@ -1948,7 +1948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // from the local at this point.
                                 if (type is ExtendedErrorTypeSymbol extended && extended.VariableUsedBeforeDeclaration)
                                 {
-                                    type = ((BoundLocal)boundExpr).LocalSymbol.TypeWithAnnotations.Type;
+                                    type = ((BoundLocal)boundExpr).LocalSymbol.Type;
                                 }
                                 break;
                             }

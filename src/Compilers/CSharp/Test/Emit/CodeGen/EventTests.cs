@@ -228,7 +228,7 @@ class C
                 Assert.Equal(SymbolKind.Field, associatedField.Kind);
                 Assert.Equal(Accessibility.Private, associatedField.DeclaredAccessibility);
                 Assert.Equal(isStatic, associatedField.IsStatic);
-                Assert.Equal(@event.TypeWithAnnotations.Type, associatedField.TypeWithAnnotations.Type);
+                Assert.Equal(@event.Type, associatedField.Type);
             }
             else
             {

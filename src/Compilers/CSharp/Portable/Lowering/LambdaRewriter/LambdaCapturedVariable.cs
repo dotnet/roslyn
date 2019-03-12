@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)local != null)
             {
                 // if we're capturing a generic frame pointer, construct it with the new frame's type parameters
-                var lambdaFrame = local.TypeWithAnnotations.Type.OriginalDefinition as SynthesizedClosureEnvironment;
+                var lambdaFrame = local.Type.OriginalDefinition as SynthesizedClosureEnvironment;
                 if ((object)lambdaFrame != null)
                 {
                     // lambdaFrame may have less generic type parameters than frame, so trim them down (the first N will always match)

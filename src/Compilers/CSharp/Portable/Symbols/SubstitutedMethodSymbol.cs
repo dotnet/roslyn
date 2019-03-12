@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.ContainingType;
                 }
 
-                return reduced.Parameters[0].TypeWithAnnotations.Type;
+                return reduced.Parameters[0].Type;
             }
         }
 

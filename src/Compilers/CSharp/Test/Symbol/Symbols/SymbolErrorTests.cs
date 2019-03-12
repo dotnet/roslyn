@@ -1553,7 +1553,7 @@ class C : I
             Assert.Equal(2, ns.Length);
             foreach (var n in ns)
             {
-                Assert.Equal(TypeKind.Struct, (n as FieldSymbol).TypeWithAnnotations.TypeKind);
+                Assert.Equal(TypeKind.Struct, (n as FieldSymbol).Type.TypeKind);
             }
         }
 
@@ -1668,8 +1668,8 @@ namespace n3
 
             var structS = ns3.GetMember<NamedTypeSymbol>("S");
             var structSField = structS.GetMember<FieldSymbol>("a");
-            Assert.Equal("A", structSField.TypeWithAnnotations.Type.Name);
-            Assert.Equal(TypeKind.Error, structSField.TypeWithAnnotations.TypeKind);
+            Assert.Equal("A", structSField.Type.Name);
+            Assert.Equal(TypeKind.Error, structSField.Type.TypeKind);
         }
 
         [Fact]
@@ -2220,14 +2220,14 @@ class B : A
 
             var type2 = ns.GetTypeMembers("Bar").Single() as NamedTypeSymbol;
             var mem1 = type2.GetMembers("foundNamespaceInsteadOfType").Single() as FieldSymbol;
-            Assert.Equal("Goo", mem1.TypeWithAnnotations.Name);
-            Assert.Equal(TypeKind.Error, mem1.TypeWithAnnotations.TypeKind);
+            Assert.Equal("Goo", mem1.Type.Name);
+            Assert.Equal(TypeKind.Error, mem1.Type.TypeKind);
 
             var type3 = ns.GetTypeMembers("S").Single() as NamedTypeSymbol;
             var mem2 = type3.GetMembers("Goo").Single() as MethodSymbol;
             var param = mem2.Parameters[0];
-            Assert.Equal("Goo", param.TypeWithAnnotations.Name);
-            Assert.Equal(TypeKind.Error, param.TypeWithAnnotations.TypeKind);
+            Assert.Equal("Goo", param.Type.Name);
+            Assert.Equal(TypeKind.Error, param.Type.TypeKind);
         }
 
         [WorkItem(538147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538147")]
@@ -3233,8 +3233,8 @@ public class MyClass2 : MyClass
             var param = mem1.Parameters[0] as ParameterSymbol;
             var ptype = param.TypeWithAnnotations;
             Assert.Equal(RefKind.Ref, param.RefKind);
-            Assert.Equal(TypeKind.Error, ptype.TypeKind);
-            Assert.Equal("NoType", ptype.Name);
+            Assert.Equal(TypeKind.Error, ptype.Type.TypeKind);
+            Assert.Equal("NoType", ptype.Type.Name);
 
             var type3 = ns.GetTypeMembers("A").Single() as NamedTypeSymbol;
             var base1 = type3.BaseType();
@@ -3244,11 +3244,11 @@ public class MyClass2 : MyClass
 
             var type4 = ns.GetTypeMembers("S").Single() as NamedTypeSymbol;
             var mem2 = type4.GetMembers("field").First() as FieldSymbol;
-            Assert.Equal(TypeKind.Error, mem2.TypeWithAnnotations.TypeKind);
-            Assert.Equal("NoType", mem2.TypeWithAnnotations.Name);
+            Assert.Equal(TypeKind.Error, mem2.Type.TypeKind);
+            Assert.Equal("NoType", mem2.Type.Name);
             var mem3 = type4.GetMembers("M").Single() as MethodSymbol;
-            Assert.Equal(TypeKind.Error, mem3.ReturnTypeWithAnnotations.TypeKind);
-            Assert.Equal("NoType", mem3.ReturnTypeWithAnnotations.Name);
+            Assert.Equal(TypeKind.Error, mem3.ReturnType.TypeKind);
+            Assert.Equal("NoType", mem3.ReturnType.Name);
         }
 
         [WorkItem(537882, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537882")]
@@ -16152,8 +16152,8 @@ class A {
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
             var fieldType = fieldSym.TypeWithAnnotations;
 
-            Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
-            Assert.Equal("B", fieldType.Name);
+            Assert.Equal(SymbolKind.ErrorType, fieldType.Type.Kind);
+            Assert.Equal("B", fieldType.Type.Name);
 
             var errorFieldType = (ErrorTypeSymbol)fieldType.Type;
             Assert.Equal(CandidateReason.None, errorFieldType.CandidateReason);
@@ -16177,7 +16177,7 @@ class A : C {
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
             var classB = (NamedTypeSymbol)classC.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.TypeWithAnnotations.Type;
+            var fieldType = fieldSym.Type;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
@@ -16214,7 +16214,7 @@ class A : C {
             var classBinN1 = (NamedTypeSymbol)ns1.GetTypeMembers("B").Single();
             var classBinN2 = (NamedTypeSymbol)ns2.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.TypeWithAnnotations.Type;
+            var fieldType = fieldSym.Type;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);

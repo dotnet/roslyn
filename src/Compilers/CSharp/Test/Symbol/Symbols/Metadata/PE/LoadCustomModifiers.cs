@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 Assert.Equal("System.Runtime.CompilerServices.IsConst", p2Mod.Modifier.ToTestDisplayString());
             }
 
-            Assert.Equal(SymbolKind.ErrorType, p4.TypeWithAnnotations.Kind);
+            Assert.Equal(SymbolKind.ErrorType, p4.Type.Kind);
 
             Assert.True(m5.ReturnsVoid);
             Assert.Equal(1, m5.ReturnTypeWithAnnotations.CustomModifiers.Length);
@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(0, p5.TypeWithAnnotations.CustomModifiers.Length);
 
-            ArrayTypeSymbol p5Type = (ArrayTypeSymbol)p5.TypeWithAnnotations.Type;
+            ArrayTypeSymbol p5Type = (ArrayTypeSymbol)p5.Type;
 
-            Assert.Equal("System.Int32", p5Type.ElementTypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", p5Type.ElementType.ToTestDisplayString());
 
             Assert.Equal(1, p5Type.ElementTypeWithAnnotations.CustomModifiers.Length);
             var p5TypeMod = p5Type.ElementTypeWithAnnotations.CustomModifiers[0];
@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal(0, p6.TypeWithAnnotations.CustomModifiers.Length);
 
-            PointerTypeSymbol p6Type = (PointerTypeSymbol)p6.TypeWithAnnotations.Type;
+            PointerTypeSymbol p6Type = (PointerTypeSymbol)p6.Type;
 
-            Assert.Equal("System.Int32", p6Type.PointedAtTypeWithAnnotations.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", p6Type.PointedAtType.ToTestDisplayString());
 
             Assert.Equal(1, p6Type.PointedAtTypeWithAnnotations.CustomModifiers.Length);
             var p6TypeMod = p6Type.PointedAtTypeWithAnnotations.CustomModifiers[0];
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.Equal("System.Runtime.CompilerServices.IsConst", propertyTypeCustomModifier.Modifier.ToTestDisplayString());
             Assert.True(propertyTypeCustomModifier.IsOptional);
 
-            var propertyType = property.TypeWithAnnotations.Type;
+            var propertyType = property.Type;
             Assert.Equal(TypeKind.Array, propertyType.TypeKind);
 
             var arrayPropertyType = (ArrayTypeSymbol)propertyType;
@@ -225,10 +225,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var @class = globalNamespace.GetMember<NamedTypeSymbol>("EventCustomModifierCombinations");
 
-            Assert.True(@class.GetMember<EventSymbol>("Event11").TypeWithAnnotations.Type.IsErrorType()); //Can't have modopt on event type
-            Assert.Equal(1, @class.GetMember<EventSymbol>("Event10").TypeWithAnnotations.Type.CustomModifierCount());
-            Assert.True(@class.GetMember<EventSymbol>("Event01").TypeWithAnnotations.Type.IsErrorType()); //Can't have modopt on event type
-            Assert.Equal(0, @class.GetMember<EventSymbol>("Event00").TypeWithAnnotations.Type.CustomModifierCount());
+            Assert.True(@class.GetMember<EventSymbol>("Event11").Type.IsErrorType()); //Can't have modopt on event type
+            Assert.Equal(1, @class.GetMember<EventSymbol>("Event10").Type.CustomModifierCount());
+            Assert.True(@class.GetMember<EventSymbol>("Event01").Type.IsErrorType()); //Can't have modopt on event type
+            Assert.Equal(0, @class.GetMember<EventSymbol>("Event00").Type.CustomModifierCount());
         }
 
         [Fact]
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             int count = 0;
 
             count += field.TypeWithAnnotations.CustomModifiers.Length;
-            count += field.TypeWithAnnotations.Type.CustomModifierCount();
+            count += field.Type.CustomModifierCount();
 
             return count;
         }

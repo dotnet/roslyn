@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constraintTypes = ((TypeParameterSymbol)type).ConstraintTypesNoUseSiteDiagnostics;
                 foreach (var constraintType in constraintTypes)
                 {
-                    if (constraintType.IsNullableTypeOrTypeParameter())
+                    if (constraintType.Type.IsNullableTypeOrTypeParameter())
                     {
                         return true;
                     }
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 kind = TypedConstantKind.Array;
-                type = arrayType.ElementTypeWithAnnotations.Type;
+                type = arrayType.ElementType;
             }
 
             // enum or enum[]
@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Pointer:
                         return true;
                     case TypeKind.Array:
-                        type = ((ArrayTypeSymbol)type).ElementTypeWithAnnotations.Type;
+                        type = ((ArrayTypeSymbol)type).ElementType;
                         break;
                     default:
                         // NOTE: we could consider a generic type with unsafe type arguments to be unsafe,
@@ -1149,7 +1149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool IsVoidPointer(this TypeSymbol type)
         {
-            return type.IsPointerType() && ((PointerTypeSymbol)type).PointedAtTypeWithAnnotations.SpecialType == SpecialType.System_Void;
+            return type.IsPointerType() && ((PointerTypeSymbol)type).PointedAtType.SpecialType == SpecialType.System_Void;
         }
 
         /// <summary>

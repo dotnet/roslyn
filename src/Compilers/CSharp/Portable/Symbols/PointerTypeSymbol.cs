@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the type of the storage location that an instance of the pointer type points to.
+        /// Gets the type of the storage location that an instance of the pointer type points to, along with its annotations.
         /// </summary>
         public TypeWithAnnotations PointedAtTypeWithAnnotations
         {
@@ -67,6 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _pointedAtType;
             }
         }
+
+        /// <summary>
+        /// Gets the type of the storage location that an instance of the pointer type points to.
+        /// </summary>
+        public TypeSymbol PointedAtType => PointedAtTypeWithAnnotations.Type;
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
@@ -212,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (current.TypeKind == TypeKind.Pointer)
             {
                 indirections += 1;
-                current = ((PointerTypeSymbol)current).PointedAtTypeWithAnnotations.Type;
+                current = ((PointerTypeSymbol)current).PointedAtType;
             }
 
             return Hash.Combine(current, indirections);
@@ -298,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ITypeSymbol IPointerTypeSymbol.PointedAtType
         {
-            get { return this.PointedAtTypeWithAnnotations.Type; }
+            get { return this.PointedAtType; }
         }
 
         ImmutableArray<CustomModifier> IPointerTypeSymbol.CustomModifiers

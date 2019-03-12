@@ -109,7 +109,7 @@ class C
             var global = comp.GlobalNamespace;
             var c = global.GetTypeMembers("C", 0).Single() as NamedTypeSymbol;
             var field = c.GetMembers("field").Single() as FieldSymbol;
-            var neti = field.TypeWithAnnotations.Type as NamedTypeSymbol;
+            var neti = field.Type as NamedTypeSymbol;
             Assert.Equal(SpecialType.System_Int32, neti.TypeArguments()[0].SpecialType);
         }
 

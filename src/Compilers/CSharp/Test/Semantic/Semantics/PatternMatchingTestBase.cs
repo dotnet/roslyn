@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
                         var local = ((SourceLocalSymbol)symbol);
-                        var type = local.TypeWithAnnotations.Type;
+                        var type = local.Type;
                         if (type.IsErrorType())
                         {
                             Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(symbol, model.LookupSymbols(designation.SpanStart, name: designation.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(designation.SpanStart).Contains(designation.Identifier.ValueText));
 
-            var type = ((LocalSymbol)symbol).TypeWithAnnotations.Type;
+            var type = ((LocalSymbol)symbol).Type;
             switch (designation.Parent)
             {
                 case DeclarationPatternSyntax decl:
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
                     Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-                    var type = local.TypeWithAnnotations.Type;
+                    var type = local.Type;
                     if (typeSyntax.IsVar && type.IsErrorType())
                     {
                         Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
@@ -271,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     Assert.Same(symbol, referenceInfo.Symbol);
                     Assert.Same(symbol, symbols.Single());
-                    Assert.Equal(local.TypeWithAnnotations.Type, model.GetTypeInfo(reference).Type);
+                    Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
                 }
 
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(designation.Identifier.ValueText));

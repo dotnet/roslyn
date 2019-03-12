@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return false;
                 }
                 var arySym = (ArrayTypeSymbol)typeSym;
-                if (!IsEqual(arySym.ElementTypeWithAnnotations.Type, expType.GetElementType()))
+                if (!IsEqual(arySym.ElementType, expType.GetElementType()))
                 {
                     return false;
                 }
@@ -463,8 +463,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 case MethodKind.EventAdd:
                 case MethodKind.EventRemove:
-                    Assert.Equal(SpecialType.System_Void, accessor.ReturnTypeWithAnnotations.SpecialType);
-                    Assert.Equal(propertyOrEventType, accessor.Parameters.Single().TypeWithAnnotations.Type);
+                    Assert.Equal(SpecialType.System_Void, accessor.ReturnType.SpecialType);
+                    Assert.Equal(propertyOrEventType, accessor.Parameters.Single().Type);
                     break;
                 case MethodKind.PropertyGet:
                 case MethodKind.PropertySet:
@@ -473,11 +473,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                     if (isSetter)
                     {
-                        Assert.Equal(SpecialType.System_Void, accessor.ReturnTypeWithAnnotations.SpecialType);
+                        Assert.Equal(SpecialType.System_Void, accessor.ReturnType.SpecialType);
                     }
                     else
                     {
-                        Assert.Equal(propertyOrEventType, accessor.ReturnTypeWithAnnotations.Type);
+                        Assert.Equal(propertyOrEventType, accessor.ReturnType);
                     }
 
                     var propertyParameters = property.Parameters;
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var propertyParam = propertyParameters[i];
                         var accessorParam = accessorParameters[i];
-                        Assert.Equal(propertyParam.TypeWithAnnotations.Type, accessorParam.TypeWithAnnotations.Type);
+                        Assert.Equal(propertyParam.Type, accessorParam.Type);
                         Assert.Equal(propertyParam.RefKind, accessorParam.RefKind);
                         Assert.Equal(propertyParam.Name, accessorParam.Name);
                     }
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     if (isSetter)
                     {
                         var valueParameter = accessorParameters[propertyParameters.Length];
-                        Assert.Equal(propertyOrEventType, valueParameter.TypeWithAnnotations.Type);
+                        Assert.Equal(propertyOrEventType, valueParameter.Type);
                         Assert.Equal(RefKind.None, valueParameter.RefKind);
                         Assert.Equal(ParameterSymbol.ValueParameterName, valueParameter.Name);
                     }

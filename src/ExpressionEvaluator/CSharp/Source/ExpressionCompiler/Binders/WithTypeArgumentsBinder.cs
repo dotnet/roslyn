@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             : base(next)
         {
             Debug.Assert(!typeArguments.IsDefaultOrEmpty);
-            Debug.Assert(typeArguments.All(ta => ta.Kind == SymbolKind.TypeParameter));
+            Debug.Assert(typeArguments.All(ta => ta.Type.Kind == SymbolKind.TypeParameter));
             _typeArguments = typeArguments;
         }
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     var result = new MultiDictionary<string, TypeParameterSymbol>();
                     foreach (var tps in _typeArguments)
                     {
-                        result.Add(tps.Name, (TypeParameterSymbol)tps.Type);
+                        result.Add(tps.Type.Name, (TypeParameterSymbol)tps.Type);
                     }
                     Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
                 }
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 {
                     if (originalBinder.CanAddLookupSymbolInfo(parameter.Type, options, result, null))
                     {
-                        result.AddSymbol(parameter.Type, parameter.Name, 0);
+                        result.AddSymbol(parameter.Type, parameter.Type.Name, 0);
                     }
                 }
             }

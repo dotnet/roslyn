@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (hasAwait)
                         {
-                            awaitableTypeOpt = disposeMethodOpt.ReturnTypeWithAnnotations.Type;
+                            awaitableTypeOpt = disposeMethodOpt.ReturnType;
                         }
                         return true;
                     }

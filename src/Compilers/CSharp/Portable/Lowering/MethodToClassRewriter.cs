@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var newType = VisitType(local.TypeWithAnnotations.Type);
-            if (TypeSymbol.Equals(newType, local.TypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2))
+            var newType = VisitType(local.Type);
+            if (TypeSymbol.Equals(newType, local.Type, TypeCompareKind.ConsiderEverything2))
             {
                 newLocal = local;
             }
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             LocalSymbol replacementLocal;
             if (this.localMap.TryGetValue(node.LocalSymbol, out replacementLocal))
             {
-                return new BoundLocal(node.Syntax, replacementLocal, node.ConstantValueOpt, replacementLocal.TypeWithAnnotations.Type, node.HasErrors);
+                return new BoundLocal(node.Syntax, replacementLocal, node.ConstantValueOpt, replacementLocal.Type, node.HasErrors);
             }
 
             return base.VisitLocal(node);

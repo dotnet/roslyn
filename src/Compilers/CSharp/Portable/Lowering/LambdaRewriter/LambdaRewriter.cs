@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<LocalSymbol> assignLocals)
         {
             Debug.Assert((object)thisType != null);
-            Debug.Assert(((object)thisParameter == null) || (TypeSymbol.Equals(thisParameter.TypeWithAnnotations.Type, thisType, TypeCompareKind.ConsiderEverything2)));
+            Debug.Assert(((object)thisParameter == null) || (TypeSymbol.Equals(thisParameter.Type, thisType, TypeCompareKind.ConsiderEverything2)));
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
 
             var analysis = Analysis.Analyze(
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(frameClass.IsDefinition);
 
             // If in an instance method of the right type, we can just return the "this" pointer.
-            if ((object)_currentFrameThis != null && TypeSymbol.Equals(_currentFrameThis.TypeWithAnnotations.Type, frameClass, TypeCompareKind.ConsiderEverything2))
+            if ((object)_currentFrameThis != null && TypeSymbol.Equals(_currentFrameThis.Type, frameClass, TypeCompareKind.ConsiderEverything2))
             {
                 return new BoundThisReference(syntax, frameClass);
             }
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (var i = start; i < lambda.ParameterCount; i++)
                 {
                     var potentialParameter = lambda.Parameters[i];
-                    if (TypeSymbol.Equals(potentialParameter.TypeWithAnnotations.Type.OriginalDefinition, frameClass, TypeCompareKind.ConsiderEverything2))
+                    if (TypeSymbol.Equals(potentialParameter.Type.OriginalDefinition, frameClass, TypeCompareKind.ConsiderEverything2))
                     {
                         return new BoundParameter(syntax, potentialParameter);
                     }
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var localFrame = (LocalSymbol)framePointer;
-            return new BoundLocal(syntax, localFrame, null, localFrame.TypeWithAnnotations.Type);
+            return new BoundLocal(syntax, localFrame, null, localFrame.Type);
         }
 
         private static void InsertAndFreePrologue<T>(ArrayBuilder<BoundStatement> result, ArrayBuilder<T> prologue) where T : BoundNode
@@ -665,13 +665,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var capturedFrame = LambdaCapturedVariable.Create(frame, _innermostFramePointer, ref _synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
                     BoundExpression left = new BoundFieldAccess(syntax, new BoundLocal(syntax, framePointer, null, frameType), frameParent, null);
-                    BoundExpression right = FrameOfType(syntax, frameParent.TypeWithAnnotations.Type as NamedTypeSymbol);
+                    BoundExpression right = FrameOfType(syntax, frameParent.Type as NamedTypeSymbol);
                     BoundExpression assignment = new BoundAssignmentOperator(syntax, left, right, left.Type);
                     prologue.Add(assignment);
 
                     if (CompilationState.Emitting)
                     {
-                        Debug.Assert(capturedFrame.TypeWithAnnotations.IsReferenceType); // Make sure we're not accidentally capturing a struct by value
+                        Debug.Assert(capturedFrame.Type.IsReferenceType); // Make sure we're not accidentally capturing a struct by value
                         frame.AddHoistedField(capturedFrame);
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(frame, capturedFrame);
                     }
@@ -688,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Symbol oldInnermostFramePointer = _innermostFramePointer;
-            if (!framePointer.TypeWithAnnotations.IsValueType)
+            if (!framePointer.Type.IsValueType)
             {
                 _innermostFramePointer = framePointer;
             }
@@ -747,14 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             localToUse = local;
                         }
 
-                        value = new BoundLocal(syntax, localToUse, null, localToUse.TypeWithAnnotations.Type);
+                        value = new BoundLocal(syntax, localToUse, null, localToUse.Type);
                         break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
 
-                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.TypeWithAnnotations.Type));
+                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
                 var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
                 if (_currentMethod.MethodKind == MethodKind.Constructor &&
                     symbol == _currentMethod.ThisParameter &&
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = start; i < loweredSymbol.ParameterCount; i++)
                 {
                     // will always be a LambdaFrame, it's always a capture frame
-                    var frameType = (NamedTypeSymbol)loweredSymbol.Parameters[i].TypeWithAnnotations.Type.OriginalDefinition;
+                    var frameType = (NamedTypeSymbol)loweredSymbol.Parameters[i].Type.OriginalDefinition;
 
                     Debug.Assert(frameType is SynthesizedClosureEnvironment);
 

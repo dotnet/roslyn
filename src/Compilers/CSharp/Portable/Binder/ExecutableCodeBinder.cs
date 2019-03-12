@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.ERR_BadIteratorArgType, parameter.Locations[0]);
                     }
-                    else if (parameter.TypeWithAnnotations.IsUnsafe())
+                    else if (parameter.Type.IsUnsafe())
                     {
                         diagnostics.Add(ErrorCode.ERR_UnsafeIteratorArgType, parameter.Locations[0]);
                     }

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (ShouldPreallocateNonReusableProxy(local))
                     {
                         // variable needs to be hoisted
-                        var fieldType = typeMap.SubstituteType(local.TypeWithAnnotations.Type).Type;
+                        var fieldType = typeMap.SubstituteType(local.Type).Type;
 
                         LocalDebugId id;
                         int slotIndex = -1;
@@ -232,12 +232,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The field needs to be public iff it is initialized directly from the kickoff method 
                         // (i.e. not for IEnumerable which loads the values from parameter proxies).
-                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.TypeWithAnnotations.Type).Type, parameter.Name, isPublic: !PreserveInitialParameterValuesAndThreadId);
+                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, parameter.Name, isPublic: !PreserveInitialParameterValuesAndThreadId);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValuesAndThreadId)
                         {
-                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.TypeWithAnnotations.Type).Type, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
+                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(field, isReusable: false));
                         }
                     }
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     thenBuilder.Add(extraReset);
                 }
 
-                if (method.IsStatic || method.ThisParameter.TypeWithAnnotations.IsReferenceType)
+                if (method.IsStatic || method.ThisParameter.Type.IsReferenceType)
                 {
                     // if this is a reference type, no need to copy it since it is not assignable
                     thenBuilder.Add(

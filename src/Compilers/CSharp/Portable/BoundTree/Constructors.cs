@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             FieldSymbol fieldSymbol,
             ConstantValue constantValueOpt,
             bool hasErrors = false)
-            : this(syntax, receiver, fieldSymbol, constantValueOpt, LookupResultKind.Viable, fieldSymbol.TypeWithAnnotations.Type, hasErrors)
+            : this(syntax, receiver, fieldSymbol, constantValueOpt, LookupResultKind.Viable, fieldSymbol.Type, hasErrors)
         {
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var call = new BoundCall(node, receiverOpt, method, arguments, namedArguments,
                 refKinds, isDelegateCall: isDelegateCall, expanded: false, invokedAsExtensionMethod: invokedAsExtensionMethod, argsToParamsOpt: default(ImmutableArray<int>),
-                resultKind: resultKind, binderOpt: binder, type: method.ReturnTypeWithAnnotations.Type, hasErrors: true);
+                resultKind: resultKind, binderOpt: binder, type: method.ReturnType, hasErrors: true);
             call.OriginalMethodsOpt = originalMethods;
             return call;
         }
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: default(ImmutableArray<int>),
                     resultKind: LookupResultKind.Viable,
                     binderOpt: null,
-                    type: method.ReturnTypeWithAnnotations.Type,
+                    type: method.ReturnType,
                     hasErrors: method.OriginalDefinition is ErrorMethodSymbol
                 )
             { WasCompilerGenerated = true };
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt: default(ImmutableArray<int>),
                 binderOpt: null,
                 useSetterForDefaultArgumentGeneration: false,
-                type: indexer.TypeWithAnnotations.Type,
+                type: indexer.Type,
                 hasErrors: true)
             {
                 OriginalIndexersOpt = originalIndexers
@@ -412,12 +412,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundParameter
     {
         public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, bool hasErrors = false)
-            : this(syntax, parameterSymbol, parameterSymbol.TypeWithAnnotations.Type, hasErrors)
+            : this(syntax, parameterSymbol, parameterSymbol.Type, hasErrors)
         {
         }
 
         public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol)
-            : this(syntax, parameterSymbol, parameterSymbol.TypeWithAnnotations.Type)
+            : this(syntax, parameterSymbol, parameterSymbol.Type)
         {
         }
     }

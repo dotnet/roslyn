@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             FieldSymbol fieldSymbol = fieldAccess.FieldSymbol;
 
-            if (IsNonAgileFieldAccess(fieldAccess, _compilation) && !fieldSymbol.TypeWithAnnotations.IsReferenceType)
+            if (IsNonAgileFieldAccess(fieldAccess, _compilation) && !fieldSymbol.Type.IsReferenceType)
             {
                 Error(ErrorCode.WRN_CallOnNonAgileField, fieldAccess, fieldSymbol);
             }
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol op = sym as MethodSymbol;
                     if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator) continue;
                     var parameters = op.GetParameters();
-                    if (parameters.Length == 2 && TypeSymbol.Equals(parameters[0].TypeWithAnnotations.Type, t, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(parameters[1].TypeWithAnnotations.Type, t, TypeCompareKind.ConsiderEverything2))
+                    if (parameters.Length == 2 && TypeSymbol.Equals(parameters[0].Type, t, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(parameters[1].Type, t, TypeCompareKind.ConsiderEverything2))
                     {
                         type = t;
                         return true;

@@ -297,7 +297,7 @@ class A : L
             var r = b.GetTypeMembers("R", 0).Single();
             var q = r.GetTypeMembers("Q", 0).Single();
             var v = a.GetMembers("v").Single() as FieldSymbol;
-            var s = v.TypeWithAnnotations.Type;
+            var s = v.Type;
             Assert.Equal("B.R.Q.S", s.ToTestDisplayString());
             var sbase = s.BaseType();
             Assert.Equal("B.R.Q", sbase.ToTestDisplayString());
@@ -535,7 +535,7 @@ class Program
             var model = compilation.GetSemanticModel(tree1);
 
             var info = model.GetSymbolInfo(type);
-            Assert.Equal<Symbol>(compilation.GetSpecialType(SpecialType.System_String), (info.Symbol as ArrayTypeSymbol).ElementTypeWithAnnotations.Type);
+            Assert.Equal<Symbol>(compilation.GetSpecialType(SpecialType.System_String), (info.Symbol as ArrayTypeSymbol).ElementType);
         }
 
         [Fact]
@@ -625,7 +625,7 @@ class B {}
 
             var xDecl = mainDecl.Members[0] as FieldDeclarationSyntax;
             var xSym = mainType.GetMembers("x").Single() as FieldSymbol;
-            Assert.Equal<ISymbol>(abType, xSym.TypeWithAnnotations.Type);
+            Assert.Equal<ISymbol>(abType, xSym.Type);
             var info = model.GetSymbolInfo((xDecl.Declaration.Type as QualifiedNameSyntax).Right);
             Assert.Equal(abType, info.Symbol);
         }
@@ -1546,7 +1546,7 @@ class Q
             var classQ = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Q");
             var fieldQ = classQ.GetMember<FieldSymbol>("q");
 
-            Assert.Equal(classQ, fieldQ.TypeWithAnnotations.Type);
+            Assert.Equal(classQ, fieldQ.Type);
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -1614,7 +1614,7 @@ class C
             Assert.NotNull(local);
             Assert.Equal("z", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
-            Assert.Equal("Int32", ((LocalSymbol)local).TypeWithAnnotations.Name);
+            Assert.Equal("Int32", ((LocalSymbol)local).TypeWithAnnotations.Type.Name);
 
             var typeInfo = speculativeModel.GetTypeInfo(localDecl.Declaration.Type);
             Assert.NotNull(typeInfo.Type);
@@ -1667,7 +1667,7 @@ class C
             Assert.NotNull(local);
             Assert.Equal("z", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
-            Assert.Equal("Int32", ((LocalSymbol)local).TypeWithAnnotations.Name);
+            Assert.Equal("Int32", ((LocalSymbol)local).TypeWithAnnotations.Type.Name);
 
             // same name local
             statement = SyntaxFactory.ParseStatement(@"string y = null;");
@@ -1680,7 +1680,7 @@ class C
             Assert.NotNull(local);
             Assert.Equal("y", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
-            Assert.Equal("String", ((LocalSymbol)local).TypeWithAnnotations.Name);
+            Assert.Equal("String", ((LocalSymbol)local).TypeWithAnnotations.Type.Name);
         }
 
         [Fact]
@@ -2220,7 +2220,7 @@ class Parent {}
             Assert.NotNull(local);
             Assert.Equal("z", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
-            Assert.Equal("Int32", ((LocalSymbol)local).TypeWithAnnotations.Name);
+            Assert.Equal("Int32", ((LocalSymbol)local).Type.Name);
 
             var typeInfo = speculativeModel.GetTypeInfo(localDecl.Declaration.Type);
             Assert.NotNull(typeInfo.Type);
@@ -2403,7 +2403,7 @@ class C
             Assert.NotNull(local);
             Assert.Equal("z", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
-            Assert.Equal("Int32", ((LocalSymbol)local).TypeWithAnnotations.Name);
+            Assert.Equal("Int32", ((LocalSymbol)local).Type.Name);
 
             // same name local
             blockStatement = (BlockSyntax)SyntaxFactory.ParseStatement(@"{ string y = null; }");
@@ -2417,7 +2417,7 @@ class C
             Assert.NotNull(local);
             Assert.Equal("y", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
-            Assert.Equal("String", ((LocalSymbol)local).TypeWithAnnotations.Name);
+            Assert.Equal("String", ((LocalSymbol)local).Type.Name);
 
             // parameter symbol
             blockStatement = (BlockSyntax)SyntaxFactory.ParseStatement(@"{ var y = x; }");
@@ -2431,14 +2431,14 @@ class C
             Assert.NotNull(local);
             Assert.Equal("y", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
-            Assert.Equal("Int32", ((LocalSymbol)local).TypeWithAnnotations.Name);
+            Assert.Equal("Int32", ((LocalSymbol)local).Type.Name);
 
             var param = speculativeModel.GetSymbolInfo(declarator.Initializer.Value).Symbol;
             Assert.NotNull(param);
             Assert.Equal(SymbolKind.Parameter, param.Kind);
             var paramSymbol = (ParameterSymbol)param;
             Assert.Equal("x", paramSymbol.Name);
-            Assert.Equal("Int32", paramSymbol.TypeWithAnnotations.Name);
+            Assert.Equal("Int32", paramSymbol.Type.Name);
         }
 
         [Fact]
@@ -2951,7 +2951,7 @@ public class C
             var symbol = model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SymbolKind.Parameter, symbol.Kind);
             Assert.Equal("x", symbol.Name);
-            Assert.Equal(TypeKind.Error, ((ParameterSymbol)symbol).TypeWithAnnotations.TypeKind);
+            Assert.Equal(TypeKind.Error, ((ParameterSymbol)symbol).Type.TypeKind);
         }
 
         [WorkItem(783566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/783566")]

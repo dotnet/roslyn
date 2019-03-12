@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());
                                     if ((object)fieldSymbol != null)
                                     {
-                                        result = fieldSymbol.TypeWithAnnotations.Type;
+                                        result = fieldSymbol.Type;
                                     }
                                 }
                             }

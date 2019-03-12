@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             _variable = variable;
 
             // Verify all type parameters are substituted.
-            Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.TypeWithAnnotations.Type));
+            Debug.Assert(this.ContainingSymbol.IsContainingSymbolOfAllTypeParameters(this.Type));
         }
 
         internal override EELocalSymbolBase ToOtherMethod(MethodSymbol method, TypeMap typeMap)

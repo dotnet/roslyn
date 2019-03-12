@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameterType in member.GetParameterTypes())
             {
-                if (parameterType.IsUnsafe())
+                if (parameterType.Type.IsUnsafe())
                 {
                     return true;
                 }
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static int CustomModifierCount(this EventSymbol e)
         {
-            return e.TypeWithAnnotations.Type.CustomModifierCount();
+            return e.Type.CustomModifierCount();
         }
 
         /// <summary>
@@ -428,11 +428,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     var method = (MethodSymbol)member;
-                    return method.ReturnTypeWithAnnotations.Type.ContainsTupleNames() || method.Parameters.Any(p => p.TypeWithAnnotations.Type.ContainsTupleNames());
+                    return method.ReturnType.ContainsTupleNames() || method.Parameters.Any(p => p.Type.ContainsTupleNames());
                 case SymbolKind.Property:
-                    return ((PropertySymbol)member).TypeWithAnnotations.Type.ContainsTupleNames();
+                    return ((PropertySymbol)member).Type.ContainsTupleNames();
                 case SymbolKind.Event:
-                    return ((EventSymbol)member).TypeWithAnnotations.Type.ContainsTupleNames();
+                    return ((EventSymbol)member).Type.ContainsTupleNames();
                 default:
                     // We currently don't need to use this method for fields or locals
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);

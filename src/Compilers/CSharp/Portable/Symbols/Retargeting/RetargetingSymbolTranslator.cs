@@ -626,10 +626,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         return false;
 
                     case SymbolKind.ArrayType:
-                        return IsOrClosedOverAnExplicitLocalType(((ArrayTypeSymbol)symbol).ElementTypeWithAnnotations.Type);
+                        return IsOrClosedOverAnExplicitLocalType(((ArrayTypeSymbol)symbol).ElementType);
 
                     case SymbolKind.PointerType:
-                        return IsOrClosedOverAnExplicitLocalType(((PointerTypeSymbol)symbol).PointedAtTypeWithAnnotations.Type);
+                        return IsOrClosedOverAnExplicitLocalType(((PointerTypeSymbol)symbol).PointedAtType);
 
                     case SymbolKind.DynamicType:
                         return false;
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     if (retargetedMember.Kind == SymbolKind.Event)
                     {
                         var retargetedEvent = (EventSymbol)retargetedMember;
-                        if (TypeSymbol.Equals(retargetedEvent.TypeWithAnnotations.Type, targetType.Type, TypeCompareKind.ConsiderEverything2))
+                        if (TypeSymbol.Equals(retargetedEvent.Type, targetType.Type, TypeCompareKind.ConsiderEverything2))
                         {
                             return retargetedEvent;
                         }

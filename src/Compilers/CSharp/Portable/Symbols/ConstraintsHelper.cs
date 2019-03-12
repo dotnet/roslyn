@@ -224,10 +224,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case TypeKind.Struct:
                             if (constraintType.IsNullableType())
                             {
-                                var underlyingType = constraintType.GetNullableUnderlyingType();
+                                var underlyingType = constraintType.Type.GetNullableUnderlyingType();
                                 if (underlyingType.TypeKind == TypeKind.TypeParameter)
                                 {
-                                    var underlyingTypeParameter = (TypeParameterSymbol)underlyingType.Type;
+                                    var underlyingTypeParameter = (TypeParameterSymbol)underlyingType;
                                     if (underlyingTypeParameter.ContainingSymbol == typeParameter.ContainingSymbol)
                                     {
                                         // The constraint type parameter is from the same containing type or method.
@@ -913,12 +913,12 @@ hasRelatedInterfaces:
             // The type parameters must be original definitions of type parameters from the containing symbol.
             Debug.Assert(ReferenceEquals(typeParameter.ContainingSymbol, containingSymbol.OriginalDefinition));
 
-            if (typeArgument.IsErrorType())
+            if (typeArgument.Type.IsErrorType())
             {
                 return true;
             }
 
-            if (typeArgument.IsPointerType() || typeArgument.IsRestrictedType() || typeArgument.SpecialType == SpecialType.System_Void)
+            if (typeArgument.Type.IsPointerType() || typeArgument.IsRestrictedType() || typeArgument.SpecialType == SpecialType.System_Void)
             {
                 // "The type '{0}' may not be used as a type argument"
                 diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_BadTypeArgument, typeArgument.Type)));
@@ -934,7 +934,7 @@ hasRelatedInterfaces:
 
             if (typeParameter.HasReferenceTypeConstraint)
             {
-                if (!typeArgument.IsReferenceType)
+                if (!typeArgument.Type.IsReferenceType)
                 {
                     // "The type '{2}' must be a reference type in order to use it as parameter '{1}' in the generic type or method '{0}'"
                     diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new CSDiagnosticInfo(ErrorCode.ERR_RefConstraintNotSatisfied, containingSymbol.ConstructedFrom(), typeParameter, typeArgument.Type)));
@@ -998,7 +998,7 @@ hasRelatedInterfaces:
                     if (includeNullability && nullabilityDiagnosticsBuilderOpt != null)
                     {
                         if (!SatisfiesConstraintType(conversions.WithNullability(true), typeArgument, constraintType, ref useSiteDiagnostics) ||
-                            (typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.IsValueType &&
+                            (typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.Type.IsValueType &&
                              TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType) == true))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
@@ -1009,7 +1009,7 @@ hasRelatedInterfaces:
                 }
 
                 ErrorCode errorCode;
-                if (typeArgument.IsReferenceType)
+                if (typeArgument.Type.IsReferenceType)
                 {
                     errorCode = ErrorCode.ERR_GenericConstraintNotSatisfiedRefType;
                 }
@@ -1085,7 +1085,7 @@ hasRelatedInterfaces:
             TypeWithAnnotations constraintType,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (constraintType.IsErrorType())
+            if (constraintType.Type.IsErrorType())
             {
                 return false;
             }
@@ -1103,7 +1103,7 @@ hasRelatedInterfaces:
 
             // "... A boxing conversion (6.1.7), provided that type A is a non-nullable value type. ..."
             // NOTE: we extend this to allow, for example, a conversion from Nullable<T> to object.
-            if (typeArgument.IsValueType &&
+            if (typeArgument.Type.IsValueType &&
                 conversions.HasBoxingConversion(typeArgument.Type.IsNullableType() ? ((NamedTypeSymbol)typeArgument.Type).ConstructedFrom : typeArgument.Type,
                                                 constraintType.Type, ref useSiteDiagnostics))
             {

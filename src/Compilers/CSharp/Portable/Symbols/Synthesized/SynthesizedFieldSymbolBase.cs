@@ -52,11 +52,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (!this.SuppressDynamicAttribute &&
-                this.TypeWithAnnotations.Type.ContainsDynamic() &&
+                this.Type.ContainsDynamic() &&
                 compilation.HasDynamicEmitAttributes() &&
                 compilation.CanEmitBoolean())
             {
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.TypeWithAnnotations.Type, this.TypeWithAnnotations.CustomModifiers.Length));
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeDynamicAttribute(this.Type, this.TypeWithAnnotations.CustomModifiers.Length));
             }
 
             if (TypeWithAnnotations.Type.ContainsTupleNames() &&
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 compilation.CanEmitSpecialType(SpecialType.System_String))
             {
                 AddSynthesizedAttribute(ref attributes,
-                    compilation.SynthesizeTupleNamesAttribute(TypeWithAnnotations.Type));
+                    compilation.SynthesizeTupleNamesAttribute(Type));
             }
 
             if (TypeWithAnnotations.NeedsNullableAttribute())

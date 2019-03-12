@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // Unfortunately, this will cause us to realize the type of the field, which would
                 // otherwise have been lazy.
-                TypeSymbol candidateAssociatedFieldType = candidateAssociatedField.TypeWithAnnotations.Type;
+                TypeSymbol candidateAssociatedFieldType = candidateAssociatedField.Type;
 
                 if (isWindowsRuntimeEvent)
                 {
@@ -196,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // does not check whether the containing type is a WinRT type -
                 // it was a design goal to accept any events of this form.
                 return
-                    TypeSymbol.Equals(_addMethod.ReturnTypeWithAnnotations.Type, token, TypeCompareKind.ConsiderEverything2) &&
+                    TypeSymbol.Equals(_addMethod.ReturnType, token, TypeCompareKind.ConsiderEverything2) &&
                     _addMethod.ParameterCount == 1 &&
                     _removeMethod.ParameterCount == 1 &&
-                    TypeSymbol.Equals(_removeMethod.Parameters[0].TypeWithAnnotations.Type, token, TypeCompareKind.ConsiderEverything2);
+                    TypeSymbol.Equals(_removeMethod.Parameters[0].Type, token, TypeCompareKind.ConsiderEverything2);
             }
         }
 

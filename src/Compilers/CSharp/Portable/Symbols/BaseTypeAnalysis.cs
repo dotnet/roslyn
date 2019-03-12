@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var member in type.GetMembersUnordered())
                 {
                     var field = member as FieldSymbol;
-                    if ((object)field == null || field.TypeWithAnnotations.TypeKind != TypeKind.Struct || field.IsStatic)
+                    if ((object)field == null || field.Type.TypeKind != TypeKind.Struct || field.IsStatic)
                     {
                         continue;
                     }
 
-                    StructDependsClosure((NamedTypeSymbol)field.TypeWithAnnotations.Type, partialClosure, on);
+                    StructDependsClosure((NamedTypeSymbol)field.Type, partialClosure, on);
                 }
             }
         }
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    TypeSymbol fieldType = field.TypeWithAnnotations.Type;
+                    TypeSymbol fieldType = field.Type;
                     NamedTypeSymbol fieldNamedType = fieldType as NamedTypeSymbol;
                     if ((object)fieldNamedType == null)
                     {

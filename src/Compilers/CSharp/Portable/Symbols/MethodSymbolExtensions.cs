@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnTypeWithAnnotations.Type.IsNonGenericTaskType(compilation);
+                && method.ReturnType.IsNonGenericTaskType(compilation);
         }
 
         /// <summary>
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsGenericTaskReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnTypeWithAnnotations.Type.IsGenericTaskType(compilation);
+                && method.ReturnType.IsGenericTaskType(compilation);
         }
 
         /// <summary>
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsIAsyncEnumerableReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnTypeWithAnnotations.Type.IsIAsyncEnumerableType(compilation);
+                && method.ReturnType.IsIAsyncEnumerableType(compilation);
         }
 
         /// <summary>
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsIAsyncEnumeratorReturningAsync(this MethodSymbol method, CSharpCompilation compilation)
         {
             return method.IsAsync
-                && method.ReturnTypeWithAnnotations.Type.IsIAsyncEnumeratorType(compilation);
+                && method.ReturnType.IsIAsyncEnumeratorType(compilation);
         }
 
         internal static CSharpSyntaxNode ExtractReturnTypeSyntax(this MethodSymbol method)

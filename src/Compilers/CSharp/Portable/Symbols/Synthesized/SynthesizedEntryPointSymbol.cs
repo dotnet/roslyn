@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return ReturnTypeWithAnnotations.SpecialType == SpecialType.System_Void; }
+            get { return ReturnType.SpecialType == SpecialType.System_Void; }
         }
 
         public override MethodKind MethodKind
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 argsToParamsOpt: default(ImmutableArray<int>),
                 resultKind: LookupResultKind.Viable,
                 binderOpt: null,
-                type: method.ReturnTypeWithAnnotations.Type)
+                type: method.ReturnType)
             { WasCompilerGenerated = true };
         }
 
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
-                var arguments = Parameters.SelectAsArray((p, s) => (BoundExpression)new BoundParameter(s, p, p.TypeWithAnnotations.Type), _userMainReturnTypeSyntax);
+                var arguments = Parameters.SelectAsArray((p, s) => (BoundExpression)new BoundParameter(s, p, p.Type), _userMainReturnTypeSyntax);
 
                 // Main(args) or Main()
                 BoundCall userMainInvocation = new BoundCall(
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         argsToParamsOpt: default(ImmutableArray<int>),
                         resultKind: LookupResultKind.Viable,
                         binderOpt: binder,
-                        type: userMain.ReturnTypeWithAnnotations.Type)
+                        type: userMain.ReturnType)
                 { WasCompilerGenerated = true };
 
                 // The diagnostics that would be produced here will already have been captured and returned.
@@ -341,8 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 droppedBag.Free();
 
                 Debug.Assert(
-                    ReturnTypeWithAnnotations.SpecialType == SpecialType.System_Void ||
-                    ReturnTypeWithAnnotations.SpecialType == SpecialType.System_Int32);
+                    ReturnType.SpecialType == SpecialType.System_Void ||
+                    ReturnType.SpecialType == SpecialType.System_Int32);
             }
 
             public override string Name => MainName;

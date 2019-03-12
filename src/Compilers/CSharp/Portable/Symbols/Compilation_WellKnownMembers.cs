@@ -914,17 +914,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                return array.ElementTypeWithAnnotations.Type;
+                return array.ElementType;
             }
 
             protected override TypeSymbol GetFieldType(FieldSymbol field)
             {
-                return field.TypeWithAnnotations.Type;
+                return field.Type;
             }
 
             protected override TypeSymbol GetPropertyType(PropertySymbol property)
             {
-                return property.TypeWithAnnotations.Type;
+                return property.Type;
             }
 
             protected override TypeSymbol GetGenericTypeArgument(TypeSymbol type, int argumentIndex)
@@ -975,17 +975,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override TypeSymbol GetParamType(ParameterSymbol parameter)
             {
-                return parameter.TypeWithAnnotations.Type;
+                return parameter.Type;
             }
 
             protected override TypeSymbol GetPointedToType(TypeSymbol type)
             {
-                return type.Kind == SymbolKind.PointerType ? ((PointerTypeSymbol)type).PointedAtTypeWithAnnotations.Type : null;
+                return type.Kind == SymbolKind.PointerType ? ((PointerTypeSymbol)type).PointedAtType : null;
             }
 
             protected override TypeSymbol GetReturnType(MethodSymbol method)
             {
-                return method.ReturnTypeWithAnnotations.Type;
+                return method.ReturnType;
             }
 
             protected override TypeSymbol GetSZArrayElementType(TypeSymbol type)
@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                return array.ElementTypeWithAnnotations.Type;
+                return array.ElementType;
             }
 
             protected override bool IsByRefParam(ParameterSymbol parameter)

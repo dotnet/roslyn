@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 for (int i = 0; i < _parameters.Length; i++)
                 {
-                    if (!TypeSymbol.Equals(_parameters[i].TypeWithAnnotations.Type, other._parameters[i].TypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2))
+                    if (!TypeSymbol.Equals(_parameters[i].Type, other._parameters[i].Type, TypeCompareKind.ConsiderEverything2))
                     {
                         return false;
                     }

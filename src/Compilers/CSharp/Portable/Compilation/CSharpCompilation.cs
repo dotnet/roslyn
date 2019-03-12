@@ -1629,12 +1629,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, DiagnosticBag diagnostics)
         {
             // Common case optimization
-            if (method.ReturnTypeWithAnnotations.SpecialType == SpecialType.System_Void || method.ReturnTypeWithAnnotations.SpecialType == SpecialType.System_Int32)
+            if (method.ReturnType.SpecialType == SpecialType.System_Void || method.ReturnType.SpecialType == SpecialType.System_Int32)
             {
                 return false;
             }
 
-            if (!(method.ReturnTypeWithAnnotations.Type is NamedTypeSymbol namedType))
+            if (!(method.ReturnType is NamedTypeSymbol namedType))
             {
                 return false;
             }
@@ -1670,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, false);
             }
 
-            TypeSymbol returnType = method.ReturnTypeWithAnnotations.Type;
+            TypeSymbol returnType = method.ReturnType;
             bool returnsTaskOrTaskOfInt = false;
             if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
             {
@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var array = (ArrayTypeSymbol)firstType.Type;
-            return (array.IsSZArray && array.ElementTypeWithAnnotations.SpecialType == SpecialType.System_String, returnsTaskOrTaskOfInt);
+            return (array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String, returnsTaskOrTaskOfInt);
         }
 
         internal override bool IsUnreferencedAssemblyIdentityDiagnosticCode(int code)

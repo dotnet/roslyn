@@ -66,9 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract RefKind RefKind { get; }
 
         /// <summary>
-        /// The type of the property. 
+        /// The type of the property along with its annotations.
         /// </summary>
         public abstract TypeWithAnnotations TypeWithAnnotations { get; }
+
+        /// <summary>
+        /// The type of the property.
+        /// </summary>
+        public TypeSymbol Type => TypeWithAnnotations.Type;
 
         /// <summary>
         /// Custom modifiers associated with the ref modifier, or an empty array if there are none.
@@ -420,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ITypeSymbol IPropertySymbol.Type
         {
-            get { return this.TypeWithAnnotations.Type; }
+            get { return this.Type; }
         }
 
         ImmutableArray<IParameterSymbol> IPropertySymbol.Parameters

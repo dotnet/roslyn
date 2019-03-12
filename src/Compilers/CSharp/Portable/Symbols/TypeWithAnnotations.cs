@@ -96,8 +96,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override string ToString() => Type.ToString();
-        public string Name => Type.Name;
-        public SymbolKind Kind => Type.Kind;
 
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
@@ -158,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // https://github.com/dotnet/roslyn/issues/31675: Is a similar case needed in ValueCanBeNull?
-            if (NullableAnnotation != NullableAnnotation.NotAnnotated && IsNullableTypeOrTypeParameter())
+            if (NullableAnnotation != NullableAnnotation.NotAnnotated && Type.IsNullableTypeOrTypeParameter())
             {
                 return NullableAnnotation.Annotated;
             }
@@ -283,28 +281,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public ImmutableArray<CustomModifier> CustomModifiers => _extensions.CustomModifiers;
 
-        public bool IsReferenceType => Type.IsReferenceType;
-        public bool IsValueType => Type.IsValueType;
         public TypeKind TypeKind => Type.TypeKind;
         public SpecialType SpecialType => _extensions.GetSpecialType(_defaultType);
-        public bool IsManagedType => Type.IsManagedType;
         public Cci.PrimitiveTypeCode PrimitiveTypeCode => Type.PrimitiveTypeCode;
-        public bool IsEnumType() => Type.IsEnumType();
-        public bool IsDynamic() => Type.IsDynamic();
-        public bool IsObjectType() => Type.IsObjectType();
-        public bool IsArray() => Type.IsArray();
+
+        public bool IsVoid =>
+            _extensions.IsVoid(_defaultType);
+        public bool IsSZArray() =>
+            _extensions.IsSZArray(_defaultType);
+        public bool IsStatic =>
+            _extensions.IsStatic(_defaultType);
         public bool IsRestrictedType(bool ignoreSpanLikeTypes = false) =>
             _extensions.IsRestrictedType(_defaultType, ignoreSpanLikeTypes);
-        public bool IsPointerType() => Type.IsPointerType();
-        public bool IsErrorType() => Type.IsErrorType();
-        public bool IsUnsafe() => Type.IsUnsafe();
-        public bool IsStatic => _extensions.IsStatic(_defaultType);
-        public bool IsNullableTypeOrTypeParameter() => Type.IsNullableTypeOrTypeParameter();
-        public bool IsVoid => _extensions.IsVoid(_defaultType);
-        public bool IsSZArray() => _extensions.IsSZArray(_defaultType);
-        public TypeWithAnnotations GetNullableUnderlyingType() =>
-            Type.GetNullableUnderlyingTypeWithAnnotations();
-
         internal bool GetIsReferenceType(ConsList<TypeParameterSymbol> inProgress) =>
             _extensions.GetIsReferenceType(_defaultType, inProgress);
         internal bool GetIsValueType(ConsList<TypeParameterSymbol> inProgress) =>
@@ -316,13 +304,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (format != null)
             {
                 if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                    !IsNullableType() && !IsValueType &&
+                    !IsNullableType() && !Type.IsValueType &&
                     NullableAnnotation.IsAnnotated())
                 {
                     return str + "?";
                 }
                 else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                    !IsValueType &&
+                    !Type.IsValueType &&
                     NullableAnnotation.IsNotAnnotated() &&
                     !Type.IsTypeParameterDisallowingAnnotation())
                 {
@@ -447,11 +435,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    Symbol.GetUnificationUseSiteDiagnosticRecursive(ref result, this.CustomModifiers, owner, ref checkedTypes);
         }
 
-        public void CheckAllConstraints(CSharpCompilation compilation, ConversionsBase conversions, Location location, DiagnosticBag diagnostics)
-        {
-            Type.CheckAllConstraints(compilation, conversions, location, diagnostics);
-        }
-
         public bool IsAtLeastAsVisibleAs(Symbol sym, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // System.Nullable is public, so it is safe to delegate to the underlying.
@@ -544,12 +527,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public void ReportDiagnosticsIfObsolete(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics) =>
             _extensions.ReportDiagnosticsIfObsolete(this, binder, syntax, diagnostics);
 
-        internal bool TypeSymbolEqualsCore(TypeWithAnnotations other, TypeCompareKind comparison)
+        private bool TypeSymbolEqualsCore(TypeWithAnnotations other, TypeCompareKind comparison)
         {
             return Type.Equals(other.Type, comparison);
         }
 
-        internal void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
+        private void ReportDiagnosticsIfObsoleteCore(Binder binder, SyntaxNode syntax, DiagnosticBag diagnostics)
         {
             binder.ReportDiagnosticsIfObsolete(diagnostics, Type, syntax, hasBaseReceiver: false);
         }
@@ -928,7 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_resolved == null)
                 {
-                    if (!_underlying.IsValueType)
+                    if (!_underlying.Type.IsValueType)
                     {
                         _resolved = _underlying.Type;
                     }

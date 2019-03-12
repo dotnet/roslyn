@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_fixedResults[i].HasType)
                 {
-                    if (!_fixedResults[i].IsErrorType())
+                    if (!_fixedResults[i].Type.IsErrorType())
                     {
                         continue;
                     }
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression argument = _arguments[arg];
                 TypeWithAnnotations target = _formalParameterTypes[arg];
-                ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.IsPointerType() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
+                ExactOrBoundsKind kind = GetRefKind(arg).IsManagedReference() || target.Type.IsPointerType() ? ExactOrBoundsKind.Exact : ExactOrBoundsKind.LowerBound;
 
                 MakeExplicitParameterTypeInferences(binder, argument, target, kind, ref useSiteDiagnostics);
             }
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeOutputTypeInferences(Binder binder, BoundTupleLiteral argument, TypeWithAnnotations formalType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (formalType.Kind != SymbolKind.NamedType)
+            if (formalType.Type.Kind != SymbolKind.NamedType)
             {
                 // tuples can only match to tuples or tuple underlying types.
                 return;
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var delegateParameter in delegateParameters)
             {
-                if (delegateParameter.TypeWithAnnotations.Type.ContainsTypeParameter(typeParameter))
+                if (delegateParameter.Type.ContainsTypeParameter(typeParameter))
                 {
                     return true;
                 }
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var delegateReturnType = delegateInvoke.ReturnTypeWithAnnotations.Type;
+            var delegateReturnType = delegateInvoke.ReturnType;
             if ((object)delegateReturnType == null)
             {
                 return false;
@@ -1309,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = resolution.OverloadResolutionResult;
                 if (result.Succeeded)
                 {
-                    type = result.BestResult.Member.ReturnTypeWithAnnotations.Type;
+                    type = result.BestResult.Member.ReturnType;
                 }
             }
 
@@ -1450,7 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: * Otherwise, if U is an array type UE[...] and V is an array type VE[...]
             // SPEC:   of the same rank then an exact inference from UE to VE is made.
-            if (!source.IsArray() || !target.IsArray())
+            if (!source.Type.IsArray() || !target.Type.IsArray())
             {
                 return false;
             }
@@ -1771,7 +1771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (elementSource.IsReferenceType)
+            if (elementSource.Type.IsReferenceType)
             {
                 LowerBoundInference(elementSource, elementTarget, ref useSiteDiagnostics);
             }
@@ -1979,11 +1979,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sourceTypeArgument = sourceTypeArguments[arg];
                 var targetTypeArgument = targetTypeArguments[arg];
 
-                if (sourceTypeArgument.IsReferenceType && typeParameter.Variance == VarianceKind.Out)
+                if (sourceTypeArgument.Type.IsReferenceType && typeParameter.Variance == VarianceKind.Out)
                 {
                     LowerBoundInference(sourceTypeArgument, targetTypeArgument, ref useSiteDiagnostics);
                 }
-                else if (sourceTypeArgument.IsReferenceType && typeParameter.Variance == VarianceKind.In)
+                else if (sourceTypeArgument.Type.IsReferenceType && typeParameter.Variance == VarianceKind.In)
                 {
                     UpperBoundInference(sourceTypeArgument, targetTypeArgument, ref useSiteDiagnostics);
                 }
@@ -2038,7 +2038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            Debug.Assert(source.IsReferenceType);
+            Debug.Assert(source.Type.IsReferenceType);
 
             // NOTE: spec would ask us to do the following checks, but since the value types
             //       are trivially handled as exact inference in the callers, we do not have to.
@@ -2085,7 +2085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:     from Ue to Ve is made.
             // SPEC:   * otherwise an exact inference from Ue to Ve is made.
 
-            if (!target.IsArray())
+            if (!target.Type.IsArray())
             {
                 return false;
             }
@@ -2097,7 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (elementSource.IsReferenceType)
+            if (elementSource.Type.IsReferenceType)
             {
                 UpperBoundInference(elementSource, elementTarget, ref useSiteDiagnostics);
             }
@@ -2271,11 +2271,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var sourceTypeArgument = sourceTypeArguments[arg];
                 var targetTypeArgument = targetTypeArguments[arg];
 
-                if (sourceTypeArgument.IsReferenceType && typeParameter.Variance == VarianceKind.Out)
+                if (sourceTypeArgument.Type.IsReferenceType && typeParameter.Variance == VarianceKind.Out)
                 {
                     UpperBoundInference(sourceTypeArgument, targetTypeArgument, ref useSiteDiagnostics);
                 }
-                else if (sourceTypeArgument.IsReferenceType && typeParameter.Variance == VarianceKind.In)
+                else if (sourceTypeArgument.Type.IsReferenceType && typeParameter.Variance == VarianceKind.In)
                 {
                     LowerBoundInference(sourceTypeArgument, targetTypeArgument, ref useSiteDiagnostics);
                 }
@@ -2609,7 +2609,7 @@ OuterBreak:
             {
                 for (int p = 0; p < anonymousFunction.ParameterCount; ++p)
                 {
-                    if (!anonymousFunction.ParameterTypeWithAnnotations(p).Type.Equals(fixedDelegateParameters[p].TypeWithAnnotations.Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
+                    if (!anonymousFunction.ParameterType(p).Equals(fixedDelegateParameters[p].Type, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {
                         return default;
                     }
@@ -2695,7 +2695,7 @@ OuterBreak:
                 return default(ImmutableArray<TypeWithAnnotations>);
             }
 
-            Debug.Assert(!method.ParameterTypesWithAnnotations[0].IsDynamic());
+            Debug.Assert(!method.GetParameterType(0).IsDynamic());
 
             var constructedFromMethod = method.ConstructedFrom;
 
@@ -2873,7 +2873,7 @@ OuterBreak:
             ConversionsBase conversions)
         {
             // We make an exception when new candidate is dynamic, for backwards compatibility 
-            if (newCandidate.IsDynamic())
+            if (newCandidate.Type.IsDynamic())
             {
                 return;
             }
@@ -2911,7 +2911,7 @@ OuterBreak:
             {
                 // We do a equality test ignoring dynamic and tuple names differences,
                 // but dynamic and object are not considered equal for backwards compatibility.
-                if (x.IsDynamic() ^ y.IsDynamic()) { return false; }
+                if (x.Type.IsDynamic() ^ y.Type.IsDynamic()) { return false; }
 
                 return x.Equals(y, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
             }

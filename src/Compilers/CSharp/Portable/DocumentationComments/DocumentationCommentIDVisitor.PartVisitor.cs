@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitArrayType(ArrayTypeSymbol symbol, StringBuilder builder)
             {
-                Visit(symbol.ElementTypeWithAnnotations.Type, builder);
+                Visit(symbol.ElementType, builder);
 
                 // Rank-one arrays are displayed different than rectangular arrays
                 if (symbol.IsSZArray)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.MethodKind == MethodKind.Conversion)
                 {
                     builder.Append('~');
-                    s_parameterOrReturnTypeInstance.Visit(symbol.ReturnTypeWithAnnotations.Type, builder);
+                    s_parameterOrReturnTypeInstance.Visit(symbol.ReturnType, builder);
                 }
 
                 return null;
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitPointerType(PointerTypeSymbol symbol, StringBuilder builder)
             {
-                Visit(symbol.PointedAtTypeWithAnnotations.Type, builder);
+                Visit(symbol.PointedAtType, builder);
                 builder.Append('*');
 
                 return null;
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(_inParameterOrReturnType);
 
-                Visit(symbol.TypeWithAnnotations.Type, builder);
+                Visit(symbol.Type, builder);
 
                 // ref and out params are suffixed with @
                 if (symbol.RefKind != RefKind.None)

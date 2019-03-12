@@ -215,9 +215,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             statements.Add(_F.HiddenSequencePoint());
 
             locals.Add(pendingExceptionLocal);
-            statements.Add(_F.Assignment(_F.Local(pendingExceptionLocal), _F.Default(pendingExceptionLocal.TypeWithAnnotations.Type)));
+            statements.Add(_F.Assignment(_F.Local(pendingExceptionLocal), _F.Default(pendingExceptionLocal.Type)));
             locals.Add(pendingBranchVar);
-            statements.Add(_F.Assignment(_F.Local(pendingBranchVar), _F.Default(pendingBranchVar.TypeWithAnnotations.Type)));
+            statements.Add(_F.Assignment(_F.Local(pendingBranchVar), _F.Default(pendingBranchVar.Type)));
 
             LocalSymbol returnLocal = frame.returnValue;
             if (returnLocal != null)
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _F.If(
                         _F.ObjectNotEqual(
                             _F.Local(obj),
-                            _F.Null(obj.TypeWithAnnotations.Type)),
+                            _F.Null(obj.Type)),
                         rethrow));
         }
 
@@ -428,13 +428,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var ex = _F.SynthesizedLocal(_F.WellKnownType(WellKnownType.System_Exception));
                 var assignment = _F.Assignment(
                     _F.Local(ex),
-                    _F.As(_F.Local(obj), ex.TypeWithAnnotations.Type));
+                    _F.As(_F.Local(obj), ex.Type));
 
                 // better rethrow 
                 rethrow = _F.Block(
                     ImmutableArray.Create(ex),
                     assignment,
-                    _F.If(_F.ObjectEqual(_F.Local(ex), _F.Null(ex.TypeWithAnnotations.Type)), rethrow),
+                    _F.If(_F.ObjectEqual(_F.Local(ex), _F.Null(ex.Type)), rethrow),
                     // ExceptionDispatchInfo.Capture(pendingExceptionLocal).Throw();
                     _F.ExpressionStatement(
                         _F.Call(
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _F.HiddenSequencePoint(),
                     _F.Assignment(
                         _F.Local(currentAwaitCatchFrame.pendingCatch),
-                        _F.Default(currentAwaitCatchFrame.pendingCatch.TypeWithAnnotations.Type)),
+                        _F.Default(currentAwaitCatchFrame.pendingCatch.Type)),
                     tryWithCatches,
                     _F.HiddenSequencePoint(),
                     _F.Switch(
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var storePending = _F.AssignmentExpression(
                         _F.Local(currentAwaitCatchFrame.pendingCaughtException),
-                        _F.Convert(currentAwaitCatchFrame.pendingCaughtException.TypeWithAnnotations.Type,
+                        _F.Convert(currentAwaitCatchFrame.pendingCaughtException.Type,
                             _F.Local(catchTemp)));
 
             var setPendingCatchNum = _F.Assignment(
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitLocal(node);
             }
 
-            return node.Update(hoistedLocal, node.ConstantValueOpt, hoistedLocal.TypeWithAnnotations.Type);
+            return node.Update(hoistedLocal, node.ConstantValueOpt, hoistedLocal.Type);
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
@@ -1015,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public void HoistLocal(LocalSymbol local, SyntheticBoundNodeFactory F)
             {
-                if (!_hoistedLocals.Keys.Any(l => l.Name == local.Name && TypeSymbol.Equals(l.TypeWithAnnotations.Type, local.TypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2)))
+                if (!_hoistedLocals.Keys.Any(l => l.Name == local.Name && TypeSymbol.Equals(l.Type, local.Type, TypeCompareKind.ConsiderEverything2)))
                 {
                     _hoistedLocals.Add(local, local);
                     _orderedHoistedLocals.Add(local);
@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // To avoid such problems we will mangle the name of the second local.
                 // This will only affect debugging of this extremely rare case.
                 Debug.Assert(pendingCatch.SyntaxOpt.IsKind(SyntaxKind.TryStatement));
-                var newLocal = F.SynthesizedLocal(local.TypeWithAnnotations.Type, pendingCatch.SyntaxOpt, kind: SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal);
+                var newLocal = F.SynthesizedLocal(local.Type, pendingCatch.SyntaxOpt, kind: SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal);
 
                 _hoistedLocals.Add(local, newLocal);
                 _orderedHoistedLocals.Add(newLocal);

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (symbol.Kind == SymbolKind.Property)
                             {
-                                declarators.Add(new BoundAnonymousPropertyDeclaration(fieldSyntaxNodes[i], (PropertySymbol)symbol, field.TypeWithAnnotations.Type));
+                                declarators.Add(new BoundAnonymousPropertyDeclaration(fieldSyntaxNodes[i], (PropertySymbol)symbol, field.Type));
                                 break;
                             }
                         }

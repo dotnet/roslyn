@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    containingType = restField.TypeWithAnnotations.Type.TupleUnderlyingTypeOrSelf();
+                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
                 }
             }
 

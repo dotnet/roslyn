@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_inExpressionLambda && rewrittenArguments.IsEmpty)
             {
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, property, LookupResultKind.Viable, property.TypeWithAnnotations.Type) :
-                    new BoundPropertyAccess(syntax, rewrittenReceiver, property, LookupResultKind.Viable, property.TypeWithAnnotations.Type);
+                    oldNodeOpt.Update(rewrittenReceiver, property, LookupResultKind.Viable, property.Type) :
+                    new BoundPropertyAccess(syntax, rewrittenReceiver, property, LookupResultKind.Viable, property.Type);
             }
             else
             {

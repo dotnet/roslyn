@@ -1520,7 +1520,7 @@ class A
 
                 Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
                 Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
-                Assert.Equal(taskOfObject, entryPoint.ReturnTypeWithAnnotations.Type);
+                Assert.Equal(taskOfObject, entryPoint.ReturnType);
             }
 
             var firstCompilation = CSharpCompilation.CreateScriptCompilation(

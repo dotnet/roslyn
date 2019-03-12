@@ -7153,7 +7153,7 @@ public class RubyTime
             Assert.False(symbol1.CanBeReferencedByName);
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
-            Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].TypeWithAnnotations.Type);
+            Assert.Same(symbol1.ContainingSymbol, symbol1.Parameters[0].Type);
             Assert.Equal(0, symbol1.Locations.Length);
             Assert.Null(symbol1.GetDocumentationCommentId());
             Assert.Equal("", symbol1.GetDocumentationCommentXml());
@@ -7703,20 +7703,20 @@ class Module1
                 {
                     if (leftType.IsPointerType())
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].TypeWithAnnotations.Type, leftType);
-                        Assert.True(symbol1.Parameters[1].TypeWithAnnotations.Type.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, leftType, symbol1.Parameters[1].Type, leftType);
+                        Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
                     }
                     else
                     {
-                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].TypeWithAnnotations.Type, rightType, rightType);
-                        Assert.True(symbol1.Parameters[0].TypeWithAnnotations.Type.IsIntegralType());
+                        signature = new BinaryOperatorSignature(op | BinaryOperatorKind.Pointer, symbol1.Parameters[0].Type, rightType, rightType);
+                        Assert.True(symbol1.Parameters[0].Type.IsIntegralType());
                     }
                 }
                 else if (op == BinaryOperatorKind.Subtraction &&
                     (leftType.IsPointerType() && (rightType.IsIntegralType() || rightType.IsCharType())))
                 {
-                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].TypeWithAnnotations.Type, leftType);
-                    Assert.True(symbol1.Parameters[1].TypeWithAnnotations.Type.IsIntegralType());
+                    signature = new BinaryOperatorSignature(op | BinaryOperatorKind.String, leftType, symbol1.Parameters[1].Type, leftType);
+                    Assert.True(symbol1.Parameters[1].Type.IsIntegralType());
                 }
                 else if (op == BinaryOperatorKind.Subtraction && leftType.IsPointerType() && TypeSymbol.Equals(leftType, rightType, TypeCompareKind.ConsiderEverything2))
                 {
@@ -7922,21 +7922,21 @@ class Module1
             Assert.Null(symbol1.DeclaringCompilation);
             Assert.Equal(symbol1.Name, symbol1.MetadataName);
 
-            Assert.True(TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].TypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2) ||
-                TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].TypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2));
+            Assert.True(TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type, TypeCompareKind.ConsiderEverything2) ||
+                TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type, TypeCompareKind.ConsiderEverything2));
 
             int match = 0;
-            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.ReturnTypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.ReturnType, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
 
-            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].TypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[0].Type, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }
 
-            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].TypeWithAnnotations.Type, TypeCompareKind.ConsiderEverything2))
+            if (TypeSymbol.Equals((TypeSymbol)symbol1.ContainingSymbol, symbol1.Parameters[1].Type, TypeCompareKind.ConsiderEverything2))
             {
                 match++;
             }

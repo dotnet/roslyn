@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (parameterType.IsReferenceType &&
+            if (parameterType.Type.IsReferenceType &&
                 parameterType.NullableAnnotation.IsNotAnnotated() &&
                 convertedExpression.ConstantValue?.IsNull == true &&
                 !suppressNullableWarning(convertedExpression) &&
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (arg.Kind != TypedConstantKind.Array && arg.Value == null)
                 {
-                    if (this.TypeWithAnnotations.IsReferenceType)
+                    if (this.Type.IsReferenceType)
                     {
                         constantValueDiscriminator = ConstantValueTypeDiscriminator.Null;
                     }
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ConstantValue.Bad;
                 }
             }
-            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.Type, this.TypeWithAnnotations.Type, ref useSiteDiagnostics).Kind.IsImplicitConversion())
+            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.Type, this.Type, ref useSiteDiagnostics).Kind.IsImplicitConversion())
             {
                 // error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 if (diagnose)

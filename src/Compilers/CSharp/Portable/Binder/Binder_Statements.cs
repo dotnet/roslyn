@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
 
-                    if (!declTypeOpt.IsErrorType())
+                    if (!declTypeOpt.Type.IsErrorType())
                     {
                         if (declTypeOpt.IsStatic)
                         {
@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!declTypeOpt.IsPointerType())
+                if (!declTypeOpt.Type.IsPointerType())
                 {
                     if (!hasErrors)
                     {
@@ -1162,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var fa = (BoundFieldAccess)initializerOpt;
                     if (fa.FieldSymbol.IsFixedSizeBuffer)
                     {
-                        elementType = ((PointerTypeSymbol)fa.Type).PointedAtTypeWithAnnotations.Type;
+                        elementType = ((PointerTypeSymbol)fa.Type).PointedAtType;
                         break;
                     }
 
@@ -1175,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (initializerType.IsArray())
                     {
                         // See ExpressionBinder::BindPtrToArray (though most of that functionality is now in LocalRewriter).
-                        elementType = ((ArrayTypeSymbol)initializerType).ElementTypeWithAnnotations.Type;
+                        elementType = ((ArrayTypeSymbol)initializerType).ElementType;
                         break;
                     }
 
@@ -1206,7 +1206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if ((object)fixedPatternMethod != null)
                     {
-                        elementType = fixedPatternMethod.ReturnTypeWithAnnotations.Type;
+                        elementType = fixedPatternMethod.ReturnType;
                         CheckFeatureAvailability(initializerOpt.Syntax, MessageID.IDS_FeatureExtensibleFixedStatement, diagnostics);
                         break;
                     }
@@ -1813,7 +1813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
-                    if (anonymousFunction.ParameterTypeWithAnnotations(i).IsErrorType())
+                    if (anonymousFunction.ParameterType(i).IsErrorType())
                     {
                         return;
                     }
@@ -1849,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (delegateParameters[i].TypeWithAnnotations.IsStatic)
                     {
                         // {0}: Static types cannot be used as parameter
-                        Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, anonymousFunction.ParameterLocation(i), delegateParameters[i].TypeWithAnnotations.Type);
+                        Error(diagnostics, ErrorCode.ERR_ParameterIsStaticClass, anonymousFunction.ParameterLocation(i), delegateParameters[i].Type);
                     }
                 }
                 return;
@@ -1864,7 +1864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)
                 {
-                    var lambdaParameterType = anonymousFunction.ParameterTypeWithAnnotations(i).Type;
+                    var lambdaParameterType = anonymousFunction.ParameterType(i);
                     if (lambdaParameterType.IsErrorType())
                     {
                         continue;
@@ -1872,7 +1872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var lambdaParameterLocation = anonymousFunction.ParameterLocation(i);
                     var lambdaRefKind = anonymousFunction.RefKind(i);
-                    var delegateParameterType = delegateParameters[i].TypeWithAnnotations.Type;
+                    var delegateParameterType = delegateParameters[i].Type;
                     var delegateRefKind = delegateParameters[i].RefKind;
 
                     if (!lambdaParameterType.Equals(delegateParameterType, TypeCompareKind.AllIgnoreOptions))
@@ -2495,14 +2495,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 refKind = symbol.RefKind;
 
-                TypeWithAnnotations returnTypeWithAnnotations = symbol.ReturnTypeWithAnnotations;
+                TypeSymbol returnType = symbol.ReturnType;
 
-                if ((object)returnTypeWithAnnotations.Type == LambdaSymbol.ReturnTypeIsBeingInferred)
+                if ((object)returnType == LambdaSymbol.ReturnTypeIsBeingInferred)
                 {
                     return null;
                 }
 
-                return returnTypeWithAnnotations.Type;
+                return returnType;
             }
 
             refKind = RefKind.None;
@@ -2847,13 +2847,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
             {
-                Debug.Assert(local.TypeWithAnnotations.IsErrorType() || (TypeSymbol.Equals(local.TypeWithAnnotations.Type, type, TypeCompareKind.ConsiderEverything2)));
+                Debug.Assert(local.Type.IsErrorType() || (TypeSymbol.Equals(local.Type, type, TypeCompareKind.ConsiderEverything2)));
 
                 // Check for local variable conflicts in the *enclosing* binder, not the *current* binder;
                 // obviously we will find a local of the given name in the current binder.
                 hasError |= this.ValidateDeclarationNameConflictsInScope(local, diagnostics);
 
-                exceptionSource = new BoundLocal(declaration, local, ConstantValue.NotAvailable, local.TypeWithAnnotations.Type);
+                exceptionSource = new BoundLocal(declaration, local, ConstantValue.NotAvailable, local.Type);
             }
 
             var block = BindEmbeddedBlock(node.Block, diagnostics);
@@ -2894,7 +2894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Cannot convert async {0} to intended delegate type. An async {0} may return void, Task or Task<T>, none of which are convertible to '{1}'.
                     Error(diagnostics, ErrorCode.ERR_CantConvAsyncAnonFuncReturns,
                         location,
-                        lambda.MessageID.Localize(), lambda.ReturnTypeWithAnnotations.Type);
+                        lambda.MessageID.Localize(), lambda.ReturnType);
                 }
                 else
                 {

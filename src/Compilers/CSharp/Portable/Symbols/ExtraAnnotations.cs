@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var pooledBuilder = PooledStringBuilder.GetInstance();
 
             StringBuilder builder = pooledBuilder.Builder;
-            Add(method.ReturnTypeWithAnnotations.Type, builder);
+            Add(method.ReturnType, builder);
             builder.Append(' ');
 
             Add(containingType, builder);
