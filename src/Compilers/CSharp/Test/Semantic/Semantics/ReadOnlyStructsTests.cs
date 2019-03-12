@@ -305,6 +305,26 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyMethod_CallBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    readonly void M()
+    {
+        // no warnings for calls to base members
+        GetType();
+        ToString();
+        GetHashCode();
+        Equals(null);
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ReadOnlyAccessor_CallNormalMethod()
         {
             var csharp = @"

@@ -1146,7 +1146,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Eventually we will warn on implicit value copies in more scenarios. See https://github.com/dotnet/roslyn/issues/33968.
             if (receiver is BoundThisReference &&
                 receiver.Type.IsValueType &&
-                (ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true &&
+                ContainingMemberOrLambda is MethodSymbol containingMethod &&
+                containingMethod.IsEffectivelyReadOnly &&
+                // Ignore calls to base members.
+                TypeSymbol.Equals(containingMethod.ContainingType, method.ContainingType, TypeCompareKind.ConsiderEverything) &&
                 !method.IsEffectivelyReadOnly &&
                 !method.IsStatic)
             {
