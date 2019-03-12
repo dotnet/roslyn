@@ -500,13 +500,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while ((object)current != null)
             {
-                if (baseTypeIsInterface == current.IsInterfaceType())
+                if (baseTypeIsInterface == current.IsInterfaceType() && current.Equals(baseType))
                 {
-                    if (current.Equals(baseType))
-                    {
-                        result = true;
-                        break;
-                    }
+                    result = true;
+                    break;
                 }
 
                 if (baseTypeIsInterface)

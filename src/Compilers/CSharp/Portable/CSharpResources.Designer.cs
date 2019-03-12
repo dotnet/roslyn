@@ -9295,7 +9295,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Target runtime doesn&apos;t support &apos;protected&apos;, &apos;protected internal&apos;, or &apos;private protected&apos; accessibility for an interface member, or a type nested into an interface..
+        ///   Looks up a localized string similar to Target runtime doesn&apos;t support &apos;protected&apos;, &apos;protected internal&apos;, or &apos;private protected&apos; accessibility for a member of an interface..
         /// </summary>
         internal static string ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember {
             get {

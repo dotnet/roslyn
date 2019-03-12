@@ -6760,10 +6760,10 @@ public interface I1
 
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
-                // (5,20): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (5,20): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected void M02();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M02").WithLocation(5, 20),
-                // (6,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (6,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal void M03();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M03").WithLocation(6, 29),
                 // (8,18): error CS0501: 'I1.M05()' must declare a body because it is not marked abstract, extern, or partial
@@ -6790,7 +6790,7 @@ public interface I1
                 // (15,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
                 //     async void M12();
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M12").WithLocation(15, 16),
-                // (16,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (16,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     private protected void M13();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M13").WithLocation(16, 28)
                 );
@@ -11273,10 +11273,10 @@ public interface I1
 
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
-                // (5,19): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (5,19): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected int P02 {get;}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P02").WithLocation(5, 19),
-                // (6,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (6,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal int P03 {set;}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P03").WithLocation(6, 28),
                 // (8,22): error CS0501: 'I1.P05.set' must declare a body because it is not marked abstract, extern, or partial
@@ -11306,10 +11306,10 @@ public interface I1
                 // (16,22): error CS0273: The accessibility modifier of the 'I1.P12.get' accessor must be more restrictive than the property or indexer 'I1.P12'
                 //     int P12 { public get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I1.P12.get", "I1.P12").WithLocation(16, 22),
-                // (17,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (17,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     int P13 { get; protected set;}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(17, 30),
-                // (18,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (18,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     int P14 { protected internal get; set;}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "get").WithLocation(18, 34),
                 // (20,23): error CS0442: 'I1.P16.get': abstract properties cannot have private accessors
@@ -11318,10 +11318,10 @@ public interface I1
                 // (21,9): error CS0276: 'I1.P17': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 //     int P17 { private get;}
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "P17").WithArguments("I1.P17").WithLocation(21, 9),
-                // (23,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (23,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     private protected int P18 {get;}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P18").WithLocation(23, 27),
-                // (24,38): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (24,38): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     int P19 { get; private protected set;}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(24, 38)
                 );
@@ -19192,10 +19192,10 @@ public interface I19{ int this[int x] { get; private protected set;} }
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
-                // (3,37): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (3,37): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 // public interface I02{ protected int this[int x] {get;} }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "this").WithLocation(3, 37),
-                // (4,46): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (4,46): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 // public interface I03{ protected internal int this[int x] {set;} }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "this").WithLocation(4, 46),
                 // (6,48): error CS0501: 'I05.this[int].set' must declare a body because it is not marked abstract, extern, or partial
@@ -19228,10 +19228,10 @@ public interface I19{ int this[int x] { get; private protected set;} }
                 // (14,48): error CS0273: The accessibility modifier of the 'I12.this[int].get' accessor must be more restrictive than the property or indexer 'I12.this[int]'
                 // public interface I12{ int this[int x] { public get; set;} }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I12.this[int].get", "I12.this[int]").WithLocation(14, 48),
-                // (15,56): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (15,56): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 // public interface I13{ int this[int x] { get; protected set;} }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(15, 56),
-                // (16,60): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (16,60): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 // public interface I14{ int this[int x] { protected internal get; set;} }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "get").WithLocation(16, 60),
                 // (18,49): error CS0442: 'I16.this[int].get': abstract properties cannot have private accessors
@@ -19240,10 +19240,10 @@ public interface I19{ int this[int x] { get; private protected set;} }
                 // (19,27): error CS0276: 'I17.this[int]': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 // public interface I17{ int this[int x] { private get;} }
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "this").WithArguments("I17.this[int]").WithLocation(19, 27),
-                // (21,45): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (21,45): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 // public interface I18{ private protected int this[int x] { get; } }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "this").WithLocation(21, 45),
-                // (22,64): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (22,64): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 // public interface I19{ int this[int x] { get; private protected set;} }
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(22, 64)
                 );
@@ -23665,13 +23665,13 @@ public interface I1
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
-                // (5,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (5,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected event System.Action P02 {add{}}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P02").WithLocation(5, 35),
                 // (5,40): error CS8701: Target runtime doesn't support default interface implementation.
                 //     protected event System.Action P02 {add{}}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(5, 40),
-                // (6,44): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (6,44): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal event System.Action P03 {remove{}}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P03").WithLocation(6, 44),
                 // (6,49): error CS8701: Target runtime doesn't support default interface implementation.
@@ -23740,13 +23740,13 @@ public interface I1
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32),
-                // (17,43): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (17,43): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     private protected event System.Action P14;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P14").WithLocation(17, 43),
-                // (18,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (18,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected event System.Action P15;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P15").WithLocation(18, 35),
-                // (19,44): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (19,44): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal event System.Action P16;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P16").WithLocation(19, 44)
                 );
@@ -28181,16 +28181,16 @@ class Test1 : I1
             }
 
             compilation1.VerifyDiagnostics(
-                // (4,25): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (4,25): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected interface T1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T1").WithLocation(4, 25),
-                // (9,21): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (9,21): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected class T2
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T2").WithLocation(9, 21),
-                // (12,22): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (12,22): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected struct T3
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T3").WithLocation(12, 22),
-                // (15,20): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (15,20): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected enum T4
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 20)
                 );
@@ -28357,16 +28357,16 @@ class Test1
             }
 
             compilation1.VerifyDiagnostics(
-                // (4,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (4,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal interface T1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T1").WithLocation(4, 34),
-                // (9,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (9,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal class T2
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T2").WithLocation(9, 30),
-                // (12,31): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (12,31): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal struct T3
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T3").WithLocation(12, 31),
-                // (15,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (15,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal enum T4
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 29)
                 );
@@ -28690,16 +28690,16 @@ class Test1
             }
 
             compilation1.VerifyDiagnostics(
-                // (4,33): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (4,33): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     private protected interface T1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T1").WithLocation(4, 33),
-                // (9,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (9,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     private protected class T2
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T2").WithLocation(9, 29),
-                // (12,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (12,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     private protected struct T3
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T3").WithLocation(12, 30),
-                // (15,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (15,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     private protected enum T4
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 28)
                 );
@@ -37007,13 +37007,13 @@ public interface I1
                 // (4,9): error CS0525: Interfaces cannot contain instance fields
                 //     int F1;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 9),
-                // (5,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (5,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected static int F2;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F2").WithLocation(5, 26),
-                // (6,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (6,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal static int F3;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F3").WithLocation(6, 35),
-                // (7,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                // (7,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     private protected static int F4;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F4").WithLocation(7, 34),
                 // (8,9): error CS0525: Interfaces cannot contain instance fields
@@ -39178,40 +39178,40 @@ class Test2 : Test1
                                                      parseOptions: TestOptions.Regular);
 
                 compilation2.VerifyDiagnostics(
-                    // (9,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (9,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         System.Console.WriteLine(I0.F1);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.F1").WithLocation(9, 34),
-                    // (10,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (10,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         System.Console.WriteLine(I0.P2);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.P2").WithLocation(10, 34),
-                    // (11,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (11,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         I0.M3();
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.M3").WithLocation(11, 9),
-                    // (12,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (12,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         I0.E4 += I0.M3;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.E4 += I0.M3").WithLocation(12, 9),
-                    // (12,18): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (12,18): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         I0.E4 += I0.M3;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.M3").WithLocation(12, 18),
-                    // (13,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (13,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         I0.E4 -= new D0(I0.M3);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.E4 -= new D0(I0.M3)").WithLocation(13, 9),
-                    // (13,25): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (13,25): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         I0.E4 -= new D0(I0.M3);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.M3").WithLocation(13, 25),
-                    // (14,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (14,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         I0.P2 = 3;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.P2").WithLocation(14, 9),
-                    // (15,12): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (15,12): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         I0.C6.M();
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "C6").WithLocation(15, 12),
-                    // (16,17): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (16,17): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         _ = new C7<int>();
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "C7<int>").WithLocation(16, 17),
-                    // (17,13): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (17,13): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         _ = I0.P8;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.P8").WithLocation(17, 13),
-                    // (20,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (20,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         I0.P9 = 13;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.P9").WithLocation(20, 9)
                     );
@@ -39328,31 +39328,31 @@ interface Test4 : I1
                                                      parseOptions: TestOptions.Regular);
 
                 compilation3.VerifyDiagnostics(
-                    // (7,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (7,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         System.Console.WriteLine(i1.P20);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.P20").WithLocation(7, 34),
-                    // (8,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (8,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         i1.M30();
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.M30").WithLocation(8, 9),
-                    // (9,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (9,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         i1.E40 += i1.M30;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.E40 += i1.M30").WithLocation(9, 9),
-                    // (9,19): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (9,19): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         i1.E40 += i1.M30;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.M30").WithLocation(9, 19),
-                    // (10,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (10,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         i1.E40 -= new D1(i1.M30);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.E40 -= new D1(i1.M30)").WithLocation(10, 9),
-                    // (10,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (10,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         i1.E40 -= new D1(i1.M30);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.M30").WithLocation(10, 26),
-                    // (11,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (11,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         i1[50] = default;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1[50]").WithLocation(11, 9),
-                    // (12,13): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (12,13): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         _ = i1.P50;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.P50").WithLocation(12, 13),
-                    // (15,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.
+                    // (15,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                     //         i1.P60 = 13;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.P60").WithLocation(15, 9)
                     );

@@ -278,8 +278,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
-        <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.</source>
-        <target state="new">Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for an interface member, or a type nested into an interface.</target>
+        <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
+        <target state="new">Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
