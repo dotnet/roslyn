@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Extract_Method_refactoring))
             {
-                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoaddedOpenDocumentInCurrentContextWithChangesAsync(
+                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
                     context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
                 if (document == null)
                 {
