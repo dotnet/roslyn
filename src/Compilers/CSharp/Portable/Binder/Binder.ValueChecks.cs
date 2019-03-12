@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             (RequiresAssignableVariable(valueKind) && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true))
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
-                        Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
+                        Error(diagnostics, GetThisLvalueError(valueKind, isValueType: thisref.Type.IsValueType), node, ThisParameterSymbol.SymbolName);
                         return false;
                     }
 
@@ -1518,7 +1518,7 @@ moreArguments:
             Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
 
-        static private ErrorCode GetThisLvalueError(BindValueKind kind)
+        static private ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType)
         {
             switch (kind)
             {
@@ -1533,7 +1533,7 @@ moreArguments:
                     return ErrorCode.ERR_InvalidAddrOp;
 
                 case BindValueKind.IncrementDecrement:
-                    return ErrorCode.ERR_IncrementLvalueExpected;
+                    return isValueType ? ErrorCode.ERR_AssgReadonlyLocal : ErrorCode.ERR_IncrementLvalueExpected;
 
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
