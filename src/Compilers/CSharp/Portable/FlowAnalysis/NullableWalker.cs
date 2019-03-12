@@ -293,13 +293,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAttribute attribute,
             DiagnosticBag diagnostics)
         {
-            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() ||
-                attribute.Constructor is null)
+            if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
             {
                 return;
             }
 
-            Analyze(compilation, attribute.Constructor, attribute, diagnostics);
+            Analyze(compilation, null, attribute, diagnostics, useMethodSignatureReturnType: false, useMethodSignatureParameterTypes: false, methodSignatureOpt: null, returnTypes: null, initialState: null, callbackOpt: null);
         }
 
         internal static void Analyze(
@@ -1102,7 +1101,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void EnterParameters()
         {
-            var methodParameters = ((MethodSymbol)_symbol).Parameters;
+            var methodSymbol = _symbol as MethodSymbol;
+            if (methodSymbol is null)
+            {
+                return;
+            }
+
+            var methodParameters = methodSymbol.Parameters;
             var signatureParameters = _useMethodSignatureParameterTypes ? _methodSignatureOpt.Parameters : methodParameters;
             Debug.Assert(signatureParameters.Length == methodParameters.Length);
             int n = methodParameters.Length;

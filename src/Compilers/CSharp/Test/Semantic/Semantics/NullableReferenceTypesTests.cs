@@ -5293,6 +5293,137 @@ class D { }
         }
 
         [Fact]
+        public void AttributeArgument_NoMatchingConstructor_NullLiteral()
+        {
+            var source =
+@"
+#nullable enable
+class MyAttribute : System.Attribute 
+{
+}
+
+[MyAttribute(null)] //1
+class C { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,2): error CS1729: 'MyAttribute' does not contain a constructor that takes 1 arguments
+                // [MyAttribute(null)] //1
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "MyAttribute(null)").WithArguments("MyAttribute", "1").WithLocation(7, 2)
+                );
+        }
+
+        [Fact]
+        public void AttributeArgument_NoMatchingConstructor_Array_NullValueInInitializer()
+        {
+            var source =
+@"
+#nullable enable
+class MyAttribute : System.Attribute
+{
+}
+
+[MyAttribute(new string[] { null })] //1
+class C { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,2): error CS1729: 'MyAttribute' does not contain a constructor that takes 1 arguments
+                // [MyAttribute(new string[] { null })] //1
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "MyAttribute(new string[] { null })").WithArguments("MyAttribute", "1").WithLocation(7, 2),
+                // (7,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                // [MyAttribute(new string[] { null })] //1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 29)
+                );
+        }
+
+        [Fact]
+        public void AttributeArgument_NoMatchingConstructor_PropertyAssignement_NullLiteral()
+        {
+            var source =
+@"
+#nullable enable
+class MyAttribute : System.Attribute
+{
+    public MyAttribute() { }
+	
+	public string[] PropertyArray { get; set; } = new string[] { ""str"" };
+
+	public string[]? PropertyNullableArray { get; set; } = new string[] { ""str"" };
+}
+
+[MyAttribute(  // 1
+    new string[] { null }, // 2
+    PropertyArray = null, // 3
+    PropertyNullableArray = new string[] { null } // 4
+)] 
+class C { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,2): error CS1729: 'MyAttribute' does not contain a constructor that takes 1 arguments
+                // [MyAttribute(  // 1
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"MyAttribute(  // 1
+    new string[] { null }, // 2
+    PropertyArray = null, // 3
+    PropertyNullableArray = new string[] { null } // 4
+)").WithArguments("MyAttribute", "1").WithLocation(12, 2),
+                // (13,20): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     new string[] { null }, // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 20),
+                // (14,21): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     PropertyArray = null, // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 21),
+                // (15,44): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     PropertyNullableArray = new string[] { null } // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 44)
+                );
+        }
+
+        [Fact]
+        public void AttributeArgument_NoMatchingConstructor_FieldAssignement_NullLiteral()
+        {
+            var source =
+@"
+#nullable enable
+class MyAttribute : System.Attribute
+{
+    public MyAttribute() { }
+
+	public string[] fieldArray = new string[] { };
+
+    public string?[] fieldArrayOfNullable = new string?[] { };
+}
+
+[MyAttribute( // 1
+    new string[] { null }, // 2
+    fieldArray = null, // 3
+    fieldArrayOfNullable = new string[] { null } // 4
+)] 
+class C { }
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (12,2): error CS1729: 'MyAttribute' does not contain a constructor that takes 1 arguments
+                // [MyAttribute( // 1
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, @"MyAttribute( // 1
+    new string[] { null }, // 2
+    fieldArray = null, // 3
+    fieldArrayOfNullable = new string[] { null } // 4
+)").WithArguments("MyAttribute", "1").WithLocation(12, 2),
+                // (13,20): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     new string[] { null }, // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 20),
+                // (14,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     fieldArray = null, // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 18),
+                // (15,43): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     fieldArrayOfNullable = new string[] { null } // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 43)
+                );
+        }
+
+        [Fact]
         public void AttributeArgument_ComplexAssignment()
         {
             var source =
