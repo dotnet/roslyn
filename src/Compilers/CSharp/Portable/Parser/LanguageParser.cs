@@ -10406,6 +10406,7 @@ tryAgain:
                 case SyntaxKind.QuestionQuestionToken:
                 case SyntaxKind.EndOfFileToken:
                 case SyntaxKind.SwitchKeyword:
+                case SyntaxKind.EqualsGreaterThanToken:
                     return false;
                 default:
                     return true;

@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.SpecialType)
                 {
                     case SpecialType.System_Object:
-                        Debug.Assert(!type.NullableAnnotation.IsAnyNullable());
+                        Debug.Assert(!type.NullableAnnotation.IsAnnotated());
                         break;
                     case SpecialType.System_ValueType:
                         seenValueType = true;

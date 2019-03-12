@@ -179,7 +179,7 @@ jobs:
       continueOnError: true
       condition: always()
     
-  - ${{ if and(eq(parameters.enablePublishBuildAssets, true), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - ${{ if and(eq(parameters.enablePublishBuildAssets, true), ne(variables['_PublishUsingPipelines'], 'true'), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
     - task: CopyFiles@2
       displayName: Gather Asset Manifests
       inputs:
