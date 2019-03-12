@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
@@ -21,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name(PredefinedCommandHandlerNames.EndConstruct)>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
+    <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
     <Order(After:=PredefinedCommandHandlerNames.AutomaticLineEnder)>
     Friend Class EndConstructCommandHandler
         Implements IChainedCommandHandler(Of ReturnKeyCommandArgs)

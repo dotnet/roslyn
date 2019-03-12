@@ -17,15 +17,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        public override async Task InitializeAsync()
-        {
-            await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
-        }
-
         public override Task DisposeAsync()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
             VisualStudio.InteractiveWindow.ClearReplText();
             VisualStudio.InteractiveWindow.Reset();
             return base.DisposeAsync();
