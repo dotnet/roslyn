@@ -5129,8 +5129,8 @@ class C { }
 class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
-	
-	public string MyValue { get; set; } = ""str"";
+    
+    public string MyValue { get; set; } = ""str"";
 }
 
 [MyAttribute(MyValue = null)] //1
@@ -5156,10 +5156,10 @@ class D { }
 class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
-	
-	public string[] PropertyArray { get; set; } = new string[] { };
+    
+    public string[] PropertyArray { get; set; } = new string[] { };
 
-	public string[]? NullablePropertyArray { get; set; } = null;
+    public string[]? NullablePropertyArray { get; set; } = null;
 
 }
 
@@ -5186,11 +5186,10 @@ class D { }
 class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
-	
-	public string[] PropertyArray { get; set; } = new string[] { ""str"" };
 
-	public string[]? PropertyNullableArray { get; set; } = new string[] { ""str"" };
+    public string[] PropertyArray { get; set; } = new string[] { ""str"" };
 
+    public string[]? PropertyNullableArray { get; set; } = new string[] { ""str"" };
 }
 
 [MyAttribute(PropertyArray = new string?[]{ null })] //1
@@ -5216,8 +5215,8 @@ class D { }
 class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
-	
-	public string myValue = ""str"";
+
+    public string myValue = ""str"";
 }
 
 [MyAttribute(myValue = null)] //1
@@ -5243,8 +5242,8 @@ class D { }
 class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
-	
-	public string[] fieldArray = new string[] { };
+
+    public string[] fieldArray = new string[] { };
 
     public string[]? nullableFieldArray = null;
 }
@@ -5272,8 +5271,8 @@ class D { }
 class MyAttribute : System.Attribute
 {
     public MyAttribute() { }
-	
-	public string[] fieldArray = new string[] { };
+
+    public string[] fieldArray = new string[] { };
 
     public string?[] fieldArrayOfNullable = new string?[] { };
 }
@@ -5345,9 +5344,9 @@ class C { }
 #nullable enable
 class MyAttribute : System.Attribute
 {
-	public string[] PropertyArray { get; set; } = new string[] { ""str"" };
+    public string[] PropertyArray { get; set; } = new string[] { ""str"" };
 
-	public string[]? PropertyNullableArray { get; set; } = new string[] { ""str"" };
+    public string[]? PropertyNullableArray { get; set; } = new string[] { ""str"" };
 }
 
 [MyAttribute(  // 1
@@ -5386,7 +5385,7 @@ class C { }
 #nullable enable
 class MyAttribute : System.Attribute
 {
-	public string[] fieldArray = new string[] { };
+    public string[] fieldArray = new string[] { };
 
     public string?[] fieldArrayOfNullable = new string?[] { };
 }
@@ -5429,8 +5428,8 @@ class C { }
 class MyAttribute : System.Attribute
 {
     public MyAttribute(string s, string s2 = ""str"", string s3 = ""str"") { }
-	
-	public string[] fieldArray = new string[] { };
+
+    public string[] fieldArray = new string[] { };
 
     public string?[] fieldArrayOfNullable = new string[] { };
 
