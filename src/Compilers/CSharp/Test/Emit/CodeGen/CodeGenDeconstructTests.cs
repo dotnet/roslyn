@@ -270,7 +270,7 @@ class C
             var defaultInfo = model.GetDeconstructionInfo(assignment);
             Assert.Null(defaultInfo.Method);
             Assert.Empty(defaultInfo.Nested);
-            Assert.Equal(ConversionKind.NoConversion, defaultInfo.Conversion.Value.Kind);
+            Assert.Equal(ConversionKind.UnsetConversionKind, defaultInfo.Conversion.Value.Kind);
         }
 
         [Fact]
@@ -301,7 +301,7 @@ class C
             var foreachDeconstruction = (ForEachVariableStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachVariableStatement).AsNode();
             Assert.Equal(@"foreach (char in s) { }", foreachDeconstruction.ToString());
             var deconstructionInfo = model.GetDeconstructionInfo(foreachDeconstruction);
-            Assert.Equal(Conversion.NoConversion, deconstructionInfo.Conversion);
+            Assert.Equal(Conversion.UnsetConversion, deconstructionInfo.Conversion);
             Assert.Null(deconstructionInfo.Method);
             Assert.Empty(deconstructionInfo.Nested);
         }

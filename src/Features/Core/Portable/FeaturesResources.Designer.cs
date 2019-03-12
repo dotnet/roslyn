@@ -4575,6 +4575,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Wrap and align expression.
+        /// </summary>
+        internal static string Wrap_and_align_expression {
+            get {
+                return ResourceManager.GetString("Wrap_and_align_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wrap every argument.
         /// </summary>
         internal static string Wrap_every_argument {

@@ -297,6 +297,10 @@ class X
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
                         case ErrorCode.ERR_FeatureInPreview:
                         case ErrorCode.WRN_PossibleNull:
+                        case ErrorCode.WRN_ConditionalAccessMayReturnNull:
+                        case ErrorCode.WRN_AsOperatorMayReturnNull:
+                        case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
+                        case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

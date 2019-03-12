@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
                 var expression = this as BoundExpression;
-                return expression != null && !ReferenceEquals(expression.Type, null) && expression.Type.IsErrorType();
+                return expression?.Type?.IsErrorType() == true;
             }
         }
 

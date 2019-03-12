@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TupleTypeSymbol WithElementTypes(ImmutableArray<TypeSymbolWithAnnotations> newElementTypes)
         {
             Debug.Assert(_elementTypes.Length == newElementTypes.Length);
-            Debug.Assert(newElementTypes.All(t => !t.IsNull));
+            Debug.Assert(newElementTypes.All(t => t.HasType));
 
             NamedTypeSymbol firstTupleType;
             NamedTypeSymbol chainedTupleType;
@@ -1490,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
                 TypeSymbolWithAnnotations typeArgumentB = typeArgumentsB[i];
-                TypeSymbolWithAnnotations merged = mergeNullability(typeArgumentA, typeArgumentB);
+                TypeSymbolWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, variance);
                 allTypeArguments.Add(merged);
                 if (!typeArgumentA.IsSameAs(merged))
                 {
@@ -1506,31 +1506,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allTypeArguments.Free();
             return haveChanges;
-
-            // We use special rules for merging tuples, allowing nested types to remain unspeakable
-            TypeSymbolWithAnnotations mergeNullability(TypeSymbolWithAnnotations one, TypeSymbolWithAnnotations other)
-            {
-                TypeSymbol typeSymbol = other.TypeSymbol;
-                NullableAnnotation nullableAnnotation = mergeNullableAnnotation(typeSymbol, one.NullableAnnotation, other.NullableAnnotation);
-                TypeSymbol type = one.TypeSymbol.MergeNullability(typeSymbol, variance);
-                Debug.Assert((object)type != null);
-                return TypeSymbolWithAnnotations.Create(type, nullableAnnotation, one.CustomModifiers);
-            }
-
-            NullableAnnotation mergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b)
-            {
-                switch (variance)
-                {
-                    case VarianceKind.In:
-                        return a.MeetForFlowAnalysisFinally(b);
-                    case VarianceKind.Out:
-                        return a.JoinForFlowAnalysisBranches(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
-                    case VarianceKind.None:
-                        return a.EnsureCompatibleForTuples(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(variance);
-                }
-            }
         }
 
         private readonly static Func<TypeSymbol, bool> _IsPossiblyNullableReferenceTypeTypeParameterDelegate = type => type.IsPossiblyNullableReferenceTypeTypeParameter();

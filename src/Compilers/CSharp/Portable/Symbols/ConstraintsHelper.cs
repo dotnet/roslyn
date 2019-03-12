@@ -943,7 +943,7 @@ hasRelatedInterfaces:
 
                 if (includeNullability && nullabilityDiagnosticsBuilderOpt != null &&
                     typeParameter.ReferenceTypeConstraintIsNullable == false &&
-                    typeArgument.GetValueNullableAnnotation().IsAnyNullable())
+                    typeArgument.GetValueNullableAnnotation().IsAnnotated())
                 {
                     var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, containingSymbol.ConstructedFrom(), typeParameter, typeArgument);
                     nullabilityDiagnosticsBuilderOpt.Add(new TypeParameterDiagnosticInfo(typeParameter, diagnostic));
@@ -998,7 +998,7 @@ hasRelatedInterfaces:
                     if (includeNullability && nullabilityDiagnosticsBuilderOpt != null)
                     {
                         if (!SatisfiesConstraintType(conversions.WithNullability(true), typeArgument, constraintType, ref useSiteDiagnostics) ||
-                            (typeArgument.GetValueNullableAnnotation().IsAnyNullable() && !typeArgument.IsValueType &&
+                            (typeArgument.GetValueNullableAnnotation().IsAnnotated() && !typeArgument.IsValueType &&
                              TypeParameterSymbol.IsNotNullableIfReferenceTypeFromConstraintType(constraintType) == true))
                         {
                             var diagnostic = new CSDiagnosticInfo(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, containingSymbol.ConstructedFrom(), constraintType, typeParameter, typeArgument);
