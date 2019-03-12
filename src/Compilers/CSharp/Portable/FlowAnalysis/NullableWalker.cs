@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.StateWhenFalse[mainSlot] = whenFalse;
             }
 
-            if (whenTrue.IsNotNull()|| whenFalse.IsNotNull())
+            if (whenTrue.IsNotNull() || whenFalse.IsNotNull())
             {
                 var slotBuilder = ArrayBuilder<int>.GetInstance();
                 GetSlotsToMarkAsNotNullable(expression, slotBuilder);
