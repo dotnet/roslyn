@@ -4,32 +4,32 @@
     <body>
       <trans-unit id="101">
         <source>C#</source>
-        <target state="translated">C#</target>        
+        <target state="translated">C#</target>
         <note>Used many places.</note>
       </trans-unit>
       <trans-unit id="102">
         <source>Advanced</source>
-        <target state="translated">Дополнительно</target>        
+        <target state="translated">Дополнительно</target>
         <note>"Advanced" node under Tools &gt; Options, Text Editor, C#.</note>
       </trans-unit>
       <trans-unit id="103">
         <source>IntelliSense</source>
-        <target state="translated">IntelliSense</target>        
+        <target state="translated">IntelliSense</target>
         <note>"IntelliSense" node under Tools &gt; Options, Text Editor, C#.</note>
       </trans-unit>
       <trans-unit id="104">
         <source>C# Editor</source>
-        <target state="translated">Редактор C#</target>        
+        <target state="translated">Редактор C#</target>
         <note>"C# Editor" node in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="105">
         <source>Settings for the C# editor found under the Advanced, Formatting, and IntelliSense nodes in the Tools/Options dialog box.</source>
-        <target state="translated">Параметры для редактора C# находятся во вкладках "Дополнительно", "Форматирование " и "IntelliSense" в диалоговом окне "Сервис/Параметры".</target>        
+        <target state="translated">Параметры для редактора C# находятся во вкладках "Дополнительно", "Форматирование " и "IntelliSense" в диалоговом окне "Сервис/Параметры".</target>
         <note>"C# Editor" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="106">
         <source>Settings for general C# options found under the General and Tabs nodes in the Tools/Options dialog box.</source>
-        <target state="translated">Общие параметры C# находятся во вкладках "Общие" и "Табуляция" в диалоговом окне "Сервис/Параметры".</target>        
+        <target state="translated">Общие параметры C# находятся во вкладках "Общие" и "Табуляция" в диалоговом окне "Сервис/Параметры".</target>
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
@@ -120,7 +120,7 @@ Use enhanced colors;</source>
 При создании свойства;
 предпочитать свойства, создающие исключения;
 предпочитать автосвойства;
-Использовать расширенные цвета;</target>        
+Использовать расширенные цвета;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -133,7 +133,7 @@ Automatically format on paste;</source>
 Автоматически форматировать оператор при вводе точки с запятой;
 Автоматически форматировать блок при вводе закрывающей фигурной скобки;
 Автоматически форматировать при возврате;
-Автоматически форматировать при вставке;</target>        
+Автоматически форматировать при вставке;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -154,7 +154,7 @@ place goto labels one indent less than current;</source>
 Отступ для меток; 
 Помещать метки goto в самый левый столбец; 
 Делать нормальный отступ для меток; 
-Помещать метки goto на один отступ меньше, чем текущие;</target>        
+Помещать метки goto на один отступ меньше, чем текущие;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -191,7 +191,7 @@ Place query expression clauses on new line;</source>
 Параметры новых строк для выражения;
 Располагать члены инициализаторов объекта на новой строке;
 Располагать члены в анонимных типах на новой строке;
-Располагать выражения запроса на новой строке;</target>        
+Располагать выражения запроса на новой строке;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -256,12 +256,12 @@ Insert space before and after binary operators;</source>
 Задать интервал для операторов for;
 Игнорировать пробелы вокруг бинарных операторов;
 Удалять пробелы до и после бинарных операторов;
-Вставлять пробел до и после бинарных операторов;</target>        
+Вставлять пробел до и после бинарных операторов;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
         <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
-        <target state="translated">Изменение параметров форматирования для переноса по словам; оставить блок в одной строке; оставить запросы и объявления членов в той же строке</target>        
+        <target state="translated">Изменение параметров форматирования для переноса по словам; оставить блок в одной строке; оставить запросы и объявления членов в той же строке</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
@@ -292,82 +292,82 @@ Show name suggestions;</source>
 Никогда не добавлять новую строку при нажатии клавиши ВВОД;
 Добавлять новую строку при нажатии клавиши ВВОД только в конце полностью введенного слова;
 Всегда добавлять новую строку при нажатии клавиши ВВОД;
-Показывать варианты имен;</target>        
+Показывать варианты имен;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
-        <target state="translated">Форматирование</target>        
+        <target state="translated">Форматирование</target>
         <note>"Formatting" category node under Tools &gt; Options, Text Editor, C#, Code Style (no corresponding keywords)</note>
       </trans-unit>
       <trans-unit id="108">
         <source>General</source>
-        <target state="translated">Общие</target>        
+        <target state="translated">Общие</target>
         <note>"General" node under Tools &gt; Options, Text Editor, C# (used for Code Style and Formatting)</note>
       </trans-unit>
       <trans-unit id="109">
         <source>Indentation</source>
-        <target state="translated">Отступ</target>        
+        <target state="translated">Отступ</target>
         <note>"Indentation" node under Tools &gt; Options, Text Editor, C#, Formatting.</note>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">Перенос по словам</target>        
+        <target state="translated">Перенос по словам</target>
         <note />
       </trans-unit>
       <trans-unit id="111">
         <source>New Lines</source>
-        <target state="translated">Новые строки</target>        
+        <target state="translated">Новые строки</target>
         <note />
       </trans-unit>
       <trans-unit id="112">
         <source>Spacing</source>
-        <target state="translated">Интервалы</target>        
+        <target state="translated">Интервалы</target>
         <note />
       </trans-unit>
       <trans-unit id="2358">
         <source>CSharp Editor</source>
-        <target state="translated">Редактор CSharp</target>        
+        <target state="translated">Редактор CSharp</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
         <source>CSharp Editor with Encoding</source>
-        <target state="translated">Редактор CSharp с кодировкой</target>        
+        <target state="translated">Редактор CSharp с кодировкой</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
         <source>Microsoft Visual C#</source>
-        <target state="translated">Microsoft Visual C#</target>        
+        <target state="translated">Microsoft Visual C#</target>
         <note>Used for String in Tools &gt; Options, Text Editor, File Extensions</note>
       </trans-unit>
       <trans-unit id="114">
         <source>Code Style</source>
-        <target state="translated">Стиль кода</target>        
+        <target state="translated">Стиль кода</target>
         <note>"Code Style" category node under Tools &gt; Options, Text Editor, C# (no corresponding keywords)</note>
       </trans-unit>
       <trans-unit id="313">
         <source>Style;Qualify;This;Code Style;var;member access;locals;parameters;var preferences;predefined type;framework type;built-in types;when variable type is apparent;elsewhere;qualify field access;qualify property access; qualify method access;qualify event access;</source>
-        <target state="translated">Стиль;Соответствовать;Этот;Стиль кода;переменная;доступ к члену;локальные переменные;параметры;предпочтения переменных;предопределенный тип;тип платформы;встроенные типы;когда тип переменной является вероятным;в другом месте;определение доступа к полям;определение доступа к свойствам; определение доступа к методам;определение доступа к событиям;</target>        
+        <target state="translated">Стиль;Соответствовать;Этот;Стиль кода;переменная;доступ к члену;локальные переменные;параметры;предпочтения переменных;предопределенный тип;тип платформы;встроенные типы;когда тип переменной является вероятным;в другом месте;определение доступа к полям;определение доступа к свойствам; определение доступа к методам;определение доступа к событиям;</target>
         <note>C# Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="115">
         <source>Naming</source>
-        <target state="translated">Именование</target>        
+        <target state="translated">Именование</target>
         <note />
       </trans-unit>
       <trans-unit id="314">
         <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
-        <target state="translated">Стиль именования;стили имен;правило именования;соглашения об именовании</target>        
+        <target state="translated">Стиль именования;стили имен;правило именования;соглашения об именовании</target>
         <note>C# Naming Style options page keywords</note>
       </trans-unit>
       <trans-unit id="116">
         <source>C# Tools</source>
-        <target state="translated">Инструменты C#</target>        
+        <target state="translated">Инструменты C#</target>
         <note>Help &gt; About</note>
       </trans-unit>
       <trans-unit id="117">
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
-        <target state="translated">Компоненты C#, используемые в интегрированной среде разработки. В зависимости от типа и настроек проекта могут использоваться различные версии компилятора.</target>        
+        <target state="translated">Компоненты C#, используемые в интегрированной среде разработки. В зависимости от типа и настроек проекта могут использоваться различные версии компилятора.</target>
         <note>Help &gt; About</note>
       </trans-unit>
     </body>

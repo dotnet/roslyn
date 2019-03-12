@@ -4,32 +4,32 @@
     <body>
       <trans-unit id="101">
         <source>C#</source>
-        <target state="translated">C#</target>        
+        <target state="translated">C#</target>
         <note>Used many places.</note>
       </trans-unit>
       <trans-unit id="102">
         <source>Advanced</source>
-        <target state="translated">進階</target>        
+        <target state="translated">進階</target>
         <note>"Advanced" node under Tools &gt; Options, Text Editor, C#.</note>
       </trans-unit>
       <trans-unit id="103">
         <source>IntelliSense</source>
-        <target state="translated">IntelliSense</target>        
+        <target state="translated">IntelliSense</target>
         <note>"IntelliSense" node under Tools &gt; Options, Text Editor, C#.</note>
       </trans-unit>
       <trans-unit id="104">
         <source>C# Editor</source>
-        <target state="translated">C# 編輯器</target>        
+        <target state="translated">C# 編輯器</target>
         <note>"C# Editor" node in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="105">
         <source>Settings for the C# editor found under the Advanced, Formatting, and IntelliSense nodes in the Tools/Options dialog box.</source>
-        <target state="translated">在 [工具]/[選項] 對話方塊中的 [進階]、[格式化] 和 [IntelliSense] 節點下，所找到的 C# 編輯器設定。</target>        
+        <target state="translated">在 [工具]/[選項] 對話方塊中的 [進階]、[格式化] 和 [IntelliSense] 節點下，所找到的 C# 編輯器設定。</target>
         <note>"C# Editor" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="106">
         <source>Settings for general C# options found under the General and Tabs nodes in the Tools/Options dialog box.</source>
-        <target state="translated">在 [工具]/[選項] 對話方塊中的 [一般] 及 [定位點] 節點下，所找到的一般 C# 選項設定。</target>        
+        <target state="translated">在 [工具]/[選項] 對話方塊中的 [一般] 及 [定位點] 節點下，所找到的一般 C# 選項設定。</target>
         <note>"C#" node help text in profile Import/Export.</note>
       </trans-unit>
       <trans-unit id="306">
@@ -120,7 +120,7 @@ Use enhanced colors;</source>
 在產生屬性時;
 建議使用擲回屬性;
 建議使用自動屬性;
-使用增強色彩;</target>        
+使用增強色彩;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -133,7 +133,7 @@ Automatically format on paste;</source>
 在分號處自動將陳述式格式化;
 在右大括號處自動將區塊格式化;
 在換行時自動格式化;
-在貼上時自動格式化;</target>        
+在貼上時自動格式化;</target>
         <note>C# Formatting &gt; General options page keywords</note>
       </trans-unit>
       <trans-unit id="308">
@@ -154,7 +154,7 @@ place goto labels one indent less than current;</source>
 標籤縮排; 
 將 goto 標籤放入最左方欄位; 
 將標籤正常縮排; 
-將 goto 標籤在目前的位置凸出一排;</target>        
+將 goto 標籤在目前的位置凸出一排;</target>
         <note>C# Formatting &gt; Indentation options page keywords</note>
       </trans-unit>
       <trans-unit id="309">
@@ -191,7 +191,7 @@ Place query expression clauses on new line;</source>
 運算式的新行選項;
 將物件初始設定式中的成員換到新行;
 將匿名類型中的成員換到新行;
-將查詢運算式子句換到新行;</target>        
+將查詢運算式子句換到新行;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -256,12 +256,12 @@ Insert space before and after binary operators;</source>
 設定運算子的間距;
 略過二元運算子周圍的空格;
 移除二元運算子前後的空格;
-在二元運算子前後插入空格;</target>        
+在二元運算子前後插入空格;</target>
         <note>C# Formatting &gt; Spacing options page keywords</note>
       </trans-unit>
       <trans-unit id="311">
         <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
-        <target state="translated">變更換行的格式化選項;將區塊保留在同一行;將陳述式與成員宣告保留在同一行</target>        
+        <target state="translated">變更換行的格式化選項;將區塊保留在同一行;將陳述式與成員宣告保留在同一行</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
@@ -292,82 +292,82 @@ Show name suggestions;</source>
 永不在按下 enter 鍵時新增行;
 只在按下 enter 鍵時，於完整鍵入的文字結尾後新增行;
 永遠在按下 enter 鍵時新增行;
-顯示名稱建議;</target>        
+顯示名稱建議;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
         <source>Formatting</source>
-        <target state="translated">格式化</target>        
+        <target state="translated">格式化</target>
         <note>"Formatting" category node under Tools &gt; Options, Text Editor, C#, Code Style (no corresponding keywords)</note>
       </trans-unit>
       <trans-unit id="108">
         <source>General</source>
-        <target state="translated">一般</target>        
+        <target state="translated">一般</target>
         <note>"General" node under Tools &gt; Options, Text Editor, C# (used for Code Style and Formatting)</note>
       </trans-unit>
       <trans-unit id="109">
         <source>Indentation</source>
-        <target state="translated">縮排</target>        
+        <target state="translated">縮排</target>
         <note>"Indentation" node under Tools &gt; Options, Text Editor, C#, Formatting.</note>
       </trans-unit>
       <trans-unit id="110">
         <source>Wrapping</source>
-        <target state="translated">換行</target>        
+        <target state="translated">換行</target>
         <note />
       </trans-unit>
       <trans-unit id="111">
         <source>New Lines</source>
-        <target state="translated">新行</target>        
+        <target state="translated">新行</target>
         <note />
       </trans-unit>
       <trans-unit id="112">
         <source>Spacing</source>
-        <target state="translated">間距</target>        
+        <target state="translated">間距</target>
         <note />
       </trans-unit>
       <trans-unit id="2358">
         <source>CSharp Editor</source>
-        <target state="translated">CSharp 編輯器</target>        
+        <target state="translated">CSharp 編輯器</target>
         <note />
       </trans-unit>
       <trans-unit id="2359">
         <source>CSharp Editor with Encoding</source>
-        <target state="translated">具備編碼功能的 CSharp 編輯器</target>        
+        <target state="translated">具備編碼功能的 CSharp 編輯器</target>
         <note />
       </trans-unit>
       <trans-unit id="113">
         <source>Microsoft Visual C#</source>
-        <target state="translated">Microsoft Visual C#</target>        
+        <target state="translated">Microsoft Visual C#</target>
         <note>Used for String in Tools &gt; Options, Text Editor, File Extensions</note>
       </trans-unit>
       <trans-unit id="114">
         <source>Code Style</source>
-        <target state="translated">程式碼樣式</target>        
+        <target state="translated">程式碼樣式</target>
         <note>"Code Style" category node under Tools &gt; Options, Text Editor, C# (no corresponding keywords)</note>
       </trans-unit>
       <trans-unit id="313">
         <source>Style;Qualify;This;Code Style;var;member access;locals;parameters;var preferences;predefined type;framework type;built-in types;when variable type is apparent;elsewhere;qualify field access;qualify property access; qualify method access;qualify event access;</source>
-        <target state="translated">樣式;限定;此;程式碼樣式;var;成員存取權;本機;參數;var 偏好;預先定義的類型;架構類型;內建類型;當變數類型明顯時;其他地方;限定欄位存取權;限定屬性存取權;限定方法存取權;限定事件存取權;</target>        
+        <target state="translated">樣式;限定;此;程式碼樣式;var;成員存取權;本機;參數;var 偏好;預先定義的類型;架構類型;內建類型;當變數類型明顯時;其他地方;限定欄位存取權;限定屬性存取權;限定方法存取權;限定事件存取權;</target>
         <note>C# Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="115">
         <source>Naming</source>
-        <target state="translated">命名</target>        
+        <target state="translated">命名</target>
         <note />
       </trans-unit>
       <trans-unit id="314">
         <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
-        <target state="translated">命名樣式;命名樣式;命名規則;命名慣例</target>        
+        <target state="translated">命名樣式;命名樣式;命名規則;命名慣例</target>
         <note>C# Naming Style options page keywords</note>
       </trans-unit>
       <trans-unit id="116">
         <source>C# Tools</source>
-        <target state="translated">C# 工具</target>        
+        <target state="translated">C# 工具</target>
         <note>Help &gt; About</note>
       </trans-unit>
       <trans-unit id="117">
         <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
-        <target state="translated">在 IDE 中使用的 C# 元件。根據您的專案類型與設定，可能會使用其他版本的編譯器。</target>        
+        <target state="translated">在 IDE 中使用的 C# 元件。根據您的專案類型與設定，可能會使用其他版本的編譯器。</target>
         <note>Help &gt; About</note>
       </trans-unit>
     </body>
