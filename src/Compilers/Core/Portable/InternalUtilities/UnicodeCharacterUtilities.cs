@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Globalization;
-using System.Linq;
 
 namespace Roslyn.Utilities
 {
@@ -120,7 +119,15 @@ namespace Roslyn.Utilities
                 return false;
             }
 
-            return @namespace.Split('.').All(IsValidIdentifier);
+            foreach (var identifier in @namespace.Split('.'))
+            {
+                if (!IsValidIdentifier(identifier))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static bool IsLetterChar(UnicodeCategory cat)
