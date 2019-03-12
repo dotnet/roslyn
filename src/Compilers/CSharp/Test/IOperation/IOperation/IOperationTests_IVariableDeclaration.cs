@@ -2283,6 +2283,71 @@ IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration
         }
 
         [Fact]
+        public void UsingBlock_InvalidIgnoredDimensions_SwitchExpression()
+        {
+            string source = @"
+class C
+{
+    void M1()
+    {
+        int y = 10;
+       using( /*<bind>*/int[] x = new int[0]/*</bind>*/){}
+    }
+}
+";
+            var syntaxTree = Parse(source, filename: "file.cs");
+            var rankSpecifierOld = syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<ArrayRankSpecifierSyntax>().First();
+            var rankSpecifierNew = rankSpecifierOld
+                .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(SyntaxFactory.NodeOrTokenList(SyntaxFactory.ParseExpression("y switch { int z => 42 }"))));
+            syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
+
+
+            string expectedOperationTree = @"
+	IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'int[y switc ...  new int[0]')
+	  Ignored Dimensions(1):
+	      ISwitchExpressionOperation (1 arms) (OperationKind.SwitchExpression, Type: System.Int32, IsInvalid) (Syntax: 'y switch { int z => 42 }')
+	        Value:
+	          ILocalReferenceOperation: y (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+	        Arms(1):
+	            ISwitchExpressionArmOperation (1 locals) (OperationKind.SwitchExpressionArm, Type: null, IsInvalid) (Syntax: 'int z => 42')
+	              Pattern:
+	                IDeclarationPatternOperation (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int z') (InputType: System.Int32, DeclaredSymbol: System.Int32 z, MatchesNull: False)
+	              Value:
+	                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 42, IsInvalid) (Syntax: '42')
+	              Locals: Local_1: System.Int32 z
+	  Declarators:
+	      IVariableDeclaratorOperation (Symbol: System.Int32[] x) (OperationKind.VariableDeclarator, Type: null, IsInvalid) (Syntax: 'x = new int[0]')
+	        Initializer:
+	          IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null, IsInvalid) (Syntax: '= new int[0]')
+	            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsInvalid) (Syntax: 'new int[0]')
+	              Dimension Sizes(1):
+	                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+	              Initializer:
+	                null
+	  Initializer:
+	    null
+";
+
+            var expectedDiagnostics = new[]
+            {
+                // file.cs(6,13): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         int y = 10;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(6, 13),
+                // file.cs(7,25): error CS1674: 'int[]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/){}
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[y switch { int z => 42 }] x = new int[0]").WithArguments("int[]").WithLocation(7, 25),
+                // file.cs(7,28): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/){}
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[y switch { int z => 42 }]").WithLocation(7, 28),
+                // file.cs(7,29): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //        using( /*<bind>*/int[y switch { int z => 42 }] x = new int[0]/*</bind>*/){}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "y switch { int z => 42 }").WithArguments("recursive patterns").WithLocation(7, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(new[] { syntaxTree }, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
         public void UsingStatement_InvalidIgnoredDimensions_SwitchExpression()
         {
             string source = @"
