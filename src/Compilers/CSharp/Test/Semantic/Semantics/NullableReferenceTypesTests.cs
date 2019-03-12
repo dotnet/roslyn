@@ -39175,6 +39175,55 @@ class C
         }
 
         [Fact]
+        [WorkItem(27317, "https://github.com/dotnet/roslyn/pull/27317")]
+        public void RefOutSuppressionInference()
+        {
+            var src = @"
+class C
+{
+    void M<T>(ref T t) { }
+    void M2<T>(out T t) => throw null!;
+    void M3<T>(in T t) { }
+    T M4<T>(in T t) => t;
+
+    void M3()
+    {
+        string? s1 = null;
+        M(ref s1!);
+        s1.ToString();
+
+        string? s2 = null;
+        M2(out s2!);
+        s2.ToString();
+
+        string? s3 = null;
+        M3(s3!);
+        s3.ToString(); // warn
+
+        string? s4 = null;
+        M3(in s4!);
+        s4.ToString(); // warn
+
+        string? s5 = null;
+        s5 = M4(s5!);
+        s5.ToString();
+
+        string? s6 = null;
+        s6 = M4(in s6!);
+        s6.ToString();
+    }
+}";
+            var comp = CreateCompilation(src, options: WithNonNullTypesTrue(TestOptions.DebugDll));
+            comp.VerifyDiagnostics(
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         s3.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s3").WithLocation(21, 9),
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         s4.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s4").WithLocation(25, 9));
+        }
+
+        [Fact]
         [WorkItem(27522, "https://github.com/dotnet/roslyn/issues/27522")]
         [WorkItem(29903, "https://github.com/dotnet/roslyn/issues/29903")]
         public void SuppressNullableWarning_Assignment()
