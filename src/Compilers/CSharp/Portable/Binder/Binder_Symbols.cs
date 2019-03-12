@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This method is used in deeply recursive parts of the compiler. Specifically this and
         /// <see cref="BindQualifiedName(ExpressionSyntax, SimpleNameSyntax, DiagnosticBag, ConsList{TypeSymbol}, bool)"/>
         /// are mutually recursive. The non-recursive parts of this method tend to reserve significantly large 
-        /// stack frames due to their use of large struct like <see cref="TypeSymbolWithAnnotations"/>.
+        /// stack frames due to their use of large struct like <see cref="TypeWithAnnotations"/>.
         ///
         /// To keep the stack frame size on recursive paths small the non-recursive parts are factored into local 
         /// functions. This means we pay their stack penalty only when they are used. They are themselves big 
