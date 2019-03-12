@@ -1319,7 +1319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected override BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node)
         {
             Debug.Assert(!IsConditionalState);
             bool wasReachable = this.State.Reachable;
@@ -2661,7 +2661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If you pass in a method symbol, its type arguments will be re-inferred and the re-inferred method will be returned.
         /// </summary>
-        private (MethodSymbol method, ImmutableArray<VisitResult> results) VisitArguments(
+        private (MethodSymbol? method, ImmutableArray<VisitResult> results) VisitArguments(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
@@ -3448,7 +3448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!singleType.OriginalDefinition.Equals(symbolDefContainer, TypeCompareKind.AllIgnoreOptions))
                 {
-                    result = null;
+                    result = null!; // result should be marked [NotNullWhenTrue]
                     return false;
                 }
                 result = symbolDef.SymbolAsMember(singleType);
@@ -3568,7 +3568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultType;
         }
 
-        private static bool AreNullableAndUnderlyingTypes(TypeSymbol nullableTypeOpt, TypeSymbol underlyingTypeOpt, out TypeSymbolWithAnnotations underlyingTypeWithAnnotations)
+        private static bool AreNullableAndUnderlyingTypes(TypeSymbol? nullableTypeOpt, TypeSymbol? underlyingTypeOpt, out TypeSymbolWithAnnotations underlyingTypeWithAnnotations)
         {
             if (nullableTypeOpt?.IsNullableType() == true &&
                 underlyingTypeOpt?.IsNullableType() == false)
@@ -3977,7 +3977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitReference:
                     if (reportTopLevelWarnings &&
                         operandOpt?.Kind == BoundKind.Literal &&
-                        operandOpt.ConstantValue?.IsNull == true &&
+                        operandOpt!.ConstantValue?.IsNull == true && // https://github.com/dotnet/roslyn/issues/31906: operandOpt should be considered not null
                         !isSuppressed &&
                         RequiresSafetyWarningWhenNullIntroduced(targetType))
                     {
@@ -4122,7 +4122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState operandType,
             bool useLegacyWarnings,
             AssignmentKind assignmentKind,
-            ParameterSymbol target,
+            ParameterSymbol? target,
             bool reportWarnings)
         {
             Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
@@ -4419,7 +4419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             valueSlot = -1;
                         }
 
-                        int targetSlot = MakeSlot(variable.Expression);
+                        int targetSlot = MakeSlot(variable.Expression!);
                         TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot);
 
                         // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
@@ -5572,7 +5572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitThrowStatement(BoundThrowStatement node)
+        public override BoundNode? VisitThrowStatement(BoundThrowStatement node)
         {
             VisitThrow(node.ExpressionOpt);
             return null;
@@ -5644,7 +5644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return pooledBuilder.ToStringAndFree();
 
-            string nameForSlot(int slot)
+            string? nameForSlot(int slot)
             {
                 if (slot < 0)
                     return null;
@@ -5727,10 +5727,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct LocalState : ILocalState
 #endif
         {
-            private ArrayBuilder<NullableFlowState> _state;
+            private ArrayBuilder<NullableFlowState>? _state;
             public bool Reachable { get; }
 
-            internal LocalState(bool reachable, ArrayBuilder<NullableFlowState> state)
+            internal LocalState(bool reachable, ArrayBuilder<NullableFlowState>? state)
             {
                 this.Reachable = reachable;
                 this._state = state;
