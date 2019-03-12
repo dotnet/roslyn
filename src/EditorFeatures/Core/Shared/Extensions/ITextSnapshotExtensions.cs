@@ -64,17 +64,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static async Task<Document> GetFullyLoaddedOpenDocumentInCurrentContextWithChangesAsync(
             this ITextSnapshot snapshot, IUIThreadOperationContext operationContext)
         {
-            // just get any document from whatever we have
-            var document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(operationContext.UserCancellationToken);
+            // just get a document from whatever we have
+            var document = snapshot.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             if (document == null)
             {
+                // we don't know about this buffer yet
                 return null;
             }
 
-            var title = string.Format(EditorFeaturesResources.Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail, document.Name);
+            var description = string.Format(EditorFeaturesResources.Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail, document.Name);
 
             // partial mode is always cancellable
-            using (operationContext.AddScope(allowCancellation: true, title))
+            using (operationContext.AddScope(allowCancellation: true, description))
             {
                 var service = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
                 if (service != null)
