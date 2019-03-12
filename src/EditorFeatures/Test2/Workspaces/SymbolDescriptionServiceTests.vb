@@ -226,6 +226,27 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             Await TestCSharpAsync(workspace, $"({FeaturesResources.field}) static volatile int Foo.x")
         End Function
 
+        <Fact>
+        <WorkItem(33049, "https://github.com/dotnet/roslyn/issues/33049")>
+        Public Async Function TestCSharpDefaultParameter() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            using System.Threading;
+            class Goo
+            {
+                void Method(CancellationToken cancellationToken = default(CancellationToken))
+                {
+                    $$Method(CancellationToken.None);
+                }
+            }
+        </Document>
+    </Project>
+</Workspace>
+            Await TestCSharpAsync(workspace, $"void Goo.Method([CancellationToken cancellationToken = default])")
+        End Function
+
 #End Region
 
 #Region "Basic SymbolDescription Tests"

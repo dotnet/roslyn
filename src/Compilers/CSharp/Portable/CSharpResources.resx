@@ -4565,7 +4565,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -5410,10 +5410,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A null literal introduces a null value for a type parameter.</value>
   </data>
   <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
-    <value>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</value>
+    <value>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_NullabilityMismatchInArgument_Title" xml:space="preserve">
-    <value>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</value>
+    <value>Argument cannot be used for parameter due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_NullabilityMismatchInArgumentForOutput" xml:space="preserve">
     <value>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</value>
@@ -5434,10 +5434,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match the target delegate.</value>
   </data>
   <data name="WRN_NullAsNonNullable" xml:space="preserve">
-    <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
+    <value>Cannot convert null literal to non-nullable reference type.</value>
   </data>
   <data name="WRN_NullAsNonNullable_Title" xml:space="preserve">
-    <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
+    <value>Cannot convert null literal to non-nullable reference type.</value>
   </data>
   <data name="ERR_AnnotationDisallowedInObjectCreation" xml:space="preserve">
     <value>Cannot use a nullable reference type in object creation.</value>
@@ -5503,7 +5503,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
-    <value>The first parameter of an 'in' extension method '{0}' must be a value type.</value>
+    <value>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</value>
   </data>
   <data name="ERR_FieldsInRoStruct" xml:space="preserve">
     <value>Instance fields of readonly structs must be readonly.</value>

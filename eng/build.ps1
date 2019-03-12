@@ -60,6 +60,11 @@ param (
 
     [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
+if ($PSVersionTable.PSVersion.Major -lt "5") {
+    Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
+    exit 1
+}
+
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
@@ -201,7 +206,11 @@ function BuildSolution() {
     $projects = Join-Path $RepoRoot $solution
     $enableAnalyzers = !$skipAnalyzers
     $toolsetBuildProj = InitializeToolset
-    $quietRestore = !$ci
+
+    # Have to disable quiet restore during bootstrap builds to work around 
+    # an arcade bug
+    # https://github.com/dotnet/arcade/issues/2220
+    $quietRestore = !($ci -or ($bootstrapDir -ne ""))
 
     # PROTOTYPE(DefaultInterfaceImplementation): Added "netcoreapp3.0%3B", original value was "netcoreapp2.1"
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.0%3Bnetcoreapp2.1" } else { "" }

@@ -116,11 +116,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 .ToArray();
         }
 
-        private static IExportProviderFactory CreateExportProviderFactoryWithCSharpAndVisualBasic()
-        {
-            return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic);
-        }
-
         private static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
         {
             return ExportProviderCache

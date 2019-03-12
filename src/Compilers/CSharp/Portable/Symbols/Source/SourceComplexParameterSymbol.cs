@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (parameterType.IsReferenceType &&
-                parameterType.NullableAnnotation.IsAnyNotNullable() &&
+                parameterType.NullableAnnotation.IsNotAnnotated() &&
                 convertedExpression.ConstantValue?.IsNull == true &&
                 !suppressNullableWarning(convertedExpression) &&
                 DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
