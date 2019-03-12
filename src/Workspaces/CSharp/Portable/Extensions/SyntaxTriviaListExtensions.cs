@@ -46,5 +46,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             return triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
         }
+
+        /// <summary>
+        /// Takes an INCLUSIVE range of trivia from the trivia list. 
+        /// </summary>
+        public static IEnumerable<SyntaxTrivia> TakeRange(this SyntaxTriviaList triviaList, int start, int end)
+        {
+            while (start <= end)
+            {
+                yield return triviaList[start++];
+            }
+        }
     }
 }

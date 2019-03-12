@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -27,14 +28,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedParametersA
                 new CodeStyleOption<UnusedParametersPreference>(UnusedParametersPreference.NonPublicMethods, NotificationOption.Suggestion));
 
         // Ensure that we explicitly test missing UnusedParameterDiagnosticId, which has no corresponding code fix (non-fixable diagnostic).
-        private Task TestDiagnosticMissingAsync(string initialMarkup)
-            => TestDiagnosticMissingAsync(initialMarkup, options: null);
+        private Task TestDiagnosticMissingAsync(string initialMarkup, ParseOptions parseOptions = null)
+            => TestDiagnosticMissingAsync(initialMarkup, options: null, parseOptions);
+        private Task TestDiagnosticsWithAsync(string initialMarkup, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
+            => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions, expectedDiagnostics);
         private Task TestDiagnosticsAsync(string initialMarkup, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, options: null, expectedDiagnostics);
-        private Task TestDiagnosticMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options)
-            => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(options: options, retainNonFixableDiagnostics: true));
+            => TestDiagnosticsAsync(initialMarkup, options: null, parseOptions: null, expectedDiagnostics);
+        private Task TestDiagnosticMissingAsync(string initialMarkup, IDictionary<OptionKey, object> options, ParseOptions parseOptions = null)
+            => TestDiagnosticMissingAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true));
         private Task TestDiagnosticsAsync(string initialMarkup, IDictionary<OptionKey, object> options, params DiagnosticDescription[] expectedDiagnostics)
-            => TestDiagnosticsAsync(initialMarkup, new TestParameters(options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
+            => TestDiagnosticsAsync(initialMarkup, options, parseOptions: null, expectedDiagnostics);
+        private Task TestDiagnosticsAsync(string initialMarkup, IDictionary<OptionKey, object> options, ParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
+            => TestDiagnosticsAsync(initialMarkup, new TestParameters(parseOptions, options: options, retainNonFixableDiagnostics: true), expectedDiagnostics);
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
         public async Task Parameter_Used()
@@ -1174,6 +1179,20 @@ internal sealed class CustomSerializingType : ISerializable
         }
     }
 }");
+        }
+
+        [WorkItem(33299, "https://github.com/dotnet/roslyn/issues/33299")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedParameters)]
+        public async Task NullCoalesceAssignment()
+        {
+            await TestDiagnosticMissingAsync(
+@"class C
+{
+    public static void M(C [|x|])
+    {
+        x ??= new C();
+    }
+}", parseOptions: new CSharpParseOptions(LanguageVersion.CSharp8));
         }
     }
 }

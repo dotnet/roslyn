@@ -2230,5 +2230,73 @@ public class Class1
   IL_0060:  ret
 }");
         }
+
+        // Possible test helper bug on Linux; see https://github.com/dotnet/roslyn/issues/33356
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void SwitchExpressionSequencePoints()
+        {
+            string source = @"
+public class Program
+{
+    public static void Main()
+    {
+        int i = 0;
+        var y = (i switch
+        {
+            0 => new Program(),
+            1 => new Program(),
+            _ => new Program(),
+        }).Chain();
+        y.Chain2();
+    }
+    public Program Chain() => this;
+    public Program Chain2() => this;
+}
+";
+            var v = CompileAndVerify(source, options: TestOptions.DebugExe);
+            v.VerifyIL(qualifiedMethodName: "Program.Main",
+@"{
+  // Code size       55 (0x37)
+  .maxstack  2
+  .locals init (int V_0, //i
+                Program V_1, //y
+                Program V_2,
+                Program V_3)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: int i = 0;
+  IL_0001:  ldc.i4.0
+  IL_0002:  stloc.0
+  // sequence point: var y = (i s ...   }).Chain()
+  IL_0003:  ldloc.0
+  IL_0004:  brfalse.s  IL_000e
+  IL_0006:  br.s       IL_0008
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  beq.s      IL_0016
+  IL_000c:  br.s       IL_001e
+  IL_000e:  newobj     ""Program..ctor()""
+  IL_0013:  stloc.2
+  IL_0014:  br.s       IL_0026
+  IL_0016:  newobj     ""Program..ctor()""
+  IL_001b:  stloc.2
+  IL_001c:  br.s       IL_0026
+  IL_001e:  newobj     ""Program..ctor()""
+  IL_0023:  stloc.2
+  IL_0024:  br.s       IL_0026
+  IL_0026:  ldloc.2
+  IL_0027:  stloc.3
+  IL_0028:  ldloc.3
+  IL_0029:  callvirt   ""Program Program.Chain()""
+  IL_002e:  stloc.1
+  // sequence point: y.Chain2();
+  IL_002f:  ldloc.1
+  IL_0030:  callvirt   ""Program Program.Chain2()""
+  IL_0035:  pop
+  // sequence point: }
+  IL_0036:  ret
+}
+", sequencePoints: "Program.Main", source: source);
+        }
     }
 }

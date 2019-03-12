@@ -81,12 +81,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<string> elementNames,
             CSharpCompilation compilation,
             bool shouldCheckConstraints,
+            bool includeNullability,
             ImmutableArray<bool> errorPositions,
             CSharpSyntaxNode syntax = null,
             DiagnosticBag diagnostics = null)
         {
             Debug.Assert(!shouldCheckConstraints || (object)syntax != null);
             Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
+            Debug.Assert(!includeNullability || shouldCheckConstraints);
 
             int numElements = elementTypes.Length;
 
@@ -106,10 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
             if (shouldCheckConstraints && diagnostics != null)
             {
-                // https://github.com/dotnet/roslyn/issues/33303
-                // Need to follow up on checking tuple constraints within a method body which may cause us to revisit the 
-                // explicit false below.
-                constructedType.CheckConstraints(compilation.Conversions, includeNullability: false, syntax, elementLocations, compilation, diagnostics);
+                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics);
             }
 
             return constructedType;
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TupleTypeSymbol WithElementTypes(ImmutableArray<TypeSymbolWithAnnotations> newElementTypes)
         {
             Debug.Assert(_elementTypes.Length == newElementTypes.Length);
-            Debug.Assert(newElementTypes.All(t => !t.IsNull));
+            Debug.Assert(newElementTypes.All(t => t.HasType));
 
             NamedTypeSymbol firstTupleType;
             NamedTypeSymbol chainedTupleType;
@@ -1491,7 +1490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
                 TypeSymbolWithAnnotations typeArgumentB = typeArgumentsB[i];
-                TypeSymbolWithAnnotations merged = mergeNullability(typeArgumentA, typeArgumentB);
+                TypeSymbolWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, variance);
                 allTypeArguments.Add(merged);
                 if (!typeArgumentA.IsSameAs(merged))
                 {
@@ -1507,31 +1506,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allTypeArguments.Free();
             return haveChanges;
-
-            // We use special rules for merging tuples, allowing nested types to remain unspeakable
-            TypeSymbolWithAnnotations mergeNullability(TypeSymbolWithAnnotations one, TypeSymbolWithAnnotations other)
-            {
-                TypeSymbol typeSymbol = other.TypeSymbol;
-                NullableAnnotation nullableAnnotation = mergeNullableAnnotation(typeSymbol, one.NullableAnnotation, other.NullableAnnotation);
-                TypeSymbol type = one.TypeSymbol.MergeNullability(typeSymbol, variance);
-                Debug.Assert((object)type != null);
-                return TypeSymbolWithAnnotations.Create(type, nullableAnnotation, one.CustomModifiers);
-            }
-
-            NullableAnnotation mergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b)
-            {
-                switch (variance)
-                {
-                    case VarianceKind.In:
-                        return a.MeetForFlowAnalysisFinally(b);
-                    case VarianceKind.Out:
-                        return a.JoinForFlowAnalysisBranches(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
-                    case VarianceKind.None:
-                        return a.EnsureCompatibleForTuples(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(variance);
-                }
-            }
         }
 
         private readonly static Func<TypeSymbol, bool> _IsPossiblyNullableReferenceTypeTypeParameterDelegate = type => type.IsPossiblyNullableReferenceTypeTypeParameter();

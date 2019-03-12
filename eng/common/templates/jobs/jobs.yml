@@ -18,20 +18,14 @@ parameters:
   enablePublishTestResults: false
 
   # Optional: enable sending telemetry
-  #           if 'true', these "variables" must be specified in the variables object or as part of the queue matrix
-  #             _HelixBuildConfig - differentiate between Debug, Release, other
-  #             _HelixType - Example: build/product/
-  #             _HelixSource - Example: official/dotnet/arcade/$(Build.SourceBranch)
+  # if enabled then the 'helixRepo' parameter should also be specified
   enableTelemetry: false
 
   # Required: A collection of jobs to run - https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema?view=vsts&tabs=schema#job
   jobs: []
 
-  # Optional: If specified, then automatically derive "_HelixSource" variable for telemetry
+  # Optional: define the helix repo for telemetry (example: 'dotnet/arcade')
   helixRepo: ''
-
-  # Optional: Define the type for helix telemetry (must end in '/')
-  helixType: build/product/
 
   # Optional: Override automatically derived dependsOn value for "publish build assets" job
   publishBuildAssetsDependsOn: ''

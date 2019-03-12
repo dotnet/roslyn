@@ -146,12 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private bool UsesIsNullable(TypeSymbolWithAnnotations type, ConsList<TypeParameterSymbol> inProgress)
         {
-            if (type.IsNull)
+            if (!type.HasType)
             {
                 return false;
             }
             var typeSymbol = type.TypeSymbol;
-            return (type.NullableAnnotation != NullableAnnotation.Unknown && type.IsReferenceType && !type.IsErrorType()) ||
+            return (type.NullableAnnotation != NullableAnnotation.Oblivious && type.IsReferenceType && !type.IsErrorType()) ||
                 UsesIsNullable(type.TypeSymbol, inProgress);
         }
 

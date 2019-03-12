@@ -8980,6 +8980,40 @@ namespace a
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "Command").WithArguments("Fx", "a.Class1.CommandAttribute.FxCommand").WithLocation(22, 4));
         }
 
+        [Fact, WorkItem(33388, "https://github.com/dotnet/roslyn/issues/33388")]
+        public void AttributeCrashRepro_33388()
+        {
+            string source = @"
+using System;
+
+public static class C
+{
+    public static int M(object obj) => 42;
+    public static int M(C2 c2) => 42;
+}
+
+public class RecAttribute : Attribute
+{
+    public RecAttribute(int i)
+    {
+        this.i = i;
+    }
+
+    private int i;
+}
+
+[Rec(C.M(null))]
+public class C2
+{
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (20,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [Rec(C.M(null))]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "C.M(null)").WithLocation(20, 6));
+        }
+
         #endregion
     }
 }

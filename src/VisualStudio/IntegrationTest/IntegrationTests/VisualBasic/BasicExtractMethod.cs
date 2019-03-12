@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
@@ -37,12 +38,12 @@ End Module";
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicExtractMethod(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicExtractMethod))
+        public BasicExtractMethod(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicExtractMethod))
         {
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/33103")]
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void SimpleExtractMethod()
         {

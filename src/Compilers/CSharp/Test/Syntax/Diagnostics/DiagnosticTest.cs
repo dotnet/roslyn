@@ -285,6 +285,7 @@ class X
                         case ErrorCode.WRN_UninitializedNonNullableField:
                         case ErrorCode.WRN_NullabilityMismatchInAssignment:
                         case ErrorCode.WRN_NullabilityMismatchInArgument:
+                        case ErrorCode.WRN_NullabilityMismatchInArgumentForOutput:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
                         case ErrorCode.WRN_NullAsNonNullable:
@@ -295,6 +296,11 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint:
                         case ErrorCode.WRN_CaseConstantNamedUnderscore:
                         case ErrorCode.ERR_FeatureInPreview:
+                        case ErrorCode.WRN_PossibleNull:
+                        case ErrorCode.WRN_ConditionalAccessMayReturnNull:
+                        case ErrorCode.WRN_AsOperatorMayReturnNull:
+                        case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
+                        case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -1893,7 +1899,7 @@ public class C
 #pragma warning safeonly 1695
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
- 
+
                 // (3,17): warning CS1658: The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.. See also error CS8652.
                 // #pragma warning enable nullable
                 Diagnostic(ErrorCode.WRN_ErrorOverride, "enable").WithArguments("The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(3, 17),
@@ -1935,7 +1941,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_ErrorOverride, "safeonly").WithArguments("The feature 'warning action enable or safeonly' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.", "8652").WithLocation(15, 17),
                 // (15,26): warning CS8599: Expected nullable
                 // #pragma warning safeonly 1695
-                Diagnostic(ErrorCode.WRN_IllegalPPWarningSafeOnly, "1695").WithLocation(15, 26) 
+                Diagnostic(ErrorCode.WRN_IllegalPPWarningSafeOnly, "1695").WithLocation(15, 26)
                 );
 
             var expected = new DiagnosticDescription[]
