@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             // Otherwise create a new connection.
-            return SqlConnection.Create(_faultInjectorOpt, this.DatabaseFile);
+            return SqlConnection.Create(_faultInjectorOpt, DatabaseFile);
         }
 
         private void ReleaseConnection(SqlConnection connection)

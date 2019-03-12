@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             public Accessor(SQLitePersistentStorage storage)
             {
                 Storage = storage;
-                _select_rowid_from_0_where_1 = $@"select rowid from ""{this.DataTableName}"" where ""{DataIdColumnName}"" = ?";
-                _insert_or_replace_into_0_1_2_3_value = $@"insert or replace into ""{this.DataTableName}""(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)";
+                _select_rowid_from_0_where_1 = $@"select rowid from ""{DataTableName}"" where ""{DataIdColumnName}"" = ?";
+                _insert_or_replace_into_0_1_2_3_value = $@"insert or replace into ""{DataTableName}""(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)";
             }
 
             protected abstract string DataTableName { get; }
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 byte[] checksumBytes, int checksumLength,
                 byte[] dataBytes, int dataLength)
             {
-                using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_0_1_2_3_value)
+                using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_0_1_2_3_value))
                 {
                     var statement = resettableStatement.Statement;
 

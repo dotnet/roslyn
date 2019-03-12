@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         }
 
         private void Rollback(bool throwOnError)
-            => this.ExecuteCommand("rollback transaction", throwOnError);
+            => ExecuteCommand("rollback transaction", throwOnError);
 
         public int LastInsertRowId()
             => (int)raw.sqlite3_last_insert_rowid(_handle);

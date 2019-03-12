@@ -15,8 +15,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-    // various factory methods.
-    // all these are just helper methods
+    // various factory methods. all these are just helper methods
     internal partial class Checksum
     {
         private static readonly ObjectPool<IncrementalHash> s_incrementalHashPool =
