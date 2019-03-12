@@ -484,7 +484,6 @@ End Class
                 ' allow the provider to continue
                 e.Set()
 
-                ' TODO re-consider if the behavior change is valid: https://github.com/dotnet/roslyn/issues/31131
                 If completionImplementation = CompletionImplementation.Legacy Then
                     ' We should not have a session since we tear things down if we see a caret move
                     ' before the providers have returned.
@@ -493,6 +492,42 @@ End Class
                     ' Async provider can handle keys pressed while waiting for providers.
                     Await state.AssertCompletionSession()
                 End If
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestNavigationOutBeforeCompletedComputation(completionImplementation As CompletionImplementation) As Task
+            ' Simulate a very slow completionImplementation provider.
+            Dim e = New ManualResetEvent(False)
+            Dim provider = CreateTriggeredCompletionProvider(e)
+
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+                              <document>
+                                Class Program
+                                    Shared Sub Main(args As String())
+                                        Program$$
+                                    End Sub
+                                End Class
+                              </document>, extraCompletionProviders:={provider})
+
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars(".Ma")
+
+                ' We should not have a session now.  Note: do not block as this will just hang things
+                ' since the provider will not return.
+                state.AssertNoCompletionSessionWithNoBlock()
+
+                ' Now, navigate using the caret.
+                state.SendDownKey()
+
+                ' allow the provider to continue
+                e.Set()
+
+                ' Caret was intended to be moved out of the span. 
+                ' Therefore, we should cancel the completion And move the caret.
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("    End Sub", state.GetLineFromCurrentCaretPosition().GetText(), StringComparison.Ordinal)
             End Using
         End Function
 

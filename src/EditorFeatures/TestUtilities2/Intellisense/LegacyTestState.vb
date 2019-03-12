@@ -43,12 +43,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overrides Sub SendDownKey()
             Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of DownKeyCommandArgs))
-            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub()
+                                                                                                                                                        EditorOperations.MoveLineDown(extendSelection:=False)
+                                                                                                                                                    End Sub)
         End Sub
 
         Public Overrides Sub SendUpKey()
             Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of UpKeyCommandArgs))
-            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub()
+                                                                                                                                                      EditorOperations.MoveLineUp(extendSelection:=False)
+                                                                                                                                                  End Sub)
         End Sub
 
         Public Overrides Sub SendPageUp()

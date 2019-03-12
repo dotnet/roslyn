@@ -50,13 +50,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overrides Sub SendDownKey()
             ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of DownKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of DownKeyCommandArgs))
-            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub()
+                                                                                                                                                        EditorOperations.MoveLineDown(extendSelection:=False)
+                                                                                                                                                    End Sub)
         End Sub
 
         Public Overrides Sub SendUpKey()
             ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of UpKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of UpKeyCommandArgs))
-            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub()
+                                                                                                                                                      EditorOperations.MoveLineUp(extendSelection:=False)
+                                                                                                                                                  End Sub)
         End Sub
 
         Public Overrides Sub SendPageUp()
