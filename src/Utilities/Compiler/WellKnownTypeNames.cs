@@ -6,6 +6,7 @@ namespace Analyzer.Utilities
     {
         public const string SystemAppContext = "System.AppContext";
         public const string SystemNetSecurityProtocolType = "System.Net.SecurityProtocolType";
+        public const string SystemWebMvcValidateInputAttribute = "System.Web.Mvc.ValidateInputAttribute";
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";
         public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
