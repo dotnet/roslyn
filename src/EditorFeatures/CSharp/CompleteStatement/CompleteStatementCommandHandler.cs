@@ -83,8 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             // start analysis with node outside of delimiters.
             // Examples, 
             //    `obj.ToString$()` where `token` references `(` but the caret isn't actually inside the argument list.
-            //    `obj.ToString()$` if caret is at the end of the line, `token` references `)` but the caret isn't inside the argument list.
-
+            //    `obj.ToString()$` or `obj.method()$ .method()` where `token` references `)` but the caret isn't inside the argument list.
             if (token.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.OpenBracketToken, SyntaxKind.OpenParenToken) && token.Span.Start >= caretPosition
                 || token.IsKind(SyntaxKind.CloseBraceToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken) && token.Span.End <= caretPosition)
             {
