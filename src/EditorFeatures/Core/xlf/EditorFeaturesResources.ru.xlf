@@ -59,9 +59,9 @@
       </trans-unit>
       <trans-unit id="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail">
         <source>Operation is not ready for "{0}" yet.
-See task center for more detail.</source>
+See bottom left corner for more details.</source>
         <target state="new">Operation is not ready for "{0}" yet.
-See task center for more detail.</target>
+See bottom left corner for more details.</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">

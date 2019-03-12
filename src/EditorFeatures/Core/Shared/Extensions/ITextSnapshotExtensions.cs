@@ -3,11 +3,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
@@ -52,6 +55,38 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             var position = (span.Start + span.End) / 2;
 
             return SpecializedCollections.SingletonEnumerable(formattingRuleFactory.CreateRule(document, position)).Concat(rules ?? Formatter.GetDefaultFormattingRules(document));
+        }
+
+        /// <summary>
+        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
+        /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
+        /// </summary>
+        public static async Task<Document> GetFullyLoaddedOpenDocumentInCurrentContextWithChangesAsync(
+            this ITextSnapshot snapshot, IUIThreadOperationContext operationContext)
+        {
+            // just get any document from whatever we have
+            var document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(operationContext.UserCancellationToken);
+            if (document == null)
+            {
+                return null;
+            }
+
+            var title = string.Format(EditorFeaturesResources.Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail, document.Name);
+
+            // partial mode is always cancellable
+            using (operationContext.AddScope(allowCancellation: true, title))
+            {
+                var service = document.Project.Solution.Workspace.Services.GetService<IWorkspaceStatusService>();
+                if (service != null)
+                {
+                    // decide for prototype, we don't do anything complex and just ask workspace whether it is fully loaded
+                    // later we might need to go and change all these with more specific info such as document/project/solution
+                    await service.WaitUntilFullyLoadedAsync(operationContext.UserCancellationToken).ConfigureAwait(false);
+                }
+
+                // get proper document
+                return snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            }
         }
     }
 }
