@@ -182,12 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> boundNamedArguments = analyzedArguments.NamedArguments;
             constructorArguments.Free();
 
-            var attribute = new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
+            return new BoundAttribute(node, attributeConstructor, boundConstructorArguments, boundConstructorArgumentNamesOpt, argsToParamsOpt, expanded,
                 boundNamedArguments, resultKind, attributeType, hasErrors: resultKind != LookupResultKind.Viable);
-
-            NullableWalker.AnalyzeIfNeeded(Compilation, attribute, diagnostics);
-
-            return attribute;
         }
         private CSharpAttributeData GetAttribute(BoundAttribute boundAttribute, DiagnosticBag diagnostics)
         {
@@ -195,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var attributeConstructor = boundAttribute.Constructor;
 
             Debug.Assert((object)attributeType != null);
+
+            NullableWalker.AnalyzeIfNeeded(Compilation, boundAttribute, diagnostics);
 
             bool hasErrors = boundAttribute.HasAnyErrors;
 

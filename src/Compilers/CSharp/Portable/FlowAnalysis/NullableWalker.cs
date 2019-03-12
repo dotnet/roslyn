@@ -294,8 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             if (compilation.LanguageVersion < MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion() ||
-                attribute.Constructor is null ||
-                !compilation.SyntaxTrees.Contains(attribute.SyntaxTree)) // don't analyze speculative attributes
+                attribute.Constructor is null)
             {
                 return;
             }
