@@ -112,6 +112,12 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly ProjectAccessor _projectAccessor;
         private readonly DocumentAccessor _documentAccessor;
 
+        // cached query strings
+
+        private readonly string _select_star_from_0;
+        private readonly string _insert_into_0_1_values;
+        private readonly string _select_star_from_0_where_1_limit_one;
+
         // We pool connections to the DB so that we don't have to take the hit of 
         // reconnecting.  The connections also cache the prepared statements used
         // to get/set data from the db.  A connection is safe to use by one thread
@@ -133,6 +139,10 @@ namespace Microsoft.CodeAnalysis.SQLite
             _solutionAccessor = new SolutionAccessor(this);
             _projectAccessor = new ProjectAccessor(this);
             _documentAccessor = new DocumentAccessor(this);
+
+            _select_star_from_0 = $@"select * from ""{StringInfoTableName}""";
+            _insert_into_0_1_values = $@"insert into ""{StringInfoTableName}""(""{DataColumnName}"") values (?)";
+            _select_star_from_0_where_1_limit_one = $@"select * from ""{StringInfoTableName}"" where (""{DataColumnName}"" = ?) limit 1";
         }
 
         private SqlConnection GetConnection()

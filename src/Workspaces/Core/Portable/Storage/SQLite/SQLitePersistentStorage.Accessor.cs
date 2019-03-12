@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.SQLite
         private abstract class Accessor<TKey, TWriteQueueKey, TDatabaseId>
         {
             protected readonly SQLitePersistentStorage Storage;
+            private readonly string _select_rowid_from_0_where_1;
+            private readonly string _insert_or_replace_into_0_1_2_3_value;
 
             /// <summary>
             /// Queue of actions we want to perform all at once against the DB in a single transaction.
@@ -42,6 +44,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             public Accessor(SQLitePersistentStorage storage)
             {
                 Storage = storage;
+                _select_rowid_from_0_where_1 = $@"select rowid from ""{this.DataTableName}"" where ""{DataIdColumnName}"" = ?";
+                _insert_or_replace_into_0_1_2_3_value = $@"insert or replace into ""{this.DataTableName}""(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)";
             }
 
             protected abstract string DataTableName { get; }
@@ -248,8 +252,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // ROWID, _ROWID_, or OID. Except if you declare an ordinary table column to use one 
                 // of those special names, then the use of that name will refer to the declared column
                 // not to the internal ROWID.
-                using (var resettableStatement = connection.GetResettableStatement(
-                    $@"select rowid from ""{this.DataTableName}"" where ""{DataIdColumnName}"" = ?"))
+                using (var resettableStatement = connection.GetResettableStatement(_select_rowid_from_0_where_1))
                 {
                     var statement = resettableStatement.Statement;
 
@@ -273,8 +276,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                 byte[] checksumBytes, int checksumLength,
                 byte[] dataBytes, int dataLength)
             {
-                using (var resettableStatement = connection.GetResettableStatement(
-                    $@"insert or replace into ""{this.DataTableName}""(""{DataIdColumnName}"",""{ChecksumColumnName}"",""{DataColumnName}"") values (?,?,?)"))
+                using (var resettableStatement = connection.GetResettableStatement(_insert_or_replace_into_0_1_2_3_value)
                 {
                     var statement = resettableStatement.Statement;
 
