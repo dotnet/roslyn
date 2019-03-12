@@ -4146,7 +4146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var unboundLambda = lambda.UnboundLambda;
                         var methodSignatureOpt = unboundLambda.HasExplicitlyTypedParameterList ? null : delegateType?.DelegateInvokeMethod;
                         var variableState = GetVariableState();
-                        Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: variableState, analyzedNullabilityMap: _analyzedNullabilityMapOpt);
+                        Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: variableState, analyzedNullabilityMap: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
                         if (reportRemainingWarnings)
                         {
                             ReportNullabilityMismatchWithTargetDelegate(node.Syntax, delegateType, unboundLambda);
@@ -4498,9 +4498,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(nullable-api): Can we make this conditional on whether or not we've already seen the node
             // or will that have no effect because this is always called first? It is for at least one lambda
             // conversion case, need to investigate others
-            var bag = new DiagnosticBag();
-            Analyze(compilation, node, bag, node.Type.GetDelegateType()?.DelegateInvokeMethod, returnTypes: null, initialState: GetVariableState(), _analyzedNullabilityMapOpt);
-            bag.Free();
+            if (!_disableNullabilityAnalysis)
+            {
+                var bag = new DiagnosticBag();
+                Analyze(compilation, node, bag, node.Type.GetDelegateType()?.DelegateInvokeMethod, returnTypes: null, initialState: GetVariableState(), _analyzedNullabilityMapOpt);
+                bag.Free();
+            }
             SetNotNullResult(node);
             return null;
         }
@@ -4510,7 +4513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The presence of this node suggests an error was detected in an earlier phase.
             // Analyze the body to report any additional warnings.
             var lambda = node.BindForErrorRecovery();
-            Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: null, returnTypes: null, initialState: GetVariableState(), _analyzedNullabilityMapOpt);
+            Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: null, returnTypes: null, initialState: GetVariableState(), _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
             SetNotNullResult(node);
             return null;
         }
@@ -4530,7 +4533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodSignatureOpt: null,
                     returnTypes: null,
                     initialState: GetVariableState(),
-                    analyzedNullabilityMapOpt: _analyzedNullabilityMapOpt)?.Free();
+                    analyzedNullabilityMapOpt: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt)?.Free();
             }
             SetInvalidResult();
             return null;
