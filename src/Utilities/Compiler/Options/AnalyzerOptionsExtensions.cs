@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Analyzer.Utilities
 {
-    internal static class AnalyzerOptionsExtensions
+    internal static partial class AnalyzerOptionsExtensions
     {
         private static readonly ConditionalWeakTable<AnalyzerOptions, CategorizedAnalyzerConfigOptions> s_cachedOptions
             = new ConditionalWeakTable<AnalyzerOptions, CategorizedAnalyzerConfigOptions>();
@@ -75,6 +75,23 @@ namespace Analyzer.Utilities
             }
         }
 
+#pragma warning disable IDE0051 // Remove unused private members - Used in some projects that include this shared project.
+        private static TEnum GetNonFlagsEnumOptionValue<TEnum>(
+#pragma warning restore IDE0051 // Remove unused private members
+            this AnalyzerOptions options,
+            string optionName,
+            DiagnosticDescriptor rule,
+            TEnum defaultValue,
+            CancellationToken cancellationToken)
+            where TEnum : struct
+        {
+            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
+            return analyzerConfigOptions.GetOptionValue(
+                optionName, rule,
+                tryParseValue: (string value, out TEnum result) => Enum.TryParse(value, ignoreCase: true, result: out result),
+                defaultValue: defaultValue);
+        }
+
         public static bool GetBoolOptionValue(
             this AnalyzerOptions options,
             string optionName,
@@ -84,6 +101,17 @@ namespace Analyzer.Utilities
         {
             var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
             return analyzerConfigOptions.GetOptionValue(optionName, rule, bool.TryParse, defaultValue);
+        }
+
+        public static uint GetUnsignedIntegralOptionValue(
+            this AnalyzerOptions options,
+            string optionName,
+            DiagnosticDescriptor rule,
+            uint defaultValue,
+            CancellationToken cancellationToken)
+        {
+            var analyzerConfigOptions = options.GetOrComputeCategorizedAnalyzerConfigOptions(cancellationToken);
+            return analyzerConfigOptions.GetOptionValue(optionName, rule, uint.TryParse, defaultValue);
         }
 
         private static CategorizedAnalyzerConfigOptions GetOrComputeCategorizedAnalyzerConfigOptions(

@@ -322,6 +322,27 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
+        /// Check whether parameter count and parameter types of the given methods are same.
+        /// </summary>
+        public static bool ParametersAreSame(this IMethodSymbol method1, IMethodSymbol method2)
+        {
+            if (method1.Parameters.Length != method2.Parameters.Length)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < method1.Parameters.Length; index++)
+            {
+                if (!ParameterTypesAreSame(method1.Parameters[index], method2.Parameters[index]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Check whether parameter types of the given methods are same for given parameter indices.
         /// </summary>
         public static bool ParameterTypesAreSame(this IMethodSymbol method1, IMethodSymbol method2, IEnumerable<int> parameterIndices, CancellationToken cancellationToken)
@@ -330,19 +351,7 @@ namespace Analyzer.Utilities.Extensions
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var type1 = method1.Parameters[index].Type.OriginalDefinition;
-                var type2 = method2.Parameters[index].Type.OriginalDefinition;
-
-                if (type1.TypeKind == TypeKind.TypeParameter &&
-                    type2.TypeKind == TypeKind.TypeParameter &&
-                    ((ITypeParameterSymbol)type1).Ordinal == ((ITypeParameterSymbol)type2).Ordinal)
-                {
-                    continue;
-                }
-
-                // this doesnt account for type conversion but FxCop implementation seems doesnt either
-                // so this should match FxCop implementation.
-                if (!type2.Equals(type1))
+                if (!ParameterTypesAreSame(method1.Parameters[index], method2.Parameters[index]))
                 {
                     return false;
                 }
@@ -350,6 +359,30 @@ namespace Analyzer.Utilities.Extensions
 
             return true;
         }
+
+        private static bool ParameterTypesAreSame(this IParameterSymbol parameter1, IParameterSymbol parameter2)
+        {
+            var type1 = parameter1.Type.OriginalDefinition;
+            var type2 = parameter2.Type.OriginalDefinition;
+
+            if (type1.TypeKind == TypeKind.TypeParameter &&
+                type2.TypeKind == TypeKind.TypeParameter &&
+                ((ITypeParameterSymbol)type1).Ordinal == ((ITypeParameterSymbol)type2).Ordinal)
+            {
+                return true;
+            }
+
+            // this doesnt account for type conversion but FxCop implementation seems doesnt either
+            // so this should match FxCop implementation.
+            return type2.Equals(type1);
+        }
+
+        /// <summary>
+        /// Check whether return type, parameters count and parameter types are same for the given methods.
+        /// </summary>
+        public static bool ReturnTypeAndParametersAreSame(this IMethodSymbol method, IMethodSymbol otherMethod)
+            => method.ReturnType.Equals(otherMethod.ReturnType) &&
+               method.ParametersAreSame(otherMethod);
 
         /// <summary>
         /// Check whether given symbol is from mscorlib
@@ -559,5 +592,8 @@ namespace Analyzer.Utilities.Extensions
         {
             return symbol.Locations.Any(l => l.IsInSource);
         }
+
+        public static bool IsLambdaOrLocalFunction(this ISymbol symbol)
+            => (symbol as IMethodSymbol)?.IsLambdaOrLocalFunction() == true;
     }
 }

@@ -10,7 +10,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(MicrosoftCodeAnalysisVersion)' != '1.2.1'">
     <DefineConstants>$(DefineConstants);HAS_IOPERATION</DefineConstants>
+    <HasIOperation>true</HasIOperation>
   </PropertyGroup>
+  <ItemGroup Condition="'$(HasIOperation)' == 'true'">
+    <Compile Include="$(MSBuildThisFileDirectory)WellKnownTypeProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImmutableHashSetExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\PooledHashSetExtensions.cs" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.AssemblyMetricData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeMetrics\CodeAnalysisMetricData.cs" />
@@ -27,10 +33,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)DoNotCatchGeneralUnlessRethrown.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\KeyValuePairExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MethodKindEx.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)InstanceReferenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\OperationBlockAnalysisContextExtension.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\WellKnownDiagnosticTagsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledDictionary.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\PooledHashSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilder.Enumerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ArrayBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PooledObjects\ObjectPool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HashUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticHelpers.cs" />
