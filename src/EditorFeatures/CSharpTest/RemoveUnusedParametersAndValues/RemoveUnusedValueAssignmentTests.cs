@@ -6662,5 +6662,46 @@ class C
     }
 }", PreferUnusedLocal);
         }
+
+        [WorkItem(33949, "https://github.com/dotnet/roslyn/issues/33949")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UsedInArgumentAfterAnArgumentWithControlFlow(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class A
+{
+    public static void M(int? x)
+    {
+        A [|a|] = new A();
+        a = M2(x ?? 1, a);
+    }
+
+    private static A M2(int? x, A a)
+    {
+        return a;
+    }
+}", optionName);
+        }
+
+        [WorkItem(33949, "https://github.com/dotnet/roslyn/issues/33949")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ConpoundAssignmentWithControlFlowInValue(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class A
+{
+    public static void M(int? x)
+    {
+        int [|a|] = 1;
+        a += M2(x ?? 1);
+    }
+
+    private static int M2(int? x) => 0;
+}", optionName);
+        }
     }
 }
