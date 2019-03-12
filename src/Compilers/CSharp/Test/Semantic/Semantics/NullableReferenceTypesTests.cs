@@ -243,6 +243,46 @@ class C
                 );
         }
 
+        [Fact, WorkItem(26810, "https://github.com/dotnet/roslyn/issues/26810")]
+        public void LockStatement()
+        {
+            var comp = CreateCompilation(@"
+class C
+{
+    void F(object? maybeNull, object nonNull, Missing? annotatedMissing, Missing unannotatedMissing)
+    {
+        lock (maybeNull) { }
+        lock (nonNull) { }
+        lock (annotatedMissing) { }
+        lock (unannotatedMissing) { }
+    }
+#nullable disable
+    void F(object oblivious, Missing obliviousMissing)
+#nullable enable
+    {
+        lock (oblivious) { }
+        lock (obliviousMissing) { }
+    }
+}", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (4,47): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //     void F(object? maybeNull, object nonNull, Missing? annotatedMissing, Missing unannotatedMissing)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(4, 47),
+                // (4,74): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //     void F(object? maybeNull, object nonNull, Missing? annotatedMissing, Missing unannotatedMissing)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(4, 74),
+                // (6,15): warning CS8602: Possible dereference of a null reference.
+                //         lock (maybeNull) { }
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "maybeNull").WithLocation(6, 15),
+                // (8,15): error CS0185: 'Missing?' is not a reference type as required by the lock statement
+                //         lock (annotatedMissing) { }
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "annotatedMissing").WithArguments("Missing?").WithLocation(8, 15),
+                // (12,30): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
+                //     void F(object oblivious, Missing obliviousMissing)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing").WithLocation(12, 30)
+                );
+        }
+
         [Fact, WorkItem(33537, "https://github.com/dotnet/roslyn/issues/33537")]
         public void SuppressOnNullLiteralInAs()
         {
