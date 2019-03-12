@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get
                 {
                     // BaseMethodWrapperSymbol should not be rewritten by the IteratorRewriter
-                    return TypeSymbolWithAnnotations.Create(null);
+                    return default;
                 }
             }
         }

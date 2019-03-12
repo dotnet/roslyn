@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly NamedTypeSymbol _containingType;
         private ParameterSymbol _lazyThisParameter;
-        private TypeSymbolWithAnnotations _iteratorElementType;
+        private TypeSymbolWithAnnotations.Builder _lazyIteratorElementType;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
@@ -710,12 +710,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _iteratorElementType;
+                return _lazyIteratorElementType.ToType();
             }
             set
             {
-                Debug.Assert(_iteratorElementType.IsDefault || TypeSymbol.Equals(_iteratorElementType.TypeSymbol, value.TypeSymbol, TypeCompareKind.ConsiderEverything2));
-                _iteratorElementType = value;
+                Debug.Assert(_lazyIteratorElementType.IsDefault || TypeSymbol.Equals(_lazyIteratorElementType.ToType().TypeSymbol, value.TypeSymbol, TypeCompareKind.ConsiderEverything2));
+                _lazyIteratorElementType.InterlockedInitialize(value);
             }
         }
 
