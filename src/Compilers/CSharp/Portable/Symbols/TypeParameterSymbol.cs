@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool? IsNotNullableIfReferenceTypeFromConstraintType(TypeSymbolWithAnnotations constraintType)
         {
-            if (constraintType.NullableAnnotation.IsAnyNullable())
+            if (constraintType.NullableAnnotation.IsAnnotated())
             {
                 return false;
             }
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (constraintType.NullableAnnotation == NullableAnnotation.Unknown)
+            if (constraintType.NullableAnnotation.IsOblivious())
             {
                 return null;
             }

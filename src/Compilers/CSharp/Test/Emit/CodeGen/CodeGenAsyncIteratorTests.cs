@@ -381,7 +381,7 @@ class C
             Assert.False(m.IsIterator);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AttributesSynthesized()
         {
             string source = @"
@@ -408,7 +408,7 @@ public class C
             });
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AttributesSynthesized_Optional()
         {
             string source = @"
@@ -1017,7 +1017,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator()
         {
@@ -1090,7 +1090,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_CSharp73()
         {
@@ -1122,7 +1122,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithReturnOnly()
         {
@@ -1145,7 +1145,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void ReturningIAsyncEnumerator_WithReturn()
         {
@@ -1161,7 +1161,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithReturnAndAwait()
         {
@@ -1185,7 +1185,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         [WorkItem(31113, "https://github.com/dotnet/roslyn/issues/31113")]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
@@ -1213,7 +1213,7 @@ class C
             // This error message is rather poor. Tracked by https://github.com/dotnet/roslyn/issues/31113
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithReturnAfterAwait()
         {
@@ -1367,7 +1367,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIterator_WithoutAwait()
         {
@@ -1388,7 +1388,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "1 END DISPOSAL DONE");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIterator_WithoutAwait_WithoutAsync()
         {
@@ -1408,7 +1408,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void AsyncIterator_WithoutAwait_WithoutAsync_LocalFunction()
         {
@@ -1432,7 +1432,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31608, "https://github.com/dotnet/roslyn/issues/31608")]
         public void Iterator_WithAsync()
         {
@@ -1477,7 +1477,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithoutAwait()
         {
@@ -1497,7 +1497,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31057, "https://github.com/dotnet/roslyn/issues/31057")]
         public void AsyncIteratorReturningEnumerator_WithoutYield()
         {
@@ -1517,7 +1517,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void CallingMoveNextAsyncTwice()
         {
             string source = @"
@@ -1554,7 +1554,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice()
         {
@@ -1630,7 +1630,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice2()
         {
@@ -1673,7 +1673,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice3()
         {
@@ -1722,7 +1722,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Stream1:0 Stream2:0 1 2 Stream1:3 4 2 1 2 Stream2:3 4 2 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(30275, "https://github.com/dotnet/roslyn/issues/30275")]
         public void CallingGetEnumeratorTwice4()
         {
@@ -1767,7 +1767,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Stream1:0 1 2 Stream1:3 4 42 Await Stream2:0 1 2 Stream2:3 4 42 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void CallingGetEnumeratorTwice_AfterDisposing()
         {
             string source = @"
@@ -2337,7 +2337,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithGenericReturn()
         {
             string source = @"
@@ -2367,7 +2367,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithGenericReturnFromContainingType()
         {
             string source = @"
@@ -2400,7 +2400,7 @@ class D
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithParameter()
         {
             string source = @"
@@ -2432,7 +2432,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "Start p:10 p:11 Value p:12 End");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithThis()
         {
             string source = @"
@@ -2486,7 +2486,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndOneYieldAndOneInvocation()
         {
             string source = @"
@@ -2516,7 +2516,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndTwoYields()
         {
             string source = @"
@@ -2547,7 +2547,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 5 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithYieldAndAwait()
         {
             string source = @"
@@ -2599,7 +2599,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitCompletedAndYieldBreakAndYieldReturn()
         {
             string source = @"
@@ -2633,7 +2633,7 @@ label2:
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithCustomCode()
         {
             verify(new[] { AwaitSlow, Write, Yield, AwaitSlow });
@@ -2747,7 +2747,7 @@ class C
             }
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithAwaitAndYieldAndAwait()
         {
             string source = @"
@@ -4508,7 +4508,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithYieldReturnOnly()
         {
             string source = @"
@@ -4535,7 +4535,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "1");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorWithYieldBreakOnly()
         {
             string source = @"
@@ -4721,7 +4721,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void DisposeAsyncInBadState()
         {
             string source = @"
@@ -4771,7 +4771,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "DisposeAsync threw. Already cancelled");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void DisposeAsyncBeforeRunning()
         {
             string source = @"
@@ -4793,7 +4793,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void DisposeAsyncTwiceAfterRunning()
         {
             string source = @"
@@ -4947,7 +4947,7 @@ static class M1
             CompileAndVerify(comp, expectedOutput: "B1::F;D::F;B1::F;");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void AsyncIteratorReturningEnumerator_UsingCancellationToken()
         {
             string source = @"

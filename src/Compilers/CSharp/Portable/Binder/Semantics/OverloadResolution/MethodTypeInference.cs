@@ -442,7 +442,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddBound(TypeSymbolWithAnnotations addedBound, HashSet<TypeSymbolWithAnnotations>[] collectedBounds, TypeSymbolWithAnnotations methodTypeParameterWithAnnotations)
         {
             Debug.Assert(IsUnfixedTypeParameter(methodTypeParameterWithAnnotations));
-            Debug.Assert(addedBound.NullableAnnotation.IsSpeakable());
 
             var methodTypeParameter = (TypeParameterSymbol)methodTypeParameterWithAnnotations.TypeSymbol;
             int methodTypeParameterIndex = methodTypeParameter.Ordinal;
@@ -1282,7 +1281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // https://github.com/dotnet/roslyn/issues/33635 : We should preserve the return nullability from the
             // selected method of the method group, possibly turning oblivious into non-null.
-            NullableAnnotation returnIsNullable = NullableAnnotation.Unknown;
+            NullableAnnotation returnIsNullable = NullableAnnotation.Oblivious;
             LowerBoundInference(TypeSymbolWithAnnotations.Create(returnType, returnIsNullable), delegateReturnType, ref useSiteDiagnostics);
 
             return true;
@@ -1511,7 +1510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // True if the type is nullable but not an unconstrained type parameter.
             bool isNullableOnly(TypeSymbolWithAnnotations type)
-                => type.NullableAnnotation.IsAnyNullable() && !type.TypeSymbol.IsTypeParameterDisallowingAnnotation();
+                => type.NullableAnnotation.IsAnnotated() && !type.TypeSymbol.IsTypeParameterDisallowingAnnotation();
         }
 
         private bool ExactNullableInference(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

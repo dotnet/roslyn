@@ -322,14 +322,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
 
-                foreach (var entry in dictionary.Values.Where(v => v.HasType))
-                {
-                    // Result types cannot have nested types that are unspeakables
-                    Assert.Null(entry.VisitType(typeOpt: null,
-                        typeWithAnnotationsPredicateOpt: (tswa, a, b) => !tswa.Equals(entry, TypeCompareKind.ConsiderEverything) && !tswa.NullableAnnotation.IsSpeakable(),
-                        typePredicateOpt: (ts, _, b) => false, arg: (object)null, canDigThroughNullable: true));
-                }
-
                 string toDisplayString(SyntaxNode syntaxOpt)
                 {
                     // We don't support VerifyTypes on suppressions at the moment
