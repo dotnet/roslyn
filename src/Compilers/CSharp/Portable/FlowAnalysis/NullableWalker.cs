@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LvalueResultType;
         }
 
-        private static object GetTypeAsDiagnosticArgument(TypeSymbol typeOpt)
+        private static object GetTypeAsDiagnosticArgument(TypeSymbol? typeOpt)
         {
             return typeOpt ?? (object)"<null>";
         }
@@ -1838,7 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (warnOnNullReferenceArgument)
             {
-                ReportArgumentWarnings(binary.Left, leftType, binary.MethodOpt.Parameters[0]);
+                ReportArgumentWarnings(binary.Left, leftType, binary.MethodOpt!.Parameters[0]);
             }
 
             var rightType = VisitRvalueWithState(binary.Right);
@@ -1848,7 +1848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (warnOnNullReferenceArgument)
             {
-                ReportArgumentWarnings(binary.Right, rightType, binary.MethodOpt.Parameters[1]);
+                ReportArgumentWarnings(binary.Right, rightType, binary.MethodOpt!.Parameters[1]);
             }
 
             Debug.Assert(!IsConditionalState);
@@ -2178,11 +2178,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
+                Debug.Assert(!(rightType is null));
                 // If there was an identity conversion between the two operands (in short, if there
                 // is no implicit conversion on the right operand), then check nullable conversions
                 // in both directions since it's possible the right operand is the better result type.
-                if ((object)rightType != null &&
-                    (node.RightOperand as BoundConversion)?.ExplicitCastInCode != false &&
+                if ((node.RightOperand as BoundConversion)?.ExplicitCastInCode != false &&
                     GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false).Exists)
                 {
                     return rightType;
