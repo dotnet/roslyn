@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (((TypeParameterSymbol)typeSymbol).TypeParameterKind == TypeParameterKind.Cref)
             {
-                // We always bind annoated type parameters in cref as `Nullable<T>`
+                // We always bind annotated type parameters in cref as `Nullable<T>`
                 return makeNullableT();
             }
 
