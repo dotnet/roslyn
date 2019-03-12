@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities
 {
-    public abstract class DoNotCatchGeneralUnlessRethrownAnalyzer : DiagnosticAnalyzer
+    internal abstract class DoNotCatchGeneralUnlessRethrownAnalyzer : DiagnosticAnalyzer
     {
         private readonly bool _shouldCheckLambdas;
         private readonly string _enablingMethodAttributeFullyQualifiedName;

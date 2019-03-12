@@ -37,7 +37,10 @@ namespace Test.Utilities.CodeMetrics
 
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
-            var solution = new AdhocWorkspace().CurrentSolution
+#pragma warning disable CA2000 // Dispose objects before losing scope - Current solution/project takes the dispose ownership of the created AdhocWorkspace
+            var solution = new AdhocWorkspace()
+#pragma warning restore CA2000 // Dispose objects before losing scope
+                .CurrentSolution
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .WithProjectCompilationOptions(projectId, options)
                 .AddMetadataReference(projectId, s_corlibReference)

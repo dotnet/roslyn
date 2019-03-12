@@ -94,6 +94,15 @@ namespace Analyzer.Utilities.Extensions
             }
         }
 
+        public static void Dispose<T>(this IEnumerable<T> collection)
+            where T : IDisposable
+        {
+            foreach (var item in collection)
+            {
+                item.Dispose();
+            }
+        }
+
         private class ComparisonComparer<T> : Comparer<T>
         {
             private readonly Comparison<T> _compare;
