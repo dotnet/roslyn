@@ -2363,6 +2363,11 @@ public class C
     /// See <see cref=""M{T}(T?)""/>
     /// </summary>
     void M2() { }
+
+    /// <summary>
+    /// See <see cref=""M{T}(T)""/>
+    /// </summary>
+    void M3() { }
 }";
             // In cref, `T?` always binds to `Nullable<T>`
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, options: WithNonNullTypesTrue());
@@ -2370,9 +2375,13 @@ public class C
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var firstCref = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<NameMemberCrefSyntax>().First();
+            var firstCrefSymbol = model.GetSymbolInfo(firstCref).Symbol;
+            Assert.Equal("void C.M<T>(T? t)", firstCrefSymbol.ToTestDisplayString());
+
             var lastCref = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<NameMemberCrefSyntax>().Last();
             var lastCrefSymbol = model.GetSymbolInfo(lastCref).Symbol;
-            Assert.Equal("void C.M<T>(T? t)", lastCrefSymbol.ToTestDisplayString());
+            Assert.Equal("void C.M<T>(T t)", lastCrefSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(33782, "https://github.com/dotnet/roslyn/issues/33782")]
