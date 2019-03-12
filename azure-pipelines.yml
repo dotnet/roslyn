@@ -169,7 +169,9 @@ jobs:
       condition: succeeded()
 
 - job: Linux_Test
-  pool: DotNetCore-Linux
+  pool: 
+   name: NetCorePublic-Int-Pool
+   queue: BuildPool.Ubuntu.1604.amd64.Open
   strategy:
     maxParallel: 2
     matrix:

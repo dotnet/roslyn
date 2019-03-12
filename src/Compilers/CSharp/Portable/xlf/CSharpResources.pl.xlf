@@ -403,7 +403,7 @@
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -549,7 +549,7 @@
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -1293,13 +1293,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">Nie można przekonwertować literału o wartości null na referencyjny parametr typu niedopuszczający wartości null lub na parametr typu bez ograniczeń.</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">Nie można przekonwertować literału o wartości null na referencyjny parametr typu niedopuszczający wartości null lub na parametr typu bez ograniczeń.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">Nie można przekonwertować literału o wartości null na referencyjny parametr typu niedopuszczający wartości null lub na parametr typu bez ograniczeń.</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">Nie można przekonwertować literału o wartości null na referencyjny parametr typu niedopuszczający wartości null lub na parametr typu bez ograniczeń.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
@@ -1353,7 +1353,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Argument of type '{0}' cannot be used as an input of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">Obsługa wartości null dla typów referencyjnych w argumencie typu „{0}” jest niezgodna z typem docelowym „{1}” dla parametru „{2}” w „{3}”.</target>
         <note />
       </trans-unit>
@@ -1368,7 +1368,7 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Argument cannot be used as an input for parameter due to differences in the nullability of reference types.</source>
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
         <target state="needs-review-translation">Obsługa wartości null dla typów referencyjnych w argumencie jest niezgodna z typem docelowym.</target>
         <note />
       </trans-unit>
@@ -9384,8 +9384,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of an 'in' extension method '{0}' must be a value type.</source>
-        <target state="translated">Pierwszy parametr metody „{0}” rozszerzenia „in” musi być typem wartości.</target>
+        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">Pierwszy parametr metody „{0}” rozszerzenia „in” musi być typem wartości.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

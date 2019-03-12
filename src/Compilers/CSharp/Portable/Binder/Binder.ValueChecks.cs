@@ -284,23 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsLegalSuppressionValueKind(BindValueKind valueKind)
-        {
-            // Need to review allowed uses of the suppression operator
-            // Tracked by https://github.com/dotnet/roslyn/issues/31297
-
-            switch (valueKind)
-            {
-                case BindValueKind.RValue:
-                case BindValueKind.RValueOrMethodGroup:
-                case BindValueKind.RefOrOut:
-                    return true;
-            }
-
-            // all others are illegal
-            return false;
-        }
-
         /// <summary>
         /// The purpose of this method is to determine if the expression satisfies desired capabilities. 
         /// If it is not then this code gives an appropriate error message.
@@ -320,12 +303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expr.HasAnyErrors)
             {
-                return false;
-            }
-
-            if (expr.IsSuppressed && !IsLegalSuppressionValueKind(valueKind))
-            {
-                Error(diagnostics, ErrorCode.ERR_IllegalSuppression, node);
                 return false;
             }
 

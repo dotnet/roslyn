@@ -6,8 +6,8 @@ variables:
   SignType: real
   SkipTests: false
   SkipApplyOptimizationData: false
-  IbcSourceBranchName: 'master-vs-deps'
-  IbcDropId: '75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1'
+  IbcSourceBranchName: 'default'
+  IbcDropId: 'default'
 
 jobs:
 - job: OfficialBuild
