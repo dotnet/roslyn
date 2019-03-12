@@ -19,32 +19,36 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
     {
         private class AddConstructorParametersCodeAction : CodeAction
         {
-            private readonly AddConstructorParametersFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
-            private readonly State _state;
-            private readonly ImmutableArray<IParameterSymbol> _missingParameters;
+            private readonly ConstructorCandidate _constructorCandidate;
+            private readonly ISymbol _containingType;
+            private readonly ImmutableArray<IParameterSymbol> _parametersToAdd;
+            private readonly bool _useSubMenuName;
 
             public AddConstructorParametersCodeAction(
-                AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 Document document,
-                State state,
-                ImmutableArray<IParameterSymbol> missingParameters)
+                ConstructorCandidate constructorCandidate,
+                ISymbol containingType,
+                ImmutableArray<IParameterSymbol> parametersToAdd,
+                bool useSubMenuName
+                )
             {
-                _service = service;
                 _document = document;
-                _state = state;
-                _missingParameters = missingParameters;
+                _constructorCandidate = constructorCandidate;
+                _containingType = containingType;
+                _parametersToAdd = parametersToAdd;
+                _useSubMenuName = useSubMenuName;
             }
 
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var workspace = _document.Project.Solution.Workspace;
                 var declarationService = _document.GetLanguageService<ISymbolDeclarationService>();
-                var constructor = declarationService.GetDeclarations(_state.ConstructorToAddTo).Select(r => r.GetSyntax(cancellationToken)).First();
+                var constructor = declarationService.GetDeclarations(_constructorCandidate._constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var newConstructor = constructor;
-                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, workspace);
-                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_state), workspace)
+                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _parametersToAdd, workspace);
+                newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), workspace)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
                 var syntaxTree = constructor.SyntaxTree;
@@ -53,13 +57,13 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 return Task.FromResult(_document.WithSyntaxRoot(newRoot));
             }
 
-            private IEnumerable<SyntaxNode> CreateAssignStatements(State state)
+            private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
             {
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
-                for (var i = 0; i < _missingParameters.Length; ++i)
+                for (var i = 0; i < _parametersToAdd.Length; ++i)
                 {
-                    var memberName = _state.MissingMembers[i].Name;
-                    var parameterName = _missingParameters[i].Name;
+                    var memberName = constructorCandidate._missingMembers[i].Name;
+                    var parameterName = _parametersToAdd[i].Name;
                     yield return factory.ExpressionStatement(
                         factory.AssignmentStatement(
                             factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(memberName)),
@@ -71,14 +75,22 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 get
                 {
-                    var parameters = _state.ConstructorToAddTo.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+                    var parameters = _constructorCandidate._constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
-                    var optional = _missingParameters[0].IsOptional;
-                    var signature = $"{_state.ContainingType.Name}({parameterString})";
+                    var optional = _parametersToAdd[0].IsOptional;
+                    var signature = $"{_containingType}({parameterString})";
+                    var submenu = _useSubMenuName;
 
-                    return optional
+                    if (submenu)
+                    {
+                        return string.Format(FeaturesResources.Add_to_0, signature);
+                    }
+                    else
+                    {
+                        return optional
                         ? string.Format(FeaturesResources.Add_optional_parameters_to_0, signature)
                         : string.Format(FeaturesResources.Add_parameters_to_0, signature);
+                    }
                 }
             }
         }

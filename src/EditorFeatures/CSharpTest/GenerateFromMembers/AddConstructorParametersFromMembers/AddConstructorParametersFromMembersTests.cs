@@ -1,7 +1,9 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -16,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new AddConstructorParametersFromMembersCodeRefactoringProvider();
+
+        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+            => FlattenActions(actions);
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -83,9 +88,58 @@ index: 1);
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddToConstructorWithMostMatchingParameters1()
         {
+            // behavior change with 33603, now all constructors offered
+            await TestInRegularAndScriptAsync(
+@"using System.Collections.Generic;
+
+class Program
+{
+    [|int i;
+    string s;
+    bool b;|]
+
+    public Program(int i)
+    {
+        this.i = i;
+    }
+
+    public Program(int i, string s) : this(i)
+    {
+        this.s = s;
+    }
+}",
+@"using System.Collections.Generic;
+
+class Program
+{
+    int i;
+    string s;
+    bool b;
+
+    public Program(int i, string s, bool b)
+    {
+        this.i = i;
+        this.s = s;
+        this.b = b;
+    }
+
+    public Program(int i, string s) : this(i)
+    {
+        this.s = s;
+    }
+}");
+        }
+
+        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
+        {
+            // Behavior change with #33603, now all constructors are offered
             await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
@@ -119,50 +173,6 @@ class Program
     }
 
     public Program(int i, string s, bool b) : this(i)
-    {
-        this.s = s;
-        this.b = b;
-    }
-}");
-        }
-
-        [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
-        public async Task TestAddOptionalToConstructorWithMostMatchingParameters1()
-        {
-            await TestInRegularAndScriptAsync(
-@"using System.Collections.Generic;
-
-class Program
-{
-    [|int i;
-    string s;
-    bool b;|]
-
-    public Program(int i)
-    {
-        this.i = i;
-    }
-
-    public Program(int i, string s) : this(i)
-    {
-        this.s = s;
-    }
-}",
-@"using System.Collections.Generic;
-
-class Program
-{
-    int i;
-    string s;
-    bool b;
-
-    public Program(int i)
-    {
-        this.i = i;
-    }
-
-    public Program(int i, string s, bool b = false) : this(i)
     {
         this.s = s;
         this.b = b;
@@ -768,6 +778,178 @@ class C
     }
 }"
             );
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestMultipleConstructors()
+        {
+            var source =
+@"
+class C
+{
+    int [|l|];
+    public C(int i)
+    {
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}
+";
+            var expected1 =
+@"
+class C
+{
+    int l;
+    public C(int i, int l)
+    {
+        this.l = l;
+    }
+    public C(int i, int j)
+    {
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}
+";
+            var expected2 =
+@"
+class C
+{
+    int l;
+    public C(int i)
+    {
+    }
+    public C(int i, int j, int l)
+    {
+        this.l = l;
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}
+";
+            var expected3 =
+@"
+class C
+{
+    int l;
+    public C(int i)
+    {
+    }
+    public C(int i, int j, int l = 0)
+    {
+        this.l = l;
+    }
+    public C(int i, int j, int k)
+    {
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected1, 0);
+            await TestInRegularAndScriptAsync(source, expected2, 1);
+            await TestInRegularAndScriptAsync(source, expected3, 4);
+        }
+
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestOnlyOptionalSubmenuOffered()
+        {
+            var source =
+@"
+class C
+{
+    int [|l|];
+    public C(int i = 1)
+    {
+    }
+    public C(int i = 1, int j = 2)
+    {
+    }
+    public C(int i = 1, int j = 2, int k = 3)
+    {
+    }
+}
+";
+            var expected1 =
+@"
+class C
+{
+    int l;
+    public C(int i = 1, int l = 0)
+    {
+        this.l = l;
+    }
+    public C(int i = 1, int j = 2)
+    {
+    }
+    public C(int i = 1, int j = 2, int k = 3)
+    {
+    }
+}
+";
+            var expected2 =
+@"
+class C
+{
+    int l;
+    public C(int i = 1)
+    {
+    }
+    public C(int i = 1, int j = 2, int l = 0)
+    {
+        this.l = l;
+    }
+    public C(int i = 1, int j = 2, int k = 3)
+    {
+    }
+}
+";
+            var expected3 =
+@"
+class C
+{
+    int l;
+    public C(int i = 1)
+    {
+    }
+    public C(int i = 1, int j = 2)
+    {
+    }
+    public C(int i = 1, int j = 2, int k = 3, int l = 0)
+    {
+        this.l = l;
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, expected1, 0);
+            await TestInRegularAndScriptAsync(source, expected2, 1);
+            await TestInRegularAndScriptAsync(source, expected3, 2);
+        }
+
+        [WorkItem(33623, "https://github.com/dotnet/roslyn/issues/33623")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestDeserializationConstructor()
+        {
+            await TestMissingAsync(
+@"
+using System;
+using System.Runtime.Serialization;
+ 
+class C : ISerializable
+{
+    int [|i|];
+
+    private C(SerializationInfo info, StreamingContext context)
+    {
+    }
+}
+");
         }
     }
 }

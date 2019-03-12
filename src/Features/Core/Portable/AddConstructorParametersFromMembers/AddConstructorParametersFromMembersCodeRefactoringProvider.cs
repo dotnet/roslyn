@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 return;
             }
 
-            var actions = await this.AddConstructorParametersFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var actions = await AddConstructorParametersFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(actions);
         }
 
@@ -40,11 +41,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
             {
-                var info = await this.GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
+                var info = await GetSelectedMemberInfoAsync(document, textSpan, true, cancellationToken).ConfigureAwait(false);
                 if (info != null)
                 {
-                    var state = State.Generate(this, info.SelectedMembers);
-                    if (state != null && state.ConstructorToAddTo != null)
+                    var state = State.GenerateAsync(this, info.SelectedMembers, document).Result;
+                    if (state != null && state.ConstructorCandidates != null)
                     {
                         return CreateCodeActions(document, state).AsImmutableOrNull();
                     }
@@ -56,25 +57,55 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
         private IEnumerable<CodeAction> CreateCodeActions(Document document, State state)
         {
-            var parameters = state.ConstructorToAddTo.Parameters;
-            if (parameters.Length == 0 ||
-                (parameters.Length > 0 && !parameters.Last().IsOptional))
+            var result = new ArrayBuilder<CodeAction>();
+            var containingType = state.ContainingType;
+            if (state.ConstructorCandidates.Count() <= 1)
             {
-                // return a code action to add required parameters
-                yield return new AddConstructorParametersCodeAction(this, document, state, state.MissingParameters);
+                // There will be at most 2 suggested code actions, so no need to use sub menus
+                var constructorCandidate = state.ConstructorCandidates[0];
+                if (CanHaveRequiredParameters(state.ConstructorCandidates[0]._missingParameters))
+                {
+                    result.Add(new AddConstructorParametersCodeAction(document, constructorCandidate, containingType, constructorCandidate._missingParameters, useSubMenuName: false));
+                }
+                result.Add(GetOptionalContructorParametersCodeAction(document, constructorCandidate, containingType, useSubMenuName: false));
+            }
+            else
+            {
+                // Create sub menus for suggested actions, one for required parameters and one for optional parameters
+                var requiredParameterCodeActions = new ArrayBuilder<CodeAction>();
+                var optionalPrameterCodeActions = new ArrayBuilder<CodeAction>();
+                foreach (var constructor in state.ConstructorCandidates)
+                {
+                    if (CanHaveRequiredParameters(constructor._missingParameters))
+                    {
+                        requiredParameterCodeActions.Add(new AddConstructorParametersCodeAction(document, constructor, containingType, constructor._missingParameters, useSubMenuName: true));
+                    }
+                    optionalPrameterCodeActions.Add(GetOptionalContructorParametersCodeAction(document, constructor, containingType, useSubMenuName: true));
+                }
+
+                result.Add(new CodeAction.CodeActionWithNestedActions(FeaturesResources.Add_parameter_to_constructor, requiredParameterCodeActions.ToImmutableAndFree(), isInlinable: false));
+                result.Add(new CodeAction.CodeActionWithNestedActions(FeaturesResources.Add_optional_parameter_to_constructor, optionalPrameterCodeActions.ToImmutableAndFree(), isInlinable: false));
             }
 
-            var missingParameters = state.MissingParameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
-                attributes: default,
-                refKind: p.RefKind,
-                isParams: p.IsParams,
-                type: p.Type,
-                name: p.Name,
-                isOptional: true,
-                hasDefaultValue: true));
+            return result;
 
-            // return a code action to add optional parameters
-            yield return new AddConstructorParametersCodeAction(this, document, state, missingParameters);
+            // local functions
+            static CodeAction GetOptionalContructorParametersCodeAction(Document document, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
+            {
+                var missingOptionalParameters = constructorCandidate._missingParameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
+                      attributes: default,
+                      refKind: p.RefKind,
+                      isParams: p.IsParams,
+                      type: p.Type,
+                      name: p.Name,
+                      isOptional: true,
+                      hasDefaultValue: true));
+
+                return new AddConstructorParametersCodeAction(document, constructorCandidate, containingType, missingOptionalParameters, useSubMenuName);
+            }
+
+            static bool CanHaveRequiredParameters(ImmutableArray<IParameterSymbol> parameters)
+                   => parameters.Length == 0 || (parameters.Length > 0 && !parameters.Last().IsOptional);
         }
     }
 }
