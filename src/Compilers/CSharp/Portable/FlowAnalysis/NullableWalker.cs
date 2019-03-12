@@ -1793,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return InferResultNullability(node.OperatorKind, node.MethodOpt, node.Type, leftType, rightType);
         }
 
-        private TypeWithState InferResultNullability(BinaryOperatorKind operatorKind, MethodSymbol methodOpt, TypeSymbol resultType, TypeWithState leftType, TypeWithState rightType)
+        private TypeWithState InferResultNullability(BinaryOperatorKind operatorKind, MethodSymbol? methodOpt, TypeSymbol resultType, TypeWithState leftType, TypeWithState rightType)
         {
             NullableFlowState resultState = NullableFlowState.NotNull;
             if (operatorKind.IsUserDefined())
@@ -4860,7 +4860,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot, out Symbol valueProperty)
+        private int GetNullableOfTValueSlot(TypeSymbol containingType, int containingSlot, out Symbol? valueProperty)
         {
             Debug.Assert(containingType.IsNullableType());
             Debug.Assert(TypeSymbol.Equals(GetSlotType(containingSlot), containingType, TypeCompareKind.ConsiderEverything2));
@@ -5471,7 +5471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkNullableValueType = false)
+        private void CheckPossibleNullReceiver(BoundExpression? receiverOpt, bool checkNullableValueType = false)
         {
             Debug.Assert(!this.IsConditionalState);
             if (receiverOpt != null && this.State.Reachable)
