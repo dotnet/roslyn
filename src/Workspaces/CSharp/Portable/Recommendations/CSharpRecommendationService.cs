@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             ExpressionSyntax originalExpression,
             CancellationToken cancellationToken)
         {
-            var expression = originalExpression.WalkDownParentheses();
+            var expression = originalExpression.WalkDownParenthesesAndExclamations();
             var leftHandBinding = context.SemanticModel.GetSymbolInfo(expression, cancellationToken);
             var container = context.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
 
