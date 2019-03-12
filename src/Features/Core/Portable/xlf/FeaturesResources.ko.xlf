@@ -417,6 +417,11 @@
         <target state="translated">경고: 네임스페이스를 변경하면 잘못된 코드가 발생하고 코드 의미가 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_and_align_expression">
+        <source>Wrap and align expression</source>
+        <target state="new">Wrap and align expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">모든 인수 줄 바꿈</target>

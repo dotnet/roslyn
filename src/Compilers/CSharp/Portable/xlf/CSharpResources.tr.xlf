@@ -9400,8 +9400,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of an 'in' extension method '{0}' must be a value type.</source>
-        <target state="translated">in' genişletme metodu '{0}' için ilk parametre, değer türünde olmalıdır.</target>
+        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">in' genişletme metodu '{0}' için ilk parametre, değer türünde olmalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

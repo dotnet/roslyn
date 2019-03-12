@@ -417,6 +417,11 @@
         <target state="translated">警告: 變更命名空間可能會產生無效的程式碼及變更程式碼意義。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_and_align_expression">
+        <source>Wrap and align expression</source>
+        <target state="new">Wrap and align expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">包裝每個引數</target>

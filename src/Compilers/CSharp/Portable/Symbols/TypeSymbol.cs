@@ -659,14 +659,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setUnknownNullability =
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
-        internal TypeSymbol SetSpeakableNullabilityForReferenceTypes()
-        {
-            return SetNullabilityForReferenceTypes(s_setSpeakableNullability);
-        }
-
-        private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setSpeakableNullability =
-           (type) => type.SetSpeakableNullabilityForReferenceTypes();
-
         /// <summary>
         /// Merges nested nullability from an otherwise identical type.
         /// </summary>

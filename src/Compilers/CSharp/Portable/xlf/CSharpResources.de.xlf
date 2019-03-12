@@ -9399,8 +9399,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of an 'in' extension method '{0}' must be a value type.</source>
-        <target state="translated">Der erste Parameter einer in-Erweiterungsmethode "{0}" muss ein Werttyp sein.</target>
+        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">Der erste Parameter einer in-Erweiterungsmethode "{0}" muss ein Werttyp sein.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

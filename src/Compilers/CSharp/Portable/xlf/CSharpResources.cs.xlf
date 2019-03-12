@@ -9399,8 +9399,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of an 'in' extension method '{0}' must be a value type.</source>
-        <target state="translated">První parametr rozšiřující metody in {0} musí být typem hodnoty.</target>
+        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">První parametr rozšiřující metody in {0} musí být typem hodnoty.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
