@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        internal struct NamespaceOrTypeOrAliasSymbolWithAnnotations
+        internal readonly struct NamespaceOrTypeOrAliasSymbolWithAnnotations
         {
             private readonly TypeWithAnnotations _typeWithAnnotations;
             private readonly Symbol _symbol;
