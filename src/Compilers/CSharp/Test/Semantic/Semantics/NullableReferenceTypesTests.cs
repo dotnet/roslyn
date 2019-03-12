@@ -21334,7 +21334,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Should only report warning for // 1.
+            // Should there be a warning for // 1 only?
             comp.VerifyDiagnostics(
                 // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o = x ? y && z : w; // 1
@@ -51065,28 +51065,26 @@ class Program
 }
 class B : A
 {
+    internal object FB = new object();
 }
 class Program
 {
     static void F()
     {
-        B b = new B() { FA = 1 };
-        A a = b;
+        A a = new B() { FA = 1, FB = null }; // 1
         a.FA.ToString();
-        a = (A)b;
-        a.FA.ToString();
-        ((A)b).FA.ToString();
+        ((B)a).FA.ToString();
+        ((B)a).FB.ToString(); // 2
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment.
             comp.VerifyDiagnostics(
-                // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         a.FA.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.FA").WithLocation(14, 9),
+                // (13,38): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         A a = new B() { FA = 1, FB = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 38),
                 // (16,9): warning CS8602: Possible dereference of a null reference.
-                //         a.FA.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.FA").WithLocation(16, 9));
+                //         ((B)a).FB.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((B)a).FB").WithLocation(16, 9));
         }
 
         [Fact]
@@ -51106,26 +51104,23 @@ class Program
 {
     static void F()
     {
-        object o = new B() { FA = 1, FB = null }; // 1
-        B b = o; // 2
-        b.FA.ToString();
-        b = (B)o;
-        b.FB.ToString(); // 3
-        ((B)o).FA.ToString();
+        B b = new B() { FA = 1 };
+        A a = b;
+        a.FA.ToString();
+        a = new B() { FB = null }; // 1
+        b = (B)a;
+        b.FB.ToString(); // 2
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment.
             comp.VerifyDiagnostics(
-                // (13,43): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         object o = new B() { FA = 1, FB = null }; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 43),
-                // (14,15): error CS0266: Cannot implicitly convert type 'object' to 'B'. An explicit conversion exists (are you missing a cast?)
-                //         B b = o; // 2
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "o").WithArguments("object", "B").WithLocation(14, 15),
                 // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         b.FA.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.FA").WithLocation(15, 9));
+                //         a.FA.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.FA").WithLocation(15, 9),
+                // (16,28): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         a = new B() { FB = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 28));
         }
 
         [Fact]
@@ -51135,32 +51130,30 @@ class Program
             var source =
 @"interface IA
 {
-    object? PA { get; }
+    object? PA { get; set; }
 }
 interface IB : IA
 {
+    object PB { get; set; }
 }
 class Program
 {
     static void F(IB b)
     {
-        if (b.PA == null) return;
-        IA a = b;
-        a.PA.ToString();
-        a = (IA)b;
-        a.PA.ToString();
+        b.PA = 1;
+        b.PB = null; // 1
         ((IA)b).PA.ToString();
+        ((IB)(object)b).PB.ToString(); // 2
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment.
             comp.VerifyDiagnostics(
-                // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         a.PA.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.PA").WithLocation(14, 9),
+                // (14,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         b.PB = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 16),
                 // (16,9): warning CS8602: Possible dereference of a null reference.
-                //         a.PA.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a.PA").WithLocation(16, 9));
+                //         ((IB)(object)b).PB.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((IB)(object)b).PB").WithLocation(16, 9));
         }
 
         [Fact]
@@ -51314,33 +51307,26 @@ class B : A
 }
 class Program
 {
-    static void F2(bool b1, bool b2)
+    static void M(bool b1, bool b2)
     {
-        B x = new B() { F = true };
-        A y;
-        if (b1 ? b2 && (y = x).F.Value : false)
+        A a;
+        if (b1 ? b2 && (a = new B() { F = true }).F.Value : false)
         {
         }
-        if (true ? b2 && (y = x).F.Value : false)
+        if (true ? b2 && (a = new B() { F = false }).F.Value : false)
         {
         }
-        if (false ? false : b2 && (y = x).F.Value)
+        if (false ? false : b2 && (a = new B() { F = b1 }).F.Value)
         {
         }
+        _ = (a = new B() { F = null }).F.Value; // 1
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // PROTOTYPE: Should not report warnings.
             comp.VerifyDiagnostics(
-                // (14,24): warning CS8629: Nullable value type may be null.
-                //         if (b1 ? b2 && (y = x).F.Value : false)
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(y = x).F").WithLocation(14, 24),
-                // (17,26): warning CS8629: Nullable value type may be null.
-                //         if (true ? b2 && (y = x).F.Value : false)
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(y = x).F").WithLocation(17, 26),
-                // (20,35): warning CS8629: Nullable value type may be null.
-                //         if (false ? false : b2 && (y = x).F.Value)
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(y = x).F").WithLocation(20, 35));
+                // (22,13): warning CS8629: Nullable value type may be null.
+                //         _ = (a = new B() { F = null }).F.Value; // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(a = new B() { F = null }).F").WithLocation(22, 13));
         }
 
         [Fact]
