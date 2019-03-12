@@ -227,6 +227,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                     Optional isSoftSelected As Boolean? = Nothing,
                                                     Optional isHardSelected As Boolean? = Nothing,
                                                     Optional shouldFormatOnCommit As Boolean? = Nothing,
+                                                    Optional inlineDescription As String = Nothing,
                                                     Optional projectionsView As ITextView = Nothing) As Task
             Dim view = If(projectionsView, TextView)
 
@@ -265,6 +266,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If shouldFormatOnCommit.HasValue Then
                 Assert.Equal(shouldFormatOnCommit.Value, GetRoslynCompletionItem(items.SelectedItem).Rules.FormatOnCommit)
             End If
+
+            ' TODO: must figure out how to validate inlineDescription here 
 
             If description IsNot Nothing Then
                 Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()

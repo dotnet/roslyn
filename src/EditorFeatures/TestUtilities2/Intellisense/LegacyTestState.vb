@@ -198,6 +198,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
+                               Optional inlineDescription As String = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
             ' projectionsView is not used in this implementation.
 
@@ -216,6 +217,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If displayTextSuffix IsNot Nothing Then
                 Assert.Equal(displayTextSuffix, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayTextSuffix)
+            End If
+
+            If inlineDescription IsNot Nothing Then
+                Assert.Equal(inlineDescription, Me.CurrentCompletionPresenterSession.SelectedItem.InlineDescription)
             End If
 
             If shouldFormatOnCommit.HasValue Then
