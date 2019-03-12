@@ -5,6 +5,7 @@ namespace Analyzer.Utilities
     internal static class WellKnownTypeNames
     {
         public const string SystemAppContext = "System.AppContext";
+        public const string SystemNetSecurityProtocolType = "System.Net.SecurityProtocolType";
         public const string SystemWebHttpRequest = "System.Web.HttpRequest";
         public const string SystemDataIDataAdapter = "System.Data.IDataAdapter";
         public const string SystemDataIDbCommand = "System.Data.IDbCommand";
