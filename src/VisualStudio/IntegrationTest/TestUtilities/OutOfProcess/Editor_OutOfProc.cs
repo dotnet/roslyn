@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void FormatDocumentViaCommand()
         {
             VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
-            VisualStudioInstance.Dte.ExecuteCommand(WellKnownCommandNames.Edit_FormatDocument);
+            _editorInProc.FormatDocumentViaCommand();
         }
 
         public void FormatSelection()
@@ -212,7 +212,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             thread.Start();
             thread.Join();
 
-            VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
+            _editorInProc.Paste();
         }
 
         public void Undo()
