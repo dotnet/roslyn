@@ -5200,9 +5200,9 @@ class D { }
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (13,30): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'.
+                // (12,30): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'.
                 // [MyAttribute(PropertyArray = new string?[]{ null })] //1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new string?[]{ null }").WithArguments("string?[]", "string[]").WithLocation(13, 30)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "new string?[]{ null }").WithArguments("string?[]", "string[]").WithLocation(12, 30)
                 );
         }
 
