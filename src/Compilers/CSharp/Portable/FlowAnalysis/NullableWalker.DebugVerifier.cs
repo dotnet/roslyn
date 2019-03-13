@@ -13,9 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class NullableWalker
     {
 #if DEBUG
+        /// <summary>
+        /// Verifies that all BoundExpressions in a tree have been visited by the nullable walker and have recorded updated types and nullabilities for rewriting purposes.
+        /// </summary>
         private sealed class DebugVerifier : BoundTreeWalker
         {
-            private static ImmutableArray<BoundKind> s_skippedExpression = ImmutableArray.Create(BoundKind.ArrayInitialization, BoundKind.ObjectInitializerExpression, BoundKind.CollectionInitializerExpression, BoundKind.DynamicCollectionElementInitializer);
+            private static readonly ImmutableArray<BoundKind> s_skippedExpression = ImmutableArray.Create(BoundKind.ArrayInitialization, BoundKind.ObjectInitializerExpression, BoundKind.CollectionInitializerExpression, BoundKind.DynamicCollectionElementInitializer);
             private readonly PooledDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMap;
             private readonly HashSet<BoundExpression> _visitedNodes = new HashSet<BoundExpression>();
             private int _recursionDepth;
@@ -34,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Same behavior as NullableWalker
             }
 
-            public static void Verify(NullableWalker walker, BoundNode node)
+            public static void Verify(PooledDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, BoundNode node)
             {
-                var verifier = new DebugVerifier(walker._analyzedNullabilityMapOpt);
+                var verifier = new DebugVerifier(analyzedNullabilityMap);
                 verifier.Visit(node);
                 // Can't just remove nodes from _topLevelNullabilityMap because nodes can be reused.
                 Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedNodes.Count, $"Visited {verifier._visitedNodes.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");

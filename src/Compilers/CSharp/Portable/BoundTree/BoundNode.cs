@@ -18,28 +18,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly SyntaxNode Syntax;
 
         [Flags()]
-        private enum BoundNodeAttributes : ushort
+        private enum BoundNodeAttributes : byte
         {
             HasErrors = 1 << 0,
             CompilerGenerated = 1 << 1,
             IsSuppressed = 1 << 2,
 
-            // Bit 3: Whether nullability has been set
-            // Bit 4: 1 if the node is nullable, 0 if the node is not nullable
-            // Bits 5 and 6: 01 if the node is not annotated, 10 if the node is annotated, 00 if the node is disabled
-            TopLevelNullableInfoSet = 1 << 3,
-            TopLevelFlowStateNullable = 1 << 4,
-            TopLevelNotAnnotated = 1 << 5,
-            TopLevelAnnotated = 1 << 6,
-            TopLevelDisabled = 0,
-            TopLevelAnnotationMask = TopLevelAnnotated | TopLevelNotAnnotated,
+            // Bit 3: 1 if the node is has maybe-null state, 0 if the node is not null
+            // Bits 4 and 5: 01 if the node is not annotated, 10 if the node is annotated, 11 if the node is disabled
+            TopLevelFlowStateNullable = 1 << 3,
+            TopLevelNotAnnotated = 1 << 4,
+            TopLevelAnnotated = 1 << 5,
+            TopLevelDisabled = TopLevelAnnotated | TopLevelNotAnnotated,
+            TopLevelAnnotationMask = TopLevelDisabled,
 #if DEBUG
             /// <summary>
             /// Captures the fact that consumers of the node already checked the state of the WasCompilerGenerated bit.
             /// Allows to assert on attempts to set WasCompilerGenerated bit after that.
             /// </summary>
-            WasCompilerGeneratedIsChecked = 1 << 7,
-            WasTopLevelNullabilityChecked = 1 << 8,
+            WasCompilerGeneratedIsChecked = 1 << 6,
+            WasTopLevelNullabilityChecked = 1 << 7,
 #endif
         }
 
@@ -172,14 +170,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Top level nullability for the node. This should not be used by flow analysis.
         /// </summary>
-        protected NullabilityInfo TopLevelNullabilityInfo
+        protected NullabilityInfo TopLevelNullability
         {
             get
             {
 #if DEBUG
                 _attributes |= BoundNodeAttributes.WasTopLevelNullabilityChecked;
 #endif
-                if ((_attributes & BoundNodeAttributes.TopLevelNullableInfoSet) == 0)
+                if ((_attributes & BoundNodeAttributes.TopLevelAnnotationMask) == 0)
                 {
                     return default;
                 }
@@ -217,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case CodeAnalysis.NullableAnnotation.Unknown:
-                        // Disabled is 0, nothing to do
+                        _attributes |= BoundNodeAttributes.TopLevelDisabled;
                         break;
 
                     default:
@@ -236,8 +234,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         throw ExceptionUtilities.UnexpectedValue(value.FlowState);
                 }
-
-                _attributes |= BoundNodeAttributes.TopLevelNullableInfoSet;
             }
         }
 

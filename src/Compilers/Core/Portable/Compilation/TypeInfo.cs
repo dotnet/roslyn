@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     public readonly struct TypeInfo : IEquatable<TypeInfo>
     {
-        internal static readonly TypeInfo None = new TypeInfo(null, null, default, default);
+        internal static readonly TypeInfo None = new TypeInfo(type: null, convertedType: null, nullability: default, convertedNullability: default);
 
         /// <summary>
         /// The type of the expression represented by the syntax node. For expressions that do not
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         public ITypeSymbol Type { get; }
 
         // PROTOTYPE(nullable-api): Doc Comment
-        public NullabilityInfo NullabilityInfo { get; }
+        public NullabilityInfo Nullability { get; }
 
         /// <summary>
         /// The type of the expression after it has undergone an implicit conversion. If the type
@@ -27,23 +26,23 @@ namespace Microsoft.CodeAnalysis
         public ITypeSymbol ConvertedType { get; }
 
         // PROTOTYPE(nullable-api): Doc Comment
-        public NullabilityInfo ConvertedNullabilityInfo { get; }
+        public NullabilityInfo ConvertedNullability { get; }
 
-        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, NullabilityInfo nullabilityInfo, NullabilityInfo convertedNullabilityInfo)
+        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, NullabilityInfo nullability, NullabilityInfo convertedNullability)
             : this()
         {
             this.Type = type;
-            this.NullabilityInfo = nullabilityInfo;
+            this.Nullability = nullability;
             this.ConvertedType = convertedType;
-            this.ConvertedNullabilityInfo = convertedNullabilityInfo;
+            this.ConvertedNullability = convertedNullability;
         }
 
         public bool Equals(TypeInfo other)
         {
             return object.Equals(this.Type, other.Type)
                 && object.Equals(this.ConvertedType, other.ConvertedType)
-                && object.Equals(this.NullabilityInfo, other.NullabilityInfo)
-                && object.Equals(this.ConvertedNullabilityInfo, other.ConvertedNullabilityInfo);
+                && this.Nullability.Equals(other.Nullability)
+                && this.ConvertedNullability.Equals(other.ConvertedNullability);
         }
 
         public override bool Equals(object obj)
@@ -55,8 +54,8 @@ namespace Microsoft.CodeAnalysis
         {
             return Hash.Combine(this.ConvertedType,
                 Hash.Combine(this.Type,
-                Hash.Combine(this.NullabilityInfo.GetHashCode(),
-                this.ConvertedNullabilityInfo.GetHashCode())));
+                Hash.Combine(this.Nullability.GetHashCode(),
+                this.ConvertedNullability.GetHashCode())));
         }
     }
 }

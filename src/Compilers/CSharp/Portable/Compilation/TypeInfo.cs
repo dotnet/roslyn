@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static implicit operator TypeInfo(CSharpTypeInfo info)
         {
-            return new TypeInfo(info.Type, info.ConvertedType, default, default);
+            return new TypeInfo(info.Type, info.ConvertedType, nullability: default, convertedNullability: default);
         }
 
         public override bool Equals(object obj)

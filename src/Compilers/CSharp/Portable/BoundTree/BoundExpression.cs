@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public virtual new NullabilityInfo TopLevelNullabilityInfo
+        public virtual new NullabilityInfo TopLevelNullability
         {
-            get => base.TopLevelNullabilityInfo;
-            set => base.TopLevelNullabilityInfo = value;
+            get => base.TopLevelNullability;
+            set => base.TopLevelNullability = value;
         }
     }
 
@@ -388,11 +388,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.ConstantValueOpt; }
         }
 
-        public override NullabilityInfo TopLevelNullabilityInfo
+        public override NullabilityInfo TopLevelNullability
         {
             // PROTOTYPE(nullable-api): handle null! and lower-language versions
-            get => ConstantValue.IsNull ? new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.MaybeNull) : base.TopLevelNullabilityInfo;
-            set => base.TopLevelNullabilityInfo = value;
+            get => ConstantValue.IsNull ? new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.MaybeNull) : base.TopLevelNullability;
+            set => base.TopLevelNullability = value;
         }
     }
 
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.ConstantValueOpt; }
         }
 
-        public override NullabilityInfo TopLevelNullabilityInfo
+        public override NullabilityInfo TopLevelNullability
         {
             // PROTOTYPE(nullable-api): handle default! and lower-language versions
             get => Type?.IsValueType == true && !Type.IsNullableType() ? new NullabilityInfo(CodeAnalysis.NullableAnnotation.NotAnnotated, CodeAnalysis.NullableFlowState.NotNull) :

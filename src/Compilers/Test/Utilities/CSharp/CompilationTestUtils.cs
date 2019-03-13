@@ -307,7 +307,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var annotations in annotationsByMethod)
             {
                 var method = (MethodSymbol)model.GetDeclaredSymbol(annotations.Key);
-                var dictionary = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
 
                 var diagnostics = DiagnosticBag.GetInstance();
                 var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
@@ -316,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     method,
                     block,
                     diagnostics);
-                new TopLevelNullabilityRetreiver() { Map = dictionary }.Visit(rewritten);
+                var dictionary = TopLevelNullabilityRetriever.BuildMap(rewritten);
                 diagnostics.Free();
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));
@@ -409,9 +408,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        private sealed class TopLevelNullabilityRetreiver : BoundTreeWalker
+        private sealed class TopLevelNullabilityRetriever : BoundTreeWalker
         {
-            public Dictionary<SyntaxNode, TypeSymbolWithAnnotations> Map { get; set; }
+            private Dictionary<SyntaxNode, TypeSymbolWithAnnotations> _map;
+            private TopLevelNullabilityRetriever(Dictionary<SyntaxNode, TypeSymbolWithAnnotations> map)
+            {
+                _map = map;
+            }
+
+            public static Dictionary<SyntaxNode, TypeSymbolWithAnnotations> BuildMap(BoundNode rewritten)
+            {
+                var map = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
+                new TopLevelNullabilityRetriever(map).Visit(rewritten);
+                return map;
+            }
 
             protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
             {
@@ -425,10 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // and we have no way from syntax of getting the correct node.
                 if (node is BoundConversion conv && conv.Syntax == conv.Operand.Syntax && conv.Operand.Kind != BoundKind.Lambda)
                 {
-                    if (node is BoundExpression expr)
-                    {
-                        Map[expr.Syntax] = new TypeWithState(expr.Type, expr.TopLevelNullabilityInfo.FlowState.ToInternalFlowState()).ToTypeSymbolWithAnnotations();
-                    }
+                    _map[conv.Syntax] = new TypeWithState(conv.Type, conv.TopLevelNullability.FlowState.ToInternalFlowState()).ToTypeSymbolWithAnnotations();
                     base.Visit(node);
                 }
                 else
@@ -436,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     base.Visit(node);
                     if (node is BoundExpression expr)
                     {
-                        Map[expr.Syntax] = new TypeWithState(expr.Type, expr.TopLevelNullabilityInfo.FlowState.ToInternalFlowState()).ToTypeSymbolWithAnnotations();
+                        _map[expr.Syntax] = new TypeWithState(expr.Type, expr.TopLevelNullability.FlowState.ToInternalFlowState()).ToTypeSymbolWithAnnotations();
                     }
                 }
 

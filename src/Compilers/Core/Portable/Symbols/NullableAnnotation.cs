@@ -12,17 +12,4 @@ namespace Microsoft.CodeAnalysis
         NotNullable,  // Explicitly set by flow analysis
         Nullable,     // Explicitly set by flow analysis
     }
-
-    /// <summary>
-    /// The nullable state of an rvalue computed in NullableWalker.
-    /// When in doubt we conservatively use <see cref="NotNull"/>
-    /// to minimize diagnostics.
-    /// </summary>
-    // PROTOTYPE(nullable-api): Document
-    public enum NullableFlowState : byte
-    {
-        Default = 0,
-        NotNull,
-        MaybeNull
-    }
 }

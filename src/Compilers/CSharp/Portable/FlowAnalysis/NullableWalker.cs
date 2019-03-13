@@ -122,13 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly TypeWithState _invalidType = new TypeWithState(ErrorTypeSymbol.UnknownResultType, NullableFlowState.NotNull);
 
         /// <summary>
-        /// Whether or not this instance of NullableWalker owns the <see cref="_analyzedNullabilityMapOpt"/>. Used for when the map
-        /// is passed along for nested calls, such as for lambdas and local functions. If this is false, then we should not dispose
-        /// of the map in Free.
-        /// </summary>
-        private readonly bool _ownsAnalyzedNullabilityMap = false;
-
-        /// <summary>
         /// Contains the map of expressions to inferred nullabilities and types used by the optional rewriter phase of the
         /// compiler.
         /// </summary>
@@ -291,10 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _variableTypes.Free();
             _placeholderLocalsOpt?.Free();
-            if (_ownsAnalyzedNullabilityMap)
-            {
-                _analyzedNullabilityMapOpt.Free();
-            }
             base.Free();
         }
 
@@ -307,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             ArrayBuilder<(BoundReturnStatement, TypeSymbolWithAnnotations)> returnTypesOpt,
             VariableState initialState,
-            PooledDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMap = null)
+            PooledDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMapOpt = null)
             : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: true)
         {
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
@@ -317,13 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
             _returnTypesOpt = returnTypesOpt;
-
-            if (analyzedNullabilityMap == null)
-            {
-                analyzedNullabilityMap = PooledDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.GetInstance();
-                _ownsAnalyzedNullabilityMap = true;
-            }
-            _analyzedNullabilityMapOpt = analyzedNullabilityMap;
+            _analyzedNullabilityMapOpt = analyzedNullabilityMapOpt;
 
             if (initialState != null)
             {
@@ -392,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
-            NullableWalker walker = Analyze(compilation,
+            Analyze(compilation,
                 method,
                 node,
                 diagnostics,
@@ -401,7 +384,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodSignatureOpt: null,
                 returnTypes: null,
                 initialState: null);
-            walker?.Free();
         }
 
         internal static BoundNode AnalyzeAndRewrite(
@@ -410,7 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             DiagnosticBag diagnostics)
         {
-            NullableWalker walker = Analyze(
+            var analyzedNullabilities = PooledDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)>.GetInstance();
+            Analyze(
                 compilation,
                 method,
                 node,
@@ -419,10 +402,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useMethodSignatureParameterTypes: false,
                 methodSignatureOpt: null,
                 returnTypes: null,
-                initialState: null);
-            var analyzedNullabilities = walker._analyzedNullabilityMapOpt.ToImmutableDictionary();
-            walker.Free();
-            return Rewrite(analyzedNullabilities, node);
+                initialState: null,
+                analyzedNullabilityMapOpt: analyzedNullabilities);
+#if DEBUG
+            // If the map was provided, we're in a nested call so we can't yet verify that all things are in the map.
+            DebugVerifier.Verify(analyzedNullabilities, node);
+#endif
+            return Rewrite(analyzedNullabilities.ToImmutableDictionaryAndFree(), node);
         }
 
         internal static void Analyze(
@@ -434,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableState initialState,
             PooledDictionary<BoundExpression, (NullabilityInfo, TypeSymbol)> analyzedNullabilityMap = null)
         {
-            NullableWalker walker = Analyze(
+            Analyze(
                 compilation,
                 lambda.Symbol,
                 lambda.Body,
@@ -445,10 +431,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 returnTypes,
                 initialState,
                 analyzedNullabilityMap);
-            walker?.Free();
         }
 
-        private static NullableWalker Analyze(
+        private static void Analyze(
             CSharpCompilation compilation,
             MethodSymbol method,
             BoundNode node,
@@ -477,21 +462,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool badRegion = false;
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion);
                 diagnostics.AddRange(walker.Diagnostics);
-#if DEBUG
                 Debug.Assert(!badRegion);
-                // If the map was provided, we're in a nested call so we can't yet verify that all things are in the map.
-                if (analyzedNullabilityMapOpt == null)
-                {
-                    DebugVerifier.Verify(walker, node);
-                }
-#endif
-                return walker;
             }
-            catch (BoundTreeVisitor.CancelledByStackGuardException ex) when (diagnostics != null)
+            catch (CancelledByStackGuardException ex) when (diagnostics != null)
             {
                 ex.AddAnError(diagnostics);
+            }
+            finally
+            {
                 walker.Free();
-                return null;
             }
         }
 
@@ -796,6 +775,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
         {
+            if (nodes.IsDefault)
+            {
+                return;
+            }
+
             foreach (var node in nodes)
             {
                 Visit(node);
@@ -1307,14 +1291,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRecursivePattern(BoundRecursivePattern node)
         {
             Visit(node.DeclaredType);
-            if (!node.Deconstruction.IsDefault)
-            {
-                VisitAll(node.Deconstruction);
-            }
-            if (!node.Properties.IsDefault)
-            {
-                VisitAll(node.Properties);
-            }
+            VisitAll(node.Deconstruction);
+            VisitAll(node.Properties);
             Visit(node.VariableAccess);
             return null;
         }
@@ -4533,7 +4511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     methodSignatureOpt: null,
                     returnTypes: null,
                     initialState: GetVariableState(),
-                    analyzedNullabilityMapOpt: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt)?.Free();
+                    analyzedNullabilityMapOpt: _disableNullabilityAnalysis ? null : _analyzedNullabilityMapOpt);
             }
             SetInvalidResult();
             return null;
