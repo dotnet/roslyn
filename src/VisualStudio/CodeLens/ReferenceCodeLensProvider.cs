@@ -29,14 +29,14 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
     [Name(Id)]
     [ContentType(ContentTypeNames.CSharpContentType)]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
-    [LocalizedName(typeof(CodeLensVSResources), "References")]
+    [LocalizedName(typeof(CodeLensVSResources), "CSharp_VisualBasic_References")]
     [Priority(200)]
     [OptionUserModifiable(userModifiable: false)]
     [DetailsTemplateName("references")]
     internal class ReferenceCodeLensProvider : IAsyncCodeLensDataPointProvider
     {
         // TODO: do we need to localize this?
-        private const string Id = "C# and Visual Basic References";
+        private const string Id = "CSVBReferences";
 
         // these string are never exposed to users but internally used to identify 
         // each provider/servicehub connections and etc
