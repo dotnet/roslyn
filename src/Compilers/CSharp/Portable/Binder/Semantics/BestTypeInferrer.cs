@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static CSharpNullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeSymbolWithAnnotations> types)
+        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeSymbolWithAnnotations> types)
         {
-            var result = CSharpNullableAnnotation.NotAnnotated;
+            var result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
                 Debug.Assert(type.HasType);
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        public static CSharpNullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithState> types)
+        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithState> types)
         {
             ArrayBuilder<TypeSymbolWithAnnotations> builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             foreach (var type in types)

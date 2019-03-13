@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        NullableAnnotation ILocalSymbol.NullableAnnotation => NullableAnnotation.Default;
+        CodeAnalysis.NullableAnnotation ILocalSymbol.NullableAnnotation => default;
 
         bool ILocalSymbol.IsFunctionValue
         {

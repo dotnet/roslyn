@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        NullableAnnotation IFieldSymbol.NullableAnnotation => NullableAnnotation.Default;
+        CodeAnalysis.NullableAnnotation IFieldSymbol.NullableAnnotation => default;
 
         ImmutableArray<CustomModifier> IFieldSymbol.CustomModifiers
         {

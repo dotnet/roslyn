@@ -288,11 +288,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (((PEModuleSymbol)this.ContainingModule).Module.HasNullableAttribute(_handle, out byte transformFlag, out _))
                 {
-                    switch ((CSharpNullableAnnotation)transformFlag)
+                    switch ((NullableAnnotation)transformFlag)
                     {
-                        case CSharpNullableAnnotation.Annotated:
+                        case NullableAnnotation.Annotated:
                             return true;
-                        case CSharpNullableAnnotation.NotAnnotated:
+                        case NullableAnnotation.NotAnnotated:
                             return false;
                     }
                 }

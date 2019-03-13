@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
                 !typeOpt.IsNullableType() && !typeOpt.IsValueType &&
-                (typeOpt.NullableAnnotation == CSharpNullableAnnotation.Annotated ||
-                 (typeOpt.NullableAnnotation == CSharpNullableAnnotation.Nullable && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())))
+                (typeOpt.NullableAnnotation == NullableAnnotation.Annotated ||
+                 (typeOpt.NullableAnnotation == NullableAnnotation.Nullable && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())))
             {
                 return true;
             }

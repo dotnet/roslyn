@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SpecialType.System_Object:
-                    if (typeWithAnnotations.NullableAnnotation == CSharpNullableAnnotation.Annotated)
+                    if (typeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
                     {
                         // "Constraint cannot be special class '{0}'"
                         Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, typeWithAnnotations);

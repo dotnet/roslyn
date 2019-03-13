@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class BoundExpressionWithNullability : BoundExpression
     {
-        public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, CSharpNullableAnnotation nullableAnnotation, TypeSymbol type)
+        public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol type)
             : this(syntax, expression, nullableAnnotation, type, hasErrors: false)
         {
             IsSuppressed = expression.IsSuppressed;

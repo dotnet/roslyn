@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     if (node is BoundExpression expr)
                     {
-                        Map[expr.Syntax] = new TypeWithState(expr.Type, expr.TopLevelNullabilityInfo.FlowState).ToTypeSymbolWithAnnotations();
+                        Map[expr.Syntax] = new TypeWithState(expr.Type, expr.TopLevelNullabilityInfo.FlowState.ToInternalFlowState()).ToTypeSymbolWithAnnotations();
                     }
                     base.Visit(node);
                 }
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     base.Visit(node);
                     if (node is BoundExpression expr)
                     {
-                        Map[expr.Syntax] = new TypeWithState(expr.Type, expr.TopLevelNullabilityInfo.FlowState).ToTypeSymbolWithAnnotations();
+                        Map[expr.Syntax] = new TypeWithState(expr.Type, expr.TopLevelNullabilityInfo.FlowState.ToInternalFlowState()).ToTypeSymbolWithAnnotations();
                     }
                 }
 

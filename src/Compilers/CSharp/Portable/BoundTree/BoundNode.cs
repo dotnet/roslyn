@@ -186,13 +186,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var annotation = (_attributes & BoundNodeAttributes.TopLevelAnnotationMask) switch
                 {
-                    BoundNodeAttributes.TopLevelAnnotated => NullableAnnotation.Annotated,
-                    BoundNodeAttributes.TopLevelNotAnnotated => NullableAnnotation.NotAnnotated,
-                    BoundNodeAttributes.TopLevelDisabled => NullableAnnotation.Unknown,
-                    _ => throw ExceptionUtilities.UnexpectedValue(_attributes & BoundNodeAttributes.TopLevelAnnotationMask)
+                    BoundNodeAttributes.TopLevelAnnotated => CodeAnalysis.NullableAnnotation.Annotated,
+                    BoundNodeAttributes.TopLevelNotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                    BoundNodeAttributes.TopLevelDisabled => CodeAnalysis.NullableAnnotation.Unknown,
+                    var mask => throw ExceptionUtilities.UnexpectedValue(mask)
                 };
 
-                var flowState = (_attributes & BoundNodeAttributes.TopLevelFlowStateNullable) == 0 ? NullableFlowState.NotNull : NullableFlowState.MaybeNull;
+                var flowState = (_attributes & BoundNodeAttributes.TopLevelFlowStateNullable) == 0 ? CodeAnalysis.NullableFlowState.NotNull : CodeAnalysis.NullableFlowState.MaybeNull;
 
                 return new NullabilityInfo(annotation, flowState);
             }
@@ -206,17 +206,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (value.Annotation)
                 {
-                    case NullableAnnotation.Annotated:
-                    case NullableAnnotation.Nullable:
+                    case CodeAnalysis.NullableAnnotation.Annotated:
+                    case CodeAnalysis.NullableAnnotation.Nullable:
                         _attributes |= BoundNodeAttributes.TopLevelAnnotated;
                         break;
 
-                    case NullableAnnotation.NotAnnotated:
-                    case NullableAnnotation.NotNullable:
+                    case CodeAnalysis.NullableAnnotation.NotAnnotated:
+                    case CodeAnalysis.NullableAnnotation.NotNullable:
                         _attributes |= BoundNodeAttributes.TopLevelNotAnnotated;
                         break;
 
-                    case NullableAnnotation.Unknown:
+                    case CodeAnalysis.NullableAnnotation.Unknown:
                         // Disabled is 0, nothing to do
                         break;
 
@@ -226,11 +226,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 switch (value.FlowState)
                 {
-                    case NullableFlowState.MaybeNull:
+                    case CodeAnalysis.NullableFlowState.MaybeNull:
                         _attributes |= BoundNodeAttributes.TopLevelFlowStateNullable;
                         break;
 
-                    case NullableFlowState.NotNull:
+                    case CodeAnalysis.NullableFlowState.NotNull:
                         break;
 
                     default:

@@ -469,9 +469,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.ElementType.TypeSymbol; }
         }
 
-        NullableAnnotation IArrayTypeSymbol.ElementNullableAnnotation
+        CodeAnalysis.NullableAnnotation IArrayTypeSymbol.ElementNullableAnnotation
         {
-            get => NullableAnnotation.Default;
+            get => default;
         }
 
         ImmutableArray<CustomModifier> IArrayTypeSymbol.CustomModifiers

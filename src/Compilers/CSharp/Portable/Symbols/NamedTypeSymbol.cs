@@ -1583,9 +1583,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<NullableAnnotation> INamedTypeSymbol.TypeArgumentsNullableAnnotations
+        ImmutableArray<CodeAnalysis.NullableAnnotation> INamedTypeSymbol.TypeArgumentsNullableAnnotations
         {
-            get => this.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(a => NullableAnnotation.Default);
+            get => this.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(a => default(CodeAnalysis.NullableAnnotation));
         }
 
         ImmutableArray<CustomModifier> INamedTypeSymbol.GetTypeArgumentCustomModifiers(int ordinal)

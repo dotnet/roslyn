@@ -8207,12 +8207,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundExpressionWithNullability : BoundExpression
     {
-        public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, CSharpNullableAnnotation nullableAnnotation, TypeSymbol type, bool hasErrors = false)
+        public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ExpressionWithNullability, syntax, type, hasErrors || expression.HasErrors())
         {
 
             Debug.Assert((object)expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert((object)nullableAnnotation != null, "Field 'nullableAnnotation' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Expression = expression;
             this.NullableAnnotation = nullableAnnotation;
@@ -8221,14 +8220,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Expression { get; }
 
-        public CSharpNullableAnnotation NullableAnnotation { get; }
+        public NullableAnnotation NullableAnnotation { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitExpressionWithNullability(this);
         }
 
-        public BoundExpressionWithNullability Update(BoundExpression expression, CSharpNullableAnnotation nullableAnnotation, TypeSymbol type)
+        public BoundExpressionWithNullability Update(BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol type)
         {
             if (expression != this.Expression || nullableAnnotation != this.NullableAnnotation || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {

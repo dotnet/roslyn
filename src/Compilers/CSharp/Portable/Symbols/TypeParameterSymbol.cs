@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (constraintType.NullableAnnotation == CSharpNullableAnnotation.Unknown)
+            if (constraintType.NullableAnnotation == NullableAnnotation.Unknown)
             {
                 return null;
             }
@@ -690,9 +690,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region ITypeParameterTypeSymbol Members
 
-        NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation
+        CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation
         {
-            get => NullableAnnotation.Default;
+            get => default;
         }
 
         TypeParameterKind ITypeParameterSymbol.TypeParameterKind
@@ -721,9 +721,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<NullableAnnotation> ITypeParameterSymbol.ConstraintNullableAnnotations
+        ImmutableArray<CodeAnalysis.NullableAnnotation> ITypeParameterSymbol.ConstraintNullableAnnotations
         {
-            get => this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => NullableAnnotation.Default);
+            get => this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => default(CodeAnalysis.NullableAnnotation));
         }
 
         ITypeParameterSymbol ITypeParameterSymbol.OriginalDefinition
