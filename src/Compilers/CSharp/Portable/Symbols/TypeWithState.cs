@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal readonly struct TypeWithState
     {
-        public TypeSymbol Type { get; }
-        public NullableFlowState State { get; }
+        public readonly TypeSymbol Type;
+        public readonly NullableFlowState State;
         public bool HasNullType => Type is null;
         public bool MayBeNull => State == NullableFlowState.MaybeNull;
         public bool IsNotNull => State == NullableFlowState.NotNull;
