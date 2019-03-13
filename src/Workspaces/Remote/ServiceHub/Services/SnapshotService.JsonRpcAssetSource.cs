@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         return await _owner.RunServiceAsync(cancellationToken =>
                         {
-                            return _owner.Rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
+                            return _owner.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                                 new object[] { scopeId, checksums.ToArray() },
                                 (s, c) => ReadAssets(s, scopeId, checksums, serializerService, c), cancellationToken);
                         }, callerCancellation).ConfigureAwait(false);
@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private bool ReportUnlessCanceled(Exception ex, CancellationToken cancellationToken)
             {
-                if (!cancellationToken.IsCancellationRequested &&
-                    ((IDisposableObservable)_owner.Rpc).IsDisposed)
+                if (!cancellationToken.IsCancellationRequested && _owner.IsDisposed)
                 {
                     // kill OOP if snapshot service got disconnected due to this exception.
                     FailFast.OnFatalException(ex);
