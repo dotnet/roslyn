@@ -267,7 +267,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Assert.Equal(shouldFormatOnCommit.Value, GetRoslynCompletionItem(items.SelectedItem).Rules.FormatOnCommit)
             End If
 
-            ' TODO: must figure out how to validate inlineDescription here 
+            ' Need to validate inlineDescription here 
+            ' https://github.com/dotnet/roslyn/issues/33913
 
             If description IsNot Nothing Then
                 Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
