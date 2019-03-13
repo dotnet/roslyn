@@ -56255,7 +56255,7 @@ set B
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ProtectedAccessibility_01()
         {
             var source0 = @"
