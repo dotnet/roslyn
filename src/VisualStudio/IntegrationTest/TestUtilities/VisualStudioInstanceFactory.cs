@@ -41,9 +41,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
 
             var majorVsProductVersion = VsProductVersion.Split('.')[0];
-            if (int.Parse(majorVsProductVersion) < 15)
+            if (int.Parse(majorVsProductVersion) < 16)
             {
-                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
+                throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 16.0 and later.");
             }
         }
 
@@ -323,6 +323,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 // Disable roaming settings to avoid interference from the online user profile
                 Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\Microsoft\\VisualStudio\" RoamingEnabled string \"1*System.Boolean*False\"").WaitForExit();
+
+                // Enable or disable async completion as necessary for integration testing
+                var usingAsyncCompletion = LegacyCompletionCondition.Instance.ShouldSkip;
+                var useAsyncCompletionSetting = usingAsyncCompletion ? 1 : -1;
+                Process.Start(vsRegEditExeFile, $"set \"{installationPath}\" {Settings.Default.VsRootSuffix} HKCU \"ApplicationPrivateSettings\\WindowManagement\\Options\" UseAsyncCompletion string \"1*System.Int32*{useAsyncCompletionSetting}\"").WaitForExit();
 
                 // Disable text editor error reporting because it pops up a dialog. We want to either fail fast in our
                 // custom handler or fail silently and continue testing.

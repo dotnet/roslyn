@@ -224,6 +224,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
             _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
+        public bool IsUseSuggestionModeOn()
+            => _editorInProc.IsUseSuggestionModeOn();
+
+        public void SetUseSuggestionMode(bool value)
+            => _editorInProc.SetUseSuggestionMode(value);
+
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
 
