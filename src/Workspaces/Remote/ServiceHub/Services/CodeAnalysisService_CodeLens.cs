@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return null;
                     }
 
-                    var syntaxNode = (await document.GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
+                    var syntaxNode = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.GetReferenceCountAsync(
                         solution,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         return null;
                     }
 
-                    var syntaxNode = (await document.GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
+                    var syntaxNode = (await document.GetSyntaxRootAsync(token).ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.FindReferenceLocationsAsync(
                         solution,
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, token))
                 {
                     var solution = await GetSolutionAsync(token).ConfigureAwait(false);
-                    var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
+                    var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync(token).ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.FindReferenceMethodsAsync(solution, documentId,
                         syntaxNode, token).ConfigureAwait(false);
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, token))
                 {
                     var solution = await GetSolutionAsync(token).ConfigureAwait(false);
-                    var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync().ConfigureAwait(false)).FindNode(textSpan);
+                    var syntaxNode = (await solution.GetDocument(documentId).GetSyntaxRootAsync(token).ConfigureAwait(false)).FindNode(textSpan);
 
                     return await CodeLensReferencesServiceFactory.Instance.GetFullyQualifiedName(solution, documentId,
                         syntaxNode, token).ConfigureAwait(false);
