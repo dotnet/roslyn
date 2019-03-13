@@ -200,6 +200,7 @@ End Module
         }
 
         [WpfFact]
+        [WorkItem(33829, "https://github.com/dotnet/roslyn/issues/33829")]
         public void DocumentStateTrackingReadonlyInRunMode()
         {
             SetupMultiProjectSolution();

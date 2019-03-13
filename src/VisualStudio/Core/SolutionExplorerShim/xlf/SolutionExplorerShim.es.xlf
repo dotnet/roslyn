@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Path">
         <source>Path</source>
-        <target state="translated">PATH</target>
+        <target state="translated">Ruta de acceso</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
