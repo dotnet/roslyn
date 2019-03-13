@@ -150,7 +150,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional displayTextSuffix As String = Nothing,
-                               Optional shouldFormatOnCommit As Boolean? = Nothing) As Task
+                               Optional shouldFormatOnCommit As Boolean? = Nothing,
+                               Optional inlineDescription As String = Nothing) As Task
 #End Region
     End Interface
 End Namespace

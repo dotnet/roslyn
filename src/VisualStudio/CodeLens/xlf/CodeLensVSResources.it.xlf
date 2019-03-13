@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="This_0_has_1_references">
-        <source>This {0} has {1} reference(s)</source>
-        <target state="new">This {0} has {1} reference(s)</target>
+        <source>This {0} has {1} reference(s).</source>
+        <target state="new">This {0} has {1} reference(s).</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_reference">

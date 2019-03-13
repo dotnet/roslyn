@@ -19,7 +19,6 @@
     HasDialogFrame="True"
     ShowInTaskbar="False"
     ResizeMode="CanResizeWithGrip"
-    HasHelpButton="True"
     Title="{Binding ElementName=dialog, Path=PullMembersUpTitle}">
     <Window.Resources>
         <Thickness x:Key="ButtonPadding">9, 2, 9, 2</Thickness>
@@ -28,7 +27,7 @@
         <sys:Double x:Key="ButtonHeight">23</sys:Double>
         <self:BooleanReverseConverter x:Key="BooleanReverseConverter"/>
         <Style x:Key="TreeViewItemStyle" TargetType="{x:Type TreeViewItem}">
-            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+            <Setter Property="IsSelected" Value="{Binding IsChecked, Mode=TwoWay}"/>
             <Setter Property="FontWeight" Value="Normal" />
             <Setter Property="AutomationProperties.Name" Value="{Binding SymbolAutomationText}"/>
             <Setter Property="AutomationProperties.AutomationId" Value="{Binding SymbolName}"/>

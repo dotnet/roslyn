@@ -180,8 +180,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitUsingStatement(BoundUsingStatement node)
         {
-            // Using statements have been lowered away before the lambda and async rewriters
-            throw ExceptionUtilities.Unreachable;
+            var newLocals = RewriteLocals(node.Locals);
+            BoundMultipleLocalDeclarations declarationsOpt = (BoundMultipleLocalDeclarations)this.Visit(node.DeclarationsOpt);
+            BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
+            BoundStatement body = (BoundStatement)this.Visit(node.Body);
+            Conversion disposableConversion = RewriteConversion(node.IDisposableConversion);
+            return node.Update(newLocals, declarationsOpt, expressionOpt, disposableConversion, body, node.AwaitOpt, node.DisposeMethodOpt);
         }
 
         private Conversion RewriteConversion(Conversion conversion)

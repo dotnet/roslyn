@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
 {
-    internal abstract class AbstractAddObsoleteAttributeCodeFixProvider 
+    internal abstract class AbstractAddObsoleteAttributeCodeFixProvider
         : SyntaxEditorBasedCodeFixProvider
     {
         private readonly ISyntaxFactsService _syntaxFacts;
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
         }
 
         protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var obsoleteAttribute = await GetObsoleteAttributeAsync(document, cancellationToken).ConfigureAwait(false);
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.AddObsoleteAttribute
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument, title)
             {
             }

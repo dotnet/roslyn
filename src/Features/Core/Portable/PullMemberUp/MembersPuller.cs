@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp
             }
 
             return new SolutionChangeAction(
-                string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.ToDisplayString(), result.Destination.ToDisplayString()),
+                string.Format(FeaturesResources.Pull_0_up_to_1, selectedMember.Name, result.Destination.Name),
                 cancellationToken => PullMembersUpAsync(document, result, cancellationToken));
         }
 

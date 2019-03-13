@@ -114,10 +114,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return _editorInProc.GetCurrentSignature();
         }
 
-        public void InvokeNavigateTo(string text)
+        public void InvokeNavigateTo(params object[] keys)
         {
             _instance.ExecuteCommand(WellKnownCommandNames.Edit_GoToAll);
-            NavigateToSendKeys(text);
+            NavigateToSendKeys(keys);
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.NavigateTo);
         }
 
@@ -184,7 +184,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
             => _editorInProc.PressDialogButton(dialogAutomationName, buttonAutomationName);
 
-        public void DialogSendKeys(string dialogAutomationName, string keys)
+        public void DialogSendKeys(string dialogAutomationName, params object[] keys)
             => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
 
         public void FormatDocument()
@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void Undo()
             => _editorInProc.Undo();
 
-        public void NavigateToSendKeys(string keys)
+        public void NavigateToSendKeys(params object[] keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
 
         public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>

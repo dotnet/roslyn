@@ -1394,6 +1394,64 @@ public class X
                 // (12,23): error CS0103: The name 'let' does not exist in the current context
                 //         return (o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 23),
+                // (12,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         return (o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 23),
+                // (12,27): error CS0103: The name 'x1' does not exist in the current context
+                //         return (o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(12, 27),
+                // (12,32): error CS0103: The name 'o' does not exist in the current context
+                //         return (o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(12, 32),
+                // (12,27): warning CS0162: Unreachable code detected
+                //         return (o) => let x1 = o;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "x1").WithLocation(12, 27),
+                // (17,23): error CS0103: The name 'let' does not exist in the current context
+                //         return (o) => let var x2 = o;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(17, 23),
+                // (17,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         return (o) => let var x2 = o;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(17, 23),
+                // (17,36): error CS0103: The name 'o' does not exist in the current context
+                //         return (o) => let var x2 = o;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(17, 36),
+                // (17,27): warning CS0162: Unreachable code detected
+                //         return (o) => let var x2 = o;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(17, 27),
+                // (27,49): error CS0841: Cannot use local variable 'x4' before it is declared
+                //         Dummy((System.Func<object, bool>) (o => x4 && o is int x4));
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(27, 49),
+                // (33,74): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                                                                o2 is int x5 && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(33, 74),
+                // (44,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(44, 15),
+                // (45,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(45, 15),
+                // (47,15): error CS0103: The name 'x7' does not exist in the current context
+                //               x7);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(47, 15),
+                // (48,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 2); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(48, 15),
+                // (82,15): error CS0841: Cannot use local variable 'x12' before it is declared
+                //               x12);
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x12").WithArguments("x12").WithLocation(82, 15)
+                );
+
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
+                // (12,27): error CS1002: ; expected
+                //         return (o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x1").WithLocation(12, 27),
+                // (17,27): error CS1002: ; expected
+                //         return (o) => let var x2 = o;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "var").WithLocation(17, 27),
+                // (12,23): error CS0103: The name 'let' does not exist in the current context
+                //         return (o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 23),
                 // (12,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         return (o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 23),
@@ -2105,6 +2163,16 @@ public class X
                 // (16,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //         var res = from x1 in new[] { 1 is var y1 ? y1 : 0}
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(16, 47),
+                // (18,47): error CS0128: A local variable or function named 'y3' is already defined in this scope
+                //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(18, 47)
+                );
+
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
+                // (16,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
+                //         var res = from x1 in new[] { 1 is var y1 ? y1 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(16, 47),
                 // (17,47): error CS0136: A local or parameter named 'y2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                   from x2 in new[] { 2 is var y2 ? y2 : 0}
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y2").WithArguments("y2").WithLocation(17, 47),
@@ -2227,6 +2295,16 @@ public class X
 }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (26,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
+                //                   from x1 in new[] { 1 is var y1 ? y1 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y1").WithArguments("y1").WithLocation(26, 47),
+                // (28,47): error CS0128: A local variable or function named 'y3' is already defined in this scope
+                //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y3").WithArguments("y3").WithLocation(28, 47)
+                );
+
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
             compilation.VerifyDiagnostics(
                 // (26,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //                   from x1 in new[] { 1 is var y1 ? y1 : 0}
@@ -2688,6 +2766,13 @@ public class X
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
+                // (26,45): error CS0128: A local variable or function named 'y2' is already defined in this scope
+                //                               x1 + 1 is var y2)
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y2").WithArguments("y2").WithLocation(26, 45)
+                );
+
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
                 // (17,47): error CS0136: A local or parameter named 'y1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                               where x1 is var y1
                 Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y1").WithArguments("y1").WithLocation(17, 47),
@@ -2811,7 +2896,7 @@ public class X
                 // (12,29): error CS0103: The name 'let' does not exist in the current context
                 //         void f(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 29),
-                // (12,29): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (12,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         void f(object o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 29),
                 // (12,33): error CS0103: The name 'x1' does not exist in the current context
@@ -2823,9 +2908,52 @@ public class X
                 // (18,29): error CS0103: The name 'let' does not exist in the current context
                 //         void f(object o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(18, 29),
-                // (18,29): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (18,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         void f(object o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(18, 29),
+                // (18,42): error CS0103: The name 'o' does not exist in the current context
+                //         void f(object o) => let var x2 = o;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(18, 42),
+                // (30,30): error CS0841: Cannot use local variable 'x4' before it is declared
+                //         bool f (object o) => x4 && o is int x4;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(30, 30),
+                // (37,52): error CS0128: A local variable or function named 'x5' is already defined in this scope
+                //                                          o2 is int x5 && 
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(37, 52),
+                // (51,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(51, 15),
+                // (55,15): error CS0103: The name 'x7' does not exist in the current context
+                //         Dummy(x7, 2); 
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x7").WithArguments("x7").WithLocation(55, 15)
+                );
+
+            compilation = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_3);
+            compilation.VerifyDiagnostics(
+                // (12,29): error CS0103: The name 'let' does not exist in the current context
+                //         void f(object o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 29),
+                // (12,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         void f(object o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 29),
+                // (12,33): error CS1002: ; expected
+                //         void f(object o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x1").WithLocation(12, 33),
+                // (12,33): error CS0103: The name 'x1' does not exist in the current context
+                //         void f(object o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(12, 33),
+                // (12,38): error CS0103: The name 'o' does not exist in the current context
+                //         void f(object o) => let x1 = o;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(12, 38),
+                // (18,29): error CS0103: The name 'let' does not exist in the current context
+                //         void f(object o) => let var x2 = o;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(18, 29),
+                // (18,29): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //         void f(object o) => let var x2 = o;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(18, 29),
+                // (18,33): error CS1002: ; expected
+                //         void f(object o) => let var x2 = o;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "var").WithLocation(18, 33),
                 // (18,42): error CS0103: The name 'o' does not exist in the current context
                 //         void f(object o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "o").WithArguments("o").WithLocation(18, 42),

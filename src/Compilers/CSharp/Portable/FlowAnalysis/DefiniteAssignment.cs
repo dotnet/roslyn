@@ -253,22 +253,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool HasAwait(PendingBranch pending)
         {
-            if (pending.Branch is null)
+            var pendingBranch = pending.Branch;
+            if (pendingBranch is null)
             {
                 return false;
             }
 
-            BoundKind kind = pending.Branch.Kind;
+            BoundKind kind = pendingBranch.Kind;
             switch (kind)
             {
                 case BoundKind.AwaitExpression:
                     return true;
                 case BoundKind.UsingStatement:
-                    var usingStatement = (BoundUsingStatement)pending.Branch;
+                    var usingStatement = (BoundUsingStatement)pendingBranch;
                     return usingStatement.AwaitOpt != null;
                 case BoundKind.ForEachStatement:
-                    var foreachStatement = (BoundForEachStatement)pending.Branch;
+                    var foreachStatement = (BoundForEachStatement)pendingBranch;
                     return foreachStatement.AwaitOpt != null;
+                case BoundKind.UsingLocalDeclarations:
+                    var localDeclaration = (BoundUsingLocalDeclarations)pendingBranch;
+                    return localDeclaration.AwaitOpt != null;
                 default:
                     return false;
             }
@@ -1212,11 +1216,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.Assign(x, value: null, isRef: isRef), this);
                     break;
 
-                case BoundKind.SuppressNullableWarningExpression:
-                    // for example, assigning to `x!` in `M(out x!)` assigns to `x`
-                    AssignImpl(((BoundSuppressNullableWarningExpression)node).Expression, value, isRef, written, read);
-                    break;
-
                 default:
                     // Other kinds of left-hand-sides either represent things not tracked (e.g. array elements)
                     // or errors that have been reported earlier (e.g. assignment to a unary increment)
@@ -1232,7 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingSlot != -1);
             Debug.Assert(!state.IsAssigned(containingSlot));
             VariableIdentifier variable = variableBySlot[containingSlot];
-            NamedTypeSymbol structType = (NamedTypeSymbol)VariableType(variable.Symbol).TypeSymbol;
+            TypeSymbol structType = VariableType(variable.Symbol).TypeSymbol;
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
                 if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;
@@ -1474,6 +1473,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             DeclareVariables(node.Locals);
 
             VisitStatementsWithLocalFunctions(node);
+
+            // any local using symbols are implicitly read at the end of the block when they get disposed
+            foreach (var local in node.Locals)
+            {
+                if (local.IsUsing)
+                {
+                    NoteRead(local);
+                }
+            }
 
             ReportUnusedVariables(node.Locals);
             ReportUnusedVariables(node.LocalFunctions);

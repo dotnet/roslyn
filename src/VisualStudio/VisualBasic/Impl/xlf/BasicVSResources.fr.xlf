@@ -39,7 +39,7 @@
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
         <source>Prefer 'Is Nothing' for reference equality checks</source>
-        <target state="translated">Préférer 'Is Nothing' pour les contrôles d'égalité de référence</target>
+        <target state="translated">Préférer 'Is Nothing' pour les vérifications d'égalité de référence</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
@@ -109,7 +109,7 @@
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="translated">Normale</target>
+        <target state="translated">Normal</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
-        <target state="new">VB Coding Conventions</target>
+        <target state="translated">Conventions de codage VB</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

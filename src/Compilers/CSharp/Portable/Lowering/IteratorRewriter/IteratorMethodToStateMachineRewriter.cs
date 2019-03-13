@@ -315,6 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     this.state = <next_state>;
             //     return true;
             //     <next_state_label>: ;
+            //     <hidden sequence point>
             //     this.state = finalizeState;
             int stateNumber;
             GeneratedLabelSymbol resumeLabel;

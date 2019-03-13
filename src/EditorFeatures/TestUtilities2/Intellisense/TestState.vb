@@ -1,32 +1,26 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.ComponentModel.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
+Imports Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
-Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
-Imports Microsoft.VisualStudio.Text.BraceCompletion
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
-Imports Microsoft.VisualStudio.Text.Operations
 Imports Roslyn.Utilities
 Imports CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
-Imports Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
@@ -37,9 +31,40 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend ReadOnly AsyncCompletionService As IAsyncCompletionService
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
         Friend ReadOnly FormatCommandHandler As FormatCommandHandler
+        Friend ReadOnly CompleteStatementCommandHandler As CompleteStatementCommandHandler
         Friend ReadOnly CompletionCommandHandler As CompletionCommandHandler
         Friend ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
         Private ReadOnly SessionTestState As IIntelliSenseTestState
+
+        Private Shared s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of ComposableCatalog) =
+            New Lazy(Of ComposableCatalog)(Function()
+                                               Return TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.
+                                               WithoutPartsOfTypes({
+                                                                   GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession)),
+                                                                   GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
+                                                                   GetType(FormatCommandHandler)}).
+                                               WithParts({
+                                                         GetType(TestCompletionPresenter),
+                                                         GetType(TestSignatureHelpPresenter),
+                                                         GetType(IntelliSenseTestState)})
+                                           End Function)
+
+        Private Shared ReadOnly Property EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As ComposableCatalog
+            Get
+                Return s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts.Value
+            End Get
+        End Property
+
+        Private Shared s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of IExportProviderFactory) =
+            New Lazy(Of IExportProviderFactory)(Function()
+                                                    Return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts)
+                                                End Function)
+
+        Private Shared ReadOnly Property ExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As IExportProviderFactory
+            Get
+                Return s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts.Value
+            End Get
+        End Property
 
         Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
             Get
@@ -59,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         Optional extraExportedTypes As List(Of Type) = Nothing,
                         Optional includeFormatCommandHandler As Boolean = False,
                         Optional workspaceKind As String = Nothing)
-            MyBase.New(workspaceElement, CombineExcludedTypes(excludedTypes, includeFormatCommandHandler), ExportProviderCache.CreateTypeCatalog(CombineExtraTypes(If(extraExportedTypes, New List(Of Type)))), workspaceKind:=workspaceKind)
+            MyBase.New(workspaceElement, GetExportProvider(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
@@ -84,7 +109,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Me.FormatCommandHandler = If(includeFormatCommandHandler,
                 GetExportedValue(Of FormatCommandHandler)(),
                 Nothing)
+
+            Me.CompleteStatementCommandHandler = If(includeFormatCommandHandler,
+                GetExportedValues(Of VSCommanding.ICommandHandler)().OfType(Of CompleteStatementCommandHandler)().SingleOrDefault(),
+                Nothing)
         End Sub
+
+        Private Overloads Shared Function GetExportProvider(excludedTypes As List(Of Type),
+                                                  extraExportedTypes As List(Of Type),
+                                                  includeFormatCommandHandler As Boolean) As ExportProvider
+            If (excludedTypes Is Nothing OrElse excludedTypes.Count = 0) AndAlso
+               (extraExportedTypes Is Nothing OrElse extraExportedTypes.Count = 0) AndAlso
+               Not includeFormatCommandHandler Then
+                Return ExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts.CreateExportProvider()
+            End If
+
+            Dim combinedExcludedTypes = CombineExcludedTypes(excludedTypes, includeFormatCommandHandler)
+            Dim extraParts = ExportProviderCache.CreateTypeCatalog(CombineExtraTypes(If(extraExportedTypes, New List(Of Type))))
+            Return GetExportProvider(combinedExcludedTypes, extraParts)
+        End Function
 
         Private Shared Function CombineExcludedTypes(excludedTypes As IList(Of Type), includeFormatCommandHandler As Boolean) As IList(Of Type)
             Dim result = New List(Of Type) From {
@@ -94,6 +137,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If Not includeFormatCommandHandler Then
                 result.Add(GetType(FormatCommandHandler))
+                result.Add(GetType(CompleteStatementCommandHandler))
             End If
 
             If excludedTypes IsNot Nothing Then
@@ -407,7 +451,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional displayTextSuffix As String = Nothing,
-                               Optional shouldFormatOnCommit As Boolean? = Nothing) As Task Implements ITestState.AssertSelectedCompletionItem
+                               Optional shouldFormatOnCommit As Boolean? = Nothing,
+                               Optional inlineDescription As String = Nothing) As Task Implements ITestState.AssertSelectedCompletionItem
 
             Await WaitForAsynchronousOperationsAsync()
             If isSoftSelected.HasValue Then
@@ -424,6 +469,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             If displayTextSuffix IsNot Nothing Then
                 Assert.Equal(displayTextSuffix, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayTextSuffix)
+            End If
+
+            If inlineDescription IsNot Nothing Then
+                Assert.Equal(inlineDescription, Me.CurrentCompletionPresenterSession.SelectedItem.InlineDescription)
             End If
 
             If shouldFormatOnCommit.HasValue Then
@@ -453,16 +502,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
             Dim formatHandler = DirectCast(FormatCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
             Dim compHandler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+            Dim completeStatementHandler = DirectCast(CompleteStatementCommandHandler, IChainedCommandHandler(Of TypeCharCommandArgs))
+
+            If formatHandler IsNot Nothing AndAlso completeStatementHandler IsNot Nothing Then
+                Dim wrappedFinalHandler = finalHandler
+                finalHandler =
+                    Sub()
+                        completeStatementHandler.ExecuteCommand(args, wrappedFinalHandler, context)
+                    End Sub
+            End If
+
+            Dim mainHandler =
+                Sub()
+                    sigHelpHandler.ExecuteCommand(args, Sub() compHandler.ExecuteCommand(args, finalHandler, context), context)
+                End Sub
 
             If formatHandler Is Nothing Then
-                sigHelpHandler.ExecuteCommand(
-                    args, Sub() compHandler.ExecuteCommand(
-                                    args, finalHandler, context), context)
+                mainHandler()
             Else
-                formatHandler.ExecuteCommand(
-                    args, Sub() sigHelpHandler.ExecuteCommand(
-                                    args, Sub() compHandler.ExecuteCommand(
-                                                    args, finalHandler, context), context), context)
+                formatHandler.ExecuteCommand(args, mainHandler, context)
             End If
         End Sub
 

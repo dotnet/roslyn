@@ -704,10 +704,34 @@ public class Program
             comp.VerifyDiagnostics(
                 // (14,28): error CS8343: 'Program.S1': ref structs cannot implement interfaces
                 //     public ref struct S1 : IDisposable
-                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1", "System.IDisposable").WithLocation(14, 28),
-                // (8,16): error CS1674: 'Program.S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'
-                //         using (new S1())
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new S1()").WithArguments("Program.S1").WithLocation(8, 16)
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1", "System.IDisposable").WithLocation(14, 28)
+            );
+        }
+
+        [Fact]
+        public void NoInterfaceImp()
+        {
+            var text = @"
+public class Program
+{
+    static void Main(string[] args)
+    {
+        using (new S1())
+        {
+
+        }
+    }
+
+    public ref struct S1
+    {
+        public void Dispose() { }
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
+            comp.VerifyDiagnostics(
             );
         }
 
