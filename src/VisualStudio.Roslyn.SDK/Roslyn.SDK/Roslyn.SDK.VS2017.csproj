@@ -1,0 +1,140 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>Roslyn.SDK.VS2017</RootNamespace>
+    <AssemblyName>Roslyn.SDK.VS2017</AssemblyName>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
+    <!-- VS Insertion -->
+    <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.SDK</VisualStudioInsertionComponent>
+    <Ngen>false</Ngen>
+  </PropertyGroup>
+  <!-- Setting Template Content to None -->
+  <ItemGroup>
+    <None Include="ProjectTemplates\CSharp\**\*.cs" />
+    <None Include="ProjectTemplates\CSharp\**\*.csproj" />
+    <None Include="ProjectTemplates\**\*.vsixmanifest" />
+    <None Include="ProjectTemplates\**\CodeRefactoring\**\*.vstemplate" />
+    <None Include="ProjectTemplates\**\Diagnostic\**\*.vstemplate" />
+    <None Include="ProjectTemplates\**\ConsoleApplication\**\*.vstemplate" />
+    <None Include="*.vstemplate" />
+  </ItemGroup>
+  <!-- C# Item Templates -->
+  <ItemGroup>
+    <VSTemplate Include="ItemTemplates\CSharp\Analyzer\CSharpAnalyzer.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="ItemTemplates\CSharp\CodeFix\CSharpCodeFix.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="ItemTemplates\CSharp\Refactoring\CSharpRefactoring.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+  </ItemGroup>
+  <!-- Visual Basic Item Templates -->
+  <ItemGroup>
+    <VSTemplate Include="ItemTemplates\VisualBasic\Refactoring\VBRefactoring.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="ItemTemplates\VisualBasic\CodeFix\VBCodeFix.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="ItemTemplates\VisualBasic\Analyzer\VBAnalyzer.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+  </ItemGroup>
+  <!-- C# Project Templates -->
+  <ItemGroup>
+    <VSTemplate Include="CSRef.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="CSharpDiagnostic.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="ProjectTemplates\CSharp\ConsoleApplication\CSharpConsoleApplication.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+  </ItemGroup>
+  <!-- Visual Basic Project Templates -->
+  <ItemGroup>
+    <VSTemplate Include="VBRef.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="VBDiagnostic.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+    <VSTemplate Include="ProjectTemplates\VisualBasic\ConsoleApplication\VBConsoleApplication.vstemplate">
+      <SubType>Designer</SubType>
+      <OutputSubPath>Extensibility</OutputSubPath>
+    </VSTemplate>
+  </ItemGroup>
+  <!-- Content to Include in VSIX -->
+  <ItemGroup>
+    <Content Include="..\..\Tools\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\SyntaxTree.bmp">
+      <Link>SyntaxTree.bmp</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\..\Tools\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\SyntaxTree.ico">
+      <Link>SyntaxTree.ico</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\ThirdPartyNotices.rtf">
+      <Link>ThirdPartyNotices.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="..\EULA.rtf">
+      <Link>EULA.rtf</Link>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+  </ItemGroup>
+  <!-- Project References to Include In VSIX -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\Tools\Roslyn.SDK.Template.Wizard\Roslyn.SDK.Template.Wizard.csproj">
+      <Name>Roslyn.SDK.Template.Wizard</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Control\Roslyn.SyntaxVisualizer.Control.csproj" />
+    <ProjectReference Include="..\..\Tools\SyntaxVisualizer\Roslyn.SyntaxVisualizer.DgmlHelper\Roslyn.SyntaxVisualizer.DgmlHelper.vbproj" />
+    <ProjectReference Include="..\..\Tools\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\Roslyn.SyntaxVisualizer.Extension.csproj">
+      <Name>Roslyn.SyntaxVisualizer.Extension</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems%3bPkgdefProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+    </ProjectReference>
+    <PackageReference Include="UpdateTemplateVersion" Version="$(UpdateTemplateVersionVersion)" />
+  </ItemGroup>
+
+  <!-- rewriting of .vstemplate files to reference the correct assembly version number -->
+  <PropertyGroup>
+    <_UpdateTemplateVersionAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)\UpdateTemplateVersion\$(UpdateTemplateVersionVersion)\tools\net461\UpdateTemplateVersion.dll</_UpdateTemplateVersionAssembly>
+    <_UpdateTemplateVersionAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)\UpdateTemplateVersion\$(UpdateTemplateVersionVersion)\tools\netcoreapp2.0\UpdateTemplateVersion.dll</_UpdateTemplateVersionAssembly>
+  </PropertyGroup>
+  
+  <UsingTask AssemblyFile="$(_UpdateTemplateVersionAssembly)" TaskName="UpdateTemplateVersion" />
+  <Target Name="UpdateAssemblyVersionInTemplates" BeforeTargets="GetZipFilesFromVSTemplates">
+    <ItemGroup>
+      <_OriginalVSTemplate Include="@(VSTemplate)" />
+    </ItemGroup>
+    <UpdateTemplateVersion VSTemplatesToRewrite="@(VSTemplate)"
+                           AssemblyVersion="$(AssemblyVersion)"
+                           IntermediatePath="ModifiedTemplates">
+      <Output TaskParameter="NewVSTemplates" ItemName="VSTemplate" />
+    </UpdateTemplateVersion>
+    <ItemGroup>
+      <VSTemplate Remove="@(_OriginalVSTemplate)" />
+    </ItemGroup>
+  </Target>
+</Project>

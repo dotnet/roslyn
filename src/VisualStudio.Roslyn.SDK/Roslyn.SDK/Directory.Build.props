@@ -1,0 +1,13 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+  <PropertyGroup>
+    <OutDirName>Templates\$(MSBuildProjectName)</OutDirName>
+  </PropertyGroup>
+  <Import Project="..\..\Directory.Build.props"/>
+  <PropertyGroup>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="source.extension.vsixmanifest" />
+  </ItemGroup>
+</Project>

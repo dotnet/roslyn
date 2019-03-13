@@ -1,0 +1,235 @@
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+
+<UserControl x:Class="Roslyn.SyntaxVisualizer.Control.SyntaxVisualizerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="300">
+    <UserControl.Resources>
+        <Style TargetType="{x:Type Label}">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextBrushKey}}" />
+        </Style>
+
+        <SolidColorBrush x:Key="SyntaxNodeText.Brush" Color="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextColorKey}}"/>
+        <SolidColorBrush x:Key="SyntaxTokenText.Brush" Color="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextColorKey}}"/>
+        <SolidColorBrush x:Key="SyntaxTriviaText.Brush" Color="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextColorKey}}"/>
+        <SolidColorBrush x:Key="ErrorSquiggle.Brush" Color="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextColorKey}}"/>
+
+        <Style x:Key="SquiggleStyle" TargetType="{x:Type Shape}">
+            <Setter Property="Fill">
+                <Setter.Value>
+                    <!-- TODO: use Viewport.Top -0.4 when SystemParameters.HighContrast is true -->
+                    <DrawingBrush Stretch="None" TileMode="Tile" Viewport="0,-0.6,6,4.3" ViewportUnits="Absolute">
+                        <DrawingBrush.Drawing>
+                            <GeometryDrawing Geometry="M0,0 L1.5,-1.5 4.5,1.5 6,0">
+                                <GeometryDrawing.Pen>
+                                    <!-- TODO: use thickness 1.2 when SystemParameters.HighContrast is true -->
+                                    <Pen Brush="{StaticResource ErrorSquiggle.Brush}"
+                                         StartLineCap="Square" EndLineCap="Square" LineJoin="Round" MiterLimit="10"
+                                         Thickness="0.8" />
+                                </GeometryDrawing.Pen>
+                            </GeometryDrawing>
+                        </DrawingBrush.Drawing>
+                    </DrawingBrush>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <Grid KeyboardNavigation.TabNavigation="Cycle">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0" BorderThickness="0" Background="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarGradientBrushKey}}" >
+            <Label Grid.Column="0" VerticalAlignment="Center" Content="Syntax Tree" FontWeight="Bold"/>
+        </Border>
+        <TreeView Grid.Row="1" Name="treeView" SelectedItemChanged="TreeView_SelectedItemChanged" PreviewMouseRightButtonDown="TreeView_PreviewMouseRightButtonDown" ContextMenuOpening="TreeView_ContextMenuOpening" Padding="5"
+                  BorderThickness="0,1,0,0"
+                  Background="{DynamicResource {x:Static vsui:TreeViewColors.BackgroundBrushKey}}"
+                  BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowBorderBrushKey}}">
+            <TreeView.Resources>
+                <Style x:Key="TreeViewItemFocusVisual">
+                    <Setter Property="Control.Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Rectangle/>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+                <PathGeometry x:Key="ExpandedArrow" Figures="M 5 0 L 0 5 L 5 5 Z" />
+                <PathGeometry x:Key="CollapsedArrow" Figures="M 0 0 L 4 4 L 0 8 Z" />
+                <Style x:Key="ExpandCollapseToggleStyle" TargetType="{x:Type ToggleButton}">
+                    <Setter Property="Focusable" Value="False"/>
+                    <Setter Property="Width" Value="16"/>
+                    <Setter Property="Height" Value="16"/>
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="Foreground" Value="Transparent" />
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:TreeViewColors.GlyphBrushKey}}" />
+                    <Setter Property="BorderThickness" Value="1" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                <Border x:Name="ExpandPathBorder" Width="16" Height="16" Background="{TemplateBinding Background}">
+                                    <Image x:Name="ExpandImage" Margin="5,3,0,0" Stretch="None" HorizontalAlignment="Left" VerticalAlignment="Top" UseLayoutRounding="True">
+                                        <Image.Source>
+                                            <DrawingImage>
+                                                <DrawingImage.Drawing>
+                                                    <GeometryDrawing x:Name="ExpandGeometry" Geometry="{StaticResource CollapsedArrow}" Brush="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Foreground}">
+                                                        <GeometryDrawing.Pen>
+                                                            <Pen Thickness="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=BorderThickness}" Brush="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=BorderBrush}" />
+                                                        </GeometryDrawing.Pen>
+                                                    </GeometryDrawing>
+                                                </DrawingImage.Drawing>
+                                            </DrawingImage>
+                                        </Image.Source>
+                                    </Image>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter TargetName="ExpandImage" Property="Source">
+                                            <Setter.Value>
+                                                <DrawingImage>
+                                                    <DrawingImage.Drawing>
+                                                        <GeometryDrawing Geometry="{StaticResource ExpandedArrow}" Brush="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Foreground}">
+                                                            <GeometryDrawing.Pen>
+                                                                <Pen Thickness="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=BorderThickness}" Brush="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=BorderBrush}" />
+                                                            </GeometryDrawing.Pen>
+                                                        </GeometryDrawing>
+                                                    </DrawingImage.Drawing>
+                                                </DrawingImage>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter TargetName="ExpandImage" Property="Margin" Value="4.5,4.5,0,0" />
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:TreeViewColors.GlyphBrushKey}}" />
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:TreeViewColors.GlyphMouseOverBrushKey}}"/>
+                                    </Trigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsMouseOver" Value="True"/>
+                                            <Condition Property="IsChecked" Value="True"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:TreeViewColors.GlyphMouseOverBrushKey}}"/>
+                                    </MultiTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                    <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                    <Setter Property="Padding" Value="1,0,0,0"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowTextBrushKey}}"/>
+                    <Setter Property="FocusVisualStyle" Value="{StaticResource TreeViewItemFocusVisual}"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type TreeViewItem}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition MinWidth="19" Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    <ToggleButton x:Name="Expander" ClickMode="Press" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}" Style="{StaticResource ExpandCollapseToggleStyle}"/>
+                                    <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Grid.Column="1" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                                        <ContentPresenter x:Name="PART_Header" ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                    </Border>
+                                    <ItemsPresenter x:Name="ItemsHost" Grid.ColumnSpan="2" Grid.Column="1" Grid.Row="1"/>
+                                </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsExpanded" Value="false">
+                                        <Setter Property="Visibility" TargetName="ItemsHost" Value="Collapsed"/>
+                                    </Trigger>
+                                    <Trigger Property="HasItems" Value="false">
+                                        <Setter Property="Visibility" TargetName="Expander" Value="Hidden"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="true">
+                                        <Setter Property="Background" TargetName="Bd" Value="{DynamicResource {x:Static vsui:TreeViewColors.SelectedItemActiveBrushKey}}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:TreeViewColors.SelectedItemActiveTextBrushKey}}"/>
+                                    </Trigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="true"/>
+                                            <Condition Property="IsSelectionActive" Value="false"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Background" TargetName="Bd" Value="{DynamicResource {x:Static vsui:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:TreeViewColors.SelectedItemInactiveTextBrushKey}}"/>
+                                    </MultiTrigger>
+                                    <Trigger Property="IsEnabled" Value="false">
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.SystemGrayTextBrushKey}}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Style.Triggers>
+                        <Trigger Property="VirtualizingPanel.IsVirtualizing" Value="true">
+                            <Setter Property="ItemsPanel">
+                                <Setter.Value>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel/>
+                                    </ItemsPanelTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </TreeView.Resources>
+            <TreeView.ContextMenu>
+                <ContextMenu Name="treeViewItemContextMenu">
+                    <MenuItem Name="directedSyntaxGraphMenuItem" Header="View Directed Syntax Graph" Click="DirectedSyntaxGraphMenuItem_Click">
+                        <MenuItem.Icon>
+                            <Image Height="16" Width="16" Source="/Roslyn.SyntaxVisualizer.Control;component/SyntaxGraph.ico" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <Separator Name="menuItemSeparator1" />
+                    <MenuItem Name="symbolDetailsMenuItem" Header="View Symbol (if any)" Click="SymbolDetailsMenuItem_Click"/>
+                    <MenuItem Name="typeSymbolDetailsMenuItem" Header="View TypeSymbol (if any)" Click="TypeSymbolDetailsMenuItem_Click"/>
+                    <MenuItem Name="convertedTypeSymbolDetailsMenuItem" Header="View Converted TypeSymbol (if any)" Click="ConvertedTypeSymbolDetailsMenuItem_Click"/>
+                    <MenuItem Name="aliasSymbolDetailsMenuItem" Header="View AliasSymbol (if any)" Click="AliasSymbolDetailsMenuItem_Click"/>
+                    <Separator Name="menuItemSeparator2" />
+                    <MenuItem Name="constantValueDetailsMenuItem" Header="View Constant Value (if any)" Click="ConstantValueDetailsMenuItem_Click"/>
+                </ContextMenu>
+            </TreeView.ContextMenu>
+        </TreeView>
+        <GridSplitter Grid.Row="2" AutomationProperties.Name="Horizontal" ResizeDirection="Rows" HorizontalAlignment="Stretch" Height="4" Margin="0" Background="{DynamicResource {x:Static vsui:EnvironmentColors.EnvironmentBackgroundBrushKey}}"/>
+        <Grid Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" BorderThickness="0" Background="{DynamicResource {x:Static vsui:EnvironmentColors.ToolWindowBackgroundBrushKey}}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Row="0" Grid.ColumnSpan="2" Content="Properties" FontWeight="Bold"/>
+                    <Label Grid.Row="1" Grid.Column="0" Name="typeTextLabel" Visibility="Hidden" Content="Type" Padding="5,2,5,2" Margin="20,0,0,0"/>
+                    <Label Grid.Row="1" Grid.Column="1" Name="typeValueLabel" Padding="5,2,5,2"/>
+                    <Label Grid.Row="2" Grid.Column="0" Name="kindTextLabel" Visibility="Hidden" Content="Kind" Padding="5,2,5,2" Margin="20,0,0,0"/>
+                    <Label Grid.Row="2" Grid.Column="1" Name="kindValueLabel" Padding="5,2,5,2"/>
+                </Grid>
+            </Border>
+            <WindowsFormsHost Grid.Row="1" x:Name="windowsFormsHost" Padding="0" />
+        </Grid>
+    </Grid>
+</UserControl>
