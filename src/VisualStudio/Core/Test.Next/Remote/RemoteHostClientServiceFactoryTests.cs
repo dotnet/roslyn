@@ -259,7 +259,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 Event = new ManualResetEvent(false);
 
-                Rpc.StartListening();
+                StartService();
             }
 
             public readonly ManualResetEvent Event;
