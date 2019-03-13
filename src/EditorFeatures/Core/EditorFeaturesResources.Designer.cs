@@ -1900,11 +1900,11 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Toggling block comment on selection....
+        ///   Looks up a localized string similar to Toggling block comment....
         /// </summary>
-        internal static string Toggling_block_comment_on_selection {
+        internal static string Toggling_block_comment {
             get {
-                return ResourceManager.GetString("Toggling_block_comment_on_selection", resourceCulture);
+                return ResourceManager.GetString("Toggling_block_comment", resourceCulture);
             }
         }
         

@@ -767,26 +767,22 @@ class A
             var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory);
             var service = new MockCommentSelectionService(supportBlockComments);
 
-            var trackingSpans = new List<CommentTrackingSpan>();
-            var textChanges = new List<TextChange>();
+            var edits = commandHandler.CollectEdits(
+                null, service, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), operation, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
-            commandHandler.CollectEdits(
-                null, service, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer),
-                textChanges, trackingSpans, operation, CancellationToken.None);
-
-            Roslyn.Test.Utilities.AssertEx.SetEqual(expectedChanges, textChanges);
+            Roslyn.Test.Utilities.AssertEx.SetEqual(expectedChanges, edits.TextChanges);
 
             // Actually apply the edit to let the tracking spans adjust.
             using (var edit = textView.TextBuffer.CreateEdit())
             {
-                textChanges.Do(tc => edit.Replace(tc.Span.ToSpan(), tc.NewText));
+                edits.TextChanges.Do(tc => edit.Replace(tc.Span.ToSpan(), tc.NewText));
 
                 edit.Apply();
             }
 
-            if (trackingSpans.Any())
+            if (edits.TrackingSpans.Any())
             {
-                textView.SetSelection(trackingSpans.First().ToSnapshotSpan(textView.TextBuffer.CurrentSnapshot));
+                textView.SetSelection(edits.TrackingSpans.First().ToSnapshotSpan(textView.TextBuffer.CurrentSnapshot));
             }
 
             if (expectedSelectedSpans != null)

@@ -1284,9 +1284,9 @@ Do you want to proceed?</source>
         <target state="translated">스마트 토큰 포맷터</target>
         <note />
       </trans-unit>
-      <trans-unit id="Toggling_block_comment_on_selection">
-        <source>Toggling block comment on selection...</source>
-        <target state="new">Toggling block comment on selection...</target>
+      <trans-unit id="Toggling_block_comment">
+        <source>Toggling block comment...</source>
+        <target state="new">Toggling block comment...</target>
         <note />
       </trans-unit>
       <trans-unit id="Toggle_Block_Comment">

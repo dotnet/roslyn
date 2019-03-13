@@ -26,22 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CommentSelection
     [UseExportProvider]
     public class ToggleBlockCommentCommandHandlerTests
     {
-        private const string BlockCommentOpenMarker = "/*";
-        private const string BlockCommentCloseMarker = "*/";
-
-        private class MockCommentSelectionService : AbstractCommentSelectionService
-        {
-            public MockCommentSelectionService()
-            {
-                SupportsBlockComment = true;
-            }
-
-            public override string SingleLineCommentString => "//";
-            public override bool SupportsBlockComment { get; }
-            public override string BlockCommentStartString => BlockCommentOpenMarker;
-            public override string BlockCommentEndString => BlockCommentCloseMarker;
-        }
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
         public void AddComment_EmptyCaret()
         {
@@ -1948,7 +1932,7 @@ class C
 
                 for (var i = 0; i < expectedText.Length; i++)
                 {
-                    commandHandler.ExecuteCommand(textView, textBuffer, Operation.Toggle, TestCommandExecutionContext.Create());
+                    commandHandler.ExecuteCommand(textView, textBuffer, Operation.Undefined, TestCommandExecutionContext.Create());
                     AssertCommentResult(doc.TextBuffer, textView, expectedText[i], expectedSelections[i]);
                 }
             }

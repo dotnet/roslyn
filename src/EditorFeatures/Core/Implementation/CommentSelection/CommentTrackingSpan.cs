@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
     /// </summary>
     internal struct CommentTrackingSpan
     {
-        public Operation Operation { get; }
-
         private readonly ITrackingSpan _trackingSpan;
 
         // In some cases, the tracking span needs to be adjusted by a specific amount after the changes have been applied.
@@ -18,17 +16,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         private readonly int _amountToAddToStart;
         private readonly int _amountToAddToEnd;
 
-        public CommentTrackingSpan(ITrackingSpan trackingSpan, Operation operation)
+        public CommentTrackingSpan(ITrackingSpan trackingSpan)
         {
-            Operation = operation;
             _trackingSpan = trackingSpan;
             _amountToAddToStart = 0;
             _amountToAddToEnd = 0;
         }
 
-        public CommentTrackingSpan(ITrackingSpan trackingSpan, Operation operation, int amountToAddToStart, int amountToAddToEnd)
+        public CommentTrackingSpan(ITrackingSpan trackingSpan, int amountToAddToStart, int amountToAddToEnd)
         {
-            Operation = operation;
             _trackingSpan = trackingSpan;
             _amountToAddToStart = amountToAddToStart;
             _amountToAddToEnd = amountToAddToEnd;
@@ -44,8 +40,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             var snapshotSpan = _trackingSpan.GetSpan(snapshot);
             if (_amountToAddToStart != 0 || _amountToAddToEnd != 0)
             {
-                var spanExpandedByAmount = Span.FromBounds(snapshotSpan.Start.Position + _amountToAddToStart, snapshotSpan.End.Position + _amountToAddToEnd);
-                snapshotSpan = new SnapshotSpan(snapshot, spanExpandedByAmount);
+                var updatedStart = snapshotSpan.Start.Position + _amountToAddToStart;
+                var updatedEnd = snapshotSpan.End.Position + _amountToAddToEnd;
+                if (updatedStart >= snapshotSpan.Start.Position && updatedEnd <= snapshotSpan.End.Position)
+                {
+                    snapshotSpan = new SnapshotSpan(snapshot, Span.FromBounds(updatedStart, updatedEnd));
+                }
             }
 
             return snapshotSpan;

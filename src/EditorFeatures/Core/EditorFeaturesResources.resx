@@ -892,7 +892,7 @@ Do you want to proceed?</value>
   <data name="Toggle_Block_Comment" xml:space="preserve">
     <value>Toggle Block Comment</value>
   </data>
-  <data name="Toggling_block_comment_on_selection" xml:space="preserve">
-    <value>Toggling block comment on selection...</value>
+  <data name="Toggling_block_comment" xml:space="preserve">
+    <value>Toggling block comment...</value>
   </data>
 </root>
