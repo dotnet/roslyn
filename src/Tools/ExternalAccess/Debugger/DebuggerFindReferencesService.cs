@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
@@ -19,21 +17,21 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
     internal sealed class DebuggerFindReferencesService
     {
         private readonly IThreadingContext _threadingContext;
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public DebuggerFindReferencesService(
             IThreadingContext threadingContext,
-            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
         {
             _threadingContext = threadingContext;
-            _streamingPresenters = streamingPresenters;
+            _streamingPresenter = streamingPresenter;
         }
 
         public async Task FindSymbolReferencesAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            var streamingPresenter = GetStreamingPresenter();
+            var streamingPresenter = _streamingPresenter.Value;
 
             // Let the presenter know we're starting a search.  It will give us back
             // the context object that the FAR service will push results into.
@@ -47,18 +45,6 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger
             // context it has completed.  In the latter case something wrong has happened
             // and we don't want to run any more code in this particular context.
             await context.OnCompletedAsync().ConfigureAwait(false);
-        }
-
-        private IStreamingFindUsagesPresenter GetStreamingPresenter()
-        {
-            try
-            {
-                return _streamingPresenters.FirstOrDefault()?.Value;
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }

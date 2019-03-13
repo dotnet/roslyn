@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -11,7 +11,7 @@
     <PackageId>Microsoft.CodeAnalysis.ExternalAccess.Debugger</PackageId>
     <PackageDescription>
       A supporting package for the Visual Studio debugger:
-      [needs link]
+      https://devdiv.visualstudio.com/DevDiv/_git/VS?path=%2Fsrc%2Fdebugger%2FRazor
     </PackageDescription>
   </PropertyGroup>
 
