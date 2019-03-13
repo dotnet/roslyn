@@ -39256,7 +39256,15 @@ class C2
     {
         _ = t == (null, c);
         _ = t == (null, c)!;
+        _ = (1, t) == (1, (null, c));
         _ = (1, t) == (1, (null, c)!);
+        _ = (1, t) == (1, (null!, c!));
+        _ = (1, t!) == (1, (null, c));
+        _ = (t, (null, c)!) == ((null, c)!, t);
+        _ = (t, (null!, c!)) == ((null!, c!), t);
+        _ = (t!, (null, c)) == ((null, c), t!);
+        _ = (t, (null, c))! == ((null, c), t);
+        _ = (t, (null, c)) == ((null, c), t)!;
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
