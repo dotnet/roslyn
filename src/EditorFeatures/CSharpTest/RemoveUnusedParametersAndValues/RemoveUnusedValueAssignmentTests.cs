@@ -6799,5 +6799,69 @@ class C
     }
 }", optionName);
         }
+
+        [WorkItem(33937, "https://github.com/dotnet/roslyn/issues/33937")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task AssignedInCatchUsedInFinally_ThrowInCatch(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+public static class Program
+{
+    public static void Test()
+    {
+        var exceptionThrown = false;
+        try
+        {
+            throw new Exception();
+        }
+        catch
+        {
+            // The `exceptionThrown` token is incorrectly greyed out in the IDE
+            // IDE0059 Value assigned to 'exceptionThrown' is never used
+            [|exceptionThrown|] = true;
+            throw;
+        }
+        finally
+        {
+            // Breakpoint on this line is hit and 'true' is printed
+            Console.WriteLine(exceptionThrown);
+        }
+    }
+}", optionName);
+        }
+
+        [WorkItem(33937, "https://github.com/dotnet/roslyn/issues/33937")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task AssignedInCatchUsedInFinally_NoThrowInCatch(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+public static class Program
+{
+    public static void Test()
+    {
+        var exceptionThrown = false;
+        try
+        {
+            throw new Exception();
+        }
+        catch
+        {
+            [|exceptionThrown|] = true;
+        }
+        finally
+        {
+            Console.WriteLine(exceptionThrown);
+        }
+    }
+}", optionName);
+        }
     }
 }
