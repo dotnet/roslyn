@@ -1126,31 +1126,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
             {
                 throw new InvalidOperationException(
-                    $"Unexpected DocumentInfo change to {nameof(document.SourceCodeKind)}.");
+                    $"This Workspace does not support changing a document's {nameof(document.SourceCodeKind)}.");
             }
 
             if (document.FilePath != updatedInfo.FilePath)
             {
                 throw new InvalidOperationException(
-                    $"Unexpected DocumentInfo change to {nameof(document.FilePath)}.");
+                    $"This Workspace does not support changing a document's {nameof(document.FilePath)}.");
             }
 
             if (document.Id != updatedInfo.Id)
             {
                 throw new InvalidOperationException(
-                    $"Unexpected DocumentInfo change to {nameof(document.Id)}.");
+                    $"This Workspace does not support changing a document's {nameof(document.Id)}.");
             }
 
             if (document.Folders != updatedInfo.Folders)
             {
                 throw new InvalidOperationException(
-                    $"Unexpected DocumentInfo change to {nameof(document.Folders)}.");
+                    $"This Workspace does not support changing a document's {nameof(document.Folders)}.");
             }
 
             if (document.State.Attributes.IsGenerated != updatedInfo.IsGenerated)
             {
                 throw new InvalidOperationException(
-                    $"Unexpected DocumentInfo change to {nameof(document.State.Attributes.IsGenerated)}.");
+                    $"This Workspace does not support changing a document's {nameof(document.State.Attributes.IsGenerated)} state.");
             }
         }
 
