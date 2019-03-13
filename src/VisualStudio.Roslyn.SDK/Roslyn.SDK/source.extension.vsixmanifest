@@ -4,7 +4,7 @@
     <Identity Id="ef918f69-be54-4b44-b381-81d6cecef939" Version="|%CurrentProject%;GetVsixVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>.NET Compiler Platform SDK For Visual Studio 2017</DisplayName>
     <Description xml:space="preserve">The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers with rich code analysis APIs. You can build code analysis tools with the same APIs that Microsoft is using to implement Visual Studio! Also includes the Syntax Visualizer, a Visual Studio extension that allows you to inspect and explore the syntax trees you'll use as you build applications and VS extensions atop the .NET Compiler Platform ("Roslyn").</Description>
-    <PackageId>Roslyn.SDK.VS2017</PackageId>
+    <PackageId>Roslyn.SDK</PackageId>
     <License>EULA.rtf</License>
     <Tags>roslyn,template,SDK</Tags>
   </Metadata>
