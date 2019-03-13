@@ -396,48 +396,54 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="argument">The argument that is passed to the action whenever it is invoked</param>
         internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, TArg argument)
         {
-            switch (type)
+            switch (type.Kind())
             {
-                case ArrayTypeSyntax arrayTypeSyntax:
+                case SyntaxKind.ArrayType:
+                    var arrayTypeSyntax = (ArrayTypeSyntax)type;
                     arrayTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
                     foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
                     {
                         action(rankSpecifier, argument);
                     }
                     break;
-                case NullableTypeSyntax nullableTypeSyntax:
+                case SyntaxKind.NullableType:
+                    var nullableTypeSyntax = (NullableTypeSyntax)type;
                     nullableTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
                     break;
-                case PointerTypeSyntax pointerTypeSyntax:
+                case SyntaxKind.PointerType:
+                    var pointerTypeSyntax = (PointerTypeSyntax)type;
                     pointerTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
                     break;
-                case TupleTypeSyntax tupleTypeSyntax:
+                case SyntaxKind.TupleType:
+                    var tupleTypeSyntax = (TupleTypeSyntax)type;
                     foreach (var element in tupleTypeSyntax.Elements)
                     {
                         element.Type.VisitRankSpecifiers(action, argument);
                     }
                     break;
-                case RefTypeSyntax refTypeSyntax:
+                case SyntaxKind.RefType:
+                    var refTypeSyntax = (RefTypeSyntax)type;
                     refTypeSyntax.Type.VisitRankSpecifiers(action, argument);
                     break;
-                case GenericNameSyntax genericNameSyntax:
+                case SyntaxKind.GenericName:
+                    var genericNameSyntax = (GenericNameSyntax)type;
                     foreach (var typeArgument in genericNameSyntax.TypeArgumentList.Arguments)
                     {
                         typeArgument.VisitRankSpecifiers(action, argument);
                     }
                     break;
-                case QualifiedNameSyntax qualifiedNameSyntax:
+                case SyntaxKind.QualifiedName:
+                    var qualifiedNameSyntax = (QualifiedNameSyntax)type;
                     qualifiedNameSyntax.Left.VisitRankSpecifiers(action, argument);
                     qualifiedNameSyntax.Right.VisitRankSpecifiers(action, argument);
                     break;
-                case AliasQualifiedNameSyntax aliasQualifiedNameSyntax:
+                case SyntaxKind.AliasQualifiedName:
+                    var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)type;
                     aliasQualifiedNameSyntax.Name.VisitRankSpecifiers(action, argument);
                     break;
-                case IdentifierNameSyntax _:
-                    break;
-                case OmittedTypeArgumentSyntax _:
-                    break;
-                case PredefinedTypeSyntax _:
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.OmittedTypeArgument:
+                case SyntaxKind.PredefinedType:
                     break;
                 default:
                     throw ExceptionUtilities.Unreachable;

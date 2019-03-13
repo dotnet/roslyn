@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int variableCount = variableList.Count;
             if (variableCount == 1)
             {
-                return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, true, node);
+                return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, includeBoundType: true, associatedSyntaxNode: node);
             }
             else
             {
