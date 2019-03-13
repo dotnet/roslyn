@@ -106,14 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
 
             foreach (var blockCommentSelection in blockCommentSelectionHelpers)
             {
-                if (commentInfo.SupportsBlockComment)
+                if (!onlyAddComment && TryUncommentBlockComment(blockCommentedSpans, blockCommentSelection, textChanges, trackingSpans, commentInfo))
+                { }
+                else
                 {
-                    if (!onlyAddComment && TryUncommentBlockComment(blockCommentedSpans, blockCommentSelection, textChanges, trackingSpans, commentInfo))
-                    { }
-                    else
-                    {
-                        BlockCommentSpan(blockCommentSelection, textChanges, trackingSpans, root, commentInfo);
-                    }
+                    BlockCommentSpan(blockCommentSelection, textChanges, trackingSpans, root, commentInfo);
                 }
             }
         }
