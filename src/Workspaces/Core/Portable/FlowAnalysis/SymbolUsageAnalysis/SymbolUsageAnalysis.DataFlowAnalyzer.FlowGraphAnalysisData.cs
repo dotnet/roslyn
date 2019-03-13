@@ -173,13 +173,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     {
                         // Compute all descendant operations in basic block range.
                         var operations = PooledHashSet<IOperation>.GetInstance();
-                        for (int i = firstBlockOrdinal; i <= lastBlockOrdinal; i++)
-                        {
-                            foreach (var operation in ControlFlowGraph.Blocks[i].DescendantOperations())
-                            {
-                                operations.Add(operation);
-                            }
-                        }
+                        AddOperationsInRange(ControlFlowGraph, firstBlockOrdinal, lastBlockOrdinal, operations);
 
                         // Filter down the operations to writes within this block range.
                         writesInBlockRange = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
@@ -193,6 +187,100 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     }
 
                     return writesInBlockRange;
+                }
+
+                private void AddOperationsInRange(
+                    ControlFlowGraph cfg,
+                    int firstBlockOrdinal,
+                    int lastBlockOrdinal,
+                    PooledHashSet<IOperation> operationsBuilder)
+                {
+                    // Compute all descendant operations in basic block range.
+                    for (int i = firstBlockOrdinal; i <= lastBlockOrdinal; i++)
+                    {
+                        foreach (var operation in cfg.Blocks[i].DescendantOperations())
+                        {
+                            var added = operationsBuilder.Add(operation);
+                            if (added && operation is IInvocationOperation invocation)
+                            {
+                                if (invocation.Instance != null &&
+                                    _reachingDelegateCreationTargets.TryGetValue(invocation.Instance, out var targets))
+                                {
+                                    AddOperationsFromDelegateCreationTargets(targets);
+                                }
+                                else if (invocation.TargetMethod.IsLocalFunction())
+                                {
+                                    var localFunctionGraph = cfg.GetLocalFunctionControlFlowGraphInScope(invocation.TargetMethod);
+                                    if (localFunctionGraph != null)
+                                    {
+                                        AddOperationsInLambdaOrLocalFunctionGraph(localFunctionGraph);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    return;
+
+                    // Local functions.
+                    void AddOperationsFromDelegateCreationTargets(PooledHashSet<IOperation> targets)
+                    {
+                        foreach (var target in targets)
+                        {
+                            ControlFlowGraph lambdaOrLocalFunctionCfgOpt = null;
+                            switch (target)
+                            {
+                                case IFlowAnonymousFunctionOperation flowAnonymousFunctionOperation:
+                                    lambdaOrLocalFunctionCfgOpt = TryGetAnonymousFunctionControlFlowGraphInScope(flowAnonymousFunctionOperation);
+                                    break;
+
+                                case ILocalFunctionOperation localFunctionOperation:
+                                    lambdaOrLocalFunctionCfgOpt = TryGetLocalFunctionControlFlowGraphInScope(localFunctionOperation.Symbol);
+                                    break;
+
+                                case IMethodReferenceOperation methodReferenceOperation when (methodReferenceOperation.Method.IsLocalFunction()):
+                                    lambdaOrLocalFunctionCfgOpt = TryGetLocalFunctionControlFlowGraphInScope(methodReferenceOperation.Method);
+                                    break;
+                            }
+
+                            if (lambdaOrLocalFunctionCfgOpt != null &&
+                                operationsBuilder.Add(target))
+                            {
+                                AddOperationsInLambdaOrLocalFunctionGraph(lambdaOrLocalFunctionCfgOpt);
+                            }
+                        }
+                    }
+
+                    void AddOperationsInLambdaOrLocalFunctionGraph(ControlFlowGraph lambdaOrLocalFunctionCfg)
+                    {
+                        Debug.Assert(lambdaOrLocalFunctionCfg != null);
+                        AddOperationsInRange(lambdaOrLocalFunctionCfg, firstBlockOrdinal: 0, lastBlockOrdinal: lambdaOrLocalFunctionCfg.Blocks.Length - 1, operationsBuilder);
+                    }
+
+                    ControlFlowGraph TryGetAnonymousFunctionControlFlowGraphInScope(IFlowAnonymousFunctionOperation flowAnonymousFunctionOperation)
+                    {
+                        if (_lambdaTargetsToAccessingCfgMap.TryGetValue(flowAnonymousFunctionOperation, out var lambdaAccessingCfg))
+                        {
+                            var anonymousFunctionCfg = lambdaAccessingCfg.GetAnonymousFunctionControlFlowGraphInScope(flowAnonymousFunctionOperation);
+                            Debug.Assert(anonymousFunctionCfg != null);
+                            return anonymousFunctionCfg;
+                        }
+
+                        return null;
+                    }
+
+                    ControlFlowGraph TryGetLocalFunctionControlFlowGraphInScope(IMethodSymbol localFunction)
+                    {
+                        Debug.Assert(localFunction.IsLocalFunction());
+                        if (_localFunctionTargetsToAccessingCfgMap.TryGetValue(localFunction, out var localFunctionAccessingCfg))
+                        {
+                            var localFunctionCfg = localFunctionAccessingCfg.GetLocalFunctionControlFlowGraphInScope(localFunction);
+                            Debug.Assert(localFunctionCfg != null);
+                            return localFunctionCfg;
+                        }
+
+                        return null;
+                    }
                 }
 
                 /// <summary>
