@@ -2063,7 +2063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             slotBuilder.Free();
         }
 
-        private void LearnFromNullTest(BoundExpression expression, ref LocalState state, int? optionalSlot = null)
+        private void LearnFromNullTest(BoundExpression expression, ref LocalState state)
         {
             var expressionWithoutConversion = RemoveConversion(expression, includeExplicitConversions: true).expression;
             var slot = MakeSlot(expressionWithoutConversion);
