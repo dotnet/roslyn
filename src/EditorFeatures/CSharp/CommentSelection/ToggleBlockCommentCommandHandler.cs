@@ -52,17 +52,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
 
         public override string DisplayName => EditorFeaturesResources.Toggle_Block_Comment;
 
-        internal override string GetTitle(Operation operation)
+        protected override string GetTitle(Operation operation)
         {
             return EditorFeaturesResources.Toggle_Block_Comment;
         }
 
-        internal override string GetMessage(Operation operation)
+        protected override string GetMessage(Operation operation)
         {
             return EditorFeaturesResources.Toggling_block_comment_on_selection;
         }
 
-        internal override void SetTrackingSpans(ITextView textView, ITextBuffer buffer, List<CommentTrackingSpan> trackingSpans)
+        protected override void SetTrackingSpans(ITextView textView, ITextBuffer buffer, List<CommentTrackingSpan> trackingSpans)
         {
             var spans = trackingSpans.Select(trackingSpan => trackingSpan.ToSelection(buffer));
             textView.GetMultiSelectionBroker().SetSelectionRange(spans, spans.Last());
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             }
         }
 
-        private void ToggleBlockComments(CommentSelectionInfo commentInfo, SyntaxNode root, NormalizedSnapshotSpanCollection selectedSpans,
+        private static void ToggleBlockComments(CommentSelectionInfo commentInfo, SyntaxNode root, NormalizedSnapshotSpanCollection selectedSpans,
             List<TextChange> textChanges, List<CommentTrackingSpan> trackingSpans)
         {
             var blockCommentedSpans = GetDescendentBlockCommentSpansFromRoot(root);
@@ -145,14 +145,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
                 }
                 var trackingSpan = Span.FromBounds(intersectingBlockComments.First().Start, intersectingBlockComments.Last().End);
                 trackingSpans.Add(blockCommentSelectionHelper.GetTrackingSpan(trackingSpan, SpanTrackingMode.EdgeExclusive, Operation.Uncomment));
-                return true;
-            }
-
-            // If the selection is entirely inside a block comment, remove the comment.
-            if (blockCommentSelectionHelper.TryGetSurroundingBlockComment(out var containingBlockComment))
-            {
-                DeleteBlockComment(blockCommentSelectionHelper, containingBlockComment, textChanges, commentInfo);
-                trackingSpans.Add(blockCommentSelectionHelper.GetTrackingSpan(containingBlockComment, SpanTrackingMode.EdgeExclusive, Operation.Uncomment));
                 return true;
             }
 
@@ -352,20 +344,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             {
                 var trackingSpan = SelectedSpan.Snapshot.CreateTrackingSpan(Span.FromBounds(span.Start, span.End), spanTrackingMode);
                 return new CommentTrackingSpan(trackingSpan, operation, addToStart, addToEnd);
-            }
-
-            /// <summary>
-            /// Retrive the block comment entirely surrounding the selection if it exists.
-            /// </summary>
-            public bool TryGetSurroundingBlockComment(out Span containingSpan)
-            {
-                containingSpan = IntersectingBlockComments.FirstOrDefault(commentedSpan => commentedSpan.Contains(SelectedSpan));
-                if (containingSpan.Start == 0 && containingSpan.End == 0)
-                {
-                    return false;
-                }
-
-                return true;
             }
 
             /// <summary>

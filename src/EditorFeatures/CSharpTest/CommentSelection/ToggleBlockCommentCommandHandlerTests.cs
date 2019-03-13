@@ -758,8 +758,7 @@ class C
             ToggleBlockComment(markup, expected, expectedSelectedSpans);
         }
 
-        //[WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        [Fact(Skip = "TODO")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
         public void AddComment_CodeThenPartialCommentInSelection()
         {
             var markup =
@@ -926,8 +925,7 @@ class C
             ToggleBlockComment(markup, expected, expectedSelectedSpans);
         }
 
-        //[WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        [Fact(Skip = "TODO")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
         public void AddComment_PartialCommentThenCodeInSelection()
         {
             var markup =
@@ -1144,6 +1142,80 @@ class C
                 Span.FromBounds(43, 57),
                 Span.FromBounds(71, 85),
                 Span.FromBounds(95, 111)
+            };
+            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        public void AddComment_DirectiveInsideSelection()
+        {
+            var markup =
+@"
+class C
+{
+    void M()
+    {
+        [|var i = 1;
+#if false
+        var j = 2;
+#endif
+        var k = 3;|]
+    }
+}";
+            var expected =
+@"
+class C
+{
+    void M()
+    {
+        /*var i = 1;
+#if false
+        var j = 2;
+#endif
+        var k = 3;*/
+    }
+}";
+
+            var expectedSelectedSpans = new[]
+            {
+                Span.FromBounds(43, 116),
+            };
+            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        public void AddComment_DirectiveWithCommentInsideSelection()
+        {
+            var markup =
+@"
+class C
+{
+    void M()
+    {
+        [|var i = 1;
+#if false
+        /*var j = 2;*/
+#endif
+        var k = 3;|]
+    }
+}";
+            var expected =
+@"
+class C
+{
+    void M()
+    {
+        /*var i = 1;
+#if false
+        /*var j = 2;*/
+#endif
+        var k = 3;*/
+    }
+}";
+
+            var expectedSelectedSpans = new[]
+            {
+                Span.FromBounds(43, 120),
             };
             ToggleBlockComment(markup, expected, expectedSelectedSpans);
         }
@@ -1376,7 +1448,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_BlockInsideSelection()
+        public void RemoveComment_CommentInsideSelection()
         {
             var markup =
 @"
@@ -1409,7 +1481,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_BlockAndWhitespaceInSelection()
+        public void RemoveComment_CommentAndWhitespaceInSelection()
         {
             var markup =
 @"
@@ -1444,7 +1516,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_BlockWithSingleLineCommentInSelection()
+        public void RemoveComment_CommentWithSingleLineCommentInSelection()
         {
             var markup =
 @"
@@ -1611,7 +1683,7 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void RemoveComment_BlockPartiallyInsideSelection()
+        public void RemoveComment_CommentPartiallyInsideSelection()
         {
             var markup =
 @"
@@ -1797,8 +1869,7 @@ class C
             ToggleBlockCommentMultiple(markup, expectedText, expectedSelectedSpans);
         }
 
-        //[WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        [Fact(Skip = "TODO")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
         public void ToggleComment_MultiCommentSelection()
         {
             var markup =
@@ -1830,7 +1901,8 @@ class C
     void M()
     {
         /*var i = 1;
-        */var j = 2;
+        */
+        var j = 2;
         var k = 3;
     }
 }"
@@ -1840,11 +1912,11 @@ class C
             {
                 new[]
                 {
-                    Span.FromBounds(65, 106)
+                    Span.FromBounds(67, 106)
                 },
                 new[]
                 {
-                    Span.FromBounds(43, 93)
+                    Span.FromBounds(77, 107)
                 }
             };
 

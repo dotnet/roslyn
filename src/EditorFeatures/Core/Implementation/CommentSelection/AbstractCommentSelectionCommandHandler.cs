@@ -63,41 +63,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
         }
 
-        /// <summary>
-        /// Record "Insert text" text changes.
-        /// </summary>
         protected static void InsertText(List<TextChange> textChanges, int position, string text)
         {
             textChanges.Add(new TextChange(new TextSpan(position, 0), text));
         }
 
-        /// <summary>
-        /// Record "Delete text" text changes.
-        /// </summary>
         protected static void DeleteText(List<TextChange> textChanges, TextSpan span)
         {
             textChanges.Add(new TextChange(span, string.Empty));
-        }
-
-        private static ICommentSelectionService GetService(Document document)
-        {
-            // First, try to get the new service for comment selection.
-            var service = document.GetLanguageService<ICommentSelectionService>();
-            if (service != null)
-            {
-                return service;
-            }
-
-            // If we couldn't find one, fallback to the legacy service.
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacyService = document.GetLanguageService<ICommentUncommentService>();
-#pragma warning restore CS0618 // Type or member is obsolete
-            if (legacyService != null)
-            {
-                return new CommentSelectionServiceProxy(legacyService);
-            }
-
-            return null;
         }
 
         internal bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Operation operation, CommandExecutionContext context)
@@ -147,17 +120,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             return true;
         }
 
+        private static ICommentSelectionService GetService(Document document)
+        {
+            // First, try to get the new service for comment selection.
+            var service = document.GetLanguageService<ICommentSelectionService>();
+            if (service != null)
+            {
+                return service;
+            }
+
+            // If we couldn't find one, fallback to the legacy service.
+#pragma warning disable CS0618 // Type or member is obsolete
+            var legacyService = document.GetLanguageService<ICommentUncommentService>();
+#pragma warning restore CS0618 // Type or member is obsolete
+            if (legacyService != null)
+            {
+                return new CommentSelectionServiceProxy(legacyService);
+            }
+
+            return null;
+        }
+
         public abstract string DisplayName { get; }
 
-        internal abstract string GetTitle(Operation operation);
+        protected abstract string GetTitle(Operation operation);
 
-        internal abstract string GetMessage(Operation operation);
+        protected abstract string GetMessage(Operation operation);
+
+        protected abstract void SetTrackingSpans(ITextView textView, ITextBuffer buffer, List<CommentTrackingSpan> trackingSpans);
 
         internal abstract void CollectEdits(
             Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans,
             List<TextChange> textChanges, List<CommentTrackingSpan> trackingSpans, Operation operation, CancellationToken cancellationToken);
-
-        internal abstract void SetTrackingSpans(ITextView textView, ITextBuffer buffer, List<CommentTrackingSpan> trackingSpans);
-
     }
 }

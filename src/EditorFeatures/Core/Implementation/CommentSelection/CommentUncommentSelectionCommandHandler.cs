@@ -64,19 +64,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         public override string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection;
 
-        internal override string GetTitle(Operation operation)
+        protected override string GetTitle(Operation operation)
         {
             return operation == Operation.Comment ? EditorFeaturesResources.Comment_Selection
                 : EditorFeaturesResources.Uncomment_Selection;
         }
 
-        internal override string GetMessage(Operation operation)
+        protected override string GetMessage(Operation operation)
         {
             return operation == Operation.Comment ? EditorFeaturesResources.Commenting_currently_selected_text
                 : EditorFeaturesResources.Uncommenting_currently_selected_text;
         }
 
-        internal override void SetTrackingSpans(ITextView textView, ITextBuffer buffer, List<CommentTrackingSpan> trackingSpans)
+        protected override void SetTrackingSpans(ITextView textView, ITextBuffer buffer, List<CommentTrackingSpan> trackingSpans)
         {
             // TODO, this doesn't currently handle block selection
             textView.SetSelection(trackingSpans.First().ToSnapshotSpan(buffer.CurrentSnapshot));
@@ -103,10 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     UncommentSpan(document, service, span, textChanges, spanTrackingList, cancellationToken);
                 }
             }
-            foreach (var internalTrackingSpan in spanTrackingList)
-            {
-                trackingSpans.Add(new CommentTrackingSpan(internalTrackingSpan, operation));
-            }
+            trackingSpans.AddRange(spanTrackingList.Select(span => new CommentTrackingSpan(span, operation)));
         }
 
         /// <summary>
