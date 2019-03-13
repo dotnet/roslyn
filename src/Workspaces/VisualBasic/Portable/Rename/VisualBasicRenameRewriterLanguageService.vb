@@ -731,6 +731,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         .Select(Function(loc) reverseMappedLocations(loc)))
 
             ElseIf renamedSymbol.Kind = SymbolKind.Property Then
+                conflicts.AddRange(
+                    DeclarationConflictHelpers.GetMembersWithConflictingSignatures(DirectCast(renamedSymbol, IPropertySymbol), trimOptionalParameters:=True) _
+                        .Select(Function(loc) reverseMappedLocations(loc)))
                 ConflictResolver.AddConflictingParametersOfProperties(
                     referencedSymbols.Select(Function(s) s.Symbol).Concat(renameSymbol).Where(Function(sym) sym.Kind = SymbolKind.Property),
                     renamedSymbol.Name,

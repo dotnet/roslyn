@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(type.HasType);
                 Debug.Assert(type.Equals(types[0], TypeCompareKind.AllIgnoreOptions));
                 // This uses the covariant merging rules.
-                result = result.JoinForFixingLowerBounds(type.AsSpeakable().NullableAnnotation);
+                result = result.Join(type.NullableAnnotation);
             }
 
             return result;
@@ -69,10 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return type;
                     }
 
-                    if (conversions.IncludeNullability)
-                    {
-                        type = type.SetSpeakableNullabilityForReferenceTypes();
-                    }
                     candidateTypes.Add(type);
                 }
             }
