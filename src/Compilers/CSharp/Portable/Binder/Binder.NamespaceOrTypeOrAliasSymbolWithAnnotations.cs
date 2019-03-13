@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        internal struct NamespaceOrTypeOrAliasSymbolWithAnnotations
+        internal readonly struct NamespaceOrTypeOrAliasSymbolWithAnnotations
         {
             private readonly TypeSymbolWithAnnotations _type;
             private readonly Symbol _symbol;
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private NamespaceOrTypeOrAliasSymbolWithAnnotations(TypeSymbolWithAnnotations type)
             {
-                Debug.Assert(!type.IsNull);
+                Debug.Assert(type.HasType);
                 _type = type;
                 _symbol = null;
                 _isNullableEnabled = false; // Not meaningful for a TypeSymbolWithAnnotations, it already baked the fact into its content.
@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal TypeSymbolWithAnnotations Type => _type;
             internal Symbol Symbol => _symbol ?? Type.TypeSymbol;
-            internal bool IsType => !_type.IsNull;
+            internal bool IsType => !_type.IsDefault;
             internal bool IsAlias => _symbol?.Kind == SymbolKind.Alias;
             internal NamespaceOrTypeSymbol NamespaceOrTypeSymbol => Symbol as NamespaceOrTypeSymbol;
-            internal bool IsDefault => _type.IsNull && _symbol is null;
+            internal bool IsDefault => !_type.HasType && _symbol is null;
 
             internal bool IsNullableEnabled
             {

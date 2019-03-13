@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
                 semanticModel, location, containerOpt, baseName, filter, usedNames: Enumerable.Empty<string>(), cancellationToken);
         }
 
-        private SyntaxToken GenerateUniqueName(
+        public SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel,
             SyntaxNode location, SyntaxNode containerOpt,
             string baseName, Func<ISymbol, bool> filter,

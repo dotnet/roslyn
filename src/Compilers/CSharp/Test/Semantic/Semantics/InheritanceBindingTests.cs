@@ -948,7 +948,7 @@ class Outer<T>
                 // class Derived : Base
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "Derived").WithArguments("Derived", "Base.Property0.get").WithLocation(14, 7));
         }
-        
+
         [Fact]
         public void TestSupressCantChangeTypeErrorWhenIndexerTypeNotFound()
         {

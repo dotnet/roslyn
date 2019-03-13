@@ -18,11 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private readonly ImmutableArray<NamedTypeSymbol> _additionalTypes;
         private ImmutableArray<Cci.IFileReference> _lazyFiles;
 
+        /// <summary>This is a cache of a subset of <seealso cref="_lazyFiles"/>. We don't include manifest resources in ref assemblies</summary>
+        private ImmutableArray<Cci.IFileReference> _lazyFilesWithoutManifestResources;
+
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
-        private SynthesizedEmbeddedAttributeSymbol _lazyNullableAttribute;
+        private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -103,41 +106,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public sealed override IEnumerable<Cci.IFileReference> GetFiles(EmitContext context)
         {
-            if (_lazyFiles.IsDefault)
+            if (!context.IsRefAssembly)
             {
-                var builder = ArrayBuilder<Cci.IFileReference>.GetInstance();
-                try
-                {
-                    var modules = _sourceAssembly.Modules;
-                    for (int i = 1; i < modules.Length; i++)
-                    {
-                        builder.Add((Cci.IFileReference)Translate(modules[i], context.Diagnostics));
-                    }
-
-                    foreach (ResourceDescription resource in ManifestResources)
-                    {
-                        if (!resource.IsEmbedded)
-                        {
-                            builder.Add(resource);
-                        }
-                    }
-
-                    // Dev12 compilers don't report ERR_CryptoHashFailed if there are no files to be hashed.
-                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyFiles, builder.ToImmutable()) && _lazyFiles.Length > 0)
-                    {
-                        if (!CryptographicHashProvider.IsSupportedAlgorithm(_sourceAssembly.HashAlgorithm))
-                        {
-                            context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CryptoHashFailed), NoLocation.Singleton));
-                        }
-                    }
-                }
-                finally
-                {
-                    builder.Free();
-                }
+                return getFiles(ref _lazyFiles);
             }
+            return getFiles(ref _lazyFilesWithoutManifestResources);
 
-            return _lazyFiles;
+            ImmutableArray<Cci.IFileReference> getFiles(ref ImmutableArray<Cci.IFileReference> lazyFiles)
+            {
+                if (lazyFiles.IsDefault)
+                {
+                    var builder = ArrayBuilder<Cci.IFileReference>.GetInstance();
+                    try
+                    {
+                        var modules = _sourceAssembly.Modules;
+                        for (int i = 1; i < modules.Length; i++)
+                        {
+                            builder.Add((Cci.IFileReference)Translate(modules[i], context.Diagnostics));
+                        }
+
+                        if (!context.IsRefAssembly)
+                        {
+                            // resources are not emitted into ref assemblies
+                            foreach (ResourceDescription resource in ManifestResources)
+                            {
+                                if (!resource.IsEmbedded)
+                                {
+                                    builder.Add(resource);
+                                }
+                            }
+                        }
+
+                        // Dev12 compilers don't report ERR_CryptoHashFailed if there are no files to be hashed.
+                        if (ImmutableInterlocked.InterlockedInitialize(ref lazyFiles, builder.ToImmutable()) && lazyFiles.Length > 0)
+                        {
+                            if (!CryptographicHashProvider.IsSupportedAlgorithm(_sourceAssembly.HashAlgorithm))
+                            {
+                                context.Diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CryptoHashFailed), NoLocation.Singleton));
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        builder.Free();
+                    }
+                }
+
+                return lazyFiles;
+            }
         }
 
         protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics)
@@ -270,11 +286,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
 
-                CreateEmbeddedAttributeIfNeeded(
+                CreateEmbeddedNullableAttributeIfNeeded(
                     ref _lazyNullableAttribute,
-                    diagnostics,
-                    AttributeDescription.NullableAttribute,
-                    GetNullableAttributeConstructors);
+                    diagnostics);
             }
         }
 
@@ -289,42 +303,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private void CreateEmbeddedAttributeIfNeeded(
             ref SynthesizedEmbeddedAttributeSymbol symbol,
             DiagnosticBag diagnostics,
-            AttributeDescription description,
-            Func<CSharpCompilation, NamedTypeSymbol, DiagnosticBag, ImmutableArray<MethodSymbol>> getConstructors = null)
+            AttributeDescription description)
         {
-            if ((object)symbol == null)
+            if (symbol is null)
             {
-                var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
-                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-                Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
-
-                if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
-                {
-                    diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
-                }
-
-                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, getConstructors, diagnostics);
+                AddDiagnosticsForExistingAttribute(description, diagnostics);
+                symbol = new SynthesizedEmbeddedAttributeSymbol(description, _sourceAssembly.DeclaringCompilation, diagnostics);
             }
         }
 
-        private static ImmutableArray<MethodSymbol> GetNullableAttributeConstructors(
-            CSharpCompilation compilation,
-            NamedTypeSymbol containingType,
+        private void CreateEmbeddedNullableAttributeIfNeeded(
+            ref SynthesizedEmbeddedNullableAttributeSymbol symbol,
             DiagnosticBag diagnostics)
         {
-            var byteType = TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte));
-            Binder.ReportUseSiteDiagnostics(byteType.TypeSymbol, diagnostics, Location.None);
-            var byteArray = TypeSymbolWithAnnotations.Create(
-                ArrayTypeSymbol.CreateSZArray(
-                    byteType.TypeSymbol.ContainingAssembly,
-                    byteType));
-            return ImmutableArray.Create<MethodSymbol>(
-                new SynthesizedEmbeddedAttributeConstructorSymbol(
-                    containingType,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, byteType, 0, RefKind.None))),
-                new SynthesizedEmbeddedAttributeConstructorSymbol(
-                    containingType,
-                    m => ImmutableArray.Create(SynthesizedParameterSymbol.Create(m, byteArray, 0, RefKind.None))));
+            if (symbol is null)
+            {
+                AddDiagnosticsForExistingAttribute(AttributeDescription.NullableAttribute, diagnostics);
+                symbol = new SynthesizedEmbeddedNullableAttributeSymbol(_sourceAssembly.DeclaringCompilation, diagnostics);
+            }
+        }
+
+        private void AddDiagnosticsForExistingAttribute(AttributeDescription description, DiagnosticBag diagnostics)
+        {
+            var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+            var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+            Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+
+            if (!(userDefinedAttribute is MissingMetadataTypeSymbol))
+            {
+                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+            }
         }
     }
 

@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasCompilerGeneratedIsChecked = 1 << 2,
 #endif
+            IsSuppressed = 1 << 4,
         }
 
         protected BoundNode(BoundKind kind, SyntaxNode syntax)
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
                 var expression = this as BoundExpression;
-                return expression != null && !ReferenceEquals(expression.Type, null) && expression.Type.IsErrorType();
+                return expression?.Type?.IsErrorType() == true;
             }
         }
 
@@ -97,6 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return Syntax?.SyntaxTree;
             }
+        }
+
+        protected void CopyAttributes(BoundNode original)
+        {
+            this.WasCompilerGenerated = original.WasCompilerGenerated;
+
+            Debug.Assert(original is BoundExpression || !original.IsSuppressed);
+            this.IsSuppressed = original.IsSuppressed;
         }
 
         /// <remarks>
@@ -149,6 +158,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool IsSuppressed
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.IsSuppressed) != 0;
+            }
+            protected set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.IsSuppressed) == 0, "flag should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.IsSuppressed;
+                }
+            }
+        }
 
         public BoundKind Kind
         {

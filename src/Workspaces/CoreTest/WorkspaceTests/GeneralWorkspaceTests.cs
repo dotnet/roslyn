@@ -8,7 +8,8 @@ using System;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class GeneralWorkspaceTests : WorkspaceTestBase
+    [UseExportProvider]
+    public class GeneralWorkspaceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestChangeDocumentContent_TryApplyChanges_Throws()

@@ -202,13 +202,13 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             {
                 return new MemoryStream();
             }
- 
+
             public override bool Equals(object obj)
             {
                 // Only one instance is expected to exist, so reference equality is fine.
                 return (object)this == obj;
             }
- 
+
             public override int GetHashCode()
             {
                 return 0;

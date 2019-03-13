@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             Public Overrides Sub Format(context As FormattingContext,
                                         formattingRules As ChainedFormattingRules,
-                                        formattingResultApplier As Action(Of Integer, TriviaData),
+                                        formattingResultApplier As Action(Of Integer, TokenStream, TriviaData),
                                         cancellationToken As CancellationToken,
                                         Optional tokenPairIndex As Integer = TokenPairIndexNotNeeded)
                 Contract.ThrowIfFalse(Me.SecondTokenIsFirstTokenOnLine)
@@ -87,6 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                 formattingResultApplier(
                     tokenPairIndex,
+                    context.TokenStream,
                     New FormattedComplexTrivia(context, formattingRules, Me._original.Token1, Me._original.Token2, Me.LineBreaks, Me.Spaces, Me._original.OriginalString, cancellationToken))
             End Sub
 

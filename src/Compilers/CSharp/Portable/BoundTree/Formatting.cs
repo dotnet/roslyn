@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundSuppressNullableWarningExpression
-    {
-        public override object Display => Expression.Display;
-    }
-
     internal sealed partial class BoundLambda
     {
         public override object Display

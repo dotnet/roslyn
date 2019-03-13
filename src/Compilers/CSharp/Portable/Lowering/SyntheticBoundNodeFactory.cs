@@ -560,6 +560,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binary(BinaryOperatorKind.IntLessThan, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
         }
 
+        public BoundBinaryOperator IntGreaterThanOrEqual(BoundExpression left, BoundExpression right)
+        {
+            return Binary(BinaryOperatorKind.IntGreaterThanOrEqual, SpecialType(CodeAnalysis.SpecialType.System_Boolean), left, right);
+        }
+
         public BoundLiteral Literal(int value)
         {
             return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };
@@ -577,15 +582,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundObjectCreationExpression New(NamedTypeSymbol type, params BoundExpression[] args)
         {
-            // TODO: add diagnostics for when things fall apart
             var ctor = type.InstanceConstructors.Single(c => c.ParameterCount == args.Length);
             return New(ctor, args);
         }
 
         public BoundObjectCreationExpression New(MethodSymbol ctor, params BoundExpression[] args)
+            => New(ctor, args.ToImmutableArray());
+
+        public BoundObjectCreationExpression New(MethodSymbol ctor, ImmutableArray<BoundExpression> args)
+            => new BoundObjectCreationExpression(Syntax, ctor, binderOpt: null, args) { WasCompilerGenerated = true };
+
+        public BoundObjectCreationExpression New(WellKnownMember wm, ImmutableArray<BoundExpression> args)
         {
-            // TODO: add diagnostics for when things fall apart
-            return new BoundObjectCreationExpression(Syntax, ctor, null, args) { WasCompilerGenerated = true };
+            var ctor = WellKnownMethod(wm, isOptional: false);
+            return new BoundObjectCreationExpression(Syntax, ctor, binderOpt: null, args) { WasCompilerGenerated = true };
         }
 
         public BoundExpression InstanceCall(BoundExpression receiver, string name, BoundExpression arg)
@@ -623,6 +633,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(null, method, args);
         }
 
+        public BoundExpression StaticCall(MethodSymbol method, ImmutableArray<BoundExpression> args)
+            => Call(null, method, args);
+
         public BoundExpression StaticCall(WellKnownMember method, params BoundExpression[] args)
         {
             MethodSymbol methodSymbol = WellKnownMethod(method);
@@ -658,6 +671,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Call(receiver, method, ImmutableArray.Create<BoundExpression>(args));
         }
+
+        public BoundCall Call(BoundExpression receiver, WellKnownMember method, BoundExpression arg0)
+            => Call(receiver, WellKnownMethod(method), ImmutableArray.Create(arg0));
 
         public BoundCall Call(BoundExpression receiver, MethodSymbol method, ImmutableArray<BoundExpression> args)
         {
@@ -883,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             statements.Add(Label(breakLabel));
             Debug.Assert(statements[0] == null);
             statements[0] = new BoundSwitchDispatch(Syntax, ex, caseBuilder.ToImmutableAndFree(), breakLabel, null)
-                { WasCompilerGenerated = true };
+            { WasCompilerGenerated = true };
             return Block(statements.ToImmutableAndFree());
         }
 

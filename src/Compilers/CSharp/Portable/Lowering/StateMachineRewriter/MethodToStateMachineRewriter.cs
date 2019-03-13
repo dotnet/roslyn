@@ -201,19 +201,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             stateNumber = _nextState++;
 
-            if (_dispatches == null)
-            {
-                _dispatches = new Dictionary<LabelSymbol, List<int>>();
-            }
-
             if (_useFinalizerBookkeeping && !_hasFinalizerState)
             {
                 _currentFinalizerState = _nextState++;
                 _hasFinalizerState = true;
             }
 
+            AddState(stateNumber, out resumeLabel);
+        }
+
+        protected void AddState(int stateNumber, out GeneratedLabelSymbol resumeLabel)
+        {
+            if (_dispatches == null)
+            {
+                _dispatches = new Dictionary<LabelSymbol, List<int>>();
+            }
+
             resumeLabel = F.GenerateLabel("stateMachine");
-            List<int> states = new List<int>();
+            var states = new List<int>();
             states.Add(stateNumber);
             _dispatches.Add(resumeLabel, states);
         }
@@ -844,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock finallyBlockOpt = node.FinallyBlockOpt == null ? null : F.Block(
                 F.HiddenSequencePoint(),
                 F.If(
-                    condition: F.IntLessThan(F.Local(cachedState), F.Literal(StateMachineStates.FirstUnusedState)),
+                    condition: ShouldEnterFinallyBlock(),
                     thenClause: (BoundBlock)this.Visit(node.FinallyBlockOpt)
                 ),
                 F.HiddenSequencePoint());
@@ -860,6 +865,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        protected virtual BoundBinaryOperator ShouldEnterFinallyBlock()
+        {
+            return F.IntLessThan(F.Local(cachedState), F.Literal(StateMachineStates.FirstUnusedState));
         }
 
         /// <summary>

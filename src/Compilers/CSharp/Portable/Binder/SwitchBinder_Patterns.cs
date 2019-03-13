@@ -12,8 +12,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    // We use a subclass of SwitchBinder for the pattern-matching switch statement until we have completed
-    // a totally compatible implementation of switch that also accepts pattern-matching constructs.
     internal partial class SwitchBinder : LocalScopeBinder
     {
         internal static SwitchBinder Create(Binder next, SwitchStatementSyntax switchSyntax)
@@ -198,11 +196,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundStatementsBuilder = ArrayBuilder<BoundStatement>.GetInstance(node.Statements.Count);
             foreach (StatementSyntax statement in node.Statements)
             {
-                boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
+                var boundStatement = sectionBinder.BindStatement(statement, diagnostics);
+                if (ContainsUsingVariable(boundStatement))
+                {
+                    diagnostics.Add(ErrorCode.ERR_UsingVarInSwitchCase, statement.Location);
+                }
+                boundStatementsBuilder.Add(boundStatement);
             }
 
             return new BoundSwitchSection(node, sectionBinder.GetDeclaredLocalsForScope(node), boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
         }
+
+        internal static bool ContainsUsingVariable(BoundStatement boundStatement)
+        {
+            if (boundStatement is BoundLocalDeclaration boundLocal)
+            {
+                return boundLocal.LocalSymbol.IsUsing;
+            }
+            else if (boundStatement is BoundMultipleLocalDeclarations boundMultiple && !boundMultiple.LocalDeclarations.IsDefaultOrEmpty)
+            {
+                return boundMultiple.LocalDeclarations[0].LocalSymbol.IsUsing;
+            }
+            return false;
+        }
+
 
         private BoundSwitchLabel BindSwitchSectionLabel(
             Binder sectionBinder,

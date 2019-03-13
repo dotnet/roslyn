@@ -276,14 +276,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateFromEndIndexExpressionOperation((BoundFromEndIndexExpression)boundNode);
                 case BoundKind.RangeExpression:
                     return CreateRangeExpressionOperation((BoundRangeExpression)boundNode);
-                case BoundKind.SuppressNullableWarningExpression:
-                    return CreateSuppressNullableWarningExpressionOperation((BoundSuppressNullableWarningExpression)boundNode);
                 case BoundKind.SwitchSection:
                     return CreateBoundSwitchSectionOperation((BoundSwitchSection)boundNode);
                 case BoundKind.SwitchExpression:
                     return CreateBoundSwitchExpressionOperation((BoundSwitchExpression)boundNode);
                 case BoundKind.SwitchExpressionArm:
                     return CreateBoundSwitchExpressionArmOperation((BoundSwitchExpressionArm)boundNode);
+                case BoundKind.UsingLocalDeclarations:
+                    return CreateUsingLocalDeclarationsOperation((BoundUsingLocalDeclarations)boundNode);
 
                 case BoundKind.Attribute:
                 case BoundKind.ArgList:
@@ -368,6 +368,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         return ImmutableArray.Create(CreateVariableDeclaratorInternal((BoundLocalDeclaration)declaration, (declarationSyntax as VariableDeclarationSyntax)?.Variables[0] ?? declarationSyntax));
                     }
                 case BoundKind.MultipleLocalDeclarations:
+                case BoundKind.UsingLocalDeclarations:
                     {
                         var multipleDeclaration = (BoundMultipleLocalDeclarations)declaration;
                         var builder = ArrayBuilder<IVariableDeclaratorOperation>.GetInstance(multipleDeclaration.LocalDeclarations.Length);
@@ -1501,8 +1502,8 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     enumeratorInfoOpt.GetEnumeratorMethod,
                                                     (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter.AssociatedSymbol,
                                                     enumeratorInfoOpt.MoveNextMethod,
-                                                    enumeratorInfoOpt.NeedsDisposeMethod,
-                                                    knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposeMethod && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
+                                                    enumeratorInfoOpt.NeedsDisposal,
+                                                    knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal && (object)enumeratorInfoOpt.GetEnumeratorMethod != null ?
                                                                                      compilation.Conversions.
                                                                                          ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorMethod.ReturnType.TypeSymbol,
                                                                                                                             compilation.GetSpecialType(SpecialType.System_IDisposable),
@@ -1716,7 +1717,9 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = default(Optional<object>);
             // If the syntax was the same, we're in a fixed statement or using statement. We make the Group operation implicit in this scenario, as the
             // syntax itself is a VariableDeclaration
-            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated;
+            // We do the same if the declarationSyntax was a using declaration, as it's bound as if it were a using statement
+            bool isUsing = declarationGroupSyntax.IsKind(SyntaxKind.LocalDeclarationStatement) && ((LocalDeclarationStatementSyntax)declarationGroupSyntax).UsingKeyword != default;
+            bool isImplicit = declarationGroupSyntax == declarationSyntax || boundMultipleLocalDeclarations.WasCompilerGenerated || isUsing;
             return new VariableDeclarationGroupOperation(ImmutableArray.Create(multiVariableDeclaration), _semanticModel, declarationGroupSyntax, type, constantValue, isImplicit);
         }
 
@@ -1985,17 +1988,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 isImplicit: boundRange.WasCompilerGenerated);
         }
 
-        private IOperation CreateSuppressNullableWarningExpressionOperation(BoundSuppressNullableWarningExpression boundSuppression)
-        {
-            return new CSharpLazySuppressNullableWarningOperation(
-                operationFactory: this,
-                boundSuppression,
-                _semanticModel,
-                boundSuppression.Syntax,
-                boundSuppression.Type,
-                isImplicit: boundSuppression.WasCompilerGenerated);
-        }
-
         private IOperation CreateBoundDiscardPatternOperation(BoundDiscardPattern boundNode)
         {
             return new DiscardPatternOperation(
@@ -2003,6 +1995,53 @@ namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel,
                 boundNode.Syntax,
                 isImplicit: boundNode.WasCompilerGenerated);
+        }
+
+        private IOperation CreateUsingLocalDeclarationsOperation(BoundUsingLocalDeclarations boundNode)
+        {
+            //TODO: Implement UsingLocalDeclaration operations correctly.
+            //      For now we return an implicit operationNone, with a single child consisting of the using declaration parsed as if it were a standard variable declaration
+            //      See: https://github.com/dotnet/roslyn/issues/32100
+            return Operation.CreateOperationNone(_semanticModel,
+                                                 boundNode.Syntax,
+                                                 constantValue: default,
+                                                 getChildren: () => ImmutableArray.Create<IOperation>(CreateBoundMultipleLocalDeclarationsOperation((BoundMultipleLocalDeclarations)boundNode)),
+                                                 isImplicit: false);
+        }
+
+        internal IPropertySubpatternOperation CreatePropertySubpattern(BoundSubpattern subpattern, ITypeSymbol matchedType)
+        {
+            SyntaxNode syntax = subpattern.Syntax;
+            return new CSharpLazyPropertySubpatternOperation(this, subpattern, matchedType, syntax, _semanticModel);
+        }
+
+        internal IOperation CreatePropertySubpatternMember(Symbol symbol, ITypeSymbol matchedType, SyntaxNode syntax)
+        {
+            var nameSyntax = (syntax is SubpatternSyntax subpatSyntax ? subpatSyntax.NameColon?.Name : null) ?? syntax;
+            bool isImplicit = nameSyntax == syntax;
+            switch (symbol)
+            {
+                case FieldSymbol field:
+                    {
+                        var constantValue = field.ConstantValue is null ? default(Optional<object>) : new Optional<object>(field.ConstantValue);
+                        var receiver = new InstanceReferenceOperation(
+                            InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, constantValue, isImplicit: true);
+                        return new FieldReferenceOperation(
+                            field, isDeclaration: false, receiver, _semanticModel, nameSyntax, field.Type.TypeSymbol, constantValue, isImplicit: isImplicit);
+                    }
+                case PropertySymbol property:
+                    {
+                        var receiver = new InstanceReferenceOperation(
+                            InstanceReferenceKind.PatternInput, _semanticModel, nameSyntax, matchedType, constantValue: default, isImplicit: true);
+                        return new PropertyReferenceOperation(
+                            property, receiver, ImmutableArray<IArgumentOperation>.Empty, _semanticModel, nameSyntax, property.Type.TypeSymbol,
+                            constantValue: default, isImplicit: isImplicit);
+                    }
+                default:
+                    // We should expose the symbol in this case somehow:
+                    // https://github.com/dotnet/roslyn/issues/33175
+                    return OperationFactory.CreateInvalidOperation(_semanticModel, nameSyntax, ImmutableArray<IOperation>.Empty, isImplicit);
+            }
         }
     }
 }

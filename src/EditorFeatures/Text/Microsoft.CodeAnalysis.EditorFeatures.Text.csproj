@@ -2,8 +2,6 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Text</RootNamespace>
     <TargetFramework>net472</TargetFramework>
@@ -19,8 +17,6 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,6 +54,10 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="FSharp.Editor" Key="$(FSharpKey)" />
     <InternalsVisibleTo Include="FSharp.LanguageService" Key="$(FSharpKey)" />
+    <!-- BEGIN MONODEVELOP
+    These MonoDevelop dependencies don't ship with Visual Studio, so can't break our
+    binary insertions and are exempted from the ExternalAccess adapter assembly policies.
+    -->
     <InternalsVisibleTo Include="MonoDevelop.Ide" Key="$(MonoDevelopKey)" />
     <InternalsVisibleTo Include="MonoDevelop.Refactoring" Key="$(MonoDevelopKey)" />
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding" Key="$(MonoDevelopKey)" />
@@ -66,6 +66,10 @@
     <InternalsVisibleTo Include="MonoDevelop.Refactoring.Tests" Key="$(MonoDevelopKey)" />
     <InternalsVisibleTo Include="MonoDevelop.CSharpBinding.Tests" Key="$(MonoDevelopKey)" />
     <InternalsVisibleTo Include="MonoDevelop.VBNetBinding.Tests" Key="$(MonoDevelopKey)" />
+    <!-- this is currently built externally, as part of the MonoDevelop build -->
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Cocoa" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Cocoa.UnitTests" />
+    <!-- END MONODEVELOP -->
     <InternalsVisibleTo Include="Roslyn.InteractiveWindow.UnitTests" Key="$(MonoDevelopKey)" />
     <!-- The rest are for test purposes only. -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />

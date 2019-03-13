@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.Utilities;
 
 using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
@@ -41,21 +42,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 firstLineElements.Add(new ImageElement(warningGlyph.GetImageId()));
             }
 
+            var elements = new List<object>();
             var descSection = quickInfoItem.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
             if (descSection != null)
             {
-                firstLineElements.Add(BuildClassifiedTextElement(descSection));
+                var isFirstElement = true;
+                foreach (var element in BuildClassifiedTextElements(descSection))
+                {
+                    if (isFirstElement)
+                    {
+                        isFirstElement = false;
+                        firstLineElements.Add(element);
+                    }
+                    else
+                    {
+                        // If the description section contains multiple paragraphs, the second and additional paragraphs
+                        // are not wrapped in firstLineElements (they are normal paragraphs).
+                        elements.Add(element);
+                    }
+                }
             }
 
-            var elements = new List<object>
+            elements.Insert(0, new ContainerElement(ContainerElementStyle.Wrapped, firstLineElements));
+
+            var documentationCommentSection = quickInfoItem.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.DocumentationComments);
+            if (documentationCommentSection != null)
             {
-                new ContainerElement(ContainerElementStyle.Wrapped, firstLineElements)
-            };
+                var isFirstElement = true;
+                foreach (var element in BuildClassifiedTextElements(documentationCommentSection))
+                {
+                    if (isFirstElement)
+                    {
+                        isFirstElement = false;
+
+                        // Stack the first paragraph of the documentation comments with the last line of the description
+                        // to avoid vertical padding between the two.
+                        var lastElement = elements[elements.Count - 1];
+                        elements[elements.Count - 1] = new ContainerElement(
+                            ContainerElementStyle.Stacked,
+                            lastElement,
+                            element);
+                    }
+                    else
+                    {
+                        elements.Add(element);
+                    }
+                }
+            }
 
             // Add the remaining sections as Stacked style
             elements.AddRange(
-                quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description)
-                                      .Select(BuildClassifiedTextElement));
+                quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description && s.Kind != QuickInfoSectionKinds.DocumentationComments)
+                                      .SelectMany(BuildClassifiedTextElements));
 
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())
@@ -79,16 +117,91 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var content = new ContainerElement(
-                                ContainerElementStyle.Stacked,
+                                ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
                                 elements);
 
             return new IntellisenseQuickInfoItem(trackingSpan, content);
         }
 
-        private static ClassifiedTextElement BuildClassifiedTextElement(QuickInfoSection section)
+        private static IEnumerable<object> BuildClassifiedTextElements(QuickInfoSection section)
         {
-            return new ClassifiedTextElement(section.TaggedParts.Select(
-                    part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+            // This method produces a sequence of zero or more paragraphs
+            var paragraphs = new List<object>();
+
+            // Each paragraph is constructed from one or more lines
+            var currentParagraph = new List<ClassifiedTextElement>();
+
+            // Each line is constructed from one or more inline elements
+            var currentRuns = new List<ClassifiedTextRun>();
+
+            foreach (var part in section.TaggedParts)
+            {
+                if (part.Tag == TextTags.LineBreak)
+                {
+                    if (currentRuns.Count > 0)
+                    {
+                        // This line break means the end of a line within a paragraph.
+                        currentParagraph.Add(new ClassifiedTextElement(currentRuns));
+                        currentRuns.Clear();
+                    }
+                    else
+                    {
+                        // This line break means the end of a paragraph. Empty paragraphs are ignored, but could appear
+                        // in the input to this method:
+                        //
+                        // * Empty <para> elements
+                        // * Explicit line breaks at the start of a comment
+                        // * Multiple line breaks between paragraphs
+                        if (currentParagraph.Count > 0)
+                        {
+                            // The current paragraph is not empty, so add it to the result collection
+                            paragraphs.Add(CreateParagraphFromLines(currentParagraph));
+                            currentParagraph.Clear();
+                        }
+                        else
+                        {
+                            // The current paragraph is empty, so we simply ignore it.
+                        }
+                    }
+                }
+                else
+                {
+                    // This is tagged text getting added to the current line we are building.
+                    currentRuns.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text));
+                }
+            }
+
+            if (currentRuns.Count > 0)
+            {
+                // Add the final line to the final paragraph.
+                currentParagraph.Add(new ClassifiedTextElement(currentRuns));
+            }
+
+            if (currentParagraph.Count > 0)
+            {
+                // Add the final paragraph to the result.
+                paragraphs.Add(CreateParagraphFromLines(currentParagraph));
+            }
+
+            return paragraphs;
+        }
+
+        private static object CreateParagraphFromLines(IReadOnlyList<ClassifiedTextElement> lines)
+        {
+            Contract.ThrowIfFalse(lines.Count > 0);
+
+            if (lines.Count == 1)
+            {
+                // The paragraph contains only one line, so it doesn't need to be added to a container. Avoiding the
+                // wrapping container here also avoids a wrapping element in the WPF elements used for rendering,
+                // improving efficiency.
+                return lines[0];
+            }
+            else
+            {
+                // The lines of a multi-line paragraph are stacked to produce the full paragraph.
+                return new ContainerElement(ContainerElementStyle.Stacked, lines);
+            }
         }
     }
 }

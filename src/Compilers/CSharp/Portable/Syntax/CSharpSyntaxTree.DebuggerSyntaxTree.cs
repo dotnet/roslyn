@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private class DebuggerSyntaxTree : ParsedSyntaxTree
         {
-            public DebuggerSyntaxTree(CSharpSyntaxNode root, SourceText text)
+            public DebuggerSyntaxTree(CSharpSyntaxNode root, SourceText text, CSharpParseOptions options)
                 : base(
                     text,
                     text.Encoding,
                     text.ChecksumAlgorithm,
                     path: "",
-                    options: CSharpParseOptions.Default,
+                    options: options,
                     root: root,
                     directives: Syntax.InternalSyntax.DirectiveStack.Empty)
             {
