@@ -637,8 +637,8 @@ namespace System.Runtime.CompilerServices
             TargetFramework targetFramework = TargetFramework.Standard,
             Verification? verify = null)
         {
-            options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
-            verify = verify ?? TargetFrameworkUtil.GetVerification(targetFramework, references);
+            options ??= TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
+            verify ??= TargetFrameworkUtil.GetVerification(targetFramework, references);
             var compilation = CreateCompilation(source, references, options, parseOptions, targetFramework, assemblyName: GetUniqueName());
             return CompileAndVerify(
                 compilation,

@@ -186,15 +186,20 @@ namespace Roslyn.Test.Utilities
                 case TargetFramework.Mscorlib46Extended:
                 case TargetFramework.Mscorlib461:
                 case TargetFramework.Mscorlib461Extended:
-                case TargetFramework.NetStandard20:
                 case TargetFramework.WinRT:
                 case TargetFramework.DefaultVb:
+                    // Verification is fully supported on desktop and hence these should pass unless explicitly marked
+                    // otherwise.
                     return Verification.Passes;
+                case TargetFramework.NetStandard20:
+                    // On CoreCLR and NetStandard PEVerify will often fail because it's not supported. Hence it is 
+                    // skipped.
+                    return Verification.Skipped;
                 case TargetFramework.Standard:
                 case TargetFramework.StandardAndCSharp:
                 case TargetFramework.StandardAndVBRuntime:
                 case TargetFramework.StandardCompat:
-                    return Verification.Fails;
+                    return RuntimeUtilities.IsDesktopRuntime ? Verification.Passes : Verification.Skipped;
                 default: throw new InvalidOperationException($"Unexpected target framework {tf}");
             }
         }
