@@ -51822,9 +51822,6 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (5,26): error CS0523: Struct member 'S<T>.Instance' of type 'S<T>' causes a cycle in the struct layout
-                //     internal static S<T> Instance = new S<T>();
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "Instance").WithArguments("S<T>.Instance", "S<T>").WithLocation(5, 26),
                 // (11,27): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         S<T>.Instance.F = null; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 27),
@@ -83736,6 +83733,22 @@ class G<T>
                 // (17,24): warning CS8619: Nullability of reference types in value of type 'G<string?>' doesn't match target type 'G<string>'.
                 //         G<string> g1 = g; // 5
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "g").WithArguments("G<string?>", "G<string>").WithLocation(17, 24));
+        }
+
+        [Fact, WorkItem(32934, "https://github.com/dotnet/roslyn/issues/32934")]
+        public void NoCycleInStructLayout()
+        {
+            var source =
+@"
+#pragma warning disable 0169 // suppress field never used warning
+#nullable enable
+struct Foo<T>
+{
+	static Foo<T> Bar;
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
     }
 }
