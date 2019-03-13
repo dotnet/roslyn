@@ -62,7 +62,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EditorConfigFiles Include="@(Compile->GetPathsOfAllFilesAbove('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <PotentialEditorConfigFiles Include="@(Compile->GetPathsOfAllDirectoriesAbove()->Combine('.editorconfig'))" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
+    <EditorConfigFiles Include="@(PotentialEditorConfigFiles->Exists())" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" />
   </ItemGroup>
 
   <!--
