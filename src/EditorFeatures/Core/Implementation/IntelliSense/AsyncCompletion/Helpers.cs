@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             switch (trigger.Reason)
             {
                 case AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
-                    return new RoslynTrigger(CompletionTriggerKind.InvokeAndCommitIfUnique);
+                    return CompletionTriggerKind.InvokeAndCommitIfUnique;
                 case AsyncCompletionData.CompletionTriggerReason.Insertion:
                     return CompletionTriggerKind.Insertion;
                 case AsyncCompletionData.CompletionTriggerReason.Deletion:
@@ -57,8 +57,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                     return CompletionTriggerKind.Deletion;
                 case AsyncCompletionData.CompletionTriggerReason.SnippetsMode:
                     return CompletionTriggerKind.Snippets;
-                case AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
-                    return CompletionTriggerKind.InvokeAndCommitIfUnique;
                 default:
                     return CompletionTriggerKind.Invoke;
             }
