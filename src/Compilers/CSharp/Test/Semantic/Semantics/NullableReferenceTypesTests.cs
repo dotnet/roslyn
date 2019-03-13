@@ -52545,6 +52545,36 @@ class Program
 
         [Fact]
         [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
+        public void Conversions_ReferenceConversions_10()
+        {
+            var source =
+@"class A
+{
+    internal object? FA;
+}
+class B : A
+{
+    internal object FB = new object();
+}
+class Program
+{
+    static void F()
+    {
+        A a = new B() { FB = null }; // 1
+        a = new A() { FA = 1 };
+        a.FA.ToString();
+        ((B)a).FB.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,30): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         A a = new B() { FB = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 30));
+        }
+
+        [Fact]
+        [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
         [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
         public void Conversions_NullableConversions_01()
         {
@@ -52650,7 +52680,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
         public void Conversions_TupleConversions_01()
         {
             var source =
@@ -52683,7 +52713,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
         public void Conversions_TupleConversions_02()
         {
             var source =
@@ -52715,7 +52745,7 @@ class Program
         }
 
         [Fact]
-        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
         public void Conversions_TupleConversions_03()
         {
             var source =
