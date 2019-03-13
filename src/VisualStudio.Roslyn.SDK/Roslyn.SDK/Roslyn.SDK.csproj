@@ -84,11 +84,11 @@
   </ItemGroup>
   <!-- Content to Include in VSIX -->
   <ItemGroup>
-    <Content Include="..\..\Tools\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\SyntaxTree.bmp">
+    <Content Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\SyntaxTree.bmp">
       <Link>SyntaxTree.bmp</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="..\..\Tools\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\SyntaxTree.ico">
+    <Content Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\SyntaxTree.ico">
       <Link>SyntaxTree.ico</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -103,12 +103,12 @@
   </ItemGroup>
   <!-- Project References to Include In VSIX -->
   <ItemGroup>
-    <ProjectReference Include="..\..\Tools\Roslyn.SDK.Template.Wizard\Roslyn.SDK.Template.Wizard.csproj">
+    <ProjectReference Include="..\Roslyn.SDK.Template.Wizard\Roslyn.SDK.Template.Wizard.csproj">
       <Name>Roslyn.SDK.Template.Wizard</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Control\Roslyn.SyntaxVisualizer.Control.csproj" />
-    <ProjectReference Include="..\..\Tools\SyntaxVisualizer\Roslyn.SyntaxVisualizer.DgmlHelper\Roslyn.SyntaxVisualizer.DgmlHelper.vbproj" />
-    <ProjectReference Include="..\..\Tools\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\Roslyn.SyntaxVisualizer.Extension.csproj">
+    <ProjectReference Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Control\Roslyn.SyntaxVisualizer.Control.csproj" />
+    <ProjectReference Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.DgmlHelper\Roslyn.SyntaxVisualizer.DgmlHelper.vbproj" />
+    <ProjectReference Include="..\SyntaxVisualizer\Roslyn.SyntaxVisualizer.Extension\Roslyn.SyntaxVisualizer.Extension.csproj">
       <Name>Roslyn.SyntaxVisualizer.Extension</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems%3bPkgdefProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
@@ -122,7 +122,7 @@
     <_UpdateTemplateVersionAssembly Condition="'$(MSBuildRuntimeType)' != 'Core'">$(NuGetPackageRoot)\UpdateTemplateVersion\$(UpdateTemplateVersionVersion)\tools\net461\UpdateTemplateVersion.dll</_UpdateTemplateVersionAssembly>
     <_UpdateTemplateVersionAssembly Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NuGetPackageRoot)\UpdateTemplateVersion\$(UpdateTemplateVersionVersion)\tools\netcoreapp2.0\UpdateTemplateVersion.dll</_UpdateTemplateVersionAssembly>
   </PropertyGroup>
-  
+
   <UsingTask AssemblyFile="$(_UpdateTemplateVersionAssembly)" TaskName="UpdateTemplateVersion" />
   <Target Name="UpdateAssemblyVersionInTemplates" BeforeTargets="GetZipFilesFromVSTemplates">
     <ItemGroup>
