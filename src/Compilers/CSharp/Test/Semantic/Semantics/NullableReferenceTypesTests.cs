@@ -39148,7 +39148,6 @@ class C2
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
         public void SuppressNullableWarning_Tuple()
         {
-            // TODO2 crash
             var source = @"
 class C<T> { }
 class C2
