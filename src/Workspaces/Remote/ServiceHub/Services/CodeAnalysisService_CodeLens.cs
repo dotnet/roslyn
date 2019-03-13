@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return RunServiceAsync(async token =>
             {
-                await WorkspaceChangeTracker.TrackAsync(this.Rpc, SolutionService.PrimaryWorkspace, documentId, cancellationToken).ConfigureAwait(false);
+                await WorkspaceChangeTracker.TrackAsync(this, SolutionService.PrimaryWorkspace, documentId, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 
@@ -115,14 +115,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private readonly object _gate;
 
-            private readonly JsonRpc _rpc;
+            private readonly CodeAnalysisService _owner;
             private readonly Workspace _workspace;
             private readonly DocumentId _documentId;
 
             private VersionStamp _lastVersion;
             private ResettableDelay _resettableDelay;
 
-            public static async Task TrackAsync(JsonRpc rpc, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            public static async Task TrackAsync(CodeAnalysisService owner, Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
             {
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 if (document == null)
@@ -132,14 +132,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // if anything under the project this file belong to changes, then invalidate the code lens so that it can refresh
                 var dependentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                var _ = new WorkspaceChangeTracker(rpc, workspace, documentId, dependentVersion);
+                var _ = new WorkspaceChangeTracker(owner, workspace, documentId, dependentVersion);
             }
 
-            private WorkspaceChangeTracker(JsonRpc rpc, Workspace workspace, DocumentId documentId, VersionStamp dependentVersion)
+            private WorkspaceChangeTracker(CodeAnalysisService owner, Workspace workspace, DocumentId documentId, VersionStamp dependentVersion)
             {
                 _gate = new object();
 
-                _rpc = rpc;
+                _owner = owner;
                 _workspace = workspace;
                 _documentId = documentId;
 
@@ -162,18 +162,18 @@ namespace Microsoft.CodeAnalysis.Remote
                 {
                     if (subscription)
                     {
-                        _rpc.Disconnected += OnRpcDisconnected;
+                        _owner.Disconnected += OnDisconnected;
                         _workspace.WorkspaceChanged += OnWorkspaceChanged;
                     }
                     else
                     {
-                        _rpc.Disconnected -= OnRpcDisconnected;
+                        _owner.Disconnected -= OnDisconnected;
                         _workspace.WorkspaceChanged -= OnWorkspaceChanged;
                     }
                 }
             }
 
-            private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+            private void OnDisconnected(object sender, EventArgs e)
             {
                 ConnectEvents(subscription: false);
             }
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Remote
                             // ignore any exception such as rpc already disposed (disconnected)
 
                             _lastVersion = newVersion;
-                            await _rpc.InvokeAsync(nameof(IRemoteCodeLensDataPoint.Invalidate)).ConfigureAwait(false);
+                            await _owner.InvokeAsync(nameof(IRemoteCodeLensDataPoint.Invalidate), CancellationToken.None).ConfigureAwait(false);
                         }
                         catch { }
                     }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
