@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
@@ -108,6 +110,58 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
                 hazardousUsageEvaluators);
             var result = GetOrComputeResultForAnalysisContext(analysisContext);
             return result.HazardousUsages;
+        }
+
+        public static PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> BatchGetOrComputeHazardousUsages(
+            Compilation compilation,
+            IEnumerable<(IOperation Operation, ISymbol ContainingSymbol)> rootOperationsNeedingAnalysis,
+            string typeToTrackMetadataName,
+            ConstructorMapper constructorMapper,
+            PropertyMapperCollection propertyMappers,
+            HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
+            InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
+            bool pessimisticAnalysis = false)
+        {
+            PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> allResults = null;
+
+            foreach ((IOperation Operation, ISymbol ContainingSymbol) pair in rootOperationsNeedingAnalysis)
+            {
+                ImmutableDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> dfaResult =
+                    PropertySetAnalysis.GetOrComputeHazardousUsages(
+                        pair.Operation.GetEnclosingControlFlowGraph(),
+                        compilation,
+                        pair.ContainingSymbol,
+                        typeToTrackMetadataName,
+                        constructorMapper,
+                        propertyMappers,
+                        hazardousUsageEvaluators,
+                        interproceduralAnalysisConfig,
+                        pessimisticAnalysis);
+                if (dfaResult.IsEmpty)
+                {
+                    continue;
+                }
+
+                if (allResults == null)
+                {
+                    allResults = PooledDictionary<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult>.GetInstance();
+                }
+
+                foreach (KeyValuePair<(Location Location, IMethodSymbol Method), HazardousUsageEvaluationResult> kvp
+                    in dfaResult)
+                {
+                    if (allResults.TryGetValue(kvp.Key, out HazardousUsageEvaluationResult existingValue))
+                    {
+                        allResults[kvp.Key] = PropertySetAnalysis.MergeHazardousUsageEvaluationResult(existingValue, kvp.Value);
+                    }
+                    else
+                    {
+                        allResults.Add(kvp.Key, kvp.Value);
+                    }
+                }
+            }
+
+            return allResults;
         }
 
         /// <summary>
