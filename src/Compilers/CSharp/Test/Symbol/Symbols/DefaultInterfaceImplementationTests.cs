@@ -28122,7 +28122,7 @@ class Test1 : I1.T1
             ValidateNestedTypes_01(source1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void NestedTypes_04()
         {
             var source0 =
@@ -28275,7 +28275,7 @@ B",
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void NestedTypes_05()
         {
             var source0 =
@@ -28609,7 +28609,7 @@ class Test1 : I1.T1
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void NestedTypes_09()
         {
             var source0 =
@@ -31401,7 +31401,7 @@ I4.M1
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void MethodImplementationInDerived_28()
         {
             var source1 =
@@ -31647,7 +31647,7 @@ I4.M1
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void MethodImplementationInDerived_30()
         {
             var source1 =
@@ -55163,7 +55163,7 @@ C
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_157()
         {
             var source0 = @"
@@ -55242,7 +55242,7 @@ B
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_158()
         {
             var source0 = @"
@@ -55321,7 +55321,7 @@ B
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_159()
         {
             var source0 = @"
@@ -55431,7 +55431,7 @@ B
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_160()
         {
             var source0 = @"
@@ -55585,7 +55585,7 @@ C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_161()
         {
             var source0 = @"
@@ -55739,7 +55739,7 @@ C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_162()
         {
             var source0 = @"
@@ -55987,7 +55987,7 @@ C
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_163()
         {
             var source0 = @"
@@ -56066,7 +56066,7 @@ set B
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_164()
         {
             var source0 = @"
@@ -56145,7 +56145,7 @@ set B
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_165()
         {
             var source0 = @"
@@ -56366,7 +56366,7 @@ class A : I1<int>
             CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ProtectedAccessibility_03()
         {
             var source0 = @"
@@ -56529,7 +56529,7 @@ interface I2 : I1
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ProtectedAccessibility_06()
         {
             var source0 = @"
@@ -56590,7 +56590,7 @@ class I2<T>
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ProtectedAccessibility_07()
         {
             var source0 = @"
