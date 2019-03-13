@@ -7,47 +7,60 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Classification
 {
-    [ExportLanguageService(typeof(IClassificationService), LanguageNames.FSharp), Shared]
-    internal class FSharpClassificationService : IClassificationService
+    [ExportLanguageServiceFactory(typeof(IClassificationService), LanguageNames.FSharp), Shared]
+    internal class FSharpClassificationServiceFactory : ILanguageServiceFactory
     {
-        private readonly IFSharpClassificationService _delegatee;
-
-        [ImportingConstructor]
-        public FSharpClassificationService([Import(AllowDefault = true)]IFSharpClassificationService classificationService)
+#pragma warning disable CS0618 // Type or member is obsolete
+        public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         {
-            // no need to load IFSharpClassificationService service lazy since this IClassificationService will be loaded lazy
-            _delegatee = classificationService ?? new NullService();
+            return new ProxyService(languageServices.GetService<IEditorClassificationService>());
         }
 
-        public void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        private class ProxyService : IClassificationService
         {
-            _delegatee.AddLexicalClassifications(text, textSpan, result, cancellationToken);
-        }
+            private readonly IEditorClassificationService _delegatee;
 
-        public Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
-        {
-            return _delegatee.AddSemanticClassificationsAsync(document, textSpan, result, cancellationToken);
-        }
+            public ProxyService(IEditorClassificationService classificationService)
+            {
+                // connect to existing FSharp classification service that uses old obsolete service and 
+                // export as new classification service.
+                // this is a temporary until fsharp team get our new bits
+                _delegatee = classificationService ?? new NullService();
+            }
 
-        public Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
-        {
-            return _delegatee.AddSyntacticClassificationsAsync(document, textSpan, result, cancellationToken);
-        }
+            public void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+            {
+                _delegatee.AddLexicalClassifications(text, textSpan, result, cancellationToken);
+            }
 
-        public ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)
-        {
-            return _delegatee.AdjustStaleClassification(text, classifiedSpan);
-        }
+            public Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+            {
+                return _delegatee.AddSemanticClassificationsAsync(document, textSpan, result, cancellationToken);
+            }
 
-        private class NullService : IFSharpClassificationService
-        {
-            public void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken) { }
-            public Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken) => Task.CompletedTask;
-            public Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken) => Task.CompletedTask;
-            public ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan) => classifiedSpan;
+            public Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+            {
+                return _delegatee.AddSyntacticClassificationsAsync(document, textSpan, result, cancellationToken);
+            }
+
+            public ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)
+            {
+                return _delegatee.AdjustStaleClassification(text, classifiedSpan);
+            }
+
+            private class NullService : IEditorClassificationService
+            {
+                public void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken) { }
+                public Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken) => Task.CompletedTask;
+                public Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken) => Task.CompletedTask;
+                public ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan) => classifiedSpan;
+            }
         }
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 }
