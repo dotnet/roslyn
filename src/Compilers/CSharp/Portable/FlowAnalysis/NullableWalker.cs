@@ -2593,6 +2593,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     checkNullableValueType = true;
                 }
+                else if (method.OriginalDefinition == compilation.GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value))
+                {
+                    // call to get_Value may not occur directly in source, but may be inserted as a result of premature lowering. 
+                    // One example where we do it is foreach with nullables. 
+                    // The reason is Dev10 compatibility (see: UnwrapCollectionExpressionIfNullable in ForEachLoopBinder.cs)
+                    // Regardless of the reasons, we know that the method does not tolerate nulls.
+                    checkNullableValueType = true;
+                }
 
                 // https://github.com/dotnet/roslyn/issues/30598: Mark receiver as not null
                 // after arguments have been visited, and only if the receiver has not changed.

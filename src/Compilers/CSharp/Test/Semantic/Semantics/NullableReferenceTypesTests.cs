@@ -79781,8 +79781,15 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/31503: Report warning for `.Value.GetEnumerator()` calls.
-            comp.VerifyDiagnostics();
+
+            comp.VerifyDiagnostics(
+                // (11,27): warning CS8629: Nullable value type may be null.
+                //         foreach (var i in s) // 1
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s").WithLocation(11, 27),
+                // (18,27): warning CS8629: Nullable value type may be null.
+                //         foreach (var i in t) // 2
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t").WithLocation(18, 27)
+            );
         }
 
         [Fact]
