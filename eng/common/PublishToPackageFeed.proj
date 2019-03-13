@@ -11,7 +11,6 @@
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)DefaultVersions.props" Condition="Exists('$(MSBuildThisFileDirectory)DefaultVersions.props')" />
-  <Import Project="$(MSBuildThisFileDirectory)Versions.props" Condition="Exists('$(MSBuildThisFileDirectory)Versions.props')" />
   
   <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
 
