@@ -42,7 +42,7 @@ try {
   }
 
   Write-Host "Generating dependency graph..."
-  $darc = Invoke-Expression "& `"$darcExe`" $options"
+  Invoke-Expression "& `"$darcExe`" $options"
   CheckExitCode "Generating dependency graph"
   
   $graph = Get-Content $graphVizFilePath
