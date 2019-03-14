@@ -1,4 +1,5 @@
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.ClassificationTags
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap.ClassificationTypeMap(Microsoft.VisualStudio.Text.Classification.IClassificationTypeRegistryService registryService) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap.GetClassificationType(string name) -> Microsoft.VisualStudio.Text.Classification.IClassificationType
@@ -79,3 +80,6 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.StructureProtected = 67 -> Mi
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.StructurePublic = 66 -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.TypeParameter = 70 -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.ClassificationTags.GetClassificationTypeName(string textTag) -> string
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.EditAndContinue.get -> string[]
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.Microsoft.get -> string[]
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.Unnecessary.get -> string[]
