@@ -1096,7 +1096,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (document.Name != updatedInfo.Name)
             {
                 GetProjectData(updatedInfo.Id.ProjectId, out var _, out var project);
-                var projectItemForDocument = project.FindItem(document.Name, StringComparer.InvariantCultureIgnoreCase); //?
+                var projectItemForDocument = project.FindItem(document.Name, StringComparer.OrdinalIgnoreCase);
 
                 if (projectItemForDocument == null)
                 {
