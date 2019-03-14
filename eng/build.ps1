@@ -34,6 +34,7 @@ param (
     [switch]$bootstrap,
     [string]$bootstrapConfiguration = "Release",
     [switch][Alias('bl')]$binaryLog,
+    [switch]$buildServerLog,
     [switch]$ci,
     [switch]$procdump,
     [switch]$skipAnalyzers,
@@ -75,6 +76,7 @@ function Print-Usage() {
     Write-Host "  -verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]"
     Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
     Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
+    Write-Host "  -buildServerLog           Create Roslyn build server log"
     Write-Host ""
     Write-Host "Actions:"
     Write-Host "  -restore                  Restore packages (short: -r)"
@@ -163,6 +165,9 @@ function Process-Arguments() {
 
     if ($ci) {
         $script:binaryLog = $true
+        if ($bootstrap) {
+            $script:buildServerLog = $true
+        }
     }
 
     if ($test32 -and $test64) {
@@ -205,13 +210,15 @@ function BuildSolution() {
     Write-Host "$($solution):"
 
     $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
+
+    if ($buildServerLog) {
+        ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
+    }
+
     $projects = Join-Path $RepoRoot $solution
     $enableAnalyzers = !$skipAnalyzers
     $toolsetBuildProj = InitializeToolset
 
-    # Have to disable quiet restore during bootstrap builds to work around 
-    # an arcade bug
-    # https://github.com/dotnet/arcade/issues/2220
     $quietRestore = !($ci -or ($bootstrapDir -ne ""))
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" } 
     $ibcSourceBranchName = GetIbcSourceBranchName
@@ -223,36 +230,41 @@ function BuildSolution() {
     # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
     $ibcDir = Join-Path $RepoRoot ".o%5c"
 
-    # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
-    # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
-    # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
-    # Warnings reported from other msbuild tasks are not treated as errors for now.
-    MSBuild $toolsetBuildProj `
-        $bl `
-        /p:Configuration=$configuration `
-        /p:Projects=$projects `
-        /p:RepoRoot=$RepoRoot `
-        /p:Restore=$restore `
-        /p:Build=$build `
-        /p:Test=$testCoreClr `
-        /p:Rebuild=$rebuild `
-        /p:Pack=$pack `
-        /p:Sign=$sign `
-        /p:Publish=$publish `
-        /p:ContinuousIntegrationBuild=$ci `
-        /p:OfficialBuildId=$officialBuildId `
-        /p:UseRoslynAnalyzers=$enableAnalyzers `
-        /p:BootstrapBuildPath=$bootstrapDir `
-        /p:QuietRestore=$quietRestore `
-        /p:QuietRestoreBinaryLog=$binaryLog `
-        /p:TestTargetFrameworks=$testTargetFrameworks `
-        /p:TreatWarningsAsErrors=true `
-        /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
-        /p:VisualStudioIbcDropId=$ibcDropId `
-        /p:EnablePartialNgenOptimization=$applyOptimizationData `
-        /p:IbcOptimizationDataDir=$ibcDir `
-        $suppressExtensionDeployment `
-        @properties
+    try {
+        # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
+        # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
+        # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
+        # Warnings reported from other msbuild tasks are not treated as errors for now.
+        MSBuild $toolsetBuildProj `
+            $bl `
+            /p:Configuration=$configuration `
+            /p:Projects=$projects `
+            /p:RepoRoot=$RepoRoot `
+            /p:Restore=$restore `
+            /p:Build=$build `
+            /p:Test=$testCoreClr `
+            /p:Rebuild=$rebuild `
+            /p:Pack=$pack `
+            /p:Sign=$sign `
+            /p:Publish=$publish `
+            /p:ContinuousIntegrationBuild=$ci `
+            /p:OfficialBuildId=$officialBuildId `
+            /p:UseRoslynAnalyzers=$enableAnalyzers `
+            /p:BootstrapBuildPath=$bootstrapDir `
+            /p:QuietRestore=$quietRestore `
+            /p:QuietRestoreBinaryLog=$binaryLog `
+            /p:TestTargetFrameworks=$testTargetFrameworks `
+            /p:TreatWarningsAsErrors=true `
+            /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
+            /p:VisualStudioIbcDropId=$ibcDropId `
+            /p:EnablePartialNgenOptimization=$applyOptimizationData `
+            /p:IbcOptimizationDataDir=$ibcDir `
+            $suppressExtensionDeployment `
+            @properties
+    }
+    finally {
+        ${env:ROSLYNCOMMANDLINELOGFILE} = $null
+    }
 }
 
 
