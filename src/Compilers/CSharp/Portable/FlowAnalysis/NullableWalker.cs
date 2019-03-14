@@ -562,6 +562,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case ConversionKind.Unboxing:
                                 if (isSupportedConversion(conv.Conversion, conv.Operand))
                                 {
+                                    // No need to create a slot for the boxed value (in the Boxing case) since assignment already
+                                    // clones slots and there is not another scenario where creating a slot is observable.
                                     return MakeSlot(conv.Operand);
                                 }
                                 break;
@@ -891,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // https://github.com/dotnet/roslyn/issues/31395: We should copy all tracked state from `value` regardless of
                     // BoundNode type but we'll need to handle cycles (see NullableReferenceTypesTests.Members_FieldCycle_07).
                     // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
-                    if (((targetType.IsReferenceType || targetType.TypeKind == TypeKind.TypeParameter) && (isSupportedReferenceTypeValue(value) || targetType.TypeSymbol.IsAnonymousType)) ||
+                    if (((targetType.Type.IsReferenceType || targetType.TypeKind == TypeKind.TypeParameter) && (isSupportedReferenceTypeValue(value) || targetType.Type.IsAnonymousType)) ||
                         targetType.IsNullableType())
                     {
                         // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
@@ -995,7 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
             // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
             // When that issue is fixed, Nullable<T> should be handled there instead.
-            if (fieldOrPropertyType.IsReferenceType ||
+            if (fieldOrPropertyType.Type.IsReferenceType ||
                 fieldOrPropertyType.TypeKind == TypeKind.TypeParameter ||
                 fieldOrPropertyType.IsNullableType())
             {
