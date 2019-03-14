@@ -1045,18 +1045,22 @@ public class C
             var s = model.GetTypeInfo(suppressions[0]);
             Assert.Equal("System.String", s.Type.ToTestDisplayString());
             Assert.Equal("System.String", s.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String s", model.GetSymbolInfo(suppressions[0]).Symbol.ToTestDisplayString());
 
             var s2 = model.GetTypeInfo(suppressions[1]);
             Assert.Equal("System.String", s2.Type.ToTestDisplayString());
             Assert.Equal("System.String", s2.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String? s2", model.GetSymbolInfo(suppressions[1]).Symbol.ToTestDisplayString());
 
             var c = model.GetTypeInfo(suppressions[2]);
             Assert.Equal("C<System.String>", c.Type.ToTestDisplayString());
             Assert.Equal("C<System.String>", c.ConvertedType.ToTestDisplayString());
+            Assert.Equal("C<System.String> c", model.GetSymbolInfo(suppressions[2]).Symbol.ToTestDisplayString());
 
             var c2 = model.GetTypeInfo(suppressions[3]);
             Assert.Equal("C<System.String?>", c2.Type.ToTestDisplayString());
             Assert.Equal("C<System.String?>", c2.ConvertedType.ToTestDisplayString());
+            Assert.Equal("C<System.String?> c2", model.GetSymbolInfo(suppressions[3]).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
