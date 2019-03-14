@@ -248,9 +248,6 @@ function BuildSolution {
     test_runtime="/p:TestRuntime=Mono"
     mono_tool="/p:MonoTool=\"$mono_path\""
   elif [[ "$test_core_clr" == true ]]; then
-
-    # Make sure we have a 2.1 runtime available for running our tests
-    InstallDotNetSdk $DOTNET_INSTALL_DIR 2.1.401
     test=true
     test_runtime="/p:TestRuntime=Core"
     mono_tool=""
@@ -284,6 +281,9 @@ function BuildSolution {
 }
 
 InitializeDotNetCli $restore
+
+# Make sure we have a 2.1 runtime available for running our tests
+InstallDotNetSdk $dotnet_root 2.1.401
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then
