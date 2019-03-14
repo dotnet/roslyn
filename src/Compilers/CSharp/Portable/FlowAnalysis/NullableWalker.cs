@@ -5157,7 +5157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitRefValueOperator(BoundRefValueOperator node)
         {
             var result = base.VisitRefValueOperator(node);
-            var type = TypeWithAnnotations.Create(node.Type);
+            var type = TypeWithAnnotations.Create(node.Type, node.NullableAnnotation);
             LvalueResultType = type;
             return result;
         }
