@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rfights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 // append the new parameters
                 ConstructorCandidates = await GetConstructorCandidatesInfo(ContainingType, parametersForSelectedMembers, selectedMembers, document).ConfigureAwait(false);
 
-                if (ConstructorCandidates.Count<ConstructorCandidate>() == 0)
+                if (ConstructorCandidates.IsEmpty)
                 {
                     return false;
                 }
