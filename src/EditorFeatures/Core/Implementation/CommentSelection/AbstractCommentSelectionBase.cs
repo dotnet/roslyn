@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         Undefined
     }
 
-    internal abstract partial class AbstractCommentSelectionBase
+    internal abstract class AbstractCommentSelectionBase
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
