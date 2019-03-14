@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
-using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -118,7 +117,9 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly CodeAnalysisService _owner;
             private readonly Workspace _workspace;
             private readonly DocumentId _documentId;
+            private readonly CancellationToken _cancellationToken;
 
+            private bool _eventSubscribed;
             private VersionStamp _lastVersion;
             private ResettableDelay _resettableDelay;
 
@@ -132,16 +133,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 // if anything under the project this file belong to changes, then invalidate the code lens so that it can refresh
                 var dependentVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-                var _ = new WorkspaceChangeTracker(owner, workspace, documentId, dependentVersion);
+                var _ = new WorkspaceChangeTracker(owner, workspace, documentId, dependentVersion, cancellationToken);
             }
 
-            private WorkspaceChangeTracker(CodeAnalysisService owner, Workspace workspace, DocumentId documentId, VersionStamp dependentVersion)
+            private WorkspaceChangeTracker(
+                CodeAnalysisService owner,
+                Workspace workspace,
+                DocumentId documentId,
+                VersionStamp dependentVersion,
+                CancellationToken cancellationToken)
             {
                 _gate = new object();
+                _eventSubscribed = false;
 
                 _owner = owner;
                 _workspace = workspace;
                 _documentId = documentId;
+                _cancellationToken = cancellationToken;
 
                 _lastVersion = dependentVersion;
                 _resettableDelay = ResettableDelay.CompletedDelay;
@@ -164,11 +172,25 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         _owner.Disconnected += OnDisconnected;
                         _workspace.WorkspaceChanged += OnWorkspaceChanged;
+
+                        if (_cancellationToken.IsCancellationRequested)
+                        {
+                            // while, we are subscribing to this service, caller side closed this connection
+                            // unsubscribe from the service
+                            _owner.Disconnected -= OnDisconnected;
+                            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+                            return;
+                        }
+
+                        _eventSubscribed = true;
                     }
                     else
                     {
-                        _owner.Disconnected -= OnDisconnected;
-                        _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+                        if (_eventSubscribed)
+                        {
+                            _owner.Disconnected -= OnDisconnected;
+                            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+                        }
                     }
                 }
             }
@@ -180,45 +202,37 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
             {
-                EnqueueUpdate();
-                return;
-
-                void EnqueueUpdate()
+                // workspace event is serialized events. and reset delay only get updated here
+                if (!_resettableDelay.Task.IsCompleted)
                 {
-                    // workspace event is serialized events. and reset delay only get updated here
-                    if (!_resettableDelay.Task.IsCompleted)
+                    _resettableDelay.Reset();
+                    return;
+                }
+
+                var delay = new ResettableDelay((int)s_delay.TotalMilliseconds);
+
+                _resettableDelay = delay;
+                delay.Task.ContinueWith(InvalidateAsync, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+                async Task InvalidateAsync(Task _)
+                {
+                    var document = _workspace.CurrentSolution.GetDocument(_documentId);
+                    if (document == null)
                     {
-                        _resettableDelay.Reset();
                         return;
                     }
 
-                    var delay = new ResettableDelay((int)s_delay.TotalMilliseconds);
-
-                    _resettableDelay = delay;
-                    delay.Task.ContinueWith(async _ =>
+                    var newVersion = await document.Project.GetDependentVersionAsync(CancellationToken.None).ConfigureAwait(false);
+                    if (newVersion == _lastVersion)
                     {
-                        try
-                        {
-                            var document = _workspace.CurrentSolution.GetDocument(_documentId);
-                            if (document == null)
-                            {
-                                return;
-                            }
+                        return;
+                    }
 
-                            var newVersion = await document.Project.GetDependentVersionAsync(CancellationToken.None).ConfigureAwait(false);
-                            if (newVersion == _lastVersion)
-                            {
-                                return;
-                            }
+                    // fire and forget.
+                    // ignore any exception such as rpc already disposed (disconnected)
 
-                            // fire and forget.
-                            // ignore any exception such as rpc already disposed (disconnected)
-
-                            _lastVersion = newVersion;
-                            await _owner.InvokeAsync(nameof(IRemoteCodeLensDataPoint.Invalidate), CancellationToken.None).ConfigureAwait(false);
-                        }
-                        catch { }
-                    }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                    _lastVersion = newVersion;
+                    await _owner.InvokeAsync(nameof(IRemoteCodeLensDataPoint.Invalidate), CancellationToken.None).ConfigureAwait(false);
                 }
             }
         }

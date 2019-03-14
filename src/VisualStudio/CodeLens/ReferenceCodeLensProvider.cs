@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Wpf;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Client;
 using Microsoft.VisualStudio.Core.Imaging;
@@ -45,13 +46,17 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
 
         private readonly HubClient _client;
 
-        // use field rather than import constructor to break circular MEF dependency issue
-        [Import]
-        private ICodeLensCallbackService _codeLensCallbackService = null;
+        // this is lazy to get around circular MEF dependency issue
+        private Lazy<ICodeLensCallbackService> _lazyCodeLensCallbackService;
 
-        public ReferenceCodeLensProvider()
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public ReferenceCodeLensProvider(Lazy<ICodeLensCallbackService> codeLensCallbackService)
         {
             _client = new HubClient(HubClientId);
+
+            // use lazy to break circular MEF dependency issue
+            _lazyCodeLensCallbackService = codeLensCallbackService;
         }
 
         public Task<bool> CanCreateDataPointAsync(CodeLensDescriptor descriptor, CancellationToken token)
@@ -69,7 +74,7 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
         public async Task<IAsyncCodeLensDataPoint> CreateDataPointAsync(CodeLensDescriptor descriptor, CancellationToken cancellationToken)
         {
             // this let us to call back to VS and get some info from there
-            var callbackRpc = _codeLensCallbackService.GetCallbackJsonRpc(this);
+            var callbackRpc = _lazyCodeLensCallbackService.Value.GetCallbackJsonRpc(this);
 
             var dataPoint = new DataPoint(descriptor, await GetConnectionAsync(cancellationToken).ConfigureAwait(false), callbackRpc);
             await dataPoint.TrackChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -81,7 +86,7 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
         {
             // any exception from this will be caught by codelens engine and saved to log file and ignored.
             // this follows existing code lens behavior and user experience on failure is owned by codelens engine
-            var callbackRpc = _codeLensCallbackService.GetCallbackJsonRpc(this);
+            var callbackRpc = _lazyCodeLensCallbackService.Value.GetCallbackJsonRpc(this);
             var hostGroupId = await callbackRpc.InvokeWithCancellationAsync<string>(nameof(ICodeLensContext.GetHostGroupIdAsync), arguments: null, cancellationToken).ConfigureAwait(false);
 
             var hostGroup = new HostGroup(hostGroupId);
