@@ -6,6 +6,20 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
+    /// Members of user-defined conversion group, marked on each BoundConversion in
+    /// the group to allow matching Conversion to BoundConversion in NullableWalker.
+    /// </summary>
+    internal enum ConversionGroupMember : byte
+    {
+        None = 0,
+        ToConversionFromType,
+        ToMethodParameterType,
+        ToMethodReturnType,
+        ToConversionToType,
+        ToFinalType,
+    }
+
+    /// <summary>
     /// A group is a common instance referenced by all BoundConversion instances
     /// generated from a single Conversion. The group is used by NullableWalker to
     /// determine which BoundConversion nodes should be considered as a unit.

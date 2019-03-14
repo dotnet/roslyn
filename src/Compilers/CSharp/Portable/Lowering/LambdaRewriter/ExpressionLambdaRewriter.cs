@@ -593,6 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: conversion.IsBaseConversion,
                     @checked: conversion.Checked,
                     explicitCastInCode: true,
+                    conversion.ConversionGroupMember,
                     conversionGroupOpt: conversion.ConversionGroupOpt,
                     constantValueOpt: conversion.ConstantValueOpt,
                     type: conversion.Type);

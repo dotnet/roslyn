@@ -2377,11 +2377,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConversion : BoundExpression
     {
-        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue constantValueOpt, ConversionGroup conversionGroupOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConversionGroupMember conversionGroupMember, ConstantValue constantValueOpt, ConversionGroup conversionGroupOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Conversion, syntax, type, hasErrors || operand.HasErrors())
         {
 
             Debug.Assert((object)operand != null, "Field 'operand' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)conversionGroupMember != null, "Field 'conversionGroupMember' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Operand = operand;
@@ -2389,6 +2390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IsBaseConversion = isBaseConversion;
             this.Checked = @checked;
             this.ExplicitCastInCode = explicitCastInCode;
+            this.ConversionGroupMember = conversionGroupMember;
             this.ConstantValueOpt = constantValueOpt;
             this.ConversionGroupOpt = conversionGroupOpt;
         }
@@ -2404,16 +2406,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool ExplicitCastInCode { get; }
 
+        public ConversionGroupMember ConversionGroupMember { get; }
+
         public ConstantValue ConstantValueOpt { get; }
 
         public ConversionGroup ConversionGroupOpt { get; }
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitConversion(this);
 
-        public BoundConversion Update(BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue constantValueOpt, ConversionGroup conversionGroupOpt, TypeSymbol type)
+        public BoundConversion Update(BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConversionGroupMember conversionGroupMember, ConstantValue constantValueOpt, ConversionGroup conversionGroupOpt, TypeSymbol type)
         {
-            if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || constantValueOpt != this.ConstantValueOpt || conversionGroupOpt != this.ConversionGroupOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || conversionGroupMember != this.ConversionGroupMember || constantValueOpt != this.ConstantValueOpt || conversionGroupOpt != this.ConversionGroupOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConversion(this.Syntax, operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, type, this.HasErrors);
+                var result = new BoundConversion(this.Syntax, operand, conversion, isBaseConversion, @checked, explicitCastInCode, conversionGroupMember, constantValueOpt, conversionGroupOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2422,7 +2426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundConversion(this.Syntax, this.Operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type, this.HasErrors);
+            var result = new BoundConversion(this.Syntax, this.Operand, this.Conversion, this.IsBaseConversion, this.Checked, this.ExplicitCastInCode, this.ConversionGroupMember, this.ConstantValueOpt, this.ConversionGroupOpt, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -9410,7 +9414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, type);
+            return node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConversionGroupMember, node.ConstantValueOpt, node.ConversionGroupOpt, type);
         }
         public override BoundNode VisitArgList(BoundArgList node)
         {
@@ -10587,6 +10591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("isBaseConversion", node.IsBaseConversion, null),
             new TreeDumperNode("@checked", node.Checked, null),
             new TreeDumperNode("explicitCastInCode", node.ExplicitCastInCode, null),
+            new TreeDumperNode("conversionGroupMember", node.ConversionGroupMember, null),
             new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
             new TreeDumperNode("conversionGroupOpt", node.ConversionGroupOpt, null),
             new TreeDumperNode("type", node.Type, null),

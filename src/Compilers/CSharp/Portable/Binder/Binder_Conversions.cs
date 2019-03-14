@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
-            return CreateConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, source.WasCompilerGenerated, destination, diagnostics);
+            return CreateConversion(syntax, source, conversion, isCast: isCast, conversionGroupMember: default, conversionGroupOpt, source.WasCompilerGenerated, destination, diagnostics);
         }
 
         protected BoundExpression CreateConversion(
@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression source,
             Conversion conversion,
             bool isCast,
+            ConversionGroupMember conversionGroupMember,
             ConversionGroup conversionGroupOpt,
             bool wasCompilerGenerated,
             TypeSymbol destination,
@@ -128,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 @checked: CheckOverflowAtRuntime,
                 explicitCastInCode: isCast && !wasCompilerGenerated,
+                conversionGroupMember,
                 conversionGroupOpt,
                 constantValueOpt: constantValue,
                 type: destination)
@@ -148,6 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     CheckOverflowAtRuntime,
                     explicitCastInCode: isCast,
+                    conversionGroupMember: default,
                     conversionGroup,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination,
@@ -188,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source: source,
                 conversion: conversion.UserDefinedFromConversion,
                 isCast: false,
+                ConversionGroupMember.ToConversionFromType,
                 conversionGroup,
                 wasCompilerGenerated: true,
                 destination: conversion.BestUserDefinedConversionAnalysis.FromType,
@@ -205,6 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     source: convertedOperand,
                     conversion: Conversions.ClassifyStandardConversion(null, convertedOperand.Type, conversionParameterType, ref useSiteDiagnostics),
                     isCast: false,
+                    ConversionGroupMember.ToMethodParameterType,
                     conversionGroup,
                     wasCompilerGenerated: true,
                     destination: conversionParameterType,
@@ -228,6 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: false, // There are no checked user-defined conversions, but the conversions on either side might be checked.
                     explicitCastInCode: isCast,
+                    ConversionGroupMember.ToMethodReturnType,
                     conversionGroup,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: conversionReturnType)
@@ -249,6 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         source: userDefinedConversion,
                         conversion: Conversions.ClassifyStandardConversion(null, conversionReturnType, conversionToType, ref useSiteDiagnostics),
                         isCast: false,
+                        ConversionGroupMember.ToConversionToType,
                         conversionGroup,
                         wasCompilerGenerated: true,
                         destination: conversionToType,
@@ -265,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: false,
                     explicitCastInCode: isCast,
+                    ConversionGroupMember.ToMethodReturnType,
                     conversionGroup,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: conversionToType)
@@ -279,6 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 source: userDefinedConversion,
                 conversion: toConversion,
                 isCast: false,
+                ConversionGroupMember.ToFinalType,
                 conversionGroup,
                 wasCompilerGenerated: true, // NOTE: doesn't necessarily set flag on resulting bound expression.
                 destination: destination,
@@ -308,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 @checked: false,
                 explicitCastInCode: isCast,
+                conversionGroupMember: default,
                 conversionGroup,
                 constantValueOpt: ConstantValue.NotAvailable,
                 type: destination)
@@ -332,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
+            return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroupMember: default, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
         private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
@@ -445,6 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: false,
                     explicitCastInCode: isCast,
+                    conversionGroupMember: default,
                     conversionGroup,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination);
@@ -460,6 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Conversion.Identity,
                     @checked: false,
                     explicitCastInCode: isCast,
+                    conversionGroupMember: default,
                     conversionGroup,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination);

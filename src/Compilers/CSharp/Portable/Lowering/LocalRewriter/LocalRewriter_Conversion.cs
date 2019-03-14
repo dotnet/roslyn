@@ -319,7 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isBaseConversion: false,
                             @checked: false,
                             explicitCastInCode: explicitCastInCode,
-                            conversionGroupOpt: oldNode?.ConversionGroupOpt,
+                            conversionGroupMember: default,
+                            conversionGroupOpt: default,
                             constantValueOpt: constantValueOpt,
                             type: rewrittenType);
                     }
@@ -366,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: oldNode.IsBaseConversion,
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
+                    conversionGroupMember: oldNode.ConversionGroupMember,
                     conversionGroupOpt: oldNode.ConversionGroupOpt,
                     constantValueOpt: constantValueOpt,
                     type: rewrittenType) :
@@ -376,6 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: false,
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
+                    conversionGroupMember: default,
                     conversionGroupOpt: null, // BoundConversion.ConversionGroup is not used in lowered tree
                     constantValueOpt: constantValueOpt,
                     type: rewrittenType);
@@ -480,6 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             conversion,
                             @checked: @checked,
                             explicitCastInCode: false,
+                            conversionGroupMember: default,
                             conversionGroupOpt: null,
                             constantValueOpt: default(ConstantValue),
                             type: type,
@@ -808,12 +812,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(DecimalConversionMethod(typeFromUnderlying, typeToUnderlying));
                 var conversionKind = conversion.Kind.IsImplicitConversion() ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
-                var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode: explicitCastInCode, conversionGroup, default(ConstantValue), rewrittenType);
+                var result = new BoundConversion(syntax, rewrittenOperand, new Conversion(conversionKind, method, false), @checked, explicitCastInCode: explicitCastInCode, conversionGroupMember: default, conversionGroup, default(ConstantValue), rewrittenType);
                 return result;
             }
             else
             {
-                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroup, default(ConstantValue), rewrittenType);
+                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupMember: default, conversionGroup, default(ConstantValue), rewrittenType);
             }
         }
 
@@ -1361,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionKind conversionKind = isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
                 var conversion = new Conversion(conversionKind, method, isExtensionMethod: false);
 
-                return new BoundConversion(syntax, operand, conversion, @checked: false, explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: constantValueOpt, type: toType);
+                return new BoundConversion(syntax, operand, conversion, @checked: false, explicitCastInCode: false, conversionGroupMember: default, conversionGroupOpt: null, constantValueOpt: constantValueOpt, type: toType);
             }
             else
             {

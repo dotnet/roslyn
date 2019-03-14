@@ -603,6 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 node.IsBaseConversion,
                 node.Checked,
                 node.ExplicitCastInCode,
+                node.ConversionGroupMember,
                 node.ConstantValue,
                 node.ConversionGroupOpt,
                 node.Type);

@@ -2088,13 +2088,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: true,
+                    conversionGroupMember: default,
                     conversionGroup,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: targetType,
                     hasErrors: true);
             }
 
-            return CreateConversion(node, operand, conversion, isCast: true, conversionGroup, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics);
+            return CreateConversion(node, operand, conversion, isCast: true, conversionGroupMember: default, conversionGroup, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics);
         }
 
         private void GenerateExplicitConversionErrors(
@@ -2264,6 +2265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Conversion.NoConversion,
                         @checked: CheckOverflowAtRuntime,
                         explicitCastInCode: true,
+                        conversionGroupMember: default,
                         conversionGroupOpt: new ConversionGroup(Conversion.NoConversion, explicitType: targetTypeWithAnnotations),
                         constantValueOpt: ConstantValue.NotAvailable,
                         type: targetTypeWithAnnotations.Type,
@@ -6515,6 +6517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Conversion.ImplicitNumeric,
                         @checked: true,
                         explicitCastInCode: false,
+                        conversionGroupMember: default,
                         conversionGroupOpt: null,
                         constantValueOpt: expr.ConstantValue,
                         type: underlyingType);

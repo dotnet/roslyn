@@ -1745,28 +1745,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return arrayType;
             }
 
+            var expressionsNoConversions = ArrayBuilder<BoundExpression>.GetInstance(n);
             var conversions = ArrayBuilder<Conversion>.GetInstance(n);
             var resultTypes = ArrayBuilder<TypeWithState>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
                 // collect expressions, conversions and result types
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(expressions[i], includeExplicitConversions: false);
-                expressions[i] = expression;
+                expressionsNoConversions.Add(expression);
                 conversions.Add(conversion);
                 var resultType = VisitRvalueWithState(expression);
                 resultTypes.Add(resultType);
             }
 
-            var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
-            for (int i = 0; i < n; i++)
-            {
-                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressions[i], resultTypes[i].ToTypeWithAnnotations()));
-            }
-            var placeholders = placeholderBuilder.ToImmutableAndFree();
-
             TypeSymbol bestType = null;
             if (!node.HasErrors)
             {
+                var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
+                for (int i = 0; i < n; i++)
+                {
+                    placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressionsNoConversions[i], resultTypes[i].ToTypeWithAnnotations()));
+                }
+                var placeholders = placeholderBuilder.ToImmutableAndFree();
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics);
             }
@@ -1786,8 +1786,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
                 for (int i = 0; i < n; i++)
                 {
-                    var placeholder = placeholders[i];
-                    resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredType, resultTypes[i], checkConversion: true,
+                    resultTypes[i] = ApplyConversion(expressions[i], expressionsNoConversions[i], conversions[i], inferredType, resultTypes[i], checkConversion: true,
                         fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
                 }
 
@@ -1796,14 +1795,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 0; i < n; i++)
                 {
-                    var nodeForSyntax = expressions[i];
                     // Report top-level warnings
-                    _ = ApplyConversion(nodeForSyntax, operandOpt: nodeForSyntax, Conversion.Identity, targetTypeWithNullability: inferredType, operandType: resultTypes[i],
+                    var expression = expressionsNoConversions[i];
+                    _ = ApplyConversion(expression, operandOpt: expression, Conversion.Identity, targetTypeWithNullability: inferredType, operandType: resultTypes[i],
                         checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
                 }
             }
 
+            conversions.Free();
             resultTypes.Free();
+            expressionsNoConversions.Free();
             expressions.Free();
 
             ResultType = _invalidType;
@@ -2615,15 +2616,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             var method = node.Method;
             ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-            (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
             if (!receiverType.HasNullType)
             {
                 // Update method based on inferred receiver type.
                 method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
             }
 
-            method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
-                node.Expanded, node.InvokedAsExtensionMethod, conversions, method).method;
+            method = VisitArguments(node, node.Arguments, refKindsOpt, method.Parameters, node.ArgsToParamsOpt,
+                node.Expanded, node.InvokedAsExtensionMethod, method).method;
 
             if (method.MethodKind == MethodKind.LocalFunction)
             {
@@ -2796,9 +2796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             bool expanded)
         {
-            ImmutableArray<Conversion> conversions;
-            (arguments, conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
-            return VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions).results;
+            return VisitArguments(node, arguments, refKindsOpt, method is null ? default : method.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false).results;
         }
 
         private ImmutableArray<VisitArgumentResult> VisitArguments(
@@ -2809,9 +2807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             bool expanded)
         {
-            ImmutableArray<Conversion> conversions;
-            (arguments, conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
-            return VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false, conversions).results;
+            return VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod: false).results;
         }
 
         /// <summary>
@@ -2825,20 +2821,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<int> argsToParamsOpt,
             bool expanded,
             bool invokedAsExtensionMethod,
-            ImmutableArray<Conversion> conversions,
             MethodSymbol method = null)
         {
             Debug.Assert(!arguments.IsDefault);
             var savedState = this.State.Clone();
 
+            (ImmutableArray<BoundExpression> argumentsNoConversions, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(arguments, refKindsOpt);
+
             // We do a first pass to work through the arguments without making any assumptions
-            ImmutableArray<VisitArgumentResult> results = VisitArgumentsEvaluate(arguments, refKindsOpt);
+            ImmutableArray<VisitArgumentResult> results = VisitArgumentsEvaluate(argumentsNoConversions, refKindsOpt);
 
             if ((object)method != null && method.IsGenericMethod)
             {
                 if (HasImplicitTypeArguments(node))
                 {
-                    method = InferMethodTypeArguments((BoundCall)node, method, GetArgumentsForMethodTypeInference(arguments, results));
+                    method = InferMethodTypeArguments((BoundCall)node, method, GetArgumentsForMethodTypeInference(argumentsNoConversions, results));
                     parameters = method.Parameters;
                 }
                 if (ConstraintsHelper.RequiresChecking(method))
@@ -2850,12 +2847,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!node.HasErrors && !parameters.IsDefault)
             {
-                VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
+                VisitArgumentConversions(arguments, argumentsNoConversions, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
             }
 
             // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
             // to get the proper result state.
-            ImmutableArray<FlowAnalysisAnnotations> annotations = GetAnnotations(arguments.Length, expanded, parameters, argsToParamsOpt);
+            ImmutableArray<FlowAnalysisAnnotations> annotations = GetAnnotations(argumentsNoConversions.Length, expanded, parameters, argsToParamsOpt);
 
             if (!annotations.IsDefault)
             {
@@ -2866,9 +2863,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!node.HasErrors && !parameters.IsDefault)
                 {
                     // recompute out vars after state was reset
-                    VisitArgumentConversions(arguments, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
+                    VisitArgumentConversions(arguments, argumentsNoConversions, conversions, refKindsOpt, parameters, argsToParamsOpt, expanded, invokedAsExtensionMethod, results);
                 }
-                VisitArgumentsEvaluateHonoringAnnotations(arguments, refKindsOpt, annotations);
+                VisitArgumentsEvaluateHonoringAnnotations(argumentsNoConversions, refKindsOpt, annotations);
 
                 _disableDiagnostics = saveDisableDiagnostics;
             }
@@ -3044,6 +3041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitArgumentConversions(
             ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<BoundExpression> argumentsNoConversions,
             ImmutableArray<Conversion> conversions,
             ImmutableArray<RefKind> refKindsOpt,
             ImmutableArray<ParameterSymbol> parameters,
@@ -3061,6 +3059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 VisitArgumentConversion(
                     arguments[i],
+                    argumentsNoConversions[i],
                     conversions.IsDefault ? Conversion.Identity : conversions[i],
                     GetRefKind(refKindsOpt, i),
                     parameter,
@@ -3075,6 +3074,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void VisitArgumentConversion(
             BoundExpression argument,
+            BoundExpression argumentNoConversion,
             Conversion conversion,
             RefKind refKind,
             ParameterSymbol parameter,
@@ -3094,7 +3094,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ApplyConversion(
                             node: argument,
-                            operandOpt: argument,
+                            operandOpt: argumentNoConversion,
                             conversion: conversion,
                             targetTypeWithNullability: parameterType,
                             operandType: resultType,
@@ -4038,10 +4038,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
 
+                        var conversions = new ConversionGroupVisitor(node, operandOpt);
+
                         // operand -> conversion "from" type
                         // May be distinct from method parameter type for Nullable<T>.
+                        operandOpt = conversions.GetNextOperand(ConversionGroupMember.ToConversionFromType);
                         operandType = ApplyConversion(
-                            node,
+                            operandOpt,
                             operandOpt,
                             conversion.UserDefinedFromConversion,
                             TypeWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.FromType),
@@ -4069,18 +4072,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // conversion "from" type -> method parameter type
+                        operandOpt = conversions.GetNextOperand(ConversionGroupMember.ToMethodParameterType);
                         NullableFlowState operandState = operandType.State;
-                        _ = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
+                        _ = ClassifyAndApplyConversion(operandOpt, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
                             useLegacyWarnings, AssignmentKind.Argument, target: parameter, reportWarnings: reportRemainingWarnings);
 
                         // method parameter type -> method return type
+                        operandOpt = conversions.GetNextOperand(ConversionGroupMember.ToMethodReturnType);
                         var methodReturnType = methodOpt.ReturnTypeWithAnnotations;
                         if (isLiftedConversion)
                         {
                             operandType = LiftedReturnType(methodReturnType, operandState);
                             if (RequiresSafetyWarningWhenNullIntroduced(methodReturnType.Type) && operandState == NullableFlowState.MaybeNull)
                             {
-                                ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, operandType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target, conversion: conversion);
+                                ReportNullableAssignmentIfNecessary(operandOpt, targetTypeWithNullability, operandType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target, conversion: conversion);
                             }
                         }
                         else
@@ -4090,15 +4095,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // method return type -> conversion "to" type
                         // May be distinct from method return type for Nullable<T>.
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType,
+                        operandOpt = conversions.GetNextOperand(ConversionGroupMember.ToConversionToType);
+                        operandType = ClassifyAndApplyConversion(operandOpt, TypeWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType,
                             useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
 
                         // conversion "to" type -> final type
                         // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
                         // explicit, this conversion should not report nested nullability mismatches.
                         // (see NullableReferenceTypesTests.ExplicitCast_UserDefined_02).
-                        operandType = ClassifyAndApplyConversion(node, targetTypeWithNullability, operandType,
+                        operandOpt = conversions.GetNextOperand(ConversionGroupMember.ToFinalType);
+                        operandType = ClassifyAndApplyConversion(operandOpt, targetTypeWithNullability, operandType,
                             useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
+
+                        Debug.Assert(conversions.IsCompleted);
                         return operandType;
                     }
 
@@ -4264,6 +4273,59 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return resultType;
+        }
+
+        private struct ConversionGroupVisitor
+        {
+            private readonly ImmutableArray<BoundConversion> _conversions;
+            private int _index;
+            private BoundExpression _operand;
+
+            internal ConversionGroupVisitor(BoundExpression node, BoundExpression operandOpt)
+            {
+                if (operandOpt is null)
+                {
+                    _conversions = ImmutableArray<BoundConversion>.Empty;
+                    _operand = node;
+                }
+                else
+                {
+                    var builder = ArrayBuilder<BoundConversion>.GetInstance();
+                    getConversions(builder, node, operandOpt);
+                    _conversions = builder.ToImmutableAndFree();
+                    _operand = operandOpt;
+                }
+                _index = 0;
+
+                static void getConversions(ArrayBuilder<BoundConversion> conversions, BoundExpression node, BoundExpression operand)
+                {
+                    if (node == operand)
+                    {
+                        return;
+                    }
+                    if (node is BoundConversion conversion)
+                    {
+                        getConversions(conversions, conversion.Operand, operand);
+                        conversions.Add(conversion);
+                    }
+                }
+            }
+
+            internal BoundExpression GetNextOperand(ConversionGroupMember member)
+            {
+                if (!IsCompleted)
+                {
+                    var conversion = _conversions[_index];
+                    if (conversion.ConversionGroupMember == member)
+                    {
+                        _index++;
+                        _operand = conversion;
+                    }
+                }
+                return _operand;
+            }
+
+            internal bool IsCompleted => _index == _conversions.Length;
         }
 
         /// <summary>
@@ -4530,8 +4592,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             var parameter = parameters[i + offset];
+                            var expr = variable.Expression;
                             VisitArgumentConversion(
-                                variable.Expression, underlyingConversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
+                                expr, expr, underlyingConversion, parameter.RefKind, parameter, parameter.TypeWithAnnotations,
                                 new VisitArgumentResult(new VisitResult(variable.Type.ToTypeWithState(), variable.Type), stateForLambda: default),
                                 extensionMethodThisArgument: false);
                         }

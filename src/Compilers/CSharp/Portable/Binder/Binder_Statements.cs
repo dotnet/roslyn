@@ -2256,6 +2256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         source: expr,
                         conversion: conversion,
                         isCast: false,
+                        conversionGroupMember: default,
                         conversionGroupOpt: null,
                         wasCompilerGenerated: true,
                         destination: boolean,

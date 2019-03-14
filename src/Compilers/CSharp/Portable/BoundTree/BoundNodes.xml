@@ -629,6 +629,7 @@
     <Field Name="IsBaseConversion" Type="bool"/>
     <Field Name="Checked" Type="bool"/>
     <Field Name="ExplicitCastInCode" Type="bool"/>
+    <Field Name="ConversionGroupMember" Type="ConversionGroupMember"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
      <!--
          A group instance common to all BoundConversions that represent a single Conversion. The

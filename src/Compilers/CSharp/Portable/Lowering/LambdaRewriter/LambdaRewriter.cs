@@ -1303,6 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isBaseConversion: false,
                         @checked: false,
                         explicitCastInCode: true,
+                        conversionGroupMember: default,
                         conversionGroupOpt: conversion.ConversionGroupOpt,
                         constantValueOpt: conversion.ConstantValueOpt,
                         type: conversion.Type);

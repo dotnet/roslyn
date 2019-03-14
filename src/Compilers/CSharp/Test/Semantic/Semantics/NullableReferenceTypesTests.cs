@@ -53806,6 +53806,108 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(32600, "https://github.com/dotnet/roslyn/issues/32600")]
+        public void Conversions_TupleConversions_08()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator B?(A a) => null;
+}
+class B
+{
+}
+struct S
+{
+    internal object? F;
+}
+class Program
+{
+    static void F1()
+    {
+        (B, S) t1 = (new A(), new S() { F = 1 }); // 1
+        t1.Item1.ToString(); // 2
+        t1.Item2.F.ToString();
+    }
+    static void F2()
+    {
+        (A, S?) t2 = (new A(), new S() { F = 2 });
+        t2.Item1.ToString();
+        t2.Item2.Value.F.ToString();
+    }
+    static void F3()
+    {
+        (B, S?) t3 = (new A(), new S() { F = 3 }); // 3
+        t3.Item1.ToString(); // 4
+        t3.Item2.Value.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32600: Copy nullable state of tuple elements independently.
+            comp.VerifyDiagnostics(
+                // (16,21): warning CS8619: Nullability of reference types in value of type '(B?, S)' doesn't match target type '(B, S)'.
+                //         (B, S) t1 = (new A(), new S() { F = 1 }); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(new A(), new S() { F = 1 })").WithArguments("(B?, S)", "(B, S)").WithLocation(16, 21),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         t1.Item2.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1.Item2.F").WithLocation(18, 9),
+                // (24,9): warning CS8629: Nullable value type may be null.
+                //         t2.Item2.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t2.Item2").WithLocation(24, 9),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         t2.Item2.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2.Item2.Value.F").WithLocation(24, 9),
+                // (28,22): warning CS8619: Nullability of reference types in value of type '(B?, S?)' doesn't match target type '(B, S?)'.
+                //         (B, S?) t3 = (new A(), new S() { F = 3 }); // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(new A(), new S() { F = 3 })").WithArguments("(B?, S?)", "(B, S?)").WithLocation(28, 22),
+                // (30,9): warning CS8629: Nullable value type may be null.
+                //         t3.Item2.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "t3.Item2").WithLocation(30, 9),
+                // (30,9): warning CS8602: Possible dereference of a null reference.
+                //         t3.Item2.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t3.Item2.Value.F").WithLocation(30, 9));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(32600, "https://github.com/dotnet/roslyn/issues/32600")]
+        public void Conversions_TupleConversions_09()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator B?(A a) => null;
+}
+class B
+{
+}
+struct S
+{
+    internal object? F;
+}
+class Program
+{
+    static void F()
+    {
+        (A, S) t = (new A(), new S() { F = 1 });
+        (B, S?) u = t; // 1
+        u.Item1.ToString(); // 2
+        u.Item2.Value.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32600: Copy nullable state of tuple elements independently.
+            comp.VerifyDiagnostics(
+                // (19,9): warning CS8629: Nullable value type may be null.
+                //         u.Item2.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.Item2").WithLocation(19, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         u.Item2.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item2.Value.F").WithLocation(19, 9));
+        }
+
+        [Fact]
         public void Conversions_BoxingConversions_01()
         {
             var source =
@@ -79561,7 +79663,7 @@ class Program
         }
         else
         {
-            _ = (S)ni; // 1
+            _ = (S)ni; // 3
         }
     }
 }";
@@ -79573,9 +79675,9 @@ class Program
                 // (33,17): warning CS8629: Nullable value type may be null.
                 //             _ = s4.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s4").WithLocation(33, 17),
-                // (45,20): warning CS8629: Nullable value type may be null.
-                //             _ = (S)ni; // 1
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "ni").WithLocation(45, 20)
+                // (45,17): warning CS8629: Nullable value type may be null.
+                //             _ = (S)ni; // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(S)ni").WithLocation(45, 17)
                 );
         }
 
