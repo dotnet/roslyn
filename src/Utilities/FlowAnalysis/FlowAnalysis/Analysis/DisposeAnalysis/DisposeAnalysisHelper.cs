@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System;
 
 namespace Analyzer.Utilities
 {
@@ -97,7 +98,8 @@ namespace Analyzer.Utilities
             bool trackExceptionPaths,
             CancellationToken cancellationToken,
             out DisposeAnalysisResult disposeAnalysisResult,
-            out PointsToAnalysisResult pointsToAnalysisResult)
+            out PointsToAnalysisResult pointsToAnalysisResult,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
         {
             foreach (var operationRoot in operationBlocks)
             {
@@ -108,7 +110,8 @@ namespace Analyzer.Utilities
 
                     disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
                         analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
-                        trackExceptionPaths, cancellationToken, out pointsToAnalysisResult);
+                        trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
+                        interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt);
                     return true;
                 }
             }

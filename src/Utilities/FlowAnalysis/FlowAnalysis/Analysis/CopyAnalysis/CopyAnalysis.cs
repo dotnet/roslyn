@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
-using System.Threading;
-using Analyzer.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
+using System;
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -26,16 +23,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
             bool pessimisticAnalysis = true,
             bool performPointsToAnalysis = true,
             bool exceptionPathsAnalysis = false)
         {
             var pointsToAnalysisResultOpt = performPointsToAnalysis ?
-                PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
-                    cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis: false, exceptionPathsAnalysis) :
+                PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig,
+                    interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performCopyAnalysis: false, exceptionPathsAnalysis) :
                 null;
             var analysisContext = CopyAnalysisContext.Create(CopyAbstractValueDomain.Default, wellKnownTypeProvider,
-                cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
+                cfg, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResultOpt,
+                GetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 

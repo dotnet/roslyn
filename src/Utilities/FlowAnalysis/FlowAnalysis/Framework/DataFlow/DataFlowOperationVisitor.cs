@@ -1819,10 +1819,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             invokedMethod = invokedMethod.OriginalDefinition;
 
             // Bail out if configured not to execute interprocedural analysis.
-            var configuredToSkipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None;
+            var skipInterproceduralAnalysis = !isLambdaOrLocalFunction && InterproceduralAnalysisKind == InterproceduralAnalysisKind.None ||
+                DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(invokedMethod, isLambdaOrLocalFunction) == true;
 
             // Also bail out for non-source methods and methods where we are not sure about the actual runtime target method.
-            if (configuredToSkipInterproceduralAnalysis ||
+            if (skipInterproceduralAnalysis ||
                 invokedMethod.Locations.All(l => !l.IsInSource) ||
                 invokedMethod.IsAbstract ||
                 invokedMethod.IsVirtual ||
@@ -1875,47 +1876,61 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             // Compute optional interprocedural analysis data for context-sensitive analysis.
             bool isContextSensitive = isLambdaOrLocalFunction || InterproceduralAnalysisKind == InterproceduralAnalysisKind.ContextSensitive;
             var interproceduralAnalysisData = isContextSensitive ? ComputeInterproceduralAnalysisData() : null;
+            TAnalysisResult analysisResult;
 
-            // Create analysis context for interprocedural analysis.
-            var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
-                invokedMethod, cfg, originalOperation, pointsToAnalysisResultOpt, copyAnalysisResultOpt, interproceduralAnalysisData);
-
-            // Execute interprocedural analysis and get result.
-            var analysisResult = GetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
-
-            // Save the interprocedural result for the invocation/creation operation.
-            // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
-            _interproceduralResultsBuilder[originalOperation] = analysisResult;
-
-            // Remove the operation from interprocedural call stack.
-            var popped = _interproceduralCallStack.Pop();
-            Debug.Assert(popped == originalOperation);
-
-            // Update the current analysis data based on interprocedural analysis result.
-            if (isContextSensitive)
+            try
             {
-                // Apply any interprocedural analysis data for unhandled exceptions paths.
-                if (analysisResult.AnalysisDataForUnhandledThrowOperationsOpt is Dictionary<ThrownExceptionInfo, TAnalysisData> interproceduralUnhandledThrowOperationsDataOpt)
+                // Create analysis context for interprocedural analysis.
+                var interproceduralDataFlowAnalysisContext = DataFlowAnalysisContext.ForkForInterproceduralAnalysis(
+                    invokedMethod, cfg, originalOperation, pointsToAnalysisResultOpt, copyAnalysisResultOpt, interproceduralAnalysisData);
+
+                // Check if the client configured skipping analysis for the given interprocedural analysis context.
+                if (DataFlowAnalysisContext.InterproceduralAnalysisPredicateOpt?.SkipInterproceduralAnalysis(interproceduralDataFlowAnalysisContext) == true)
                 {
-                    ApplyInterproceduralAnalysisDataForUnhandledThrowOperations(interproceduralUnhandledThrowOperationsDataOpt);
+                    return ResetAnalysisDataAndReturnDefaultValue();
+                }
+                else
+                {
+                    // Execute interprocedural analysis and get result.
+                    analysisResult = GetOrComputeAnalysisResult(interproceduralDataFlowAnalysisContext);
+
+                    // Save the interprocedural result for the invocation/creation operation.
+                    // Note that we Update instead of invoking .Add as we may execute the analysis multiple times for fixed point computation.
+                    _interproceduralResultsBuilder[originalOperation] = analysisResult;
                 }
 
-                // Apply interprocedural result analysis data for non-exception paths.
-                var resultData = GetExitBlockOutputData(analysisResult);
-                ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, analysisResult);
+                // Update the current analysis data based on interprocedural analysis result.
+                if (isContextSensitive)
+                {
+                    // Apply any interprocedural analysis data for unhandled exceptions paths.
+                    if (analysisResult.AnalysisDataForUnhandledThrowOperationsOpt is Dictionary<ThrownExceptionInfo, TAnalysisData> interproceduralUnhandledThrowOperationsDataOpt)
+                    {
+                        ApplyInterproceduralAnalysisDataForUnhandledThrowOperations(interproceduralUnhandledThrowOperationsDataOpt);
+                    }
 
-                Debug.Assert(arguments.All(arg => !_pendingArgumentsToReset.Contains(arg)));
+                    // Apply interprocedural result analysis data for non-exception paths.
+                    var resultData = GetExitBlockOutputData(analysisResult);
+                    ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, analysisResult);
+
+                    Debug.Assert(arguments.All(arg => !_pendingArgumentsToReset.Contains(arg)));
+                }
+                else
+                {
+                    // TODO: https://github.com/dotnet/roslyn-analyzers/issues/1810
+                    // Implement Non-context sensitive interprocedural analysis to
+                    // merge the relevant data from invoked method's analysis result into CurrentAnalysisData.
+                    // For now, retain the original logic of resetting the analysis data.
+                    ResetAnalysisData();
+                }
             }
-            else
+            finally
             {
-                // TODO: https://github.com/dotnet/roslyn-analyzers/issues/1810
-                // Implement Non-context sensitive interprocedural analysis to
-                // merge the relevant data from invoked method's analysis result into CurrentAnalysisData.
-                // For now, retain the original logic of resetting the analysis data.
-                ResetAnalysisData();
-            }
+                // Remove the operation from interprocedural call stack.
+                var popped = _interproceduralCallStack.Pop();
+                Debug.Assert(popped == originalOperation);
 
-            interproceduralAnalysisData?.InitialAnalysisData?.Dispose();
+                interproceduralAnalysisData?.InitialAnalysisData?.Dispose();
+            }
 
             Debug.Assert(invokedMethod.ReturnsVoid == !analysisResult.ReturnValueAndPredicateKindOpt.HasValue);
             if (invokedMethod.ReturnsVoid)

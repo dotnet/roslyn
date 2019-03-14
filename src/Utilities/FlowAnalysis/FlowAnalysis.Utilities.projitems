@@ -63,7 +63,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Analysis\ValueContentAnalysis\ValueContentBlockAnalysisResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractAnalysisDomain.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\AbstractBlockAnalysisResult.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\InterproceduralAnalysisConfigurationParameters.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\InterproceduralAnalysisPredicate.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\InterproceduralAnalysisConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\ConversionInference.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\InterproceduralCaptureId.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FlowAnalysis\Framework\DataFlow\ArgumentInfo.cs" />
