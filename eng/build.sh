@@ -283,7 +283,7 @@ function BuildSolution {
 InitializeDotNetCli $restore
 
 # Make sure we have a 2.1 runtime available for running our tests
-InstallDotNetSdk $dotnet_root 2.1.401
+InstallDotNetSdk $_InitializeDotNetCli 2.1.401
 
 bootstrap_dir=""
 if [[ "$bootstrap" == true ]]; then
