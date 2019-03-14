@@ -1218,7 +1218,7 @@ done:
                 {
                     if (this is SourceEventAccessorSymbol)
                     {
-                        // CS1667: Attribute '{0}' is not valid on property or event accessors. It is only valid on '{1}' declarations.
+                        // CS1667: Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.
                         AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
                         arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnEventAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
                     }
