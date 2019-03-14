@@ -72,28 +72,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
 
         public bool ExecuteCommand(ExtractMethodCommandArgs args, CommandExecutionContext context)
         {
+            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return false;
+            }
+
+            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
+            if (!supportsFeatureService.SupportsRefactorings(document))
+            {
+                return false;
+            }
+
+            // Finish any rename that had been started. We'll do this here before we enter the
+            // wait indicator for Extract Method
+            if (_renameService.ActiveSession != null)
+            {
+                _renameService.ActiveSession.Commit();
+            }
+
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Extract_Method_refactoring))
             {
-                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-                if (document == null)
-                {
-                    return false;
-                }
-
-                var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-                if (!supportsFeatureService.SupportsRefactorings(document))
-                {
-                    return false;
-                }
-
-                // Finish any rename that had been started. We'll do this here before we enter the
-                // wait indicator for Extract Method
-                if (_renameService.ActiveSession != null)
-                {
-                    _renameService.ActiveSession.Commit();
-                }
-
                 return Execute(args.SubjectBuffer, args.TextView, context.OperationContext);
             }
         }
@@ -111,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return false;
             }
 
-            var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = textBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(waitContext).WaitAndGetResult(cancellationToken);
             if (document == null)
             {
                 return false;
