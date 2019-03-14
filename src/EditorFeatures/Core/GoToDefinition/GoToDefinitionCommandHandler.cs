@@ -10,7 +10,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
@@ -25,8 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public VSCommanding.CommandState GetCommandState(GoToDefinitionCommandArgs args)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var service = document?.GetLanguageService<IGoToDefinitionService>();
+            var (document, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
             return service != null
                 ? VSCommanding.CommandState.Available
                 : VSCommanding.CommandState.Unavailable;
@@ -34,23 +32,18 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         public bool ExecuteCommand(GoToDefinitionCommandArgs args, CommandExecutionContext context)
         {
-            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
+            var subjectBuffer = args.SubjectBuffer;
+            var (document, service) = GetDocumentAndService(subjectBuffer.CurrentSnapshot);
+            if (service != null)
             {
-                var subjectBuffer = args.SubjectBuffer;
-                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-                var service = document?.GetLanguageService<IGoToDefinitionService>();
-                if (service != null)
+                var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
+                if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service, context))
                 {
-                    var caretPos = args.TextView.GetCaretPoint(subjectBuffer);
-                    if (caretPos.HasValue && TryExecuteCommand(document, caretPos.Value, service, context))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
-
-                return false;
             }
+
+            return false;
         }
 
         // Internal for testing purposes only.
@@ -62,20 +55,30 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
         internal bool TryExecuteCommand(Document document, int caretPosition, IGoToDefinitionService goToDefinitionService, CommandExecutionContext context)
         {
-            if (goToDefinitionService != null &&
-                goToDefinitionService.TryGoToDefinition(document, caretPosition, context.OperationContext.UserCancellationToken))
+            string errorMessage = null;
+
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Navigating_to_definition))
             {
-                return true;
+                if (goToDefinitionService != null &&
+                    goToDefinitionService.TryGoToDefinition(document, caretPosition, context.OperationContext.UserCancellationToken))
+                {
+                    return true;
+                }
+
+                errorMessage = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
             }
 
-            var errorMessage = EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret;
-            // We are about to show a modal UI dialog so we should take over the command execution
-            // wait context. That means the command system won't attempt to show its own wait dialog 
-            // and also will take it into consideration when measuring command handling duration.
-            context.OperationContext.TakeOwnership();
-            var workspace = document.Project.Solution.Workspace;
-            var notificationService = workspace.Services.GetService<INotificationService>();
-            notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
+            if (errorMessage != null)
+            {
+                // We are about to show a modal UI dialog so we should take over the command execution
+                // wait context. That means the command system won't attempt to show its own wait dialog 
+                // and also will take it into consideration when measuring command handling duration.
+                context.OperationContext.TakeOwnership();
+                var workspace = document.Project.Solution.Workspace;
+                var notificationService = workspace.Services.GetService<INotificationService>();
+                notificationService.SendNotification(errorMessage, title: EditorFeaturesResources.Go_to_Definition, severity: NotificationSeverity.Information);
+            }
+
             return true;
         }
     }
