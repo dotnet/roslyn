@@ -317,7 +317,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input)
         End Function
 
-        <WpfFact(Skip:="769477"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/34104"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(34104, "https://github.com/dotnet/roslyn/issues/34104")>
         Public Async Function TestCrefConstructor2_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -444,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input)
         End Function
 
-        <WpfFact(Skip:="Bug 640274"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParam3() As Task
             Dim input =
 <Workspace>
@@ -460,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 /// <summary>
                 /// 
                 /// </summary>
-                /// <param name="[|@if|]"></param>
+                /// <param name="[|if|]"></param>
                 static void Goo(int {|Definition:$$@if|}) { }
             }]]>
         </Document>
@@ -469,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input)
         End Function
 
-        <WpfFact(Skip:="Bug 640274"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestParam3_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -482,7 +483,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 ''' <summary>
                 ''' 
                 ''' </summary>
-                ''' <param name="[|@if|]"></param>
+                ''' <param name="[|if|]"></param>
                 Shared Sub Goo({|Definition:$$[if]|} As Integer)
                 End Sub
             End Class]]>
@@ -892,7 +893,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input)
         End Function
 
-        <WpfFact(Skip:="Bug 640502"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(640502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640502")>
         Public Async Function TestInterfaceInCref1() As Task
             Dim input =
 <Workspace>
@@ -911,7 +913,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             class A : C, I
             {
                 /// <summary>
-                /// <seealso cref="[|Goo|]()"/>
+                /// <seealso cref="I.[|Goo|]()"/>
                 /// </summary>
                 public override void Boo() { [|$$Goo|](); }
             }]]>
@@ -921,7 +923,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             Await TestAPIAndFeature(input)
         End Function
 
-        <WpfFact(Skip:="Bug 640502"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(640502, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/640502")>
         Public Async Function TestInterfaceInCref1_VisualBasic() As Task
             Dim input =
 <Workspace>
@@ -929,18 +932,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
         <Document><![CDATA[
             Imports System
             Interface I
-                Sub {|Definition:Goo|}()
+                Sub Goo()
             End Interface
-            Abstract Class C
+            MustInherit Class C
                 Public MustOverride Sub Boo()
                 Public Sub {|Definition:Goo|}() 
                 End Sub
             End Class
             Class A : Inherits C : Implements I
                 ''' <summary>
-                ''' <seealso cref="[|Goo|]()"/>
+                ''' <seealso cref="I.Goo()"/>
                 ''' </summary>
-                Public Overrides Sub Boo() Implements I.[|Goo|]
+                Public Overrides Sub Boo() Implements I.Goo
                     [|$$Goo|]()
                 End Sub
             End Class]]>
@@ -1577,7 +1580,8 @@ End Class]]>
             Await TestAPIAndFeature(input)
         End Function
 
-        <WpfFact(Skip:="783135"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/7288"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(7288, "https://github.com/dotnet/roslyn/issues/7288")>
         Public Async Function TestIndexInCref3_VisualBasic() As Task
             Dim input =
 <Workspace>
