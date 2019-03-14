@@ -2,7 +2,6 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.OrganizeImports
 
