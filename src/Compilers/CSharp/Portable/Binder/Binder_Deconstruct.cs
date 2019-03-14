@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     namesBuilder.Add(ExtractDeconstructResultElementName(value));
                 }
                 valuesBuilder.Add(value);
-                typesWithAnnotationsBuilder.Add(value.GetTypeAndNullability());
+                typesWithAnnotationsBuilder.Add(TypeWithAnnotations.Create(value.Type));
                 locationsBuilder.Add(variable.Syntax.Location);
             }
             ImmutableArray<BoundExpression> arguments = valuesBuilder.ToImmutableAndFree();

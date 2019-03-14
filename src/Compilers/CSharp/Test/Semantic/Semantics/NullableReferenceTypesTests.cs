@@ -24095,8 +24095,9 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
+            // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
             Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.NotAnnotated, symbol.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -24151,8 +24152,9 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
+            // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -24182,8 +24184,9 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
+            // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -24215,9 +24218,9 @@ class CL1
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             // https://github.com/dotnet/roslyn/issues/29856: Type should be `string!`.
-            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
             // https://github.com/dotnet/roslyn/issues/29856: IsNullable should be inferred nullable state: false.
-            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -24281,8 +24284,9 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
+            // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -24312,10 +24316,11 @@ class CL1
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Skip(1).First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
+            // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -24346,10 +24351,11 @@ class CL1
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Skip(1).First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
+            // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -24381,8 +24387,8 @@ class CL1
             // Tracked by https://github.com/dotnet/roslyn/issues/32661
 
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString());
-            Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString());
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -31269,8 +31275,9 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
-            Assert.True(symbol.TypeWithAnnotations.NullableAnnotation.IsAnnotated());
+            // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32", symbol.TypeWithAnnotations.ToTestDisplayString(true));
             Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
@@ -31291,9 +31298,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(
-                new[] { source }, options: WithNonNullTypesTrue(),
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         s.ToString();
@@ -31304,8 +31309,9 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("System.String?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
-            Assert.True(symbol.TypeWithAnnotations.NullableAnnotation.IsAnnotated());
+            // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
+            Assert.Equal("System.String", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
             Assert.Equal(NullableAnnotation.Annotated, symbol.TypeWithAnnotations.NullableAnnotation);
@@ -31389,11 +31395,12 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("T?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
-            Assert.True(symbol.TypeWithAnnotations.NullableAnnotation.IsAnnotated());
+            // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
+            Assert.Equal("T", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            Assert.Equal("T?", symbol.TypeWithAnnotations.ToTestDisplayString(true));
-            Assert.True(symbol.TypeWithAnnotations.NullableAnnotation.IsAnnotated());
+            Assert.Equal("T", symbol.TypeWithAnnotations.ToTestDisplayString(true));
+            Assert.Equal(NullableAnnotation.Oblivious, symbol.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -31704,7 +31711,7 @@ class C<T>
         string x;
         string? y;
         var t = ((x, y) = F());
-        _ = t/*T:(string! x, string? y)*/;
+        _ = t/*T:(string x, string y)*/;
         t.x.ToString(); // 1
         t.y.ToString();
         t.x = null;
@@ -31712,18 +31719,13 @@ class C<T>
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29618: Deconstruction should infer string? for x,
+            // https://github.com/dotnet/roslyn/issues/33011: Deconstruction should infer string? for x,
             // string! for y, and (string?, string!) for t.
             comp.VerifyDiagnostics(
                 // (8,27): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var t = ((x, y) = F());
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "F()").WithLocation(8, 27),
-                // (11,9): warning CS8602: Possible dereference of a null reference.
-                //         t.y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.y").WithLocation(11, 9),
-                // (12,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         t.x = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 15));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "F()").WithLocation(8, 27)
+                );
             comp.VerifyTypes();
         }
 
@@ -31746,7 +31748,7 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29618: Deconstruction should infer `string?` for `var y`.
+            // https://github.com/dotnet/roslyn/issues/33011: Deconstruction should infer `string?` for `var y`.
             comp.VerifyDiagnostics();
             //// (11,13): warning CS8602: Possible dereference of a null reference.
             ////             y.ToString();
@@ -31766,7 +31768,7 @@ class C
         ((x, _) = t).Item2.ToString();
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/29618: Should report WRN_NullReferenceReceiver.
+            // https://github.com/dotnet/roslyn/issues/33011: Should report WRN_NullReferenceReceiver.
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
             //// (7,9): warning CS8602: Possible dereference of a null reference.
@@ -82532,14 +82534,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `u.x` only.
-            comp.VerifyDiagnostics(
-                // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         u.x.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.x").WithLocation(8, 9),
-                // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         u.y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.y").WithLocation(9, 9));
+            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `u.x`.
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -82563,14 +82559,8 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `t.y` only.
-            comp.VerifyDiagnostics(
-                // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         t.x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.x").WithLocation(12, 9),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         t.y.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.y").WithLocation(13, 9));
+            // https://github.com/dotnet/roslyn/issues/33011: Should warn for `t.y`.
+            comp.VerifyDiagnostics();
         }
 
         // As above, but with struct type.
@@ -82596,13 +82586,7 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/33011: Should warn for `t.y` only.
-            comp.VerifyDiagnostics(
-                // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         t.x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.x").WithLocation(12, 9),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         t.y.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.y").WithLocation(13, 9));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
