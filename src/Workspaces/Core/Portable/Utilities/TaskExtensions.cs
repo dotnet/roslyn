@@ -36,7 +36,7 @@ namespace Roslyn.Utilities
                 return expression.Compile();
             });
 
-        private static bool IsThreadPoolThread(Thread thread)
+        public static bool IsThreadPoolThread(Thread thread)
         {
             if (s_isThreadPoolThread.Value is null)
             {
