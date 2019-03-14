@@ -36,6 +36,23 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public void RenameFileToMatchType_InSubfolder()
+        {
+            var project = new ProjectUtils.Project(ProjectName);
+
+            VisualStudio.SolutionExplorer.AddFile(project, @"folder1\folder2\test.cs", open: true);
+
+            SetUpEditor(@"class $$MismatchedClassName { }");
+
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Rename file to MismatchedClassName.cs", applyFix: true);
+
+            // Ensure the file is still open in the editor, and that the file name change was made & saved
+            VisualStudio.Editor.Verify.TextContains("class MismatchedClassName { }");
+            VisualStudio.SolutionExplorer.Verify.FileContents(project, @"folder1\folder2\MismatchedClassName.cs", @"class MismatchedClassName { }");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public void RenameFileToMatchType_UndoStackPreserved()
         {
             var project = new ProjectUtils.Project(ProjectName);
