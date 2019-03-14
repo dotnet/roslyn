@@ -294,9 +294,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 return value;
             }
 
-            protected override void ApplyInterproceduralAnalysisResult(DisposeAnalysisData resultData, bool isLambdaOrLocalFunction, DisposeAnalysisResult interproceduralResult)
+            protected override void ApplyInterproceduralAnalysisResult(
+                DisposeAnalysisData resultData,
+                bool isLambdaOrLocalFunction,
+                bool hasParameterWithDelegateType,
+                DisposeAnalysisResult interproceduralResult)
             {
-                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, interproceduralResult);
+                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, interproceduralResult);
 
                 // Apply the tracked instance field locations from interprocedural analysis.
                 if (_trackedInstanceFieldLocationsOpt != null)

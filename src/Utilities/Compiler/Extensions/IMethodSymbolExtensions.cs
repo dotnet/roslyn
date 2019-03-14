@@ -497,5 +497,8 @@ namespace Analyzer.Utilities.Extensions
                    method.Parameters.Length >= 1 &&
                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
         }
+
+        public static bool HasParameterWithDelegateType(this IMethodSymbol methodSymbol)
+            => methodSymbol.Parameters.Any(p => p.Type.TypeKind == TypeKind.Delegate);
     }
 }

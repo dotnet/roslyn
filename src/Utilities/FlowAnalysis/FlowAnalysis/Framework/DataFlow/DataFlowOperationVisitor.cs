@@ -1035,7 +1035,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 if (targetType == null)
                 {
-                    Debug.Fail($"Unexpected 'null' target type for '{operation.Syntax.ToString()}'");
+                    // Below assert fires for IDeclarationPatternOperation with null DeclaredSymbol, but non-null MatchedType.
+                    // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
+                    //Debug.Fail($"Unexpected 'null' target type for '{operation.Syntax.ToString()}'");
                     return false;
                 }
 
@@ -1301,7 +1303,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     }
                     else
                     {
-                        Debug.Fail($"Unknown pattern kind '{isPatternOperation.Kind}'");
+                        // Below assert fires for IDiscardPatternOperation.
+                        // https://github.com/dotnet/roslyn-analyzers/issues/2185 tracks enabling this assert.
+                        //Debug.Fail($"Unknown pattern kind '{isPatternOperation.Kind}'");
                         predicateValueKind = PredicateValueKind.Unknown;
                     }
 
@@ -1734,7 +1738,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> arguments,
             IDictionary<AnalysisEntity, PointsToAbstractValue> pointsToValuesOpt,
             IDictionary<AnalysisEntity, CopyAbstractValue> copyValuesOpt,
-            bool isLambdaOrLocalFunction)
+            bool isLambdaOrLocalFunction,
+            bool hasParameterWithDelegateType)
             => GetClonedCurrentAnalysisData();
 
         /// <summary>
@@ -1742,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
         /// Default implementation is designed for the default implementation of GetInitialInterproceduralAnalysisData.
         /// and overwrites the CurrentAnalysisData with the given <paramref name="resultData"/>.
         /// </summary>
-        protected virtual void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction, TAnalysisResult analysisResult)
+        protected virtual void ApplyInterproceduralAnalysisResult(TAnalysisData resultData, bool isLambdaOrLocalFunction, bool hasDelegateTypeArgument, TAnalysisResult analysisResult)
             => CurrentAnalysisData = resultData;
 
         private void ApplyInterproceduralAnalysisDataForUnhandledThrowOperations(Dictionary<ThrownExceptionInfo, TAnalysisData> interproceduralUnhandledThrowOperationsData)
@@ -1858,6 +1863,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 return ResetAnalysisDataAndReturnDefaultValue();
             }
 
+            var hasParameterWithDelegateType = invokedMethod.HasParameterWithDelegateType();
+
             // Ensure we are using the same control flow graphs across analyses.
             Debug.Assert(pointsToAnalysisResultOpt?.ControlFlowGraph == null || cfg == pointsToAnalysisResultOpt?.ControlFlowGraph);
             Debug.Assert(copyAnalysisResultOpt?.ControlFlowGraph == null || cfg == copyAnalysisResultOpt?.ControlFlowGraph);
@@ -1895,7 +1902,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
                 // Apply interprocedural result analysis data for non-exception paths.
                 var resultData = GetExitBlockOutputData(analysisResult);
-                ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, analysisResult);
+                ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, analysisResult);
 
                 Debug.Assert(arguments.All(arg => !_pendingArgumentsToReset.Contains(arg)));
             }
@@ -1957,11 +1964,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             {
                 var invocationInstance = GetInvocationInstance();
                 var thisOrMeInstance = GetThisOrMeInstance();
-                var argumentValues = GetArgumentValues();
+                var argumentValues = GetArgumentValues(ref invocationInstance);
                 var pointsToValuesOpt = pointsToAnalysisResultOpt?[cfg.GetEntry()].Data;
                 var copyValuesOpt = copyAnalysisResultOpt?[cfg.GetEntry()].Data;
                 var initialAnalysisData = GetInitialInterproceduralAnalysisData(invokedMethod, invocationInstance,
-                    thisOrMeInstance, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction);
+                    thisOrMeInstance, argumentValues, pointsToValuesOpt, copyValuesOpt, isLambdaOrLocalFunction, hasParameterWithDelegateType);
 
                 return new InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue>(
                     initialAnalysisData,
@@ -2018,17 +2025,36 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                 (AnalysisEntity, PointsToAbstractValue)? GetThisOrMeInstance()
                     => (AnalysisEntityFactory.ThisOrMeInstance, ThisOrMePointsToAbstractValue);
 
-                ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> GetArgumentValues()
+                ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>> GetArgumentValues(ref (AnalysisEntity entity, PointsToAbstractValue pointsToValue)? invocationInstanceOpt)
                 {
-                    Debug.Assert(arguments.Length == invokedMethod.Parameters.Length);
-
-                    if (arguments.IsEmpty)
+                    ArgumentInfo<TAbstractAnalysisValue> extraArgumentInfoOpt = null;
+                    if (invokedMethod.IsExtensionMethod && arguments.Length == invokedMethod.Parameters.Length - 1)
                     {
-                        return ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>>.Empty;
+                        extraArgumentInfoOpt = new ArgumentInfo<TAbstractAnalysisValue>(
+                            operation: instanceReceiver ?? originalOperation,
+                            analysisEntityOpt: invocationInstanceOpt?.entity,
+                            instanceLocation: invocationInstanceOpt?.pointsToValue ?? PointsToAbstractValue.Unknown,
+                            value: instanceReceiver != null ? GetCachedAbstractValue(instanceReceiver) : ValueDomain.UnknownOrMayBeValue);
+                        invocationInstanceOpt = null;
                     }
                     else
                     {
-                        var builder = ImmutableArray.CreateBuilder<ArgumentInfo<TAbstractAnalysisValue>>(arguments.Length);
+                        Debug.Assert(arguments.Length == invokedMethod.Parameters.Length);
+                    }
+
+                    if (arguments.IsEmpty)
+                    {
+                        return extraArgumentInfoOpt == null ? ImmutableArray<ArgumentInfo<TAbstractAnalysisValue>>.Empty : ImmutableArray.Create(extraArgumentInfoOpt);
+                    }
+                    else
+                    {
+                        var count = extraArgumentInfoOpt == null ? arguments.Length : arguments.Length + 1;
+                        var builder = ImmutableArray.CreateBuilder<ArgumentInfo<TAbstractAnalysisValue>>(count);
+                        if (extraArgumentInfoOpt != null)
+                        {
+                            builder.Add(extraArgumentInfoOpt);
+                        }
+
                         foreach (var argument in arguments)
                         {
                             PointsToAbstractValue instanceLocation;
