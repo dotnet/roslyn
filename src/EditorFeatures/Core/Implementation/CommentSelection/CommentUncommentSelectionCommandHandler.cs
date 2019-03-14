@@ -23,9 +23,9 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
-    //[Export(typeof(VSCommanding.ICommandHandler))]
-    //[ContentType(ContentTypeNames.RoslynContentType)]
-    //[Name(PredefinedCommandHandlerNames.CommentSelection)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.CommentSelection)]
     internal class CommentUncommentSelectionCommandHandler :
         AbstractCommentSelectionBase,
         VSCommanding.ICommandHandler<CommentSelectionCommandArgs>,
