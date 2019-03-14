@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.AddMissingImports;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -46,8 +47,8 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             bool placeSystemNamespaceFirst, bool separateImportDirectiveGroups)
         {
             var options = OptionsSet(
-                SingleOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst),
-                SingleOption(GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups));
+                SingleOption(CodeStyleOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst),
+                SingleOption(CodeStyleOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups));
             return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options: options);
         }
 

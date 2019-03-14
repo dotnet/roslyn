@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 nodesWithExplicitNamespaces,
                 (o, r) => r.WithAdditionalAnnotations(Simplifier.Annotation));
 
-            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var placeSystemNamespaceFirst = options.GetOption(CodeStyleOptions.PlaceSystemNamespaceFirst, document.Project.Language);
             var addImportsService = document.GetLanguageService<IAddImportsService>();
             var finalRoot = addImportsService.AddImports(
                 model.Compilation, newRoot, newRoot, imports, placeSystemNamespaceFirst);

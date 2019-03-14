@@ -3,6 +3,7 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.OrganizeImports;
 
@@ -16,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
-            var blankLineBetweenGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups);
+            var placeSystemNamespaceFirst = options.GetOption(CodeStyleOptions.PlaceSystemNamespaceFirst);
+            var blankLineBetweenGroups = options.GetOption(CodeStyleOptions.SeparateImportDirectiveGroups);
 
             var rewriter = new Rewriter(placeSystemNamespaceFirst, blankLineBetweenGroups);
             var newRoot = rewriter.Visit(root);

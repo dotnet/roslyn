@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
@@ -631,7 +632,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             End If
 
             Dim documentOptions = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
-            Dim placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
+            Dim placeSystemNamespaceFirst = documentOptions.GetOption(CodeStyleOptions.PlaceSystemNamespaceFirst)
 
             Dim root As SyntaxNode = Nothing
             If (modifiedRoot Is Nothing) Then

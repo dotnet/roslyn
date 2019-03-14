@@ -3,6 +3,7 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.Xaml.Features.OrganizeImports;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.OrganizeImports;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports
         public async Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
+            var placeSystemNamespaceFirst = options.GetOption(CodeStyleOptions.PlaceSystemNamespaceFirst);
             return await _organizeService.OrganizeNamespacesAsync(document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false) ?? document;
         }
 

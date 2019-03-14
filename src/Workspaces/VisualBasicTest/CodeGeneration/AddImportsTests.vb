@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
@@ -113,7 +114,7 @@ Imports System.Collections.Generic
 Class C
     Public F As List(Of Integer)
 End Class",
-            Function(options) options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, False))
+            Function(options) options.WithChangedOption(CodeStyleOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, False))
         End Function
 
         <Fact>

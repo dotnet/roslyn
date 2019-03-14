@@ -361,8 +361,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int SortUsings_PlaceSystemFirst
         {
-            get { return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst); }
-            set { SetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst, value); }
+            get { return GetBooleanOption(CodeStyleOptions.PlaceSystemNamespaceFirst); }
+            set { SetBooleanOption(CodeStyleOptions.PlaceSystemNamespaceFirst, value); }
         }
 
         public int AddImport_SuggestForTypesInReferenceAssemblies

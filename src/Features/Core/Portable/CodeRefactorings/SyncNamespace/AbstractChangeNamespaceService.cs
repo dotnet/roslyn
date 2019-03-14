@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
@@ -555,7 +556,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             var namesToImport = CreateAllContainingNamespaces(oldNamespace);
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var placeSystemNamespaceFirst = optionSet.GetOption(CodeStyleOptions.PlaceSystemNamespaceFirst, document.Project.Language);
             var documentWithAddedImports = await AddImportsInContainersAsync(
                     document,
                     addImportService,
@@ -597,7 +598,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                     .ConfigureAwait(false);
 
             var optionSet = await documentWithRefFixed.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, documentWithRefFixed.Project.Language);
+            var placeSystemNamespaceFirst = optionSet.GetOption(CodeStyleOptions.PlaceSystemNamespaceFirst, documentWithRefFixed.Project.Language);
 
             var documentWithAdditionalImports = await AddImportsInContainersAsync(
                 documentWithRefFixed,

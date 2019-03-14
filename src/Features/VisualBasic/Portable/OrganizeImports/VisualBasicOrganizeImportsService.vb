@@ -2,6 +2,7 @@
 
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.OrganizeImports
 
@@ -15,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrganizeImports
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim options = Await document.GetOptionsAsync(cancellationToken).ConfigureAwait(False)
 
-            Dim placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
-            Dim separateGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups)
+            Dim placeSystemNamespaceFirst = options.GetOption(CodeStyleOptions.PlaceSystemNamespaceFirst)
+            Dim separateGroups = options.GetOption(CodeStyleOptions.SeparateImportDirectiveGroups)
 
             Dim rewriter = New Rewriter(placeSystemNamespaceFirst, separateGroups)
             Dim newRoot = rewriter.Visit(root)

@@ -2,6 +2,7 @@
 
 Imports System.Threading
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
@@ -15,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Organizing
                                           Optional separateImportGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(initial.NormalizedValue)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
-                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
-                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
+                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(CodeStyleOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst)
+                workspace.Options = workspace.Options.WithChangedOption(New OptionKey(CodeStyleOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups)
 
                 Dim newRoot = Await (Await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync()
                 Assert.Equal(final.NormalizedValue, newRoot.ToFullString())

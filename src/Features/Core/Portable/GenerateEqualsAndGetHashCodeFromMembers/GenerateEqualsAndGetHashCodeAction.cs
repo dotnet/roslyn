@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     oldRoot.ReplaceNode(oldType, newType));
 
                 var options = await _document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
+                var placeSystemNamespaceFirst = options.GetOption(CodeStyleOptions.PlaceSystemNamespaceFirst);
 
                 var codeGenService = _document.GetLanguageService<ICodeGenerationService>();
                 newDocument = await codeGenService.AddImportsAsync(

@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Remote
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             Await TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup, index, priority,
                 parameters:=New TestParameters(
-                    options:=[Option](GenerationOptions.PlaceSystemNamespaceFirst, placeSystemFirst),
+                    options:=[Option](CodeStyleOptions.PlaceSystemNamespaceFirst, placeSystemFirst),
                     fixProviderData:=outOfProcess))
         End Function
     End Class

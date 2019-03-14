@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.PasteTracking
@@ -38,8 +39,8 @@ Namespace Microsoft.CodeAnalysis.AddMissingImports
             placeSystemNamespaceFirst As Boolean, separateImportDirectiveGroups As Boolean) As Task
 
             Dim options = OptionsSet(
-                SingleOption(GenerationOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst),
-                SingleOption(GenerationOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups))
+                SingleOption(CodeStyleOptions.PlaceSystemNamespaceFirst, placeSystemNamespaceFirst),
+                SingleOption(CodeStyleOptions.SeparateImportDirectiveGroups, separateImportDirectiveGroups))
 
             Return TestInRegularAndScriptAsync(initialMarkup, expectedMarkup, options:=options)
         End Function

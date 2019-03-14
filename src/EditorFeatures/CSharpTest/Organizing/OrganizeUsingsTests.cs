@@ -3,6 +3,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -25,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
             using (var workspace = TestWorkspace.CreateCSharp(initial))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-                workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
-                workspace.Options = workspace.Options.WithChangedOption(new OptionKey(GenerationOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
+                workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeStyleOptions.PlaceSystemNamespaceFirst, document.Project.Language), placeSystemNamespaceFirst);
+                workspace.Options = workspace.Options.WithChangedOption(new OptionKey(CodeStyleOptions.SeparateImportDirectiveGroups, document.Project.Language), separateImportGroups);
 
                 var newRoot = await (await OrganizeImportsService.OrganizeImportsAsync(document, CancellationToken.None)).GetSyntaxRootAsync();
                 Assert.Equal(final.NormalizeLineEndings(), newRoot.ToFullString());

@@ -289,10 +289,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public Property Option_PlaceSystemNamespaceFirst As Boolean
             Get
-                Return GetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst)
+                Return GetBooleanOption(CodeStyleOptions.PlaceSystemNamespaceFirst)
             End Get
             Set(value As Boolean)
-                SetBooleanOption(GenerationOptions.PlaceSystemNamespaceFirst, value)
+                SetBooleanOption(CodeStyleOptions.PlaceSystemNamespaceFirst, value)
             End Set
         End Property
 

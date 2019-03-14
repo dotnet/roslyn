@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -140,7 +141,7 @@ class C
 {
     public List<int> F;
 }",
-                options => options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, false)
+                options => options.WithChangedOption(CodeStyleOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, false)
 );
         }
 

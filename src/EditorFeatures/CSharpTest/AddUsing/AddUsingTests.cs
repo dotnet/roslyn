@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         {
             await TestAsync(
                 initialMarkup, expected, index: index,
-                options: Option(GenerationOptions.PlaceSystemNamespaceFirst, systemSpecialCase));
+                options: Option(CodeStyleOptions.PlaceSystemNamespaceFirst, systemSpecialCase));
         }
 
         internal async Task TestAsync(
