@@ -535,12 +535,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, TypeCompareKind typeComparison)
         {
             RefKind refKind1;
-            TypeSymbolWithAnnotations unsubstitutedReturnType1;
+            TypeWithAnnotations unsubstitutedReturnType1;
             ImmutableArray<CustomModifier> refCustomModifiers1;
             member1.GetTypeOrReturnType(out refKind1, out unsubstitutedReturnType1, out refCustomModifiers1);
 
             RefKind refKind2;
-            TypeSymbolWithAnnotations unsubstitutedReturnType2;
+            TypeWithAnnotations unsubstitutedReturnType2;
             ImmutableArray<CustomModifier> refCustomModifiers2;
             member2.GetTypeOrReturnType(out refKind2, out unsubstitutedReturnType2, out refCustomModifiers2);
 
@@ -718,11 +718,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static void SubstituteConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> types, TypeMap typeMap, HashSet<TypeSymbol> result)
+        private static void SubstituteConstraintTypes(ImmutableArray<TypeWithAnnotations> types, TypeMap typeMap, HashSet<TypeSymbol> result)
         {
             foreach (var type in types)
             {
-                result.Add(typeMap.SubstituteType(type).TypeSymbol);
+                result.Add(typeMap.SubstituteType(type).Type);
             }
         }
 
@@ -738,8 +738,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var param1 = params1[i];
                 var param2 = params2[i];
 
-                var type1 = SubstituteType(typeMap1, param1.Type);
-                var type2 = SubstituteType(typeMap2, param2.Type);
+                var type1 = SubstituteType(typeMap1, param1.TypeWithAnnotations);
+                var type2 = SubstituteType(typeMap2, param2.TypeWithAnnotations);
 
                 if (!type1.Equals(type2, typeComparison))
                 {
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static TypeSymbolWithAnnotations SubstituteType(TypeMap typeMap, TypeSymbolWithAnnotations typeSymbol)
+        private static TypeWithAnnotations SubstituteType(TypeMap typeMap, TypeWithAnnotations typeSymbol)
         {
             return typeMap == null ? typeSymbol : typeSymbol.SubstituteType(typeMap);
         }

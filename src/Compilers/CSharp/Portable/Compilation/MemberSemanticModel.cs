@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 enumeratorInfoOpt.MoveNextMethod,
                 currentProperty: (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol,
                 disposeMethod,
-                enumeratorInfoOpt.ElementType.TypeSymbol,
+                enumeratorInfoOpt.ElementType,
                 boundForEach.ElementConversion,
                 enumeratorInfoOpt.CurrentConversion);
         }

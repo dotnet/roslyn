@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics: context.Diagnostics,
                     fromImplements: true);
 
-                var type = TypeSymbolWithAnnotations.Create(@interface);
+                var type = TypeWithAnnotations.Create(@interface);
                 yield return type.GetTypeRefWithAttributes(
                     moduleBeingBuilt,
                     declaringSymbol: this,
@@ -923,11 +923,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<Microsoft.Cci.ITypeReference>.GetInstance();
             Debug.Assert(((Cci.ITypeReference)this).AsGenericTypeInstanceReference != null);
 
-            var arguments = this.TypeArgumentsNoUseSiteDiagnostics;
+            var arguments = this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = moduleBeingBuilt.Translate(arguments[i].TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
                 var modifiers = arguments[i].CustomModifiers;
                 if (!modifiers.IsDefaultOrEmpty)
                 {

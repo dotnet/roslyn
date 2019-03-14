@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeSymbolWithAnnotations> types)
+        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithAnnotations> types)
         {
             NullableAnnotation result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithState> types)
         {
-            ArrayBuilder<TypeSymbolWithAnnotations> builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            ArrayBuilder<TypeWithAnnotations> builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             foreach (var type in types)
             {
-                builder.Add(type.ToTypeSymbolWithAnnotations());
+                builder.Add(type.ToTypeWithAnnotations());
             }
             var result = GetNullableAnnotation(builder);
             builder.Free();
@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     return MethodTypeInferrer.Merge(
-                        TypeSymbolWithAnnotations.Create(type1),
-                        TypeSymbolWithAnnotations.Create(type2),
+                        TypeWithAnnotations.Create(type1),
+                        TypeWithAnnotations.Create(type2),
                         VarianceKind.Out,
-                        conversions).TypeSymbol;
+                        conversions).Type;
                 }
 
                 return null;

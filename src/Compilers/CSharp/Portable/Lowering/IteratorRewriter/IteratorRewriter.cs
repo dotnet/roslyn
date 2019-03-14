@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Figure out what kind of iterator we are generating.
             bool isEnumerable;
-            switch (method.ReturnType.TypeSymbol.OriginalDefinition.SpecialType)
+            switch (method.ReturnType.OriginalDefinition.SpecialType)
             {
                 case SpecialType.System_Collections_IEnumerable:
                 case SpecialType.System_Collections_Generic_IEnumerable_T:
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(method.ReturnType.TypeSymbol.OriginalDefinition.SpecialType);
+                    throw ExceptionUtilities.UnexpectedValue(method.ReturnType.OriginalDefinition.SpecialType);
             }
 
             stateMachineType = new IteratorStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, isEnumerable, elementType);

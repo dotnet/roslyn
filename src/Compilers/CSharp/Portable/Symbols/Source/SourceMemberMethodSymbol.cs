@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.locations = locations;
         }
 
-        protected void CheckEffectiveAccessibility(TypeSymbolWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private)
             {
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
-                diagnostics.Add(code, Locations[0], this, returnType.TypeSymbol);
+                diagnostics.Add(code, Locations[0], this, returnType.Type);
             }
 
             code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
@@ -227,10 +227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameter in parameters)
             {
-                if (!parameter.Type.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
+                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, Locations[0], this, parameter.Type.TypeSymbol);
+                    diagnostics.Add(code, Locations[0], this, parameter.Type);
                 }
             }
 
@@ -677,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.Type:
-                        var unusedType = this.ReturnType;
+                        var unusedType = this.ReturnTypeWithAnnotations;
                         state.NotePartComplete(CompletionPart.Type);
                         break;
 
