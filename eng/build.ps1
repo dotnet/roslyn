@@ -213,7 +213,16 @@ function BuildSolution() {
     # an arcade bug
     # https://github.com/dotnet/arcade/issues/2220
     $quietRestore = !($ci -or ($bootstrapDir -ne ""))
-    $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
+
+    $testTargetFrameworks = ""
+    if ($testCoreClr) {
+        $testTargetFrameworks = "netcoreapp2.1" 
+
+        # Make sure a 2.1 runtime is installed so we can run our tests. Most of them still 
+        # target netcoreapp2.1.
+        InstallDotNetSdk ${env:DOTNET_INSTALL_DIR} "2.1.401"
+    }
+
     $ibcSourceBranchName = GetIbcSourceBranchName
     $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
 
