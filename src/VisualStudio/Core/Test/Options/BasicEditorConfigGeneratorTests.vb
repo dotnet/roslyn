@@ -35,6 +35,10 @@ insert_final_newline = false
 
 #### .NET Coding Conventions ####
 
+# Organize usings
+dotnet_separate_import_directive_groups = true:silent
+dotnet_sort_system_directives_first = true:silent
+
 # this. and Me. preferences
 dotnet_style_qualification_for_event = false:silent
 dotnet_style_qualification_for_field = false:silent
