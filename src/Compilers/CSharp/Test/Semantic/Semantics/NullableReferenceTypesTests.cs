@@ -1015,6 +1015,51 @@ public class C
             //Assert.Null(model.GetConstantValue(suppressions[1]).Value);
         }
 
+        [Fact]
+        public void SuppressNullableWarning_GetTypeInfo()
+        {
+            var source =
+@"class C<T>
+{
+    void M(string s, string? s2, C<string> c, C<string?> c2)
+    {
+        _ = s!;
+        _ = s2!;
+        _ = c!;
+        _ = c2!;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var suppressions = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().ToArray();
+
+            // Need to verify the semantic model
+            // Tracked by https://github.com/dotnet/roslyn/issues/32661
+
+            var s = model.GetTypeInfo(suppressions[0]);
+            Assert.Equal("System.String", s.Type.ToTestDisplayString());
+            Assert.Equal("System.String", s.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String s", model.GetSymbolInfo(suppressions[0]).Symbol.ToTestDisplayString());
+
+            var s2 = model.GetTypeInfo(suppressions[1]);
+            Assert.Equal("System.String", s2.Type.ToTestDisplayString());
+            Assert.Equal("System.String", s2.ConvertedType.ToTestDisplayString());
+            Assert.Equal("System.String? s2", model.GetSymbolInfo(suppressions[1]).Symbol.ToTestDisplayString());
+
+            var c = model.GetTypeInfo(suppressions[2]);
+            Assert.Equal("C<System.String>", c.Type.ToTestDisplayString());
+            Assert.Equal("C<System.String>", c.ConvertedType.ToTestDisplayString());
+            Assert.Equal("C<System.String> c", model.GetSymbolInfo(suppressions[2]).Symbol.ToTestDisplayString());
+
+            var c2 = model.GetTypeInfo(suppressions[3]);
+            Assert.Equal("C<System.String?>", c2.Type.ToTestDisplayString());
+            Assert.Equal("C<System.String?>", c2.ConvertedType.ToTestDisplayString());
+            Assert.Equal("C<System.String?> c2", model.GetSymbolInfo(suppressions[3]).Symbol.ToTestDisplayString());
+        }
+
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
         public void SuppressNullableWarning_MethodGroupInNameof()
         {
