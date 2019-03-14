@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public static readonly PerLanguageOption<CodeStyleOption<bool>> PlaceSystemNamespaceFirst = CreateOption(
             CodeStyleOptionGroups.Usings, nameof(PlaceSystemNamespaceFirst),
-            defaultValue: CodeStyleOptions.TrueWithSilentEnforcement,
+            defaultValue: TrueWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_sort_system_directives_first"),
                 new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PlaceSystemNamespaceFirst)}")});
 
         public static readonly PerLanguageOption<CodeStyleOption<bool>> SeparateImportDirectiveGroups = CreateOption(
             CodeStyleOptionGroups.Usings, nameof(SeparateImportDirectiveGroups),
-            defaultValue: CodeStyleOptions.TrueWithSilentEnforcement,
+            defaultValue: FalseWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_separate_import_directive_groups"),
                 new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(SeparateImportDirectiveGroups)}")});
