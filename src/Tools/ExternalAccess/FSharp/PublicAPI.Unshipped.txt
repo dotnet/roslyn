@@ -1,5 +1,7 @@
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.ClassificationTags
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IDiagnosticAnalyzerService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IDiagnosticAnalyzerService.Reanalyze(Microsoft.CodeAnalysis.Workspace workspace, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectId> projectIds = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId> documentIds = null, bool highPriority = false) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap.ClassificationTypeMap(Microsoft.VisualStudio.Text.Classification.IClassificationTypeRegistryService registryService) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap.GetClassificationType(string name) -> Microsoft.VisualStudio.Text.Classification.IClassificationType
