@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
         private static readonly string[] s_editAndContinueCustomTags = new string[] { WellKnownDiagnosticTags.EditAndContinue, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable };
         private static readonly string[] s_unnecessaryCustomTags = new string[] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry };
 
+#pragma warning disable CA1819 // Properties should not return arrays
         public static string[] Microsoft
         {
             get
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
                 return s_unnecessaryCustomTags;
             }
         }
+#pragma warning restore CA1819 // Properties should not return arrays
 
         [Conditional("DEBUG")]
         private static void Assert(string[] customTags, params string[] tags)
