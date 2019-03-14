@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rfights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,19 +12,6 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
-        internal class ConstructorCandidate
-        {
-            internal IMethodSymbol _constructor;
-            internal ImmutableArray<ISymbol> _missingMembers;
-            internal ImmutableArray<IParameterSymbol> _missingParameters;
-
-            public ConstructorCandidate(IMethodSymbol constructor, ImmutableArray<ISymbol> missingMembers, ImmutableArray<IParameterSymbol> missingParameters)
-            {
-                _constructor = constructor;
-                _missingMembers = missingMembers;
-                _missingParameters = missingParameters;
-            }
-        }
         private class State
         {
             public ImmutableArray<ConstructorCandidate> ConstructorCandidates { get; private set; }

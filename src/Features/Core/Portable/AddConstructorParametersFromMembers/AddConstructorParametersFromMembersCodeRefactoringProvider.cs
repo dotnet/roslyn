@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 // There will be at most 2 suggested code actions, so no need to use sub menus
                 var constructorCandidate = state.ConstructorCandidates[0];
-                if (CanHaveRequiredParameters(state.ConstructorCandidates[0]._missingParameters))
+                if (CanHaveRequiredParameters(state.ConstructorCandidates[0].MissingParameters))
                 {
-                    result.Add(new AddConstructorParametersCodeAction(document, constructorCandidate, containingType, constructorCandidate._missingParameters, useSubMenuName: false));
+                    result.Add(new AddConstructorParametersCodeAction(document, constructorCandidate, containingType, constructorCandidate.MissingParameters, useSubMenuName: false));
                 }
                 result.Add(GetOptionalContructorParametersCodeAction(document, constructorCandidate, containingType, useSubMenuName: false));
             }
@@ -74,16 +74,20 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 // Create sub menus for suggested actions, one for required parameters and one for optional parameters
                 var requiredParameterCodeActions = new ArrayBuilder<CodeAction>();
                 var optionalPrameterCodeActions = new ArrayBuilder<CodeAction>();
-                foreach (var constructor in state.ConstructorCandidates)
+                foreach (var constructorCandidate in state.ConstructorCandidates)
                 {
-                    if (CanHaveRequiredParameters(constructor._missingParameters))
+                    if (CanHaveRequiredParameters(constructorCandidate.Constructor.Parameters))
                     {
-                        requiredParameterCodeActions.Add(new AddConstructorParametersCodeAction(document, constructor, containingType, constructor._missingParameters, useSubMenuName: true));
+                        requiredParameterCodeActions.Add(new AddConstructorParametersCodeAction(document, constructorCandidate, containingType, constructorCandidate.MissingParameters, useSubMenuName: true));
                     }
-                    optionalPrameterCodeActions.Add(GetOptionalContructorParametersCodeAction(document, constructor, containingType, useSubMenuName: true));
+                    optionalPrameterCodeActions.Add(GetOptionalContructorParametersCodeAction(document, constructorCandidate, containingType, useSubMenuName: true));
                 }
 
-                result.Add(new CodeAction.CodeActionWithNestedActions(FeaturesResources.Add_parameter_to_constructor, requiredParameterCodeActions.ToImmutableAndFree(), isInlinable: false));
+                if (requiredParameterCodeActions.Count > 0)
+                {
+                    result.Add(new CodeAction.CodeActionWithNestedActions(FeaturesResources.Add_parameter_to_constructor, requiredParameterCodeActions.ToImmutableAndFree(), isInlinable: false));
+                }
+
                 result.Add(new CodeAction.CodeActionWithNestedActions(FeaturesResources.Add_optional_parameter_to_constructor, optionalPrameterCodeActions.ToImmutableAndFree(), isInlinable: false));
             }
 
@@ -92,7 +96,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             // local functions
             static CodeAction GetOptionalContructorParametersCodeAction(Document document, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
             {
-                var missingOptionalParameters = constructorCandidate._missingParameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
+                var missingOptionalParameters = constructorCandidate.MissingParameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
                       attributes: default,
                       refKind: p.RefKind,
                       isParams: p.IsParams,

@@ -23,6 +23,12 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             private readonly ConstructorCandidate _constructorCandidate;
             private readonly ISymbol _containingType;
             private readonly ImmutableArray<IParameterSymbol> _parametersToAdd;
+
+            /// <summary>
+            /// If there is more than one constructor, the suggested actions will be split into two sub menus,  
+            /// one for regular parameters and one for optional. This boolean is used by the Title property 
+            /// to determine if the code action should be given the complete title or the sub menu title
+            /// </summary>
             private readonly bool _useSubMenuName;
 
             public AddConstructorParametersCodeAction(
@@ -30,8 +36,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 ConstructorCandidate constructorCandidate,
                 ISymbol containingType,
                 ImmutableArray<IParameterSymbol> parametersToAdd,
-                bool useSubMenuName
-                )
+                bool useSubMenuName)
             {
                 _document = document;
                 _constructorCandidate = constructorCandidate;
@@ -44,7 +49,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 var workspace = _document.Project.Solution.Workspace;
                 var declarationService = _document.GetLanguageService<ISymbolDeclarationService>();
-                var constructor = declarationService.GetDeclarations(_constructorCandidate._constructor).Select(r => r.GetSyntax(cancellationToken)).First();
+                var constructor = declarationService.GetDeclarations(_constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var newConstructor = constructor;
                 newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _parametersToAdd, workspace);
@@ -62,7 +67,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
                 for (var i = 0; i < _parametersToAdd.Length; ++i)
                 {
-                    var memberName = constructorCandidate._missingMembers[i].Name;
+                    var memberName = constructorCandidate.MissingMembers[i].Name;
                     var parameterName = _parametersToAdd[i].Name;
                     yield return factory.ExpressionStatement(
                         factory.AssignmentStatement(
@@ -75,9 +80,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 get
                 {
-                    var parameters = _constructorCandidate._constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+                    var parameters = _constructorCandidate.Constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
-                    var optional = _parametersToAdd[0].IsOptional;
                     var signature = $"{_containingType}({parameterString})";
                     var submenu = _useSubMenuName;
 
@@ -87,9 +91,9 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     }
                     else
                     {
-                        return optional
-                        ? string.Format(FeaturesResources.Add_optional_parameters_to_0, signature)
-                        : string.Format(FeaturesResources.Add_parameters_to_0, signature);
+                        return _parametersToAdd[0].IsOptional
+                            ? string.Format(FeaturesResources.Add_optional_parameters_to_0, signature)
+                            : string.Format(FeaturesResources.Add_parameters_to_0, signature);
                     }
                 }
             }
