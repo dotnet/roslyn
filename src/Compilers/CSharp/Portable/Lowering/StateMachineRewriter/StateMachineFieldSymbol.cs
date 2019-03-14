@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly LocalSlotDebugInfo SlotDebugInfo;
 
         // Some fields need to be public since they are initialized directly by the kickoff method.
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, bool isPublic, bool isThis)
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, bool isPublic, bool isThis)
             : this(stateMachineType, type, name, new LocalSlotDebugInfo(SynthesizedLocalKind.LoweringTemp, LocalDebugId.None), slotIndex: -1, isPublic: isPublic)
         {
             _isThis = isThis;
@@ -33,13 +33,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic)
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic) :
+            this(stateMachineType, TypeWithAnnotations.Create(type), name, slotDebugInfo, slotIndex, isPublic)
+        {
+        }
+
+        public StateMachineFieldSymbol(NamedTypeSymbol stateMachineType, TypeWithAnnotations type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex, bool isPublic)
             : base(stateMachineType, name, isPublic: isPublic, isReadOnly: false, isStatic: false)
         {
             Debug.Assert((object)type != null);
             Debug.Assert(slotDebugInfo.SynthesizedKind.IsLongLived() == (slotIndex >= 0));
 
-            _type = TypeWithAnnotations.Create(type);
+            _type = type;
             this.SlotIndex = slotIndex;
             this.SlotDebugInfo = slotDebugInfo;
         }

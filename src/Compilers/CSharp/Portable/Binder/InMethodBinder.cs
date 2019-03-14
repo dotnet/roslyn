@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class IteratorInfo
         {
-            public static readonly IteratorInfo Empty = new IteratorInfo(null, default(ImmutableArray<Diagnostic>));
+            public static readonly IteratorInfo Empty = new IteratorInfo(default, default(ImmutableArray<Diagnostic>));
 
-            public readonly TypeSymbol ElementType;
+            public readonly TypeWithAnnotations ElementType;
             public readonly ImmutableArray<Diagnostic> ElementTypeDiagnostics;
 
-            public IteratorInfo(TypeSymbol elementType, ImmutableArray<Diagnostic> elementTypeDiagnostics)
+            public IteratorInfo(TypeWithAnnotations elementType, ImmutableArray<Diagnostic> elementTypeDiagnostics)
             {
                 this.ElementType = elementType;
                 this.ElementTypeDiagnostics = elementTypeDiagnostics;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             RefKind refKind = _methodSymbol.RefKind;
             TypeSymbol returnType = _methodSymbol.ReturnType;
@@ -139,17 +139,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and deduce an iterator element type from the return type.  If we didn't do this, the 
                 // TypeInfo.ConvertedType of the yield statement would always be an error type.  However, we will 
                 // not mutate any state (i.e. we won't store the result).
-                return GetIteratorElementTypeFromReturnType(refKind, returnType, node, diagnostics).elementType ?? CreateErrorType();
+                var elementType = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, diagnostics).elementType;
+                return !elementType.IsDefault ? elementType : TypeWithAnnotations.Create(CreateErrorType());
             }
 
             if (_iteratorInfo == IteratorInfo.Empty)
             {
                 DiagnosticBag elementTypeDiagnostics = DiagnosticBag.GetInstance();
 
-                (TypeSymbol elementType, bool asyncInterface) = GetIteratorElementTypeFromReturnType(refKind, returnType, node, elementTypeDiagnostics);
+                (TypeWithAnnotations elementType, bool asyncInterface) = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, node, elementTypeDiagnostics);
 
                 Location errorLocation = _methodSymbol.Locations[0];
-                if ((object)elementType == null)
+                if (elementType.IsDefault)
                 {
                     if (refKind != RefKind.None)
                     {
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Error(elementTypeDiagnostics, ErrorCode.ERR_BadIteratorReturn, errorLocation, _methodSymbol, returnType);
                     }
-                    elementType = CreateErrorType();
+                    elementType = TypeWithAnnotations.Create(CreateErrorType());
                 }
                 else if (asyncInterface && !_methodSymbol.IsAsync)
                 {
@@ -179,12 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return _iteratorInfo.ElementType;
-        }
-
-        private (TypeSymbol elementType, bool asyncInterface) GetIteratorElementTypeFromReturnType(RefKind refKind, TypeSymbol returnType, CSharpSyntaxNode errorLocationNode, DiagnosticBag diagnostics)
-        {
-            (TypeWithAnnotations elementType, bool asyncInterface) = GetIteratorElementTypeFromReturnType(Compilation, refKind, returnType, errorLocationNode, diagnostics);
-            return (elementType.Type, asyncInterface);
         }
 
         // If an element type is found, we also return whether the interface is meant to be used with async.

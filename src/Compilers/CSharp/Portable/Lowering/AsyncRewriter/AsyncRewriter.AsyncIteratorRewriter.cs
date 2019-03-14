@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DiagnosticBag diagnostics)
                 : base(body, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics)
             {
-                Debug.Assert(!TypeSymbol.Equals(method.IteratorElementType, null, TypeCompareKind.ConsiderEverything2));
+                Debug.Assert(!TypeSymbol.Equals(method.IteratorElementTypeWithAnnotations.Type, null, TypeCompareKind.ConsiderEverything2));
 
                 _isEnumerable = method.IsIAsyncEnumerableReturningAsync(method.DeclaringCompilation);
                 Debug.Assert(_isEnumerable != method.IsIAsyncEnumeratorReturningAsync(method.DeclaringCompilation));
