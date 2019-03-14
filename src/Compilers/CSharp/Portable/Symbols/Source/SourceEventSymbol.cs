@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var isExplicitInterfaceImplementation = interfaceSpecifierSyntaxOpt != null;
             bool modifierErrors;
             _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isFieldLike, _location, diagnostics, out modifierErrors);
-            this.CheckAccessibility(_location, diagnostics);
+            this.CheckAccessibility(_location, diagnostics, isExplicitInterfaceImplementation);
         }
 
         internal sealed override bool RequiresCompletion
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Virtual) != 0; }
         }
 
-        public override Accessibility DeclaredAccessibility
+        public sealed override Accessibility DeclaredAccessibility
         {
             get { return ModifierUtils.EffectiveAccessibility(_modifiers); }
         }
@@ -404,9 +404,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _modifiers; }
         }
 
-        private void CheckAccessibility(Location location, DiagnosticBag diagnostics)
+        private void CheckAccessibility(Location location, DiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
         {
-            var info = ModifierUtils.CheckAccessibility(_modifiers, this);
+            var info = ModifierUtils.CheckAccessibility(_modifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(new CSDiagnostic(info, location));
@@ -414,11 +414,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool explicitInterfaceImplementation,
-                                                   bool isFieldLike, Location location, 
+                                                   bool isFieldLike, Location location,
                                                    DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface && !explicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            var defaultAccess = isInterface ? (explicitInterfaceImplementation ? DeclarationModifiers.Protected : DeclarationModifiers.Public) : DeclarationModifiers.Private;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // Diagnostic reported by parser.
             }
-            else if (!this.IsNoMoreVisibleThan(this.Type, ref useSiteDiagnostics))
+            else if (!this.IsNoMoreVisibleThan(this.Type, ref useSiteDiagnostics) && (CSharpSyntaxNode as EventDeclarationSyntax)?.ExplicitInterfaceSpecifier == null)
             {
                 // Dev10 reports different errors for field-like events (ERR_BadVisFieldType) and custom events (ERR_BadVisPropertyType).
                 // Both seem odd, so add a new one.

@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckEffectiveAccessibility(TypeSymbolWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
         {
-            if (this.DeclaredAccessibility <= Accessibility.Private)
+            if (this.DeclaredAccessibility <= Accessibility.Private || MethodKind == MethodKind.ExplicitInterfaceImplementation)
             {
                 return;
             }

@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // It is an error for the same modifier to appear multiple times.
                     if (!modifierErrors)
                     {
-                        var info = ModifierUtils.CheckAccessibility(mods, this);
+                        var info = ModifierUtils.CheckAccessibility(mods, this, isExplicitInterfaceImplementation: false);
                         if (info != null)
                         {
                             diagnostics.Add(info, self.Locations[0]);

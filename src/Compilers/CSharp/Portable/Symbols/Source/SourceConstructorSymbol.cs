@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: false);
             if (info != null)
             {
                 diagnostics.Add(info, location);

@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ArrowExpressionClauseSyntax syntax,
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
             string name;
@@ -93,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 explicitInterfaceImplementations,
                 syntax.Expression.GetLocation(),
                 syntax,
+                isExplicitInterfaceImplementation,
                 diagnostics);
         }
 
@@ -144,6 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations,
             Location location,
             ArrowExpressionClauseSyntax syntax,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location)
         {
@@ -165,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
             CheckModifiersForBody(syntax, location, diagnostics);
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -235,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckModifiersForBody(syntax, location, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -305,18 +308,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!_explicitInterfaceImplementations.IsDefaultOrEmpty && ContainingType.IsInterface)
-                {
-                    Debug.Assert(_explicitInterfaceImplementations.Length == 1);
-                    // PROTOTYPE(DefaultInterfaceImplementation): This is better than 'private' accessibility, but might still be not where
-                    //                                            we want to be for implementations of internal members, because those can be 
-                    //                                            inaccessible for base-access from a different assembly that otherwise has 
-                    //                                            access to the original implemented member. That scenario has the internals
-                    //                                            being exposed to other assemblies by using InternalsVisibleTo attribute. 
-                    //                                            See DefaultInterfaceImplementationTests.ExplicitBase_152 unit-test, for example.
-                    return _explicitInterfaceImplementations[0].DeclaredAccessibility;
-                }
-
                 var accessibility = this.LocalAccessibility;
                 if (accessibility != Accessibility.NotApplicable)
                 {
@@ -421,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers); }
         }
 
-        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation, 
+        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
             bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             // No default accessibility. If unset, accessibility

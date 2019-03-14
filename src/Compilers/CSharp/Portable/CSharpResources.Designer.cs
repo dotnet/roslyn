@@ -7630,6 +7630,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not an immediate member of {1}..
+        /// </summary>
+        internal static string ERR_NotDeclaredInBase {
+            get {
+                return ResourceManager.GetString("ERR_NotDeclaredInBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not implemented in base interface {1}..
+        /// </summary>
+        internal static string ERR_NotImplementedInBase {
+            get {
+                return ResourceManager.GetString("ERR_NotImplementedInBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is of type &apos;{1}&apos;. A const field of a reference type other than string can only be initialized with null..
         /// </summary>
         internal static string ERR_NotNullConstRefField {

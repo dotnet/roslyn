@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_BadAccess, node, method);
                     hasErrors = true;
                 }
-                else if (IsBadBaseAccess(node, receiverOpt, method, diagnostics, checkOnlyAccessThroughInterface: true))
+                else if (IsBadBaseAccess(node, receiverOpt, method, diagnostics, eventSymbol))
                 {
                     hasErrors = true;
                 }
