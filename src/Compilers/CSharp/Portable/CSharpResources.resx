@@ -5811,4 +5811,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NotBaseOrImplementedInterface" xml:space="preserve">
     <value>'{0}' is not base type or interface of {1}.</value>
   </data>
+  <data name="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember" xml:space="preserve">
+    <value>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</value>
+  </data>
 </root>

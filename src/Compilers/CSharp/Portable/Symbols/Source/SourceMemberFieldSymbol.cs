@@ -146,11 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Unsafe |
                 DeclarationModifiers.Abstract; // filtered out later
 
-            if (containingType.IsInterface)
-            {
-                allowedModifiers &= ~(DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal);
-            }
-
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);

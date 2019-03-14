@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // SPEC: It is an error for the same modifier to appear multiple times in an
             // SPEC: operator declaration.
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this);
             if (info != null)
             {
                 diagnostics.Add(info, location);

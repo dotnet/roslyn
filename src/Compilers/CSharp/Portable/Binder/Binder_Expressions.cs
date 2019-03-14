@@ -6492,6 +6492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
+            CheckRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
+
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).TypeSymbol;
             BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
 
@@ -6562,18 +6564,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            CheckRuntimeSupportForSymbolAccess(node, receiver, propertySymbol, diagnostics);
-
             return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type.TypeSymbol, hasErrors: (hasErrors || hasError));
         }
 
         private void CheckRuntimeSupportForSymbolAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol symbol, DiagnosticBag diagnostics)
         {
-            if (!symbol.IsStatic && symbol.ContainingType.IsInterface &&
-                (!symbol.IsImplementableInterfaceMember() || (receiverOpt as BoundBaseReference)?.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() == true) &&
-                !Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            if (symbol.ContainingType?.IsInterface == true && !Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
             {
-                Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
+                if (!symbol.IsStatic && !(symbol is TypeSymbol) &&
+                    (!symbol.IsImplementableInterfaceMember() || (receiverOpt as BoundBaseReference)?.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() == true))
+                {
+                    Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
+                }
+                else
+                {
+                    switch (symbol.DeclaredAccessibility)
+                    {
+                        case Accessibility.Protected:
+                        case Accessibility.ProtectedOrInternal:
+                        case Accessibility.ProtectedAndInternal:
+
+                            Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, node);
+                            break;
+                    }
+                }
             }
         }
 
@@ -6595,8 +6609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
-
-            CheckRuntimeSupportForSymbolAccess(node, receiver, eventSymbol, diagnostics);
 
             return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type.TypeSymbol, hasErrors: (hasErrors || hasError));
         }
@@ -7388,8 +7400,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.LocalScopeDepth,
                         diagnostics);
                 }
-
-                CheckRuntimeSupportForSymbolAccess(syntax, receiver, property, diagnostics);
 
                 propertyAccess = new BoundIndexerAccess(
                     syntax,

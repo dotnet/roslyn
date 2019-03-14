@@ -31,17 +31,17 @@ class Test1 : I1
 
 - Supplying an implementation along with declaration of an event and recognizing that implementation as default implementation for the event when a type implements the interface. 
 
-- Using **partial**, **public**, **internal**, **private**, **static**, **virtual**, **sealed**, **abstract**, **extern** and **async** modifiers with interface methods.
+- Using **partial**, **public**, **internal**, **private**, **protected**, **static**, **virtual**, **sealed**, **abstract**, **extern** and **async** modifiers with interface methods.
 
-- Using **public**, **internal**, **private**, **static**, **virtual**, **sealed**, **abstract** and **extern** modifiers with interface properties.
+- Using **public**, **internal**, **private**, **protected**, **static**, **virtual**, **sealed**, **abstract** and **extern** modifiers with interface properties.
 
-- Using **public**, **internal**, **private**, **virtual**, **sealed**, **abstract** and **extern** modifiers with interface indexers.
+- Using **public**, **internal**, **private**, **protected**, **virtual**, **sealed**, **abstract** and **extern** modifiers with interface indexers.
 
-- Using **internal** and **private** modifiers with interface property/indexer accessors.
+- Using **internal**, **private**, **protected** modifiers with interface property/indexer accessors.
 
-- Using **public**, **internal**, **private**, **static**, **virtual**, **sealed**, **abstract** and **extern** modifiers with interface events.
+- Using **public**, **internal**, **private**, **protected**, **static**, **virtual**, **sealed**, **abstract** and **extern** modifiers with interface events.
 
-- Declaring types within interfaces. **Protected** and **protected internal** accessibility is not supported.
+- Declaring types within interfaces.
 
 - Implementing interface methods in derived interfaces by using explicit implementation syntax, accessibility matches accessibility of the implemented member, allowed modifiers: **extern** and **async**.
 
@@ -49,7 +49,7 @@ class Test1 : I1
 
 - Implementing interface events in derived interfaces by using explicit implementation syntax, accessibility matches accessibility of the implemented member, no allowed modifiers.
 
-- Declaring static fields, auto-properties and field-like events (**protected** modifier is not allowed).
+- Declaring static fields, auto-properties and field-like events.
 
 - Declaring operators ```+ - ! ~ ++ -- true false * / % & | ^ << >> > < >= <=``` in interfaces.
 

@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-                if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: implementedMember.ContainingType))
+                if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, implementedMember);
                 }
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     void checkAccessorIsAccessibleIfImplementable(MethodSymbol accessor)
                     {
                         if (accessor.IsImplementable() &&
-                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: accessor.ContainingType))
+                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
                         {
                             diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, accessor);
                         }

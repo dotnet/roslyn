@@ -6472,6 +6472,7 @@ public interface I1
     abstract void M10();
     extern void M11();
     async void M12();
+    private protected void M13();
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -6479,12 +6480,6 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (5,20): error CS0106: The modifier 'protected' is not valid for this item
-                //     protected void M02();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M02").WithArguments("protected").WithLocation(5, 20),
-                // (6,29): error CS0106: The modifier 'protected internal' is not valid for this item
-                //     protected internal void M03();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M03").WithArguments("protected internal").WithLocation(6, 29),
                 // (12,19): error CS0106: The modifier 'override' is not valid for this item
                 //     override void M09();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(12, 19),
@@ -6536,7 +6531,7 @@ public interface I1
             Assert.False(m02.IsExtern);
             Assert.False(m02.IsAsync);
             Assert.False(m02.IsOverride);
-            Assert.Equal(Accessibility.Public, m02.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, m02.DeclaredAccessibility);
 
             var m03 = i1.GetMember<MethodSymbol>("M03");
 
@@ -6548,7 +6543,7 @@ public interface I1
             Assert.False(m03.IsExtern);
             Assert.False(m03.IsAsync);
             Assert.False(m03.IsOverride);
-            Assert.Equal(Accessibility.Public, m03.DeclaredAccessibility);
+            Assert.Equal(Accessibility.ProtectedOrInternal, m03.DeclaredAccessibility);
 
             var m04 = i1.GetMember<MethodSymbol>("M04");
 
@@ -6657,6 +6652,18 @@ public interface I1
             Assert.True(m12.IsAsync);
             Assert.False(m12.IsOverride);
             Assert.Equal(Accessibility.Public, m12.DeclaredAccessibility);
+
+            var m13 = i1.GetMember<MethodSymbol>("M13");
+
+            Assert.True(m13.IsAbstract);
+            Assert.False(m13.IsVirtual);
+            Assert.True(m13.IsMetadataVirtual());
+            Assert.False(m13.IsSealed);
+            Assert.False(m13.IsStatic);
+            Assert.False(m13.IsExtern);
+            Assert.False(m13.IsAsync);
+            Assert.False(m13.IsOverride);
+            Assert.Equal(Accessibility.ProtectedAndInternal, m13.DeclaredAccessibility);
         }
 
         [Fact]
@@ -6678,6 +6685,7 @@ public interface I1
     abstract void M10();
     extern void M11();
     async void M12();
+    private protected void M13();
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -6688,12 +6696,12 @@ public interface I1
                 // (4,17): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     public void M01();
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M01").WithArguments("public", "7.3", "preview").WithLocation(4, 17),
-                // (5,20): error CS0106: The modifier 'protected' is not valid for this item
+                // (5,20): error CS8703: The modifier 'protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     protected void M02();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M02").WithArguments("protected").WithLocation(5, 20),
-                // (6,29): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M02").WithArguments("protected", "7.3", "preview").WithLocation(5, 20),
+                // (6,29): error CS8703: The modifier 'protected internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     protected internal void M03();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M03").WithArguments("protected internal").WithLocation(6, 29),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M03").WithArguments("protected internal", "7.3", "preview").WithLocation(6, 29),
                 // (7,19): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     internal void M04();
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M04").WithArguments("internal", "7.3", "preview").WithLocation(7, 19),
@@ -6738,10 +6746,56 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M08").WithArguments("I1.M08()").WithLocation(11, 17),
                 // (14,17): warning CS0626: Method, operator, or accessor 'I1.M11()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern void M11();
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M11").WithArguments("I1.M11()").WithLocation(14, 17)
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M11").WithArguments("I1.M11()").WithLocation(14, 17),
+                // (16,28): error CS8703: The modifier 'private protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     private protected void M13();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M13").WithArguments("private protected", "7.3", "preview").WithLocation(16, 28)
                 );
 
             ValidateSymbolsMethodModifiers_01(compilation1);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(
+                // (5,20): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected void M02();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M02").WithLocation(5, 20),
+                // (6,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected internal void M03();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M03").WithLocation(6, 29),
+                // (8,18): error CS0501: 'I1.M05()' must declare a body because it is not marked abstract, extern, or partial
+                //     private void M05();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M05").WithArguments("I1.M05()").WithLocation(8, 18),
+                // (9,17): error CS0501: 'I1.M06()' must declare a body because it is not marked abstract, extern, or partial
+                //     static void M06();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M06").WithArguments("I1.M06()").WithLocation(9, 17),
+                // (10,18): error CS0501: 'I1.M07()' must declare a body because it is not marked abstract, extern, or partial
+                //     virtual void M07();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M07").WithArguments("I1.M07()").WithLocation(10, 18),
+                // (11,17): error CS0501: 'I1.M08()' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed void M08();
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M08").WithArguments("I1.M08()").WithLocation(11, 17),
+                // (12,19): error CS0106: The modifier 'override' is not valid for this item
+                //     override void M09();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(12, 19),
+                // (14,17): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern void M11();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M11").WithLocation(14, 17),
+                // (14,17): warning CS0626: Method, operator, or accessor 'I1.M11()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern void M11();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M11").WithArguments("I1.M11()").WithLocation(14, 17),
+                // (15,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
+                //     async void M12();
+                Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M12").WithLocation(15, 16),
+                // (16,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected void M13();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "M13").WithLocation(16, 28)
+                );
+
+            ValidateSymbolsMethodModifiers_01(compilation2);
         }
 
         [Fact]
@@ -7207,7 +7261,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(9, 15)
                 );
 
-            ValidateMethodModifiersImplicit_10(compilation1.SourceModule);
+            ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.Internal);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
@@ -7215,7 +7269,7 @@ class Test1 : I1
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Internal);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -7227,7 +7281,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
                 );
 
-            ValidateMethodModifiersImplicit_10(compilation3.SourceModule);
+            ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.Internal);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -7239,7 +7293,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
                 );
 
-            ValidateMethodModifiersImplicit_10(compilation4.SourceModule);
+            ValidateMethodModifiersImplicit_10(compilation4.SourceModule, Accessibility.Internal);
 
             var source3 =
 @"
@@ -7281,33 +7335,33 @@ class Test2 : I1
             Assert.Null(test2.FindImplementationForInterfaceMember(m1));
         }
 
-        private static void ValidateMethodModifiersImplicit_10(ModuleSymbol m)
+        private static void ValidateMethodModifiersImplicit_10(ModuleSymbol m, Accessibility accessibility)
         {
-            ValidateMethodModifiers_10(m, implementedByBase: false, isExplicit: false);
+            ValidateMethodModifiers_10(m, implementedByBase: false, isExplicit: false, accessibility);
         }
 
-        private static void ValidateMethodModifiersExplicit_10(ModuleSymbol m)
+        private static void ValidateMethodModifiersExplicit_10(ModuleSymbol m, Accessibility accessibility)
         {
-            ValidateMethodModifiers_10(m, implementedByBase: false, isExplicit: true);
+            ValidateMethodModifiers_10(m, implementedByBase: false, isExplicit: true, accessibility);
         }
 
-        private static void ValidateMethodModifiersImplicitInTest2_10(ModuleSymbol m)
+        private static void ValidateMethodModifiersImplicitInTest2_10(ModuleSymbol m, Accessibility accessibility)
         {
-            ValidateMethodModifiers_10(m, implementedByBase: true, isExplicit: false);
+            ValidateMethodModifiers_10(m, implementedByBase: true, isExplicit: false, accessibility);
         }
 
-        private static void ValidateMethodModifiersExplicitInTest2_10(ModuleSymbol m)
+        private static void ValidateMethodModifiersExplicitInTest2_10(ModuleSymbol m, Accessibility accessibility)
         {
-            ValidateMethodModifiers_10(m, implementedByBase: true, isExplicit: true);
+            ValidateMethodModifiers_10(m, implementedByBase: true, isExplicit: true, accessibility);
         }
 
-        private static void ValidateMethodModifiers_10(ModuleSymbol m, bool implementedByBase, bool isExplicit)
+        private static void ValidateMethodModifiers_10(ModuleSymbol m, bool implementedByBase, bool isExplicit, Accessibility accessibility)
         {
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
             var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
             var m1 = i1.GetMember<MethodSymbol>("M1");
 
-            ValidateMethodModifiers_10(m1);
+            ValidateMethodModifiers_10(m1, accessibility);
             var implementation = (implementedByBase ? test1.BaseTypeNoUseSiteDiagnostics : test1).GetMember<MethodSymbol>((isExplicit ? "I1." : "") + "M1");
             Assert.NotNull(implementation);
             Assert.Same(implementation, test1.FindImplementationForInterfaceMember(m1));
@@ -7319,7 +7373,7 @@ class Test2 : I1
                          implementation.IsMetadataVirtual());
         }
 
-        private static void ValidateMethodModifiers_10(MethodSymbol m1)
+        private static void ValidateMethodModifiers_10(MethodSymbol m1, Accessibility accessibility)
         {
             Assert.True(m1.IsAbstract);
             Assert.False(m1.IsVirtual);
@@ -7329,7 +7383,7 @@ class Test2 : I1
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+            Assert.Equal(accessibility, m1.DeclaredAccessibility);
         }
 
         [Fact]
@@ -7364,7 +7418,7 @@ class Test1 : I1
 }
 ";
 
-            ValidateMethodModifiers_10_02(source1, source2,
+            ValidateMethodModifiers_10_02(source1, source2, Accessibility.Internal,
                 // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
@@ -7372,6 +7426,7 @@ class Test1 : I1
         }
 
         private void ValidateMethodModifiers_10_02(string source1, string source2,
+                                                  Accessibility accessibility,
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
@@ -7380,7 +7435,7 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected);
 
-            ValidateMethodModifiersImplicit_10(compilation1.SourceModule);
+            ValidateMethodModifiersImplicit_10(compilation1.SourceModule, accessibility);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
@@ -7388,7 +7443,7 @@ class Test1 : I1
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), accessibility);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -7396,7 +7451,7 @@ class Test1 : I1
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected);
 
-            ValidateMethodModifiersImplicit_10(compilation3.SourceModule);
+            ValidateMethodModifiersImplicit_10(compilation3.SourceModule, accessibility);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -7404,7 +7459,7 @@ class Test1 : I1
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected);
 
-            ValidateMethodModifiersImplicit_10(compilation4.SourceModule);
+            ValidateMethodModifiersImplicit_10(compilation4.SourceModule, accessibility);
         }
 
         [Fact]
@@ -7441,16 +7496,16 @@ class Test1 : I1
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation1, expectedOutput: "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateMethodModifiersExplicit_10);
+            CompileAndVerify(compilation1, expectedOutput: "M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.Internal));
 
-            ValidateMethodModifiersExplicit_10(compilation1.SourceModule);
+            ValidateMethodModifiersExplicit_10(compilation1.SourceModule, Accessibility.Internal);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
-            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Internal);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
@@ -7461,7 +7516,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.M1()").WithLocation(9, 13)
                 );
 
-            ValidateMethodModifiersExplicit_10(compilation3.SourceModule);
+            ValidateMethodModifiersExplicit_10(compilation3.SourceModule, Accessibility.Internal);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
@@ -7472,7 +7527,7 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.M1()").WithLocation(9, 13)
                 );
 
-            ValidateMethodModifiersExplicit_10(compilation4.SourceModule);
+            ValidateMethodModifiersExplicit_10(compilation4.SourceModule, Accessibility.Internal);
         }
 
         [Fact]
@@ -7514,7 +7569,7 @@ class Test1 : Test2, I1
     }
 }
 ";
-            ValidateMethodModifiers_10_02(source1, source2,
+            ValidateMethodModifiers_10_02(source1, source2, Accessibility.Internal,
                 // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
@@ -7560,7 +7615,7 @@ class Test1 : Test2, I1
     }
 }
 ";
-            ValidateMethodModifiers_10_02(source1, source2,
+            ValidateMethodModifiers_10_02(source1, source2, Accessibility.Internal,
                 // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
@@ -7611,7 +7666,7 @@ class Test3 : Test1
     }
 }
 ";
-            ValidateMethodModifiers_10_02(source1, source2,
+            ValidateMethodModifiers_10_02(source1, source2, Accessibility.Internal,
                 // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
@@ -7662,7 +7717,7 @@ public interface I2
     void M1(); 
 }
 ";
-            ValidateMethodModifiers_10_02(source1, source2,
+            ValidateMethodModifiers_10_02(source1, source2, Accessibility.Internal,
                 // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
@@ -7712,30 +7767,30 @@ class Test1 : Test2, I1
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation1, expectedOutput: "Test2.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
+            CompileAndVerify(compilation1, expectedOutput: "Test2.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicitInTest2_10(m, Accessibility.Internal));
 
-            ValidateMethodModifiersExplicitInTest2_10(compilation1.SourceModule);
+            ValidateMethodModifiersExplicitInTest2_10(compilation1.SourceModule, Accessibility.Internal);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
-            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Internal);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation3, expectedOutput: "Test2.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
+            CompileAndVerify(compilation3, expectedOutput: "Test2.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicitInTest2_10(m, Accessibility.Internal));
 
-            ValidateMethodModifiersExplicitInTest2_10(compilation3.SourceModule);
+            ValidateMethodModifiersExplicitInTest2_10(compilation3.SourceModule, Accessibility.Internal);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation4, expectedOutput: "Test2.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
+            CompileAndVerify(compilation4, expectedOutput: "Test2.M1", verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicitInTest2_10(m, Accessibility.Internal));
 
-            ValidateMethodModifiersExplicitInTest2_10(compilation4.SourceModule);
+            ValidateMethodModifiersExplicitInTest2_10(compilation4.SourceModule, Accessibility.Internal);
         }
 
         [Fact]
@@ -7786,7 +7841,7 @@ class Test1 : I1
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
-            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Internal);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -7847,14 +7902,14 @@ class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()").WithLocation(7, 15)
                 );
 
-            ValidateMethodModifiersImplicitInTest2_10(compilation1.SourceModule);
+            ValidateMethodModifiersImplicitInTest2_10(compilation1.SourceModule, Accessibility.Internal);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
-            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"));
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Internal);
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular);
@@ -7865,7 +7920,7 @@ class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()")
                 );
 
-            ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule);
+            ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule, Accessibility.Internal);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular);
@@ -7876,7 +7931,7 @@ class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()")
                 );
 
-            ValidateMethodModifiersImplicitInTest2_10(compilation4.SourceModule);
+            ValidateMethodModifiersImplicitInTest2_10(compilation4.SourceModule, Accessibility.Internal);
         }
 
         [Fact]
@@ -7919,13 +7974,13 @@ class Test1 : Test2, I1
 
             compilation3.VerifyDiagnostics();
 
-            ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule);
+            ValidateMethodModifiersImplicitInTest2_10(compilation3.SourceModule, Accessibility.Internal);
 
             var compilation3Ref = compilation3.EmitToImageReference();
             var compilation4 = CreateCompilation("", new[] { compilation2.ToMetadataReference(), compilation3Ref }, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular);
 
-            ValidateMethodModifiersImplicitInTest2_10(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0]);
+            ValidateMethodModifiersImplicitInTest2_10(compilation4.GetReferencedAssemblySymbol(compilation3Ref).Modules[0], Accessibility.Internal);
         }
 
         [Fact]
@@ -9139,6 +9194,9 @@ public partial interface I1
     static partial void M8() {} 
     static partial void M9(); 
     static extern partial void M10(); 
+    protected static partial void M11();
+    protected internal static partial void M12();
+    private protected static partial void M13();
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -9180,7 +9238,16 @@ public partial interface I1
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M10").WithLocation(22, 32),
                 // (22,32): error CS0756: A partial method may not have multiple defining declarations
                 //     static extern partial void M10(); 
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M10").WithLocation(22, 32)
+                Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M10").WithLocation(22, 32),
+                // (23,35): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     protected static partial void M11();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M11").WithLocation(23, 35),
+                // (24,44): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     protected internal static partial void M12();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M12").WithLocation(24, 44),
+                // (25,43): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
+                //     private protected static partial void M13();
+                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M13").WithLocation(25, 43)
                 );
         }
 
@@ -9409,6 +9476,990 @@ partial interface I1
         }
 
         [Fact]
+        public void MethodModifiers_33()
+        {
+            var source0 =
+@"
+public interface I1
+{
+    protected static void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+
+    protected internal static void M2() 
+    {
+        System.Console.WriteLine(""M2"");
+    }
+
+    private protected static void M3() 
+    {
+        System.Console.WriteLine(""M3"");
+    }
+}
+";
+            var source1 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.M1();
+        I1.M2();
+        I1.M3();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M1
+M2
+M3",
+                symbolValidator: validate,
+                verify: VerifyOnMonoOrCoreClr);
+
+            validate(compilation1.SourceModule);
+
+            var source2 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        I1.M2();
+    }
+}
+";
+
+            var compilation2 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M2",
+                verify: VerifyOnMonoOrCoreClr);
+
+            var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics();
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.M1();
+        I1.M2();
+    }
+}
+";
+
+            var source4 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        I1.M1();
+        I1.M2();
+        I1.M3();
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation3.ToMetadataReference(), compilation3.EmitToImageReference() })
+            {
+                var compilation4 = CreateCompilation(source3, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M1
+M2",
+                    verify: VerifyOnMonoOrCoreClr);
+
+                var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation5.VerifyDiagnostics(
+                    // (6,12): error CS0122: 'I1.M1()' is inaccessible due to its protection level
+                    //         I1.M1();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.M1()").WithLocation(6, 12),
+                    // (7,12): error CS0122: 'I1.M2()' is inaccessible due to its protection level
+                    //         I1.M2();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M2").WithArguments("I1.M2()").WithLocation(7, 12),
+                    // (8,12): error CS0122: 'I1.M3()' is inaccessible due to its protection level
+                    //         I1.M3();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M3").WithArguments("I1.M3()").WithLocation(8, 12)
+                    );
+
+                var compilation6 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation6.VerifyDiagnostics(
+                    // (8,12): error CS0122: 'I1.M3()' is inaccessible due to its protection level
+                    //         I1.M3();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M3").WithArguments("I1.M3()").WithLocation(8, 12)
+                    );
+            }
+
+            void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+
+                foreach (var tuple in new[] { (name: "M1", access: Accessibility.Protected), (name: "M2", access: Accessibility.ProtectedOrInternal), (name: "M3", access: Accessibility.ProtectedAndInternal) })
+                {
+                    var m1 = i1.GetMember<MethodSymbol>(tuple.name);
+
+                    Assert.False(m1.IsAbstract);
+                    Assert.False(m1.IsVirtual);
+                    Assert.False(m1.IsMetadataVirtual());
+                    Assert.False(m1.IsSealed);
+                    Assert.True(m1.IsStatic);
+                    Assert.False(m1.IsExtern);
+                    Assert.False(m1.IsAsync);
+                    Assert.False(m1.IsOverride);
+                    Assert.Equal(tuple.access, m1.DeclaredAccessibility);
+                    Assert.Null(test1.FindImplementationForInterfaceMember(m1));
+                }
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_34()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected abstract void M1(); 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
+
+    public void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            var expected = new DiagnosticDescription[] {
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15),
+                // (7,11): error CS1540: Cannot access protected member 'I1.M1()' via a qualifier of type 'I1'; the qualifier must be of type 'Test1' (or derived from it)
+                //         x.M1();
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M1").WithArguments("I1.M1()", "I1", "Test1").WithLocation(7, 11)
+                };
+
+            compilation1.VerifyDiagnostics(expected);
+
+            ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.Protected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Protected);
+
+
+            var source3 =
+@"
+class Test2 : I1
+{
+}
+";
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation3.VerifyDiagnostics(expected);
+
+                ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.Protected);
+
+                var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation5.VerifyDiagnostics(
+                    // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
+                    // class Test2 : I1
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M1()").WithLocation(2, 15)
+                    );
+
+                ValidateI1M1NotImplemented(compilation5, "Test2");
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_35()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal abstract void M1(); 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
+
+    public virtual void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
+                );
+
+            ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.ProtectedOrInternal);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.ProtectedOrInternal);
+
+
+            var source3 =
+@"
+class Test2 : I1
+{
+}
+";
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation3.VerifyDiagnostics(
+                    // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                    // class Test1 : I1
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15),
+                    // (7,11): error CS1540: Cannot access protected member 'I1.M1()' via a qualifier of type 'I1'; the qualifier must be of type 'Test1' (or derived from it)
+                    //         x.M1();
+                    Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M1").WithArguments("I1.M1()", "I1", "Test1").WithLocation(7, 11)
+                    );
+
+                ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.ProtectedOrInternal);
+
+                var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation5.VerifyDiagnostics(
+                    // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
+                    // class Test2 : I1
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M1()").WithLocation(2, 15)
+                    );
+
+                ValidateI1M1NotImplemented(compilation5, "Test2");
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_36()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private protected abstract void M1(); 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
+
+    public void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation1.VerifyDiagnostics(
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15),
+                // (7,11): error CS1540: Cannot access protected member 'I1.M1()' via a qualifier of type 'I1'; the qualifier must be of type 'Test1' (or derived from it)
+                //         x.M1();
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M1").WithArguments("I1.M1()", "I1", "Test1").WithLocation(7, 11)
+                );
+
+            ValidateMethodModifiersImplicit_10(compilation1.SourceModule, Accessibility.ProtectedAndInternal);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.ProtectedAndInternal);
+
+
+            var source3 =
+@"
+class Test2 : I1
+{
+}
+";
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation3.VerifyDiagnostics(
+                    // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                    // class Test1 : I1
+                    Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15),
+                    // (7,11): error CS0122: 'I1.M1()' is inaccessible due to its protection level
+                    //         x.M1();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.M1()").WithLocation(7, 11)
+                    );
+
+                ValidateMethodModifiersImplicit_10(compilation3.SourceModule, Accessibility.ProtectedAndInternal);
+
+                var compilation5 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugDll,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation5.VerifyDiagnostics(
+                    // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.M1()'
+                    // class Test2 : I1
+                    Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M1()").WithLocation(2, 15)
+                    );
+
+                ValidateI1M1NotImplemented(compilation5, "Test2");
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_37()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected abstract void M1(); 
+
+    static void M2(I1 x) => x.M1();
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        I1.M2(x);
+    }
+
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null, verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.Protected));
+
+            ValidateMethodModifiersExplicit_10(compilation1.SourceModule, Accessibility.Protected);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics();
+
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.Protected);
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular);
+
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation3, expectedOutput: "M1", symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.Protected));
+
+                ValidateMethodModifiersExplicit_10(compilation3.SourceModule, Accessibility.Protected);
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_38()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal abstract void M1(); 
+
+    static void M2(I1 x) => x.M1();
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        I1.M2(x);
+    }
+
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null, verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedOrInternal));
+
+            ValidateMethodModifiersExplicit_10(compilation1.SourceModule, Accessibility.ProtectedOrInternal);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics();
+
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.ProtectedOrInternal);
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular);
+
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation3, expectedOutput: "M1", symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedOrInternal));
+
+                ValidateMethodModifiersExplicit_10(compilation3.SourceModule, Accessibility.ProtectedOrInternal);
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_39()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private protected abstract void M1(); 
+
+    static void M2(I1 x) => x.M1();
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        I1.M2(x);
+    }
+
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null, verify: VerifyOnMonoOrCoreClr, symbolValidator: (m) => ValidateMethodModifiersExplicit_10(m, Accessibility.ProtectedAndInternal));
+
+            ValidateMethodModifiersExplicit_10(compilation1.SourceModule, Accessibility.ProtectedAndInternal);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyDiagnostics();
+
+            ValidateMethodModifiers_10(compilation2.GetTypeByMetadataName("I1").GetMember<MethodSymbol>("M1"), Accessibility.ProtectedAndInternal);
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular);
+
+                compilation3.VerifyDiagnostics(
+                    // (10,13): error CS0122: 'I1.M1()' is inaccessible due to its protection level
+                    //     void I1.M1() 
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.M1()").WithLocation(10, 13)
+                    );
+
+                ValidateMethodModifiersExplicit_10(compilation3.SourceModule, Accessibility.ProtectedAndInternal);
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_40()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected abstract void M1(); 
+}
+
+public class Test2 : I1
+{
+    void I1.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : Test2, I1
+{
+    static void Main()
+    {
+    }
+
+    public void M1() 
+    {
+    }
+}
+";
+            ValidateMethodModifiers_10_02(source1, source2, Accessibility.Protected,
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // class Test1 : Test2, I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_41()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal abstract void M1(); 
+}
+
+public class Test2 : I1
+{
+    void I1.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : Test2, I1
+{
+    static void Main()
+    {
+    }
+
+    public void M1() 
+    {
+    }
+}
+";
+            ValidateMethodModifiers_10_02(source1, source2, Accessibility.ProtectedOrInternal,
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // class Test1 : Test2, I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_42()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private protected abstract void M1(); 
+}
+
+public class Test2 : I1
+{
+    void I1.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : Test2, I1
+{
+    static void Main()
+    {
+    }
+
+    public virtual void M1() 
+    {
+    }
+}
+";
+            ValidateMethodModifiers_10_02(source1, source2, Accessibility.ProtectedAndInternal,
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
+                // class Test1 : Test2, I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
+                );
+        }
+
+        [Fact]
+        public void MethodModifiers_43()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+
+    void M2() {M1();}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: validate1);
+
+            validate1(compilation1.SourceModule);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            {
+                var i1 = compilation2.GetTypeByMetadataName("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+                validateMethod(m1);
+            }
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation3,
+                    expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: validate1);
+
+                validate1(compilation3.SourceModule);
+            }
+
+            void validate1(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = test1.InterfacesNoUseSiteDiagnostics().Single();
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                validateMethod(m1);
+                Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+            }
+
+            void validateMethod(MethodSymbol m1)
+            {
+                Assert.False(m1.IsAbstract);
+                Assert.True(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_44()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+
+    void M2() {M1();}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: validate1);
+
+            validate1(compilation1.SourceModule);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            {
+                var i1 = compilation2.GetTypeByMetadataName("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+                validateMethod(m1);
+            }
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation3,
+                    expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: validate1);
+
+                validate1(compilation3.SourceModule);
+            }
+
+            void validate1(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = test1.InterfacesNoUseSiteDiagnostics().Single();
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                validateMethod(m1);
+                Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+            }
+
+            void validateMethod(MethodSymbol m1)
+            {
+                Assert.False(m1.IsAbstract);
+                Assert.True(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.ProtectedOrInternal, m1.DeclaredAccessibility);
+            }
+        }
+
+        [Fact]
+        public void MethodModifiers_45()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private protected void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+
+    void M2() {M1();}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+            var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation1,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: validate1);
+
+            validate1(compilation1.SourceModule);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+
+            {
+                var i1 = compilation2.GetTypeByMetadataName("I1");
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+                validateMethod(m1);
+            }
+
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation3,
+                    expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "M1" : null,
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: validate1);
+
+                validate1(compilation3.SourceModule);
+            }
+
+            void validate1(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = test1.InterfacesNoUseSiteDiagnostics().Single();
+                var m1 = i1.GetMember<MethodSymbol>("M1");
+
+                validateMethod(m1);
+                Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
+            }
+
+            void validateMethod(MethodSymbol m1)
+            {
+                Assert.False(m1.IsAbstract);
+                Assert.True(m1.IsVirtual);
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.False(m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.ProtectedAndInternal, m1.DeclaredAccessibility);
+            }
+        }
+
+        [Fact]
         public void ImplicitThisIsAllowed_03()
         {
             var source1 =
@@ -9631,6 +10682,9 @@ public interface I1
     int P15 { get; internal set;}
     int P16 { private get; set;}
     int P17 { private get;}
+
+    private protected int P18 {get;}
+    int P19 { get; private protected set;}
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -9638,12 +10692,6 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (5,19): error CS0106: The modifier 'protected' is not valid for this item
-                //     protected int P02 {get;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 19),
-                // (6,28): error CS0106: The modifier 'protected internal' is not valid for this item
-                //     protected internal int P03 {set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(6, 28),
                 // (8,22): error CS0501: 'I1.P05.set' must declare a body because it is not marked abstract, extern, or partial
                 //     private int P05 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P05.set").WithLocation(8, 22),
@@ -9659,12 +10707,6 @@ public interface I1
                 // (16,22): error CS0273: The accessibility modifier of the 'I1.P12.get' accessor must be more restrictive than the property or indexer 'I1.P12'
                 //     int P12 { public get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I1.P12.get", "I1.P12").WithLocation(16, 22),
-                // (17,30): error CS0106: The modifier 'protected' is not valid for this item
-                //     int P13 { get; protected set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(17, 30),
-                // (18,34): error CS0106: The modifier 'protected internal' is not valid for this item
-                //     int P14 { protected internal get; set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected internal").WithLocation(18, 34),
                 // (20,23): error CS0442: 'I1.P16.get': abstract properties cannot have private accessors
                 //     int P16 { private get; set;}
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I1.P16.get").WithLocation(20, 23),
@@ -9719,7 +10761,7 @@ public interface I1
             Assert.False(p02.IsStatic);
             Assert.False(p02.IsExtern);
             Assert.False(p02.IsOverride);
-            Assert.Equal(Accessibility.Public, p02.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, p02.DeclaredAccessibility);
 
             Assert.True(p02get.IsAbstract);
             Assert.False(p02get.IsVirtual);
@@ -9729,7 +10771,7 @@ public interface I1
             Assert.False(p02get.IsExtern);
             Assert.False(p02get.IsAsync);
             Assert.False(p02get.IsOverride);
-            Assert.Equal(Accessibility.Public, p02get.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, p02get.DeclaredAccessibility);
 
             var p03 = i1.GetMember<PropertySymbol>("P03");
             var p03set = p03.SetMethod;
@@ -9740,7 +10782,7 @@ public interface I1
             Assert.False(p03.IsStatic);
             Assert.False(p03.IsExtern);
             Assert.False(p03.IsOverride);
-            Assert.Equal(Accessibility.Public, p03.DeclaredAccessibility);
+            Assert.Equal(Accessibility.ProtectedOrInternal, p03.DeclaredAccessibility);
 
             Assert.True(p03set.IsAbstract);
             Assert.False(p03set.IsVirtual);
@@ -9750,7 +10792,7 @@ public interface I1
             Assert.False(p03set.IsExtern);
             Assert.False(p03set.IsAsync);
             Assert.False(p03set.IsOverride);
-            Assert.Equal(Accessibility.Public, p03set.DeclaredAccessibility);
+            Assert.Equal(Accessibility.ProtectedOrInternal, p03set.DeclaredAccessibility);
 
             var p04 = i1.GetMember<PropertySymbol>("P04");
             var p04get = p04.GetMethod;
@@ -9959,9 +11001,9 @@ public interface I1
             Assert.False(p13.IsOverride);
             Assert.Equal(Accessibility.Public, p13.DeclaredAccessibility);
 
-            ValidateP13Accessor(p13.GetMethod);
-            ValidateP13Accessor(p13.SetMethod);
-            void ValidateP13Accessor(MethodSymbol accessor)
+            ValidateP13Accessor(p13.GetMethod, Accessibility.Public);
+            ValidateP13Accessor(p13.SetMethod, Accessibility.Protected);
+            void ValidateP13Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -9971,7 +11013,7 @@ public interface I1
                 Assert.False(accessor.IsExtern);
                 Assert.False(accessor.IsAsync);
                 Assert.False(accessor.IsOverride);
-                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Equal(accessibility, accessor.DeclaredAccessibility);
             }
 
             var p14 = i1.GetMember<PropertySymbol>("P14");
@@ -9984,9 +11026,9 @@ public interface I1
             Assert.False(p14.IsOverride);
             Assert.Equal(Accessibility.Public, p14.DeclaredAccessibility);
 
-            ValidateP14Accessor(p14.GetMethod);
-            ValidateP14Accessor(p14.SetMethod);
-            void ValidateP14Accessor(MethodSymbol accessor)
+            ValidateP14Accessor(p14.GetMethod, Accessibility.ProtectedOrInternal);
+            ValidateP14Accessor(p14.SetMethod, Accessibility.Public);
+            void ValidateP14Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -9996,7 +11038,7 @@ public interface I1
                 Assert.False(accessor.IsExtern);
                 Assert.False(accessor.IsAsync);
                 Assert.False(accessor.IsOverride);
-                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Equal(accessibility, accessor.DeclaredAccessibility);
             }
 
             var p15 = i1.GetMember<PropertySymbol>("P15");
@@ -10069,6 +11111,40 @@ public interface I1
             Assert.False(p17get.IsAsync);
             Assert.False(p17get.IsOverride);
             Assert.Equal(Accessibility.Private, p17get.DeclaredAccessibility);
+
+            var p18 = i1.GetMember<PropertySymbol>("P18");
+            var p18get = p18.GetMethod;
+
+            Assert.True(p18.IsAbstract);
+            Assert.False(p18.IsVirtual);
+            Assert.False(p18.IsSealed);
+            Assert.False(p18.IsStatic);
+            Assert.False(p18.IsExtern);
+            Assert.False(p18.IsOverride);
+            Assert.Equal(Accessibility.ProtectedAndInternal, p18.DeclaredAccessibility);
+
+            Assert.True(p18get.IsAbstract);
+            Assert.False(p18get.IsVirtual);
+            Assert.True(p18get.IsMetadataVirtual());
+            Assert.False(p18get.IsSealed);
+            Assert.False(p18get.IsStatic);
+            Assert.False(p18get.IsExtern);
+            Assert.False(p18get.IsAsync);
+            Assert.False(p18get.IsOverride);
+            Assert.Equal(Accessibility.ProtectedAndInternal, p18get.DeclaredAccessibility);
+
+            var p19 = i1.GetMember<PropertySymbol>("P19");
+
+            Assert.True(p19.IsAbstract);
+            Assert.False(p19.IsVirtual);
+            Assert.False(p19.IsSealed);
+            Assert.False(p19.IsStatic);
+            Assert.False(p19.IsExtern);
+            Assert.False(p19.IsOverride);
+            Assert.Equal(Accessibility.Public, p19.DeclaredAccessibility);
+
+            ValidateP13Accessor(p19.GetMethod, Accessibility.Public);
+            ValidateP13Accessor(p19.SetMethod, Accessibility.ProtectedAndInternal);
         }
 
         [Fact]
@@ -10096,6 +11172,9 @@ public interface I1
     int P15 { get; internal set;}
     int P16 { private get; set;}
     int P17 { private get;}
+
+    private protected int P18 {get;}
+    int P19 { get; private protected set;}
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -10106,12 +11185,12 @@ public interface I1
                 // (4,16): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     public int P01 {get; set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.3", "preview").WithLocation(4, 16),
-                // (5,19): error CS0106: The modifier 'protected' is not valid for this item
+                // (5,19): error CS8703: The modifier 'protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     protected int P02 {get;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 19),
-                // (6,28): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P02").WithArguments("protected", "7.3", "preview").WithLocation(5, 19),
+                // (6,28): error CS8703: The modifier 'protected internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     protected internal int P03 {set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(6, 28),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P03").WithArguments("protected internal", "7.3", "preview").WithLocation(6, 28),
                 // (7,18): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     internal int P04 {get;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P04").WithArguments("internal", "7.3", "preview").WithLocation(7, 18),
@@ -10151,12 +11230,12 @@ public interface I1
                 // (16,22): error CS0273: The accessibility modifier of the 'I1.P12.get' accessor must be more restrictive than the property or indexer 'I1.P12'
                 //     int P12 { public get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I1.P12.get", "I1.P12").WithLocation(16, 22),
-                // (17,30): error CS0106: The modifier 'protected' is not valid for this item
+                // (17,30): error CS8703: The modifier 'protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     int P13 { get; protected set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(17, 30),
-                // (18,34): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("protected", "7.3", "preview").WithLocation(17, 30),
+                // (18,34): error CS8703: The modifier 'protected internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     int P14 { protected internal get; set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected internal").WithLocation(18, 34),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("protected internal", "7.3", "preview").WithLocation(18, 34),
                 // (19,29): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     int P15 { get; internal set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.3", "preview").WithLocation(19, 29),
@@ -10172,6 +11251,12 @@ public interface I1
                 // (21,9): error CS0276: 'I1.P17': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 //     int P17 { private get;}
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "P17").WithArguments("I1.P17").WithLocation(21, 9),
+                // (23,27): error CS8703: The modifier 'private protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     private protected int P18 {get;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P18").WithArguments("private protected", "7.3", "preview").WithLocation(23, 27),
+                // (24,38): error CS8703: The modifier 'private protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     int P19 { get; private protected set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private protected", "7.3", "preview").WithLocation(24, 38),
                 // (14,21): warning CS0626: Method, operator, or accessor 'I1.P11.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern int P11 {get; set;}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.P11.get").WithLocation(14, 21),
@@ -10181,6 +11266,67 @@ public interface I1
                 );
 
             ValidateSymbolsPropertyModifiers_01(compilation1);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(
+                // (5,19): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected int P02 {get;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P02").WithLocation(5, 19),
+                // (6,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected internal int P03 {set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P03").WithLocation(6, 28),
+                // (8,22): error CS0501: 'I1.P05.set' must declare a body because it is not marked abstract, extern, or partial
+                //     private int P05 {set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P05.set").WithLocation(8, 22),
+                // (10,22): error CS0501: 'I1.P07.set' must declare a body because it is not marked abstract, extern, or partial
+                //     virtual int P07 {set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P07.set").WithLocation(10, 22),
+                // (11,21): error CS0501: 'I1.P08.get' must declare a body because it is not marked abstract, extern, or partial
+                //     sealed int P08 {get;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P08.get").WithLocation(11, 21),
+                // (12,18): error CS0106: The modifier 'override' is not valid for this item
+                //     override int P09 {set;}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 18),
+                // (14,21): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern int P11 {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(14, 21),
+                // (14,21): warning CS0626: Method, operator, or accessor 'I1.P11.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int P11 {get; set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.P11.get").WithLocation(14, 21),
+                // (14,26): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern int P11 {get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(14, 26),
+                // (14,26): warning CS0626: Method, operator, or accessor 'I1.P11.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int P11 {get; set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I1.P11.set").WithLocation(14, 26),
+                // (16,22): error CS0273: The accessibility modifier of the 'I1.P12.get' accessor must be more restrictive than the property or indexer 'I1.P12'
+                //     int P12 { public get; set;}
+                Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I1.P12.get", "I1.P12").WithLocation(16, 22),
+                // (17,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     int P13 { get; protected set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(17, 30),
+                // (18,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     int P14 { protected internal get; set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "get").WithLocation(18, 34),
+                // (20,23): error CS0442: 'I1.P16.get': abstract properties cannot have private accessors
+                //     int P16 { private get; set;}
+                Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I1.P16.get").WithLocation(20, 23),
+                // (21,9): error CS0276: 'I1.P17': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
+                //     int P17 { private get;}
+                Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "P17").WithArguments("I1.P17").WithLocation(21, 9),
+                // (23,27): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected int P18 {get;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P18").WithLocation(23, 27),
+                // (24,38): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     int P19 { get; private protected set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(24, 38)
+                );
+
+            ValidateSymbolsPropertyModifiers_01(compilation2);
         }
 
         [Fact]
@@ -11288,7 +12434,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_01(source1, source2,
+            ValidatePropertyModifiers_11_01(source1, source2, Accessibility.Internal,
                 new DiagnosticDescription[] {
                 // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : I1
@@ -11303,7 +12449,7 @@ class Test1 : I1
                 );
         }
 
-        private void ValidatePropertyModifiers_11_01(string source1, string source2,
+        private void ValidatePropertyModifiers_11_01(string source1, string source2, Accessibility accessibility,
                                                   DiagnosticDescription[] expected1,
                                                   params DiagnosticDescription[] expected2)
         {
@@ -11313,7 +12459,7 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(expected1);
 
-            ValidatePropertyModifiers_11(compilation1.SourceModule);
+            ValidatePropertyModifiers_11(compilation1.SourceModule, accessibility);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
@@ -11327,9 +12473,9 @@ class Test1 : I1
                 var p1get = p1.GetMethod;
                 var p1set = p1.SetMethod;
 
-                ValidatePropertyModifiers_11(p1);
-                ValidatePropertyAccessorModifiers_11(p1get);
-                ValidatePropertyAccessorModifiers_11(p1set);
+                ValidatePropertyModifiers_11(p1, accessibility);
+                ValidatePropertyAccessorModifiers_11(p1get, accessibility);
+                ValidatePropertyAccessorModifiers_11(p1set, accessibility);
             }
 
             var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
@@ -11338,7 +12484,7 @@ class Test1 : I1
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(expected1);
 
-            ValidatePropertyModifiers_11(compilation3.SourceModule);
+            ValidatePropertyModifiers_11(compilation3.SourceModule, accessibility);
 
             var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -11346,7 +12492,7 @@ class Test1 : I1
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(expected1);
 
-            ValidatePropertyModifiers_11(compilation4.SourceModule);
+            ValidatePropertyModifiers_11(compilation4.SourceModule, accessibility);
 
             var source3 =
 @"
@@ -11372,7 +12518,7 @@ class Test2 : I1
             ValidatePropertyNotImplemented_11(compilation6, "Test2");
         }
 
-        private static void ValidatePropertyModifiers_11(ModuleSymbol m)
+        private static void ValidatePropertyModifiers_11(ModuleSymbol m, Accessibility accessibility)
         {
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
             var i1 = test1.InterfacesNoUseSiteDiagnostics().Single();
@@ -11381,15 +12527,15 @@ class Test2 : I1
             var p1get = p1.GetMethod;
             var p1set = p1.SetMethod;
 
-            ValidatePropertyModifiers_11(p1);
-            ValidatePropertyAccessorModifiers_11(p1get);
-            ValidatePropertyAccessorModifiers_11(p1set);
+            ValidatePropertyModifiers_11(p1, accessibility);
+            ValidatePropertyAccessorModifiers_11(p1get, accessibility);
+            ValidatePropertyAccessorModifiers_11(p1set, accessibility);
             Assert.Same(test1P1, test1.FindImplementationForInterfaceMember(p1));
             Assert.Same(test1P1.GetMethod, test1.FindImplementationForInterfaceMember(p1get));
             Assert.Same(test1P1.SetMethod, test1.FindImplementationForInterfaceMember(p1set));
         }
 
-        private static void ValidatePropertyModifiers_11(PropertySymbol p1)
+        private static void ValidatePropertyModifiers_11(PropertySymbol p1, Accessibility accessibility)
         {
             Assert.True(p1.IsAbstract);
             Assert.False(p1.IsVirtual);
@@ -11397,10 +12543,10 @@ class Test2 : I1
             Assert.False(p1.IsStatic);
             Assert.False(p1.IsExtern);
             Assert.False(p1.IsOverride);
-            Assert.Equal(Accessibility.Internal, p1.DeclaredAccessibility);
+            Assert.Equal(accessibility, p1.DeclaredAccessibility);
         }
 
-        private static void ValidatePropertyAccessorModifiers_11(MethodSymbol m1)
+        private static void ValidatePropertyAccessorModifiers_11(MethodSymbol m1, Accessibility accessibility)
         {
             Assert.True(m1.IsAbstract);
             Assert.False(m1.IsVirtual);
@@ -11410,7 +12556,7 @@ class Test2 : I1
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+            Assert.Equal(accessibility, m1.DeclaredAccessibility);
         }
 
         private static void ValidatePropertyNotImplemented_11(CSharpCompilation compilation, string className)
@@ -11578,43 +12724,49 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2,
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.Standard,
                 // (9,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
                 //     int I1.P1 
                 Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(9, 12)
                 );
         }
 
-        private void ValidatePropertyModifiers_11_03(string source1, string source2,
+        private void ValidatePropertyModifiers_11_03(string source1, string source2, TargetFramework targetFramework,
                                                   params DiagnosticDescription[] expected)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                 targetFramework: targetFramework,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation1, expectedOutput:
+            CompileAndVerify(compilation1, expectedOutput: !(targetFramework == TargetFramework.Standard || ExecutionConditionUtil.IsMonoOrCoreClr) ? null :
 @"get_P1
 set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementation_11);
 
             ValidatePropertyImplementation_11(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 targetFramework: targetFramework,
                                                  parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     targetFramework: targetFramework,
+                                                     parseOptions: TestOptions.Regular);
 
-            compilation3.VerifyDiagnostics(expected);
+                compilation3.VerifyDiagnostics(expected);
 
-            ValidatePropertyImplementation_11(compilation3.SourceModule);
+                if (expected.Length == 0)
+                {
+                    CompileAndVerify(compilation3, expectedOutput: !(targetFramework == TargetFramework.Standard || ExecutionConditionUtil.IsMonoOrCoreClr) ? null :
+@"get_P1
+set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidatePropertyImplementation_11);
+                }
 
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
-
-            compilation4.VerifyDiagnostics(expected);
-
-            ValidatePropertyImplementation_11(compilation4.SourceModule);
+                ValidatePropertyImplementation_11(compilation3.SourceModule);
+            }
         }
 
         [Fact]
@@ -13646,10 +14798,10 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_20(source1, source2);
+            ValidatePropertyModifiers_20(source1, source2, Accessibility.Internal);
         }
 
-        private void ValidatePropertyModifiers_20(string source1, string source2)
+        private void ValidatePropertyModifiers_20(string source1, string source2, Accessibility accessibility)
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -13689,7 +14841,7 @@ set_P1
                 Assert.False(p1.IsStatic);
                 Assert.False(p1.IsExtern);
                 Assert.False(p1.IsOverride);
-                Assert.Equal(Accessibility.Internal, p1.DeclaredAccessibility);
+                Assert.Equal(accessibility, p1.DeclaredAccessibility);
             }
 
             void ValidateMethod(MethodSymbol m1)
@@ -13702,7 +14854,7 @@ set_P1
                 Assert.False(m1.IsExtern);
                 Assert.False(m1.IsAsync);
                 Assert.False(m1.IsOverride);
-                Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+                Assert.Equal(accessibility, m1.DeclaredAccessibility);
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -13914,10 +15066,10 @@ class Test1 : I1, I2, I3, I4
 }
 ";
 
-            ValidatePropertyModifiers_22(source1);
+            ValidatePropertyModifiers_22(source1, Accessibility.Internal);
         }
 
-        private void ValidatePropertyModifiers_22(string source1)
+        private void ValidatePropertyModifiers_22(string source1, Accessibility accessibility)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular,
@@ -13961,13 +15113,13 @@ set_P4
                     {
                         case 1:
                         case 3:
-                            ValidateAccessor(p1.GetMethod, Accessibility.Internal);
+                            ValidateAccessor(p1.GetMethod, accessibility);
                             ValidateAccessor(p1.SetMethod, Accessibility.Public);
                             break;
                         case 2:
                         case 4:
                             ValidateAccessor(p1.GetMethod, Accessibility.Public);
-                            ValidateAccessor(p1.SetMethod, Accessibility.Internal);
+                            ValidateAccessor(p1.SetMethod, accessibility);
                             break;
                         default:
                             Assert.False(true);
@@ -14766,7 +15918,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2,
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.Standard,
                 // (9,12): error CS0122: 'I1.P1.get' is inaccessible due to its protection level
                 //     int I1.P1 
                 Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1.get").WithLocation(9, 12)
@@ -15350,7 +16502,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2,
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.Standard,
                 // (9,12): error CS0122: 'I1.P1.set' is inaccessible due to its protection level
                 //     int I1.P1 
                 Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1.set").WithLocation(9, 12)
@@ -16213,6 +17365,1223 @@ public interface I2
         }
 
         [Fact]
+        public void PropertyModifiers_28()
+        {
+            var source0 =
+@"
+public interface I1
+{
+    protected static int P1 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 1;
+        }
+        set 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    protected internal static int P2 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P2"");
+            return 2;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P2"");
+        }
+    }
+
+    private protected static int P3 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P3"");
+            return 3;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P3"");
+        }
+    }
+
+    static int P4 
+    {
+        protected get
+        {
+            System.Console.WriteLine(""get_P4"");
+            return 4;
+        }
+        set 
+        {
+            System.Console.WriteLine(""set_P4"");
+        }
+    }
+
+    static int P5 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P5"");
+            return 5;
+        }
+        protected internal set 
+        {
+            System.Console.WriteLine(""set_P5"");
+        }
+    }
+
+    static int P6 
+    {
+        private protected get
+        {
+            System.Console.WriteLine(""get_P6"");
+            return 6;
+        }
+        set 
+        {
+            System.Console.WriteLine(""set_P6"");
+        }
+    }
+}
+";
+            var source1 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        _ = I1.P1;
+        I1.P1 = 11;
+        _ = I1.P2;
+        I1.P2 = 11;
+        _ = I1.P3;
+        I1.P3 = 11;
+        _ = I1.P4;
+        I1.P4 = 11;
+        _ = I1.P5;
+        I1.P5 = 11;
+        _ = I1.P6;
+        I1.P6 = 11;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1,
+                                                 options: TestOptions.DebugExe,
+                                                 targetFramework: TargetFramework.NetStandardLatest,
+                                                 parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1
+get_P2
+set_P2
+get_P3
+set_P3
+get_P4
+set_P4
+get_P5
+set_P5
+get_P6
+set_P6",
+                symbolValidator: validate,
+                verify: VerifyOnMonoOrCoreClr);
+
+            validate(compilation1.SourceModule);
+
+            var source2 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        _ = I1.P2;
+        I1.P2 = 11;
+        I1.P4 = 11;
+        _ = I1.P5;
+        I1.P5 = 11;
+        I1.P6 = 11;
+    }
+}
+";
+
+            var compilation2 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P2
+set_P2
+set_P4
+get_P5
+set_P5
+set_P6
+",
+                verify: VerifyOnMonoOrCoreClr);
+
+            var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics();
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        _ = I1.P1;
+        I1.P1 = 11;
+        _ = I1.P2;
+        I1.P2 = 11;
+        _ = I1.P4;
+        I1.P4 = 11;
+        _ = I1.P5;
+        I1.P5 = 11;
+        I1.P6 = 11;
+    }
+}
+";
+
+            var source4 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        I1.P4 = 11;
+        _ = I1.P5;
+        I1.P6 = 11;
+    }
+}
+";
+
+            var source5 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        _ = I1.P1;
+        I1.P1 = 11;
+        _ = I1.P2;
+        I1.P2 = 11;
+        _ = I1.P3;
+        I1.P3 = 11;
+        _ = I1.P4;
+        I1.P5 = 11;
+        _ = I1.P6;
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation3.ToMetadataReference(), compilation3.EmitToImageReference() })
+            {
+                var compilation4 = CreateCompilation(source3, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1
+get_P2
+set_P2
+get_P4
+set_P4
+get_P5
+set_P5
+set_P6
+",
+                    verify: VerifyOnMonoOrCoreClr);
+
+                var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                CompileAndVerify(compilation5, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"set_P4
+get_P5
+set_P6
+",
+                    verify: VerifyOnMonoOrCoreClr);
+
+                var compilation6 = CreateCompilation(source5, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation6.VerifyDiagnostics(
+                    // (6,16): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                    //         _ = I1.P1;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(6, 16),
+                    // (7,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                    //         I1.P1 = 11;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(7, 12),
+                    // (8,16): error CS0122: 'I1.P2' is inaccessible due to its protection level
+                    //         _ = I1.P2;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P2").WithArguments("I1.P2").WithLocation(8, 16),
+                    // (9,12): error CS0122: 'I1.P2' is inaccessible due to its protection level
+                    //         I1.P2 = 11;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P2").WithArguments("I1.P2").WithLocation(9, 12),
+                    // (10,16): error CS0122: 'I1.P3' is inaccessible due to its protection level
+                    //         _ = I1.P3;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("I1.P3").WithLocation(10, 16),
+                    // (11,12): error CS0122: 'I1.P3' is inaccessible due to its protection level
+                    //         I1.P3 = 11;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("I1.P3").WithLocation(11, 12),
+                    // (12,13): error CS0271: The property or indexer 'I1.P4' cannot be used in this context because the get accessor is inaccessible
+                    //         _ = I1.P4;
+                    Diagnostic(ErrorCode.ERR_InaccessibleGetter, "I1.P4").WithArguments("I1.P4").WithLocation(12, 13),
+                    // (13,9): error CS0272: The property or indexer 'I1.P5' cannot be used in this context because the set accessor is inaccessible
+                    //         I1.P5 = 11;
+                    Diagnostic(ErrorCode.ERR_InaccessibleSetter, "I1.P5").WithArguments("I1.P5").WithLocation(13, 9),
+                    // (14,13): error CS0271: The property or indexer 'I1.P6' cannot be used in this context because the get accessor is inaccessible
+                    //         _ = I1.P6;
+                    Diagnostic(ErrorCode.ERR_InaccessibleGetter, "I1.P6").WithArguments("I1.P6").WithLocation(14, 13)
+                    );
+
+                var compilation7 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation7.VerifyDiagnostics(
+                    // (10,16): error CS0122: 'I1.P3' is inaccessible due to its protection level
+                    //         _ = I1.P3;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("I1.P3").WithLocation(10, 16),
+                    // (11,12): error CS0122: 'I1.P3' is inaccessible due to its protection level
+                    //         I1.P3 = 11;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("I1.P3").WithLocation(11, 12),
+                    // (16,13): error CS0271: The property or indexer 'I1.P6' cannot be used in this context because the get accessor is inaccessible
+                    //         _ = I1.P6;
+                    Diagnostic(ErrorCode.ERR_InaccessibleGetter, "I1.P6").WithArguments("I1.P6").WithLocation(16, 13)
+                    );
+            }
+
+            static void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+
+                foreach (var tuple in new[] { (name: "P1", access: Accessibility.Protected, getAccess: Accessibility.Protected, setAccess: Accessibility.Protected),
+                                              (name: "P2", access: Accessibility.ProtectedOrInternal, getAccess: Accessibility.ProtectedOrInternal, setAccess: Accessibility.ProtectedOrInternal),
+                                              (name: "P3", access: Accessibility.ProtectedAndInternal, getAccess: Accessibility.ProtectedAndInternal, setAccess: Accessibility.ProtectedAndInternal),
+                                              (name: "P4", access: Accessibility.Public, getAccess: Accessibility.Protected, setAccess: Accessibility.Public),
+                                              (name: "P5", access: Accessibility.Public, getAccess: Accessibility.Public, setAccess: Accessibility.ProtectedOrInternal),
+                                              (name: "P6", access: Accessibility.Public, getAccess: Accessibility.ProtectedAndInternal, setAccess: Accessibility.Public)})
+                {
+                    var p1 = i1.GetMember<PropertySymbol>(tuple.name);
+
+                    Assert.False(p1.IsAbstract);
+                    Assert.False(p1.IsVirtual);
+                    Assert.False(p1.IsSealed);
+                    Assert.True(p1.IsStatic);
+                    Assert.False(p1.IsExtern);
+                    Assert.False(p1.IsOverride);
+                    Assert.Equal(tuple.access, p1.DeclaredAccessibility);
+                    Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+
+                    validateAccessor(p1.GetMethod, tuple.getAccess);
+                    validateAccessor(p1.SetMethod, tuple.setAccess);
+                }
+
+                void validateAccessor(MethodSymbol accessor, Accessibility accessibility)
+                {
+                    Assert.False(accessor.IsAbstract);
+                    Assert.False(accessor.IsVirtual);
+                    Assert.False(accessor.IsMetadataVirtual());
+                    Assert.False(accessor.IsSealed);
+                    Assert.True(accessor.IsStatic);
+                    Assert.False(accessor.IsExtern);
+                    Assert.False(accessor.IsAsync);
+                    Assert.False(accessor.IsOverride);
+                    Assert.Equal(accessibility, accessor.DeclaredAccessibility);
+                    Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyModifiers_29()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected abstract int P1 {get; set;} 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+    }
+
+    public int P1 
+    {
+        get => 0;
+        set {}
+    }
+}
+";
+
+            ValidatePropertyModifiers_11_01(source1, source2, Accessibility.Protected,
+                new DiagnosticDescription[] {
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15),
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                },
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyModifiers_30()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal abstract int P1 {get; set;} 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+    }
+
+    public int P1 
+    {
+        get => 0;
+        set {}
+    }
+}
+";
+
+            ValidatePropertyModifiers_11_01(source1, source2, Accessibility.ProtectedOrInternal,
+                new DiagnosticDescription[] {
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15),
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                },
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyModifiers_31()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private protected abstract int P1 {get; set;} 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+    }
+
+    public int P1 
+    {
+        get => 0;
+        set {}
+    }
+}
+";
+
+            ValidatePropertyModifiers_11_01(source1, source2, Accessibility.ProtectedAndInternal,
+                new DiagnosticDescription[] {
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15),
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                },
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyModifiers_32()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract int P1 {protected get; set;} 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+    }
+
+    public int P1 
+    {
+        get => 0;
+        set {}
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source2, Accessibility.Protected, Accessibility.Public,
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyModifiers_33()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract int P1 {protected internal get; set;} 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+    }
+
+    public int P1 
+    {
+        get => 0;
+        set {}
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source2, Accessibility.ProtectedOrInternal, Accessibility.Public,
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyModifiers_34()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract int P1 {get; private protected set;} 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+    }
+
+    public int P1 
+    {
+        get => 0;
+        set {}
+    }
+}
+";
+            ValidatePropertyModifiers_23(source1, source2, Accessibility.Public, Accessibility.ProtectedAndInternal,
+                // (2,15): error CS8704: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void PropertyModifiers_35()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected abstract int P1 {get; set;} 
+
+    public static void CallP1(I1 x) {x.P1 = x.P1;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.CallP1(new Test1());
+    }
+
+    int I1.P1 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+        }
+
+        [Fact]
+        public void PropertyModifiers_36()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal abstract int P1 {get; set;} 
+
+    public static void CallP1(I1 x) {x.P1 = x.P1;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.CallP1(new Test1());
+    }
+
+    int I1.P1 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+        }
+
+        [Fact]
+        public void PropertyModifiers_37()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private protected abstract int P1 {get; set;} 
+
+    public static void CallP1(I1 x) {x.P1 = x.P1;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.CallP1(new Test1());
+    }
+
+    int I1.P1 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest,
+                // (9,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                //     int I1.P1 
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(9, 12)
+                );
+        }
+
+        [Fact]
+        public void PropertyModifiers_38()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract int P1 {protected get; set;} 
+
+    public static void CallP1(I1 x) {x.P1 = x.P1;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.CallP1(new Test1());
+    }
+
+    int I1.P1 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+        }
+
+        [Fact]
+        public void PropertyModifiers_39()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract int P1 {get; protected internal set;} 
+
+    public static void CallP1(I1 x) {x.P1 = x.P1;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.CallP1(new Test1());
+    }
+
+    int I1.P1 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+        }
+
+        [Fact]
+        public void PropertyModifiers_40()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    abstract int P1 { private protected get; set;} 
+
+    public static void CallP1(I1 x) {x.P1 = x.P1;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.CallP1(new Test1());
+    }
+
+    int I1.P1 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest,
+                // (9,12): error CS0122: 'I1.P1.get' is inaccessible due to its protection level
+                //     int I1.P1 
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1.get").WithLocation(9, 12)
+                );
+        }
+
+        [Fact]
+        public void PropertyModifiers_41()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected int P1
+    {
+        get 
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    void M2() {P1 = P1;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+
+            ValidatePropertyModifiers_20(source1, source2, Accessibility.Protected);
+        }
+
+        [Fact]
+        public void PropertyModifiers_42()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal int P1
+    {
+        get 
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    void M2() {P1 = P1;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+
+            ValidatePropertyModifiers_20(source1, source2, Accessibility.ProtectedOrInternal);
+        }
+
+        [Fact]
+        public void PropertyModifiers_43()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private protected int P1
+    {
+        get 
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    void M2() {P1 = P1;}
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+
+            ValidatePropertyModifiers_20(source1, source2, Accessibility.ProtectedAndInternal);
+        }
+
+        [Fact]
+        public void PropertyModifiers_44()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public int P1 
+    {
+        protected get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    static void Test(I1 i1)
+    {
+        i1.P1 = i1.P1;
+    }
+}
+public interface I2
+{
+    int P2 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P2"");
+            return 0;
+        }
+        protected set
+        {
+            System.Console.WriteLine(""set_P2"");
+        }
+    }
+
+    static void Test(I2 i2)
+    {
+        i2.P2 = i2.P2;
+    }
+}
+public interface I3
+{
+    int P3 
+    {
+        protected get => Test1.GetP3();
+        set => System.Console.WriteLine(""set_P3"");
+    }
+
+    static void Test(I3 i3)
+    {
+        i3.P3 = i3.P3;
+    }
+}
+public interface I4
+{
+    int P4
+    {
+        get => Test1.GetP4();
+        protected set => System.Console.WriteLine(""set_P4"");
+    }
+
+    static void Test(I4 i4)
+    {
+        i4.P4 = i4.P4;
+    }
+}
+
+class Test1 : I1, I2, I3, I4
+{
+    static void Main()
+    {
+        I1.Test(new Test1());
+        I2.Test(new Test1());
+        I3.Test(new Test1());
+        I4.Test(new Test1());
+    }
+
+    public static int GetP3()
+    {
+        System.Console.WriteLine(""get_P3"");
+        return 0;
+    }
+
+    public static int GetP4()
+    {
+        System.Console.WriteLine(""get_P4"");
+        return 0;
+    }
+}
+";
+
+            ValidatePropertyModifiers_22(source1, Accessibility.Protected);
+        }
+
+        [Fact]
+        public void PropertyModifiers_45()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public int P1 
+    {
+        protected internal get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+public interface I2
+{
+    int P2 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P2"");
+            return 0;
+        }
+        protected internal set
+        {
+            System.Console.WriteLine(""set_P2"");
+        }
+    }
+}
+public interface I3
+{
+    int P3 
+    {
+        protected internal get => Test1.GetP3();
+        set => System.Console.WriteLine(""set_P3"");
+    }
+}
+public interface I4
+{
+    int P4
+    {
+        get => Test1.GetP4();
+        protected internal set => System.Console.WriteLine(""set_P4"");
+    }
+}
+
+class Test1 : I1, I2, I3, I4
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        I2 i2 = new Test1();
+        I3 i3 = new Test1();
+        I4 i4 = new Test1();
+
+        i1.P1 = i1.P1;
+        i2.P2 = i2.P2;
+        i3.P3 = i3.P3;
+        i4.P4 = i4.P4;
+    }
+
+    public static int GetP3()
+    {
+        System.Console.WriteLine(""get_P3"");
+        return 0;
+    }
+
+    public static int GetP4()
+    {
+        System.Console.WriteLine(""get_P4"");
+        return 0;
+    }
+}
+";
+
+            ValidatePropertyModifiers_22(source1, Accessibility.ProtectedOrInternal);
+        }
+
+        [Fact]
+        public void PropertyModifiers_46()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public int P1 
+    {
+        private protected get
+        {
+            System.Console.WriteLine(""get_P1"");
+            return 0;
+        }
+        set 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    static void Test(I1 i1)
+    {
+        i1.P1 = i1.P1;
+    }
+}
+public interface I2
+{
+    int P2 
+    {
+        get
+        {
+            System.Console.WriteLine(""get_P2"");
+            return 0;
+        }
+        private protected set
+        {
+            System.Console.WriteLine(""set_P2"");
+        }
+    }
+
+    static void Test(I2 i2)
+    {
+        i2.P2 = i2.P2;
+    }
+}
+public interface I3
+{
+    int P3 
+    {
+        private protected get => Test1.GetP3();
+        set => System.Console.WriteLine(""set_P3"");
+    }
+
+    static void Test(I3 i3)
+    {
+        i3.P3 = i3.P3;
+    }
+}
+public interface I4
+{
+    int P4
+    {
+        get => Test1.GetP4();
+        private protected set => System.Console.WriteLine(""set_P4"");
+    }
+
+    static void Test(I4 i4)
+    {
+        i4.P4 = i4.P4;
+    }
+}
+
+class Test1 : I1, I2, I3, I4
+{
+    static void Main()
+    {
+        I1.Test(new Test1());
+        I2.Test(new Test1());
+        I3.Test(new Test1());
+        I4.Test(new Test1());
+    }
+
+    public static int GetP3()
+    {
+        System.Console.WriteLine(""get_P3"");
+        return 0;
+    }
+
+    public static int GetP4()
+    {
+        System.Console.WriteLine(""get_P4"");
+        return 0;
+    }
+}
+";
+
+            ValidatePropertyModifiers_22(source1, Accessibility.ProtectedAndInternal);
+        }
+
+        [Fact]
         public void IndexerModifiers_01()
         {
             var source1 =
@@ -16235,18 +18604,15 @@ public interface I14{ int this[int x] { protected internal get; set;} }
 public interface I15{ int this[int x] { get; internal set;} }
 public interface I16{ int this[int x] { private get; set;} }
 public interface I17{ int this[int x] { private get;} }
+
+public interface I18{ private protected int this[int x] { get; } }
+public interface I19{ int this[int x] { get; private protected set;} }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (3,37): error CS0106: The modifier 'protected' is not valid for this item
-                // public interface I02{ protected int this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected").WithLocation(3, 37),
-                // (4,46): error CS0106: The modifier 'protected internal' is not valid for this item
-                // public interface I03{ protected internal int this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected internal").WithLocation(4, 46),
                 // (6,48): error CS0501: 'I05.this[int].set' must declare a body because it is not marked abstract, extern, or partial
                 // public interface I05{ private int this[int x] {set;} }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I05.this[int].set").WithLocation(6, 48),
@@ -16265,12 +18631,6 @@ public interface I17{ int this[int x] { private get;} }
                 // (14,48): error CS0273: The accessibility modifier of the 'I12.this[int].get' accessor must be more restrictive than the property or indexer 'I12.this[int]'
                 // public interface I12{ int this[int x] { public get; set;} }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I12.this[int].get", "I12.this[int]").WithLocation(14, 48),
-                // (15,56): error CS0106: The modifier 'protected' is not valid for this item
-                // public interface I13{ int this[int x] { get; protected set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(15, 56),
-                // (16,60): error CS0106: The modifier 'protected internal' is not valid for this item
-                // public interface I14{ int this[int x] { protected internal get; set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected internal").WithLocation(16, 60),
                 // (18,49): error CS0442: 'I16.this[int].get': abstract properties cannot have private accessors
                 // public interface I16{ int this[int x] { private get; set;} }
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I16.this[int].get").WithLocation(18, 49),
@@ -16324,7 +18684,7 @@ public interface I17{ int this[int x] { private get;} }
             Assert.False(p02.IsStatic);
             Assert.False(p02.IsExtern);
             Assert.False(p02.IsOverride);
-            Assert.Equal(Accessibility.Public, p02.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, p02.DeclaredAccessibility);
 
             Assert.True(p02get.IsAbstract);
             Assert.False(p02get.IsVirtual);
@@ -16334,7 +18694,7 @@ public interface I17{ int this[int x] { private get;} }
             Assert.False(p02get.IsExtern);
             Assert.False(p02get.IsAsync);
             Assert.False(p02get.IsOverride);
-            Assert.Equal(Accessibility.Public, p02get.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, p02get.DeclaredAccessibility);
 
             var p03 = compilation1.GetMember<PropertySymbol>("I03.this[]");
             var p03set = p03.SetMethod;
@@ -16345,7 +18705,7 @@ public interface I17{ int this[int x] { private get;} }
             Assert.False(p03.IsStatic);
             Assert.False(p03.IsExtern);
             Assert.False(p03.IsOverride);
-            Assert.Equal(Accessibility.Public, p03.DeclaredAccessibility);
+            Assert.Equal(Accessibility.ProtectedOrInternal, p03.DeclaredAccessibility);
 
             Assert.True(p03set.IsAbstract);
             Assert.False(p03set.IsVirtual);
@@ -16355,7 +18715,7 @@ public interface I17{ int this[int x] { private get;} }
             Assert.False(p03set.IsExtern);
             Assert.False(p03set.IsAsync);
             Assert.False(p03set.IsOverride);
-            Assert.Equal(Accessibility.Public, p03set.DeclaredAccessibility);
+            Assert.Equal(Accessibility.ProtectedOrInternal, p03set.DeclaredAccessibility);
 
             var p04 = compilation1.GetMember<PropertySymbol>("I04.this[]");
             var p04get = p04.GetMethod;
@@ -16564,9 +18924,9 @@ public interface I17{ int this[int x] { private get;} }
             Assert.False(p13.IsOverride);
             Assert.Equal(Accessibility.Public, p13.DeclaredAccessibility);
 
-            ValidateP13Accessor(p13.GetMethod);
-            ValidateP13Accessor(p13.SetMethod);
-            void ValidateP13Accessor(MethodSymbol accessor)
+            ValidateP13Accessor(p13.GetMethod, Accessibility.Public);
+            ValidateP13Accessor(p13.SetMethod, Accessibility.Protected);
+            void ValidateP13Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -16576,7 +18936,7 @@ public interface I17{ int this[int x] { private get;} }
                 Assert.False(accessor.IsExtern);
                 Assert.False(accessor.IsAsync);
                 Assert.False(accessor.IsOverride);
-                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Equal(accessibility, accessor.DeclaredAccessibility);
             }
 
             var p14 = compilation1.GetMember<PropertySymbol>("I14.this[]");
@@ -16589,9 +18949,9 @@ public interface I17{ int this[int x] { private get;} }
             Assert.False(p14.IsOverride);
             Assert.Equal(Accessibility.Public, p14.DeclaredAccessibility);
 
-            ValidateP14Accessor(p14.GetMethod);
-            ValidateP14Accessor(p14.SetMethod);
-            void ValidateP14Accessor(MethodSymbol accessor)
+            ValidateP14Accessor(p14.GetMethod, Accessibility.ProtectedOrInternal);
+            ValidateP14Accessor(p14.SetMethod, Accessibility.Public);
+            void ValidateP14Accessor(MethodSymbol accessor, Accessibility accessibility)
             {
                 Assert.True(accessor.IsAbstract);
                 Assert.False(accessor.IsVirtual);
@@ -16601,7 +18961,7 @@ public interface I17{ int this[int x] { private get;} }
                 Assert.False(accessor.IsExtern);
                 Assert.False(accessor.IsAsync);
                 Assert.False(accessor.IsOverride);
-                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
+                Assert.Equal(accessibility, accessor.DeclaredAccessibility);
             }
 
             var p15 = compilation1.GetMember<PropertySymbol>("I15.this[]");
@@ -16674,6 +19034,40 @@ public interface I17{ int this[int x] { private get;} }
             Assert.False(p17get.IsAsync);
             Assert.False(p17get.IsOverride);
             Assert.Equal(Accessibility.Private, p17get.DeclaredAccessibility);
+
+            var p18 = compilation1.GetMember<PropertySymbol>("I18.this[]");
+            var p18get = p18.GetMethod;
+
+            Assert.True(p18.IsAbstract);
+            Assert.False(p18.IsVirtual);
+            Assert.False(p18.IsSealed);
+            Assert.False(p18.IsStatic);
+            Assert.False(p18.IsExtern);
+            Assert.False(p18.IsOverride);
+            Assert.Equal(Accessibility.ProtectedAndInternal, p18.DeclaredAccessibility);
+
+            Assert.True(p18get.IsAbstract);
+            Assert.False(p18get.IsVirtual);
+            Assert.True(p18get.IsMetadataVirtual());
+            Assert.False(p18get.IsSealed);
+            Assert.False(p18get.IsStatic);
+            Assert.False(p18get.IsExtern);
+            Assert.False(p18get.IsAsync);
+            Assert.False(p18get.IsOverride);
+            Assert.Equal(Accessibility.ProtectedAndInternal, p18get.DeclaredAccessibility);
+
+            var p19 = compilation1.GetMember<PropertySymbol>("I19.this[]");
+
+            Assert.True(p19.IsAbstract);
+            Assert.False(p19.IsVirtual);
+            Assert.False(p19.IsSealed);
+            Assert.False(p19.IsStatic);
+            Assert.False(p19.IsExtern);
+            Assert.False(p19.IsOverride);
+            Assert.Equal(Accessibility.Public, p19.DeclaredAccessibility);
+
+            ValidateP13Accessor(p19.GetMethod, Accessibility.Public);
+            ValidateP13Accessor(p19.SetMethod, Accessibility.ProtectedAndInternal);
         }
 
         [Fact]
@@ -16699,6 +19093,9 @@ public interface I14{ int this[int x] { protected internal get; set;} }
 public interface I15{ int this[int x] { get; internal set;} }
 public interface I16{ int this[int x] { private get; set;} }
 public interface I17{ int this[int x] { private get;} }
+
+public interface I18{ private protected int this[int x] { get; } }
+public interface I19{ int this[int x] { get; private protected set;} }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular7_3,
@@ -16708,12 +19105,12 @@ public interface I17{ int this[int x] { private get;} }
                 // (2,34): error CS8503: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 // public interface I01{ public int this[int x] {get; set;} }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("public", "7.3", "preview").WithLocation(2, 34),
-                // (3,37): error CS0106: The modifier 'protected' is not valid for this item
+                // (3,37): error CS8703: The modifier 'protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 // public interface I02{ protected int this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected").WithLocation(3, 37),
-                // (4,46): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("protected", "7.3", "preview").WithLocation(3, 37),
+                // (4,46): error CS8703: The modifier 'protected internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 // public interface I03{ protected internal int this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected internal").WithLocation(4, 46),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("protected internal", "7.3", "preview").WithLocation(4, 46),
                 // (5,36): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 // public interface I04{ internal int this[int x] {get;} }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("internal", "7.3", "preview").WithLocation(5, 36),
@@ -16753,12 +19150,12 @@ public interface I17{ int this[int x] { private get;} }
                 // (14,48): error CS0273: The accessibility modifier of the 'I12.this[int].get' accessor must be more restrictive than the property or indexer 'I12.this[int]'
                 // public interface I12{ int this[int x] { public get; set;} }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I12.this[int].get", "I12.this[int]").WithLocation(14, 48),
-                // (15,56): error CS0106: The modifier 'protected' is not valid for this item
+                // (15,56): error CS8703: The modifier 'protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 // public interface I13{ int this[int x] { get; protected set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(15, 56),
-                // (16,60): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("protected", "7.3", "preview").WithLocation(15, 56),
+                // (16,60): error CS8703: The modifier 'protected internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 // public interface I14{ int this[int x] { protected internal get; set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected internal").WithLocation(16, 60),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("protected internal", "7.3", "preview").WithLocation(16, 60),
                 // (17,55): error CS8503: The modifier 'internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 // public interface I15{ int this[int x] { get; internal set;} }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.3", "preview").WithLocation(17, 55),
@@ -16774,6 +19171,12 @@ public interface I17{ int this[int x] { private get;} }
                 // (19,27): error CS0276: 'I17.this[int]': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 // public interface I17{ int this[int x] { private get;} }
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "this").WithArguments("I17.this[int]").WithLocation(19, 27),
+                // (21,45): error CS8703: The modifier 'private protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // public interface I18{ private protected int this[int x] { get; } }
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("private protected", "7.3", "preview").WithLocation(21, 45),
+                // (22,64): error CS8703: The modifier 'private protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                // public interface I19{ int this[int x] { get; private protected set;} }
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private protected", "7.3", "preview").WithLocation(22, 64),
                 // (12,47): warning CS0626: Method, operator, or accessor 'I11.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 // public interface I11{ extern int this[int x] {get; set;} }
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I11.this[int].get").WithLocation(12, 47),
@@ -16783,6 +19186,69 @@ public interface I17{ int this[int x] { private get;} }
                 );
 
             ValidateSymbolsIndexerModifiers_01(compilation1);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(
+                // (3,37): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                // public interface I02{ protected int this[int x] {get;} }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "this").WithLocation(3, 37),
+                // (4,46): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                // public interface I03{ protected internal int this[int x] {set;} }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "this").WithLocation(4, 46),
+                // (6,48): error CS0501: 'I05.this[int].set' must declare a body because it is not marked abstract, extern, or partial
+                // public interface I05{ private int this[int x] {set;} }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I05.this[int].set").WithLocation(6, 48),
+                // (7,34): error CS0106: The modifier 'static' is not valid for this item
+                // public interface I06{ static int this[int x] {get;} }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(7, 34),
+                // (8,48): error CS0501: 'I07.this[int].set' must declare a body because it is not marked abstract, extern, or partial
+                // public interface I07{ virtual int this[int x] {set;} }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I07.this[int].set").WithLocation(8, 48),
+                // (9,47): error CS0501: 'I08.this[int].get' must declare a body because it is not marked abstract, extern, or partial
+                // public interface I08{ sealed int this[int x] {get;} }
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I08.this[int].get").WithLocation(9, 47),
+                // (10,36): error CS0106: The modifier 'override' is not valid for this item
+                // public interface I09{ override int this[int x] {set;} }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(10, 36),
+                // (12,47): error CS8701: Target runtime doesn't support default interface implementation.
+                // public interface I11{ extern int this[int x] {get; set;} }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(12, 47),
+                // (12,47): warning CS0626: Method, operator, or accessor 'I11.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                // public interface I11{ extern int this[int x] {get; set;} }
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I11.this[int].get").WithLocation(12, 47),
+                // (12,52): error CS8701: Target runtime doesn't support default interface implementation.
+                // public interface I11{ extern int this[int x] {get; set;} }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(12, 52),
+                // (12,52): warning CS0626: Method, operator, or accessor 'I11.this[int].set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                // public interface I11{ extern int this[int x] {get; set;} }
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I11.this[int].set").WithLocation(12, 52),
+                // (14,48): error CS0273: The accessibility modifier of the 'I12.this[int].get' accessor must be more restrictive than the property or indexer 'I12.this[int]'
+                // public interface I12{ int this[int x] { public get; set;} }
+                Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I12.this[int].get", "I12.this[int]").WithLocation(14, 48),
+                // (15,56): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                // public interface I13{ int this[int x] { get; protected set;} }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(15, 56),
+                // (16,60): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                // public interface I14{ int this[int x] { protected internal get; set;} }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "get").WithLocation(16, 60),
+                // (18,49): error CS0442: 'I16.this[int].get': abstract properties cannot have private accessors
+                // public interface I16{ int this[int x] { private get; set;} }
+                Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I16.this[int].get").WithLocation(18, 49),
+                // (19,27): error CS0276: 'I17.this[int]': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
+                // public interface I17{ int this[int x] { private get;} }
+                Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "this").WithArguments("I17.this[int]").WithLocation(19, 27),
+                // (21,45): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                // public interface I18{ private protected int this[int x] { get; } }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "this").WithLocation(21, 45),
+                // (22,64): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                // public interface I19{ int this[int x] { get; private protected set;} }
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "set").WithLocation(22, 64)
+                );
+
+            ValidateSymbolsIndexerModifiers_01(compilation2);
         }
 
         [Fact]
@@ -17284,7 +19750,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_01(source1, source2,
+            ValidatePropertyModifiers_11_01(source1, source2, Accessibility.Internal,
                 new DiagnosticDescription[] {
                 // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : I1
@@ -17389,7 +19855,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2,
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.Standard,
                 // (9,12): error CS0122: 'I1.this[int]' is inaccessible due to its protection level
                 //     int I1.this[int x] 
                 Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[int]").WithLocation(9, 12)
@@ -18589,7 +21055,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_20(source1, source2);
+            ValidatePropertyModifiers_20(source1, source2, Accessibility.Internal);
         }
 
         [Fact]
@@ -18763,7 +21229,7 @@ class Test1 : I1, I2, I3, I4
 }
 ";
 
-            ValidatePropertyModifiers_22(source1);
+            ValidatePropertyModifiers_22(source1, Accessibility.Internal);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
@@ -19379,7 +21845,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2,
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.Standard,
                 // (9,12): error CS0122: 'I1.this[int].get' is inaccessible due to its protection level
                 //     int I1.this[int x] 
                 Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[int].get").WithLocation(9, 12)
@@ -19963,7 +22429,7 @@ class Test1 : I1
 }
 ";
 
-            ValidatePropertyModifiers_11_03(source1, source2,
+            ValidatePropertyModifiers_11_03(source1, source2, TargetFramework.Standard,
                 // (9,12): error CS0122: 'I1.this[int].set' is inaccessible due to its protection level
                 //     int I1.this[int x] 
                 Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I1.this[int].set").WithLocation(9, 12)
@@ -20761,6 +23227,7 @@ public interface I1
     extern event System.Action P11 {add{} remove{}}
     extern event System.Action P12 {add; remove;}
     extern event System.Action P13;
+    private protected event System.Action P14;
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -20768,12 +23235,6 @@ public interface I1
                                                  targetFramework: TargetFramework.NetStandardLatest);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
-                // (5,35): error CS0106: The modifier 'protected' is not valid for this item
-                //     protected event System.Action P02 {add{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 35),
-                // (6,44): error CS0106: The modifier 'protected internal' is not valid for this item
-                //     protected internal event System.Action P03 {remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(6, 44),
                 // (12,34): error CS0106: The modifier 'override' is not valid for this item
                 //     override event System.Action P09 {remove{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
@@ -20846,7 +23307,7 @@ public interface I1
             Assert.False(p02.IsStatic);
             Assert.False(p02.IsExtern);
             Assert.False(p02.IsOverride);
-            Assert.Equal(Accessibility.Public, p02.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, p02.DeclaredAccessibility);
 
             Assert.False(p02get.IsAbstract);
             Assert.True(p02get.IsVirtual);
@@ -20856,7 +23317,7 @@ public interface I1
             Assert.False(p02get.IsExtern);
             Assert.False(p02get.IsAsync);
             Assert.False(p02get.IsOverride);
-            Assert.Equal(Accessibility.Public, p02get.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, p02get.DeclaredAccessibility);
 
             var p03 = i1.GetMember<EventSymbol>("P03");
             var p03set = p03.RemoveMethod;
@@ -20867,7 +23328,7 @@ public interface I1
             Assert.False(p03.IsStatic);
             Assert.False(p03.IsExtern);
             Assert.False(p03.IsOverride);
-            Assert.Equal(Accessibility.Public, p03.DeclaredAccessibility);
+            Assert.Equal(Accessibility.ProtectedOrInternal, p03.DeclaredAccessibility);
 
             Assert.False(p03set.IsAbstract);
             Assert.True(p03set.IsVirtual);
@@ -20877,7 +23338,7 @@ public interface I1
             Assert.False(p03set.IsExtern);
             Assert.False(p03set.IsAsync);
             Assert.False(p03set.IsOverride);
-            Assert.Equal(Accessibility.Public, p03set.DeclaredAccessibility);
+            Assert.Equal(Accessibility.ProtectedOrInternal, p03set.DeclaredAccessibility);
 
             var p04 = i1.GetMember<EventSymbol>("P04");
             var p04get = p04.AddMethod;
@@ -21053,6 +23514,32 @@ public interface I1
                     Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
                 }
             }
+
+            var p14 = i1.GetMember<EventSymbol>("P14");
+
+            Assert.True(p14.IsAbstract);
+            Assert.False(p14.IsVirtual);
+            Assert.False(p14.IsSealed);
+            Assert.False(p14.IsStatic);
+            Assert.False(p14.IsExtern);
+            Assert.False(p14.IsOverride);
+            Assert.Equal(Accessibility.ProtectedAndInternal, p14.DeclaredAccessibility);
+
+            VaidateP14Accessor(p14.AddMethod);
+            VaidateP14Accessor(p14.RemoveMethod);
+            void VaidateP14Accessor(MethodSymbol accessor)
+            {
+                Assert.True(accessor.IsAbstract);
+                Assert.False(accessor.IsVirtual);
+                Assert.True(accessor.IsMetadataVirtual());
+                Assert.False(accessor.IsSealed);
+                Assert.False(accessor.IsStatic);
+                Assert.False(accessor.IsExtern);
+                Assert.False(accessor.IsAsync);
+                Assert.False(accessor.IsOverride);
+                Assert.Equal(Accessibility.ProtectedAndInternal, accessor.DeclaredAccessibility);
+            }
+
         }
 
         [Fact]
@@ -21075,6 +23562,9 @@ public interface I1
     extern event System.Action P11 {add{} remove{}}
     extern event System.Action P12 {add; remove;}
     extern event System.Action P13;
+    private protected event System.Action P14;
+    protected event System.Action P15;
+    protected internal event System.Action P16;
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -21085,15 +23575,9 @@ public interface I1
                 // (4,32): error CS8703: The modifier 'public' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
                 //     public event System.Action P01;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.3", "preview").WithLocation(4, 32),
-                // (5,35): error CS0106: The modifier 'protected' is not valid for this item
-                //     protected event System.Action P02 {add{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 35),
                 // (5,40): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     protected event System.Action P02 {add{}}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "add").WithArguments("default interface implementation").WithLocation(5, 40),
-                // (6,44): error CS0106: The modifier 'protected internal' is not valid for this item
-                //     protected internal event System.Action P03 {remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(6, 44),
                 // (6,49): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     protected internal event System.Action P03 {remove{}}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "remove").WithArguments("default interface implementation").WithLocation(6, 49),
@@ -21162,10 +23646,112 @@ public interface I1
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P13;
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32)
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32),
+                // (17,43): error CS8703: The modifier 'private protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     private protected event System.Action P14;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P14").WithArguments("private protected", "7.3", "preview").WithLocation(17, 43),
+                // (18,35): error CS8703: The modifier 'protected' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     protected event System.Action P15;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P15").WithArguments("protected", "7.3", "preview").WithLocation(18, 35),
+                // (19,44): error CS8703: The modifier 'protected internal' is not valid for this item in C# 7.3. Please use language version 'preview' or greater.
+                //     protected internal event System.Action P16;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P16").WithArguments("protected internal", "7.3", "preview").WithLocation(19, 44)
                 );
 
             ValidateSymbolsEventModifiers_01(compilation1);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
+                // (5,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected event System.Action P02 {add{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P02").WithLocation(5, 35),
+                // (5,40): error CS8701: Target runtime doesn't support default interface implementation.
+                //     protected event System.Action P02 {add{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(5, 40),
+                // (6,44): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected internal event System.Action P03 {remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P03").WithLocation(6, 44),
+                // (6,49): error CS8701: Target runtime doesn't support default interface implementation.
+                //     protected internal event System.Action P03 {remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(6, 49),
+                // (7,39): error CS8701: Target runtime doesn't support default interface implementation.
+                //     internal event System.Action P04 {add{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(7, 39),
+                // (8,38): error CS8701: Target runtime doesn't support default interface implementation.
+                //     private event System.Action P05 {remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(8, 38),
+                // (10,38): error CS8701: Target runtime doesn't support default interface implementation.
+                //     virtual event System.Action P07 {remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(10, 38),
+                // (11,37): error CS8701: Target runtime doesn't support default interface implementation.
+                //     sealed event System.Action P08 {add{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(11, 37),
+                // (12,34): error CS0106: The modifier 'override' is not valid for this item
+                //     override event System.Action P09 {remove{}}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 34),
+                // (12,39): error CS8701: Target runtime doesn't support default interface implementation.
+                //     override event System.Action P09 {remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(12, 39),
+                // (13,39): error CS8701: Target runtime doesn't support default interface implementation.
+                //     abstract event System.Action P10 {add{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(13, 39),
+                // (13,39): error CS0500: 'I1.P10.add' cannot declare a body because it is marked abstract
+                //     abstract event System.Action P10 {add{}}
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P10.add").WithLocation(13, 39),
+                // (14,37): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(14, 37),
+                // (14,37): error CS0179: 'I1.P11.add' cannot be extern and declare a body
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "add").WithArguments("I1.P11.add").WithLocation(14, 37),
+                // (14,43): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(14, 43),
+                // (14,43): error CS0179: 'I1.P11.remove' cannot be extern and declare a body
+                //     extern event System.Action P11 {add{} remove{}}
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "remove").WithArguments("I1.P11.remove").WithLocation(14, 43),
+                // (15,37): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(15, 37),
+                // (15,37): warning CS0626: Method, operator, or accessor 'I1.P12.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "add").WithArguments("I1.P12.add").WithLocation(15, 37),
+                // (15,40): error CS0073: An add or remove accessor must have a body
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 40),
+                // (15,42): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(15, 42),
+                // (15,42): warning CS0626: Method, operator, or accessor 'I1.P12.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "remove").WithArguments("I1.P12.remove").WithLocation(15, 42),
+                // (15,48): error CS0073: An add or remove accessor must have a body
+                //     extern event System.Action P12 {add; remove;}
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 48),
+                // (16,32): error CS8701: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P13;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P13").WithLocation(16, 32),
+                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P13;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
+                // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P13;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.remove").WithLocation(16, 32),
+                // (17,43): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected event System.Action P14;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P14").WithLocation(17, 43),
+                // (18,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected event System.Action P15;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P15").WithLocation(18, 35),
+                // (19,44): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected internal event System.Action P16;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "P16").WithLocation(19, 44)
+                );
+
+            ValidateSymbolsEventModifiers_01(compilation2);
         }
 
         [Fact]
@@ -22199,7 +24785,7 @@ class Test1 : I1
 }
 ";
 
-            ValidateEventModifiers_11(source1, source2,
+            ValidateEventModifiers_11(source1, source2, Accessibility.Internal,
                 new DiagnosticDescription[]
                 {
                 // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
@@ -22215,7 +24801,7 @@ class Test1 : I1
                 );
         }
 
-        private void ValidateEventModifiers_11(string source1, string source2, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
+        private void ValidateEventModifiers_11(string source1, string source2, Accessibility accessibility, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
             var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -22250,7 +24836,7 @@ class Test1 : I1
                 Assert.False(p1.IsStatic);
                 Assert.False(p1.IsExtern);
                 Assert.False(p1.IsOverride);
-                Assert.Equal(Accessibility.Internal, p1.DeclaredAccessibility);
+                Assert.Equal(accessibility, p1.DeclaredAccessibility);
             }
 
             void ValidateMethod(MethodSymbol m1)
@@ -22263,7 +24849,7 @@ class Test1 : I1
                 Assert.False(m1.IsExtern);
                 Assert.False(m1.IsAsync);
                 Assert.False(m1.IsOverride);
-                Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+                Assert.Equal(accessibility, m1.DeclaredAccessibility);
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -22487,43 +25073,46 @@ class Test1 : I1
 }
 ";
 
-            ValidateEventModifiers_11_03(source1, source2,
+            ValidateEventModifiers_11_03(source1, source2, TargetFramework.Standard,
                 // (9,28): error CS0122: 'I1.P1' is inaccessible due to its protection level
                 //     event System.Action I1.P1 
                 Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(9, 28)
                 );
         }
 
-        private void ValidateEventModifiers_11_03(string source1, string source2,
+        private void ValidateEventModifiers_11_03(string source1, string source2, TargetFramework targetFramework,
                                                   params DiagnosticDescription[] expected)
         {
-            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe,
+            var compilation1 = CreateCompilation(source2 + source1, options: TestOptions.DebugExe, targetFramework: targetFramework,
                                                  parseOptions: TestOptions.Regular);
 
-            CompileAndVerify(compilation1, expectedOutput:
+            CompileAndVerify(compilation1, expectedOutput: !(targetFramework == TargetFramework.Standard || ExecutionConditionUtil.IsMonoOrCoreClr) ? null :
 @"get_P1
 set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementation_11);
 
             ValidateEventImplementation_11(compilation1.SourceModule);
 
-            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: targetFramework,
                                                  parseOptions: TestOptions.Regular);
 
             compilation2.VerifyDiagnostics();
 
-            var compilation3 = CreateCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+            foreach (var reference in new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular, targetFramework: targetFramework);
 
-            compilation3.VerifyDiagnostics(expected);
+                compilation3.VerifyDiagnostics(expected);
 
-            ValidateEventImplementation_11(compilation3.SourceModule);
+                if (expected.Length == 0)
+                {
+                    CompileAndVerify(compilation3, expectedOutput: !(targetFramework == TargetFramework.Standard || ExecutionConditionUtil.IsMonoOrCoreClr) ? null :
+@"get_P1
+set_P1", verify: VerifyOnMonoOrCoreClr, symbolValidator: ValidateEventImplementation_11);
+                }
 
-            var compilation4 = CreateCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
-
-            compilation4.VerifyDiagnostics(expected);
-
-            ValidateEventImplementation_11(compilation4.SourceModule);
+                ValidateEventImplementation_11(compilation3.SourceModule);
+            }
         }
 
         [Fact]
@@ -24528,10 +27117,10 @@ class Test1 : I1
 }
 ";
 
-            ValidateEventModifiers_20(source1, source2);
+            ValidateEventModifiers_20(source1, source2, Accessibility.Internal);
         }
 
-        private void ValidateEventModifiers_20(string source1, string source2)
+        private void ValidateEventModifiers_20(string source1, string source2, Accessibility accessibility)
         {
             var compilation1 = CreateCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
@@ -24571,7 +27160,7 @@ set_P1
                 Assert.False(p1.IsStatic);
                 Assert.False(p1.IsExtern);
                 Assert.False(p1.IsOverride);
-                Assert.Equal(Accessibility.Internal, p1.DeclaredAccessibility);
+                Assert.Equal(accessibility, p1.DeclaredAccessibility);
             }
 
             void ValidateMethod(MethodSymbol m1)
@@ -24584,7 +27173,7 @@ set_P1
                 Assert.False(m1.IsExtern);
                 Assert.False(m1.IsAsync);
                 Assert.False(m1.IsOverride);
-                Assert.Equal(Accessibility.Internal, m1.DeclaredAccessibility);
+                Assert.Equal(accessibility, m1.DeclaredAccessibility);
             }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
@@ -24712,6 +27301,656 @@ class Test2
         }
 
         [Fact]
+        public void EventModifiers_22()
+        {
+            var source0 =
+@"
+public interface I1
+{
+    protected static event System.Action P1 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    protected internal static event System.Action P2 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P2"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P2"");
+        }
+    }
+
+    private protected static event System.Action P3 
+    {
+        add => System.Console.WriteLine(""get_P3"");
+        remove => System.Console.WriteLine(""set_P3"");
+    }
+}
+";
+            var source1 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.P1 += null; 
+        I1.P1 -= null;
+        I1.P2 += null;
+        I1.P2 -= null;
+        I1.P3 += null;
+        I1.P3 -= null;
+    }
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1,
+                                                 options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1
+get_P2
+set_P2
+get_P3
+set_P3", symbolValidator: validate, verify: VerifyOnMonoOrCoreClr);
+
+            validate(compilation1.SourceModule);
+
+            var source2 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        I1.P2 += null;
+        I1.P2 -= null;
+    }
+}
+";
+
+            var compilation2 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P2
+set_P2",
+                verify: VerifyOnMonoOrCoreClr);
+
+            var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics();
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.P1 += null; 
+        I1.P1 -= null;
+        I1.P2 += null;
+        I1.P2 -= null;
+    }
+}
+";
+
+            var source4 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        I1.P1 += null; 
+        I1.P1 -= null;
+        I1.P2 += null;
+        I1.P2 -= null;
+        I1.P3 += null;
+        I1.P3 -= null;
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation3.ToMetadataReference(), compilation3.EmitToImageReference() })
+            {
+                var compilation4 = CreateCompilation(source3, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"get_P1
+set_P1
+get_P2
+set_P2",
+                    verify: VerifyOnMonoOrCoreClr);
+
+                var compilation5 = CreateCompilation(source4, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation5.VerifyDiagnostics(
+                    // (6,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                    //         I1.P1 += null; 
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(6, 12),
+                    // (7,12): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                    //         I1.P1 -= null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(7, 12),
+                    // (8,12): error CS0122: 'I1.P2' is inaccessible due to its protection level
+                    //         I1.P2 += null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P2").WithArguments("I1.P2").WithLocation(8, 12),
+                    // (9,12): error CS0122: 'I1.P2' is inaccessible due to its protection level
+                    //         I1.P2 -= null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P2").WithArguments("I1.P2").WithLocation(9, 12),
+                    // (10,12): error CS0122: 'I1.P3' is inaccessible due to its protection level
+                    //         I1.P3 += null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("I1.P3").WithLocation(10, 12),
+                    // (11,12): error CS0122: 'I1.P3' is inaccessible due to its protection level
+                    //         I1.P3 -= null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("I1.P3").WithLocation(11, 12)
+                    );
+
+                var compilation6 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation6.VerifyDiagnostics(
+                    // (10,12): error CS0122: 'I1.P3' is inaccessible due to its protection level
+                    //         I1.P3 += null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("I1.P3").WithLocation(10, 12),
+                    // (11,12): error CS0122: 'I1.P3' is inaccessible due to its protection level
+                    //         I1.P3 -= null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "P3").WithArguments("I1.P3").WithLocation(11, 12)
+                    );
+            }
+
+            void validate(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+
+                foreach (var tuple in new[] { (name: "P1", access: Accessibility.Protected),
+                                              (name: "P2", access: Accessibility.ProtectedOrInternal),
+                                              (name: "P3", access: Accessibility.ProtectedAndInternal)})
+                {
+                    var p1 = i1.GetMember<EventSymbol>(tuple.name);
+
+                    Assert.False(p1.IsAbstract);
+                    Assert.False(p1.IsVirtual);
+                    Assert.False(p1.IsSealed);
+                    Assert.True(p1.IsStatic);
+                    Assert.False(p1.IsExtern);
+                    Assert.False(p1.IsOverride);
+                    Assert.Equal(tuple.access, p1.DeclaredAccessibility);
+                    Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+
+                    ValidateAccessor(p1.AddMethod);
+                    ValidateAccessor(p1.RemoveMethod);
+
+                    void ValidateAccessor(MethodSymbol accessor)
+                    {
+                        Assert.False(accessor.IsAbstract);
+                        Assert.False(accessor.IsVirtual);
+                        Assert.False(accessor.IsMetadataVirtual());
+                        Assert.False(accessor.IsSealed);
+                        Assert.True(accessor.IsStatic);
+                        Assert.False(accessor.IsExtern);
+                        Assert.False(accessor.IsAsync);
+                        Assert.False(accessor.IsOverride);
+                        Assert.Equal(tuple.access, accessor.DeclaredAccessibility);
+                        Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void EventModifiers_23()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected abstract event System.Action P1; 
+
+    sealed void Test()
+    {
+        P1 += null;
+        P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
+
+    public event System.Action P1 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidateEventModifiers_11(source1, source2, Accessibility.Protected,
+                new DiagnosticDescription[]
+                {
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 15),
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 15)
+                },
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void EventModifiers_24()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal abstract event System.Action P1; 
+
+    sealed void Test()
+    {
+        P1 += null;
+        P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
+
+    public event System.Action P1 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidateEventModifiers_11(source1, source2, Accessibility.ProtectedOrInternal,
+                new DiagnosticDescription[]
+                {
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 15),
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 15)
+                },
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void EventModifiers_25()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private protected abstract event System.Action P1; 
+
+    sealed void Test()
+    {
+        P1 += null;
+        P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.Test();
+    }
+
+    public event System.Action P1 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidateEventModifiers_11(source1, source2, Accessibility.ProtectedAndInternal,
+                new DiagnosticDescription[]
+                {
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 15),
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 15)
+                },
+                // (2,15): error CS0535: 'Test2' does not implement interface member 'I1.P1'
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.P1").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void EventModifiers_26()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected abstract event System.Action P1; 
+
+    public static void CallP1(I1 x) 
+    {
+        x.P1 += null;
+        x.P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.CallP1(new Test1());
+    }
+
+    event System.Action I1.P1 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidateEventModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+        }
+
+        [Fact]
+        public void EventModifiers_27()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal abstract event System.Action P1; 
+
+    public static void CallP1(I1 x) 
+    {
+        x.P1 += null;
+        x.P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.CallP1(new Test1());
+    }
+
+    event System.Action I1.P1 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidateEventModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest);
+        }
+
+        [Fact]
+        public void EventModifiers_28()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private protected abstract event System.Action P1; 
+
+    public static void CallP1(I1 x) 
+    {
+        x.P1 += null;
+        x.P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.CallP1(new Test1());
+    }
+
+    event System.Action I1.P1 
+    {
+        add
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+}
+";
+
+            ValidateEventModifiers_11_03(source1, source2, TargetFramework.NetStandardLatest,
+                // (9,28): error CS0122: 'I1.P1' is inaccessible due to its protection level
+                //     event System.Action I1.P1 
+                Diagnostic(ErrorCode.ERR_BadAccess, "P1").WithArguments("I1.P1").WithLocation(9, 28)
+                );
+        }
+
+        [Fact]
+        public void EventModifiers_29()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected event System.Action P1
+    {
+        add 
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    void M2() 
+    {
+        P1 += null;
+        P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+
+            ValidateEventModifiers_20(source1, source2, Accessibility.Protected);
+        }
+
+        [Fact]
+        public void EventModifiers_30()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    protected internal event System.Action P1
+    {
+        add 
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    void M2() 
+    {
+        P1 += null;
+        P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+
+            ValidateEventModifiers_20(source1, source2, Accessibility.ProtectedOrInternal);
+        }
+
+        [Fact]
+        public void EventModifiers_31()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private protected event System.Action P1
+    {
+        add 
+        {
+            System.Console.WriteLine(""get_P1"");
+        }
+        remove 
+        {
+            System.Console.WriteLine(""set_P1"");
+        }
+    }
+
+    void M2() 
+    {
+        P1 += null;
+        P1 -= null;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M2();
+    }
+}
+";
+
+            ValidateEventModifiers_20(source1, source2, Accessibility.ProtectedAndInternal);
+        }
+
+        [Fact]
         public void NestedTypes_01()
         {
             var source1 =
@@ -24755,21 +27994,23 @@ class Test1 : I1.T1
             ValidateNestedTypes_01(source1);
         }
 
-        private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public)
+        private void ValidateNestedTypes_01(string source1, Accessibility expected = Accessibility.Public, TargetFramework targetFramework = TargetFramework.Standard, bool execute = true, Verification verify = Verification.Passes)
         {
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: targetFramework);
 
             for (int i = 1; i <= 4; i++)
             {
                 Assert.Equal(expected, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
             }
 
-            CompileAndVerify(compilation1, expectedOutput:
+            CompileAndVerify(compilation1, expectedOutput: !execute ? null :
 @"M1
 I1+T2
 I1+T3
-B");
+B",
+                verify: verify);
         }
 
         [Fact]
@@ -24881,10 +28122,10 @@ class Test1 : I1.T1
             ValidateNestedTypes_01(source1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void NestedTypes_04()
         {
-            var source1 =
+            var source0 =
 @"
 public interface I1
 {
@@ -24904,52 +28145,140 @@ public interface I1
         B
     }
 }
-
-class Test1 : I1.T1
+";
+            var source1 =
+@"
+class Test1 : I1
 {
     static void Main()
     {
-        I1.T1 a = new Test1();
+        I1.T1 a = new Test2();
         a.M1();
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
     }
 
-    public void M1()
+    class Test2 : I1.T1
     {
-        System.Console.WriteLine(""M1"");
+        public void M1()
+        {
+            System.Console.WriteLine(""M1"");
+        }
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+
+            ValidateNestedTypes_01(source0 + source1, Accessibility.Protected, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
+
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
 
             for (int i = 1; i <= 4; i++)
             {
-                Assert.Equal(Accessibility.Public, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
+                Assert.Equal(Accessibility.Protected, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
             }
 
             compilation1.VerifyDiagnostics(
-                // (4,25): error CS0106: The modifier 'protected' is not valid for this item
+                // (4,25): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected interface T1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T1").WithArguments("protected").WithLocation(4, 25),
-                // (9,21): error CS0106: The modifier 'protected' is not valid for this item
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T1").WithLocation(4, 25),
+                // (9,21): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected class T2
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T2").WithArguments("protected").WithLocation(9, 21),
-                // (12,22): error CS0106: The modifier 'protected' is not valid for this item
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T2").WithLocation(9, 21),
+                // (12,22): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected struct T3
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T3").WithArguments("protected").WithLocation(12, 22),
-                // (15,20): error CS0106: The modifier 'protected' is not valid for this item
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T3").WithLocation(12, 22),
+                // (15,20): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected enum T4
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T4").WithArguments("protected").WithLocation(15, 20)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 20)
                 );
+
+            var source2 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test2();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    class Test2 : I1.T1
+    {
+        public void M1()
+        {
+            System.Console.WriteLine(""M1"");
+        }
+    }
+}
+";
+
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            var expected = new DiagnosticDescription[] {
+                // (6,12): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                //         I1.T1 a = new Test2();
+                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(6, 12),
+                // (7,11): error CS0122: 'I1.T1.M1()' is inaccessible due to its protection level
+                //         a.M1();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.T1.M1()").WithLocation(7, 11),
+                // (8,41): error CS0122: 'I1.T2' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T2());
+                Diagnostic(ErrorCode.ERR_BadAccess, "T2").WithArguments("I1.T2").WithLocation(8, 41),
+                // (9,41): error CS0122: 'I1.T3' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T3());
+                Diagnostic(ErrorCode.ERR_BadAccess, "T3").WithArguments("I1.T3").WithLocation(9, 41),
+                // (10,37): error CS0122: 'I1.T4' is inaccessible due to its protection level
+                //         System.Console.WriteLine(I1.T4.B);
+                Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(10, 37),
+                // (13,22): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                //     class Test2 : I1.T1
+                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(13, 22)
+                };
+
+            compilation2.VerifyDiagnostics(expected);
+
+            var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation3.ToMetadataReference(), compilation3.EmitToImageReference() })
+            {
+                var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation4.VerifyDiagnostics();
+                CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M1
+I1+T2
+I1+T3
+B",
+                    verify: VerifyOnMonoOrCoreClr);
+
+                var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation5.VerifyDiagnostics(expected);
+            }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void NestedTypes_05()
         {
-            var source1 =
+            var source0 =
 @"
 public interface I1
 {
@@ -24969,46 +28298,127 @@ public interface I1
         B
     }
 }
-
-class Test1 : I1.T1
+";
+            var source1 =
+@"
+class Test1 : I1
 {
     static void Main()
     {
-        I1.T1 a = new Test1();
+        I1.T1 a = new Test2();
         a.M1();
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
     }
 
-    public void M1()
+    class Test2 : I1.T1
     {
-        System.Console.WriteLine(""M1"");
+        public void M1()
+        {
+            System.Console.WriteLine(""M1"");
+        }
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular);
+
+            var source2 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test2();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    class Test2 : I1.T1
+    {
+        public void M1()
+        {
+            System.Console.WriteLine(""M1"");
+        }
+    }
+}
+";
+            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedOrInternal, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
+            ValidateNestedTypes_01(source0 + source2, Accessibility.ProtectedOrInternal, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
+
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
 
             for (int i = 1; i <= 4; i++)
             {
-                Assert.Equal(Accessibility.Public, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
+                Assert.Equal(Accessibility.ProtectedOrInternal, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
             }
 
             compilation1.VerifyDiagnostics(
-                // (4,34): error CS0106: The modifier 'protected internal' is not valid for this item
+                // (4,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal interface T1
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T1").WithArguments("protected internal").WithLocation(4, 34),
-                // (9,30): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T1").WithLocation(4, 34),
+                // (9,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal class T2
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T2").WithArguments("protected internal").WithLocation(9, 30),
-                // (12,31): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T2").WithLocation(9, 30),
+                // (12,31): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal struct T3
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T3").WithArguments("protected internal").WithLocation(12, 31),
-                // (15,29): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T3").WithLocation(12, 31),
+                // (15,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal enum T4
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "T4").WithArguments("protected internal").WithLocation(15, 29)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 29)
                 );
+
+
+            var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation3.ToMetadataReference(), compilation3.EmitToImageReference() })
+            {
+                var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation4.VerifyDiagnostics();
+                CompileAndVerify(compilation4, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"M1
+I1+T2
+I1+T3
+B",
+                    verify: VerifyOnMonoOrCoreClr);
+
+                var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation5.VerifyDiagnostics(
+                    // (6,12): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                    //         I1.T1 a = new Test2();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(6, 12),
+                    // (7,11): error CS0122: 'I1.T1.M1()' is inaccessible due to its protection level
+                    //         a.M1();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.T1.M1()").WithLocation(7, 11),
+                    // (8,41): error CS0122: 'I1.T2' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(new I1.T2());
+                    Diagnostic(ErrorCode.ERR_BadAccess, "T2").WithArguments("I1.T2").WithLocation(8, 41),
+                    // (9,41): error CS0122: 'I1.T3' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(new I1.T3());
+                    Diagnostic(ErrorCode.ERR_BadAccess, "T3").WithArguments("I1.T3").WithLocation(9, 41),
+                    // (10,37): error CS0122: 'I1.T4' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(I1.T4.B);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(10, 37),
+                    // (13,22): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                    //     class Test2 : I1.T1
+                    Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(13, 22)
+                    );
+            }
         }
 
         [Fact]
@@ -25199,6 +28609,152 @@ class Test1 : I1.T1
                 );
         }
 
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void NestedTypes_09()
+        {
+            var source0 =
+@"
+public interface I1
+{
+    private protected interface T1
+    {
+        void M1();
+    }
+
+    private protected class T2
+    {}
+
+    private protected struct T3
+    {}
+
+    private protected enum T4
+    {
+        B
+    }
+}
+";
+            var source1 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test2();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    class Test2 : I1.T1
+    {
+        public void M1()
+        {
+            System.Console.WriteLine(""M1"");
+        }
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        I1.T1 a = new Test2();
+        a.M1();
+        System.Console.WriteLine(new I1.T2());
+        System.Console.WriteLine(new I1.T3());
+        System.Console.WriteLine(I1.T4.B);
+    }
+
+    class Test2 : I1.T1
+    {
+        public void M1()
+        {
+            System.Console.WriteLine(""M1"");
+        }
+    }
+}
+";
+            ValidateNestedTypes_01(source0 + source1, Accessibility.ProtectedAndInternal, targetFramework: TargetFramework.NetStandardLatest, execute: ExecutionConditionUtil.IsMonoOrCoreClr, verify: VerifyOnMonoOrCoreClr);
+
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+
+            for (int i = 1; i <= 4; i++)
+            {
+                Assert.Equal(Accessibility.ProtectedAndInternal, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
+            }
+
+            compilation1.VerifyDiagnostics(
+                // (4,33): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected interface T1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T1").WithLocation(4, 33),
+                // (9,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected class T2
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T2").WithLocation(9, 29),
+                // (12,30): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected struct T3
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T3").WithLocation(12, 30),
+                // (15,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected enum T4
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 28)
+                );
+
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            var expected = new DiagnosticDescription[] {
+                // (6,12): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                //         I1.T1 a = new Test2();
+                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(6, 12),
+                // (7,11): error CS0122: 'I1.T1.M1()' is inaccessible due to its protection level
+                //         a.M1();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.T1.M1()").WithLocation(7, 11),
+                // (8,41): error CS0122: 'I1.T2' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T2());
+                Diagnostic(ErrorCode.ERR_BadAccess, "T2").WithArguments("I1.T2").WithLocation(8, 41),
+                // (9,41): error CS0122: 'I1.T3' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T3());
+                Diagnostic(ErrorCode.ERR_BadAccess, "T3").WithArguments("I1.T3").WithLocation(9, 41),
+                // (10,37): error CS0122: 'I1.T4' is inaccessible due to its protection level
+                //         System.Console.WriteLine(I1.T4.B);
+                Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(10, 37),
+                // (13,22): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                //     class Test2 : I1.T1
+                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(13, 22)
+                };
+
+            compilation2.VerifyDiagnostics(expected);
+
+            var compilation3 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation3.ToMetadataReference(), compilation3.EmitToImageReference() })
+            {
+                var compilation4 = CreateCompilation(source1, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation4.VerifyDiagnostics(expected);
+
+                var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation5.VerifyDiagnostics(expected);
+            }
+        }
+
         [Fact]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
         public void MethodImplementationInDerived_01()
@@ -25304,7 +28860,7 @@ I4.M1
             var i1 = test1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I1").Single();
             var i1i2m1 = i1.GetMember<MethodSymbol>("I2.M1");
             var i1i4m1 = i1.GetMember<MethodSymbol>("I4.M1");
-            var i2 = i1.InterfacesNoUseSiteDiagnostics().Where(i => i.Name == "I2").Single();
+            var i2 = i1.AllInterfacesNoUseSiteDiagnostics.Where(i => i.Name == "I2").Single();
             var i2m1 = i2.GetMembers().OfType<MethodSymbol>().Single();
             var i4 = i1.AllInterfacesNoUseSiteDiagnostics.Where(i => i.Name == "I4").Single();
             var i4m1 = i4.GetMembers().OfType<MethodSymbol>().Single();
@@ -27845,6 +31401,375 @@ I4.M1
             }
         }
 
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void MethodImplementationInDerived_28()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    protected void M1(); 
+}
+
+public interface I4
+{
+    protected void M1(); 
+}
+
+public interface I5 : I4
+{
+    static void Test(I5 i4)
+    {
+        i4.M1();
+    }
+}
+
+public interface I6 : I2
+{
+    static void Test(I6 i2)
+    {
+        i2.M1();
+    }
+}
+";
+            var source2 =
+@"
+public interface I1 : I6, I5
+{
+    void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    void I4.M1() 
+    {
+        System.Console.WriteLine(""I4.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I6.Test(new Test1());
+        I5.Test(new Test1());
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: ValidateMethodImplementationInDerived_01);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+
+                compilation2.VerifyDiagnostics();
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidateMethodImplementationInDerived_01);
+            }
+
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
+            {
+                var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
+
+                compilation5.VerifyDiagnostics();
+                CompileAndVerify(compilation5,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidateMethodImplementationInDerived_01);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_29()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    protected internal void M1(); 
+}
+
+public interface I4
+{
+    protected internal void M1(); 
+}
+
+public interface I5 : I4
+{
+    static void Test(I5 i4)
+    {
+        i4.M1();
+    }
+}
+
+public interface I6 : I2
+{
+    static void Test(I6 i2)
+    {
+        i2.M1();
+    }
+}
+";
+            var source2 =
+@"
+public interface I1 : I6, I5
+{
+    void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    void I4.M1() 
+    {
+        System.Console.WriteLine(""I4.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I6.Test(new Test1());
+        I5.Test(new Test1());
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: ValidateMethodImplementationInDerived_01);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+
+                compilation2.VerifyDiagnostics();
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidateMethodImplementationInDerived_01);
+            }
+
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
+            {
+                var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
+
+                compilation5.VerifyDiagnostics();
+                CompileAndVerify(compilation5,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidateMethodImplementationInDerived_01);
+            }
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void MethodImplementationInDerived_30()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    private protected void M1(); 
+}
+
+public interface I4
+{
+    private protected void M1(); 
+}
+
+public interface I5 : I4
+{
+    static void Test(I5 i4)
+    {
+        i4.M1();
+    }
+}
+
+public interface I6 : I2
+{
+    static void Test(I6 i2)
+    {
+        i2.M1();
+    }
+}
+";
+            var source2 =
+@"
+public interface I1 : I6, I5
+{
+    void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    void I4.M1() 
+    {
+        System.Console.WriteLine(""I4.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I6.Test(new Test1());
+        I5.Test(new Test1());
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: ValidateMethodImplementationInDerived_01);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+
+                compilation2.VerifyDiagnostics();
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidateMethodImplementationInDerived_01);
+            }
+
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
+            {
+                var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
+
+                compilation5.VerifyDiagnostics(
+                    // (4,13): error CS0122: 'I2.M1()' is inaccessible due to its protection level
+                    //     void I2.M1() 
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1()").WithLocation(4, 13),
+                    // (8,13): error CS0122: 'I4.M1()' is inaccessible due to its protection level
+                    //     void I4.M1() 
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1()").WithLocation(8, 13)
+                    );
+            }
+        }
+
         [Fact]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
         public void PropertyImplementationInDerived_01()
@@ -28856,38 +32781,25 @@ I4.M1.set
                 verify: VerifyOnMonoOrCoreClr,
                 symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation2 = CreateCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
+                ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
 
-            compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                compilation2.VerifyDiagnostics();
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"I2.M1
 I4.M1
 I4.M1.set
 ",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidatePropertyImplementationInDerived_01);
-
-            var compilation3 = CreateCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
-            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
-
-            compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3,
-                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"I2.M1
-I4.M1
-I4.M1.set
-",
-                verify: VerifyOnMonoOrCoreClr,
-                symbolValidator: ValidatePropertyImplementationInDerived_01);
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidatePropertyImplementationInDerived_01);
+            }
 
             var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
@@ -28895,22 +32807,29 @@ I4.M1.set
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics();
 
-            var compilation5 = CreateCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
+            foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
+            {
+                var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.NetStandardLatest);
-            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            ValidatePropertyImplementationInDerived_01(compilation5.SourceModule);
+                ValidatePropertyImplementationInDerived_01(compilation5.SourceModule);
 
-            compilation5.VerifyDiagnostics(expected);
+                compilation5.VerifyDiagnostics(expected);
 
-            var compilation6 = CreateCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.NetStandardLatest);
-            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            ValidatePropertyImplementationInDerived_01(compilation6.SourceModule);
-
-            compilation6.VerifyDiagnostics(expected);
+                if (expected.Length == 0)
+                {
+                    CompileAndVerify(compilation5,
+                        expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1
+I4.M1
+I4.M1.set
+",
+                        verify: VerifyOnMonoOrCoreClr,
+                        symbolValidator: ValidatePropertyImplementationInDerived_01);
+                }
+            }
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
@@ -29630,6 +33549,147 @@ class Test1 : I1
         {
             var source1 =
 @"
+public interface I2
+{
+    int M1 {get; set;} 
+}
+
+public interface I4
+{
+    int M1 {get; set;} 
+}
+
+public interface I1 : I2, I4
+{
+    int I2.M1 
+    {
+        protected get => throw null;
+        set => throw null;
+    }
+    protected int I4.M1
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (16,19): error CS0106: The modifier 'protected' is not valid for this item
+                //         protected get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected").WithLocation(16, 19),
+                // (19,22): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected int I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 22)
+                );
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_17()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get; set;} 
+}
+
+public interface I4
+{
+    int M1 {get; set;} 
+}
+
+public interface I1 : I2, I4
+{
+    int I2.M1 
+    {
+        get => throw null;
+        protected internal set => throw null;
+    }
+    protected internal int I4.M1
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (17,28): error CS0106: The modifier 'protected internal' is not valid for this item
+                //         protected internal set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected internal").WithLocation(17, 28),
+                // (19,31): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal int I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(19, 31)
+                );
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_18()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get; set;} 
+}
+
+public interface I4
+{
+    int M1 {get; set;} 
+}
+
+public interface I1 : I2, I4
+{
+    int I2.M1 
+    {
+        private protected get => throw null;
+        set => throw null;
+    }
+    private protected int I4.M1
+    {
+        get => throw null;
+        set => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (16,27): error CS0106: The modifier 'private protected' is not valid for this item
+                //         private protected get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private protected").WithLocation(16, 27),
+                // (19,30): error CS0106: The modifier 'private protected' is not valid for this item
+                //     private protected int I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private protected").WithLocation(19, 30)
+                );
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_19()
+        {
+            var source1 =
+@"
 #nullable enable
 
 public interface I1<T>
@@ -29707,6 +33767,217 @@ class Test1 : I3
 
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[2].GetMember("M1")));
             Assert.Null(test1.FindImplementationForInterfaceMember(test1.AllInterfacesNoUseSiteDiagnostics[3].GetMember("M1")));
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_20()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    protected int M1 {get;} 
+
+    public static void Test(I2 i2)
+    {
+        _ = i2.M1;
+    }
+}
+
+public interface I4
+{
+    int M1 {get; protected set;} 
+
+    public static void Test(I4 i4)
+    {
+        i4.M1 = i4.M1;
+    }
+}
+
+public interface I5 : I4
+{
+}
+
+public class TestHelper
+{
+    public static void Test(I2 i2, I4 i4)
+    {
+        I2.Test(i2);
+        I4.Test(i4);
+    }
+}
+";
+            var source2 =
+@"
+public interface I1 : I2, I5
+{
+    int I2.M1 => Getter();
+
+    private int Getter()
+    {
+        System.Console.WriteLine(""I2.M1"");
+        return 1;
+    }
+    int I4.M1 
+    {
+        get 
+        {
+            System.Console.WriteLine(""I4.M1"");
+            return 1;
+        }
+        set => System.Console.WriteLine(""I4.M1.set"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            ValidatePropertyImplementationInDerived_11(source1, source2);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_21()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    protected internal int M1 {get;} 
+
+    public static void Test(I2 i2)
+    {
+        _ = i2.M1;
+    }
+}
+
+public interface I4
+{
+    int M1 {get; protected internal set;} 
+
+    public static void Test(I4 i4)
+    {
+        i4.M1 = i4.M1;
+    }
+}
+
+public interface I5 : I4
+{
+}
+
+public class TestHelper
+{
+    public static void Test(I2 i2, I4 i4)
+    {
+        I2.Test(i2);
+        I4.Test(i4);
+    }
+}
+";
+            var source2 =
+@"
+public interface I1 : I2, I5
+{
+    int I2.M1 => Getter();
+
+    private int Getter()
+    {
+        System.Console.WriteLine(""I2.M1"");
+        return 1;
+    }
+    int I4.M1 
+    {
+        get 
+        {
+            System.Console.WriteLine(""I4.M1"");
+            return 1;
+        }
+        set => System.Console.WriteLine(""I4.M1.set"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            ValidatePropertyImplementationInDerived_11(source1, source2);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_22()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    private protected int M1 {get;} 
+
+    public static void Test(I2 i2)
+    {
+        _ = i2.M1;
+    }
+}
+
+public interface I4
+{
+    int M1 {get; private protected set;} 
+
+    public static void Test(I4 i4)
+    {
+        i4.M1 = i4.M1;
+    }
+}
+
+public interface I5 : I4
+{
+}
+
+public class TestHelper
+{
+    public static void Test(I2 i2, I4 i4)
+    {
+        I2.Test(i2);
+        I4.Test(i4);
+    }
+}
+";
+            var source2 =
+@"
+public interface I1 : I2, I5
+{
+    int I2.M1 => Getter();
+
+    private int Getter()
+    {
+        System.Console.WriteLine(""I2.M1"");
+        return 1;
+    }
+    int I4.M1 
+    {
+        get 
+        {
+            System.Console.WriteLine(""I4.M1"");
+            return 1;
+        }
+        set => System.Console.WriteLine(""I4.M1.set"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            ValidatePropertyImplementationInDerived_11(source1, source2,
+                // (4,12): error CS0122: 'I2.M1' is inaccessible due to its protection level
+                //     int I2.M1 => Getter();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 12),
+                // (11,12): error CS0122: 'I4.M1.set' is inaccessible due to its protection level
+                //     int I4.M1 
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1.set").WithLocation(11, 12)
+                );
         }
 
         [Fact]
@@ -31241,6 +35512,418 @@ I2.I1.M1.remove
         }
 
         [Fact]
+        public void EventImplementationInDerived_15()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    protected event System.Action M1;
+    public static void Test(I2 i2)
+    {
+        i2.M1 += null;
+        i2.M1 -= null;
+    }
+}
+
+public interface I4
+{
+    event System.Action M1;
+}
+
+public interface I5 : I4
+{
+}
+
+public class TestHelper
+{
+    public static void Test(I2 i2, I4 i4)
+    {
+        I2.Test(i2);
+        i4.M1 += null;
+        i4.M1 -= null;
+    }
+}
+";
+            var source2 =
+@"
+public interface I1 : I2, I5
+{
+    event System.Action I2.M1
+    {
+        add 
+        {
+            System.Console.WriteLine(""I2.M1.add"");
+        }
+        remove => System.Console.WriteLine(""I2.M1.remove"");
+    }
+    event System.Action I4.M1 
+    {
+        add 
+        {
+            System.Console.WriteLine(""I4.M1.add"");
+        }
+        remove => System.Console.WriteLine(""I4.M1.remove"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        TestHelper.Test(new Test1(), new Test1());
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: ValidateEventImplementationInDerived_01);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+
+                compilation2.VerifyDiagnostics();
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidateEventImplementationInDerived_01);
+            }
+
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
+            {
+                var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateEventImplementationInDerived_01(compilation5.SourceModule);
+
+                compilation5.VerifyDiagnostics();
+                CompileAndVerify(compilation5,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidateEventImplementationInDerived_01);
+            }
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_16()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    protected internal event System.Action M1;
+    public static void Test(I2 i2)
+    {
+        i2.M1 += null;
+        i2.M1 -= null;
+    }
+}
+
+public interface I4
+{
+    event System.Action M1;
+}
+
+public interface I5 : I4
+{
+}
+
+public class TestHelper
+{
+    public static void Test(I2 i2, I4 i4)
+    {
+        I2.Test(i2);
+        i4.M1 += null;
+        i4.M1 -= null;
+    }
+}
+";
+            var source2 =
+@"
+public interface I1 : I2, I5
+{
+    event System.Action I2.M1
+    {
+        add 
+        {
+            System.Console.WriteLine(""I2.M1.add"");
+        }
+        remove => System.Console.WriteLine(""I2.M1.remove"");
+    }
+    event System.Action I4.M1 
+    {
+        add 
+        {
+            System.Console.WriteLine(""I4.M1.add"");
+        }
+        remove => System.Console.WriteLine(""I4.M1.remove"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        TestHelper.Test(new Test1(), new Test1());
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: ValidateEventImplementationInDerived_01);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+
+                compilation2.VerifyDiagnostics();
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidateEventImplementationInDerived_01);
+            }
+
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
+            {
+                var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateEventImplementationInDerived_01(compilation5.SourceModule);
+
+                compilation5.VerifyDiagnostics();
+                CompileAndVerify(compilation5,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidateEventImplementationInDerived_01);
+            }
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_17()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    private protected event System.Action M1;
+    public static void Test(I2 i2)
+    {
+        i2.M1 += null;
+        i2.M1 -= null;
+    }
+}
+
+public interface I4
+{
+    event System.Action M1;
+}
+
+public interface I5 : I4
+{
+}
+
+public class TestHelper
+{
+    public static void Test(I2 i2, I4 i4)
+    {
+        I2.Test(i2);
+        i4.M1 += null;
+        i4.M1 -= null;
+    }
+}
+";
+            var source2 =
+@"
+public interface I1 : I2, I5
+{
+    event System.Action I2.M1
+    {
+        add 
+        {
+            System.Console.WriteLine(""I2.M1.add"");
+        }
+        remove => System.Console.WriteLine(""I2.M1.remove"");
+    }
+    event System.Action I4.M1 
+    {
+        add 
+        {
+            System.Console.WriteLine(""I4.M1.add"");
+        }
+        remove => System.Console.WriteLine(""I4.M1.remove"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            var source3 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        TestHelper.Test(new Test1(), new Test1());
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1,
+                expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                verify: VerifyOnMonoOrCoreClr,
+                symbolValidator: ValidateEventImplementationInDerived_01);
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source3, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+
+                compilation2.VerifyDiagnostics();
+                CompileAndVerify(compilation2,
+                    expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                    verify: VerifyOnMonoOrCoreClr,
+                    symbolValidator: ValidateEventImplementationInDerived_01);
+            }
+
+            var compilation4 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation4.ToMetadataReference(), compilation4.EmitToImageReference() })
+            {
+                var compilation5 = CreateCompilation(source2 + source3, new[] { reference }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+                Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                ValidateEventImplementationInDerived_01(compilation5.SourceModule);
+
+                compilation5.VerifyDiagnostics(
+                    // (4,28): error CS0122: 'I2.M1' is inaccessible due to its protection level
+                    //     event System.Action I2.M1
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 28)
+                    );
+            }
+        }
+
+        [Fact]
         [WorkItem(32540, "https://github.com/dotnet/roslyn/issues/32540")]
         public void IndexerImplementationInDerived_01()
         {
@@ -32317,15 +37000,34 @@ public interface I1
 }
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.Regular);
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.DesktopLatestExtended);
 
             compilation1.VerifyEmitDiagnostics(
-                // (5,26): error CS0106: The modifier 'protected' is not valid for this item
+                // (4,9): error CS0525: Interfaces cannot contain instance fields
+                //     int F1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 9),
+                // (5,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected static int F2;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("protected").WithLocation(5, 26),
-                // (6,35): error CS0106: The modifier 'protected internal' is not valid for this item
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F2").WithLocation(5, 26),
+                // (6,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal static int F3;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("protected internal").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F3").WithLocation(6, 35),
+                // (7,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected static int F4;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "F4").WithLocation(7, 34),
+                // (8,9): error CS0525: Interfaces cannot contain instance fields
+                //     int F5 = 5;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F5").WithLocation(8, 9)
+                );
+
+            validate(compilation1);
+
+            var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation2.VerifyEmitDiagnostics(
                 // (4,9): error CS0525: Interfaces cannot contain instance fields
                 //     int F1;
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 9),
@@ -32334,21 +37036,26 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F5").WithLocation(8, 9)
                 );
 
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-            var f1 = i1.GetMember<FieldSymbol>("F1");
-            var f2 = i1.GetMember<FieldSymbol>("F2");
-            var f3 = i1.GetMember<FieldSymbol>("F3");
-            var f4 = i1.GetMember<FieldSymbol>("F4");
+            validate(compilation2);
 
-            Assert.False(f1.IsStatic);
-            Assert.True(f2.IsStatic);
-            Assert.True(f3.IsStatic);
-            Assert.True(f4.IsStatic);
+            static void validate(CSharpCompilation compilation)
+            {
+                var i1 = compilation.GetTypeByMetadataName("I1");
+                var f1 = i1.GetMember<FieldSymbol>("F1");
+                var f2 = i1.GetMember<FieldSymbol>("F2");
+                var f3 = i1.GetMember<FieldSymbol>("F3");
+                var f4 = i1.GetMember<FieldSymbol>("F4");
 
-            Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, f2.DeclaredAccessibility);
-            Assert.Equal(Accessibility.Public, f3.DeclaredAccessibility);
-            Assert.Equal(Accessibility.ProtectedAndInternal, f4.DeclaredAccessibility);
+                Assert.False(f1.IsStatic);
+                Assert.True(f2.IsStatic);
+                Assert.True(f3.IsStatic);
+                Assert.True(f4.IsStatic);
+
+                Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Protected, f2.DeclaredAccessibility);
+                Assert.Equal(Accessibility.ProtectedOrInternal, f3.DeclaredAccessibility);
+                Assert.Equal(Accessibility.ProtectedAndInternal, f4.DeclaredAccessibility);
+            }
         }
 
         [Fact]
@@ -32687,6 +37394,178 @@ class Test2 : I1
                 );
 
             Validate1(compilation4.SourceModule);
+        }
+
+        [Fact]
+        public void Field_05()
+        {
+            var source0 =
+@"
+public interface I1
+{
+    static protected int F1;
+    static protected internal int F2;
+    static private protected int F3;
+}
+";
+
+            var source1 =
+@"
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.F1 = 1;
+        I1.F2 = 2;
+        I1.F3 = 3;
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.F3}"");
+        Test2.Test();
+    }
+}
+
+class Test2
+{
+    public static void Test()
+    {
+        I1.F2 = -2;
+        System.Console.WriteLine(I1.F2);
+    }
+}
+";
+            var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation1.VerifyDiagnostics();
+
+            validate(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"123
+-2
+",
+                verify: VerifyOnMonoOrCoreClr, symbolValidator: validate);
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        I1.F1 = 11;
+        I1.F2 = 22;
+        System.Console.WriteLine($""{I1.F1}{I1.F2}"");
+    }
+}
+";
+            var references = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
+
+            foreach (var reference in references)
+            {
+                var compilation2 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                CompileAndVerify(compilation2, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "1122" : null, verify: VerifyOnMonoOrCoreClr);
+            }
+
+            var source3 =
+@"
+class Test1
+{
+    static void Main()
+    {
+        I1.F1 = 1;
+        I1.F2 = 2;
+        I1.F3 = 3;
+    }
+}
+";
+
+            var compilation3 = CreateCompilation(source0 + source3, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation3.VerifyDiagnostics(
+                // (13,12): error CS0122: 'I1.F1' is inaccessible due to its protection level
+                //         I1.F1 = 1;
+                Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("I1.F1").WithLocation(13, 12),
+                // (15,12): error CS0122: 'I1.F3' is inaccessible due to its protection level
+                //         I1.F3 = 3;
+                Diagnostic(ErrorCode.ERR_BadAccess, "F3").WithArguments("I1.F3").WithLocation(15, 12)
+                );
+
+
+            var source4 =
+@"
+class Test2 : I1
+{
+    static void Test()
+    {
+        I1.F3 = -3;
+    }
+}
+";
+
+            foreach (var reference in references)
+            {
+                var compilation2 = CreateCompilation(source3 + source4, new[] { reference }, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular,
+                                                     targetFramework: TargetFramework.NetStandardLatest);
+
+                compilation2.VerifyDiagnostics(
+                    // (6,12): error CS0122: 'I1.F1' is inaccessible due to its protection level
+                    //         I1.F1 = 1;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("I1.F1").WithLocation(6, 12),
+                    // (7,12): error CS0122: 'I1.F2' is inaccessible due to its protection level
+                    //         I1.F2 = 2;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F2").WithArguments("I1.F2").WithLocation(7, 12),
+                    // (8,12): error CS0122: 'I1.F3' is inaccessible due to its protection level
+                    //         I1.F3 = 3;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F3").WithArguments("I1.F3").WithLocation(8, 12),
+                    // (16,12): error CS0122: 'I1.F3' is inaccessible due to its protection level
+                    //         I1.F3 = -3;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F3").WithArguments("I1.F3").WithLocation(16, 12)
+                    );
+            }
+
+            var compilation4 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular7_3,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation4.VerifyDiagnostics(
+                // (4,26): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static protected int F1;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F1").WithArguments("default interface implementation").WithLocation(4, 26),
+                // (5,35): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static protected internal int F2;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F2").WithArguments("default interface implementation").WithLocation(5, 35),
+                // (6,34): error CS8652: The feature 'default interface implementation' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     static private protected int F3;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "F3").WithArguments("default interface implementation").WithLocation(6, 34)
+                );
+
+            validate(compilation4.SourceModule);
+
+            void validate(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var f1 = i1.GetMember<FieldSymbol>("F1");
+                var f2 = i1.GetMember<FieldSymbol>("F2");
+                var f3 = i1.GetMember<FieldSymbol>("F3");
+
+                Assert.True(f1.IsStatic);
+                Assert.True(f2.IsStatic);
+                Assert.True(f3.IsStatic);
+
+                Assert.Equal(Accessibility.Protected, f1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.ProtectedOrInternal, f2.DeclaredAccessibility);
+                Assert.Equal(Accessibility.ProtectedAndInternal, f3.DeclaredAccessibility);
+
+                var cctor = i1.GetMember<MethodSymbol>(".cctor");
+                Assert.Null(cctor);
+            }
         }
 
         [Fact]
@@ -33999,12 +38878,17 @@ public delegate void D0();
 public interface I0
 {
     static readonly int F1 = 1;
-    static int P2 {get {System.Console.WriteLine(""P2""); return 2;}}
+    static int P2 {get {System.Console.WriteLine(""P2""); return 2;} set {System.Console.WriteLine(""set_P2"");}}
     static void M3() {System.Console.WriteLine(""M3"");}
     static event D0 E4
     {
         add {System.Console.WriteLine(""add E4"");value();}
         remove {System.Console.WriteLine(""remove E4"");value();}
+    }
+
+    class C6
+    {
+        public static void M() {System.Console.WriteLine(""C6.M"");}
     }
 }
 ";
@@ -34059,6 +38943,8 @@ class Test2
         I0.M3();
         I0.E4 += I0.M3;
         I0.E4 -= new D0(I0.M3);
+        I0.P2 = 3;
+        I0.C6.M();
     }
 }
 ";
@@ -34126,6 +39012,8 @@ add E4
 M3
 remove E4
 M3
+set_P2
+C6.M
 ");
 
                 var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
@@ -34156,13 +39044,13 @@ P50
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.M300").WithLocation(8, 9),
                     // (9,9): error CS8501: Target runtime doesn't support default interface implementation.
                     //         i1.E400 += i1.M300;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.E400").WithLocation(9, 9),
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.E400 += i1.M300").WithLocation(9, 9),
                     // (9,20): error CS8501: Target runtime doesn't support default interface implementation.
                     //         i1.E400 += i1.M300;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.M300").WithLocation(9, 20),
                     // (10,9): error CS8501: Target runtime doesn't support default interface implementation.
                     //         i1.E400 -= new D1(i1.M300);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.E400").WithLocation(10, 9),
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.E400 -= new D1(i1.M300)").WithLocation(10, 9),
                     // (10,27): error CS8501: Target runtime doesn't support default interface implementation.
                     //         i1.E400 -= new D1(i1.M300);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.M300").WithLocation(10, 27),
@@ -34177,13 +39065,13 @@ P50
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(17, 9),
                     // (18,9): error CS8701: Target runtime doesn't support default interface implementation.
                     //         base(I1).E400 += base(I1).M300;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E400").WithLocation(18, 9),
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E400 += base(I1).M300").WithLocation(18, 9),
                     // (18,26): error CS8701: Target runtime doesn't support default interface implementation.
                     //         base(I1).E400 += base(I1).M300;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(18, 26),
                     // (19,9): error CS8701: Target runtime doesn't support default interface implementation.
                     //         base(I1).E400 -= new D1(base(I1).M300);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E400").WithLocation(19, 9),
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E400 -= new D1(base(I1).M300)").WithLocation(19, 9),
                     // (19,33): error CS8701: Target runtime doesn't support default interface implementation.
                     //         base(I1).E400 -= new D1(base(I1).M300);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(19, 33),
@@ -34198,19 +39086,386 @@ P50
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(23, 9),
                     // (24,9): error CS8701: Target runtime doesn't support default interface implementation.
                     //         base(I1).E40 += base(I1).M30;
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E40").WithLocation(24, 9),
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E40 += base(I1).M30").WithLocation(24, 9),
                     // (24,25): error CS8701: Target runtime doesn't support default interface implementation.
                     //         base(I1).E40 += base(I1).M30;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(24, 25),
                     // (25,9): error CS8701: Target runtime doesn't support default interface implementation.
                     //         base(I1).E40 -= new D1(base(I1).M30);
-                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E40").WithLocation(25, 9),
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E40 -= new D1(base(I1).M30)").WithLocation(25, 9),
                     // (25,32): error CS8701: Target runtime doesn't support default interface implementation.
                     //         base(I1).E40 -= new D1(base(I1).M30);
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(25, 32),
                     // (26,9): error CS8701: Target runtime doesn't support default interface implementation.
                     //         base(I1)[50] = default;
                     Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1)[50]").WithLocation(26, 9)
+                    );
+            }
+        }
+
+        [Fact]
+        public void UnsupportedMemberAccess_02()
+        {
+            var source0 =
+@"
+public delegate void D0();
+
+public interface I0
+{
+    static protected  readonly int F1 = 1;
+    static protected internal int P2 {get {System.Console.WriteLine(""P2""); return 2;} set {System.Console.WriteLine(""set_P2"");}}
+    static protected void M3() {System.Console.WriteLine(""M3"");}
+    static protected internal event D0 E4
+    {
+        add {System.Console.WriteLine(""add E4"");value();}
+        remove {System.Console.WriteLine(""remove E4"");value();}
+    }
+
+    protected internal class C6
+    {
+        public static void M() {System.Console.WriteLine(""C6.M"");}
+    }
+
+    protected class C7<T>
+    {
+    }
+
+    static int P8 {protected internal get {System.Console.WriteLine(""P8""); return 8;} set {System.Console.WriteLine(""set_P8"");}}
+    static int P9 {get {System.Console.WriteLine(""P9""); return 9;} protected set {System.Console.WriteLine(""set_P9"");}}
+}
+
+public class Test1 : I0
+{
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+
+            compilation0.VerifyDiagnostics();
+
+
+            var source2 =
+@"
+
+using static I0;
+
+class Test2 : Test1
+{
+    static void Main()
+    {
+        System.Console.WriteLine(I0.F1);
+        System.Console.WriteLine(I0.P2);
+        I0.M3();
+        I0.E4 += I0.M3;
+        I0.E4 -= new D0(I0.M3);
+        I0.P2 = 3;
+        I0.C6.M();
+        _ = new C7<int>();
+        _ = I0.P8;
+        _ = I0.P9;
+        I0.P8 = 12;
+        I0.P9 = 13;
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
+                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular);
+
+                compilation2.VerifyDiagnostics(
+                    // (9,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         System.Console.WriteLine(I0.F1);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.F1").WithLocation(9, 34),
+                    // (10,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         System.Console.WriteLine(I0.P2);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.P2").WithLocation(10, 34),
+                    // (11,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         I0.M3();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.M3").WithLocation(11, 9),
+                    // (12,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         I0.E4 += I0.M3;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.E4 += I0.M3").WithLocation(12, 9),
+                    // (12,18): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         I0.E4 += I0.M3;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.M3").WithLocation(12, 18),
+                    // (13,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         I0.E4 -= new D0(I0.M3);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.E4 -= new D0(I0.M3)").WithLocation(13, 9),
+                    // (13,25): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         I0.E4 -= new D0(I0.M3);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.M3").WithLocation(13, 25),
+                    // (14,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         I0.P2 = 3;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.P2").WithLocation(14, 9),
+                    // (15,12): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         I0.C6.M();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "C6").WithLocation(15, 12),
+                    // (16,17): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         _ = new C7<int>();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "C7<int>").WithLocation(16, 17),
+                    // (17,13): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         _ = I0.P8;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.P8").WithLocation(17, 13),
+                    // (20,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         I0.P9 = 13;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "I0.P9").WithLocation(20, 9)
+                    );
+            }
+        }
+
+        [Fact]
+        public void UnsupportedMemberAccess_03()
+        {
+            var source1 =
+@"
+public delegate void D1();
+
+public interface I1
+{
+    protected int P20 {get {System.Console.WriteLine(""P20""); return 20;}}
+    protected internal int this[int P50] {set {System.Console.WriteLine(""P50"");}}
+    protected void M30() {System.Console.WriteLine(""M30"");}
+    protected internal event D1 E40
+    {
+        add {System.Console.WriteLine(""add E40"");value();}
+        remove {System.Console.WriteLine(""remove E40"");value();}
+    }
+    int P50 {protected get {System.Console.WriteLine(""P50""); return 50;} set {}}
+    int P60 {get {System.Console.WriteLine(""P60""); return 60;} protected internal set {}}
+
+    protected internal  sealed int P200 {get {System.Console.WriteLine(""P200""); return 200;}}
+    protected sealed int this[string P500] {set {System.Console.WriteLine(""P500"");}}
+    protected internal sealed void M300() {System.Console.WriteLine(""M300"");}
+    protected sealed event D1 E400
+    {
+        add {System.Console.WriteLine(""add E400"");value();}
+        remove {System.Console.WriteLine(""remove E400"");value();}
+    }
+    sealed int P500 {protected get {System.Console.WriteLine(""P500""); return 500;} set {}}
+    sealed int P600 {get {System.Console.WriteLine(""P600""); return 600;} protected internal set {}}
+}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular,
+                                                 targetFramework: TargetFramework.NetStandardLatest);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var source3 =
+@"
+interface Test3 : I1
+{
+    static void Main()
+    {
+        Test3 i1 = null;
+        System.Console.WriteLine(i1.P20);
+        i1.M30();
+        i1.E40 += i1.M30;
+        i1.E40 -= new D1(i1.M30);
+        i1[50] = default;
+        _ = i1.P50;
+        _ = i1.P60;
+        i1.P50 = 12;
+        i1.P60 = 13;
+    }
+}
+";
+
+            var source4 =
+@"
+interface Test4 : I1
+{
+    static void Main()
+    {
+        Test4 i1 = null;
+        System.Console.WriteLine(i1.P200);
+        i1.M300();
+        i1.E400 += i1.M300;
+        i1.E400 -= new D1(i1.M300);
+        i1[""500""] = default;
+        _ = i1.P500;
+        _ = i1.P600;
+        i1.P500 = 12;
+        i1.P600 = 13;
+    }
+
+    void BaseTest()
+    {
+        System.Console.WriteLine(base(I1).P200);
+        base(I1).M300();
+        base(I1).E400 += base(I1).M300;
+        base(I1).E400 -= new D1(base(I1).M300);
+        base(I1)[""500""] = default;
+
+        System.Console.WriteLine(base(I1).P20);
+        base(I1).M30();
+        base(I1).E40 += base(I1).M30;
+        base(I1).E40 -= new D1(base(I1).M30);
+        base(I1)[50] = default;
+
+        _ = base(I1).P500;
+        _ = base(I1).P600;
+        base(I1).P500 = 12;
+        base(I1).P600 = 13;
+        _ = base(I1).P50;
+        _ = base(I1).P60;
+        base(I1).P50 = 12;
+        base(I1).P60 = 13;
+    }
+}
+";
+
+            foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
+            {
+                var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
+                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular);
+
+                compilation3.VerifyDiagnostics(
+                    // (7,34): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         System.Console.WriteLine(i1.P20);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.P20").WithLocation(7, 34),
+                    // (8,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         i1.M30();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.M30").WithLocation(8, 9),
+                    // (9,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         i1.E40 += i1.M30;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.E40 += i1.M30").WithLocation(9, 9),
+                    // (9,19): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         i1.E40 += i1.M30;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.M30").WithLocation(9, 19),
+                    // (10,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         i1.E40 -= new D1(i1.M30);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.E40 -= new D1(i1.M30)").WithLocation(10, 9),
+                    // (10,26): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         i1.E40 -= new D1(i1.M30);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.M30").WithLocation(10, 26),
+                    // (11,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         i1[50] = default;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1[50]").WithLocation(11, 9),
+                    // (12,13): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         _ = i1.P50;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.P50").WithLocation(12, 13),
+                    // (15,9): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                    //         i1.P60 = 13;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "i1.P60").WithLocation(15, 9)
+                    );
+
+                var compilation4 = CreateCompilation(source4, options: TestOptions.DebugExe,
+                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     references: new[] { reference },
+                                                     parseOptions: TestOptions.Regular);
+
+                Assert.False(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation4.VerifyDiagnostics(
+                    // (7,34): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         System.Console.WriteLine(i1.P200);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P200").WithLocation(7, 34),
+                    // (8,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         i1.M300();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.M300").WithLocation(8, 9),
+                    // (9,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         i1.E400 += i1.M300;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.E400 += i1.M300").WithLocation(9, 9),
+                    // (9,20): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         i1.E400 += i1.M300;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.M300").WithLocation(9, 20),
+                    // (10,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         i1.E400 -= new D1(i1.M300);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.E400 -= new D1(i1.M300)").WithLocation(10, 9),
+                    // (10,27): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         i1.E400 -= new D1(i1.M300);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.M300").WithLocation(10, 27),
+                    // (11,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         i1["500"] = default;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, @"i1[""500""]").WithLocation(11, 9),
+                    // (12,13): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         _ = i1.P500;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P500").WithLocation(12, 13),
+                    // (13,13): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         _ = i1.P600;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P600").WithLocation(13, 13),
+                    // (14,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         i1.P500 = 12;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P500").WithLocation(14, 9),
+                    // (15,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         i1.P600 = 13;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P600").WithLocation(15, 9),
+                    // (18,10): error CS8701: Target runtime doesn't support default interface implementation.
+                    //     void BaseTest()
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "BaseTest").WithLocation(18, 10),
+                    // (20,34): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         System.Console.WriteLine(base(I1).P200);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P200").WithLocation(20, 34),
+                    // (21,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).M300();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(21, 9),
+                    // (22,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).E400 += base(I1).M300;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E400 += base(I1).M300").WithLocation(22, 9),
+                    // (22,26): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).E400 += base(I1).M300;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(22, 26),
+                    // (23,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).E400 -= new D1(base(I1).M300);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E400 -= new D1(base(I1).M300)").WithLocation(23, 9),
+                    // (23,33): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).E400 -= new D1(base(I1).M300);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M300").WithLocation(23, 33),
+                    // (24,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1)["500"] = default;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, @"base(I1)[""500""]").WithLocation(24, 9),
+                    // (26,34): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         System.Console.WriteLine(base(I1).P20);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P20").WithLocation(26, 34),
+                    // (27,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).M30();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(27, 9),
+                    // (28,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).E40 += base(I1).M30;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E40 += base(I1).M30").WithLocation(28, 9),
+                    // (28,25): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).E40 += base(I1).M30;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(28, 25),
+                    // (29,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).E40 -= new D1(base(I1).M30);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).E40 -= new D1(base(I1).M30)").WithLocation(29, 9),
+                    // (29,32): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).E40 -= new D1(base(I1).M30);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).M30").WithLocation(29, 32),
+                    // (30,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1)[50] = default;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1)[50]").WithLocation(30, 9),
+                    // (32,13): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         _ = base(I1).P500;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P500").WithLocation(32, 13),
+                    // (33,13): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         _ = base(I1).P600;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P600").WithLocation(33, 13),
+                    // (34,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).P500 = 12;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P500").WithLocation(34, 9),
+                    // (35,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).P600 = 13;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P600").WithLocation(35, 9),
+                    // (36,13): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         _ = base(I1).P50;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P50").WithLocation(36, 13),
+                    // (37,13): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         _ = base(I1).P60;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P60").WithLocation(37, 13),
+                    // (38,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).P50 = 12;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P50").WithLocation(38, 9),
+                    // (39,9): error CS8701: Target runtime doesn't support default interface implementation.
+                    //         base(I1).P60 = 13;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "base(I1).P60").WithLocation(39, 9)
                     );
             }
         }
@@ -42417,7 +47672,7 @@ abstract class D
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "pD").WithArguments("F1", "pD").WithLocation(11, 20),
                 // (12,9): error CS0205: Cannot call an abstract base member: 'D.F1(int)'
                 //         base(D).F1(1);
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1(1)").WithArguments("D.F1(int)").WithLocation(12, 9)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1").WithArguments("D.F1(int)").WithLocation(12, 9)
                 );
         }
 
@@ -42455,7 +47710,7 @@ abstract class D
             compilation1.VerifyDiagnostics(
                 // (8,9): error CS0205: Cannot call an abstract base member: 'B.F1(int)'
                 //         base(B).F1(1);
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1(1)").WithArguments("B.F1(int)").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.F1(int)").WithLocation(8, 9)
                 );
         }
 
@@ -43568,7 +48823,7 @@ interface B
             compilation1.VerifyDiagnostics(
                 // (8,9): error CS0205: Cannot call an abstract base member: 'B.F1(int)'
                 //         base(B).F1(1);
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1(1)").WithArguments("B.F1(int)").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.F1(int)").WithLocation(8, 9)
                 );
         }
 
@@ -44722,7 +49977,7 @@ class A : B
                 compilation1.VerifyDiagnostics(
                     // (8,13): error CS8705: Interface member 'C.F1()' does not have a most specific implementation. Neither 'I1.C.F1()', nor 'I2.C.F1()' are most specific.
                     //         _ = base(B).F1();
-                    Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1()").WithArguments("C.F1()", "I1.C.F1()", "I2.C.F1()").WithLocation(8, 13)
+                    Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1").WithArguments("C.F1()", "I1.C.F1()", "I2.C.F1()").WithLocation(8, 13)
                     );
             }
         }
@@ -44742,7 +49997,7 @@ class A : B
 }
 ";
 
-            foreach (string accessibility in new[] { "private", "family", "famandassem", "famorassem", "assembly" })
+            foreach (string accessibility in new[] { "private", "famandassem", "assembly" })
             {
                 var ilSource = @"
 .assembly ExplicitBase_128
@@ -44791,7 +50046,7 @@ class A : B
                 compilation1.VerifyDiagnostics(
                     // (8,13): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
                     //         _ = base(B).F1();
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1()").WithArguments("B.C.F1()").WithLocation(8, 13)
+                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1").WithArguments("B.C.F1()").WithLocation(8, 13)
                     );
             }
         }
@@ -44855,7 +50110,7 @@ class A : B
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "B.C.F1()").WithLocation(2, 11),
                 // (6,13): error CS0205: Cannot call an abstract base member: 'B.C.F1()'
                 //         _ = base(B).F1();
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1()").WithArguments("B.C.F1()").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.C.F1()").WithLocation(6, 13)
                 );
         }
 
@@ -45207,7 +50462,7 @@ class A : B
 }
 ";
 
-            foreach (string accessibility in new[] { "private", "family", "famandassem", "famorassem", "assembly" })
+            foreach (string accessibility in new[] { "private", "famandassem", "assembly" })
             {
                 var ilSource = @"
 .assembly ExplicitBase_132
@@ -48289,7 +53544,7 @@ class A : B
 }
 ";
 
-            foreach (string accessibility in new[] { "private", "family", "famandassem", "famorassem", "assembly" })
+            foreach (string accessibility in new[] { "private", "famandassem", "assembly" })
             {
                 var ilSource = @"
 .assembly extern System.Runtime
@@ -48654,7 +53909,7 @@ class A : B
 }
 ";
 
-            foreach (string accessibility in new[] { "private", "family", "famandassem", "famorassem", "assembly" })
+            foreach (string accessibility in new[] { "private", "famandassem", "assembly" })
             {
                 var ilSource = @"
 .assembly extern System.Runtime
@@ -49775,13 +55030,13 @@ class G : E
                 compilation3.VerifyDiagnostics(
                     // (8,9): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
                     //         base(B).F1();
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1()").WithArguments("B.C.F1()").WithLocation(8, 9),
+                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1").WithArguments("B.C.F1()").WithLocation(8, 9),
                     // (26,9): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
                     //         base(B).F1();
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1()").WithArguments("B.C.F1()").WithLocation(26, 9),
+                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1").WithArguments("B.C.F1()").WithLocation(26, 9),
                     // (35,9): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
                     //         base(B).F1();
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1()").WithArguments("B.C.F1()").WithLocation(35, 9)
+                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1").WithArguments("B.C.F1()").WithLocation(35, 9)
                     );
             }
         }
@@ -49906,6 +55161,1472 @@ interface C
 B
 C
 ", verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ExplicitBase_157()
+        {
+            var source0 = @"
+public interface B : C
+{
+    char C.F1(int pB) => 'B';
+}
+
+public interface C
+{
+    protected char F1(int pC);
+}
+";
+
+            var source1 = @"
+class A : B
+{
+    char C.F1(int pA) => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1(1));
+        System.Console.WriteLine(base(B).F1(pC: 1));
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char C.F1(int pA) => 'F';
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(B).F1(1));
+        System.Console.WriteLine(base(B).F1(pC: 1));
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(B).F1(1));
+        System.Console.WriteLine(base(B).F1(pC: 1));
+    }
+}
+
+class G : E
+{
+    char C.F1(int pA) => 'G';
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+                compilation1.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+B
+B
+B
+B
+B
+B
+", verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ExplicitBase_158()
+        {
+            var source0 = @"
+public interface B : C
+{
+    char C.F1(int pB) => 'B';
+}
+
+public interface C
+{
+    protected internal char F1(int pC);
+}
+";
+
+            var source1 = @"
+class A : B
+{
+    char C.F1(int pA) => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1(1));
+        System.Console.WriteLine(base(B).F1(pC: 1));
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char C.F1(int pA) => 'F';
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(B).F1(1));
+        System.Console.WriteLine(base(B).F1(pC: 1));
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(B).F1(1));
+        System.Console.WriteLine(base(B).F1(pC: 1));
+    }
+}
+
+class G : E
+{
+    char C.F1(int pA) => 'G';
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+                compilation1.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+B
+B
+B
+B
+B
+B
+", verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ExplicitBase_159()
+        {
+            var source0 = @"
+public interface B : C
+{
+    char C.F1(int pB) => 'B';
+}
+
+public interface C
+{
+    private protected char F1(int pC);
+}
+";
+
+            var source1 = @"
+class A : B
+{
+    char C.F1(int pA) => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1(1));
+        System.Console.WriteLine(base(B).F1(pC: 1));
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char C.F1(int pA) => 'F';
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(B).F1(1));
+        System.Console.WriteLine(base(B).F1(pC: 1));
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(B).F1(1));
+        System.Console.WriteLine(base(B).F1(pC: 1));
+    }
+}
+
+class G : E
+{
+    char C.F1(int pA) => 'G';
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+                compilation1.VerifyDiagnostics(
+                    // (4,12): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
+                    //     char C.F1(int pA) => 'A';
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(4, 12),
+                    // (8,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1(1));
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(8, 42),
+                    // (9,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1(pC: 1));
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(9, 42),
+                    // (22,12): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
+                    //     char C.F1(int pA) => 'F';
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(22, 12),
+                    // (26,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1(1));
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(26, 42),
+                    // (27,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1(pC: 1));
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(27, 42),
+                    // (35,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1(1));
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(35, 42),
+                    // (36,42): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1(pC: 1));
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(36, 42),
+                    // (42,12): error CS0122: 'C.F1(int)' is inaccessible due to its protection level
+                    //     char C.F1(int pA) => 'G';
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1(int)").WithLocation(42, 12)
+                    );
+            }
+
+            var compilation2 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+B
+B
+B
+B
+B
+B
+", verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ExplicitBase_160()
+        {
+            var source0 = @"
+public interface B : C
+{
+    char C.F1 { get { System.Console.WriteLine(""B""); return 'B';} set => System.Console.WriteLine(""set B"");}
+}
+
+public interface C
+{
+    protected char F1 {get; set;}
+}
+";
+
+            var source1 = @"
+class A : B
+{
+    char C.F1 { get { System.Console.WriteLine(""A""); return 'A';} set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+        base(B).F1 += 'y';
+        base(B).F1++;
+        ++base(B).F1;
+        System.Console.WriteLine(base(B).F1 = 'z');
+        System.Console.WriteLine(base(B).F1 += (char)10);
+        System.Console.WriteLine(base(B).F1++);
+        System.Console.WriteLine(++base(B).F1);
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char C.F1 { get { System.Console.WriteLine(""F""); return 'F';} set => System.Console.WriteLine(""set F"");}
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+        base(B).F1 += 'y';
+        base(B).F1++;
+        ++base(B).F1;
+        System.Console.WriteLine(base(B).F1 = 'z');
+        System.Console.WriteLine(base(B).F1 += (char)10);
+        System.Console.WriteLine(base(B).F1++);
+        System.Console.WriteLine(++base(B).F1);
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+        base(B).F1 += 'y';
+        base(B).F1++;
+        ++base(B).F1;
+        System.Console.WriteLine(base(B).F1 = 'z');
+        System.Console.WriteLine(base(B).F1 += (char)10);
+        System.Console.WriteLine(base(B).F1++);
+        System.Console.WriteLine(++base(B).F1);
+    }
+}
+
+class G : E
+{
+    char C.F1 { get { System.Console.WriteLine(""G""); return 'G';} set => System.Console.WriteLine(""set G"");}
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+                compilation1.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+B
+B
+set B
+B
+set B
+B
+set B
+B
+set B
+set B
+z
+B
+set B
+L
+B
+set B
+B
+B
+set B
+C
+B
+B
+set B
+B
+set B
+B
+set B
+B
+set B
+set B
+z
+B
+set B
+L
+B
+set B
+B
+B
+set B
+C
+B
+B
+set B
+B
+set B
+B
+set B
+B
+set B
+set B
+z
+B
+set B
+L
+B
+set B
+B
+B
+set B
+C
+", verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ExplicitBase_161()
+        {
+            var source0 = @"
+public interface B : C
+{
+    char C.F1 { get { System.Console.WriteLine(""B""); return 'B';} set => System.Console.WriteLine(""set B"");}
+}
+
+public interface C
+{
+    protected internal char F1 {get; set;}
+}
+";
+
+            var source1 = @"
+class A : B
+{
+    char C.F1 { get { System.Console.WriteLine(""A""); return 'A';} set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+        base(B).F1 += 'y';
+        base(B).F1++;
+        ++base(B).F1;
+        System.Console.WriteLine(base(B).F1 = 'z');
+        System.Console.WriteLine(base(B).F1 += (char)10);
+        System.Console.WriteLine(base(B).F1++);
+        System.Console.WriteLine(++base(B).F1);
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char C.F1 { get { System.Console.WriteLine(""F""); return 'F';} set => System.Console.WriteLine(""set F"");}
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+        base(B).F1 += 'y';
+        base(B).F1++;
+        ++base(B).F1;
+        System.Console.WriteLine(base(B).F1 = 'z');
+        System.Console.WriteLine(base(B).F1 += (char)10);
+        System.Console.WriteLine(base(B).F1++);
+        System.Console.WriteLine(++base(B).F1);
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+        base(B).F1 += 'y';
+        base(B).F1++;
+        ++base(B).F1;
+        System.Console.WriteLine(base(B).F1 = 'z');
+        System.Console.WriteLine(base(B).F1 += (char)10);
+        System.Console.WriteLine(base(B).F1++);
+        System.Console.WriteLine(++base(B).F1);
+    }
+}
+
+class G : E
+{
+    char C.F1 { get { System.Console.WriteLine(""G""); return 'G';} set => System.Console.WriteLine(""set G"");}
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+                compilation1.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+B
+B
+set B
+B
+set B
+B
+set B
+B
+set B
+set B
+z
+B
+set B
+L
+B
+set B
+B
+B
+set B
+C
+B
+B
+set B
+B
+set B
+B
+set B
+B
+set B
+set B
+z
+B
+set B
+L
+B
+set B
+B
+B
+set B
+C
+B
+B
+set B
+B
+set B
+B
+set B
+B
+set B
+set B
+z
+B
+set B
+L
+B
+set B
+B
+B
+set B
+C
+", verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ExplicitBase_162()
+        {
+            var source0 = @"
+public interface B : C
+{
+    char C.F1 { get { System.Console.WriteLine(""B""); return 'B';} set => System.Console.WriteLine(""set B"");}
+}
+
+public interface C
+{
+    private protected char F1 {get; set;}
+}
+";
+
+            var source1 = @"
+class A : B
+{
+    char C.F1 { get { System.Console.WriteLine(""A""); return 'A';} set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+        base(B).F1 += 'y';
+        base(B).F1++;
+        ++base(B).F1;
+        System.Console.WriteLine(base(B).F1 = 'z');
+        System.Console.WriteLine(base(B).F1 += (char)10);
+        System.Console.WriteLine(base(B).F1++);
+        System.Console.WriteLine(++base(B).F1);
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char C.F1 { get { System.Console.WriteLine(""F""); return 'F';} set => System.Console.WriteLine(""set F"");}
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+        base(B).F1 += 'y';
+        base(B).F1++;
+        ++base(B).F1;
+        System.Console.WriteLine(base(B).F1 = 'z');
+        System.Console.WriteLine(base(B).F1 += (char)10);
+        System.Console.WriteLine(base(B).F1++);
+        System.Console.WriteLine(++base(B).F1);
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+        base(B).F1 += 'y';
+        base(B).F1++;
+        ++base(B).F1;
+        System.Console.WriteLine(base(B).F1 = 'z');
+        System.Console.WriteLine(base(B).F1 += (char)10);
+        System.Console.WriteLine(base(B).F1++);
+        System.Console.WriteLine(++base(B).F1);
+    }
+}
+
+class G : E
+{
+    char C.F1 { get { System.Console.WriteLine(""G""); return 'G';} set => System.Console.WriteLine(""set G"");}
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+                compilation1.VerifyDiagnostics(
+                    // (4,12): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //     char C.F1 { get { System.Console.WriteLine("A"); return 'A';} set => System.Console.WriteLine("set A");}
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(4, 12),
+                    // (8,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(8, 42),
+                    // (9,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 = 'x';
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(9, 17),
+                    // (10,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 += 'y';
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(10, 17),
+                    // (11,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1++;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(11, 17),
+                    // (12,19): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         ++base(B).F1;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(12, 19),
+                    // (13,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1 = 'z');
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(13, 42),
+                    // (14,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1 += (char)10);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(14, 42),
+                    // (15,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1++);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(15, 42),
+                    // (16,44): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(++base(B).F1);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(16, 44),
+                    // (29,12): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //     char C.F1 { get { System.Console.WriteLine("F"); return 'F';} set => System.Console.WriteLine("set F");}
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(29, 12),
+                    // (33,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(33, 42),
+                    // (34,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 = 'x';
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(34, 17),
+                    // (35,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 += 'y';
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(35, 17),
+                    // (36,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1++;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(36, 17),
+                    // (37,19): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         ++base(B).F1;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(37, 19),
+                    // (38,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1 = 'z');
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(38, 42),
+                    // (39,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1 += (char)10);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(39, 42),
+                    // (40,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1++);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(40, 42),
+                    // (41,44): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(++base(B).F1);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(41, 44),
+                    // (49,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(49, 42),
+                    // (50,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 = 'x';
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(50, 17),
+                    // (51,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 += 'y';
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(51, 17),
+                    // (52,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1++;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(52, 17),
+                    // (53,19): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         ++base(B).F1;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(53, 19),
+                    // (54,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1 = 'z');
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(54, 42),
+                    // (55,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1 += (char)10);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(55, 42),
+                    // (56,42): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(base(B).F1++);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(56, 42),
+                    // (57,44): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(++base(B).F1);
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(57, 44),
+                    // (63,12): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //     char C.F1 { get { System.Console.WriteLine("G"); return 'G';} set => System.Console.WriteLine("set G");}
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(63, 12)
+                    );
+            }
+
+            var compilation2 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+B
+B
+set B
+B
+set B
+B
+set B
+B
+set B
+set B
+z
+B
+set B
+L
+B
+set B
+B
+B
+set B
+C
+B
+B
+set B
+B
+set B
+B
+set B
+B
+set B
+set B
+z
+B
+set B
+L
+B
+set B
+B
+B
+set B
+C
+B
+B
+set B
+B
+set B
+B
+set B
+B
+set B
+set B
+z
+B
+set B
+L
+B
+set B
+B
+B
+set B
+C
+", verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ExplicitBase_163()
+        {
+            var source0 = @"
+public interface B : C
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""B"");} remove => System.Console.WriteLine(""set B"");}
+}
+
+public interface C
+{
+    protected event System.Action F1;
+}
+";
+
+            var source1 = @"
+class A : B
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""A"");} remove => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""F"");} remove => System.Console.WriteLine(""set F"");}
+
+    public void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+}
+
+class G : E
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""G"");} remove => System.Console.WriteLine(""set G"");}
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+                compilation1.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+B
+set B
+B
+set B
+B
+set B
+", verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ExplicitBase_164()
+        {
+            var source0 = @"
+public interface B : C
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""B"");} remove => System.Console.WriteLine(""set B"");}
+}
+
+public interface C
+{
+    protected internal event System.Action F1;
+}
+";
+
+            var source1 = @"
+class A : B
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""A"");} remove => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""F"");} remove => System.Console.WriteLine(""set F"");}
+
+    public void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+}
+
+class G : E
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""G"");} remove => System.Console.WriteLine(""set G"");}
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+                compilation1.VerifyDiagnostics();
+
+                CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+B
+set B
+B
+set B
+B
+set B
+", verify: VerifyOnMonoOrCoreClr);
+            }
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ExplicitBase_165()
+        {
+            var source0 = @"
+public interface B : C
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""B"");} remove => System.Console.WriteLine(""set B"");}
+}
+
+public interface C
+{
+    private protected event System.Action F1;
+}
+";
+
+            var source1 = @"
+class A : B
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""A"");} remove => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""F"");} remove => System.Console.WriteLine(""set F"");}
+
+    public void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+}
+
+class G : E
+{
+    event System.Action C.F1 { add { System.Console.WriteLine(""G"");} remove => System.Console.WriteLine(""set G"");}
+}
+";
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+                compilation1.VerifyDiagnostics(
+                    // (4,27): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //     event System.Action C.F1 { add { System.Console.WriteLine("A");} remove => System.Console.WriteLine("set A");}
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(4, 27),
+                    // (8,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 += null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(8, 17),
+                    // (9,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 -= null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(9, 17),
+                    // (22,27): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //     event System.Action C.F1 { add { System.Console.WriteLine("F");} remove => System.Console.WriteLine("set F");}
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(22, 27),
+                    // (26,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 += null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(26, 17),
+                    // (27,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 -= null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(27, 17),
+                    // (35,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 += null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(35, 17),
+                    // (36,17): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //         base(B).F1 -= null;
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(36, 17),
+                    // (42,27): error CS0122: 'C.F1' is inaccessible due to its protection level
+                    //     event System.Action C.F1 { add { System.Console.WriteLine("G");} remove => System.Console.WriteLine("set G");}
+                    Diagnostic(ErrorCode.ERR_BadAccess, "F1").WithArguments("C.F1").WithLocation(42, 27)
+                    );
+            }
+
+            var compilation2 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics();
+
+            CompileAndVerify(compilation2, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+B
+set B
+B
+set B
+B
+set B
+", verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ProtectedAccessibility_01()
+        {
+            var source0 = @"
+interface I1
+{
+    sealed protected void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+";
+            var source1 = @"
+interface I2 : I1
+{
+    static void Test<T>(T x) where T : I2
+    {
+        x.M1();
+    }
+}
+
+class A : I2
+{
+    static void Main()
+    {
+        I2.Test(new A());
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
+
+            var source2 = @"
+interface I2 : I1
+{
+    static void Test<T>(T x) where T : I1, I3
+    {
+        x.M1();
+    }
+}
+
+interface I3 : I2
+{}
+
+class A : I3
+{
+    static void Main()
+    {
+        I2.Test(new A());
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
+
+            var source3 = @"
+interface I2 : I1
+{
+    static void Test<T>(T x) where T : I1
+    {
+        x.M1();
+    }
+}
+";
+
+            var compilation2 = CreateCompilation(source0 + source3, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (14,11): error CS1540: Cannot access protected member 'I1.M1()' via a qualifier of type 'T'; the qualifier must be of type 'I2' (or derived from it)
+                //         x.M1();
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M1").WithArguments("I1.M1()", "T", "I2").WithLocation(14, 11)
+                );
+        }
+
+        [Fact]
+        public void ProtectedAccessibility_02()
+        {
+            var source0 = @"
+interface I1<T>
+{
+    sealed protected void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+
+    static void Test(I1<int> x)
+    {
+        x.M1();
+    }
+}
+
+class A : I1<int>
+{
+    static void Main()
+    {
+        I1<byte>.Test(new A());
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ProtectedAccessibility_03()
+        {
+            var source0 = @"
+interface I1<T>
+{
+    sealed protected void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+
+interface I3<T> : I1<T>
+{}
+";
+            var source1 = @"
+interface I2<T> : I3<T>
+{
+    static void Test(I2<int> x)
+    {
+        x.M1();
+    }
+}
+
+class A : I2<int>
+{
+    static void Main()
+    {
+        I2<byte>.Test(new A());
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
+
+            var source2 = @"
+interface I2<T> : I3<T>
+{
+    static void Test(I4 x)
+    {
+        x.M1();
+    }
+}
+
+interface I4 : I2<int>
+{}
+
+class A : I4
+{
+    static void Main()
+    {
+        I2<byte>.Test(new A());
+    }
+}
+";
+
+            var compilation1 = CreateCompilation(source0 + source2, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation1.VerifyDiagnostics();
+
+            CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
+
+            var source3 = @"
+interface I2<T> : I3<T>
+{
+    static void Test(I3<int> x)
+    {
+        x.M1();
+    }
+
+    static void Test(I1<int> y)
+    {
+        y.M1();
+    }
+}
+";
+
+            var compilation2 = CreateCompilation(source0 + source3, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (17,11): error CS1540: Cannot access protected member 'I1<int>.M1()' via a qualifier of type 'I3<int>'; the qualifier must be of type 'I2<T>' (or derived from it)
+                //         x.M1();
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M1").WithArguments("I1<int>.M1()", "I3<int>", "I2<T>").WithLocation(17, 11),
+                // (22,11): error CS1540: Cannot access protected member 'I1<int>.M1()' via a qualifier of type 'I1<int>'; the qualifier must be of type 'I2<T>' (or derived from it)
+                //         y.M1();
+                Diagnostic(ErrorCode.ERR_BadProtectedAccess, "M1").WithArguments("I1<int>.M1()", "I1<int>", "I2<T>").WithLocation(22, 11)
+                );
+        }
+
+        [Fact]
+        public void ProtectedAccessibility_04()
+        {
+            var source0 = @"
+interface I1 : I2
+{
+    sealed protected void M1()
+    {
+    }
+    static void Test(I1 x)
+    {
+        x.M1();
+    }
+}
+
+interface I2 : I1
+{
+    static void Test(I2 y)
+    {
+        y.M1();
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(2, 11),
+                // (13,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(13, 11),
+                // (17,11): error CS1061: 'I2' does not contain a definition for 'M1' and no accessible extension method 'M1' accepting a first argument of type 'I2' could be found (are you missing a using directive or an assembly reference?)
+                //         y.M1();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M1").WithArguments("I2", "M1").WithLocation(17, 11)
+                );
+        }
+
+        [Fact]
+        public void ProtectedAccessibility_05()
+        {
+            var source0 = @"
+interface I1 : I2
+{
+    static protected void M2()
+    {
+    }
+    static void Test()
+    {
+        I1.M2();
+    }
+}
+
+interface I2 : I1
+{
+    static void Test()
+    {
+        I1.M2();
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics(
+                // (2,11): error CS0529: Inherited interface 'I2' causes a cycle in the interface hierarchy of 'I1'
+                // interface I1 : I2
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I1").WithArguments("I1", "I2").WithLocation(2, 11),
+                // (13,11): error CS0529: Inherited interface 'I1' causes a cycle in the interface hierarchy of 'I2'
+                // interface I2 : I1
+                Diagnostic(ErrorCode.ERR_CycleInInterfaceInheritance, "I2").WithArguments("I2", "I1").WithLocation(13, 11)
+                );
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ProtectedAccessibility_06()
+        {
+            var source0 = @"
+interface I1<T>
+{
+    static protected void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+
+interface I3<T> : I1<T>
+{}
+";
+            var source1 = @"
+class I2<T> : I3<T>
+{
+    public static void Test()
+    {
+        I1<int>.M1();
+    }
+}
+
+class A
+{
+    static void Main()
+    {
+        I2<byte>.Test();
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
+
+
+            var source3 = @"
+class I2<T>
+{
+    static void Test()
+    {
+        I3<T>.M1();
+        I1<T>.M1();
+    }
+}
+";
+
+            var compilation2 = CreateCompilation(source0 + source3, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (17,15): error CS0122: 'I1<T>.M1()' is inaccessible due to its protection level
+                //         I3<T>.M1();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1<T>.M1()").WithLocation(17, 15),
+                // (18,15): error CS0122: 'I1<T>.M1()' is inaccessible due to its protection level
+                //         I1<T>.M1();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1<T>.M1()").WithLocation(18, 15)
+                );
+        }
+
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        public void ProtectedAccessibility_07()
+        {
+            var source0 = @"
+interface I1<T>
+{
+    static protected void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+}
+
+class I3<T> : I1<T>
+{}
+";
+            var source1 = @"
+class I2<T> : I3<T>
+{
+    public static void Test()
+    {
+        I1<int>.M1();
+    }
+}
+
+class A
+{
+    static void Main()
+    {
+        I2<byte>.Test();
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
         }
 
     }
