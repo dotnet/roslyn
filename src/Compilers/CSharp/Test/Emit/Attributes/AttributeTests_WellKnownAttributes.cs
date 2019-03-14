@@ -5810,6 +5810,12 @@ public static class TestExtension
 }
 ";
             CreateCompilationWithMscorlib40(source, new[] { ExtensionAssemblyRef }).VerifyDiagnostics(
+                // (98,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Obsolete] add {}
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(98, 10),
+                // (99,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Obsolete("Don't use remove accessor")] remove {}
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(99, 10),
                 // (8,9): warning CS0612: 'Test.ObsoleteMethod1()' is obsolete
                 //         ObsoleteMethod1();
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "ObsoleteMethod1()").WithArguments("Test.ObsoleteMethod1()").WithLocation(8, 9),
@@ -6883,9 +6889,6 @@ class D
 }";
             var comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
-                // (9,17): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
-                //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(9, 17),
                 // (7,33): warning CS0612: 'A' is obsolete
                 //     object P { get { return new A(); } }
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(7, 33));
@@ -6937,12 +6940,12 @@ class D
 }";
             var comp = CreateCompilation(new[] { Parse(source0), Parse(source1) });
             comp.VerifyDiagnostics(
-                // (21,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
-                //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(21, 10),
                 // (11,24): warning CS0612: 'A' is obsolete
                 //         remove { M(new A()); }
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(11, 24));
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(11, 24),
+                // (21,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
+                //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(21, 10));
         }
 
         [Fact]
@@ -8079,27 +8082,33 @@ class Class5
         Class2 x2 = null;
         Class3 x3 = null;
         Class4 x4 = null;
+        Class6 x6 = new Class6();
 
         object x5;
         x5=x1;
         x5 = x2;
         x5 = x3;
         x5 = x4;
+        x5 = x6.P1;
+        x6.P1 = 1;
+        x6.E1 += null;
+        x6.E1 -= null;
     }
 }
 
 class Class6
 {
-    int P1
+    public int P1
     {
         [Deprecated(""P1.get is deprecated."", DeprecationType.Remove, 1)]
         get
         {
             return 1;
         }
+        set {}
     }
 
-    event System.Action E1
+    public event System.Action E1
     {
         [Deprecated(""E1.add is deprecated."", DeprecationType.Remove, 1)]
         add
@@ -8114,12 +8123,6 @@ class Class6
             var compilation2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new[] { new CSharpCompilationReference(compilation1) }), TestOptions.ReleaseDll);
 
             var expected = new[] {
-                // (25,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Deprecated("P1.get is deprecated.", DeprecationType.Remove, 1)]
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(25, 10),
-                // (34,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
-                //         [Deprecated("E1.add is deprecated.", DeprecationType.Remove, 1)]
-                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(34, 10),
                 // (8,9): warning CS0618: 'Class1' is obsolete: 'Class1 is deprecated.'
                 //         Class1 x1 = null;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Class1").WithArguments("Class1", "Class1 is deprecated.").WithLocation(8, 9),
@@ -8131,7 +8134,13 @@ class Class6
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Class3").WithArguments("Class3", "Class3 is deprecated.").WithLocation(10, 9),
                 // (11,9): error CS0619: 'Class4' is obsolete: 'Class4 is deprecated.'
                 //         Class4 x4 = null;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Class4").WithArguments("Class4", "Class4 is deprecated.").WithLocation(11, 9)
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Class4").WithArguments("Class4", "Class4 is deprecated.").WithLocation(11, 9),
+                // (19,14): error CS0619: 'Class6.P1.get' is obsolete: 'P1.get is deprecated.'
+                //         x5 = x6.P1;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x6.P1").WithArguments("Class6.P1.get", "P1.get is deprecated.").WithLocation(19, 14),
+                // (40,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Deprecated("E1.add is deprecated.", DeprecationType.Remove, 1)]
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(40, 10)
                                  };
 
             compilation2.VerifyDiagnostics(expected);
@@ -9109,6 +9118,39 @@ class C
 ";
 
             CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void TestObsoleteOnPropertyAccessorCSharp7()
+        {
+            var code = @"
+class C
+{
+    public int Prop { [Obsolete] get; set; }
+}
+";
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (4,24): error CS8652: The feature 'obsolete property accessors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int Prop { [Obsolete] get; set; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Obsolete").WithArguments("obsolete property accessors").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void TestDeprecatedOnPropertyAccessorCSharp7()
+        {
+            var code = @"
+using Windows.Foundation.Metadata;
+class C
+{
+    public int Prop { [Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)] get; set; }
+}
+";
+
+            CreateEmptyCompilation(code, references: WinRtRefs, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (5,24): error CS8652: The feature 'obsolete property accessors' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int Prop { [Deprecated("don't use this", DeprecationType.Remove, 50331648u)] get; set; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, @"Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)").WithArguments("obsolete property accessors").WithLocation(5, 24));
         }
     }
 }
