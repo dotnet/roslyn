@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If the method was written as an iterator method (i.e. with yield statements in its body) returns the
         /// element type of the iterator.  Otherwise returns default(TypeSymbolWithAnnotations).
         /// </summary>
-        internal virtual TypeSymbolWithAnnotations IteratorElementType
+        internal virtual TypeWithAnnotations IteratorElementType
         {
             get { return default; }
             set { throw ExceptionUtilities.Unreachable; }

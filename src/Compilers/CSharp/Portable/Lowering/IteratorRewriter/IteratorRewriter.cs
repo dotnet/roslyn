@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class IteratorRewriter : StateMachineRewriter
     {
-        private readonly TypeSymbolWithAnnotations _elementType;
+        private readonly TypeWithAnnotations _elementType;
 
         // true if the iterator implements IEnumerable and IEnumerable<T>,
         // false if it implements IEnumerator and IEnumerator<T>
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out IteratorStateMachine stateMachineType)
         {
-            TypeSymbolWithAnnotations elementType = method.IteratorElementType;
+            TypeWithAnnotations elementType = method.IteratorElementType;
             if (elementType.IsDefault || method.IsAsync)
             {
                 stateMachineType = null;
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var IEnumerable_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_IEnumerable__GetEnumerator);
 
-            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType.TypeSymbol);
+            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType.Type);
             var IEnumerableOfElementType_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).AsMember(IEnumerableOfElementType);
 
             // generate GetEnumerator()

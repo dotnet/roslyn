@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol _constructor;
         private readonly ImmutableArray<NamedTypeSymbol> _interfaces;
 
-        internal readonly TypeSymbolWithAnnotations ElementType;
+        internal readonly TypeWithAnnotations ElementType;
 
-        public IteratorStateMachine(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol iteratorMethod, int iteratorMethodOrdinal, bool isEnumerable, TypeSymbolWithAnnotations elementType)
+        public IteratorStateMachine(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol iteratorMethod, int iteratorMethodOrdinal, bool isEnumerable, TypeWithAnnotations elementType)
             : base(slotAllocatorOpt, compilationState, iteratorMethod, iteratorMethodOrdinal)
         {
             this.ElementType = TypeMap.SubstituteType(elementType);
@@ -27,11 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var interfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             if (isEnumerable)
             {
-                interfaces.Add(ContainingAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(ElementType.TypeSymbol));
+                interfaces.Add(ContainingAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(ElementType.Type));
                 interfaces.Add(ContainingAssembly.GetSpecialType(SpecialType.System_Collections_IEnumerable));
             }
 
-            interfaces.Add(ContainingAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(ElementType.TypeSymbol));
+            interfaces.Add(ContainingAssembly.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(ElementType.Type));
             interfaces.Add(ContainingAssembly.GetSpecialType(SpecialType.System_IDisposable));
             interfaces.Add(ContainingAssembly.GetSpecialType(SpecialType.System_Collections_IEnumerator));
             _interfaces = interfaces.ToImmutableAndFree();
