@@ -369,26 +369,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             return false;
                         }
                     }
-                    else if ((comparison & TypeCompareKind.IgnoreInsignificantNullableModifiersDifference) == 0)
-                    {
-                        return false;
-                    }
-                    else if (thisAnnotation.IsAnnotated())
-                    {
-                        if (!otherAnnotation.IsAnnotated())
-                        {
-                            return false;
-                        }
-                    }
-                    else if (!otherAnnotation.IsAnnotated())
-                    {
-                        Debug.Assert(thisAnnotation.IsNotAnnotated());
-                        Debug.Assert(otherAnnotation.IsNotAnnotated());
-                        if (Type.IsPossiblyNullableReferenceTypeTypeParameter())
-                        {
-                            return false;
-                        }
-                    }
                     else
                     {
                         return false;
