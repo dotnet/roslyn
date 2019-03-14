@@ -719,8 +719,8 @@
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
-        <source>obsolete property accessors</source>
-        <target state="new">obsolete property accessors</target>
+        <source>obsolete on property accessor</source>
+        <target state="new">obsolete on property accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">

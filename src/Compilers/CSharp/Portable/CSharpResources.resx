@@ -5800,6 +5800,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</value>
   </data>
   <data name="IDS_FeatureObsoleteOnPropertyAccessor" xml:space="preserve">
-    <value>obsolete property accessors</value>
+    <value>obsolete on property accessor</value>
   </data>
 </root>

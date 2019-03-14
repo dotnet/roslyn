@@ -11330,7 +11330,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to obsolete property accessors.
+        ///   Looks up a localized string similar to obsolete on property accessor.
         /// </summary>
         internal static string IDS_FeatureObsoleteOnPropertyAccessor {
             get {
