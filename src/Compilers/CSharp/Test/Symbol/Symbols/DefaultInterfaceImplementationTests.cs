@@ -50477,7 +50477,7 @@ remove 2
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_125()
         {
             var source0 = @"
@@ -50580,7 +50580,7 @@ B
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
         public void ExplicitBase_125_Delegate()
         {
@@ -50911,7 +50911,7 @@ class A : B
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_130()
         {
             var source0 = @"
@@ -53979,7 +53979,7 @@ class A : B
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_138()
         {
             var source0 = @"
@@ -54541,7 +54541,7 @@ class A : B
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_142()
         {
             var source0 = @"
@@ -55482,7 +55482,7 @@ internal interface C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_150()
         {
             var source1 = @"
@@ -55786,7 +55786,7 @@ interface E : B
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_151()
         {
             var source1 =
@@ -55880,7 +55880,7 @@ C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_152()
         {
             var source1 =
