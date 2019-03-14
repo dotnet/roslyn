@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
@@ -53,37 +54,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
         private bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return false;
-            }
-
-            // TODO: reuse GetCommandState instead
-            var workspace = document.Project.Solution.Workspace;
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return false;
-            }
-
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
-            {
-                return false;
-            }
-
-            var caretPoint = textView.GetCaretPoint(subjectBuffer);
-            if (!caretPoint.HasValue)
-            {
-                return false;
-            }
-
-            ChangeSignatureResult result = null;
-
             using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
+                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                if (document == null)
+                {
+                    return false;
+                }
+
+                // TODO: reuse GetCommandState instead
+                var workspace = document.Project.Solution.Workspace;
+                if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+                {
+                    return false;
+                }
+
+                var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
+                if (!supportsFeatureService.SupportsRefactorings(document))
+                {
+                    return false;
+                }
+
+                var caretPoint = textView.GetCaretPoint(subjectBuffer);
+                if (!caretPoint.HasValue)
+                {
+                    return false;
+                }
+
                 var reorderParametersService = document.GetLanguageService<AbstractChangeSignatureService>();
-                result = reorderParametersService.ChangeSignature(
+                var result = reorderParametersService.ChangeSignature(
                     document,
                     caretPoint.Value.Position,
                     (errorMessage, severity) =>
@@ -94,51 +94,51 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                         context.OperationContext.TakeOwnership();
                         workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity);
                     },
-                    context.OperationContext.UserCancellationToken);
-            }
+                context.OperationContext.UserCancellationToken);
 
-            if (result == null || !result.Succeeded)
-            {
-                return true;
-            }
-
-            var finalSolution = result.UpdatedSolution;
-
-            var previewService = workspace.Services.GetService<IPreviewDialogService>();
-            if (previewService != null && result.PreviewChanges)
-            {
-                // We are about to show a modal UI dialog so we should take over the command execution
-                // wait context. That means the command system won't attempt to show its own wait dialog 
-                // and also will take it into consideration when measuring command handling duration.
-                context.OperationContext.TakeOwnership();
-                finalSolution = previewService.PreviewChanges(
-                    string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
-                    "vs.csharp.refactoring.preview",
-                    EditorFeaturesResources.Change_Signature_colon,
-                    result.Name,
-                    result.Glyph.GetValueOrDefault(),
-                    result.UpdatedSolution,
-                    document.Project.Solution);
-            }
-
-            if (finalSolution == null)
-            {
-                // User clicked cancel.
-                return true;
-            }
-
-            using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(FeaturesResources.Change_signature))
-            {
-                if (!workspace.TryApplyChanges(finalSolution))
+                if (result == null || !result.Succeeded)
                 {
-                    // TODO: handle failure
                     return true;
                 }
 
-                workspaceUndoTransaction.Commit();
-            }
+                var finalSolution = result.UpdatedSolution;
 
-            return true;
+                var previewService = workspace.Services.GetService<IPreviewDialogService>();
+                if (previewService != null && result.PreviewChanges)
+                {
+                    // We are about to show a modal UI dialog so we should take over the command execution
+                    // wait context. That means the command system won't attempt to show its own wait dialog 
+                    // and also will take it into consideration when measuring command handling duration.
+                    context.OperationContext.TakeOwnership();
+                    finalSolution = previewService.PreviewChanges(
+                        string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Change_Signature),
+                        "vs.csharp.refactoring.preview",
+                        EditorFeaturesResources.Change_Signature_colon,
+                        result.Name,
+                        result.Glyph.GetValueOrDefault(),
+                        result.UpdatedSolution,
+                        document.Project.Solution);
+                }
+
+                if (finalSolution == null)
+                {
+                    // User clicked cancel.
+                    return true;
+                }
+
+                using (var workspaceUndoTransaction = workspace.OpenGlobalUndoTransaction(FeaturesResources.Change_signature))
+                {
+                    if (!workspace.TryApplyChanges(finalSolution))
+                    {
+                        // TODO: handle failure
+                        return true;
+                    }
+
+                    workspaceUndoTransaction.Commit();
+                }
+
+                return true;
+            }
         }
     }
 }
