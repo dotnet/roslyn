@@ -215,8 +215,8 @@ function BuildSolution() {
     $quietRestore = !($ci -or ($bootstrapDir -ne ""))
 
     $testTargetFrameworks = ""
+    $testTargetFrameworks = "netcoreapp2.1" 
     if ($testCoreClr) {
-        $testTargetFrameworks = "netcoreapp2.1" 
 
         # Make sure a 2.1 runtime is installed so we can run our tests. Most of them still 
         # target netcoreapp2.1.
@@ -573,6 +573,15 @@ try {
                 Capture-Screenshot $screenshotPath
             }
         }
+    }
+
+    if ($ci) {
+        $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
+        InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
+
+        # Make sure a 2.1 runtime is installed so we can run our tests. Most of them still 
+        # target netcoreapp2.1.
+        InstallDotNetSdk $global:_DotNetInstallDir "2.1.401"
     }
 
     if ($bootstrap) {
