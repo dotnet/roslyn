@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,14 +13,5 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
         Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken);
-    }
-
-    internal interface ICommentSelectionLanguageService : ILanguageService
-    {
-        Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
-
-        Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken);
-
-        Task<Document> ToggleBlockComment(Document document, IEnumerable<TextSpan> selectedSpans, CancellationToken cancellationToken);
     }
 }
