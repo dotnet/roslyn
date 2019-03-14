@@ -830,6 +830,14 @@ Do you want to proceed?</value>
   <data name="Paste_Tracking" xml:space="preserve">
     <value>Paste Tracking</value>
   </data>
+  <data name="Filter_image_element" xml:space="preserve">
+    <value>Filter</value>
+    <comment>Caption/tooltip for "Filter" image element displayed in completion popup.</comment>
+  </data>
+  <data name="Warning_image_element" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Caption/tooltip for "Warning" image element displayed in completion popup.</comment>
+  </data>
   <data name="Invalid_assembly_name" xml:space="preserve">
     <value>Invalid assembly name</value>
   </data>
