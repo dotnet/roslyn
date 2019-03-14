@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out IteratorStateMachine stateMachineType)
         {
-            TypeWithAnnotations elementType = method.IteratorElementType;
+            TypeWithAnnotations elementType = method.IteratorElementTypeWithAnnotations;
             if (elementType.IsDefault || method.IsAsync)
             {
                 stateMachineType = null;

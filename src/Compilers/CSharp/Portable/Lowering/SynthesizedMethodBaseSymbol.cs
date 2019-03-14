@@ -159,13 +159,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override TypeWithAnnotations IteratorElementType
+        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
         {
             get
             {
                 if (_iteratorElementType.IsDefault)
                 {
-                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementType.Type);
+                    _iteratorElementType = TypeMap.SubstituteType(BaseMethod.IteratorElementTypeWithAnnotations.Type);
                 }
                 return _iteratorElementType;
             }
