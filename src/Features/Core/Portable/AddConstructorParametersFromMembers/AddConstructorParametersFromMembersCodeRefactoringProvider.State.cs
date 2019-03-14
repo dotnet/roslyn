@@ -113,10 +113,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                         }
                     }
 
-                    if (missingParametersBuilder != null)
-                    {
-                        applicableConstructors.Add(new ConstructorCandidate(constructor, missingMembersBuilder.ToImmutableAndFree(), missingParametersBuilder.ToImmutableAndFree()));
-                    }
+                    applicableConstructors.Add(new ConstructorCandidate(constructor, missingMembersBuilder.ToImmutableAndFree(), missingParametersBuilder.ToImmutableAndFree()));
                 }
 
                 return applicableConstructors.ToImmutableAndFree();
