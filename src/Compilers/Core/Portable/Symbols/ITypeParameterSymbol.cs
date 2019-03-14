@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool HasReferenceTypeConstraint { get; }
 
+        // PROTOTYPE(nullable-api): Document
         NullableAnnotation ReferenceTypeConstraintNullableAnnotation { get; }
 
         /// <summary>

@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis
     // PROTOTYPE(nullable-api): Document
     public enum NullableFlowState : byte
     {
-        Default = 0,
+        NotApplicable = 0,
         NotNull,
         MaybeNull
     }

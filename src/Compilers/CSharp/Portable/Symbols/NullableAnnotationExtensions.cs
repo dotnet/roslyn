@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(this NullableAnnotation annotation)
         {
-            Debug.Assert((CodeAnalysis.NullableAnnotation)(NullableAnnotation.Unknown + 1) == CodeAnalysis.NullableAnnotation.Unknown);
+            Debug.Assert((CodeAnalysis.NullableAnnotation)(NullableAnnotation.Unknown + 1) == CodeAnalysis.NullableAnnotation.Disabled);
             return (CodeAnalysis.NullableAnnotation)annotation + 1;
         }
     }

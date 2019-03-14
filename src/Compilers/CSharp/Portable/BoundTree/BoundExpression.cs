@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE(nullable-api): Make this non-virtual
         public virtual new NullabilityInfo TopLevelNullability
         {
             get => base.TopLevelNullability;

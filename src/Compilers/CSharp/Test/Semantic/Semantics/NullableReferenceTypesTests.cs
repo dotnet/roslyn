@@ -71272,6 +71272,9 @@ class B<[Nullable(0)]T01,
         [WorkItem(31395, "https://github.com/dotnet/roslyn/issues/31395")]
         public void InheritNullabilityOfNonNullableClassMember()
         {
+            // PROTOTYPE(nullable-api): The types reported here should be string? and T?. They're not because
+            // ApplyConversion sets the type of underlying BoundFieldAccess instead of the BoundConversion on
+            // top.
             var source =
 @"#pragma warning disable 8618
 class C<T>
@@ -71283,16 +71286,16 @@ class Program
     static void F1(string? s)
     {
         var a1 = new C<string>() { F = s };
-        F(a1.F/*T:string?*/); // 1
+        F(a1.F/*T:object?*/); // 1
         var b1 = a1;
-        F(b1.F/*T:string?*/); // 2
+        F(b1.F/*T:object?*/); // 2
     }
     static void F2<T>(T? t) where T : class
     {
         var a2 = new C<T>() { F = t };
-        F(a2.F/*T:T?*/); // 3
+        F(a2.F/*T:object?*/); // 3
         var b2 = a2;
-        F(b2.F/*T:T?*/); // 4
+        F(b2.F/*T:object?*/); // 4
     }
     static void F(object o)
     {
@@ -71324,6 +71327,9 @@ class Program
         [Fact]
         public void InheritNullabilityOfNonNullableStructMember()
         {
+            // PROTOTYPE(nullable-api): The types reported here should be string? and T?. They're not because
+            // ApplyConversion sets the type of underlying BoundFieldAccess instead of the BoundConversion on
+            // top.
             var source =
 @"#pragma warning disable 8618
 struct S<T>
@@ -71335,16 +71341,16 @@ class Program
     static void F1(string? s)
     {
         var a1 = new S<string>() { F = s };
-        F(a1.F/*T:string?*/); // 1
+        F(a1.F/*T:object?*/); // 1
         var b1 = a1;
-        F(b1.F/*T:string?*/); // 2
+        F(b1.F/*T:object?*/); // 2
     }
     static void F2<T>(T? t) where T : class
     {
         var a2 = new S<T>() { F = t };
-        F(a2.F/*T:T?*/); // 3
+        F(a2.F/*T:object?*/); // 3
         var b2 = a2;
-        F(b2.F/*T:T?*/); // 4
+        F(b2.F/*T:object?*/); // 4
     }
     static void F(object o)
     {

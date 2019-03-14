@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IParameterSymbol_NullableAnnotation As NullableAnnotation Implements IParameterSymbol.NullableAnnotation
             Get
-                Return NullableAnnotation.Default
+                Return NullableAnnotation.NotApplicable
             End Get
         End Property
 

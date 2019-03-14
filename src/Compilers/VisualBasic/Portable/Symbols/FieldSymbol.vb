@@ -428,7 +428,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IFieldSymbol_NullableAnnotation As NullableAnnotation Implements IFieldSymbol.NullableAnnotation
             Get
-                Return NullableAnnotation.Default
+                Return NullableAnnotation.NotApplicable
             End Get
         End Property
 

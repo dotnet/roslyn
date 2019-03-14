@@ -25,14 +25,14 @@ Microsoft.CodeAnalysis.NullabilityInfo.Equals(Microsoft.CodeAnalysis.Nullability
 Microsoft.CodeAnalysis.NullabilityInfo.FlowState.get -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableAnnotation.Annotated = 3 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.Default = 0 -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullableAnnotation.Disabled = 1 -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated = 2 -> Microsoft.CodeAnalysis.NullableAnnotation
+Microsoft.CodeAnalysis.NullableAnnotation.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableAnnotation.NotNullable = 4 -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableAnnotation.Nullable = 5 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.Unknown = 1 -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableFlowState
-Microsoft.CodeAnalysis.NullableFlowState.Default = 0 -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableFlowState.MaybeNull = 2 -> Microsoft.CodeAnalysis.NullableFlowState
+Microsoft.CodeAnalysis.NullableFlowState.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableFlowState.NotNull = 1 -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.OperationKind.Binary = 32 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.ConstructorBody = 89 -> Microsoft.CodeAnalysis.OperationKind

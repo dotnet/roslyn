@@ -18,18 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class DebugVerifier : BoundTreeWalker
         {
-            private static readonly ImmutableArray<BoundKind> s_skippedExpression = ImmutableArray.Create(BoundKind.ArrayInitialization, BoundKind.ObjectInitializerExpression, BoundKind.CollectionInitializerExpression, BoundKind.DynamicCollectionElementInitializer);
-            private readonly PooledDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMap;
-            private readonly HashSet<BoundExpression> _visitedNodes = new HashSet<BoundExpression>();
+            private readonly ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> _analyzedNullabilityMap;
+            private readonly HashSet<BoundExpression> _visitedExpressions = new HashSet<BoundExpression>();
             private int _recursionDepth;
 
-            private DebugVerifier(PooledDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap)
+            private DebugVerifier(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap)
             {
-                _analyzedNullabilityMap = PooledDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)>.GetInstance();
-                foreach (var (key, value) in analyzedNullabilityMap)
-                {
-                    _analyzedNullabilityMap[key] = value;
-                }
+                _analyzedNullabilityMap = analyzedNullabilityMap;
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
@@ -37,23 +32,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false; // Same behavior as NullableWalker
             }
 
-            public static void Verify(PooledDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, BoundNode node)
+            public static void Verify(ImmutableDictionary<BoundExpression, (NullabilityInfo Info, TypeSymbol Type)> analyzedNullabilityMap, BoundNode node)
             {
                 var verifier = new DebugVerifier(analyzedNullabilityMap);
                 verifier.Visit(node);
-                // Can't just remove nodes from _topLevelNullabilityMap because nodes can be reused.
-                Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedNodes.Count, $"Visited {verifier._visitedNodes.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");
-                verifier.Free();
+                // Can't just remove nodes from _analyzedNullabilityMap and verify no nodes remaining because nodes can be reused.
+                Debug.Assert(verifier._analyzedNullabilityMap.Count == verifier._visitedExpressions.Count, $"Visited {verifier._visitedExpressions.Count} nodes, expected to visit {verifier._analyzedNullabilityMap.Count}");
             }
 
-            private void Free()
+            private void VerifyExpression(BoundExpression expression, bool overrideSkippedExpression = false)
             {
-                _analyzedNullabilityMap.Free();
+                if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
+                {
+                    Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
+                    _visitedExpressions.Add(expression);
+                }
             }
 
             protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
             {
-                VerifyNode(node);
+                VerifyExpression(node);
                 return (BoundExpression)base.Visit(node);
             }
 
@@ -72,33 +70,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
-            {
-                // If the delegate creation was resolved to a single static method, we do not examine the
-                // receiver of the method group as it's completely unused.
-                if (node.Argument is BoundMethodGroup group)
-                {
-                    VerifyNode(group);
-                    if (node.MethodOpt?.IsStatic == false)
-                    {
-                        Visit(group.ReceiverOpt);
-                    }
-
-                    return null;
-                }
-                else
-                {
-                    return base.VisitDelegateCreationExpression(node);
-                }
-            }
-
             public override BoundNode VisitNewT(BoundNewT node)
             {
                 // https://github.com/dotnet/roslyn/issues/33387 We're not currently
                 // examining child nodes correctly
                 if (node.InitializerExpressionOpt != null)
                 {
-                    VerifyNode(node.InitializerExpressionOpt, overrideSkippedExpression: true);
+                    VerifyExpression(node.InitializerExpressionOpt, overrideSkippedExpression: true);
                 }
 
                 return null;
@@ -110,13 +88,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // could be things like object initializers (see New_01.F1).
                 foreach (var child in node.ChildBoundNodes)
                 {
-                    if (!s_skippedExpression.Contains(child.Kind))
+                    if (!s_skippedExpressions.Contains(child.Kind))
                     {
                         Visit(child);
                     }
                     else
                     {
-                        VerifyNode(child, overrideSkippedExpression: true);
+                        VerifyExpression(child, overrideSkippedExpression: true);
                     }
                 }
 
@@ -137,11 +115,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitForEachStatement(BoundForEachStatement node)
             {
-                this.Visit(node.IterationVariableType);
-                this.Visit(node.Expression);
+                Visit(node.IterationVariableType);
+                Visit(node.Expression);
                 // PROTOTYPE(nullable-api): handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);
-                this.Visit(node.Body);
+                Visit(node.Body);
                 return null;
             }
 
@@ -160,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
             {
                 // https://github.com/dotnet/roslyn/issues/33441 dynamic collection initializers aren't being handled correctly
-                VerifyNode(node, overrideSkippedExpression: true);
+                VerifyExpression(node, overrideSkippedExpression: true);
                 return null;
             }
 
@@ -182,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(nullable-api): Handle in rewriter as well
                 while (true)
                 {
-                    VerifyNode(node);
+                    VerifyExpression(node);
 
                     Visit(node.Right);
 
@@ -193,16 +171,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     node = child;
-                }
-            }
-
-            private void VerifyNode(BoundNode node, bool overrideSkippedExpression = false)
-            {
-                if (node is BoundExpression expression && (overrideSkippedExpression || !s_skippedExpression.Contains(expression.Kind)))
-                {
-                    Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
-                    TypeSymbol.Equals(expression.Type, _analyzedNullabilityMap[expression].Type, TypeCompareKind.ConsiderEverything | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
-                    _visitedNodes.Add(expression);
                 }
             }
         }
