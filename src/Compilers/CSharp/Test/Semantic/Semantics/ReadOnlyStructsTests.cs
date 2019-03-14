@@ -538,6 +538,31 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyEventAccessors()
+        {
+            var csharp = @"
+using System;
+public struct S
+{
+    public int i;
+    public readonly event Action<EventArgs> E
+    {
+        add { i++; }
+        remove { i--; }
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (8,15): error CS1604: Cannot assign to 'this' because it is read-only
+                //         add { i++; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(8, 15),
+                // (9,18): error CS1604: Cannot assign to 'this' because it is read-only
+                //         remove { i--; }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(9, 18));
+        }
+
+        [Fact]
         public void ReadOnlyStruct_CallNormalMethodOnField()
         {
             var csharp = @"
