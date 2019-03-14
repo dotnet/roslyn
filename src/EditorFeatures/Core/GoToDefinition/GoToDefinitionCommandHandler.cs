@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     {
         public string DisplayName => EditorFeaturesResources.Go_to_Definition;
 
+        private (Document, IGoToDefinitionService) GetDocumentAndService(ITextSnapshot snapshot)
+        {
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            return (document, document?.GetLanguageService<IGoToDefinitionService>());
+        }
+
         public VSCommanding.CommandState GetCommandState(GoToDefinitionCommandArgs args)
         {
             var (document, service) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
