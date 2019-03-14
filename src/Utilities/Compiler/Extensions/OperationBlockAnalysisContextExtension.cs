@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.Extensions
 {
-    public static class OperationBlockAnalysisContextExtension
+    internal static class OperationBlockAnalysisContextExtension
     {
         public static bool IsMethodNotImplementedOrSupported(this OperationBlockAnalysisContext context)
         {

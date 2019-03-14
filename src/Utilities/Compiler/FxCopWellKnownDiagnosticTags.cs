@@ -13,6 +13,8 @@ namespace Analyzer.Utilities
 
         public static readonly string[] PortedFxCopRule = new string[] { PortedFxCopRuleTag, WellKnownDiagnosticTags.Telemetry };
 
+        public static readonly string[] PortedFxCopDataflowRule = new string[] { PortedFxCopRuleTag, WellKnownDiagnosticTagsExtensions.Dataflow, WellKnownDiagnosticTags.Telemetry };
+
         public static bool IsPortedFxCopRule(DiagnosticDescriptor diagnosticDescriptor)
         {
             var result = diagnosticDescriptor.CustomTags.Any(t => t == PortedFxCopRuleTag);

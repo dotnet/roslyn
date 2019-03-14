@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 
@@ -288,7 +290,7 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Checks if the given method implements <see cref="System.Runtime.Serialization.IDeserializationCallback.OnDeserialization"/> or overrides an implementation of <see cref="System.Runtime.Serialization.IDeserializationCallback.OnDeserialization"/>.
+        /// Checks if the given method implements 'System.Runtime.Serialization.IDeserializationCallback.OnDeserialization' or overrides an implementation of 'System.Runtime.Serialization.IDeserializationCallback.OnDeserialization'/>.
         /// </summary>
         public static bool IsOnDeserializationImplementation(this IMethodSymbol method, INamedTypeSymbol iDeserializationCallback)
         {
@@ -372,6 +374,7 @@ namespace Analyzer.Utilities.Extensions
         /// Determine if the specific method is an Add method that adds to a collection.
         /// </summary>
         /// <param name="method">The method to test.</param>
+        /// <param name="iCollectionTypes">Collection types.</param>
         /// <returns>'true' if <paramref name="method"/> is believed to be the add method of a collection.</returns>
         /// <remarks>
         /// The current heuristic is that we consider a method to be an add method if its name begins with "Add" and its
@@ -384,38 +387,53 @@ namespace Analyzer.Utilities.Extensions
 
 #if HAS_IOPERATION
         /// <summary>
+        /// PERF: Cache from method symbols to their topmost block operations to enable interprocedural flow analysis
+        /// across analyzers and analyzer callbacks to re-use the operations, semanticModel and control flow graph.
+        /// </summary>
+        /// <remarks>Also see <see cref="IOperationExtensions.s_operationToCfgCache"/></remarks>
+        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>> s_methodToTopmostOperationBlockCache
+            = new ConditionalWeakTable<Compilation, ConcurrentDictionary<IMethodSymbol, IBlockOperation>>();
+
+        /// <summary>
         /// Returns the topmost <see cref="IBlockOperation"/> for given <paramref name="method"/>.
         /// </summary>
         public static IBlockOperation GetTopmostOperationBlock(this IMethodSymbol method, Compilation compilation, CancellationToken cancellationToken = default)
         {
-            if (method.ContainingAssembly != compilation.Assembly)
-            {
-                return null;
-            }
+            var methodToBlockMap = s_methodToTopmostOperationBlockCache.GetOrCreateValue(compilation);
+            return methodToBlockMap.GetOrAdd(method, ComputeTopmostOperationBlock);
 
-            foreach (var decl in method.DeclaringSyntaxReferences)
+            // Local functions.
+            IBlockOperation ComputeTopmostOperationBlock(IMethodSymbol unused)
             {
-                var syntax = decl.GetSyntax(cancellationToken);
-
-                // VB Workaround: declaration.GetSyntax returns StatementSyntax nodes instead of BlockSyntax nodes
-                //                GetOperation returns null for StatementSyntax, and the method's operation block for BlockSyntax.
-                if (compilation.Language == LanguageNames.VisualBasic)
+                if (method.ContainingAssembly != compilation.Assembly)
                 {
-                    syntax = syntax.Parent;
+                    return null;
                 }
 
-                var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
-                foreach (var descendant in syntax.DescendantNodesAndSelf())
+                foreach (var decl in method.DeclaringSyntaxReferences)
                 {
-                    var operation = semanticModel.GetOperation(descendant, cancellationToken);
-                    if (operation is IBlockOperation blockOperation)
+                    var syntax = decl.GetSyntax(cancellationToken);
+
+                    // VB Workaround: declaration.GetSyntax returns StatementSyntax nodes instead of BlockSyntax nodes
+                    //                GetOperation returns null for StatementSyntax, and the method's operation block for BlockSyntax.
+                    if (compilation.Language == LanguageNames.VisualBasic)
                     {
-                        return blockOperation;
+                        syntax = syntax.Parent;
+                    }
+
+                    var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+                    foreach (var descendant in syntax.DescendantNodesAndSelf())
+                    {
+                        var operation = semanticModel.GetOperation(descendant, cancellationToken);
+                        if (operation is IBlockOperation blockOperation)
+                        {
+                            return blockOperation;
+                        }
                     }
                 }
-            }
 
-            return null;
+                return null;
+            }
         }
 #endif
 
@@ -426,6 +444,19 @@ namespace Analyzer.Utilities.Extensions
                 case MethodKind.LambdaMethod:
                 case MethodKindEx.LocalFunction:
                 case MethodKind.DelegateInvoke:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
+        public static bool IsLambdaOrLocalFunction(this IMethodSymbol method)
+        {
+            switch (method.MethodKind)
+            {
+                case MethodKind.LambdaMethod:
+                case MethodKindEx.LocalFunction:
                     return true;
 
                 default:
@@ -456,5 +487,15 @@ namespace Analyzer.Utilities.Extensions
                method.Parameters.Length == 2 &&
                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
                method.Parameters[1].Type.DerivesFrom(eventArgsType, baseTypesOnly: true);
+
+        public static bool IsLockMethod(this IMethodSymbol method, INamedTypeSymbol systemThreadingMonitor)
+        {
+            // "System.Threading.Monitor.Enter(object)" OR "System.Threading.Monitor.Enter(object, bool)"
+            return method.Name == "Enter" &&
+                   method.ContainingType.Equals(systemThreadingMonitor) &&
+                   method.ReturnsVoid &&
+                   method.Parameters.Length >= 1 &&
+                   method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
+        }
     }
 }
