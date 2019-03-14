@@ -19872,21 +19872,20 @@ class C
             CSharpCompilation c = CreateCompilation(new[] { @"
 class C
 {
-    static void Main()
-    {
-    }
-
     void Test1(object x1, object? y1)
     {
         y1 = x1;
         y1.ToString();
         y1?.GetHashCode();
-        y1.ToString();
+        y1.ToString(); // 1
     }
 }
 " }, options: WithNonNullTypesTrue());
 
             c.VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1").WithLocation(9, 9)
                 );
         }
 
@@ -40328,7 +40327,7 @@ class C
             y1.ToString();
             y1?.ToString();
         }
-        x1.ToString();
+        x1.ToString(); // 1
     }
     static void F2(object? x2)
     {
@@ -40339,14 +40338,17 @@ class C
             y2.ToString();
             y2?.ToString();
         }
-        x2.ToString(); // 1
+        x2.ToString(); // 2
     }
 }";
             // https://github.com/dotnet/roslyn/issues/30952: `is` declaration does not set not nullable for declared local.
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(12, 9),
                 // (23,9): warning CS8602: Possible dereference of a null reference.
-                //         x2.ToString(); // 1
+                //         x2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(23, 9));
         }
 
@@ -44712,6 +44714,153 @@ class Program
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         y.Value.G.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Value.G").WithLocation(18, 9)
+                );
+        }
+
+        [Fact, WorkItem(33526, "https://github.com/dotnet/roslyn/issues/33526")]
+        public void ConditionalAccessIsAPureTest()
+        {
+            var source = @"
+class C
+{
+    void F(object o)
+    {
+        if (o?.ToString() != null)
+            o.ToString();
+        else
+            o.ToString(); // 1
+
+        o.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             o.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(9, 13)
+                );
+        }
+
+        [Fact, WorkItem(33526, "https://github.com/dotnet/roslyn/issues/33526")]
+        public void ConditionalAccessIsAPureTest_Generic()
+        {
+            var source = @"
+class C
+{
+    void F<T>(T t)
+    {
+        if (t is null) return;
+
+        if (t?.ToString() != null)
+            t.ToString();
+        else
+            t.ToString(); // 1
+
+        t.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,13): warning CS8602: Possible dereference of a null reference.
+                //             t.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(11, 13)
+                );
+        }
+
+        [Fact, WorkItem(33526, "https://github.com/dotnet/roslyn/issues/33526")]
+        public void ConditionalAccessIsAPureTest_Indexer()
+        {
+            var source = @"
+class C
+{
+    void F(C c)
+    {
+        if (c?[0] == true)
+            c.ToString();
+        else
+            c.ToString(); // 1
+
+        c.ToString();
+    }
+    bool this[int i] => throw null!;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             c.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 13)
+                );
+        }
+
+        [Fact, WorkItem(33526, "https://github.com/dotnet/roslyn/issues/33526")]
+        public void ConditionalAccessIsAPureTest_InFinally()
+        {
+            var source = @"
+class C
+{
+    void F(object o)
+    {
+        try
+        {
+        }
+        finally
+        {
+            if (o?.ToString() != null)
+                o.ToString();
+        }
+
+        o.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         o.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(15, 9)
+                );
+        }
+
+        [Fact, WorkItem(33526, "https://github.com/dotnet/roslyn/issues/33526")]
+        public void NullCoalescingIsAPureTest()
+        {
+            var source = @"
+class C
+{
+    void F(string s, string s2)
+    {
+        _ = s ?? s.ToString(); // 1
+
+        _ = s2 ?? null;
+        s2.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS8602: Possible dereference of a null reference.
+                //         _ = s ?? s.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 18),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         s2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(9, 9)
+                );
+        }
+
+        [Fact, WorkItem(33526, "https://github.com/dotnet/roslyn/issues/33526")]
+        public void NullCoalescingAssignmentIsAPureTest()
+        {
+            var source = @"
+class C
+{
+    void F(string s, string s2)
+    {
+        s ??= s.ToString(); // 1
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (6,15): warning CS8602: Possible dereference of a null reference.
+                //         s ??= s.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 15)
                 );
         }
 
@@ -70255,12 +70404,15 @@ class Outer<T>
         if (x0 == null) return;
         object y0 = x0 as object;
         y0?.ToString();
-        y0.ToString();
+        y0.ToString(); // 1
     }
 }
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y0.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(9, 9)
                 );
         }
 
@@ -70300,12 +70452,15 @@ class Outer<T>
         if (x0 == null) return;
         dynamic y0 = x0 as dynamic;
         y0?.ToString();
-        y0.ToString();
+        y0.ToString(); // 1
     }
 }
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         y0.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(9, 9)
                 );
         }
 
@@ -70465,12 +70620,15 @@ class Outer<T> where T : object
     {
         object y0 = x0 as object;
         y0?.ToString();
-        y0.ToString();
+        y0.ToString(); // 1
     }
 }
 ";
 
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         y0.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y0").WithLocation(8, 9)
                 );
         }
 
@@ -70483,7 +70641,6 @@ class Outer<T> where T : object
     void M0(T x0)
     {
         dynamic y0 = x0 as dynamic;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -70905,7 +71062,6 @@ class Outer<T> where T : Outer<T>?
     {
         if (x0 == null) return;
         Outer<T> y0 = x0 as Outer<T>;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -70948,7 +71104,6 @@ class Outer<T> where T : Outer<T>
     void M0(T x0)
     {
         Outer<T> y0 = x0 as Outer<T>;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -71071,7 +71226,6 @@ class Outer<T> where T : I1?
     {
         if (x0 == null) return;
         I1 y0 = x0 as I1;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -71118,7 +71272,6 @@ class Outer<T> where T : I1
     void M0(T x0)
     {
         I1 y0 = x0 as I1;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -71244,7 +71397,6 @@ class Outer<T> where T : class?
     {
         if (x0 == null) return;
         T y0 = x0 as T;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -71263,7 +71415,6 @@ class Outer<T> where T : class
     void M0(T x0)
     {
         T y0 = x0 as T;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -71305,7 +71456,6 @@ class Outer<T, U> where T : U where U : class?
     {
         if (x0 == null) return;
         U y0 = x0 as U;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -71324,7 +71474,6 @@ class Outer<T, U> where T : U where U : class
     void M0(T x0)
     {
         U y0 = x0 as U;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -71343,7 +71492,6 @@ class Outer<T, U> where T : class, U where U : class?
     void M0(T x0)
     {
         U y0 = x0 as U;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -71385,7 +71533,6 @@ class Outer<T, U> where T : class?, U where U : class?
     {
         if (x0 == null) return;
         U y0 = x0 as U;
-        y0?.ToString();
         y0.ToString();
     }
 }
@@ -71404,7 +71551,6 @@ class Outer<T, U> where T : class?, U where U : class
     void M0(T x0)
     {
         U y0 = x0 as U;
-        y0?.ToString();
         y0.ToString();
     }
 }
