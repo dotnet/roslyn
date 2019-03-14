@@ -1,0 +1,2 @@
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.ClassificationTags
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.ClassificationTags.GetClassificationTypeName(string textTag) -> string
