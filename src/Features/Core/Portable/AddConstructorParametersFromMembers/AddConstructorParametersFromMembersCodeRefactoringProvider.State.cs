@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 // append the new parameters
                 ConstructorCandidates = await GetConstructorCandidatesInfo(ContainingType, parametersForSelectedMembers, selectedMembers, document).ConfigureAwait(false);
 
-                if (ConstructorCandidates.Count<ConstructorCandidate>() == 0)
+                if (ConstructorCandidates.IsEmpty)
                 {
                     return false;
                 }
