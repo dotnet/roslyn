@@ -62,22 +62,18 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
             var snapshotSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
             if (snapshotSpans.Count == 1)
             {
-                using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Find_References))
+                var selectedSpan = snapshotSpans[0];
+                var snapshot = args.SubjectBuffer.CurrentSnapshot;
+                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document != null)
                 {
-                    var selectedSpan = snapshotSpans[0];
-                    var snapshot = args.SubjectBuffer.CurrentSnapshot;
-                    var document = snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                        context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-                    if (document != null)
+                    // Do a find-refs at the *start* of the selection.  That way if the
+                    // user has selected a symbol that has another symbol touching it
+                    // on the right (i.e.  Goo++  ), then we'll do the find-refs on the
+                    // symbol selected, not the symbol following.
+                    if (TryExecuteCommand(selectedSpan.Start, document, context))
                     {
-                        // Do a find-refs at the *start* of the selection.  That way if the
-                        // user has selected a symbol that has another symbol touching it
-                        // on the right (i.e.  Goo++  ), then we'll do the find-refs on the
-                        // symbol selected, not the symbol following.
-                        if (TryExecuteCommand(selectedSpan.Start, document, context))
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
