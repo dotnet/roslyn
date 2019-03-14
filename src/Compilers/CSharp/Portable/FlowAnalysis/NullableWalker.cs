@@ -2133,7 +2133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             slotBuilder.Free();
         }
 
-        private void LearnFromNullTest(BoundExpression expression, ref LocalState state)
+        private int LearnFromNullTest(BoundExpression expression, ref LocalState state)
         {
             var expressionWithoutConversion = RemoveConversion(expression, includeExplicitConversions: true).expression;
             var slot = MakeSlot(expressionWithoutConversion);
@@ -2141,6 +2141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 SetStateAndTrackForFinally(ref state, slot, NullableFlowState.MaybeNull);
             }
+            return slot;
         }
 
         private static BoundExpression SkipReferenceConversions(BoundExpression possiblyConversion)
@@ -2315,14 +2316,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // In the right-hand-side, the left-hand-side is known to be non-null.
-                int slot = MakeSlot(SkipReferenceConversions(receiver));
-                _lastConditionalAccessSlot = slot;
-                if (slot > 0)
-                {
-                    if (slot >= this.State.Capacity) Normalize(ref this.State);
-                    this.State[slot] = NullableFlowState.NotNull;
-                }
+                // In the when-null branch, the receiver is known to be maybe-null.
+                // In the other branch, the receiver is known to be non-null.
+                _lastConditionalAccessSlot = LearnFromNullTest(receiver, ref receiverState);
+                LearnFromNonNullTest(receiver, ref this.State);
             }
 
             var accessExpressionType = VisitRvalueWithState(node.AccessExpression);
