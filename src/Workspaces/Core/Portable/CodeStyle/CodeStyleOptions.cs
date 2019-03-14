@@ -31,6 +31,20 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly CodeStyleOption<bool> TrueWithSuggestionEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Suggestion);
         internal static readonly CodeStyleOption<bool> FalseWithSuggestionEnforcement = new CodeStyleOption<bool>(value: false, notification: NotificationOption.Suggestion);
 
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> PlaceSystemNamespaceFirst = CreateOption(
+            CodeStyleOptionGroups.Usings, nameof(PlaceSystemNamespaceFirst),
+            defaultValue: CodeStyleOptions.TrueWithSilentEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_sort_system_directives_first"),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(PlaceSystemNamespaceFirst)}")});
+
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> SeparateImportDirectiveGroups = CreateOption(
+            CodeStyleOptionGroups.Usings, nameof(SeparateImportDirectiveGroups),
+            defaultValue: CodeStyleOptions.TrueWithSilentEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_separate_import_directive_groups"),
+                new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(SeparateImportDirectiveGroups)}")});
+
         /// <summary>
         /// This option says if we should simplify away the <see langword="this"/>. or <see langword="Me"/>. in field access expressions.
         /// </summary>
