@@ -29,15 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// <summary>
         /// The operation is an uncomment action.
         /// </summary>
-        Uncomment,
-
-        /// <summary>
-        /// The operation is not yet determined.
-        /// </summary>
-        Undefined
+        Uncomment
     }
 
-    internal abstract class AbstractCommentSelectionBase
+    internal abstract class AbstractCommentSelectionBase<TCommand>
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
@@ -55,34 +50,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         public abstract string DisplayName { get; }
 
-        protected abstract string GetTitle(Operation operation);
+        protected abstract string GetTitle(TCommand command);
 
-        protected abstract string GetMessage(Operation operation);
+        protected abstract string GetMessage(TCommand command);
 
+        // Internal as tests currently rely on this method.
         internal abstract Task<CommentSelectionResult> CollectEdits(
             Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans,
-            Operation operation, CancellationToken cancellationToken);
+            TCommand command, CancellationToken cancellationToken);
 
         protected static VSCommanding.CommandState GetCommandState(ITextBuffer buffer)
         {
             return buffer.CanApplyChangeDocumentToWorkspace()
                 ? VSCommanding.CommandState.Available
                 : VSCommanding.CommandState.Unspecified;
-        }
-
-        protected static void Format(ICommentSelectionService service, ITextSnapshot snapshot, IEnumerable<CommentTrackingSpan> changes, CancellationToken cancellationToken)
-        {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return;
-            }
-
-            var textSpans = changes
-                .Select(change => change.ToSnapshotSpan(snapshot).Span.ToTextSpan())
-                .ToImmutableArray();
-            var newDocument = service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
-            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
         }
 
         protected static void InsertText(List<TextChange> textChanges, int position, string text)
@@ -95,10 +76,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             textChanges.Add(new TextChange(span, string.Empty));
         }
 
-        internal bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Operation operation, CommandExecutionContext context)
+        internal bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, TCommand command, CommandExecutionContext context)
         {
-            var title = GetTitle(operation);
-            var message = GetMessage(operation);
+            var title = GetTitle(command);
+            var message = GetMessage(command);
 
             using (context.OperationContext.AddScope(allowCancellation: true, message))
             {
@@ -122,34 +103,99 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     return true;
                 }
 
-                var edits = CollectEdits(document, service, selectedSpans, operation, cancellationToken).WaitAndGetResult(cancellationToken);
+                var edits = CollectEdits(document, service, selectedSpans, command, cancellationToken).WaitAndGetResult(cancellationToken);
 
-                // Apply the text changes.
-                using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
-                {
-                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, edits.TextChanges.Distinct(), cancellationToken);
-                    transaction.Complete();
-                }
+                ApplyEdits(document, textView, subjectBuffer, service, title, edits);
+            }
 
+            return true;
+        }
+
+        /// <summary>
+        /// Applies the requested edits and sets the selection.
+        /// This operation is not cancellable.
+        /// </summary>
+        private void ApplyEdits(Document document, ITextView textView, ITextBuffer subjectBuffer,
+            ICommentSelectionService service, string title, CommentSelectionResult edits)
+        {
+            // Create tracking spans to track the text changes.
+            var currentSnapshot = subjectBuffer.CurrentSnapshot;
+            var trackingSpans = edits.TrackingSpans
+                .Select(textSpan => (originalSpan: textSpan, trackingSpan: CreateTrackingSpan(edits.ResultOperation, currentSnapshot, textSpan.TrackingTextSpan)))
+                .ToImmutableList();
+
+            // Apply the text changes.
+            using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+            {
+                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, edits.TextChanges.Distinct(), CancellationToken.None);
+                transaction.Complete();
+            }
+
+            // Convert the tracking spans into snapshot spans for formatting and selection.
+            var trackingSnapshotSpans = trackingSpans.Select(s => CreateSnapshotSpan(subjectBuffer.CurrentSnapshot, s.trackingSpan, s.originalSpan));
+
+            if (trackingSnapshotSpans.Any())
+            {
                 if (edits.ResultOperation == Operation.Uncomment)
                 {
                     // Format the document only during uncomment operations.  Use second transaction so it can be undone.
                     using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        Format(service, subjectBuffer.CurrentSnapshot, edits.TrackingSpans, cancellationToken);
+                        Format(service, subjectBuffer.CurrentSnapshot, trackingSnapshotSpans, CancellationToken.None);
                         transaction.Complete();
                     }
                 }
 
                 // Set the selection after the edits have been applied.
-                if (edits.TrackingSpans.Any())
+                var spansToSelect = trackingSnapshotSpans.Select(s => new Selection(s));
+                textView.GetMultiSelectionBroker().SetSelectionRange(spansToSelect, spansToSelect.Last());
+            }
+        }
+
+        /// <summary>
+        /// Creates a tracking span for the operation.
+        /// Internal for tests.
+        /// </summary>
+        internal static ITrackingSpan CreateTrackingSpan(Operation operation, ITextSnapshot snapshot, TextSpan textSpan)
+        {
+            var spanTrackingMode = operation == Operation.Comment
+                ? SpanTrackingMode.EdgeInclusive
+                : SpanTrackingMode.EdgeExclusive;
+            return snapshot.CreateTrackingSpan(Span.FromBounds(textSpan.Start, textSpan.End), spanTrackingMode);
+        }
+
+        /// <summary>
+        /// Retrieves the snapshot span from a post edited tracking span.
+        /// Additionally applies any extra modifications to the tracking span post edit.
+        /// Internal for tests.
+        /// </summary>
+        private static SnapshotSpan CreateSnapshotSpan(ITextSnapshot snapshot, ITrackingSpan trackingSpan, CommentTrackingSpan originalSpan)
+        {
+            var snapshotSpan = trackingSpan.GetSpan(snapshot);
+            if (originalSpan.HasPostApplyChanges())
+            {
+                var updatedStart = snapshotSpan.Start.Position + originalSpan.AmountToAddToStart;
+                var updatedEnd = snapshotSpan.End.Position + originalSpan.AmountToAddToEnd;
+                if (updatedStart >= snapshotSpan.Start.Position && updatedEnd <= snapshotSpan.End.Position)
                 {
-                    var spans = edits.TrackingSpans.Select(trackingSpan => trackingSpan.ToSelection(subjectBuffer));
-                    textView.GetMultiSelectionBroker().SetSelectionRange(spans, spans.Last());
+                    snapshotSpan = new SnapshotSpan(snapshot, Span.FromBounds(updatedStart, updatedEnd));
                 }
             }
 
-            return true;
+            return snapshotSpan;
+        }
+
+        private static void Format(ICommentSelectionService service, ITextSnapshot snapshot, IEnumerable<SnapshotSpan> changes, CancellationToken cancellationToken)
+        {
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return;
+            }
+
+            var textSpans = changes.Select(change => change.Span.ToTextSpan()).ToImmutableArray();
+            var newDocument = service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
+            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
         }
 
         private static ICommentSelectionService GetService(Document document)

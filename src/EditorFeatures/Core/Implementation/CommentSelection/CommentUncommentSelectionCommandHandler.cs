@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name(PredefinedCommandHandlerNames.CommentSelection)]
     internal class CommentUncommentSelectionCommandHandler :
-        AbstractCommentSelectionBase,
+        AbstractCommentSelectionBase<Operation>,
         VSCommanding.ICommandHandler<CommentSelectionCommandArgs>,
         VSCommanding.ICommandHandler<UncommentSelectionCommandArgs>
     {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans,
             Operation operation, CancellationToken cancellationToken)
         {
-            var spanTrackingList = new List<ITrackingSpan>();
+            var spanTrackingList = new List<CommentTrackingSpan>();
             var textChanges = new List<TextChange>();
             foreach (var span in selectedSpans)
             {
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     UncommentSpan(document, service, span, textChanges, spanTrackingList, cancellationToken);
                 }
             }
-            return Task.FromResult(new CommentSelectionResult(textChanges, spanTrackingList.Select(span => new CommentTrackingSpan(span)), operation));
+            return Task.FromResult(new CommentSelectionResult(textChanges, spanTrackingList, operation));
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// </summary>
         private void CommentSpan(
             Document document, ICommentSelectionService service, SnapshotSpan span,
-            List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, CancellationToken cancellationToken)
+            List<TextChange> textChanges, List<CommentTrackingSpan> trackingSpans, CancellationToken cancellationToken)
         {
             var (firstLine, lastLine) = DetermineFirstAndLastLine(span);
 
@@ -173,18 +173,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             }
         }
 
-        private void AddSingleLineComments(SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, ITextSnapshotLine firstLine, ITextSnapshotLine lastLine, CommentSelectionInfo commentInfo)
+        private void AddSingleLineComments(SnapshotSpan span, List<TextChange> textChanges, List<CommentTrackingSpan> trackingSpans, ITextSnapshotLine firstLine, ITextSnapshotLine lastLine, CommentSelectionInfo commentInfo)
         {
             // Select the entirety of the lines, so that another comment operation will add more 
             // comments, not insert block comments.
-            trackingSpans.Add(span.Snapshot.CreateTrackingSpan(Span.FromBounds(firstLine.Start.Position, lastLine.End.Position), SpanTrackingMode.EdgeInclusive));
+            trackingSpans.Add(new CommentTrackingSpan(TextSpan.FromBounds(firstLine.Start.Position, lastLine.End.Position)));
             var indentToCommentAt = DetermineSmallestIndent(span, firstLine, lastLine);
             ApplySingleLineCommentToNonBlankLines(commentInfo, textChanges, firstLine, lastLine, indentToCommentAt);
         }
 
-        private void AddBlockComment(SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, CommentSelectionInfo commentInfo)
+        private void AddBlockComment(SnapshotSpan span, List<TextChange> textChanges, List<CommentTrackingSpan> trackingSpans, CommentSelectionInfo commentInfo)
         {
-            trackingSpans.Add(span.Snapshot.CreateTrackingSpan(span, SpanTrackingMode.EdgeInclusive));
+            trackingSpans.Add(new CommentTrackingSpan(TextSpan.FromBounds(span.Start, span.End)));
             InsertText(textChanges, span.Start, commentInfo.BlockCommentStartString);
             InsertText(textChanges, span.End, commentInfo.BlockCommentEndString);
         }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// </summary>
         private void UncommentSpan(
             Document document, ICommentSelectionService service, SnapshotSpan span,
-            List<TextChange> textChanges, List<ITrackingSpan> spansToSelect, CancellationToken cancellationToken)
+            List<TextChange> textChanges, List<CommentTrackingSpan> spansToSelect, CancellationToken cancellationToken)
         {
             var info = service.GetInfoAsync(document, span.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
 
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// Check if the selected span matches an entire block comment.
         /// If it does, uncomment it and return true.
         /// </summary>
-        private bool TryUncommentExactlyBlockComment(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect)
+        private bool TryUncommentExactlyBlockComment(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<CommentTrackingSpan> spansToSelect)
         {
             var spanText = span.GetText();
             var trimmedSpanText = spanText.Trim();
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             return false;
         }
 
-        private void UncommentContainingBlockComment(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect)
+        private void UncommentContainingBlockComment(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<CommentTrackingSpan> spansToSelect)
         {
             // See if we are (textually) contained in a block comment.
             // This could allow a selection that spans multiple block comments to uncomment the beginning of
@@ -266,19 +266,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             UncommentPosition(info, span, textChanges, spansToSelect, positionOfStart, positionOfEnd);
         }
 
-        private void UncommentPosition(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect, int positionOfStart, int positionOfEnd)
+        private void UncommentPosition(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<CommentTrackingSpan> spansToSelect, int positionOfStart, int positionOfEnd)
         {
             if (positionOfStart < 0 || positionOfEnd < 0)
             {
                 return;
             }
 
-            spansToSelect.Add(span.Snapshot.CreateTrackingSpan(Span.FromBounds(positionOfStart, positionOfEnd + info.BlockCommentEndString.Length), SpanTrackingMode.EdgeExclusive));
+            spansToSelect.Add(new CommentTrackingSpan(TextSpan.FromBounds(positionOfStart, positionOfEnd + info.BlockCommentEndString.Length)));
             DeleteText(textChanges, new TextSpan(positionOfStart, info.BlockCommentStartString.Length));
             DeleteText(textChanges, new TextSpan(positionOfEnd, info.BlockCommentEndString.Length));
         }
 
-        private bool TryUncommentSingleLineComments(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect)
+        private bool TryUncommentSingleLineComments(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<CommentTrackingSpan> spansToSelect)
         {
             // First see if we're selecting any lines that have the single-line comment prefix.
             // If so, then we'll just remove the single-line comment prefix from those lines.
@@ -301,9 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 return false;
             }
 
-            spansToSelect.Add(span.Snapshot.CreateTrackingSpan(Span.FromBounds(firstLine.Start.Position,
-                                                                               lastLine.End.Position),
-                                                               SpanTrackingMode.EdgeExclusive));
+            spansToSelect.Add(new CommentTrackingSpan(TextSpan.FromBounds(firstLine.Start.Position, lastLine.End.Position)));
             return true;
         }
 

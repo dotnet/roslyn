@@ -1932,7 +1932,7 @@ class C
 
                 for (var i = 0; i < expectedText.Length; i++)
                 {
-                    commandHandler.ExecuteCommand(textView, textBuffer, Operation.Undefined, TestCommandExecutionContext.Create());
+                    commandHandler.ExecuteCommand(textView, textBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
                     AssertCommentResult(doc.TextBuffer, textView, expectedText[i], expectedSelections[i]);
                 }
             }
