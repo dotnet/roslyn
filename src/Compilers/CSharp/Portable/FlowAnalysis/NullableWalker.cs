@@ -558,8 +558,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case ConversionKind.ExplicitTupleLiteral:
                             case ConversionKind.ImplicitTuple:
                             case ConversionKind.ExplicitTuple:
+                            case ConversionKind.Boxing:
+                            case ConversionKind.Unboxing:
                                 if (isSupportedConversion(conv.Conversion, conv.Operand))
                                 {
+                                    // No need to create a slot for the boxed value (in the Boxing case) since assignment already
+                                    // clones slots and there is not another scenario where creating a slot is observable.
                                     return MakeSlot(conv.Operand);
                                 }
                                 break;
@@ -622,6 +626,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.DefaultOrNullLiteral:
                     case ConversionKind.ImplicitReference:
                     case ConversionKind.ExplicitReference:
+                    case ConversionKind.Boxing:
+                    case ConversionKind.Unboxing:
                         return true;
                     case ConversionKind.ImplicitTupleLiteral:
                     case ConversionKind.ExplicitTupleLiteral:
@@ -887,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // https://github.com/dotnet/roslyn/issues/31395: We should copy all tracked state from `value` regardless of
                     // BoundNode type but we'll need to handle cycles (see NullableReferenceTypesTests.Members_FieldCycle_07).
                     // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
-                    if ((targetType.Type.IsReferenceType && (isSupportedReferenceTypeValue(value) || targetType.Type.IsAnonymousType)) ||
+                    if (((targetType.Type.IsReferenceType || targetType.TypeKind == TypeKind.TypeParameter) && (isSupportedReferenceTypeValue(value) || targetType.Type.IsAnonymousType)) ||
                         targetType.IsNullableType())
                     {
                         // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
@@ -918,6 +924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ObjectCreationExpression:
                     case BoundKind.AnonymousObjectCreationExpression:
                     case BoundKind.DynamicObjectCreationExpression:
+                    case BoundKind.NewT:
                         return true;
                     default:
                         return false;
@@ -990,7 +997,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
             // method only clones auto-properties (see https://github.com/dotnet/roslyn/issues/29619).
             // When that issue is fixed, Nullable<T> should be handled there instead.
-            if (fieldOrPropertyType.Type.CanContainNull())
+            if (fieldOrPropertyType.Type.IsReferenceType ||
+                fieldOrPropertyType.TypeKind == TypeKind.TypeParameter ||
+                fieldOrPropertyType.IsNullableType())
             {
                 int targetMemberSlot = GetOrCreateSlot(member, targetContainerSlot);
                 Debug.Assert(targetMemberSlot > 0);
@@ -1910,21 +1919,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!IsConditionalState);
             TypeWithState leftType = ResultType;
-            bool warnOnNullReferenceArgument = (binary.OperatorKind.IsUserDefined() && (object)binary.MethodOpt != null && binary.MethodOpt.ParameterCount == 2);
-
-            if (warnOnNullReferenceArgument)
-            {
-                ReportArgumentWarnings(binary.Left, leftType, binary.MethodOpt.Parameters[0]);
-            }
 
             var rightType = VisitRvalueWithState(binary.Right);
             Debug.Assert(!IsConditionalState);
             // At this point, State.Reachable may be false for
             // invalid code such as `s + throw new Exception()`.
 
-            if (warnOnNullReferenceArgument)
+            if (binary.OperatorKind.IsUserDefined() && binary.MethodOpt?.ParameterCount == 2)
             {
-                ReportArgumentWarnings(binary.Right, rightType, binary.MethodOpt.Parameters[1]);
+                var parameters = binary.MethodOpt.Parameters;
+                ReportArgumentWarnings(binary.Left, leftType, parameters[0]);
+                ReportArgumentWarnings(binary.Right, rightType, parameters[1]);
             }
 
             Debug.Assert(!IsConditionalState);
@@ -2248,11 +2253,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
+                Debug.Assert(!(rightType is null));
                 // If there was an identity conversion between the two operands (in short, if there
                 // is no implicit conversion on the right operand), then check nullable conversions
                 // in both directions since it's possible the right operand is the better result type.
-                if ((object)rightType != null &&
-                    (node.RightOperand as BoundConversion)?.ExplicitCastInCode != false &&
+                if ((node.RightOperand as BoundConversion)?.ExplicitCastInCode != false &&
                     GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false).Exists)
                 {
                     return rightType;

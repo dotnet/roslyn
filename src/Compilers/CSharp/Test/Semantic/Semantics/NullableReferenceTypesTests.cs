@@ -29873,6 +29873,194 @@ class C
         }
 
         [Fact]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void New_04()
+        {
+            var source =
+@"class C
+{
+    internal object? F;
+    internal object P { get; set; } = null!;
+}
+class Program
+{
+    static void F<T>() where T : C, new()
+    {
+        T x = new T() { F = 1, P = null }; // 1
+        x.F.ToString();
+        x.P.ToString(); // 2
+        C y = new T() { F = 2, P = null }; // 3
+        y.F.ToString();
+        y.P.ToString(); // 4
+        C z = (C)new T() { F = 3, P = null }; // 5
+        z.F.ToString();
+        z.P.ToString(); // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         T x = new T() { F = 1, P = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 36),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         x.P.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.P").WithLocation(12, 9),
+                // (13,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         C y = new T() { F = 2, P = null }; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 36),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         y.P.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.P").WithLocation(15, 9),
+                // (16,39): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         C z = (C)new T() { F = 3, P = null }; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 39),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         z.P.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.P").WithLocation(18, 9));
+        }
+
+        [Fact]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void New_05()
+        {
+            var source =
+@"interface I
+{
+    object? P { get; set; }
+    object Q { get; set; }
+}
+class Program
+{
+    static void F<T>() where T : I, new()
+    {
+        T x = new T() { P = 1, Q = null }; // 1
+        x.P.ToString();
+        x.Q.ToString(); // 2
+        I y = new T() { P = 2, Q = null }; // 3
+        y.P.ToString();
+        y.Q.ToString(); // 4
+        I z = (I)new T() { P = 3, Q = null }; // 5
+        z.P.ToString();
+        z.Q.ToString(); // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         T x = new T() { P = 1, Q = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 36),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Q.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Q").WithLocation(12, 9),
+                // (13,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         I y = new T() { P = 2, Q = null }; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 36),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Q.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Q").WithLocation(15, 9),
+                // (16,39): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         I z = (I)new T() { P = 3, Q = null }; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 39),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         z.Q.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.Q").WithLocation(18, 9));
+        }
+
+        [Fact]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void New_06()
+        {
+            var source =
+@"interface I
+{
+    object? P { get; set; }
+    object Q { get; set; }
+}
+class Program
+{
+    static void F<T>() where T : class, I, new()
+    {
+        T x = new T() { P = 1, Q = null }; // 1
+        x.P.ToString();
+        x.Q.ToString(); // 2
+        I y = new T() { P = 2, Q = null }; // 3
+        y.P.ToString();
+        y.Q.ToString(); // 4
+        I z = (I)new T() { P = 3, Q = null }; // 5
+        z.P.ToString();
+        z.Q.ToString(); // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         T x = new T() { P = 1, Q = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 36),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Q.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Q").WithLocation(12, 9),
+                // (13,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         I y = new T() { P = 2, Q = null }; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 36),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Q.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Q").WithLocation(15, 9),
+                // (16,39): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         I z = (I)new T() { P = 3, Q = null }; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 39),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         z.Q.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.Q").WithLocation(18, 9));
+        }
+
+        [Fact]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void New_07()
+        {
+            var source =
+@"interface I
+{
+    object? P { get; set; }
+    object Q { get; set; }
+}
+class Program
+{
+    static void F<T>() where T : struct, I
+    {
+        T x = new T() { P = 1, Q = null }; // 1
+        x.P.ToString();
+        x.Q.ToString(); // 2
+        I y = new T() { P = 2, Q = null }; // 3
+        y.P.ToString();
+        y.Q.ToString(); // 4
+        I z = (I)new T() { P = 3, Q = null }; // 5
+        z.P.ToString();
+        z.Q.ToString(); // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         T x = new T() { P = 1, Q = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 36),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         x.Q.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Q").WithLocation(12, 9),
+                // (13,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         I y = new T() { P = 2, Q = null }; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 36),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Q.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Q").WithLocation(15, 9),
+                // (16,39): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         I z = (I)new T() { P = 3, Q = null }; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 39),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         z.Q.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.Q").WithLocation(18, 9));
+        }
+
+        [Fact]
         public void DynamicObjectCreation_01()
         {
             CSharpCompilation c = CreateCompilation(new[] { @"
@@ -46439,11 +46627,16 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32599: Support implicit tuple conversions
             comp.VerifyDiagnostics(
                 // (7,38): warning CS8619: Nullability of reference types in value of type '(object? x, object y, object? z)' doesn't match target type '(object, object, object)'.
                 //         (object, object, object) t = (x, y, z); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y, z)").WithArguments("(object? x, object y, object? z)", "(object, object, object)").WithLocation(7, 38));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(x, y, z)").WithArguments("(object? x, object y, object? z)", "(object, object, object)").WithLocation(7, 38),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item1").WithLocation(8, 9),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Item3.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item3").WithLocation(10, 9));
         }
 
         [Fact]
@@ -52503,6 +52696,142 @@ class Program
 
         [Fact]
         [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
+        public void Conversions_ReferenceConversions_10()
+        {
+            var source =
+@"class A
+{
+    internal object? FA;
+}
+class B : A
+{
+    internal object FB = new object();
+}
+class Program
+{
+    static void F()
+    {
+        A a = new B() { FB = null }; // 1
+        a = new A() { FA = 1 };
+        a.FA.ToString();
+        ((B)a).FB.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (13,30): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         A a = new B() { FB = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 30));
+        }
+
+        [Fact]
+        [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void Conversions_NullableConversions_01()
+        {
+            var source =
+@"interface I
+{
+    object? P { get; set; }
+    object Q { get; set; }
+}
+class Program
+{
+    static void F4<T>() where T : struct, I
+    {
+        T? t = new T() { P = 4, Q = null }; // 1
+        t.Value.P.ToString();
+        t.Value.Q.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         T? t = new T() { P = 4, Q = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 37),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         t.Value.Q.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Value.Q").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
+        public void Conversions_NullableConversions_02()
+        {
+            var source =
+@"class C
+{
+    internal object? F;
+    internal object G = null!;
+}
+class Program
+{
+    static void F()
+    {
+        (C, C)? t = (new C() { F = 1 }, new C() { G = null }); // 1
+        (((C, C))t).Item1.F.ToString();
+        (((C, C))t).Item2.G.ToString(); // 2
+        (C, C)? u = (new C() { F = 2 }, new C() { G = null }); // 3
+        ((C)u.Value.Item1).F.ToString();
+        ((C)u.Value.Item2).G.ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,55): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (C, C)? t = (new C() { F = 1 }, new C() { G = null }); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 55),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         (((C, C))t).Item2.G.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(((C, C))t).Item2.G").WithLocation(12, 9),
+                // (13,55): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (C, C)? u = (new C() { F = 2 }, new C() { G = null }); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 55),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         ((C)u.Value.Item2).G.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((C)u.Value.Item2).G").WithLocation(15, 9));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        public void Conversions_NullableConversions_03()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F()
+    {
+        (S, S)? t = (new S() { F = 1 }, new S() { G = null }); // 1
+        (((S, S))t).Item1.F.ToString();
+        (((S, S))t).Item2.G.ToString(); // 2
+        (S, S)? u = (new S() { F = 2 }, new S() { G = null }); // 3
+        ((S)u.Value.Item1).F.ToString();
+        ((S)u.Value.Item2).G.ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,55): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (S, S)? t = (new S() { F = 1 }, new S() { G = null }); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 55),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         (((S, S))t).Item2.G.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(((S, S))t).Item2.G").WithLocation(12, 9),
+                // (13,55): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (S, S)? u = (new S() { F = 2 }, new S() { G = null }); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 55),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         ((S)u.Value.Item2).G.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((S)u.Value.Item2).G").WithLocation(15, 9));
+        }
+
+        [Fact]
+        [WorkItem(29977, "https://github.com/dotnet/roslyn/issues/29977")]
         public void Conversions_TupleConversions_01()
         {
             var source =
@@ -52621,6 +52950,450 @@ class Program
                 // (26,9): warning CS8602: Possible dereference of a null reference.
                 //         u.Item1.FA.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item1.FA").WithLocation(26, 9));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(34086, "https://github.com/dotnet/roslyn/issues/34086")]
+        public void Conversions_TupleConversions_04()
+        {
+            var source =
+@"class C
+{
+    internal object? F;
+}
+class Program
+{
+    static void F()
+    {
+        (object, object)? t = (new C() { F = 1 }, new object());
+        (((C, object))t).Item1.F.ToString();
+        (object, object)? u = (new C() { F = 2 }, new object());
+        ((C)u.Value.Item1).F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/34086: Track state across Nullable<T> conversions with nested conversions.
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         (((C, object))t).Item1.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(((C, object))t).Item1.F").WithLocation(10, 9));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(34086, "https://github.com/dotnet/roslyn/issues/34086")]
+        public void Conversions_TupleConversions_05()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F()
+    {
+        (S?, object?) t = (new S() { F = 1 }, new S() { G = null }); // 1
+        (((S, S))t).Item1.F.ToString();
+        (((S, S))t).Item2.G.ToString(); // 2
+        (S?, object?) u = (new S() { F = 2 }, new S() { G = null }); // 3
+        u.Item1.Value.F.ToString();
+        ((S?)u.Item2).Value.G.ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/34086: Track state across Nullable<T> conversions with nested conversions.
+            comp.VerifyDiagnostics(
+                // (10,61): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (S?, object?) t = (new S() { F = 1 }, new S() { G = null }); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 61),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         (((S, S))t).Item1.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(((S, S))t).Item1.F").WithLocation(11, 9),
+                // (11,10): warning CS8619: Nullability of reference types in value of type '(S?, object?)' doesn't match target type '(S, S)'.
+                //         (((S, S))t).Item1.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((S, S))t").WithArguments("(S?, object?)", "(S, S)").WithLocation(11, 10),
+                // (12,10): warning CS8619: Nullability of reference types in value of type '(S?, object?)' doesn't match target type '(S, S)'.
+                //         (((S, S))t).Item2.G.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((S, S))t").WithArguments("(S?, object?)", "(S, S)").WithLocation(12, 10),
+                // (13,61): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (S?, object?) u = (new S() { F = 2 }, new S() { G = null }); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 61),
+                // (14,9): warning CS8629: Nullable value type may be null.
+                //         u.Item1.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "u.Item1").WithLocation(14, 9),
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         u.Item1.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u.Item1.Value.F").WithLocation(14, 9),
+                // (15,10): warning CS8629: Nullable value type may be null.
+                //         ((S?)u.Item2).Value.G.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "(S?)u.Item2").WithLocation(15, 10));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        public void Conversions_TupleConversions_06()
+        {
+            var source =
+@"class Program
+{
+    static void F1((object?, object) t1)
+    {
+        var u1 = ((string, string))t1; // 1
+        u1.Item1.ToString(); // 2
+        u1.Item1.ToString();
+    }
+    static void F2((object?, object) t2)
+    {
+        var u2 = ((string?, string?))t2;
+        u2.Item1.ToString(); // 3
+        u2.Item2.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,18): warning CS8619: Nullability of reference types in value of type '(object?, object)' doesn't match target type '(string, string)'.
+                //         var u1 = ((string, string))t1; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((string, string))t1").WithArguments("(object?, object)", "(string, string)").WithLocation(5, 18),
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         u1.Item1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1.Item1").WithLocation(6, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         u2.Item1.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.Item1").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        public void Conversions_TupleConversions_07()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator B?(A a) => null;
+}
+class B
+{
+}
+class Program
+{
+    static void F(A a, B b)
+    {
+        (B, B) t = (a, b); // 1
+        t.Item1.ToString(); // 2
+        t.Item2.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32599: Support implicit tuple conversions: see // 2.
+            comp.VerifyDiagnostics(
+                // (12,20): warning CS8619: Nullability of reference types in value of type '(B? a, B b)' doesn't match target type '(B, B)'.
+                //         (B, B) t = (a, b); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(a, b)").WithArguments("(B? a, B b)", "(B, B)").WithLocation(12, 20));
+        }
+
+        [Fact]
+        public void Conversions_BoxingConversions_01()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F()
+    {
+        object o = new S() { F = 1, G = null }; // 1
+        ((S)o).F.ToString();
+        ((S)o).G.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,41): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         object o = new S() { F = 1, G = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 41),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         ((S)o).G.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((S)o).G").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void Conversions_BoxingConversions_02()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F()
+    {
+        ((S)(object)new S() { F = 1 }).F.ToString();
+        ((S)(object)new S() { G = null }).F.ToString(); // 1, 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         ((S)(object)new S() { G = null }).F.ToString(); // 1, 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((S)(object)new S() { G = null }).F").WithLocation(11, 9),
+                // (11,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         ((S)(object)new S() { G = null }).F.ToString(); // 1, 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 35));
+        }
+
+        [Fact]
+        public void Conversions_BoxingConversions_03()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F()
+    {
+        object? o = (S?)new S() { F = 1, G = null }; // 1
+        ((S?)o).Value.F.ToString();
+        ((S?)o).Value.G.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,46): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         object? o = (S?)new S() { F = 1, G = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 46),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         ((S?)o).Value.G.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((S?)o).Value.G").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void Conversions_BoxingConversions_04()
+        {
+            var source =
+@"interface I
+{
+    object? P { get; set; }
+    object Q { get; set; }
+}
+class Program
+{
+    static void F1<T>() where T : I, new()
+    {
+        object o1 = new T() { P = 1, Q = null }; // 1
+        ((T)o1).P.ToString();
+        ((T)o1).Q.ToString(); // 2
+    }
+    static void F2<T>() where T : class, I, new()
+    {
+        object o2 = new T() { P = 2, Q = null }; // 3
+        ((T)o2).P.ToString();
+        ((T)o2).Q.ToString(); // 4
+    }
+    static void F3<T>() where T : struct, I
+    {
+        object o3 = new T() { P = 3, Q = null }; // 5
+        ((T)o3).P.ToString();
+        ((T)o3).Q.ToString(); // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,42): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         object o1 = new T() { P = 1, Q = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 42),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         ((T)o1).Q.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((T)o1).Q").WithLocation(12, 9),
+                // (16,42): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         object o2 = new T() { P = 2, Q = null }; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 42),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         ((T)o2).Q.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((T)o2).Q").WithLocation(18, 9),
+                // (22,42): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         object o3 = new T() { P = 3, Q = null }; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 42),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         ((T)o3).Q.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((T)o3).Q").WithLocation(24, 9));
+        }
+
+        [Fact]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void Conversions_BoxingConversions_05()
+        {
+            var source =
+@"interface I
+{
+    object? P { get; set; }
+    object Q { get; set; }
+}
+class Program
+{
+    static void F1<T1>() where T1 : I, new()
+    {
+        ((T1)(object)new T1() { P = 1 }).P.ToString();
+        ((T1)(object)new T1() { Q = null }).Q.ToString(); // 1, 2
+    }
+    static void F2<T2>() where T2 : class, I, new()
+    {
+        ((T2)(object)new T2() { P = 2 }).P.ToString();
+        ((T2)(object)new T2() { Q = null }).Q.ToString(); // 3, 4
+    }
+    static void F3<T3>() where T3 : struct, I
+    {
+        ((T3)(object)new T3() { P = 3 }).P.ToString();
+        ((T3)(object)new T3() { Q = null }).Q.ToString(); // 5, 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         ((T1)(object)new T1() { Q = null }).Q.ToString(); // 1, 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((T1)(object)new T1() { Q = null }).Q").WithLocation(11, 9),
+                // (11,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         ((T1)(object)new T1() { Q = null }).Q.ToString(); // 1, 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 37),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         ((T2)(object)new T2() { Q = null }).Q.ToString(); // 3, 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((T2)(object)new T2() { Q = null }).Q").WithLocation(16, 9),
+                // (16,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         ((T2)(object)new T2() { Q = null }).Q.ToString(); // 3, 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 37),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         ((T3)(object)new T3() { Q = null }).Q.ToString(); // 5, 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((T3)(object)new T3() { Q = null }).Q").WithLocation(21, 9),
+                // (21,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         ((T3)(object)new T3() { Q = null }).Q.ToString(); // 5, 6
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 37));
+        }
+
+        [Fact]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void Conversions_BoxingConversions_06()
+        {
+            var source =
+@"interface I
+{
+    object? P { get; set; }
+    object Q { get; set; }
+}
+class Program
+{
+    static void F1<T>() where T : I, new()
+    {
+        (object, object) t1 = (new T() { P = 1 }, new T() { Q = null }); // 1
+        ((T)t1.Item1).P.ToString();
+        (((T, T))t1).Item2.Q.ToString(); // 2
+    }
+    static void F2<T>() where T : class, I, new()
+    {
+        (object, object) t2 = (new T() { P = 2 }, new T() { Q = null }); // 3
+        ((T)t2.Item1).P.ToString();
+        (((T, T))t2).Item2.Q.ToString(); // 4
+    }
+    static void F3<T>() where T : struct, I
+    {
+        (object, object) t3 = (new T() { P = 3 }, new T() { Q = null }); // 5
+        ((T)t3.Item1).P.ToString();
+        (((T, T))t3).Item2.Q.ToString(); // 6
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,65): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (object, object) t1 = (new T() { P = 1 }, new T() { Q = null }); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 65),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         (((T, T))t1).Item2.Q.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(((T, T))t1).Item2.Q").WithLocation(12, 9),
+                // (16,65): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (object, object) t2 = (new T() { P = 2 }, new T() { Q = null }); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 65),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         (((T, T))t2).Item2.Q.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(((T, T))t2).Item2.Q").WithLocation(18, 9),
+                // (22,65): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (object, object) t3 = (new T() { P = 3 }, new T() { Q = null }); // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 65),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         (((T, T))t3).Item2.Q.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(((T, T))t3).Item2.Q").WithLocation(24, 9));
+        }
+
+        [Fact]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void Conversions_BoxingConversions_07()
+        {
+            var source =
+@"interface I
+{
+    object? P { get; set; }
+    object Q { get; set; }
+}
+class Program
+{
+    static void F<T>() where T : struct, I
+    {
+        object o = (T?)new T() { P = 1, Q = null }; // 1
+        ((T?)o).Value.P.ToString();
+        ((T?)o).Value.Q.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,45): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         object o = (T?)new T() { P = 1, Q = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 45),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         ((T?)o).Value.Q.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((T?)o).Value.Q").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        [WorkItem(34086, "https://github.com/dotnet/roslyn/issues/34086")]
+        public void Conversions_BoxingConversions_08()
+        {
+            var source =
+@"interface I
+{
+    object? P { get; set; }
+    object Q { get; set; }
+}
+class Program
+{
+    static void F<T>() where T : struct, I
+    {
+        (object, object) t = ((T?, T?))(new T() { P = 1 }, new T() { Q = null }); // 1
+        ((T?)t.Item1).Value.P.ToString();
+        (((T?, T?))t).Item2.Value.Q.ToString(); // 2
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/34086: Track state across Nullable<T> conversions with nested conversions.
+            comp.VerifyDiagnostics(
+                // (10,30): warning CS8619: Nullability of reference types in value of type '(T?, T?)' doesn't match target type '(object, object)'.
+                //         (object, object) t = ((T?, T?))(new T() { P = 1 }, new T() { Q = null }); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "((T?, T?))(new T() { P = 1 }, new T() { Q = null })").WithArguments("(T?, T?)", "(object, object)").WithLocation(10, 30),
+                // (10,74): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (object, object) t = ((T?, T?))(new T() { P = 1 }, new T() { Q = null }); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 74),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         ((T?)t.Item1).Value.P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((T?)t.Item1).Value.P").WithLocation(11, 9));
         }
 
         [Fact]
@@ -52825,6 +53598,92 @@ class C
                 // (10,33): warning CS8601: Possible null reference assignment.
                 //             C y = new C() { F = x };
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(10, 33));
+        }
+
+        [Fact]
+        [WorkItem(33908, "https://github.com/dotnet/roslyn/issues/33908")]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void Members_FieldCycle_09()
+        {
+            var source =
+@"#pragma warning disable 8618
+class C<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void F<T>() where T : C<T>, new()
+    {
+        T x = default;
+        while (true)
+        {
+            T y = new T() { F = x };
+            x = y;
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x = default;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(10, 15),
+                // (13,33): warning CS8601: Possible null reference assignment.
+                //             T y = new T() { F = x };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(13, 33));
+        }
+
+        [Fact]
+        [WorkItem(33908, "https://github.com/dotnet/roslyn/issues/33908")]
+        [WorkItem(33387, "https://github.com/dotnet/roslyn/issues/33387")]
+        public void Members_FieldCycle_10()
+        {
+            var source =
+@"interface I<T>
+{
+    T P { get; set; }
+}
+class Program
+{
+    static void F1<T>() where T : I<T>, new()
+    {
+        T x1 = default;
+        while (true)
+        {
+            T y1 = new T() { P = x1 };
+            x1 = y1;
+        }
+    }
+    static void F2<T>() where T : class, I<T>, new()
+    {
+        T x2 = default;
+        while (true)
+        {
+            T y2 = new T() { P = x2 };
+            x2 = y2;
+        }
+    }
+    static void F3<T>() where T : struct, I<T>
+    {
+        T x3 = default;
+        while (true)
+        {
+            T y3 = new T() { P = x3 };
+            x3 = y3;
+        }
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,16): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                //         T x1 = default;
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(9, 16),
+                // (18,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x2 = default;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(18, 16),
+                // (21,34): warning CS8601: Possible null reference assignment.
+                //             T y2 = new T() { P = x2 };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2").WithLocation(21, 34));
         }
 
         [Fact]
