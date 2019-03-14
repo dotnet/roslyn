@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -44,17 +43,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => GetDTE().Solution.Projects.OfType<EnvDTE.Project>().First(p =>
                string.Compare(p.FileName, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0
                 || string.Compare(p.Name, nameOrFileName, StringComparison.OrdinalIgnoreCase) == 0);
-
-        public bool IsUseSuggestionModeOn()
-            => _visualStudioWorkspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
-
-        public void SetUseSuggestionMode(bool value)
-        {
-            if (IsUseSuggestionModeOn() != value)
-            {
-                ExecuteCommand(WellKnownCommandNames.Edit_ToggleCompletionMode);
-            }
-        }
 
         public bool IsPrettyListingOn(string languageName)
             => _visualStudioWorkspace.Options.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
