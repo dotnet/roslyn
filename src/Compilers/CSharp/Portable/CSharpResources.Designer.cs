@@ -5713,7 +5713,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The first parameter of an &apos;in&apos; extension method &apos;{0}&apos; must be a value type..
+        ///   Looks up a localized string similar to The first parameter of the &apos;in&apos; extension method &apos;{0}&apos; must be a concrete (non-generic) value type..
         /// </summary>
         internal static string ERR_InExtensionMustBeValueType {
             get {

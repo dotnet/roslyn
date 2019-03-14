@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                if (!fieldType.NullableAnnotation.IsAnyNotNullable() && !fieldType.TypeSymbol.IsTypeParameterDisallowingAnnotation())
+                if (!fieldType.NullableAnnotation.IsNotAnnotated() && !fieldType.TypeSymbol.IsTypeParameterDisallowingAnnotation())
                 {
                     continue;
                 }

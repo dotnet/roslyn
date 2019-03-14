@@ -959,7 +959,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue(in this string p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1003,7 +1003,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue(in this System.IComparable p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'IComparable' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'IComparable' could be found (are you missing a using directive or an assembly reference?)
@@ -1047,7 +1047,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue<T>(in this T p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1091,7 +1091,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue<T>(in this T p) where T : struct
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'int' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
@@ -1135,7 +1135,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a concrete (non-generic) value type.
                 //     public static void PrintValue<T>(in this T p) where T : class
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
@@ -1179,7 +1179,7 @@ public static class Program
 }";
 
             var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
-                // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                // (4,24): error CS8338: The first parameter of the 'in' extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(in this T p) where T : System.IComparable
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
                 // (14,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)

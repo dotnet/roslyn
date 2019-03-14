@@ -74,7 +74,7 @@ Nicht zulässige reguläre Ausdrücke melden;</target>
       </trans-unit>
       <trans-unit id="10161">
         <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
-        <target state="translated">Mit mir qualifizieren;systeminterne Typen bevorzugen;Format;Codeformat</target>
+        <target state="translated">Mit Me qualifizieren; Intrinsische Typen bevorzugen; Format; Codeformat</target>
         <note>Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="110">
