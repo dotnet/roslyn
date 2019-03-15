@@ -1668,7 +1668,7 @@ namespace n3
 
             var structS = ns3.GetMember<NamedTypeSymbol>("S");
             var structSField = structS.GetMember<FieldSymbol>("a");
-            Assert.Equal("A", structSField.Type.TypeSymbol.Name);
+            Assert.Equal("A", structSField.Type.Name);
             Assert.Equal(TypeKind.Error, structSField.Type.TypeKind);
         }
 
@@ -3231,10 +3231,10 @@ public class MyClass2 : MyClass
             //ErrorTypes now appear as though they are declared in the global namespace. 
             Assert.Equal("System.String NS.IBar.M(ref NoType p1, out NoType p2, params NOType[] ary)", mem1.ToTestDisplayString());
             var param = mem1.Parameters[0] as ParameterSymbol;
-            var ptype = param.Type;
+            var ptype = param.TypeWithAnnotations;
             Assert.Equal(RefKind.Ref, param.RefKind);
-            Assert.Equal(TypeKind.Error, ptype.TypeKind);
-            Assert.Equal("NoType", ptype.Name);
+            Assert.Equal(TypeKind.Error, ptype.Type.TypeKind);
+            Assert.Equal("NoType", ptype.Type.Name);
 
             var type3 = ns.GetTypeMembers("A").Single() as NamedTypeSymbol;
             var base1 = type3.BaseType();
@@ -16150,12 +16150,12 @@ class A {
             CSharpCompilation comp = CreateCompilation(text);
             var classA = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("A").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type;
+            var fieldType = fieldSym.TypeWithAnnotations;
 
-            Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
-            Assert.Equal("B", fieldType.Name);
+            Assert.Equal(SymbolKind.ErrorType, fieldType.Type.Kind);
+            Assert.Equal("B", fieldType.Type.Name);
 
-            var errorFieldType = (ErrorTypeSymbol)fieldType.TypeSymbol;
+            var errorFieldType = (ErrorTypeSymbol)fieldType.Type;
             Assert.Equal(CandidateReason.None, errorFieldType.CandidateReason);
             Assert.Equal(0, errorFieldType.CandidateSymbols.Length);
         }
@@ -16177,7 +16177,7 @@ class A : C {
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
             var classB = (NamedTypeSymbol)classC.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type.TypeSymbol;
+            var fieldType = fieldSym.Type;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
@@ -16214,7 +16214,7 @@ class A : C {
             var classBinN1 = (NamedTypeSymbol)ns1.GetTypeMembers("B").Single();
             var classBinN2 = (NamedTypeSymbol)ns2.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type.TypeSymbol;
+            var fieldType = fieldSym.Type;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);

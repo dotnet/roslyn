@@ -257,11 +257,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var method = (MethodSymbol)testData.GetMethodData("C.F()").Method;
             Assert.True(method.IsAsync);
             Assert.True(method.IsTaskReturningAsync(compilation));
-            Assert.Equal("C.MyTask", method.ReturnType.ToDisplayString());
+            Assert.Equal("C.MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.G()").Method;
             Assert.True(method.IsAsync);
             Assert.True(method.IsGenericTaskReturningAsync(compilation));
-            Assert.Equal("C.MyTask<int>", method.ReturnType.ToDisplayString());
+            Assert.Equal("C.MyTask<int>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 
         [Fact]
@@ -338,11 +338,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var method = (MethodSymbol)testData.GetMethodData("C.<>c.<M>b__3_0()").Method;
             Assert.True(method.IsAsync);
             Assert.True(method.IsTaskReturningAsync(compilation));
-            Assert.Equal("MyTask", method.ReturnType.ToDisplayString());
+            Assert.Equal("MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.<>c.<M>b__3_1()").Method;
             Assert.True(method.IsAsync);
             Assert.True(method.IsGenericTaskReturningAsync(compilation));
-            Assert.Equal("MyTask<int>", method.ReturnType.ToDisplayString());
+            Assert.Equal("MyTask<int>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 
         [Fact]
@@ -417,11 +417,11 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var method = (MethodSymbol)testData.GetMethodData("C.<M>g__F|0_0()").Method;
             Assert.True(method.IsAsync);
             Assert.True(method.IsTaskReturningAsync(compilation));
-            Assert.Equal("MyTask", method.ReturnType.ToDisplayString());
+            Assert.Equal("MyTask", method.ReturnTypeWithAnnotations.ToDisplayString());
             method = (MethodSymbol)testData.GetMethodData("C.<M>g__G|0_1<T>(T)").Method;
             Assert.True(method.IsAsync);
             Assert.True(method.IsGenericTaskReturningAsync(compilation));
-            Assert.Equal("MyTask<T>", method.ReturnType.ToDisplayString());
+            Assert.Equal("MyTask<T>", method.ReturnTypeWithAnnotations.ToDisplayString());
         }
 
         [Fact]

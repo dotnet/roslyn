@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringNullableComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
 
         internal static readonly EqualityComparer<TypeSymbol> EqualsAllIgnoreOptionsPlusNullableWithUnknownMatchesAnyComparer =
-                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference));
+                                                                  new TypeSymbolComparer(TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
 
         internal static readonly EqualityComparer<TypeSymbol> EqualsCLRSignatureComparer = new TypeSymbolComparer(TypeCompareKind.CLRSignatureCompareOptions);
         /// <summary>
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsTupleType)
             {
-                return TupleElementTypes.Length == targetCardinality;
+                return TupleElementTypesWithAnnotations.Length == targetCardinality;
             }
 
             int countOfItems;
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this symbol represents a tuple type, get the types of the tuple's elements.
         /// </summary>
-        public virtual ImmutableArray<TypeSymbolWithAnnotations> TupleElementTypes => default(ImmutableArray<TypeSymbolWithAnnotations>);
+        public virtual ImmutableArray<TypeWithAnnotations> TupleElementTypesWithAnnotations => default(ImmutableArray<TypeWithAnnotations>);
 
         /// <summary>
         /// If this symbol represents a tuple type, get the names of the tuple's elements.
@@ -642,21 +642,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool NeedsNullableAttribute()
         {
-            return TypeSymbolWithAnnotations.NeedsNullableAttribute(typeWithAnnotationsOpt: default, typeOpt: this);
+            return TypeWithAnnotations.NeedsNullableAttribute(typeWithAnnotationsOpt: default, typeOpt: this);
         }
 
         internal abstract void AddNullableTransforms(ArrayBuilder<byte> transforms);
 
         internal abstract bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result);
 
-        internal abstract TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform);
+        internal abstract TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform);
 
         internal TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
             return SetNullabilityForReferenceTypes(s_setUnknownNullability);
         }
 
-        private readonly static Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> s_setUnknownNullability =
+        private readonly static Func<TypeWithAnnotations, TypeWithAnnotations> s_setUnknownNullability =
             (type) => type.SetUnknownNullabilityForReferenceTypes();
 
         /// <summary>
@@ -1075,7 +1075,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     interfaceMethod.TypeParameters,
                     interfaceMethod.Parameters,
                     interfaceMethod.RefKind,
-                    interfaceMethod.ReturnType,
+                    interfaceMethod.ReturnTypeWithAnnotations,
                     interfaceMethod.RefCustomModifiers,
                     interfaceMethod.ExplicitInterfaceImplementations);
 
@@ -1170,18 +1170,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (implementingMember.Kind == SymbolKind.Method && (implementedMethod = (MethodSymbol)interfaceMember).IsGenericMethod)
                 {
-                    implementedMember = implementedMethod.Construct(((MethodSymbol)implementingMember).TypeArguments);
+                    implementedMember = implementedMethod.Construct(((MethodSymbol)implementingMember).TypeArgumentsWithAnnotations);
                 }
                 else
                 {
                     implementedMember = interfaceMember;
                 }
 
-                TypeSymbolWithAnnotations implementingMemberType = implementingMember.GetTypeOrReturnType();
-                TypeSymbolWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
+                TypeWithAnnotations implementingMemberType = implementingMember.GetTypeOrReturnType();
+                TypeWithAnnotations implementedMemberType = implementedMember.GetTypeOrReturnType();
 
                 if (!implementingMemberType.Equals(implementedMemberType,
-                                                   TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)) &&
+                                                   TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)) &&
                     implementingMemberType.Equals(implementedMemberType, TypeCompareKind.AllIgnoreOptions))
                 {
                     diagnostics.Add(implementingMember.Kind == SymbolKind.Method ?
@@ -1199,11 +1199,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 for (int i = 0; i < implementingParameters.Length; i++)
                 {
-                    var implementedParameterType = implementedParameters[i].Type;
+                    var implementedParameterType = implementedParameters[i].TypeWithAnnotations;
 
-                    if (!implementingParameters[i].Type.Equals(implementedParameterType,
-                                                               TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)) &&
-                        implementingParameters[i].Type.Equals(implementedParameterType, TypeCompareKind.AllIgnoreOptions))
+                    if (!implementingParameters[i].TypeWithAnnotations.Equals(implementedParameterType,
+                                                               TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)) &&
+                        implementingParameters[i].TypeWithAnnotations.Equals(implementedParameterType, TypeCompareKind.AllIgnoreOptions))
                     {
                         diagnostics.Add(isExplicit ?
                                             ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation :
@@ -1252,15 +1252,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SymbolKind.Method:
                         var method = (MethodSymbol)interfaceMember;
                         interfaceMemberRefKind = method.RefKind;
-                        interfaceMemberReturnType = method.ReturnType.TypeSymbol;
+                        interfaceMemberReturnType = method.ReturnType;
                         break;
                     case SymbolKind.Property:
                         var property = (PropertySymbol)interfaceMember;
                         interfaceMemberRefKind = property.RefKind;
-                        interfaceMemberReturnType = property.Type.TypeSymbol;
+                        interfaceMemberReturnType = property.Type;
                         break;
                     case SymbolKind.Event:
-                        interfaceMemberReturnType = ((EventSymbol)interfaceMember).Type.TypeSymbol;
+                        interfaceMemberReturnType = ((EventSymbol)interfaceMember).Type;
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(interfaceMember.Kind);
@@ -1576,8 +1576,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion Abstract base type checks
 
-        [Obsolete("Use TypeSymbolWithAnnotations.Is method.", true)]
-        internal bool Equals(TypeSymbolWithAnnotations other)
+        [Obsolete("Use TypeWithAnnotations.Is method.", true)]
+        internal bool Equals(TypeWithAnnotations other)
         {
             throw ExceptionUtilities.Unreachable;
         }

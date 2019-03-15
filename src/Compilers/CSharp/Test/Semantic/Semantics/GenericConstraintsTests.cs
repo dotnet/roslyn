@@ -2875,7 +2875,7 @@ unsafe public class Test
             Assert.Equal("M<int>()", value.ToFullString());
 
             var symbol = (MethodSymbol)model.GetSymbolInfo(value).Symbol;
-            Assert.Equal("System.Int32*", symbol.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.Int32*", symbol.ReturnTypeWithAnnotations.ToTestDisplayString());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3138,7 +3138,7 @@ class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single().TypeSymbol);
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArgumentsWithAnnotations.Single().Type);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3168,7 +3168,7 @@ class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
-            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArgumentsWithAnnotations.Single().SpecialType);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3194,7 +3194,7 @@ unsafe class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single().TypeSymbol);
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArgumentsWithAnnotations.Single().Type);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3223,7 +3223,7 @@ unsafe class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
-            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArgumentsWithAnnotations.Single().SpecialType);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]

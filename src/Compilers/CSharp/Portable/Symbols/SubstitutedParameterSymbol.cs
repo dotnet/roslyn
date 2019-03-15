@@ -40,20 +40,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingSymbol; }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
                 var mapOrType = _mapOrType;
-                if (mapOrType is TypeSymbolWithAnnotations type)
+                if (mapOrType is TypeWithAnnotations type)
                 {
                     return type;
                 }
 
-                TypeSymbolWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.Type);
+                TypeWithAnnotations substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.TypeWithAnnotations);
 
                 if (substituted.CustomModifiers.IsEmpty &&
-                    this._underlyingParameter.Type.CustomModifiers.IsEmpty &&
+                    this._underlyingParameter.TypeWithAnnotations.CustomModifiers.IsEmpty &&
                     this._underlyingParameter.RefCustomModifiers.IsEmpty)
                 {
                     _mapOrType = substituted;

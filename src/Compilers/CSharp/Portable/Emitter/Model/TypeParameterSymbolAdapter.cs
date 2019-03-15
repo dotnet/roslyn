@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         seenValueType = true;
                         break;
                 }
-                var typeRef = moduleBeingBuilt.Translate(type.TypeSymbol,
+                var typeRef = moduleBeingBuilt.Translate(type.Type,
                                                             syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                             diagnostics: context.Diagnostics);
 
