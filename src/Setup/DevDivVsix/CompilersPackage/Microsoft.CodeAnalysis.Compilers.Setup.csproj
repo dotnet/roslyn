@@ -175,7 +175,7 @@ folder InstallDir:\MSBuild\Current\Bin\Roslyn\pl
   @(_PlSatellite->'%(_FileEntries)', '%0d%0a  ')
 
 folder InstallDir:\MSBuild\Current\Bin\Roslyn\pt-BR
-  @(_PlSatellite->'%(_FileEntries)', '%0d%0a  ')
+  @(_PtBrSatellite->'%(_FileEntries)', '%0d%0a  ')
 
 folder InstallDir:\MSBuild\Current\Bin\Roslyn\ru
   @(_RuSatellite->'%(_FileEntries)', '%0d%0a  ')
