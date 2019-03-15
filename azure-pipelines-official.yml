@@ -93,6 +93,15 @@ jobs:
     displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
     condition: succeeded()
 
+  # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
+  # a build execution.
+  - task: PublishBuildArtifacts@1
+    displayName: Publish OptProf Data Files
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+      ArtifactName: 'OptProf Data Files'
+    condition: succeeded()
+
   # Build VS bootstrapper
   # Generates $(Build.StagingDirectory)\MicroBuild\Output\BootstrapperInfo.json
   - task: ms-vseng.MicroBuildTasks.0e9d0d4d-71ec-4e4e-ae40-db9896f1ae74.MicroBuildBuildVSBootstrapper@2

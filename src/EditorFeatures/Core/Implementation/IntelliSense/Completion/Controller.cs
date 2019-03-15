@@ -14,6 +14,8 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
+using RoslynCompletionTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -167,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private bool StartNewModelComputation(
             CompletionService completionService,
-            CompletionTrigger trigger)
+            RoslynCompletionTrigger trigger)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
@@ -229,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 : workspace.Options;
         }
 
-        private void CommitItem(CompletionItem item)
+        private void CommitItem(RoslynCompletionItem item)
         {
             AssertIsForeground();
 
