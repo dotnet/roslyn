@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -1370,13 +1371,15 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
+
                 var filtered = Options.FilterDiagnostic(d);
                 if (filtered == null ||
                     (!reportSuppressedDiagnostics && filtered.IsSuppressed))
                 {
                     continue;
                 }
-                else if (filtered.Severity == DiagnosticSeverity.Error)
+                else if (filtered.Severity == DiagnosticSeverity.Error &&
+                         !filtered.IsSuppressed)
                 {
                     hasError = true;
                 }
@@ -2578,7 +2581,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (diagnostics.HasAnyErrors())
+            if (CommonCompiler.HasUnsuppressedErrors(diagnostics))
             {
                 return null;
             }

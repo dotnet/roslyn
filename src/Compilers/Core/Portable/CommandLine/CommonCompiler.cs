@@ -434,6 +434,18 @@ namespace Microsoft.CodeAnalysis
         private bool ReportErrors(DiagnosticBag diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
             => ReportErrors(diagnostics.ToReadOnly(), consoleOutput, errorLoggerOpt);
 
+        internal static bool HasUnsuppressedErrors(DiagnosticBag diagnostics)
+        {
+            foreach (var diag in diagnostics.AsEnumerableWithoutResolution())
+            {
+                if (IsReportedError(diag))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Returns true if the diagnostic is an error that should be reported.
         /// </summary>
@@ -648,7 +660,7 @@ namespace Microsoft.CodeAnalysis
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (diagnostics.HasAnyErrors())
+            if (HasUnsuppressedErrors(diagnostics))
             {
                 return;
             }
@@ -674,7 +686,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (diagnostics.HasAnyErrors())
+            if (HasUnsuppressedErrors(diagnostics))
             {
                 return;
             }
@@ -786,7 +798,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 using (var win32ResourceStreamOpt = GetWin32Resources(MessageProvider, Arguments, compilation, diagnostics))
                                 {
-                                    if (diagnostics.HasAnyErrors())
+                                    if (HasUnsuppressedErrors(diagnostics))
                                     {
                                         return;
                                     }
@@ -882,7 +894,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (diagnostics.HasAnyErrors())
+                if (HasUnsuppressedErrors(diagnostics))
                 {
                     return;
                 }
@@ -902,7 +914,7 @@ namespace Microsoft.CodeAnalysis
             if (analyzerExceptionDiagnostics != null)
             {
                 diagnostics.AddRange(analyzerExceptionDiagnostics);
-                if (analyzerExceptionDiagnostics.HasAnyErrors())
+                if (HasUnsuppressedErrors(analyzerExceptionDiagnostics))
                 {
                     return;
                 }
