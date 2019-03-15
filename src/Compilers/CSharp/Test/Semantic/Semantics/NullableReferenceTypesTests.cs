@@ -85,6 +85,84 @@ namespace System
     }
 }";
 
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitObjectInitializerReceiver()
+        {
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? f2;
+    public B? f3;
+}
+public class C
+{
+    public B? f;
+    static void Main()
+    {
+        new C() { f = { f2 = null, f3 = null }};
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (12,25): warning CS8602: Possible dereference of a null reference.
+                //         new C() { f = { f2 = null, f3 = null }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "f2").WithLocation(12, 25),
+                // (12,36): warning CS8602: Possible dereference of a null reference.
+                //         new C() { f = { f2 = null, f3 = null }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "f3").WithLocation(12, 36)
+                );
+        }
+
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitObjectInitializerReceiver_Index()
+        {
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? this[int i] { get => throw null!; set => throw null!; }
+}
+public class C
+{
+    public B? f;
+    static void Main()
+    {
+        new C() { f = { [0] = null }};
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (11,25): warning CS8602: Possible dereference of a null reference.
+                //         new C() { f = { [0] = null }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "[0]").WithLocation(11, 25)
+                );
+        }
+
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitCollectionInitializerReceiver()
+        {
+            var comp = CreateCompilation(@"
+public class B : System.Collections.Generic.IEnumerable<int>
+{
+    public void Add(int i) { }
+    System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator() => throw null!;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+}
+public class C
+{
+    public B? f;
+    static void Main()
+    {
+        new C() { f = { 1 }};
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (13,23): warning CS8602: Possible dereference of a null reference.
+                //         new C() { f = { 1 }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ 1 }").WithLocation(13, 23)
+                );
+        }
+
         [Fact, WorkItem(29964, "https://github.com/dotnet/roslyn/issues/29964")]
         public void IndexerUpdatedBasedOnReceiver_ReturnType()
         {
