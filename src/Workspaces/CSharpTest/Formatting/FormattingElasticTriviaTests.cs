@@ -66,8 +66,8 @@ class B
                         SyntaxFactory.BaseList(
                             SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
                                 SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName("System.Attribute")))),
-                                default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                                default(SyntaxList<MemberDeclarationSyntax>)),
+                        default(SyntaxList<TypeParameterConstraintClauseSyntax>),
+                        default(SyntaxList<MemberDeclarationSyntax>)),
                     SyntaxFactory.ClassDeclaration("A"),
                     SyntaxFactory.ClassDeclaration(
                         attributeLists: SyntaxFactory.SingletonList<AttributeListSyntax>(
