@@ -45,23 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression;
         }
 
-        public static ExpressionSyntax WalkDownParenthesesAndExclamations(this ExpressionSyntax expression)
-        {
-            while (expression.IsKind(SyntaxKind.ParenthesizedExpression) || expression.IsKind(SyntaxKind.SuppressNullableWarningExpression))
-            {
-                if (expression.IsKind(SyntaxKind.ParenthesizedExpression))
-                {
-                    expression = ((ParenthesizedExpressionSyntax)expression).Expression;
-                }
-                else
-                {
-                    expression = ((PostfixUnaryExpressionSyntax)expression).Operand;
-                }
-            }
-
-            return expression;
-        }
-
         public static ExpressionSyntax Parenthesize(
             this ExpressionSyntax expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
