@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompilerGenerated = 1 << 1,
             IsSuppressed = 1 << 2,
 
-            // Bit 3: 1 if the node is has maybe-null state, 0 if the node is not null
+            // Bit 3: 1 if the node has maybe-null state, 0 if the node is not null
             // Bits 4 and 5: 01 if the node is not annotated, 10 if the node is annotated, 11 if the node is disabled
             TopLevelFlowStateMaybeNull = 1 << 3,
             TopLevelNotAnnotated = 1 << 4,

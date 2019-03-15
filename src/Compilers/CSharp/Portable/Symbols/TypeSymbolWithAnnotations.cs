@@ -160,30 +160,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default;
             }
 
-            return Create(typeSymbol, CSharpNullableAnnotation: isAnnotated ? NullableAnnotation.Annotated : isNullableEnabled ? NullableAnnotation.NotAnnotated : NullableAnnotation.Unknown,
+            return Create(typeSymbol, nullableAnnotation: isAnnotated ? NullableAnnotation.Annotated : isNullableEnabled ? NullableAnnotation.NotAnnotated : NullableAnnotation.Unknown,
                           customModifiers.NullToEmpty());
         }
 
-        internal static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, NullableAnnotation CSharpNullableAnnotation = NullableAnnotation.Unknown, ImmutableArray<CustomModifier> customModifiers = default)
+        internal static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, NullableAnnotation nullableAnnotation = NullableAnnotation.Unknown, ImmutableArray<CustomModifier> customModifiers = default)
         {
-            if (typeSymbol is null && CSharpNullableAnnotation == 0)
+            if (typeSymbol is null && nullableAnnotation == 0)
             {
                 return default;
             }
 
-            switch (CSharpNullableAnnotation)
+            switch (nullableAnnotation)
             {
                 case NullableAnnotation.Unknown:
                 case NullableAnnotation.NotAnnotated:
                     if (typeSymbol?.IsNullableType() == true)
                     {
                         // int?, T? where T : struct (add annotation)
-                        CSharpNullableAnnotation = NullableAnnotation.Annotated;
+                        nullableAnnotation = NullableAnnotation.Annotated;
                     }
                     break;
             }
 
-            return CreateNonLazyType(typeSymbol, CSharpNullableAnnotation, customModifiers.NullToEmpty());
+            return CreateNonLazyType(typeSymbol, nullableAnnotation, customModifiers.NullToEmpty());
         }
 
         internal bool IsPossiblyNullableTypeTypeParameter()
@@ -240,9 +240,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    typeSymbol is IndexedTypeParameterSymbolForOverriding;
         }
 
-        private static TypeSymbolWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, NullableAnnotation CSharpNullableAnnotation, ImmutableArray<CustomModifier> customModifiers)
+        private static TypeSymbolWithAnnotations CreateNonLazyType(TypeSymbol typeSymbol, NullableAnnotation nullableAnnotation, ImmutableArray<CustomModifier> customModifiers)
         {
-            return new TypeSymbolWithAnnotations(typeSymbol, CSharpNullableAnnotation, Extensions.Create(customModifiers));
+            return new TypeSymbolWithAnnotations(typeSymbol, nullableAnnotation, Extensions.Create(customModifiers));
         }
 
         private static TypeSymbolWithAnnotations CreateLazyNullableType(CSharpCompilation compilation, TypeSymbolWithAnnotations underlying)
@@ -295,10 +295,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(other.NullableAnnotation.IsSpeakable());
 
             TypeSymbol typeSymbol = other.TypeSymbol;
-            NullableAnnotation CSharpNullableAnnotation = MergeNullableAnnotation(this.NullableAnnotation, other.NullableAnnotation, variance);
+            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(this.NullableAnnotation, other.NullableAnnotation, variance);
             TypeSymbol type = TypeSymbol.MergeNullability(typeSymbol, variance);
             Debug.Assert((object)type != null);
-            return Create(type, CSharpNullableAnnotation, CustomModifiers);
+            return Create(type, nullableAnnotation, CustomModifiers);
         }
 
         /// <summary>

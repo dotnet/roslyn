@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     method,
                     block,
                     diagnostics);
-                var dictionary = TopLevelNullabilityRetriever.BuildMap(rewritten);
+                var dictionary = NullabilityRetriever.BuildMap(rewritten);
                 diagnostics.Free();
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));
@@ -408,10 +408,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        private sealed class TopLevelNullabilityRetriever : BoundTreeWalker
+        private sealed class NullabilityRetriever : BoundTreeWalker
         {
             private Dictionary<SyntaxNode, TypeSymbolWithAnnotations> _map;
-            private TopLevelNullabilityRetriever(Dictionary<SyntaxNode, TypeSymbolWithAnnotations> map)
+            private NullabilityRetriever(Dictionary<SyntaxNode, TypeSymbolWithAnnotations> map)
             {
                 _map = map;
             }
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             public static Dictionary<SyntaxNode, TypeSymbolWithAnnotations> BuildMap(BoundNode rewritten)
             {
                 var map = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
-                new TopLevelNullabilityRetriever(map).Visit(rewritten);
+                new NullabilityRetriever(map).Visit(rewritten);
                 return map;
             }
 
