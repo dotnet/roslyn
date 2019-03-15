@@ -52,11 +52,55 @@
       <Output TaskParameter="CopiedFiles" ItemName="FileWrites"/>
     </Copy>
   </Target>
-  
-  <Target Name="_GenerateSwrFile" 
+
+  <!--
+  Splits the $(XlfLanguages) property into an item group.  E.g., this:
+
+    <PropertyGroup>
+      <XlfLanguages>cs;de;...</XlfLanguages>
+    </PropertyGroup>
+
+  turns into this:
+
+    <ItemGroup>
+      <_XlfLanguages Include="cs" />
+      <_XlfLanguages Include="de" />
+      ...
+    </ItemGroup>
+
+   -->
+  <Target Name="_GenerateLanguageList">
+    <CreateItem Include="$(XlfLanguages)">
+      <Output TaskParameter="Include" ItemName="_XlfLanguages" />
+    </CreateItem>
+  </Target>
+
+  <!-- For each localization language, include the appropriate satellite assemblies. -->
+  <Target Name="_GenerateLocSwrFileContents"
+          DependsOnTargets="_GenerateLanguageList"
+          Outputs="%(_XlfLanguages.Identity)">
+    <PropertyGroup>
+      <_Line>
+<![CDATA[
+folder InstallDir:\MSBuild\15.0\Bin\Roslyn\%(_XlfLanguages.Identity)
+  file source=$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\%(_XlfLanguages.Identity)\Microsoft.CodeAnalysis.resources.dll
+  file source=$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\%(_XlfLanguages.Identity)\Microsoft.CodeAnalysis.CSharp.resources.dll
+  file source=$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\%(_XlfLanguages.Identity)\Microsoft.CodeAnalysis.Scripting.resources.dll
+  file source=$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\%(_XlfLanguages.Identity)\Microsoft.CodeAnalysis.CSharp.Scripting.resources.dll
+  file source=$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\%(_XlfLanguages.Identity)\Microsoft.CodeAnalysis.VisualBasic.resources.dll
+  file source=$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\%(_XlfLanguages.Identity)\Microsoft.Build.Tasks.CodeAnalysis.resources.dll
+]]>
+      </_Line>
+    </PropertyGroup>
+    <ItemGroup>
+      <_BuiltSwrLines Include="$(_Line)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_GenerateSwrFile"
           AfterTargets="Build"
           BeforeTargets="SwixBuild"
-          DependsOnTargets="_SetSwrFilePath;InitializeDesktopCompilerArtifacts;_PrepareDesktopCompilerArtifactsForOptimization;ApplyOptimizations"
+          DependsOnTargets="_SetSwrFilePath;_GenerateLocSwrFileContents;InitializeDesktopCompilerArtifacts;_PrepareDesktopCompilerArtifactsForOptimization;ApplyOptimizations"
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
@@ -69,66 +113,6 @@
       </_File>
 
       <_FileEntries Include='file source="%(_File.Path)"%(_File.NGenArchitectureString)%(_File.NGenPriorityString)%(_File.NGenApplicationString)'/>
-
-      <!-- Satellite assemblies -->
-      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
-      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
-      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
-      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
-      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\**\*.resources.dll"/>
-      <_SatelliteAssembly Include="$(ArtifactsBinDir)Microsoft.Build.Tasks.CodeAnalysis\$(Configuration)\net472\**\*.resources.dll"/>
-
-      <_CsSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'cs\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_CsSatellite>
-
-      <_DeSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'de\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_DeSatellite>
-
-      <_EsSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'es\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_EsSatellite>
-
-      <_FrSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'fr\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_FrSatellite>
-
-      <_ItSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'it\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_ItSatellite>
-
-      <_JaSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'ja\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_JaSatellite>
-
-      <_KoSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'ko\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_KoSatellite>
-
-      <_PlSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'pl\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_PlSatellite>
-
-      <_PtBrSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'pt-BR\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_PtBrSatellite>
-
-      <_RuSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'ru\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_RuSatellite>
-
-      <_TrSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'tr\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_TrSatellite>
-
-      <_Zh-HansSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'zh-Hans\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_Zh-HansSatellite>
-
-      <_Zh-HantSatellite Include="@(_SatelliteAssembly)" Condition="'%(_SatelliteAssembly.RecursiveDir)' == 'zh-Hant\'">
-        <_FileEntries>file source=%(Identity)</_FileEntries>
-      </_Zh-HantSatellite>
     </ItemGroup>
 
     <PropertyGroup>
@@ -150,44 +134,7 @@ folder InstallDir:\MSBuild\Current\Bin\Roslyn
 folder InstallDir:\Common7\Tools\vsdevcmd\ext
   file source="$(MSBuildProjectDirectory)\roslyn.bat"
 
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\cs
-  @(_CsSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\de
-  @(_DeSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\es
-  @(_EsSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\fr
-  @(_FrSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\it
-  @(_ItSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\ja
-  @(_JaSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\ko
-  @(_KoSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\pl
-  @(_PlSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\pt-BR
-  @(_PlSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\ru
-  @(_RuSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\tr
-  @(_TrSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\zh-Hans
-  @(_zh-HansSatellite->'%(_FileEntries)', '%0d%0a  ')
-
-folder InstallDir:\MSBuild\Current\Bin\Roslyn\zh-Hant
-  @(_zh-HantSatellite->'%(_FileEntries)', '%0d%0a  ')
+@(_BuiltSwrLines)
 ]]>
       </_Lines>
     </PropertyGroup>
