@@ -104,12 +104,9 @@ public class C
 }", options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
-                // (12,25): warning CS8602: Possible dereference of a null reference.
+                // (12,23): warning CS8602: Possible dereference of a null reference.
                 //         new C() { f = { f2 = null, f3 = null }};
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "f2").WithLocation(12, 25),
-                // (12,36): warning CS8602: Possible dereference of a null reference.
-                //         new C() { f = { f2 = null, f3 = null }};
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "f3").WithLocation(12, 36)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ f2 = null, f3 = null }").WithLocation(12, 23)
                 );
         }
 
@@ -131,9 +128,9 @@ public class C
 }", options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
-                // (11,25): warning CS8602: Possible dereference of a null reference.
+                // (11,23): warning CS8602: Possible dereference of a null reference.
                 //         new C() { f = { [0] = null }};
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "[0]").WithLocation(11, 25)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ [0] = null }").WithLocation(11, 23)
                 );
         }
 

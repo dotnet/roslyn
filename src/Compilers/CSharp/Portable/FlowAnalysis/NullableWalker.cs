@@ -1537,14 +1537,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case BoundKind.ObjectInitializerExpression:
+                    checkImplicitReceiver();
                     foreach (var initializer in ((BoundObjectInitializerExpression)node).Initializers)
                     {
                         switch (initializer.Kind)
                         {
                             case BoundKind.AssignmentOperator:
-                                var assignment = (BoundAssignmentOperator)initializer;
-                                checkImplicitReceiver(assignment.Left.Syntax);
-                                VisitObjectElementInitializer(containingSlot, assignment);
+                                VisitObjectElementInitializer(containingSlot, (BoundAssignmentOperator)initializer);
                                 break;
                             default:
                                 VisitRvalue(initializer);
@@ -1553,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundKind.CollectionInitializerExpression:
-                    checkImplicitReceiver(node.Syntax);
+                    checkImplicitReceiver();
                     foreach (var initializer in ((BoundCollectionInitializerExpression)node).Initializers)
                     {
                         switch (initializer.Kind)
@@ -1579,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            void checkImplicitReceiver(SyntaxNode syntax)
+            void checkImplicitReceiver()
             {
                 if (containingSlot >= 0)
                 {
