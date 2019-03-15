@@ -4645,15 +4645,7 @@ namespace ThenIncludeIntellisenseBug
         static void Main(string[] args)
         {
             var registrations = new List<Registration>().AsQueryable();
-
-            // type "a => a." and only ICollection<T> and Enumerable members appear
-            var r1 = registrations
-              .Include(r => r.Activities);
-
-            var r2 = r1.ThenInclude(b => b.Task);
-
-            var reg = registrations
-              .Include(r => r.Activities).ThenInclude(b => b$$);
+            var reg = registrations.Include(r => r.Activities).ThenInclude(b => b$$);
         }
     }
 

@@ -3143,6 +3143,73 @@ End Class
             End Using
         End Function
 
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenInclude(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
+                              <Document>><![CDATA[
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Linq.Expressions
+
+Namespace ThenIncludeIntellisenseBug
+
+    Class Program
+
+        Shared Sub Main(args As String())
+            Dim registrations = New List(Of Registration)().AsQueryable()
+            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude(Function(b) b$$)
+        End Sub
+    End Class
+
+    Friend Class Registration
+
+        Public Property Activities As ICollection(Of Activity)
+    End Class
+
+    Public Class Activity
+
+        Public Property Task As Task
+    End Class
+
+    Public Class Task
+
+        Public Property Name As String
+    End Class
+
+    Public Interface IIncludableQueryable(Of Out TEntity, Out TProperty)
+        Inherits IQueryable(Of TEntity)
+
+    End Interface
+
+    Public Module EntityFrameworkQuerybleExtensions
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function Include(Of TEntity, TProperty)(source As IQueryable(Of TEntity), navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+
+        <System.Runtime.CompilerServices.Extension>
+        Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(source As IIncludableQueryable(Of TEntity, TPreviousProperty), navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+            Return Nothing
+        End Function
+    End Module
+End Namespace
+}]]>
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.CompletionItemsContainsAll({"Task", "FirstOrDefault"}))
+            End Using
+        End Function
+
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic), System.Composition.Shared>
         Friend Class MockSnippetInfoService
             Implements ISnippetInfoService
