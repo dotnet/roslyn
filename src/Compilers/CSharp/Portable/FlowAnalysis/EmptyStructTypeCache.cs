@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var field = GetActualField(member, type);
                 if ((object)field != null)
                 {
-                    var actualFieldType = field.Type.TypeSymbol;
+                    var actualFieldType = field.Type;
                     if (!IsEmptyStructType(actualFieldType, typesWithMembersOfThisType))
                     {
                         return false;
@@ -179,11 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return null;
                     }
 
-                    return (field.IsFixedSizeBuffer || ShouldIgnoreStructField(field, field.Type.TypeSymbol)) ? null : field.AsMember(type);
+                    return (field.IsFixedSizeBuffer || ShouldIgnoreStructField(field, field.Type)) ? null : field.AsMember(type);
 
                 case SymbolKind.Event:
                     var eventSymbol = (EventSymbol)member;
-                    return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type.TypeSymbol)) ? null : eventSymbol.AssociatedField.AsMember(type);
+                    return (!eventSymbol.HasAssociatedField || ShouldIgnoreStructField(eventSymbol, eventSymbol.Type)) ? null : eventSymbol.AssociatedField.AsMember(type);
             }
 
             return null;

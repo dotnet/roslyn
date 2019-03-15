@@ -1116,9 +1116,7 @@ class C
                     var property = module.ContainingAssembly.GetTypeByMetadataName("C").GetTypeMember("<F>d__0").GetProperty("System.Collections.Generic.IEnumerator<System.Object>.Current");
                     AssertNoNullableAttribute(property.GetAttributes());
                     var method = property.GetMethod;
-                    // https://github.com/dotnet/roslyn/issues/30010: No synthesized attributes for this
-                    // case which is inconsistent with IEnumerable<object?[]> in test below.
-                    AssertNoNullableAttribute(method.GetReturnTypeAttributes());
+                    AssertNullableAttribute(method.GetReturnTypeAttributes());
                     AssertAttributes(method.GetAttributes(), "System.Diagnostics.DebuggerHiddenAttribute");
                 });
         }
@@ -1557,10 +1555,10 @@ class C
             var type = comp2.GetMember<NamedTypeSymbol>("A");
             Assert.Equal(
                 "((System.Object?, System.Object) _1, System.Object? _2, System.Object _3, ((System.Object?[], System.Object), System.Object?) _4)",
-                type.GetMember<FieldSymbol>("Nested").Type.ToTestDisplayString());
+                type.GetMember<FieldSymbol>("Nested").TypeWithAnnotations.ToTestDisplayString());
             Assert.Equal(
                 "(System.Object? _1, System.Object _2, System.Object? _3, System.Object _4, System.Object? _5, System.Object _6, System.Object? _7, System.Object _8, System.Object? _9)",
-                type.GetMember<FieldSymbol>("Long").Type.ToTestDisplayString());
+                type.GetMember<FieldSymbol>("Long").TypeWithAnnotations.ToTestDisplayString());
         }
 
         // DynamicAttribute and NullableAttribute formats should be aligned.
@@ -1677,10 +1675,10 @@ public class B<T> :
                 type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString());
             Assert.Equal(
                 "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9)",
-                type.GetMember<FieldSymbol>("Field").Type.ToTestDisplayString());
+                type.GetMember<FieldSymbol>("Field").TypeWithAnnotations.ToTestDisplayString());
             Assert.Equal(
                 "System.EventHandler<(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9)>",
-                type.GetMember<EventSymbol>("Event").Type.ToTestDisplayString());
+                type.GetMember<EventSymbol>("Event").TypeWithAnnotations.ToTestDisplayString());
             Assert.Equal(
                 "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) B<T>.Method((dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) arg)",
                 type.GetMember<MethodSymbol>("Method").ToTestDisplayString());
@@ -1709,7 +1707,7 @@ public class B<T> :
 
                 var field = nullable.AttributeClass.GetField("NullableFlags");
                 Assert.NotNull(field);
-                Assert.Equal("System.Byte[]", field.Type.ToTestDisplayString());
+                Assert.Equal("System.Byte[]", field.TypeWithAnnotations.ToTestDisplayString());
             });
         }
 

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
     {
         private readonly MethodSymbol _method;
         private readonly string _name;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
         private readonly ConstantValue _value;
 
         public EELocalConstantSymbol(
@@ -18,14 +18,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             string name,
             TypeSymbol type,
             ConstantValue value)
-            : this(method, name, TypeSymbolWithAnnotations.Create(type), value)
+            : this(method, name, TypeWithAnnotations.Create(type), value)
         {
         }
 
         public EELocalConstantSymbol(
             MethodSymbol method,
             string name,
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations type,
             ConstantValue value)
         {
             _method = method;
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return _method; }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }

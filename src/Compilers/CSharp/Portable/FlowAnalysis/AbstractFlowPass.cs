@@ -423,8 +423,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _symbol as MethodSymbol;
-                return (object)method == null ? null : method.ThisParameter;
+                ParameterSymbol thisParameter = null;
+                (_symbol as MethodSymbol)?.TryGetThisParameter(out thisParameter);
+                return thisParameter;
             }
         }
 

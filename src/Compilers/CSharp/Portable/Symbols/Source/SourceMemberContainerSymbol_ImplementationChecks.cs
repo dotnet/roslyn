@@ -650,12 +650,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (overridingMemberIsMethod || overridingMember.IsIndexer())
                         {
                             var parameterTypes = overridingMemberIsMethod
-                                ? ((MethodSymbol)overridingMember).ParameterTypes
-                                : ((PropertySymbol)overridingMember).ParameterTypes;
+                                ? ((MethodSymbol)overridingMember).ParameterTypesWithAnnotations
+                                : ((PropertySymbol)overridingMember).ParameterTypesWithAnnotations;
 
                             foreach (var parameterType in parameterTypes)
                             {
-                                if (isOrContainsErrorType(parameterType.TypeSymbol))
+                                if (isOrContainsErrorType(parameterType.Type))
                                 {
                                     suppressError = true; // The parameter type must be fixed before the override can be found, so suppress error
                                     break;
@@ -771,8 +771,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             PropertySymbol overridingProperty = (PropertySymbol)overridingMember;
                             PropertySymbol overriddenProperty = (PropertySymbol)overriddenMember;
 
-                            TypeSymbolWithAnnotations overridingMemberType = overridingProperty.Type;
-                            TypeSymbolWithAnnotations overriddenMemberType = overriddenProperty.Type;
+                            TypeWithAnnotations overridingMemberType = overridingProperty.TypeWithAnnotations;
+                            TypeWithAnnotations overriddenMemberType = overriddenProperty.TypeWithAnnotations;
 
                             // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
                             if (overridingProperty.RefKind != overriddenProperty.RefKind)
@@ -783,16 +783,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
-                                if (!isOrContainsErrorType(overridingMemberType.TypeSymbol))
+                                if (!isOrContainsErrorType(overridingMemberType.Type))
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
+                                    diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.Type);
                                 }
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
-                                !overridingMemberType.Equals(overriddenProperty.Type,
-                                                             TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)))
+                                !overridingMemberType.Equals(overriddenProperty.TypeWithAnnotations,
+                                                             TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, overridingMemberLocation);
                             }
@@ -824,23 +824,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             EventSymbol overridingEvent = (EventSymbol)overridingMember;
                             EventSymbol overriddenEvent = (EventSymbol)overriddenMember;
 
-                            TypeSymbolWithAnnotations overridingMemberType = overridingEvent.Type;
-                            TypeSymbolWithAnnotations overriddenMemberType = overriddenEvent.Type;
+                            TypeWithAnnotations overridingMemberType = overridingEvent.TypeWithAnnotations;
+                            TypeWithAnnotations overriddenMemberType = overriddenEvent.TypeWithAnnotations;
 
                             // Ignore custom modifiers because this diagnostic is based on the C# semantics.
                             if (!overridingMemberType.Equals(overriddenMemberType, TypeCompareKind.AllIgnoreOptions))
                             {
                                 // if the type is or contains an error type, the type must be fixed before the override can be found, so suppress error
-                                if (!isOrContainsErrorType(overridingMemberType.TypeSymbol))
+                                if (!isOrContainsErrorType(overridingMemberType.Type))
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.TypeSymbol);
+                                    diagnostics.Add(ErrorCode.ERR_CantChangeTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMemberType.Type);
                                 }
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
-                                !overridingMemberType.Equals(overriddenEvent.Type,
-                                                             TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)))
+                                !overridingMemberType.Equals(overriddenEvent.TypeWithAnnotations,
+                                                             TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, overridingMemberLocation);
                             }
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (overridingMethod.IsGenericMethod)
                             {
-                                overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeArguments);
+                                overriddenMethod = overriddenMethod.Construct(overridingMethod.TypeArgumentsWithAnnotations);
                             }
 
                             // Check for mismatched byref returns and return type. Ignore custom modifiers, because this diagnostic is based on the C# semantics.
@@ -862,13 +862,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantChangeRefReturnOnOverride, overridingMemberLocation, overridingMember, overriddenMember);
                             }
-                            else if (!overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions))
+                            else if (!overridingMethod.ReturnTypeWithAnnotations.Equals(overriddenMethod.ReturnTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
                             {
                                 // if the Return type is or contains an error type, the return type must be fixed before the override can be found, so suppress error
-                                if (!isOrContainsErrorType(overridingMethod.ReturnType.TypeSymbol))
+                                if (!isOrContainsErrorType(overridingMethod.ReturnType))
                                 {
                                     // error CS0508: return type must be 'C<V>' to match overridden member 'M<T>()'
-                                    diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType.TypeSymbol);
+                                    diagnostics.Add(ErrorCode.ERR_CantChangeReturnTypeOnOverride, overridingMemberLocation, overridingMember, overriddenMember, overriddenMethod.ReturnType);
                                 }
                             }
                             else if (overriddenMethod.IsRuntimeFinalizer())
@@ -878,8 +878,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureNullableReferenceTypes) == true &&
                                 !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
-                                !overridingMethod.ReturnType.Equals(overriddenMethod.ReturnType,
-                                                                    TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)))
+                                !overridingMethod.ReturnTypeWithAnnotations.Equals(overriddenMethod.ReturnTypeWithAnnotations,
+                                                                    TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)))
                             {
                                 diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, overridingMemberLocation);
                             }
@@ -895,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (overriddenMember.Kind == SymbolKind.Method && (overriddenMethod = (MethodSymbol)overriddenMember).IsGenericMethod)
                             {
-                                overriddenParameters = overriddenMethod.Construct(((MethodSymbol)overridingMember).TypeArguments).Parameters;
+                                overriddenParameters = overriddenMethod.Construct(((MethodSymbol)overridingMember).TypeArgumentsWithAnnotations).Parameters;
                             }
                             else
                             {
@@ -904,10 +904,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             for (int i = 0; i < overridingParameters.Length; i++)
                             {
-                                var overridenParameterType = overriddenParameters[i].Type;
-                                var overridingParameterType = overridingParameters[i].Type;
+                                var overridenParameterType = overriddenParameters[i].TypeWithAnnotations;
+                                var overridingParameterType = overridingParameters[i].TypeWithAnnotations;
                                 if (!overridingParameterType.Equals(overridenParameterType,
-                                                                         TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreInsignificantNullableModifiersDifference)) &&
+                                                                         TypeCompareKind.AllIgnoreOptions & ~(TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)) &&
                                     overridingParameterType.Equals(overridenParameterType, TypeCompareKind.AllIgnoreOptions))
                                 {
                                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnOverride, overridingMemberLocation, new FormattedSymbol(overridingParameters[i], SymbolDisplayFormat.ShortFormat));

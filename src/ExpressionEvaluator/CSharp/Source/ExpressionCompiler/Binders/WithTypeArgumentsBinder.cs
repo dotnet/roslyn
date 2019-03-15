@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
     internal sealed class WithTypeArgumentsBinder : WithTypeParametersBinder
     {
-        private readonly ImmutableArray<TypeSymbolWithAnnotations> _typeArguments;
+        private readonly ImmutableArray<TypeWithAnnotations> _typeArguments;
         private MultiDictionary<string, TypeParameterSymbol> _lazyTypeParameterMap;
 
-        internal WithTypeArgumentsBinder(ImmutableArray<TypeSymbolWithAnnotations> typeArguments, Binder next)
+        internal WithTypeArgumentsBinder(ImmutableArray<TypeWithAnnotations> typeArguments, Binder next)
             : base(next)
         {
             Debug.Assert(!typeArguments.IsDefaultOrEmpty);
-            Debug.Assert(typeArguments.All(ta => ta.Kind == SymbolKind.TypeParameter));
+            Debug.Assert(typeArguments.All(ta => ta.Type.Kind == SymbolKind.TypeParameter));
             _typeArguments = typeArguments;
         }
 
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     var result = new MultiDictionary<string, TypeParameterSymbol>();
                     foreach (var tps in _typeArguments)
                     {
-                        result.Add(tps.Name, (TypeParameterSymbol)tps.TypeSymbol);
+                        result.Add(tps.Type.Name, (TypeParameterSymbol)tps.Type);
                     }
                     Interlocked.CompareExchange(ref _lazyTypeParameterMap, result, null);
                 }
@@ -45,9 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 foreach (var parameter in _typeArguments)
                 {
-                    if (originalBinder.CanAddLookupSymbolInfo(parameter.TypeSymbol, options, result, null))
+                    if (originalBinder.CanAddLookupSymbolInfo(parameter.Type, options, result, null))
                     {
-                        result.AddSymbol(parameter.TypeSymbol, parameter.Name, 0);
+                        result.AddSymbol(parameter.Type, parameter.Type.Name, 0);
                     }
                 }
             }

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     for (int index = 0; index < fieldsCount; index++)
                     {
                         PropertySymbol property = properties[index];
-                        paramsArr[index] = SynthesizedParameterSymbol.Create(this, property.Type, index, RefKind.None, property.Name);
+                        paramsArr[index] = SynthesizedParameterSymbol.Create(this, property.TypeWithAnnotations, index, RefKind.None, property.Name);
                     }
                     _parameters = paramsArr.AsImmutableOrNull();
                 }
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return RefKind.None; }
             }
 
-            public override TypeSymbolWithAnnotations ReturnType
+            public override TypeWithAnnotations ReturnTypeWithAnnotations
             {
-                get { return TypeSymbolWithAnnotations.Create(this.Manager.System_Void); }
+                get { return TypeWithAnnotations.Create(this.Manager.System_Void); }
             }
 
             public override ImmutableArray<ParameterSymbol> Parameters
