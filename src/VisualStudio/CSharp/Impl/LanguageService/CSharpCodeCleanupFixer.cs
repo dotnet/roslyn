@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -21,6 +22,7 @@ using Microsoft.VisualStudio.Editor.CodeCleanup;
 using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
@@ -309,6 +311,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 cancellationToken = cancellationTokenSource.Token;
 
                 var buffer = textBufferScope.SubjectBuffer;
+                var document = buffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                        context.OperationContext).WaitAndGetResult(cancellationToken);
+
                 using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
                 {
                     var progressTracker = new ProgressTracker((description, completed, total) =>
@@ -320,7 +325,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                         }
                     });
 
-                    var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                     var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
 
                     var allDiagnostics = codeCleanupService.GetAllDiagnostics();
