@@ -242,9 +242,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             => syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration);
 
         private static bool IsInAString(SyntaxNode currentNode, SnapshotPoint caret)
-            // If caret is at the end of the line, it is outside the string	
+            // If caret is at the end of the string, and at the end of the line, it's outside the string
             => currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
-                && caret.Position != caret.GetContainingLine().End;
+                && caret.Position != currentNode.Span.End || caret.Position != caret.GetContainingLine().End;
 
         private static bool StatementIsACandidate(SyntaxNode currentNode, int caretPosition)
         {

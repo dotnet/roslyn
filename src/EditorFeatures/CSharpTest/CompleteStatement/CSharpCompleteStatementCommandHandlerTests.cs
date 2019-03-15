@@ -2952,6 +2952,36 @@ class Program
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/issues/34176")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_NestedInterpolated_EndOfLine_NotEndOfString()
+        {
+            var code = @"
+            var code = Foo(@""@{
+                void Foo()
+                {
+                    var people = new List<string>()$$
+                    < string > Hello the time is @time </ strong >
+                    }
+            }
+            "") ;
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/issues/34176")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_NestedInterpolated_EndOfString_NotEndOfLine()
+        {
+            var code = @"
+            var code = Foo(@""@{
+                void Foo()
+                {
+                    var people = new List<string>()$$"" //tests
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_InterpolatedString()
         {
