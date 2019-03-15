@@ -85841,7 +85841,6 @@ public struct Foo<T>
         {
             var source =
 @"
-#nullable enable
 using System;
 public class C 
 {
@@ -85854,11 +85853,10 @@ public class C
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (8,13): warning CS8602: Possible dereference of a null reference.
+                // (7,13): warning CS8602: Possible dereference of a null reference.
                 //         _ = __refvalue(r, string?).Length; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "__refvalue(r, string?)").WithLocation(8, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "__refvalue(r, string?)").WithLocation(7, 13)
                 );
         }
-
     }
 }

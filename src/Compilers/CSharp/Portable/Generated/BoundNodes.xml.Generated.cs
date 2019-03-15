@@ -1241,7 +1241,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(BoundKind.RefValueOperator, syntax, type, hasErrors || operand.HasErrors())
         {
 
-            Debug.Assert((object)nullableAnnotation != null, "Field 'nullableAnnotation' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert((object)operand != null, "Field 'operand' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
