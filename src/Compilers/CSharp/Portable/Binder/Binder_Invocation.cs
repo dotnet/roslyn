@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> args,
             DiagnosticBag diagnostics,
             SeparatedSyntaxList<TypeSyntax> typeArgsSyntax = default(SeparatedSyntaxList<TypeSyntax>),
-            ImmutableArray<TypeSymbolWithAnnotations> typeArgs = default(ImmutableArray<TypeSymbolWithAnnotations>),
+            ImmutableArray<TypeWithAnnotations> typeArgs = default(ImmutableArray<TypeWithAnnotations>),
             CSharpSyntaxNode queryClause = null,
             bool allowFieldsAndProperties = false,
             bool allowUnexpandedForm = true)
@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ImmutableArray<MethodSymbol> originalMethods;
                 LookupResultKind resultKind;
-                ImmutableArray<TypeSymbolWithAnnotations> typeArguments;
+                ImmutableArray<TypeWithAnnotations> typeArguments;
                 if (resolution.OverloadResolutionResult != null)
                 {
                     originalMethods = GetOriginalMethods(resolution.OverloadResolutionResult);
@@ -799,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
             BoundExpression receiverOpt,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt,
+            ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
             DiagnosticBag diagnostics) where TMethodOrPropertySymbol : Symbol
         {
             Debug.Assert(overloadResolutionResult.HasAnyApplicableMember);
@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We still have to determine if it passes final validation.
 
             var methodResult = result.ValidResult;
-            var returnType = methodResult.Member.ReturnType.TypeSymbol;
+            var returnType = methodResult.Member.ReturnType;
             this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics);
 
             var method = methodResult.Member;
@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
                     Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
                     receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0),
-                        receiverParameter.Type.TypeSymbol, diagnostics);
+                        receiverParameter.Type, diagnostics);
                 }
 
                 if (receiverParameter.RefKind == RefKind.Ref)
@@ -1244,19 +1244,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiver,
             ImmutableArray<MethodSymbol> methods,
             LookupResultKind resultKind,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             AnalyzedArguments analyzedArguments,
             bool invokedAsExtensionMethod,
             bool isDelegate)
         {
             MethodSymbol method;
             ImmutableArray<BoundExpression> args;
-            if (!typeArguments.IsDefaultOrEmpty)
+            if (!typeArgumentsWithAnnotations.IsDefaultOrEmpty)
             {
                 var constructedMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                 foreach (var m in methods)
                 {
-                    constructedMethods.Add(m.ConstructedFrom == m && m.Arity == typeArguments.Length ? m.Construct(typeArguments) : m);
+                    constructedMethods.Add(m.ConstructedFrom == m && m.Arity == typeArgumentsWithAnnotations.Length ? m.Construct(typeArgumentsWithAnnotations) : m);
                 }
 
                 methods = constructedMethods.ToImmutableAndFree();
@@ -1406,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    newArguments[i] = ((OutVariablePendingInference)argument).SetInferredType(TypeSymbolWithAnnotations.Create(candidateType), null);
+                                    newArguments[i] = ((OutVariablePendingInference)argument).SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(candidateType), null);
                                 }
                             }
                             else if (argument.Kind == BoundKind.DiscardExpression)
@@ -1417,7 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    newArguments[i] = ((BoundDiscardExpression)argument).SetInferredType(TypeSymbolWithAnnotations.Create(candidateType));
+                                    newArguments[i] = ((BoundDiscardExpression)argument).SetInferredTypeWithAnnotations(TypeWithAnnotations.Create(candidateType));
                                 }
                             }
 
@@ -1451,13 +1451,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // look for a parameter by that name
                 foreach (var parameter in parameterList)
                 {
-                    if (parameter.Name == name) return parameter.Type.TypeSymbol;
+                    if (parameter.Name == name) return parameter.Type;
                 }
 
                 return null;
             }
 
-            return (i < parameterList.Length) ? parameterList[i].Type.TypeSymbol : null;
+            return (i < parameterList.Length) ? parameterList[i].Type : null;
             // CONSIDER: should we handle variable argument lists?
         }
 
@@ -1493,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = null;
             for (int i = 0, n = members.Length; i < n; i++)
             {
-                TypeSymbol returnType = members[i].GetTypeOrReturnType().TypeSymbol;
+                TypeSymbol returnType = members[i].GetTypeOrReturnType().Type;
                 if ((object)type == null)
                 {
                     type = returnType;

@@ -2321,7 +2321,7 @@ class C
                 // 2) Has parameter attributes from delegate declaration syntax
                 var invokeMethod = delegateType.GetMethod("Invoke");
                 Assert.Equal(1, invokeMethod.GetReturnTypeAttributes().Where(a => TypeSymbol.Equals(a.AttributeClass, returnTypeAttrType, TypeCompareKind.ConsiderEverything2)).Count());
-                Assert.Equal(typeParameters[0], invokeMethod.ReturnType.TypeSymbol);
+                Assert.Equal(typeParameters[0], invokeMethod.ReturnType);
                 var parameters = invokeMethod.GetParameters();
                 Assert.Equal(3, parameters.Length);
                 Assert.Equal("p1", parameters[0].Name);
@@ -4675,41 +4675,41 @@ public class C6 {}
 
                 var attrs = classC1.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                var typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(classW));
+                var typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(classW));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC2.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(classW), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(classW), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC3.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(classW));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(typeArg), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(classW));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(typeArg), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC4.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol classYOfW = classY.ConstructIfGeneric(ImmutableArray.Create(TypeSymbolWithAnnotations.Create(classW)));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(classYOfW), rank: 2);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(typeArg));
+                NamedTypeSymbol classYOfW = classY.ConstructIfGeneric(ImmutableArray.Create(TypeWithAnnotations.Create(classW)));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(classYOfW), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(typeArg));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC5.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol classYOfInt = classY.ConstructIfGeneric(ImmutableArray.Create(TypeSymbolWithAnnotations.Create(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))));
+                NamedTypeSymbol classYOfInt = classY.ConstructIfGeneric(ImmutableArray.Create(TypeWithAnnotations.Create(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32))));
                 NamedTypeSymbol substNestedF = classYOfInt.GetTypeMember("F");
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(substNestedF), rank: 3);
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(typeArg));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(typeArg), rank: 2);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(substNestedF), rank: 3);
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(typeArg));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(typeArg), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
 
                 attrs = classC6.GetAttributes();
                 Assert.Equal(1, attrs.Length);
-                NamedTypeSymbol substNestedZ = classYOfInt.GetTypeMember("Z").ConstructIfGeneric(ImmutableArray.Create(TypeSymbolWithAnnotations.Create(classW)));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(substNestedZ));
-                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeSymbolWithAnnotations.Create(typeArg), rank: 2);
+                NamedTypeSymbol substNestedZ = classYOfInt.GetTypeMember("Z").ConstructIfGeneric(ImmutableArray.Create(TypeWithAnnotations.Create(classW)));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(substNestedZ));
+                typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, TypeWithAnnotations.Create(typeArg), rank: 2);
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
             };
 

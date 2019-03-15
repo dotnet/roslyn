@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     case CompletionPart.TypeArguments:
                         {
-                            var tmp = this.TypeArgumentsNoUseSiteDiagnostics; // force type arguments
+                            var tmp = this.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics; // force type arguments
                         }
                         break;
 
@@ -1879,7 +1879,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         continue;
                     }
-                    var type = field.Type.TypeSymbol;
+                    var type = field.Type;
                     if (((object)type != null) &&
                         (type.TypeKind == TypeKind.Struct) &&
                         BaseTypeAnalysis.StructDependsOn((NamedTypeSymbol)type, this) &&
@@ -2005,13 +2005,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int p = 0; p < op1.ParameterCount; ++p)
             {
-                if (!op1.ParameterTypes[p].Equals(op2.ParameterTypes[p], TypeCompareKind.AllIgnoreOptions))
+                if (!op1.ParameterTypesWithAnnotations[p].Equals(op2.ParameterTypesWithAnnotations[p], TypeCompareKind.AllIgnoreOptions))
                 {
                     return false;
                 }
             }
 
-            if (!op1.ReturnType.TypeSymbol.Equals(op2.ReturnType.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
+            if (!op1.ReturnType.Equals(op2.ReturnType, TypeCompareKind.AllIgnoreOptions))
             {
                 return false;
             }
@@ -2076,7 +2076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var f = m as FieldSymbol;
                 if ((object)f == null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
-                var type = (NamedTypeSymbol)f.Type.TypeSymbol;
+                var type = (NamedTypeSymbol)f.Type;
                 if (InfiniteFlatteningGraph(this, type, instanceMap))
                 {
                     // Struct member '{0}' of type '{1}' causes a cycle in the struct layout
@@ -2095,7 +2095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (instanceMap.TryGetValue(tOriginal, out oldInstance))
             {
                 // short circuit when we find a cycle, but only return true when the cycle contains the top struct
-                return (!TypeSymbol.Equals(oldInstance, t, TypeCompareKind.ConsiderEverything2)) && ReferenceEquals(tOriginal, top);
+                return (!TypeSymbol.Equals(oldInstance, t, TypeCompareKind.AllNullableIgnoreOptions)) && ReferenceEquals(tOriginal, top);
             }
             else
             {
@@ -2106,7 +2106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var f = m as FieldSymbol;
                         if ((object)f == null || !f.IsStatic || f.Type.TypeKind != TypeKind.Struct) continue;
-                        var type = (NamedTypeSymbol)f.Type.TypeSymbol;
+                        var type = (NamedTypeSymbol)f.Type;
                         if (InfiniteFlatteningGraph(top, type, instanceMap)) return true;
                     }
                     return false;
@@ -2666,8 +2666,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                var propertyParamType = (((i == numParams - 1) && !getNotSet) ? propertySymbol.Type : propertyParams[i].Type).TypeSymbol;
-                if (!propertyParamType.Equals(methodParam.Type.TypeSymbol, TypeCompareKind.AllIgnoreOptions))
+                var propertyParamType = (((i == numParams - 1) && !getNotSet) ? propertySymbol.TypeWithAnnotations : propertyParams[i].TypeWithAnnotations).Type;
+                if (!propertyParamType.Equals(methodParam.Type, TypeCompareKind.AllIgnoreOptions))
                 {
                     return false;
                 }
@@ -2685,7 +2685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return
                 methodParams.Length == 1 &&
                 methodParams[0].RefKind == RefKind.None &&
-                eventSymbol.Type.TypeSymbol.Equals(methodParams[0].Type.TypeSymbol, TypeCompareKind.AllIgnoreOptions);
+                eventSymbol.Type.Equals(methodParams[0].Type, TypeCompareKind.AllIgnoreOptions);
         }
 
         private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)

@@ -2009,7 +2009,7 @@ class C<T>
                 var methodData = testData.GetMethodData("<>x<T>.<>c.<<>m0>b__0_0");
                 var method = (MethodSymbol)methodData.Method;
                 var containingType = method.ContainingType;
-                var returnType = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
+                var returnType = (NamedTypeSymbol)method.ReturnType;
                 // Return type E<T> with type argument T from <>c<T>.
                 Assert.Equal(returnType.TypeArguments()[0].ContainingSymbol, containingType.ContainingType);
                 var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
@@ -2078,9 +2078,9 @@ class C<T>
 
                 var methodData = testData.GetMethodData("<>x.<>m0<T>()");
                 var method = (MethodSymbol)methodData.Method;
-                var returnType = method.ReturnType;
+                var returnType = method.ReturnTypeWithAnnotations;
                 Assert.Equal(returnType.TypeKind, TypeKind.TypeParameter);
-                Assert.Equal(returnType.TypeSymbol.ContainingSymbol, method);
+                Assert.Equal(returnType.Type.ContainingSymbol, method);
 
                 var locals = methodData.ILBuilder.LocalSlotManager.LocalsInOrder();
                 // The original local of type T from <>m0<T>.
@@ -4745,7 +4745,7 @@ struct S
                 var testData = new CompilationTestData();
                 var result = context.CompileExpression("this?.F()", out error, testData);
                 var methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ToDisplayString(), "int?");
+                Assert.Equal(((MethodSymbol)methodData.Method).ReturnTypeWithAnnotations.ToDisplayString(), "int?");
                 methodData.VerifyIL(
     @"{
   // Code size       25 (0x19)
@@ -4766,7 +4766,7 @@ struct S
                 testData = new CompilationTestData();
                 result = context.CompileExpression("(new C())?.G()?.F()", out error, testData);
                 methodData = testData.GetMethodData("<>x.<>m0");
-                Assert.Equal(((MethodSymbol)methodData.Method).ReturnType.ToDisplayString(), "int?");
+                Assert.Equal(((MethodSymbol)methodData.Method).ReturnTypeWithAnnotations.ToDisplayString(), "int?");
 
                 testData = new CompilationTestData();
                 result = context.CompileExpression("G()?.M()", out error, testData);
@@ -5618,7 +5618,7 @@ public class Source
                 var methodData = testData.GetMethodData("<>x.<>m0");
 
                 // Even though the method's return type has a use-site warning, we are able to evaluate the expression.
-                Assert.Equal(ErrorCode.WRN_UnifyReferenceMajMin, (ErrorCode)((MethodSymbol)methodData.Method).ReturnType.TypeSymbol.GetUseSiteDiagnostic().Code);
+                Assert.Equal(ErrorCode.WRN_UnifyReferenceMajMin, (ErrorCode)((MethodSymbol)methodData.Method).ReturnType.GetUseSiteDiagnostic().Code);
                 methodData.VerifyIL(@"
 {
   // Code size        6 (0x6)

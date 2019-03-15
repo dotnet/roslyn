@@ -1283,7 +1283,7 @@ class C
             Assert.Equal("System.IO.StreamWriter a", declaredSymbol.ToTestDisplayString());
 
             var typeInfo = model.GetSymbolInfo(usingStatement.Declaration.Type);
-            Assert.Equal(((LocalSymbol)declaredSymbol).Type.TypeSymbol, typeInfo.Symbol);
+            Assert.Equal(((LocalSymbol)declaredSymbol).Type, typeInfo.Symbol);
         }
 
         [Fact]
@@ -1324,7 +1324,7 @@ class C
             var typeInfo = model.GetSymbolInfo(usingStatement.Declaration.Type);
 
             // the type info uses the type inferred for the first declared local
-            Assert.Equal(((LocalSymbol)model.GetDeclaredSymbol(usingStatement.Declaration.Variables.First())).Type.TypeSymbol, typeInfo.Symbol);
+            Assert.Equal(((LocalSymbol)model.GetDeclaredSymbol(usingStatement.Declaration.Variables.First())).Type, typeInfo.Symbol);
         }
 
         [Fact]
@@ -1460,7 +1460,7 @@ class Program
             var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj1", "mnObj2");
             foreach (var x in symbols)
             {
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type);
             }
         }
 
@@ -1491,7 +1491,7 @@ class Program
             {
                 var localSymbol = (LocalSymbol)x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 2);
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol, 2);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type, 2);
             }
         }
 
@@ -1520,7 +1520,7 @@ class MyManagedTypeDerived : MyManagedType
             {
                 var localSymbol = (LocalSymbol)x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 1);
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol, 1);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type, 1);
             }
         }
 
@@ -1548,7 +1548,7 @@ class Program
             {
                 var localSymbol = (LocalSymbol)x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 1);
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol, 1);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type, 1);
             }
         }
 
@@ -1577,7 +1577,7 @@ class Program
             {
                 var localSymbol = (LocalSymbol)x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 1);
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol, 1);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type, 1);
             }
         }
 
@@ -1605,7 +1605,7 @@ class Test<T>
             {
                 var localSymbol = (LocalSymbol)x;
                 VerifyLookUpSymbolForUsingStatements(compilation, localSymbol, 1);
-                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type.TypeSymbol, 1);
+                VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type, 1);
             }
         }
 

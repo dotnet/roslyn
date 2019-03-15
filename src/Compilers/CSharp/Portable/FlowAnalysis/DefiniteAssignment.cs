@@ -306,9 +306,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(thisSlot > 0);
                     if (!this.State.IsAssigned(thisSlot))
                     {
-                        foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(parameter.Type.TypeSymbol))
+                        foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(parameter.Type))
                         {
-                            if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;
+                            if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
 
                             if (HasInitializer(field)) continue;
 
@@ -585,11 +585,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)_sourceAssembly != null && variable.Kind == SymbolKind.Field)
                 {
                     var field = (FieldSymbol)variable.OriginalDefinition;
-                    _sourceAssembly.NoteFieldAccess(field, read: read && WriteConsideredUse(field.Type.TypeSymbol, value), write: true);
+                    _sourceAssembly.NoteFieldAccess(field, read: read && WriteConsideredUse(field.Type, value), write: true);
                 }
 
                 var local = variable as LocalSymbol;
-                if ((object)local != null && read && WriteConsideredUse(local.Type.TypeSymbol, value))
+                if ((object)local != null && read && WriteConsideredUse(local.Type, value))
                 {
                     // A local variable that is written to is considered to also be read,
                     // unless the written value is always a constant. The reasons for this
@@ -682,7 +682,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if ((object)_sourceAssembly != null)
                             {
                                 var field = fieldAccess.FieldSymbol.OriginalDefinition;
-                                _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(fieldAccess.FieldSymbol.Type.TypeSymbol, value), write: true);
+                                _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(fieldAccess.FieldSymbol.Type, value), write: true);
                             }
 
                             if (MayRequireTracking(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol))
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if ((object)_sourceAssembly != null)
                                 {
                                     var field = associatedField.OriginalDefinition;
-                                    _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(associatedField.Type.TypeSymbol, value), write: true);
+                                    _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(associatedField.Type, value), write: true);
                                 }
 
                                 if (MayRequireTracking(eventAccess.ReceiverOpt, associatedField))
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We've already reported the use of a local before its declaration.  No need to emit
                 // another diagnostic for the same issue.
             }
-            else if (!_alreadyReported[slot] && !VariableType(symbol).IsErrorType())
+            else if (!_alreadyReported[slot] && !VariableTypeWithAnnotations(symbol).Type.IsErrorType())
             {
                 // CONSIDER: could suppress this diagnostic in cases where the local was declared in a using
                 // or fixed statement because there's a special error code for not initializing those.
@@ -1231,10 +1231,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(containingSlot != -1);
             Debug.Assert(!state.IsAssigned(containingSlot));
             VariableIdentifier variable = variableBySlot[containingSlot];
-            TypeSymbol structType = VariableType(variable.Symbol).TypeSymbol;
+            TypeSymbol structType = VariableTypeWithAnnotations(variable.Symbol).Type;
             foreach (var field in _emptyStructTypeCache.GetStructInstanceFields(structType))
             {
-                if (_emptyStructTypeCache.IsEmptyStructType(field.Type.TypeSymbol)) continue;
+                if (_emptyStructTypeCache.IsEmptyStructType(field.Type)) continue;
                 int slot = VariableSlot(field, containingSlot);
                 if (slot == -1 || !state.IsAssigned(slot)) return false;
             }
@@ -1259,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];
-            TypeSymbol type = VariableType(id.Symbol).TypeSymbol;
+            TypeSymbol type = VariableTypeWithAnnotations(id.Symbol).Type;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (slot >= state.Assigned.Capacity) Normalize(ref state);
             if (state.IsAssigned(slot)) return; // was already fully assigned.
@@ -1295,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot < 0) return;
             VariableIdentifier id = variableBySlot[slot];
-            TypeSymbol type = VariableType(id.Symbol).TypeSymbol;
+            TypeSymbol type = VariableTypeWithAnnotations(id.Symbol).Type;
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
             if (!state.IsAssigned(slot)) return; // was already unassigned
             state.Unassign(slot);
@@ -1947,7 +1947,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (type.TypeKind)
             {
                 case TypeKind.Array:
-                    MarkFieldsUsed(((ArrayTypeSymbol)type).ElementType.TypeSymbol);
+                    MarkFieldsUsed(((ArrayTypeSymbol)type).ElementType);
                     return;
 
                 case TypeKind.Class:
@@ -1976,7 +1976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             FieldSymbol field = (FieldSymbol)symbol;
                             assembly.NoteFieldAccess(field, read: true, write: true);
-                            MarkFieldsUsed(field.Type.TypeSymbol);
+                            MarkFieldsUsed(field.Type);
                         }
                     }
                     return;

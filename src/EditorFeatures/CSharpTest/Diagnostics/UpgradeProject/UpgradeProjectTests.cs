@@ -32,7 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UpgradeProj
                 var (_, action) = await GetCodeActionsAsync(workspace, parameters);
                 var operations = await VerifyActionAndGetOperationsAsync(action, default);
 
-                var (oldSolution, newSolution) = ApplyOperationsAndGetSolution(workspace, operations);
+                var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
+                var oldSolution = appliedChanges.Item1;
+                var newSolution = appliedChanges.Item2;
                 Assert.All(newSolution.Projects.Where(p => p.Language == LanguageNames.CSharp),
                     p => Assert.Equal(expected, ((CSharpParseOptions)p.ParseOptions).SpecifiedLanguageVersion));
 
