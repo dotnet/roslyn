@@ -2,8 +2,8 @@
 
 using System.Threading.Tasks;
 using Xunit;
-using VerifyCS = Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests.CSharpPerformanceCodeFixVerifier<
-    Microsoft.CodeAnalysis.PerformanceSensitive.CSharp.Analyzers.EnumeratorAllocationAnalyzer,
+using VerifyCS = Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests.CSharpPerformanceCodeFixVerifier<
+    Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.EnumeratorAllocationAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests

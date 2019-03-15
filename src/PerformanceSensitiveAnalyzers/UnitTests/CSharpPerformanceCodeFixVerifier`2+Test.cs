@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 
-namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests
+namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests
 {
     public static partial class CSharpPerformanceCodeFixVerifier<TAnalyzer, TCodeFix>
         where TAnalyzer : DiagnosticAnalyzer, new()

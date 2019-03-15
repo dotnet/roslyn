@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers;
+using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 
-namespace Microsoft.CodeAnalysis.PerformanceSensitive.CSharp.Analyzers
+namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class ConcatenationAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>

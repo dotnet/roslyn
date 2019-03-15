@@ -4,9 +4,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.BannedApiAnalyzer;
+using Microsoft.CodeAnalysis.BannedApiAnalyzers;
 
-namespace Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzer
+namespace Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class CSharpSymbolIsBannedAnalyzer : SymbolIsBannedAnalyzer<SyntaxKind>

@@ -4,9 +4,9 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.BannedApiAnalyzer
+Imports Microsoft.CodeAnalysis.BannedApiAnalyzers
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzer
+Namespace Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicSymbolIsBannedAnalyzer
         Inherits SymbolIsBannedAnalyzer(Of SyntaxKind)

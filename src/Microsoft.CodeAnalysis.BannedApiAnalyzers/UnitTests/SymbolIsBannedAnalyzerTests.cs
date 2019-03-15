@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzer;
-using Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzer;
+using Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers;
+using Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
@@ -10,14 +10,14 @@ using Microsoft.CodeAnalysis.VisualBasic.Testing;
 using Xunit;
 
 using VerifyCS = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeFixVerifier<
-    Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzer.CSharpSymbolIsBannedAnalyzer,
+    Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.CSharpSymbolIsBannedAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
 using VerifyVB = Microsoft.CodeAnalysis.VisualBasic.Testing.XUnit.CodeFixVerifier<
-    Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzer.BasicSymbolIsBannedAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.BasicSymbolIsBannedAnalyzer,
     Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider>;
 
-namespace Microsoft.CodeAnalysis.BannedApiAnalyzer.UnitTests
+namespace Microsoft.CodeAnalysis.BannedApiAnalyzers.UnitTests
 {
     // For specification of document comment IDs see https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/documentation-comments#processing-the-documentation-file
 

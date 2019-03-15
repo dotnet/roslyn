@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers
+namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 {
     internal static class AllocationRules
     {

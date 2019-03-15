@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using DiagnosticIds = Roslyn.Diagnostics.Analyzers.RoslynDiagnosticIds;
 
-namespace Microsoft.CodeAnalysis.BannedApiAnalyzer
+namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
 {
     internal static class SymbolIsBannedAnalyzer
     {
