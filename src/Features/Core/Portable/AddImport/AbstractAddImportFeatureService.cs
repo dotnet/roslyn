@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
@@ -39,8 +40,8 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
 
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, AddImportPlacement placement, CancellationToken cancellationToken);
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool specialCaseSystem, AddImportPlacement placement, CancellationToken cancellationToken);
 
         protected abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
             Document document, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
-            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            AddImportPlacement placement, ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             if (RemoteSupportedLanguages.IsSupported(document.Project.Language))
@@ -80,13 +81,13 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             return await GetFixesInCurrentProcessAsync(
                 document, span, diagnosticId, maxResults, placeSystemNamespaceFirst,
-                symbolSearchService, searchReferenceAssemblies,
+                placement, symbolSearchService, searchReferenceAssemblies,
                 packageSources, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<AddImportFixData>> GetFixesInCurrentProcessAsync(
             Document document, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
-            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            AddImportPlacement placement, ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                var fixData = await reference.TryGetFixDataAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                                var fixData = await reference.TryGetFixDataAsync(document, node, placeSystemNamespaceFirst, placement, cancellationToken).ConfigureAwait(false);
                                 result.AddIfNotNull(fixData);
                             }
                         }
@@ -474,7 +475,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         public async Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
             Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, int maxResultsPerDiagnostic,
-            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            AddImportPlacement placement, ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             // We might have multiple different diagnostics covering the same span.  Have to
@@ -488,8 +489,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             foreach (var diagnostic in diagnostics)
             {
                 var fixes = await GetFixesAsync(
-                    document, span, diagnostic.Id, maxResultsPerDiagnostic,
-                    placeSystemNamespaceFirst, symbolSearchService, searchReferenceAssemblies,
+                    document, span, diagnostic.Id, maxResultsPerDiagnostic, placeSystemNamespaceFirst,
+                    placement, symbolSearchService, searchReferenceAssemblies,
                     packageSources, cancellationToken).ConfigureAwait(false);
 
                 fixesForDiagnosticBuilder.Add((diagnostic, fixes));

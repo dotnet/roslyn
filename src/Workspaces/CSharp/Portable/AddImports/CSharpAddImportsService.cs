@@ -3,9 +3,11 @@
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImports
 {
@@ -62,6 +64,16 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImports
                 case NamespaceDeclarationSyntax n: return n.Externs;
                 default: return default;
             }
+        }
+
+        protected override bool CanContainImports(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.CompilationUnit, SyntaxKind.NamespaceDeclaration);
+        }
+
+        public override AddImportPlacement GetImportPlacement(OptionSet options)
+        {
+            return options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement).Value;
         }
 
         private class Rewriter : CSharpSyntaxRewriter

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -227,14 +228,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_pattern_local_over_anonymous_function"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferLocalOverAnonymousFunction)}")});
 
-        public static readonly CodeStyleOption<UsingDirectivesPlacement> PreservePlacementWithSilentEnforcement =
-            new CodeStyleOption<UsingDirectivesPlacement>(UsingDirectivesPlacement.Preserve, NotificationOption.Silent);
+        public static readonly CodeStyleOption<AddImportPlacement> PreservePlacementWithSilentEnforcement =
+            new CodeStyleOption<AddImportPlacement>(AddImportPlacement.Preserve, NotificationOption.Silent);
 
-        public static readonly Option<CodeStyleOption<UsingDirectivesPlacement>> PreferredUsingDirectivesPlacement = CreateOption(
+        public static readonly Option<CodeStyleOption<AddImportPlacement>> PreferredUsingDirectivesPlacement = CreateOption(
             CSharpCodeStyleOptionGroups.UsingPreferences, nameof(PreferredUsingDirectivesPlacement),
             defaultValue: PreservePlacementWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[]{
-                new EditorConfigStorageLocation<CodeStyleOption<UsingDirectivesPlacement>>(
+                new EditorConfigStorageLocation<CodeStyleOption<AddImportPlacement>>(
                     "csharp_using_directive_placement",
                     s => ParseUsingDirectivesPlacement(s, PreservePlacementWithSilentEnforcement),
                     GetUsingDirectivesPlacementEditorConfigString),

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddImports
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.AddImports
         protected abstract SyntaxList<TUsingOrAliasSyntax> GetUsingsAndAliases(SyntaxNode node);
         protected abstract SyntaxList<TExternSyntax> GetExterns(SyntaxNode node);
         protected abstract bool IsStaticUsing(TUsingOrAliasSyntax usingOrAlias);
+        protected abstract bool CanContainImports(SyntaxNode node);
+        public abstract AddImportPlacement GetImportPlacement(OptionSet options);
 
         private bool IsSimpleUsing(TUsingOrAliasSyntax usingOrAlias) => !IsAlias(usingOrAlias) && !IsStaticUsing(usingOrAlias);
         private bool IsAlias(TUsingOrAliasSyntax usingOrAlias) => GetAlias(usingOrAlias) != null;
@@ -77,10 +80,10 @@ namespace Microsoft.CodeAnalysis.AddImports
             return false;
         }
 
-        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import)
+        public SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import, AddImportPlacement placement)
         {
-            contextLocation = contextLocation ?? root;
-            GetContainers(root, contextLocation,
+            contextLocation ??= root;
+            GetContainers(root, contextLocation, placement,
                 out var externContainer, out var usingContainer, out var staticUsingContainer, out var aliasContainer);
 
             switch (import)
@@ -108,9 +111,10 @@ namespace Microsoft.CodeAnalysis.AddImports
             SyntaxNode root,
             SyntaxNode contextLocation,
             IEnumerable<SyntaxNode> newImports,
-            bool placeSystemNamespaceFirst)
+            bool placeSystemNamespaceFirst,
+            AddImportPlacement placement)
         {
-            contextLocation = contextLocation ?? root;
+            contextLocation ??= root;
 
             var globalImports = GetGlobalImports(compilation);
             var containers = GetAllContainers(root, contextLocation);
@@ -121,7 +125,7 @@ namespace Microsoft.CodeAnalysis.AddImports
             var staticUsingDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsStaticUsing).ToArray();
             var aliasDirectives = filteredImports.OfType<TUsingOrAliasSyntax>().Where(IsAlias).ToArray();
 
-            GetContainers(root, contextLocation,
+            GetContainers(root, contextLocation, placement,
                 out var externContainer, out var usingContainer, out var aliasContainer, out var staticUsingContainer);
 
             var newRoot = Rewrite(
@@ -138,8 +142,28 @@ namespace Microsoft.CodeAnalysis.AddImports
             TUsingOrAliasSyntax[] aliasDirectives, SyntaxNode externContainer, SyntaxNode usingContainer,
             SyntaxNode staticUsingContainer, SyntaxNode aliasContainer, bool placeSystemNamespaceFirst, SyntaxNode root);
 
-        private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
+        private void GetContainers(SyntaxNode root, SyntaxNode contextLocation, AddImportPlacement placement, out SyntaxNode externContainer, out SyntaxNode usingContainer, out SyntaxNode staticUsingContainer, out SyntaxNode aliasContainer)
         {
+            if (placement == AddImportPlacement.OutsideNamespace)
+            {
+                externContainer = root;
+                usingContainer = root;
+                staticUsingContainer = root;
+                aliasContainer = root;
+                return;
+            }
+
+            if (placement == AddImportPlacement.InsideNamespace)
+            {
+                var importContainer = (SyntaxNode)contextLocation.GetAncestorOrThis<TNamespaceDeclarationSyntax>() ??
+                   contextLocation.GetAncestorOrThis<TCompilationUnitSyntax>();
+                externContainer = importContainer;
+                usingContainer = importContainer;
+                staticUsingContainer = importContainer;
+                aliasContainer = importContainer;
+                return;
+            }
+
             var applicableContainer = GetFirstApplicableContainer(contextLocation);
             var contextSpine = applicableContainer.GetAncestorsOrThis<SyntaxNode>().ToImmutableArray();
 

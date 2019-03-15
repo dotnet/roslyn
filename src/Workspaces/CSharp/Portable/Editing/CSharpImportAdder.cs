@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
+using Microsoft.CodeAnalysis.AddImports;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Editing
 {
@@ -21,6 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Editing
             }
 
             return null;
+        }
+
+        protected override AddImportPlacement GetImportPlacement(OptionSet options)
+        {
+            return options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement).Value;
         }
 
         private INamespaceSymbol GetExplicitNamespaceSymbol(ExpressionSyntax fullName, ExpressionSyntax namespacePart, SemanticModel model)

@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
@@ -23,10 +24,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, AddImportPlacement placement, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(
-                    document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                    document, node, placeSystemNamespaceFirst, placement, cancellationToken).ConfigureAwait(false);
 
                 var title = $"{this.provider.GetDescription(this.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
                 var fullyQualifiedTypeName = string.Join(

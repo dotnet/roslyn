@@ -271,24 +271,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 symbol As INamespaceOrTypeSymbol,
                 document As Document,
                 placeSystemNamespaceFirst As Boolean,
+                placement As AddImportPlacement,
                 cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim importsStatement = GetImportsStatement(symbol)
 
             Return Await AddImportAsync(
                 contextNode, document, placeSystemNamespaceFirst,
-                importsStatement, cancellationToken).ConfigureAwait(False)
+                importsStatement, placement, cancellationToken).ConfigureAwait(False)
         End Function
 
         Private Overloads Shared Async Function AddImportAsync(
                 contextNode As SyntaxNode, document As Document, placeSystemNamespaceFirst As Boolean,
-                importsStatement As ImportsStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)
+                importsStatement As ImportsStatementSyntax, placement As AddImportPlacement,
+                cancellationToken As CancellationToken) As Task(Of Document)
 
             Dim compilation = Await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(False)
             Dim importService = document.GetLanguageService(Of IAddImportsService)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, placeSystemNamespaceFirst)
+            Dim newRoot = importService.AddImport(compilation, root, contextNode, importsStatement, placeSystemNamespaceFirst, placement)
             newRoot = newRoot.WithAdditionalAnnotations(CaseCorrector.Annotation, Formatter.Annotation)
             Dim newDocument = document.WithSyntaxRoot(newRoot)
 
@@ -300,13 +302,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 nameSpaceParts As IReadOnlyList(Of String),
                 Document As Document,
                 placeSystemNamespaceFirst As Boolean,
+                placement As AddImportPlacement,
                 cancellationToken As CancellationToken) As Task(Of Document)
             Dim nameSyntax = CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1)
             Dim importsStatement = GetImportsStatement(nameSyntax)
 
             Return AddImportAsync(
                 contextNode, Document, placeSystemNamespaceFirst,
-                importsStatement, cancellationToken)
+                importsStatement, placement, cancellationToken)
         End Function
 
         Private Function CreateNameSyntax(nameSpaceParts As IReadOnlyList(Of String), index As Integer) As NameSyntax

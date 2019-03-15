@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -118,10 +119,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public abstract Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, AddImportPlacement AddImportPlacement, CancellationToken cancellationToken);
 
             protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
-                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst, AddImportPlacement AddImportPlacement, CancellationToken cancellationToken)
             {
                 var originalDocument = document;
 
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     node, document, cancellationToken).ConfigureAwait(false);
 
                 var newDocument = await this.provider.AddImportAsync(
-                    node, this.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                    node, this.SearchResult.NameParts, document, placeSystemNamespaceFirst, AddImportPlacement, cancellationToken).ConfigureAwait(false);
 
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
                     newDocument, cancellationToken).ConfigureAwait(false);

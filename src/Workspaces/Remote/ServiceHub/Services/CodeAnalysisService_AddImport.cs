@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -16,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public Task<IList<AddImportFixData>> GetFixesAsync(
             DocumentId documentId, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
-            bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken)
+            AddImportPlacement placement, bool searchReferenceAssemblies, IList<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async token =>
             {
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                     var result = await service.GetFixesAsync(
                         document, span, diagnosticId, maxResults, placeSystemNamespaceFirst,
-                        symbolSearchService, searchReferenceAssemblies,
+                        placement, symbolSearchService, searchReferenceAssemblies,
                         packageSources.ToImmutableArray(), token).ConfigureAwait(false);
 
                     return (IList<AddImportFixData>)result;

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                 var compilation = semanticModel.Compilation;
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+                var placement = addImportService.GetImportPlacement(optionSet);
                 var codeActionsBuilder = ImmutableArray.CreateBuilder<CodeAction>(symbolInfo.CandidateSymbols.Length);
                 foreach (var symbol in symbolInfo.CandidateSymbols.Cast<ITypeSymbol>())
                 {
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AliasAmbiguousType
                     codeActionsBuilder.Add(new MyCodeAction(codeActionPreviewText, c =>
                         {
                             var aliasDirective = syntaxGenerator.AliasImportDeclaration(typeName, symbol);
-                            var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst);
+                            var newRoot = addImportService.AddImport(compilation, root, diagnosticNode, aliasDirective, placeSystemNamespaceFirst, placement);
                             return Task.FromResult(document.WithSyntaxRoot(newRoot));
                         }));
                 }

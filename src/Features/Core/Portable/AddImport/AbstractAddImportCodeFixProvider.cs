@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,11 +37,13 @@ namespace Microsoft.CodeAnalysis.AddImport
             var cancellationToken = context.CancellationToken;
             var diagnostics = context.Diagnostics;
 
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+            var addImportFeatureService = document.GetLanguageService<IAddImportFeatureService>();
+            var addImportService = document.GetLanguageService<IAddImportsService>();
 
             var solution = document.Project.Solution;
             var options = solution.Options;
 
+            var placement = addImportService.GetImportPlacement(options);
             var searchReferenceAssemblies = options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language);
             var searchNuGetPackages = options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
 
@@ -53,13 +56,13 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ? installerService.PackageSources
                 : ImmutableArray<PackageSource>.Empty;
 
-            var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
-                document, span, diagnostics, MaxResults, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
+            var fixesForDiagnostic = await addImportFeatureService.GetFixesForDiagnosticsAsync(
+                document, span, diagnostics, MaxResults, placement, symbolSearchService, searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
 
             foreach (var (diagnostic, fixes) in fixesForDiagnostic)
             {
                 // Limit the results returned since this will be displayed to the user
-                var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, installerService, MaxResults);
+                var codeActions = addImportFeatureService.GetCodeActionsForFixes(document, fixes, installerService, MaxResults);
                 context.RegisterFixes(codeActions, diagnostic);
             }
         }

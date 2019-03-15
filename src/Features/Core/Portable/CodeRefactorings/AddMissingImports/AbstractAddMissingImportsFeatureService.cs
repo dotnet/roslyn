@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -78,14 +79,18 @@ namespace Microsoft.CodeAnalysis.AddMissingImports
             var symbolSearchService = solution.Workspace.Services.GetService<ISymbolSearchService>();
             // Since we are not currently considering NuGet packages, pass an empty array
             var packageSources = ImmutableArray<PackageSource>.Empty;
-            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
+            var addImportFeatureService = document.GetLanguageService<IAddImportFeatureService>();
+
+            var addImportService = document.GetLanguageService<IAddImportsService>();
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placement = addImportService.GetImportPlacement(options);
 
             // We only need to recieve 2 results back per diagnostic to determine that the fix is ambiguous.
             var getFixesForDiagnosticsTasks = diagnostics
                 .GroupBy(diagnostic => diagnostic.Location.SourceSpan)
-                .Select(diagnosticsForSourceSpan => addImportService
+                .Select(diagnosticsForSourceSpan => addImportFeatureService
                     .GetFixesForDiagnosticsAsync(document, diagnosticsForSourceSpan.Key, diagnosticsForSourceSpan.AsImmutable(),
-                        maxResultsPerDiagnostic: 2, symbolSearchService, searchReferenceAssemblies: true, packageSources, cancellationToken));
+                        maxResultsPerDiagnostic: 2, placement, symbolSearchService, searchReferenceAssemblies: true, packageSources, cancellationToken));
 
             var fixes = ArrayBuilder<AddImportFixData>.GetInstance();
             foreach (var getFixesForDiagnosticsTask in getFixesForDiagnosticsTasks)

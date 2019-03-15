@@ -333,17 +333,18 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             Document document,
             bool placeSystemNamespaceFirst,
+            AddImportPlacement placement,
             CancellationToken cancellationToken)
         {
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
-            var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+            var newRoot = await AddImportWorkerAsync(document, root, contextNode, namespaceOrTypeSymbol, placeSystemNamespaceFirst, placement, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
         }
 
         private async Task<CompilationUnitSyntax> AddImportWorkerAsync(
             Document document, CompilationUnitSyntax root, SyntaxNode contextNode,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
-            bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            bool placeSystemNamespaceFirst, AddImportPlacement placement, CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -373,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
                 var addImportService = document.GetLanguageService<IAddImportsService>();
                 var newRoot = addImportService.AddImports(
-                    semanticModel.Compilation, root, contextNode, newImports, placeSystemNamespaceFirst);
+                    semanticModel.Compilation, root, contextNode, newImports, placeSystemNamespaceFirst, placement);
                 return (CompilationUnitSyntax)newRoot;
             }
             finally
@@ -384,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
 
         protected override async Task<Document> AddImportAsync(
             SyntaxNode contextNode, IReadOnlyList<string> namespaceParts,
-            Document document, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+            Document document, bool placeSystemNamespaceFirst, AddImportPlacement placement, CancellationToken cancellationToken)
         {
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
 
@@ -394,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var service = document.GetLanguageService<IAddImportsService>();
             var newRoot = service.AddImport(
-                compilation, root, contextNode, usingDirective, placeSystemNamespaceFirst);
+                compilation, root, contextNode, usingDirective, placeSystemNamespaceFirst, placement);
 
             return document.WithSyntaxRoot(newRoot);
         }
@@ -437,6 +438,9 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             SyntaxNode contextNode)
         {
             var addImportService = document.GetLanguageService<IAddImportsService>();
+            var cancellationToken = new CancellationToken();
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var placement = addImportService.GetImportPlacement(options);
 
             var nameSyntax = namespaceOrTypeSymbol.GenerateNameSyntax();
 
@@ -448,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             // help create the final using.
             var dummyUsing = SyntaxFactory.UsingDirective(nameSyntax);
 
-            var container = addImportService.GetImportContainer(root, contextNode, dummyUsing);
+            var container = addImportService.GetImportContainer(root, contextNode, dummyUsing, placement);
             var namespaceToAddTo = container as NamespaceDeclarationSyntax;
 
             // Replace the alias that GenerateTypeSyntax added if we want this to be looked

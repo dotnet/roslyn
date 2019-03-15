@@ -7,15 +7,18 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 {
@@ -48,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
         {
             var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
-            var options =  await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
+            var options = await context.Document.GetOptionsAsync(context.CancellationToken).ConfigureAwait(false);
 
             // do not offer a code fix for IDE0056 when there are multiple namespaces in the source file
             if (CountNamespaces(compilationUnit.Members) > 1)
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(
-                    new MoveMisplacedUsingsCodeAction(cancellationToken => 
+                    new MoveMisplacedUsingsCodeAction(cancellationToken =>
                         GetTransformedDocumentAsync(context.Document, syntaxRoot, options, cancellationToken)),
                     diagnostic);
             }
@@ -67,85 +70,115 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
         private static async Task<Document> GetTransformedDocumentAsync(Document document, SyntaxNode syntaxRoot, OptionSet options, CancellationToken cancellationToken)
         {
-            var fileHeader = GetFileHeader(syntaxRoot);
-            var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
-            var usingDirectivesPlacement = DeterminePlacement(compilationUnit, options);
+            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var usingDirectivesPlacement = DeterminePlacement((CompilationUnitSyntax)syntaxRoot, options);
+            var addImportService = document.GetLanguageService<IAddImportsService>();
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var tabSize = options.GetOption(FormattingOptions.TabSize, LanguageNames.CSharp);
-            var indentationSize = options.GetOption(FormattingOptions.IndentationSize, LanguageNames.CSharp);
-            var useTabs = options.GetOption(FormattingOptions.UseTabs, LanguageNames.CSharp);
+            var (newSyntaxRoot, fileHeader) = RemoveFileHeader(syntaxRoot);
+            var compilationUnit = (CompilationUnitSyntax)newSyntaxRoot;
 
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var usingsHelper = new UsingsSorter(options, semanticModel, compilationUnit, fileHeader);
+            SyntaxNode contextNode = null;
+            IEnumerable<UsingDirectiveSyntax> usingsToAdd = null;
 
-            var usingsIndentation = DetermineIndentation(compilationUnit, usingDirectivesPlacement, useTabs, tabSize, indentationSize);
-
-            // - The strategy is to strip all using directive that are not inside a conditional directive and replace them later with a sorted list at the correct spot
-            // - The using directives that are inside a conditional directive are replaced (in sorted order) on the spot.
-            // - Conditional directives are not moved, as correctly parsing them is too tricky
-            // - No using directives will be stripped when there are multiple namespaces. In that case everything is replaced on the spot.
-            List<UsingDirectiveSyntax> stripList;
-            var replaceMap = new Dictionary<UsingDirectiveSyntax, UsingDirectiveSyntax>();
-
-            // When there are multiple namespaces, do not move using statements outside of them, only sort.
-            if (usingDirectivesPlacement == UsingDirectivesPlacement.Preserve)
+            if (usingDirectivesPlacement == AddImportPlacement.InsideNamespace)
             {
-                BuildReplaceMapForNamespaces(usingsHelper, replaceMap, qualifyNames: false, useTabs, tabSize, indentationSize);
-                stripList = new List<UsingDirectiveSyntax>();
+                usingsToAdd = compilationUnit.Usings;
+                newSyntaxRoot = compilationUnit.WithUsings(new SyntaxList<UsingDirectiveSyntax>()).WithoutLeadingTrivia();
+                newSyntaxRoot = AddLeadingEndOfLineToNamespace(newSyntaxRoot);
+                contextNode = ((CompilationUnitSyntax)newSyntaxRoot).Members.OfType<NamespaceDeclarationSyntax>().First();
             }
-            else
-            {
-                stripList = BuildStripList(usingsHelper);
-            }
-
-            BuildReplaceMapForConditionalDirectives(usingsHelper, replaceMap, usingsHelper.ConditionalRoot, useTabs, tabSize, indentationSize);
-
-            var usingSyntaxRewriter = new UsingSyntaxRewriter(stripList, replaceMap, fileHeader);
-            var newSyntaxRoot = usingSyntaxRewriter.Visit(syntaxRoot);
-
-            if (usingDirectivesPlacement == UsingDirectivesPlacement.InsideNamespace)
-            {
-                newSyntaxRoot = AddUsingsToNamespace(newSyntaxRoot, usingsHelper, usingsIndentation, replaceMap.Any());
-            }
-            else if (usingDirectivesPlacement == UsingDirectivesPlacement.OutsideNamespace)
-            {
-                newSyntaxRoot = AddUsingsToCompilationRoot(newSyntaxRoot, usingsHelper, usingsIndentation, replaceMap.Any());
-            }
-
-            // Final cleanup
-            newSyntaxRoot = StripMultipleBlankLines(newSyntaxRoot);
-            newSyntaxRoot = ReAddFileHeader(newSyntaxRoot, fileHeader);
-
-            var newDocument = document.WithSyntaxRoot(FormattingHelper.WithoutFormatting(newSyntaxRoot));
-
-            return newDocument;
-        }
-
-        private static string DetermineIndentation(
-            CompilationUnitSyntax compilationUnit, UsingDirectivesPlacement usingDirectivesPlacement,
-            bool useTabs, int tabSize, int indentationSize)
-        {
-            string usingsIndentation;
-
-            if (usingDirectivesPlacement  == UsingDirectivesPlacement.InsideNamespace)
+            else if (usingDirectivesPlacement == AddImportPlacement.OutsideNamespace)
             {
                 var rootNamespace = compilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
-                var indentationSteps = IndentationHelper.GetIndentationSteps(rootNamespace, tabSize, indentationSize);
-                usingsIndentation = IndentationHelper.GenerateIndentationString(indentationSteps + 1, useTabs, tabSize, indentationSize);
-            }
-            else
-            {
-                usingsIndentation = string.Empty;
+                usingsToAdd = rootNamespace.Usings;
+
+                var newRootNamespace = rootNamespace.WithUsings(new SyntaxList<UsingDirectiveSyntax>());
+                newSyntaxRoot = newSyntaxRoot.ReplaceNode(rootNamespace, newRootNamespace);
             }
 
-            return usingsIndentation;
+            usingsToAdd = usingsToAdd.Select(FixUpUsingDirective);
+
+            newSyntaxRoot = addImportService.AddImports(compilation, newSyntaxRoot, contextNode, usingsToAdd, placeSystemNamespaceFirst, usingDirectivesPlacement);
+            newSyntaxRoot = ReAddFileHeader(newSyntaxRoot, fileHeader);
+
+            if (usingDirectivesPlacement == AddImportPlacement.OutsideNamespace)
+            {
+                newSyntaxRoot = AddLeadingEndOfLineToCompilationUnit(newSyntaxRoot);
+            }
+
+            return document.WithSyntaxRoot(newSyntaxRoot);
         }
 
-        private static UsingDirectivesPlacement DeterminePlacement(CompilationUnitSyntax compilationUnit, OptionSet options)
+        private static SyntaxNode AddLeadingEndOfLineToCompilationUnit(SyntaxNode syntaxRoot)
+        {
+            // If we already have usings then, assume the code is formatted how the user intended.
+            // If the namespace contains no members there is no need to break up the usings from the other members.
+            var compilationUnit = ((CompilationUnitSyntax)syntaxRoot);
+            if (compilationUnit.Members.Count == 0)
+            {
+                return syntaxRoot;
+            }
+
+            var firstMember = compilationUnit.Members.First();
+            var firstMemberTrivia = firstMember.GetLeadingTrivia();
+
+            // If the first member already contains a leading new line then, this will already break up the usings from these members.
+            if (firstMemberTrivia.Count > 0 && firstMemberTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                return syntaxRoot;
+            }
+
+            var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
+            return compilationUnit.ReplaceNode(firstMember, newFirstMember);
+        }
+
+        private static SyntaxNode AddLeadingEndOfLineToNamespace(SyntaxNode syntaxRoot)
+        {
+            // If we already have usings then, assume the code is formatted how the user intended.
+            // If the namespace contains no members there is no need to break up the usings from the other members.
+            var namespaceDeclaration = ((CompilationUnitSyntax)syntaxRoot).Members.OfType<NamespaceDeclarationSyntax>().First();
+            if (namespaceDeclaration.Usings.Count > 0 || namespaceDeclaration.Members.Count == 0)
+            {
+                return syntaxRoot;
+            }
+
+            var firstMember = namespaceDeclaration.Members.First();
+            var firstMemberTrivia = firstMember.GetLeadingTrivia();
+
+            // If the first member already contains a leading new line then, this will already break up the usings from these members.
+            if (firstMemberTrivia.Count > 0 && firstMemberTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                return syntaxRoot;
+            }
+
+            var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
+            var newNamespaceDeclaration = namespaceDeclaration.ReplaceNode(firstMember, newFirstMember);
+            return syntaxRoot.ReplaceNode(namespaceDeclaration, newNamespaceDeclaration);
+        }
+
+        private static UsingDirectiveSyntax FixUpUsingDirective(UsingDirectiveSyntax usingDirective)
+        {
+            var usingTrivia = usingDirective.GetLeadingTrivia();
+
+            // Only keep leading trivia if it isn't Whitespace.
+            var shouldRemoveTrivia = usingTrivia.All(trivia =>
+                trivia.IsKind(SyntaxKind.WhitespaceTrivia) ||
+                trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+
+            if (shouldRemoveTrivia)
+            {
+                usingDirective = usingDirective.WithoutLeadingTrivia();
+            }
+
+            return usingDirective.WithAdditionalAnnotations(Formatter.Annotation);
+        }
+
+        private static AddImportPlacement DeterminePlacement(CompilationUnitSyntax compilationUnit, OptionSet options)
         {
             switch (options.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement).Value)
             {
-                case UsingDirectivesPlacement.InsideNamespace:
+                case AddImportPlacement.InsideNamespace:
                     var namespaceCount = CountNamespaces(compilationUnit.Members);
 
                     // Only move using declarations inside the namespace when
@@ -157,22 +190,22 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                         || namespaceCount > 1)
                     {
                         // Override the user's setting with a more conservative one
-                        return UsingDirectivesPlacement.Preserve;
+                        return AddImportPlacement.Preserve;
                     }
 
                     if (namespaceCount == 0)
                     {
-                        return UsingDirectivesPlacement.OutsideNamespace;
+                        return AddImportPlacement.OutsideNamespace;
                     }
 
-                    return UsingDirectivesPlacement.InsideNamespace;
+                    return AddImportPlacement.InsideNamespace;
 
-                case UsingDirectivesPlacement.OutsideNamespace:
-                    return UsingDirectivesPlacement.OutsideNamespace;
+                case AddImportPlacement.OutsideNamespace:
+                    return AddImportPlacement.OutsideNamespace;
 
-                case UsingDirectivesPlacement.Preserve:
+                case AddImportPlacement.Preserve:
                 default:
-                    return UsingDirectivesPlacement.Preserve;
+                    return AddImportPlacement.Preserve;
             }
         }
 
@@ -188,171 +221,19 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             return result;
         }
 
-        private static List<UsingDirectiveSyntax> BuildStripList(UsingsSorter usingsHelper)
+        private static (SyntaxNode, ImmutableArray<SyntaxTrivia>) RemoveFileHeader(SyntaxNode syntaxRoot)
         {
-            return usingsHelper.GetContainedUsings(TreeTextSpan.Empty).ToList();
-        }
+            var fileHeader = GetFileHeader(syntaxRoot);
+            var leadingTrivia = syntaxRoot.GetLeadingTrivia();
 
-        private static void BuildReplaceMapForNamespaces(
-            UsingsSorter usingsHelper, Dictionary<UsingDirectiveSyntax, UsingDirectiveSyntax> replaceMap,
-            bool qualifyNames, bool useTabs, int tabSize, int indentationSize)
-        {
-            var usingsPerNamespace = usingsHelper
-                .GetContainedUsings(TreeTextSpan.Empty)
-                .GroupBy(usingDirective => usingDirective.Parent)
-                .Select(group => group.ToList());
-
-            foreach (var usingList in usingsPerNamespace)
+            for (var i = fileHeader.Length - 1; i >= 0; i--)
             {
-                if (usingList.Count > 0)
-                {
-                    // sort the original using declarations on Span.Start, in order to have the correct replace mapping.
-                    usingList.Sort(CompareSpanStart);
-
-                    var indentationSteps = IndentationHelper.GetIndentationSteps(usingList[0].Parent, tabSize, indentationSize);
-                    if (usingList[0].Parent is NamespaceDeclarationSyntax)
-                    {
-                        indentationSteps++;
-                    }
-
-                    var indentation = IndentationHelper.GenerateIndentationString(indentationSteps, useTabs, tabSize, indentationSize);
-
-                    var modifiedUsings = usingsHelper.GenerateGroupedUsings(usingList, indentation, false, qualifyNames);
-
-                    for (var i = 0; i < usingList.Count; i++)
-                    {
-                        replaceMap.Add(usingList[i], modifiedUsings[i]);
-                    }
-                }
-            }
-        }
-
-        private static void BuildReplaceMapForConditionalDirectives(
-            UsingsSorter usingsHelper, Dictionary<UsingDirectiveSyntax, UsingDirectiveSyntax> replaceMap,
-            TreeTextSpan rootSpan, bool useTabs, int tabSize, int indentationSize)
-        {
-            foreach (var childSpan in rootSpan.Children)
-            {
-                var originalUsings = usingsHelper.GetContainedUsings(childSpan);
-                if (originalUsings.Count > 0)
-                {
-                    // sort the original using declarations on Span.Start, in order to have the correct replace mapping.
-                    originalUsings.Sort(CompareSpanStart);
-
-                    var indentationSteps = IndentationHelper.GetIndentationSteps(originalUsings[0].Parent, tabSize, indentationSize);
-                    if (originalUsings[0].Parent is NamespaceDeclarationSyntax)
-                    {
-                        indentationSteps++;
-                    }
-
-                    var indentation = IndentationHelper.GenerateIndentationString(indentationSteps, useTabs, tabSize, indentationSize);
-
-                    var modifiedUsings = usingsHelper.GenerateGroupedUsings(childSpan, indentation, false, qualifyNames: false);
-
-                    for (var i = 0; i < originalUsings.Count; i++)
-                    {
-                        replaceMap.Add(originalUsings[i], modifiedUsings[i]);
-                    }
-                }
-
-                BuildReplaceMapForConditionalDirectives(usingsHelper, replaceMap, childSpan, useTabs, tabSize, indentationSize);
-            }
-        }
-
-        private static int CompareSpanStart(UsingDirectiveSyntax left, UsingDirectiveSyntax right)
-        {
-            return left.SpanStart - right.SpanStart;
-        }
-
-        private static SyntaxNode AddUsingsToNamespace(SyntaxNode newSyntaxRoot, UsingsSorter usingsHelper, string usingsIndentation, bool hasConditionalDirectives)
-        {
-            var rootNamespace = ((CompilationUnitSyntax)newSyntaxRoot).Members.OfType<NamespaceDeclarationSyntax>().First();
-            var withTrailingBlankLine = hasConditionalDirectives || rootNamespace.Members.Any() || rootNamespace.Externs.Any();
-
-            var groupedUsings = usingsHelper.GenerateGroupedUsings(TreeTextSpan.Empty, usingsIndentation, withTrailingBlankLine, qualifyNames: false);
-            groupedUsings = groupedUsings.AddRange(rootNamespace.Usings);
-
-            var newRootNamespace = rootNamespace.WithUsings(groupedUsings);
-            newSyntaxRoot = newSyntaxRoot.ReplaceNode(rootNamespace, newRootNamespace);
-
-            return newSyntaxRoot;
-        }
-
-        private static SyntaxNode AddUsingsToCompilationRoot(SyntaxNode newSyntaxRoot, UsingsSorter usingsHelper, string usingsIndentation, bool hasConditionalDirectives)
-        {
-            var newCompilationUnit = (CompilationUnitSyntax)newSyntaxRoot;
-            var withTrailingBlankLine = hasConditionalDirectives 
-                || newCompilationUnit.AttributeLists.Any() 
-                || newCompilationUnit.Members.Any() 
-                || newCompilationUnit.Externs.Any();
-
-            var groupedUsings = usingsHelper.GenerateGroupedUsings(TreeTextSpan.Empty, usingsIndentation, withTrailingBlankLine, qualifyNames: true);
-            groupedUsings = groupedUsings.AddRange(newCompilationUnit.Usings);
-            newSyntaxRoot = newCompilationUnit.WithUsings(groupedUsings);
-
-            return newSyntaxRoot;
-        }
-
-        private static SyntaxNode StripMultipleBlankLines(SyntaxNode syntaxRoot)
-        {
-            var replaceMap = new Dictionary<SyntaxToken, SyntaxToken>();
-
-            var usingDirectives = syntaxRoot.GetAnnotatedNodes(s_usingPlacementCodeFixAnnotation).Cast<UsingDirectiveSyntax>();
-
-            foreach (var usingDirective in usingDirectives)
-            {
-                var nextToken = usingDirective.SemicolonToken.GetNextToken(true);
-
-                // start at -1 to compensate for the always present end-of-line.
-                var trailingCount = -1;
-
-                // count the blanks lines at the end of the using statement.
-                foreach (var trivia in usingDirective.SemicolonToken.TrailingTrivia.Reverse())
-                {
-                    if (!trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                    {
-                        break;
-                    }
-
-                    trailingCount++;
-                }
-
-                // count the blank lines at the start of the next token
-                var leadingCount = 0;
-
-                foreach (var trivia in nextToken.LeadingTrivia)
-                {
-                    if (!trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                    {
-                        break;
-                    }
-
-                    leadingCount++;
-                }
-
-                if ((trailingCount + leadingCount) > 1)
-                {
-                    var totalStripCount = trailingCount + leadingCount - 1;
-
-                    if (trailingCount > 0)
-                    {
-                        var trailingStripCount = Math.Min(totalStripCount, trailingCount);
-
-                        var trailingTrivia = usingDirective.SemicolonToken.TrailingTrivia;
-                        replaceMap[usingDirective.SemicolonToken] = usingDirective.SemicolonToken.WithTrailingTrivia(
-                            trailingTrivia.Take(trailingTrivia.Count - trailingStripCount));
-                        totalStripCount -= trailingStripCount;
-                    }
-
-                    if (totalStripCount > 0)
-                    {
-                        replaceMap[nextToken] = nextToken.WithLeadingTrivia(nextToken.LeadingTrivia.Skip(totalStripCount));
-                    }
-                }
+                leadingTrivia = leadingTrivia.RemoveAt(i);
             }
 
-            var newSyntaxRoot = syntaxRoot.ReplaceTokens(replaceMap.Keys, (original, rewritten) => replaceMap[original]);
-            return newSyntaxRoot;
+            var newSyntaxRoot = syntaxRoot.WithLeadingTrivia(leadingTrivia);
+
+            return (newSyntaxRoot, fileHeader);
         }
 
         private static ImmutableArray<SyntaxTrivia> GetFileHeader(SyntaxNode syntaxRoot)
@@ -422,134 +303,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             return syntaxRoot.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(newLeadingTrivia));
         }
 
-        private class UsingSyntaxRewriter : CSharpSyntaxRewriter
-        {
-            private readonly List<UsingDirectiveSyntax> _stripList;
-            private readonly Dictionary<UsingDirectiveSyntax, UsingDirectiveSyntax> _replaceMap;
-            private readonly ImmutableArray<SyntaxTrivia> _fileHeader;
-            private readonly LinkedList<SyntaxToken> _tokensToStrip = new LinkedList<SyntaxToken>();
-
-            public UsingSyntaxRewriter(List<UsingDirectiveSyntax> stripList, Dictionary<UsingDirectiveSyntax, UsingDirectiveSyntax> replaceMap, ImmutableArray<SyntaxTrivia> fileHeader)
-            {
-                _stripList = stripList;
-                _replaceMap = replaceMap;
-                _fileHeader = fileHeader;
-            }
-
-            public override SyntaxNode VisitUsingDirective(UsingDirectiveSyntax node)
-            {
-                // The strip list is used to remove using directives that will be moved.
-                if (_stripList.Contains(node))
-                {
-                    var nextToken = node.SemicolonToken.GetNextToken();
-
-                    if (!nextToken.IsKind(SyntaxKind.None))
-                    {
-                        var index = IndexOfFirstNonBlankLineTrivia(nextToken.LeadingTrivia);
-                        if (index != 0)
-                        {
-                            _tokensToStrip.AddLast(nextToken);
-                        }
-                    }
-
-                    return null;
-                }
-
-                // The replacement map is used to replace using declarations in place in sorted order (inside directive trivia)
-                UsingDirectiveSyntax replacementNode;
-                if (_replaceMap.TryGetValue(node, out replacementNode))
-                {
-                    return replacementNode;
-                }
-
-                return base.VisitUsingDirective(node);
-            }
-
-            public override SyntaxToken VisitToken(SyntaxToken token)
-            {
-                if (_tokensToStrip.Contains(token))
-                {
-                    _tokensToStrip.Remove(token);
-
-                    var index = IndexOfFirstNonBlankLineTrivia(token.LeadingTrivia);
-                    var newLeadingTrivia = (index == -1) ? SyntaxFactory.TriviaList() : SyntaxFactory.TriviaList(token.LeadingTrivia.Skip(index));
-                    return token.WithLeadingTrivia(newLeadingTrivia);
-                }
-
-                return base.VisitToken(token);
-            }
-
-            public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
-            {
-                if (_fileHeader.Contains(trivia))
-                {
-                    return default;
-                }
-
-                return base.VisitTrivia(trivia);
-            }
-
-            /// <summary>
-            /// Returns the index of the first trivia that is not part of a blank line.
-            /// </summary>
-            /// <param name="triviaList">The trivia list to process.</param>
-            /// <typeparam name="T">The type of the trivia list.</typeparam>
-            /// <returns>The index of the first trivia that is not part of a blank line, or -1 if there is no such trivia.</returns>
-            internal static int IndexOfFirstNonBlankLineTrivia<T>(T triviaList)
-                where T : IReadOnlyList<SyntaxTrivia>
-            {
-                var firstNonWhitespaceTriviaIndex = IndexOfFirstNonWhitespaceTrivia(triviaList);
-                var startIndex = (firstNonWhitespaceTriviaIndex == -1) ? triviaList.Count : firstNonWhitespaceTriviaIndex;
-
-                for (var index = startIndex - 1; index >= 0; index--)
-                {
-                    // Find an end-of-line trivia, to indicate that there actually are blank lines and not just excess whitespace.
-                    if (triviaList[index].IsKind(SyntaxKind.EndOfLineTrivia))
-                    {
-                        return index == (triviaList.Count - 1) ? -1 : index + 1;
-                    }
-                }
-
-                return 0;
-            }
-
-            /// <summary>
-            /// Returns the index of the first non-whitespace trivia in the given trivia list.
-            /// </summary>
-            /// <param name="triviaList">The trivia list to process.</param>
-            /// <param name="endOfLineIsWhitespace"><see langword="true"/> to treat <see cref="SyntaxKind.EndOfLineTrivia"/>
-            /// as whitespace; otherwise, <see langword="false"/>.</param>
-            /// <typeparam name="T">The type of the trivia list.</typeparam>
-            /// <returns>The index where the non-whitespace starts, or -1 if there is no non-whitespace trivia.</returns>
-            internal static int IndexOfFirstNonWhitespaceTrivia<T>(T triviaList, bool endOfLineIsWhitespace = true)
-                where T : IReadOnlyList<SyntaxTrivia>
-            {
-                for (var index = 0; index < triviaList.Count; index++)
-                {
-                    var currentTrivia = triviaList[index];
-                    switch (currentTrivia.Kind())
-                    {
-                        case SyntaxKind.EndOfLineTrivia:
-                            if (!endOfLineIsWhitespace)
-                            {
-                                return index;
-                            }
-
-                            break;
-
-                        case SyntaxKind.WhitespaceTrivia:
-                            break;
-
-                        default:
-                            // encountered non-whitespace trivia -> the search is done.
-                            return index;
-                    }
-                }
-
-                return -1;
-            }
-        }
-
         private class FixAll : DocumentBasedFixAllProvider
         {
             public static FixAllProvider Instance { get; } = new FixAll();
@@ -571,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             }
         }
 
-        private class MoveMisplacedUsingsCodeAction : CodeAction 
+        private class MoveMisplacedUsingsCodeAction : CodeAction
         {
             private readonly Func<CancellationToken, Task<Document>> _createChangedDocument;
 

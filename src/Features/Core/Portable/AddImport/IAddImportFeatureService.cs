@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Packaging;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
             Document document, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
-            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            AddImportPlacement placement, ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
 
         /// <summary>
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         Task<ImmutableArray<(Diagnostic Diagnostic, ImmutableArray<AddImportFixData> Fixes)>> GetFixesForDiagnosticsAsync(
             Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, int maxResultsPerDiagnostic,
-            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            AddImportPlacement placement, ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
 
         /// <summary>

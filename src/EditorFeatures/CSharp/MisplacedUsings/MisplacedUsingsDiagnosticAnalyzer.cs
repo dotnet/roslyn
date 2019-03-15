@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class MisplacedUsingsDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
-        private static readonly CodeStyleOption<UsingDirectivesPlacement> s_noPreferenceOption =
-            new CodeStyleOption<UsingDirectivesPlacement>(UsingDirectivesPlacement.Preserve, NotificationOption.None);
+        private static readonly CodeStyleOption<AddImportPlacement> s_noPreferenceOption =
+            new CodeStyleOption<AddImportPlacement>(AddImportPlacement.Preserve, NotificationOption.None);
 
         private static readonly LocalizableResourceString s_localizableTitle = new LocalizableResourceString(
             nameof(CSharpEditorResources.Misplaced_using), CSharpEditorResources.ResourceManager, typeof(CSharpEditorResources));
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             var option = GetPreferredPlacementOption(context);
             var compilationUnit = (CompilationUnitSyntax)context.Node;
 
-            if (option.Value != UsingDirectivesPlacement.InsideNamespace
+            if (option.Value != AddImportPlacement.InsideNamespace
                 || ShouldSuppressDiagnostic(compilationUnit))
             {
                 return;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
         private void AnalyzeNamespaceNode(SyntaxNodeAnalysisContext context)
         {
             var option = GetPreferredPlacementOption(context);
-            if (option.Value != UsingDirectivesPlacement.OutsideNamespace)
+            if (option.Value != AddImportPlacement.OutsideNamespace)
             {
                 return;
             }
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             ReportDiagnostics(context, _outsideDescriptor, namespaceDeclaration.Usings, option);
         }
 
-        private CodeStyleOption<UsingDirectivesPlacement> GetPreferredPlacementOption(SyntaxNodeAnalysisContext context)
+        private CodeStyleOption<AddImportPlacement> GetPreferredPlacementOption(SyntaxNodeAnalysisContext context)
         {
             return context.GetOptionOrDefaultAsync(
                 CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, CSharpCodeStyleOptions.ParseUsingDirectivesPlacement,
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
         private void ReportDiagnostics(
             SyntaxNodeAnalysisContext context, DiagnosticDescriptor descriptor,
-            IEnumerable<UsingDirectiveSyntax> usingDirectives, CodeStyleOption<UsingDirectivesPlacement> option)
+            IEnumerable<UsingDirectiveSyntax> usingDirectives, CodeStyleOption<AddImportPlacement> option)
         {
             foreach (var usingDirective in usingDirectives)
             {

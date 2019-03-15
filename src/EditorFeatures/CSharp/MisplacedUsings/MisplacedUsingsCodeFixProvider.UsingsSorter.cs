@@ -578,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                     || trivia.IsKind(SyntaxKind.EndOfLineTrivia);
             }
 
-            private static bool HasNamespaceAliasQualifier(UsingDirectiveSyntax usingDirective) 
+            private static bool HasNamespaceAliasQualifier(UsingDirectiveSyntax usingDirective)
                 => usingDirective.DescendantNodes().Any(node => node.IsKind(SyntaxKind.AliasQualifiedName));
 
             private static bool IsMissingOrDefault(SyntaxToken token)

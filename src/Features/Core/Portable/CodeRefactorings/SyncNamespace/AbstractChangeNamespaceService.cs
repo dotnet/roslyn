@@ -506,12 +506,14 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var placement = addImportService.GetImportPlacement(optionSet);
             var documentWithAddedImports = await AddImportsInContainersAsync(
                     document,
                     addImportService,
                     containersToAddImports,
                     namesToImport,
                     placeSystemNamespaceFirst,
+                    placement,
                     cancellationToken).ConfigureAwait(false);
 
             var root = await documentWithAddedImports.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -548,6 +550,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var optionSet = await documentWithRefFixed.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, documentWithRefFixed.Project.Language);
+            var placement = addImportService.GetImportPlacement(optionSet);
 
             var documentWithAdditionalImports = await AddImportsInContainersAsync(
                 documentWithRefFixed,
@@ -555,6 +558,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 containers,
                 ImmutableArray.Create(newNamespace),
                 placeSystemNamespaceFirst,
+                placement,
                 cancellationToken).ConfigureAwait(false);
 
             // Need to invoke formatter explicitly since we are doing the diff merge ourselves.
@@ -586,6 +590,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placement = addImportService.GetImportPlacement(optionSet);
 
             // We need a dummy import to figure out the container for given reference.
             var dummyImport = CreateImport(generator, "Dummy", withFormatterAnnotation: false);
@@ -622,7 +628,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 }
 
                 // Use a dummy import node to figure out which container the new import will be added to.
-                var container = addImportService.GetImportContainer(root, refNode, dummyImport);
+                var container = addImportService.GetImportContainer(root, refNode, dummyImport, placement);
                 containers.Add(container);
             }
 
@@ -702,6 +708,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             ImmutableArray<SyntaxNode> containers,
             ImmutableArray<string> names,
             bool placeSystemNamespaceFirst,
+            AddImportPlacement placement,
             CancellationToken cancellationToken)
         {
             // Sort containers based on their span start, to make the result of 
@@ -723,7 +730,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst);
+                root = addImportService.AddImports(compilation, root, contextLocation, imports, placeSystemNamespaceFirst, placement);
                 document = document.WithSyntaxRoot(root);
             }
 

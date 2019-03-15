@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
@@ -1634,10 +1635,11 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
 
             // Using preferences.
-            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<UsingDirectivesPlacement>(
-                CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, CSharpVSResources.Using_directives_placement, 
-                new[] { UsingDirectivesPlacement.Preserve, UsingDirectivesPlacement.InsideNamespace, UsingDirectivesPlacement.OutsideNamespace }, 
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<AddImportPlacement>(
+                CSharpCodeStyleOptions.PreferredUsingDirectivesPlacement, CSharpVSResources.Using_directives_placement,
+                new[] { AddImportPlacement.Preserve, AddImportPlacement.InsideNamespace, AddImportPlacement.OutsideNamespace },
                 s_usingDirectivesPlacement, this, optionStore, usingsGroupTitle, usingDirectivesPlacementPreferences));
+
             // Modifier preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, s_preferReadonly, s_preferReadonly, this, optionStore, modifierGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferStaticLocalFunction, ServicesVSResources.Prefer_static_local_functions, s_preferStaticLocalFunction, s_preferStaticLocalFunction, this, optionStore, modifierGroupTitle));

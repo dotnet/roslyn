@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -16,6 +17,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             NamespaceBlockSyntax,
             ImportsStatementSyntax,
             ImportsStatementSyntax)
+
+        Public Overrides Function GetImportPlacement(options As OptionSet) As AddImportPlacement
+            Return AddImportPlacement.OutsideNamespace
+        End Function
 
         Protected Overrides Function GetGlobalImports(compilation As Compilation) As ImmutableArray(Of SyntaxNode)
             Dim generator = VisualBasicSyntaxGenerator.Instance
@@ -71,6 +76,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
                 usingDirectives.Concat(aliasDirectives).ToList(),
                 placeSystemNamespaceFirst,
                 Array.Empty(Of SyntaxAnnotation))
+        End Function
+
+        Protected Overrides Function CanContainImports(node As SyntaxNode) As Boolean
+            Return node.IsKind(SyntaxKind.CompilationUnit)
         End Function
     End Class
 End Namespace

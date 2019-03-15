@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImports;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
                 Document document, SyntaxNode contextNode,
                 bool placeSystemNamespaceFirst, bool hasExistingImport,
-                CancellationToken cancellationToken)
+                AddImportPlacement placement, CancellationToken cancellationToken)
             {
                 // Defer to the language to add the actual import/using.
                 if (hasExistingImport)
@@ -61,7 +62,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 var updatedDocument = await provider.AddImportAsync(
                     newContextNode, this.SymbolResult.Symbol, newDocument,
-                    placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                    placeSystemNamespaceFirst, placement, cancellationToken).ConfigureAwait(false);
 
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
                     updatedDocument, cancellationToken).ConfigureAwait(false);
@@ -73,8 +74,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public sealed override async Task<AddImportFixData> TryGetFixDataAsync(
-                Document document, SyntaxNode node,
-                bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+                Document document, SyntaxNode node, bool placeSystemNamespaceFirst,
+                AddImportPlacement placement, CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var (description, hasExistingImport) = GetDescription(document, node, semanticModel, cancellationToken);
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 var textChanges = await GetTextChangesAsync(
-                    document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
+                    document, node, placeSystemNamespaceFirst, hasExistingImport, placement, cancellationToken).ConfigureAwait(false);
 
                 return GetFixData(
                     document, textChanges, description,

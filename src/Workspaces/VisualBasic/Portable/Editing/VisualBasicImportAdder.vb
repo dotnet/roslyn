@@ -2,8 +2,10 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
@@ -23,6 +25,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
             End If
 
             Return Nothing
+        End Function
+
+        Protected Overrides Function GetImportPlacement(options As OptionSet) As AddImportPlacement
+            Return AddImportPlacement.OutsideNamespace
         End Function
 
         Private Overloads Function GetExplicitNamespaceSymbol(fullName As ExpressionSyntax, namespacePart As ExpressionSyntax, model As SemanticModel) As INamespaceSymbol

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImports
@@ -19,21 +20,23 @@ namespace Microsoft.CodeAnalysis.AddImports
         /// Given a context location in a provided syntax tree, returns the appropriate container
         /// that <paramref name="import"/> should be added to.
         /// </summary>
-        SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import);
+        SyntaxNode GetImportContainer(SyntaxNode root, SyntaxNode contextLocation, SyntaxNode import, AddImportPlacement placement);
+
+        AddImportPlacement GetImportPlacement(OptionSet options);
 
         SyntaxNode AddImports(
             Compilation compilation, SyntaxNode root, SyntaxNode contextLocation,
-            IEnumerable<SyntaxNode> newImports, bool placeSystemNamespaceFirst);
+            IEnumerable<SyntaxNode> newImports, bool placeSystemNamespaceFirst, AddImportPlacement placement);
     }
 
     internal static class IAddImportServiceExtensions
     {
         public static SyntaxNode AddImport(
             this IAddImportsService service, Compilation compilation, SyntaxNode root,
-            SyntaxNode contextLocation, SyntaxNode newImport, bool placeSystemNamespaceFirst)
+            SyntaxNode contextLocation, SyntaxNode newImport, bool placeSystemNamespaceFirst, AddImportPlacement placement)
         {
             return service.AddImports(compilation, root, contextLocation,
-                SpecializedCollections.SingletonEnumerable(newImport), placeSystemNamespaceFirst);
+                SpecializedCollections.SingletonEnumerable(newImport), placeSystemNamespaceFirst, placement);
         }
     }
 }

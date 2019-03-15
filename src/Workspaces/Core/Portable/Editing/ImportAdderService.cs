@@ -49,13 +49,15 @@ namespace Microsoft.CodeAnalysis.Editing
                 (o, r) => r.WithAdditionalAnnotations(Simplifier.Annotation));
 
             var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var placement = GetImportPlacement(options);
             var addImportsService = document.GetLanguageService<IAddImportsService>();
             var finalRoot = addImportsService.AddImports(
-                model.Compilation, newRoot, newRoot, imports, placeSystemNamespaceFirst);
+                model.Compilation, newRoot, newRoot, imports, placeSystemNamespaceFirst, placement);
 
             return document.WithSyntaxRoot(finalRoot);
         }
 
         protected abstract INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
+        protected abstract AddImportPlacement GetImportPlacement(OptionSet options);
     }
 }
