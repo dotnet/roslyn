@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 if (info != null)
                 {
                     var state = State.GenerateAsync(this, info.SelectedMembers, document).Result;
-                    if (state != null && state.ConstructorCandidates != null)
+                    if (state?.ConstructorCandidates != null)
                     {
                         return CreateCodeActions(document, state).AsImmutableOrNull();
                     }
