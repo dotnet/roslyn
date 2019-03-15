@@ -39,7 +39,7 @@ class C
 
             var typeM = compilation.GlobalNamespace.GetMember<TypeSymbol>("M");
 
-            Assert.Equal(typeM, localA.ElementType.TypeSymbol);
+            Assert.Equal(typeM, localA.ElementType);
         }
 
         [Fact]
