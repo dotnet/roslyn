@@ -157,6 +157,30 @@ public class C
         }
 
         [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitObjectInitializerReceiver_ReceiverNullableIndexer()
+        {
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? f2;
+}
+public class C
+{
+    static void Main()
+    {
+        new C() { [0] = { f2 = null }};
+    }
+    public B? this[int i] { get => throw null!; set => throw null!; }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (10,25): warning CS8602: Possible dereference of a null reference.
+                //         new C() { [0] = { f2 = null }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ f2 = null }").WithLocation(10, 25)
+                );
+        }
+
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
         public void CheckImplicitObjectInitializerReceiver_Nested()
         {
             var comp = CreateCompilation(@"
@@ -166,7 +190,7 @@ public class B
 }
 public class C
 {
-    public C fc;
+    public C? fc;
     public B? fb;
     static void Main()
     {
@@ -175,9 +199,9 @@ public class C
 }", options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
-                // (6,14): warning CS8618: Non-nullable field 'fc' is uninitialized.
-                // public class C
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "fc").WithLocation(6, 14),
+                // (12,24): warning CS8602: Possible dereference of a null reference.
+                //         new C() { fc = { fb = { f2 = null} }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ fb = { f2 = null} }").WithLocation(12, 24),
                 // (12,31): warning CS8602: Possible dereference of a null reference.
                 //         new C() { fc = { fb = { f2 = null} }};
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ f2 = null}").WithLocation(12, 31)
