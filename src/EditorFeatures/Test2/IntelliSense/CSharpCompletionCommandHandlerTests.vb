@@ -154,7 +154,7 @@ class c : $$
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
 using System;
-      
+
 class c { $$
                               </Document>)
 
@@ -217,6 +217,56 @@ class c { void M() { 3$$ } }
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
 class c { void M() { 3.$$ } }
+                              </Document>)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Assert.True(state.CompletionItemsContainsAll({"ToString"}))
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypingDotBeforeExistingDot(completionImplementation As CompletionImplementation) As Task
+            ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
+            ' However, typing dot before a single dot (and adding the second one) should lead to a completion
+            ' in the context of the previous token if this completion exists.
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class c { void M() { this$$.ToString() } }
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.CompletionItemsContainsAll({"ToString"}))
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTypingDotAfterExistingDot(completionImplementation As CompletionImplementation) As Task
+            ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
+            ' A test above (TestTypingDotBeforeExistingDot) verifies that the completion happens
+            ' if we type dot before a single dot.
+            ' However, we should not have a completion if typing dot after a dot.
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class c { void M() { this.$$ToString() } }
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestInvokingCompletionBetweenTwoDots(completionImplementation As CompletionImplementation) As Task
+            ' Starting C# 8.0 two dots are considered as a DotDotToken of a Range expression.
+            ' However, we may want to have a completion when invoking it aqfter the first dot.
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class c { void M() { this.$$.ToString() } }
                               </Document>)
 
                 state.SendInvokeCompletionList()
@@ -1531,7 +1581,7 @@ class @return
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                   <Document><![CDATA[
 using System;
- 
+
 class Program
 {
     static void Main(string[] args)
@@ -1553,7 +1603,7 @@ class Program
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                   <Document><![CDATA[
 using System;
- 
+
 class Program
 {
     static void Main(string[] args)
@@ -1661,37 +1711,6 @@ class C
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                        <Workspace>
-                            <Project Language="C#" CommonReferences="true" LanguageVersion="7">
-                                <Document>
-class Goo
-{
-    void Test()
-    {
-        object m = null;
-        Method(obj:m, $$
-    }
- 
-    void Method(object obj, int num = 23, string str = "")
-    {
-    }
-}
-                              </Document>
-                            </Project>
-                        </Workspace>)
-
-                state.SendTypeChars("a")
-                Await state.AssertCompletionSession()
-                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
-                Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "System"))
-                Assert.False(state.GetCompletionItems().Any(Function(c) c.DisplayText = "int"))
-            End Using
-        End Function
-
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/pull/29820"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function KeywordsOrSymbolsAfterNamedParameter(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                                 <Document>
 class Goo
 {
@@ -1709,7 +1728,34 @@ class Goo
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAny(displayText:="num", displayTextSuffix:=":"))
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
+                Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "System"))
+                Assert.False(state.GetCompletionItems().Any(Function(c) c.DisplayText = "int"))
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function KeywordsOrSymbolsAfterNamedParameter(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                                <Document>
+class Goo
+{
+    void Test()
+    {
+        object m = null;
+        Method(obj:m, $$
+    }
+
+    void Method(object obj, int num = 23, string str = "")
+    {
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("a")
+                Await state.AssertCompletionSession()
+                Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
                 Assert.True(state.CompletionItemsContainsAny({"System"}))
                 Assert.True(state.CompletionItemsContainsAny({"int"}))
             End Using
@@ -1897,7 +1943,7 @@ interface IGoo<T>
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>
 using System;
- 
+
 class Program
 {
     void Main()
@@ -2099,7 +2145,7 @@ class D : C
                 state.SendTypeChars(" Goo")
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
-                Assert.Contains("public override void Goo<S>(S x = default(S))", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
+                Assert.Contains("public override void Goo<S>(S x = default)", state.SubjectBuffer.CurrentSnapshot.GetText(), StringComparison.Ordinal)
             End Using
         End Function
 
@@ -2464,14 +2510,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
- 
+
 class Program
 {
     $$
- 
+
     static void Main(string[] args)
     {
-      
+
     }
 }]]></Document>)
 
@@ -2847,7 +2893,7 @@ class C
                 state.SendBackspace()
 
                 ' Send a backspace that goes beyond the session's applicable span
-                ' before the model computation has finished. Then, allow the 
+                ' before the model computation has finished. Then, allow the
                 ' computation to complete. There should still be no session.
                 state.SendBackspace()
                 slowProvider.checkpoint.Release()
@@ -2941,7 +2987,7 @@ class C
     {
         $$]]></Document>)
                 ' Note: the caret is at the file, so the Select All command's movement
-                ' of the caret to the end of the selection isn't responsible for 
+                ' of the caret to the end of the selection isn't responsible for
                 ' dismissing the session.
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
@@ -2978,11 +3024,11 @@ $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.T
             ' In inline diff view, typing delete next to a "deletion",
             ' can cause our CommandChain to be called with a subjectbuffer
             ' and TextView such that the textView's caret can't be mapped
-            ' into our subject buffer. 
+            ' into our subject buffer.
             '
-            ' To test this, we create a projection buffer with 2 source 
+            ' To test this, we create a projection buffer with 2 source
             ' spans: one of "text" content type and one based on a C#
-            ' buffer. We create a TextView with that projection as 
+            ' buffer. We create a TextView with that projection as
             ' its buffer, setting the caret such that it maps only
             ' into the "text" buffer. We then call the completionImplementation
             ' command handlers with commandargs based on that TextView
@@ -3204,7 +3250,7 @@ class Program
 
     void goo(bool x) { }
 
-    void Main(string[] args) 
+    void Main(string[] args)
     {
         goo($$) // Not "Equals"
     }
@@ -3642,7 +3688,7 @@ class C
 
                     AddHandler provider.ProviderCalled, providerCalledHandler
 
-                    ' SendCommitUniqueCompletionListItem is a synchronous operation. 
+                    ' SendCommitUniqueCompletionListItem is a synchronous operation.
                     ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
                     ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
                     ' 1. Hang here.
@@ -3673,7 +3719,7 @@ class C
             ' 5. Check that the commit is not yet provided: there is 'Sys' but no 'System'
             ' 6. The next statement in the UI thread after CommitIfUnique is typing 'a'.
             ' 7. Simulate unblocking the provider.
-            ' 8. Verify that 
+            ' 8. Verify that
             ' 8.a. The old completion adds 'a' to 'Sys' and displays 'Sysa'. CommitIfUnique is canceled because it was interrupted by typing 'a'.
             ' 8.b. The new completion completes CommitIfUnique and then adds 'a'.
             Dim tcs = New TaskCompletionSource(Of Boolean)
@@ -3732,7 +3778,7 @@ class C
 
                     AddHandler provider.ProviderCalled, providerCalledHandler
 
-                    ' SendCommitUniqueCompletionListItem is a synchronous operation. 
+                    ' SendCommitUniqueCompletionListItem is a synchronous operation.
                     ' It guarantees that ProviderCalled will be triggered and after that the completion will hang waiting for a task to be resolved.
                     ' In the new completion, when pressed <ctrl>-<space>, we have to wait for the aggregate operation to complete.
                     ' 1. Hang here.
@@ -4347,6 +4393,32 @@ class C
             End Using
         End Function
 
+        <WorkItem(11959, "https://github.com/dotnet/roslyn/issues/11959")>
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestGenericAsyncTaskDeclaration(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+namespace A.B
+{
+    class TestClass { }
+}
+
+namespace A
+{
+    class C
+    {
+        async Task&lt;A$$ Method()
+        { }
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertSelectedCompletionItem(displayText:="B", isSoftSelected:=True)
+            End Using
+        End Function
+
         <WorkItem(15348, "https://github.com/dotnet/roslyn/issues/15348")>
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -4356,7 +4428,7 @@ class C
 class C
 {
     void M()
-    {    
+    {
         object o = 1;
         switch(o)
         {
@@ -4438,7 +4510,7 @@ class C
     public double Ma(double m) => m;
 
     public void Test()
-    {    
+    {
         $$
     }
 }
@@ -4461,7 +4533,7 @@ class C
     public double M(double some) => m;
 
     public void Test()
-    {    
+    {
         $$
     }
 }
@@ -4470,6 +4542,65 @@ class C
                 state.SendTypeChars("M(some:M(some:")
                 Await state.AssertNoCompletionSession()
                 Assert.Equal("        M(some:M(some:", state.GetLineTextFromCaretPosition())
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuggestionMode(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void M()
+    {    
+        $$
+    }
+}
+                              </Document>)
+
+                state.ToggleSuggestionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.SendTypeChars("s")
+                Await state.AssertCompletionSession()
+                Assert.True(state.HasSuggestedItem())
+                Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
+
+                state.ToggleSuggestionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Assert.False(state.HasSuggestedItem())
+                ' We want to soft select if we were already in soft select mode.
+                Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
+
+                state.ToggleSuggestionMode()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Assert.True(state.HasSuggestedItem())
+                Await state.AssertSelectedCompletionItem(displayText:="sbyte", isSoftSelected:=True)
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestTabAfterOverride(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    override $$
+    public static void M() { }
+}
+                              </Document>)
+
+                state.SendTypeChars("gethashcod")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                state.AssertMatchesTextStartingAtLine(3, "    public override int GetHashCode()")
+                state.AssertMatchesTextStartingAtLine(4, "    {")
+                state.AssertMatchesTextStartingAtLine(5, "        return base.GetHashCode();")
+                state.AssertMatchesTextStartingAtLine(6, "    }")
+                state.AssertMatchesTextStartingAtLine(7, "    public static void M() { }")
             End Using
         End Function
 

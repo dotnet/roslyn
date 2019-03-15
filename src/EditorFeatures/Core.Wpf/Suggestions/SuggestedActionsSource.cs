@@ -176,23 +176,52 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var fixes = GetCodeFixes(supportsFeatureService, requestedActionCategories, workspace, document, range, cancellationToken);
                     var refactorings = GetRefactorings(supportsFeatureService, requestedActionCategories, workspace, document, selectionOpt, cancellationToken);
 
-                    // If there's a selection, it's likely the user is trying to perform some operation
-                    // directly on that operation (like 'extract method').  Prioritize refactorings over
-                    // fixes in that case.  Otherwise, it's likely that the user is just on some error
-                    // and wants to fix it (in which case, prioritize fixes).
-                    var result = selectionOpt?.Length > 0
-                        ? refactorings.Concat(fixes)
-                        : fixes.Concat(refactorings);
+                    // Get the initial set of action sets, with refactorings and fixes appropriately
+                    // ordered against each other.
+                    var result = GetInitiallyOrderedActionSets(selectionOpt, fixes, refactorings);
                     if (result.IsEmpty)
                     {
                         return null;
                     }
 
+                    // Now that we have the entire set of action sets, inline, sort and filter
+                    // them appropriately against each other.
                     var allActionSets = InlineActionSetsIfDesirable(result);
                     var orderedActionSets = OrderActionSets(allActionSets);
                     var filteredSets = FilterActionSetsByTitle(orderedActionSets);
 
                     return filteredSets;
+                }
+            }
+
+            private ImmutableArray<SuggestedActionSet> GetInitiallyOrderedActionSets(
+                TextSpan? selectionOpt, ImmutableArray<SuggestedActionSet> fixes, ImmutableArray<SuggestedActionSet> refactorings)
+            {
+                // First, order refactorings based on the order the providers actually gave for their actions.
+                // This way, a low pri refactoring always shows after a medium pri refactoring, no matter what
+                // we do below.
+                refactorings = OrderActionSets(refactorings);
+
+                // If there's a selection, it's likely the user is trying to perform some operation
+                // directly on that operation (like 'extract method').  Prioritize refactorings over
+                // fixes in that case.  Otherwise, it's likely that the user is just on some error
+                // and wants to fix it (in which case, prioritize fixes).
+
+                if (selectionOpt?.Length > 0)
+                {
+                    // There was a selection.  Treat refactorings as more important than 
+                    // fixes.  Note: we still will sort after this.  So any high pri fixes
+                    // will come to the front.  Any low-pri refactorings will go to the end.
+                    return refactorings.Concat(fixes);
+                }
+                else
+                {
+                    // No selection.  Treat all refactorings as low priority, and place
+                    // after fixes.  Even a low pri fixes will be above what was *originally*
+                    // a medium pri refactoring.
+                    refactorings = refactorings.SelectAsArray(r => new SuggestedActionSet(
+                        r.CategoryName, r.Actions, r.Title, SuggestedActionSetPriority.Low, r.ApplicableToSpan));
+                    return fixes.Concat(refactorings);
                 }
             }
 
@@ -452,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 nestedAction, getFixAllSuggestedActionSet(nestedAction)));
 
                         var set = new SuggestedActionSet(categoryName: null,
-                            actions: nestedActions, priority: SuggestedActionSetPriority.Medium,
+                            actions: nestedActions, priority: GetSuggestedActionSetPriority(fix.Action.Priority),
                             applicableToSpan: fix.PrimaryDiagnostic.Location.SourceSpan.ToSpan());
 
                         suggestedAction = new SuggestedActionWithNestedActions(
@@ -626,21 +655,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     var filteredRefactorings = FilterOnUIThread(refactorings, workspace);
 
-                    // Refactorings are given the span the user currently has selected.  That
-                    // way they can be accurately sorted against other refactorings/fixes that
-                    // are of the same priority.  i.e. refactorings are LowPriority by default.
-                    // But we still want them to come first over a low-pri code fix that is
-                    // further away.  A good example of this is "Add null parameter check" which
-                    // should be higher in the list when the caret is on a parameter, vs the 
-                    // code-fix for "use expression body" which is given the entire span of a 
-                    // method.
-
-                    var priority = selection.Length > 0
-                        ? SuggestedActionSetPriority.Medium
-                        : SuggestedActionSetPriority.Low;
-
                     return filteredRefactorings.SelectAsArray(
-                        r => OrganizeRefactorings(workspace, r, priority, selection.ToSpan()));
+                        r => OrganizeRefactorings(workspace, r, selection.ToSpan()));
                 }
 
                 return ImmutableArray<SuggestedActionSet>.Empty;
@@ -655,8 +671,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// and should show up after fixes but before suppression fixes in the light bulb menu.
             /// </remarks>
             private SuggestedActionSet OrganizeRefactorings(
-                Workspace workspace, CodeRefactoring refactoring,
-                SuggestedActionSetPriority priority, Span applicableSpan)
+                Workspace workspace, CodeRefactoring refactoring, Span applicableSpan)
             {
                 var refactoringSuggestedActions = ArrayBuilder<SuggestedAction>.GetInstance();
 
@@ -670,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 _owner, workspace, _subjectBuffer, refactoring.Provider, na));
 
                         var set = new SuggestedActionSet(categoryName: null,
-                            actions: nestedActions, priority: SuggestedActionSetPriority.Medium, applicableToSpan: applicableSpan);
+                            actions: nestedActions, priority: GetSuggestedActionSetPriority(action.Priority), applicableToSpan: applicableSpan);
 
                         refactoringSuggestedActions.Add(new SuggestedActionWithNestedActions(
                             ThreadingContext,
@@ -685,10 +700,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     }
                 }
 
+                var actions = refactoringSuggestedActions.ToImmutableAndFree();
+
+                // An action set gets the the same priority as the highest priority 
+                // action within in.
                 return new SuggestedActionSet(
                     PredefinedSuggestedActionCategoryNames.Refactoring,
-                    refactoringSuggestedActions.ToImmutableAndFree(),
-                    priority: priority,
+                    actions: actions,
+                    priority: GetSuggestedActionSetPriority(actions.Max(a => a.Priority)),
                     applicableToSpan: applicableSpan);
             }
 

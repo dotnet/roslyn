@@ -17,7 +17,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class AdhocWorkspaceTests : WorkspaceTestBase
+    [UseExportProvider]
+    public partial class AdhocWorkspaceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject_ProjectInfo()

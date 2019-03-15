@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             progressTracker.AddItems(1);
 
             // and one for 'remove/sort usings' if we're going to run that.
-            var organizeUsings = enabledDiagnostics.OrganizeUsings.IsRemoveUnusedImportEnabled || 
+            var organizeUsings = enabledDiagnostics.OrganizeUsings.IsRemoveUnusedImportEnabled ||
                 enabledDiagnostics.OrganizeUsings.IsSortImportsEnabled;
             if (organizeUsings)
             {

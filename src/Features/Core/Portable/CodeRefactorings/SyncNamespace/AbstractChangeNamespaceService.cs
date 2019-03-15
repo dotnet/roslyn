@@ -383,8 +383,8 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
             // Separating references to declaredSymbols into two groups based on wheter it's located in the same 
             // document as the namespace declaration. This is because code change required for them are different.
-            var refLocationsInCurrentDocument = new List<ReferenceLocation>();
-            var refLocationsInOtherDocuments = new List<ReferenceLocation>();
+            var refLocationsInCurrentDocument = new List<LocationForAffectedSymbol>();
+            var refLocationsInOtherDocuments = new List<LocationForAffectedSymbol>();
 
             var refLocations = await Task.WhenAll(
                 declaredSymbols.Select(declaredSymbol
@@ -434,13 +434,65 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             return originalSolution;
         }
 
-        private static async Task<ImmutableArray<ReferenceLocation>> FindReferenceLocationsForSymbol(
+        private readonly struct LocationForAffectedSymbol
+        {
+            public LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
+            {
+                ReferenceLocation = location;
+                IsReferenceToExtensionMethod = isReferenceToExtensionMethod;
+            }
+
+            public ReferenceLocation ReferenceLocation { get; }
+
+            public bool IsReferenceToExtensionMethod { get; }
+
+            public Document Document => ReferenceLocation.Document;
+        }
+
+        private static async Task<ImmutableArray<LocationForAffectedSymbol>> FindReferenceLocationsForSymbol(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
+            var builder = ArrayBuilder<LocationForAffectedSymbol>.GetInstance();
+            try
+            {
+                var referencedSymbols = await FindReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+                builder.AddRange(referencedSymbols
+                    .Where(refSymbol => refSymbol.Definition.Equals(symbol))
+                    .SelectMany(refSymbol => refSymbol.Locations)
+                    .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: false)));
+
+                // So far we only have references to types declared in affected namespace. We also need to 
+                // handle invocation of extension methods (in reduced form) that are declared in those types. 
+                // Therefore additional calls to find references are needed for those extension methods.
+                // This will returns all the references, not just in the reduced form. But we will
+                // not further distinguish the usage. In the worst case, those references are redundant because
+                // they are already covered by the type references found above.
+                if (symbol is INamedTypeSymbol typeSymbol && typeSymbol.MightContainExtensionMethods)
+                {
+                    foreach (var methodSymbol in typeSymbol.GetMembers().OfType<IMethodSymbol>())
+                    {
+                        if (methodSymbol.IsExtensionMethod)
+                        {
+                            var referencedMethodSymbols = await FindReferencesAsync(methodSymbol, document, cancellationToken).ConfigureAwait(false);
+                            builder.AddRange(referencedMethodSymbols
+                                .SelectMany(refSymbol => refSymbol.Locations)
+                                .Select(location => new LocationForAffectedSymbol(location, isReferenceToExtensionMethod: true)));
+                        }
+                    }
+                }
+
+                return builder.ToImmutable();
+            }
+            finally
+            {
+                builder.Free();
+            }
+        }
+
+        private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol, Document document, CancellationToken cancellationToken)
+        {
             cancellationToken.ThrowIfCancellationRequested();
-
             var progress = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
-
             await SymbolFinder.FindReferencesAsync(
                 symbolAndProjectId: SymbolAndProjectId.Create(symbol, document.Project.Id),
                 solution: document.Project.Solution,
@@ -449,14 +501,12 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 options: FindReferencesSearchOptions.Default,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
-            var referencedSymbols = progress.GetReferencedSymbols();
-            return referencedSymbols.Where(refSymbol => refSymbol.Definition.Equals(symbol))
-                    .SelectMany(refSymbol => refSymbol.Locations).ToImmutableArray();
+            return progress.GetReferencedSymbols();
         }
 
         private async Task<Document> FixDeclarationDocumentAsync(
             Document document,
-            IReadOnlyList<ReferenceLocation> refLocations,
+            IReadOnlyList<LocationForAffectedSymbol> refLocations,
             string oldNamespace,
             string newNamespace,
             CancellationToken cancellationToken)
@@ -529,7 +579,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
 
         private async Task<Document> FixReferencingDocumentAsync(
             Document document,
-            IEnumerable<ReferenceLocation> refLocations,
+            IEnumerable<LocationForAffectedSymbol> refLocations,
             string newNamespace,
             CancellationToken cancellationToken)
         {
@@ -576,7 +626,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
             Document document,
             IChangeNamespaceService changeNamespaceService,
             IAddImportsService addImportService,
-            IEnumerable<ReferenceLocation> refLocations,
+            IEnumerable<LocationForAffectedSymbol> refLocations,
             ImmutableArray<string> newNamespaceParts,
             CancellationToken cancellationToken)
         {
@@ -598,7 +648,7 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 // Ignore references via alias. For simple cases where the alias is defined as the type we are interested,
                 // it will be handled properly because it is one of the reference to the type symbol. Otherwise, we don't
                 // attempt to make a potential fix, and user might end up with errors as a result.                    
-                if (refLoc.Alias != null)
+                if (refLoc.ReferenceLocation.Alias != null)
                 {
                     continue;
                 }
@@ -614,11 +664,16 @@ namespace Microsoft.CodeAnalysis.ChangeNamespace
                 // For the reference to Foo where it is used as a base class, the BaseTypeSyntax and the TypeSyntax
                 // have exact same span.
 
-                var refNode = root.FindNode(refLoc.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-                if (abstractChangeNamespaceService.TryGetReplacementReferenceSyntax(
-                        refNode, newNamespaceParts, syntaxFacts, out var oldNode, out var newNode))
+                var refNode = root.FindNode(refLoc.ReferenceLocation.Location.SourceSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
+
+                // For invocation of extension method, we only need to add missing import.
+                if (!refLoc.IsReferenceToExtensionMethod)
                 {
-                    editor.ReplaceNode(oldNode, newNode.WithAdditionalAnnotations(Simplifier.Annotation));
+                    if (abstractChangeNamespaceService.TryGetReplacementReferenceSyntax(
+                            refNode, newNamespaceParts, syntaxFacts, out var oldNode, out var newNode))
+                    {
+                        editor.ReplaceNode(oldNode, newNode.WithAdditionalAnnotations(Simplifier.Annotation));
+                    }
                 }
 
                 // Use a dummy import node to figure out which container the new import will be added to.

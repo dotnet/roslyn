@@ -24,9 +24,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
 
         <ImportingConstructor>
         Friend Sub New(undoRegistry As ITextUndoHistoryRegistry,
-                       editorOperations As IEditorOperationsFactoryService)
+                       editorOperations As IEditorOperationsFactoryService,
+                       asyncCompletionBroker As IAsyncCompletionBroker)
 
-            MyBase.New(undoRegistry, editorOperations)
+            MyBase.New(undoRegistry, editorOperations, asyncCompletionBroker)
         End Sub
 
         Protected Overrides Sub NextAction(editorOperation As IEditorOperations, nextAction As Action)

@@ -216,6 +216,9 @@
   <data name="IDS_FeatureAsyncStreams" xml:space="preserve">
     <value>async streams</value>
   </data>
+  <data name="IDS_FeatureUnmanagedConstructedTypes" xml:space="preserve">
+    <value>unmanaged constructed types</value>
+  </data>
   <data name="IDS_FeatureDefaultLiteral" xml:space="preserve">
     <value>default literal</value>
   </data>
@@ -991,7 +994,7 @@
     <value>A params parameter must be the last parameter in a formal parameter list</value>
   </data>
   <data name="ERR_SizeofUnsafe" xml:space="preserve">
-    <value>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)</value>
+    <value>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</value>
   </data>
   <data name="ERR_DottedTypeNameNotFoundInNS" xml:space="preserve">
     <value>The type or namespace name '{0}' does not exist in the namespace '{1}' (are you missing an assembly reference?)</value>
@@ -4574,7 +4577,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -4987,7 +4990,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>This combination of arguments to '{0}' is disallowed because it may expose variables referenced by parameter '{1}' outside of their declaration scope</value>
   </data>
   <data name="ERR_MismatchedRefEscapeInTernary" xml:space="preserve">
-    <value>Branches of a ref ternary operator cannot refer to variables with incompatible declaration scopes</value>
+    <value>Branches of a ref conditional operator cannot refer to variables with incompatible declaration scopes</value>
   </data>
   <data name="ERR_EscapeStackAlloc" xml:space="preserve">
     <value>A result of a stackalloc expression of type '{0}' cannot be used in this context because it may be exposed outside of the containing method</value>
@@ -5316,23 +5319,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullReferenceArgument_Title" xml:space="preserve">
     <value>Possible null reference argument.</value>
   </data>
-  <data name="HDN_NullCheckIsProbablyAlwaysTrue" xml:space="preserve">
-    <value>Result of the comparison is possibly always true.</value>
+  <data name="WRN_PossibleNull" xml:space="preserve">
+    <value>Possible null value.</value>
   </data>
-  <data name="HDN_NullCheckIsProbablyAlwaysTrue_Title" xml:space="preserve">
-    <value>Result of the comparison is possibly always true.</value>
-  </data>
-  <data name="HDN_NullCheckIsProbablyAlwaysFalse" xml:space="preserve">
-    <value>Result of the comparison is possibly always false.</value>
-  </data>
-  <data name="HDN_NullCheckIsProbablyAlwaysFalse_Title" xml:space="preserve">
-    <value>Result of the comparison is possibly always false.</value>
-  </data>
-  <data name="HDN_ExpressionIsProbablyNeverNull" xml:space="preserve">
-    <value>Expression is probably never null.</value>
-  </data>
-  <data name="HDN_ExpressionIsProbablyNeverNull_Title" xml:space="preserve">
-    <value>Expression is probably never null.</value>
+  <data name="WRN_PossibleNull_Title" xml:space="preserve">
+    <value>Possible null value.</value>
   </data>
   <data name="WRN_NullabilityMismatchInTypeOnOverride" xml:space="preserve">
     <value>Nullability of reference types in type doesn't match overridden member.</value>
@@ -5406,11 +5397,41 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullabilityMismatchInAssignment_Title" xml:space="preserve">
     <value>Nullability of reference types in value doesn't match target type.</value>
   </data>
+  <data name="WRN_ConditionalAccessMayReturnNull" xml:space="preserve">
+    <value>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</value>
+  </data>
+  <data name="WRN_ConditionalAccessMayReturnNull_Title" xml:space="preserve">
+    <value>Conditional access may produce a null value for a type parameter.</value>
+  </data>
+  <data name="WRN_AsOperatorMayReturnNull" xml:space="preserve">
+    <value>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</value>
+  </data>
+  <data name="WRN_AsOperatorMayReturnNull_Title" xml:space="preserve">
+    <value>The 'as' operator may produce a null value for a type parameter.</value>
+  </data>
+  <data name="WRN_DefaultExpressionMayIntroduceNullT" xml:space="preserve">
+    <value>A default expression introduces a null value when '{0}' is a non-nullable reference type.</value>
+  </data>
+  <data name="WRN_DefaultExpressionMayIntroduceNullT_Title" xml:space="preserve">
+    <value>A default expression introduces a null value for a type parameter.</value>
+  </data>
+  <data name="WRN_NullLiteralMayIntroduceNullT" xml:space="preserve">
+    <value>A null literal introduces a null value when '{0}' is a non-nullable reference type.</value>
+  </data>
+  <data name="WRN_NullLiteralMayIntroduceNullT_Title" xml:space="preserve">
+    <value>A null literal introduces a null value for a type parameter.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
-    <value>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</value>
+    <value>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_NullabilityMismatchInArgument_Title" xml:space="preserve">
-    <value>Nullability of reference types in argument doesn't match target type.</value>
+    <value>Argument cannot be used for parameter due to differences in the nullability of reference types.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInArgumentForOutput" xml:space="preserve">
+    <value>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInArgumentForOutput_Title" xml:space="preserve">
+    <value>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</value>
   </data>
   <data name="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate" xml:space="preserve">
     <value>Nullability of reference types in return type of '{0}' doesn't match the target delegate '{1}'.</value>
@@ -5425,16 +5446,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Nullability of reference types in type of parameter doesn't match the target delegate.</value>
   </data>
   <data name="WRN_NullAsNonNullable" xml:space="preserve">
-    <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
+    <value>Cannot convert null literal to non-nullable reference type.</value>
   </data>
   <data name="WRN_NullAsNonNullable_Title" xml:space="preserve">
-    <value>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</value>
-  </data>
-  <data name="WRN_NoBestNullabilityConditionalExpression" xml:space="preserve">
-    <value>No best nullability for operands of conditional expression '{0}' and '{1}'.</value>
-  </data>
-  <data name="WRN_NoBestNullabilityConditionalExpression_Title" xml:space="preserve">
-    <value>No best nullability for operands of conditional expression.</value>
+    <value>Cannot convert null literal to non-nullable reference type.</value>
   </data>
   <data name="ERR_AnnotationDisallowedInObjectCreation" xml:space="preserve">
     <value>Cannot use a nullable reference type in object creation.</value>
@@ -5465,18 +5480,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
-  </data>
-  <data name="WRN_CantInferNullabilityOfMethodTypeArgs" xml:space="preserve">
-    <value>The nullability of type arguments for method '{0}' cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
-  </data>
-  <data name="WRN_CantInferNullabilityOfMethodTypeArgs_Title" xml:space="preserve">
-    <value>The nullability of type arguments for method cannot be inferred from the usage. Try specifying the type arguments explicitly.</value>
-  </data>
-  <data name="WRN_NoBestNullabilityArrayElements" xml:space="preserve">
-    <value>No best nullability found for implicitly-typed array.</value>
-  </data>
-  <data name="WRN_NoBestNullabilityArrayElements_Title" xml:space="preserve">
-    <value>No best nullability found for implicitly-typed array.</value>
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
     <value>A void or int returning entry point cannot be async</value>
@@ -5512,7 +5515,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
-    <value>The first parameter of an 'in' extension method '{0}' must be a value type.</value>
+    <value>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</value>
   </data>
   <data name="ERR_FieldsInRoStruct" xml:space="preserve">
     <value>Instance fields of readonly structs must be readonly.</value>
@@ -5789,5 +5792,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureUsingDeclarations" xml:space="preserve">
     <value>using declarations</value>
+  </data>
+  <data name="ERR_FeatureInPreview" xml:space="preserve">
+    <value>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</value>
   </data>
 </root>

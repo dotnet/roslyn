@@ -33,9 +33,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             XElement workspaceElement,
             IList<Type> excludedTypes = null,
             ComposableCatalog extraParts = null,
-            bool useMinimumCatalog = false,
             string workspaceKind = null)
-            : this(workspaceElement, GetExportProvider(useMinimumCatalog, excludedTypes, extraParts), workspaceKind)
+            : this(workspaceElement, GetExportProvider(excludedTypes, extraParts), workspaceKind)
         {
         }
 
@@ -131,20 +130,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             return Workspace.GetService<T>();
         }
 
-        private static ExportProvider GetExportProvider(bool useMinimumCatalog, IList<Type> excludedTypes, ComposableCatalog extraParts)
+        internal static ExportProvider GetExportProvider(IList<Type> excludedTypes, ComposableCatalog extraParts)
         {
             excludedTypes = excludedTypes ?? Type.EmptyTypes;
 
             if (excludedTypes.Count == 0 && (extraParts == null || extraParts.Parts.Count == 0))
             {
-                return useMinimumCatalog
-                    ? TestExportProvider.MinimumExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider()
-                    : TestExportProvider.ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
+                return TestExportProvider.ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
             }
 
-            var baseCatalog = useMinimumCatalog
-                ? TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
-                : TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
+            var baseCatalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic;
 
             var filteredCatalog = baseCatalog.WithoutPartsOfTypes(excludedTypes);
 
@@ -456,6 +451,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public void SendTypeChar(char typeChar, Action<TypeCharCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
         {
             commandHandler(new TypeCharCommandArgs(TextView, SubjectBuffer, typeChar), nextHandler, TestCommandExecutionContext.Create());
+        }
+
+        public void ToggleSuggestionMode(Action<ToggleCompletionModeCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
+        {
+            commandHandler(new ToggleCompletionModeCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
         }
 
         public void SendTypeChars(string typeChars, Action<TypeCharCommandArgs, Action, CommandExecutionContext> commandHandler)

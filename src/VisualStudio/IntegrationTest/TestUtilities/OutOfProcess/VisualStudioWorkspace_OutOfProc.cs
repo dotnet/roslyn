@@ -19,13 +19,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
-
-        public bool IsUseSuggestionModeOn()
-            => _inProc.IsUseSuggestionModeOn();
-
-        public void SetUseSuggestionMode(bool value)
-            => _inProc.SetUseSuggestionMode(value);
-
         public void SetOptionInfer(string projectName, bool value)
         {
             _inProc.SetOptionInfer(projectName, value);
@@ -50,8 +43,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
             => _inProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
 
-        public void WaitForAllAsyncOperations(params string[] featureNames)
-            => _inProc.WaitForAllAsyncOperations(featureNames);
+        public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
+            => _inProc.WaitForAllAsyncOperations(timeout, featureNames);
 
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();

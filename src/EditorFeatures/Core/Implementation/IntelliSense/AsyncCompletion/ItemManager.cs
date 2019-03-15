@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         private readonly RecentItemsManager _recentItemsManager;
 
         internal ItemManager(RecentItemsManager recentItemsManager)
-        { 
+        {
             // Let us make the completion Helper used for non-Roslyn items case-sensitive.
             // We can change this if get requests from partner teams.
             _defaultCompletionHelper = new CompletionHelper(isCaseSensitive: true);
@@ -61,6 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 // For now, the default hasSuggestedItemOptions is false.
                 hasSuggestedItemOptions = false;
             }
+
+            hasSuggestedItemOptions |= data.DisplaySuggestionItem;
 
             var filterText = session.ApplicableToSpan.GetText(data.Snapshot);
             var reason = data.Trigger.Reason;
@@ -255,15 +257,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             // If we don't have a best completion item yet, then pick the first item from the list.
             var bestOrFirstCompletionItem = bestItem ?? itemsInList.First().FilterResult.CompletionItem;
-
-            // Check that it is a filter symbol. We can be called for a non-filter symbol.
-            if (filterReason == CompletionFilterReason.Insertion &&
-                !IsPotentialFilterCharacter(typeChar) &&
-                !string.IsNullOrEmpty(filterText) &&
-                !Helpers.IsFilterCharacter(bestOrFirstCompletionItem, typeChar, filterText))
-            {
-                return null;
-            }
 
             bool isHardSelection = IsHardSelection(
                 filterText, initialRoslynTriggerKind, bestOrFirstCompletionItem,

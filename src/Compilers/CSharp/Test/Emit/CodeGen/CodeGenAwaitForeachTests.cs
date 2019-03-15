@@ -28,12 +28,21 @@ class C : IAsyncEnumerable<int>
     IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken token)
         => throw null;
 }";
-            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(
-                // (7,9): error CS8370: Feature 'async streams' is not available in C# 7.3. Please use language version 8.0 or greater.
+            var expected = new[]
+            {
+                // (7,9): error CS8652: The feature 'async streams' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await foreach (int i in new C())
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_3, "await").WithArguments("async streams", "8.0").WithLocation(7, 9)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("async streams").WithLocation(7, 9)
+            };
+
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularDefault);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilationWithTasksExtensions(new[] { source, s_IAsyncEnumerable }, parseOptions: TestOptions.RegularPreview);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -68,7 +77,7 @@ class D
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithIAsyncEnumerator()
         {
             string source = @"
@@ -90,7 +99,7 @@ public class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithUIntToIntConversion()
         {
             string source = @"
@@ -758,7 +767,7 @@ class Element
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithExplicitlyConvertibleElementType()
         {
             string source = @"
@@ -816,7 +825,7 @@ class Element
                 expectedOutput: "NextAsync(0) Current(1) Convert(1) Got(1) NextAsync(1) Current(2) Convert(2) Got(2) NextAsync(2) Current(3) Convert(3) Got(3) NextAsync(3) Dispose(4)");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithCaptureOfIterationVariable()
         {
             string source = @"
@@ -858,7 +867,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "Got(1) Got(2) Captured(1)");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithGenericIterationVariable()
         {
             string source = @"
@@ -915,7 +924,7 @@ class C<T> where T : IntContainer, new()
             CompileAndVerify(comp, expectedOutput: "NextAsync(1) Current(1) Got(1) NextAsync(2) Current(2) Got(2) NextAsync(3) Current(3) Got(3) NextAsync(4) Dispose(4)");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithThrowingGetAsyncEnumerator()
         {
             string source = @"
@@ -955,7 +964,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "exception");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithThrowingMoveNextAsync()
         {
             string source = @"
@@ -998,7 +1007,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "dispose exception");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithThrowingCurrent()
         {
             string source = @"
@@ -1045,7 +1054,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "wait dispose exception");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithThrowingDisposeAsync()
         {
             string source = @"
@@ -1846,7 +1855,7 @@ class D
             Assert.Equal(default, model.GetForEachStatementInfo(foreachSyntax));
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_RefStruct()
         {
             string source = @"
@@ -1893,7 +1902,7 @@ public ref struct S
             CompileAndVerify(comp, expectedOutput: "1 2 Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_RefReturningCurrent()
         {
             string source = @"
@@ -1975,7 +1984,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_WithStruct_MoveNextAsyncReturnsTask()
         {
             string source = @"
@@ -2028,7 +2037,7 @@ class C
                 expectedOutput: "NextAsync(0) Current(0) Got(1) NextAsync(1) Current(1) Got(2) NextAsync(2) Current(2) Got(3) NextAsync(3) Current(3) Got(4) NextAsync(4) DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_MoveNextAsyncReturnsValueTask()
         {
             string source = @"
@@ -2091,7 +2100,7 @@ class C
             Assert.True(internalInfo.NeedsDisposal);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable()
         {
@@ -2151,7 +2160,7 @@ class C
             Assert.Equal("System.Int32", info.ElementType.ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutGetAwaiter()
         {
@@ -2185,7 +2194,7 @@ class C
             VerifyEmptyForEachStatementInfo(comp);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutIsCompleted()
         {
@@ -2236,7 +2245,7 @@ class C
             Assert.Null(info.ElementType);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutGetResult()
         {
@@ -2276,7 +2285,7 @@ class C
             VerifyEmptyForEachStatementInfo(comp);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(31609, "https://github.com/dotnet/roslyn/issues/31609")]
         public void TestWithPattern_MoveNextAsyncReturnsAwaitable_WithoutOnCompleted()
         {
@@ -2317,7 +2326,7 @@ class C
             VerifyEmptyForEachStatementInfo(comp);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_MoveNextAsyncReturnsBadType()
         {
             string source = @"
@@ -2353,7 +2362,7 @@ class C
             Assert.Null(info.ElementType);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_WithUnsealed()
         {
             string source = @"
@@ -2600,7 +2609,7 @@ public class C
 }", sequencePoints: "C+<Main>d__0.MoveNext", source: source + s_IAsyncEnumerable);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPattern_WithIAsyncDisposable()
         {
             string source = @"
@@ -2765,7 +2774,7 @@ class C : Base, IAsyncEnumerable<int>
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface()
         {
             string source = @"
@@ -2838,7 +2847,7 @@ class C : IAsyncEnumerable<int>
             Assert.True(internalInfo.NeedsDisposal);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface_OnStruct_ImplicitInterfaceImplementation()
         {
             string source = @"
@@ -3105,7 +3114,7 @@ struct C : IAsyncEnumerable<int>
 }");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface_WithEarlyCompletion1()
         {
             string source = @"
@@ -3157,7 +3166,7 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "NextAsync(2) Current(3) Got(3) NextAsync(3) Dispose(4) Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface_WithBreakAndContinue()
         {
             string source = @"
@@ -3212,7 +3221,7 @@ class C : IAsyncEnumerable<int>
                 expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Continue(2) NextAsync(2) Current(3) Continue(3) NextAsync(3) Current(4) Break Dispose(4) Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface_WithGoto()
         {
             string source = @"
@@ -3268,7 +3277,7 @@ class C : IAsyncEnumerable<int>
                 expectedOutput: "NextAsync(0) Current(1) Got(1) NextAsync(1) Current(2) Continue(2) NextAsync(2) Current(3) Continue(3) NextAsync(3) Current(4) Goto Dispose(4) Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterface_WithStruct()
         {
             string source = @"
@@ -3372,7 +3381,7 @@ class C : IAsyncEnumerable<int>
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullCollection()
         {
             string source = @"
@@ -3412,7 +3421,7 @@ class C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "Success");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestInCatch()
         {
             string source = @"
@@ -3502,7 +3511,7 @@ class C : IAsyncEnumerable<int>
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithConversionToElement()
         {
             string source = @"
@@ -3583,7 +3592,7 @@ class Element
             Assert.True(internalInfo.NeedsDisposal);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullableCollection()
         {
             string source = @"
@@ -3656,7 +3665,7 @@ struct C : IAsyncEnumerable<int>
             Assert.True(internalInfo.NeedsDisposal);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullableCollection2()
         {
             string source = @"
@@ -3690,7 +3699,7 @@ struct C : IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: "Success");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterfaceAndDeconstruction()
         {
             string source = @"
@@ -3794,7 +3803,7 @@ public static class Extensions
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithPatternAndDeconstructionOfTuple()
         {
             string source = @"
@@ -3860,7 +3869,7 @@ class C : IAsyncEnumerable<(string, int)>
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithInterfaceAndDeconstruction_ManualIteration()
         {
             string source = @"
@@ -4018,7 +4027,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithGenericCollection()
         {
             string source = @"
@@ -4373,7 +4382,7 @@ class C
             Assert.Null(info.DisposeMethod);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void GetAsyncEnumerator_CancellationTokenMustBeOptional()
         {
             string source = @"
@@ -4400,7 +4409,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void GetAsyncEnumerator_WithOptionalParameter()
         {
             string source = @"
@@ -4423,7 +4432,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void GetAsyncEnumerator_WithParams()
         {
             string source = @"
@@ -4459,7 +4468,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal()
         {
@@ -4502,7 +4511,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_TwoOverloads()
         {
@@ -4547,7 +4556,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_NoExtensions()
         {
@@ -4590,7 +4599,7 @@ public static class Extension
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_NoExtensions_TwoExtensions()
         {
@@ -4638,7 +4647,7 @@ public static class Extension2
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_InterfacePreferredToInstanceMethod()
         {
@@ -4682,7 +4691,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsVoid()
         {
@@ -4718,7 +4727,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsInt()
         {
@@ -4761,7 +4770,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsAwaitable()
         {
@@ -4816,7 +4825,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsTask()
         {
@@ -4860,7 +4869,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "MoveNextAsync DisposeAsync Done");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void PatternBasedDisposal_ReturnsTaskOfInt()
         {

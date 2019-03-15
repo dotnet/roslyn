@@ -114,7 +114,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityError|LocCanonicalName">
         <source>Error</source>
-        <target state="translated">Error</target>
+        <target state="translated">Fehler</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityError|CommandName">
@@ -174,7 +174,7 @@
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|LocCanonicalName">
         <source>None</source>
-        <target state="translated">Ninguna</target>
+        <target state="translated">NONE</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidSetSeverityNone|CommandName">

@@ -162,5 +162,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             return set;
         }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly AsyncCompletionService _asyncCompletionService;
+
+            public TestAccessor(AsyncCompletionService asyncCompletionService)
+            {
+                _asyncCompletionService = asyncCompletionService;
+            }
+
+            internal bool UseLegacyCompletion(ITextView textView, ITextBuffer subjectBuffer)
+                => _asyncCompletionService.UseLegacyCompletion(textView, subjectBuffer);
+        }
     }
 }

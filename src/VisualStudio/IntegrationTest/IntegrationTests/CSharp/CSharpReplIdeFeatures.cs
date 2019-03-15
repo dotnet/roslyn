@@ -5,26 +5,21 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpReplIdeFeatures : AbstractInteractiveWindowTest
     {
-        public CSharpReplIdeFeatures(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpReplIdeFeatures(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
-        }
-
-        public override async Task InitializeAsync()
-        {
-            await base.InitializeAsync().ConfigureAwait(true);
-            VisualStudio.Workspace.SetUseSuggestionMode(true);
         }
 
         public override Task DisposeAsync()
         {
-            VisualStudio.Workspace.SetUseSuggestionMode(false);
+            VisualStudio.Editor.SetUseSuggestionMode(false);
             VisualStudio.InteractiveWindow.ClearReplText();
             VisualStudio.InteractiveWindow.Reset();
             return base.DisposeAsync();
