@@ -84792,11 +84792,10 @@ class G<T>
         {
             var source =
 @"
-#pragma warning disable 0169 // suppress field never used warning
 #nullable enable
-struct Foo<T>
+public struct Foo<T>
 {
-    static Foo<T> Bar;
+    public static Foo<T> Bar;
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
