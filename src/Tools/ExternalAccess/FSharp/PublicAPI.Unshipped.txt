@@ -1,4 +1,5 @@
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.ClassificationTags
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.CompletionOptions
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IDiagnosticAnalyzerService
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IDiagnosticAnalyzerService.Reanalyze(Microsoft.CodeAnalysis.Workspace workspace, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectId> projectIds = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId> documentIds = null, bool highPriority = false) -> void
@@ -81,7 +82,10 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.StructurePrivate = 68 -> Micr
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.StructureProtected = 67 -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.StructurePublic = 66 -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.TypeParameter = 70 -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Shared.Options.ServiceFeatureOnOffOptions
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.ClassificationTags.GetClassificationTypeName(string textTag) -> string
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.EditAndContinue.get -> string[]
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.Microsoft.get -> string[]
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.Unnecessary.get -> string[]
+static readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.CompletionOptions.BlockForCompletionItems -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
+static readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Shared.Options.ServiceFeatureOnOffOptions.ClosedFileDiagnostic -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool?>
