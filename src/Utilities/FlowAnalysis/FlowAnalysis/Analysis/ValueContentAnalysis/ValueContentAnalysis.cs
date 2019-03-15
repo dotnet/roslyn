@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -48,14 +49,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.None,
             bool pessimisticAnalysis = true,
             bool performPointsToAnalysis = true,
-            bool performCopyAnalysisIfNotUserConfigured = true)
+            bool performCopyAnalysisIfNotUserConfigured = true,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
             return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
                 interproceduralAnalysisConfig, out copyAnalysisResultOpt,
                 out pointsToAnalysisResultOpt, pessimisticAnalysis, performPointsToAnalysis,
-                performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken));
+                performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
+                interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt);
         }
 
         internal static ValueContentAnalysisResult GetOrComputeResult(
@@ -67,17 +70,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis
             out PointsToAnalysisResult pointsToAnalysisResultOpt,
             bool pessimisticAnalysis = true,
             bool performPointsToAnalysis = true,
-            bool performCopyAnalysis = true)
+            bool performCopyAnalysis = true,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
         {
             copyAnalysisResultOpt = null;
             pointsToAnalysisResultOpt = performPointsToAnalysis ?
-                PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
-                    cfg, owningSymbol, wellKnownTypeProvider, out copyAnalysisResultOpt, interproceduralAnalysisConfig, pessimisticAnalysis, performCopyAnalysis) :
+                PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider, out copyAnalysisResultOpt,
+                    interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt, pessimisticAnalysis, performCopyAnalysis) :
                 null;
             var analysisContext = ValueContentAnalysisContext.Create(
                 ValueContentAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol,
                 interproceduralAnalysisConfig, pessimisticAnalysis, copyAnalysisResultOpt,
-                pointsToAnalysisResultOpt, GetOrComputeResultForAnalysisContext);
+                pointsToAnalysisResultOpt, GetOrComputeResultForAnalysisContext, interproceduralAnalysisPredicateOpt);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 
