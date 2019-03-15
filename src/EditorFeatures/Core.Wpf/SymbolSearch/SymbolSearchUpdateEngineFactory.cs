@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             ISymbolSearchProgressService progressService,
             CancellationToken cancellationToken)
         {
-            var client = await workspace.TryGetRemoteHostClientAsync(
-                RemoteFeatureOptions.SymbolSearchEnabled, cancellationToken).ConfigureAwait(false);
+            var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
                 var callbackObject = new CallbackObject(logService, progressService);

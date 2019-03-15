@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class SymbolDisplayVisitor
     {
-        private void VisitTypeSymbolWithAnnotations(TypeSymbolWithAnnotations type, AbstractSymbolDisplayVisitor visitorOpt = null)
+        private void VisitTypeWithAnnotations(TypeWithAnnotations type, AbstractSymbolDisplayVisitor visitorOpt = null)
         {
-            var visitor = (SymbolDisplayVisitor)(visitorOpt ?? this.NotFirstVisitor);
-            var typeSymbol = type.TypeSymbol;
+            var visitor = visitorOpt ?? this.NotFirstVisitor;
+            var typeSymbol = type.Type;
 
             typeSymbol.Accept(visitor);
             AddNullableAnnotations(type);
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArrayType(symbol, typeOpt: default);
         }
 
-        private void VisitArrayType(IArrayTypeSymbol symbol, TypeSymbolWithAnnotations typeOpt)
+        private void VisitArrayType(IArrayTypeSymbol symbol, TypeWithAnnotations typeOpt)
         {
             if (TryAddAlias(symbol, builder))
             {
@@ -50,18 +50,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            TypeSymbolWithAnnotations underlyingTypeWithAnnotations;
+            TypeWithAnnotations underlyingTypeWithAnnotations;
             ITypeSymbol underlyingType = symbol;
             do
             {
-                underlyingTypeWithAnnotations = (underlyingType as ArrayTypeSymbol)?.ElementType ?? default;
+                underlyingTypeWithAnnotations = (underlyingType as ArrayTypeSymbol)?.ElementTypeWithAnnotations ?? default;
                 underlyingType = ((IArrayTypeSymbol)underlyingType).ElementType;
             }
             while (underlyingType.Kind == SymbolKind.ArrayType && !ShouldAddNullableAnnotation(underlyingTypeWithAnnotations));
 
-            if (!underlyingTypeWithAnnotations.IsNull)
+            if (underlyingTypeWithAnnotations.HasType)
             {
-                VisitTypeSymbolWithAnnotations(underlyingTypeWithAnnotations);
+                VisitTypeWithAnnotations(underlyingTypeWithAnnotations);
             }
             else
             {
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arrayType = symbol;
             while (arrayType != null && arrayType != underlyingType)
             {
-                if (!(arrayType is null) && !this.isFirstSymbolVisited)
+                if (!this.isFirstSymbolVisited)
                 {
                     AddCustomModifiersIfRequired(arrayType.CustomModifiers, leadingSpace: true);
                 }
@@ -81,30 +81,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddNullableAnnotations(TypeSymbolWithAnnotations typeOpt)
+        private void AddNullableAnnotations(TypeWithAnnotations typeOpt)
         {
             if (ShouldAddNullableAnnotation(typeOpt))
             {
-                AddPunctuation(typeOpt.NullableAnnotation.IsAnyNullable() ? SyntaxKind.QuestionToken : SyntaxKind.ExclamationToken);
+                AddPunctuation(typeOpt.NullableAnnotation.IsAnnotated() ? SyntaxKind.QuestionToken : SyntaxKind.ExclamationToken);
             }
         }
 
-        private bool ShouldAddNullableAnnotation(TypeSymbolWithAnnotations typeOpt)
+        private bool ShouldAddNullableAnnotation(TypeWithAnnotations typeOpt)
         {
-            if (typeOpt.IsNull)
+            if (!typeOpt.HasType)
             {
                 return false;
             }
             else if (format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier) &&
-                !typeOpt.IsNullableType() && !typeOpt.IsValueType &&
-                (typeOpt.NullableAnnotation == NullableAnnotation.Annotated ||
-                 (typeOpt.NullableAnnotation == NullableAnnotation.Nullable && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())))
+                !typeOpt.IsNullableType() && !typeOpt.Type.IsValueType &&
+                typeOpt.NullableAnnotation.IsAnnotated())
             {
                 return true;
             }
             else if (format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) &&
-                !typeOpt.IsValueType &&
-                typeOpt.NullableAnnotation.IsAnyNotNullable() && !typeOpt.TypeSymbol.IsTypeParameterDisallowingAnnotation())
+                !typeOpt.Type.IsValueType &&
+                typeOpt.NullableAnnotation.IsNotAnnotated() && !typeOpt.Type.IsTypeParameterDisallowingAnnotation())
             {
                 return true;
             }
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                VisitTypeSymbolWithAnnotations(pointer.PointedAtType);
+                VisitTypeWithAnnotations(pointer.PointedAtTypeWithAnnotations);
             }
 
             if (!this.isFirstSymbolVisited)
@@ -388,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var namedType = symbol as NamedTypeSymbol;
                         if ((object)namedType != null)
                         {
-                            modifiers = namedType.TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers);
+                            modifiers = namedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(a => a.CustomModifiers);
                         }
                     }
 
@@ -688,17 +687,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddTypeArguments(ISymbol owner, ImmutableArray<ImmutableArray<CustomModifier>> modifiers)
         {
             ImmutableArray<ITypeSymbol> typeArguments;
-            ImmutableArray<TypeSymbolWithAnnotations>? typeArgumentsWithAnnotations;
+            ImmutableArray<TypeWithAnnotations>? typeArgumentsWithAnnotations;
 
             if (owner.Kind == SymbolKind.Method)
             {
                 typeArguments = ((IMethodSymbol)owner).TypeArguments;
-                typeArgumentsWithAnnotations = (owner as MethodSymbol)?.TypeArguments;
+                typeArgumentsWithAnnotations = (owner as MethodSymbol)?.TypeArgumentsWithAnnotations;
             }
             else
             {
                 typeArguments = ((INamedTypeSymbol)owner).TypeArguments;
-                typeArgumentsWithAnnotations = (owner as NamedTypeSymbol)?.TypeArgumentsNoUseSiteDiagnostics;
+                typeArgumentsWithAnnotations = (owner as NamedTypeSymbol)?.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             }
 
             if (typeArguments.Length > 0 && format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters))
@@ -738,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        VisitTypeSymbolWithAnnotations(typeArgumentsWithAnnotations.GetValueOrDefault()[i], visitor);
+                        VisitTypeWithAnnotations(typeArgumentsWithAnnotations.GetValueOrDefault()[i], visitor);
                     }
 
                     if (!modifiers.IsDefault)
@@ -817,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 needComma = true;
                             }
 
-                            ImmutableArray<TypeSymbolWithAnnotations>? annotatedConstraints = typeParameterSymbol?.ConstraintTypesNoUseSiteDiagnostics; // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
+                            ImmutableArray<TypeWithAnnotations>? annotatedConstraints = typeParameterSymbol?.ConstraintTypesNoUseSiteDiagnostics; // https://github.com/dotnet/roslyn/issues/26198 Switch to public API when we will have one.
 
                             for (int i = 0; i < typeParam.ConstraintTypes.Length; i++)
                             {
@@ -830,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 if (annotatedConstraints.HasValue)
                                 {
-                                    VisitTypeSymbolWithAnnotations(annotatedConstraints.GetValueOrDefault()[i], this.NotFirstVisitor);
+                                    VisitTypeWithAnnotations(annotatedConstraints.GetValueOrDefault()[i], this.NotFirstVisitor);
                                 }
                                 else
                                 {

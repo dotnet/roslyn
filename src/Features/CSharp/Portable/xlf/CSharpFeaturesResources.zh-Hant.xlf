@@ -27,6 +27,11 @@
         <target state="translated">新增/移除單行控制項陳述式的括弧</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_unsafe_code_in_this_project">
+        <source>Allow unsafe code in this project</source>
+        <target state="new">Allow unsafe code in this project</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="translated">套用延伸模組/區塊主體喜好設定</target>
@@ -59,12 +64,17 @@
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
-        <target state="translated">Convert to method</target>
+        <target state="translated">轉換為方法</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
         <source>Declare as nullable</source>
         <target state="translated">宣告為可為 Null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_return_type">
+        <source>Fix return type</source>
+        <target state="new">Fix return type</target>
         <note />
       </trans-unit>
       <trans-unit id="Inline_temporary_variable">
@@ -81,6 +91,11 @@
         <source>Make private fields readonly when possible</source>
         <target state="translated">若可能的話，請將私用欄位設定為唯讀</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Make_ref_struct">
+        <source>Make 'ref struct'</source>
+        <target state="new">Make 'ref struct'</target>
+        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
@@ -112,6 +127,11 @@
         <target state="translated">排序協助工具修飾詞</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="new">Unseal class '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
         <target state="translated">'if' 陳述式可簡化</target>
@@ -129,7 +149,7 @@
       </trans-unit>
       <trans-unit id="member_name">
         <source>&lt;member name&gt; = </source>
-        <target state="translated">&lt;member name&gt; =</target>
+        <target state="translated">&lt;成員名稱&gt; =</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_possible_explicitly_named_anonymous_type_member_creation">
@@ -634,7 +654,7 @@
       </trans-unit>
       <trans-unit id="class_name">
         <source>&lt;class name&gt;</source>
-        <target state="translated">&lt;class name&gt;</target>
+        <target state="translated">&lt;類別名稱&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="interface_name">
@@ -674,7 +694,7 @@
       </trans-unit>
       <trans-unit id="Name">
         <source>&lt;Name&gt;</source>
-        <target state="translated">&lt;Name&gt;</target>
+        <target state="translated">&lt;名稱&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="Autoselect_disabled_due_to_member_declaration">
@@ -724,17 +744,17 @@
       </trans-unit>
       <trans-unit id="Add_Obsolete">
         <source>Add [Obsolete]</source>
-        <target state="new">Add [Obsolete]</target>
+        <target state="translated">新增 [Obsolete]</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_0">
         <source>Use '{0}'</source>
-        <target state="new">Use '{0}'</target>
+        <target state="translated">使用 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
-        <target state="new">Introduce 'using' statement</target>
+        <target state="translated">引進 'using’ 陳述式</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>

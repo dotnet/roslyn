@@ -6024,7 +6024,7 @@ tryAgain:
                 }
             }
 
-done:;
+done:
             return result;
         }
 
@@ -6279,7 +6279,7 @@ done:;
                         case ParseTypeMode.NewExpression:
                             // A nullable qualifier is permitted as part of the type in a `new` expression.
                             // e.g. `new int?()` is allowed.  It creates a null value of type `Nullable<int>`.
-                            // But the object initializer syntax `new int? {}` is not permitted.
+                            // Similarly `new int? {}` is allowed.
                             return
                                 this.CurrentToken.Kind == SyntaxKind.OpenParenToken ||   // ctor parameters
                                 this.CurrentToken.Kind == SyntaxKind.OpenBracketToken ||   // array type
@@ -10389,6 +10389,7 @@ tryAgain:
                 case SyntaxKind.QuestionQuestionToken:
                 case SyntaxKind.EndOfFileToken:
                 case SyntaxKind.SwitchKeyword:
+                case SyntaxKind.EqualsGreaterThanToken:
                     return false;
                 default:
                     return true;

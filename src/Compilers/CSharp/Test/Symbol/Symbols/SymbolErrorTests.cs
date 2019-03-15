@@ -1668,7 +1668,7 @@ namespace n3
 
             var structS = ns3.GetMember<NamedTypeSymbol>("S");
             var structSField = structS.GetMember<FieldSymbol>("a");
-            Assert.Equal("A", structSField.Type.TypeSymbol.Name);
+            Assert.Equal("A", structSField.Type.Name);
             Assert.Equal(TypeKind.Error, structSField.Type.TypeKind);
         }
 
@@ -3231,10 +3231,10 @@ public class MyClass2 : MyClass
             //ErrorTypes now appear as though they are declared in the global namespace. 
             Assert.Equal("System.String NS.IBar.M(ref NoType p1, out NoType p2, params NOType[] ary)", mem1.ToTestDisplayString());
             var param = mem1.Parameters[0] as ParameterSymbol;
-            var ptype = param.Type;
+            var ptype = param.TypeWithAnnotations;
             Assert.Equal(RefKind.Ref, param.RefKind);
-            Assert.Equal(TypeKind.Error, ptype.TypeKind);
-            Assert.Equal("NoType", ptype.Name);
+            Assert.Equal(TypeKind.Error, ptype.Type.TypeKind);
+            Assert.Equal("NoType", ptype.Type.Name);
 
             var type3 = ns.GetTypeMembers("A").Single() as NamedTypeSymbol;
             var base1 = type3.BaseType();
@@ -8178,12 +8178,12 @@ Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "GM").WithArguments("GG
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,18): error CS0509: 'clz': cannot derive from sealed type 'stx'
+                // (7,24): error CS0509: 'clz': cannot derive from sealed type 'stx'
                 //     public class clz : stx { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "clz").WithArguments("NS.clz", "NS.stx").WithLocation(7, 18),
-                // (6,18): error CS0509: 'cly': cannot derive from sealed type 'clx'
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "stx").WithArguments("NS.clz", "NS.stx").WithLocation(7, 24),
+                // (6,24): error CS0509: 'cly': cannot derive from sealed type 'clx'
                 //     public class cly : clx {}
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "cly").WithArguments("NS.cly", "NS.clx").WithLocation(6, 18));
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "clx").WithArguments("NS.cly", "NS.clx").WithLocation(6, 24));
         }
 
         [Fact]
@@ -8199,15 +8199,15 @@ namespace N2
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,11): error CS0509: 'E': cannot derive from sealed type 'int'
+                // (6,15): error CS0509: 'E': cannot derive from sealed type 'int'
                 //     class E : int { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "E").WithArguments("N2.E", "int").WithLocation(6, 11),
-                // (4,11): error CS0509: 'C': cannot derive from sealed type 'E'
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "int").WithArguments("N2.E", "int").WithLocation(6, 15),
+                // (4,15): error CS0509: 'C': cannot derive from sealed type 'E'
                 //     class C : N1.E { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "C").WithArguments("N2.C", "N1.E").WithLocation(4, 11),
-                // (5,11): error CS0509: 'D': cannot derive from sealed type 'int'
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "N1.E").WithArguments("N2.C", "N1.E").WithLocation(4, 15),
+                // (5,15): error CS0509: 'D': cannot derive from sealed type 'int'
                 //     class D : System.Int32 { }
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "D").WithArguments("N2.D", "int").WithLocation(5, 11));
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "System.Int32").WithArguments("N2.D", "int").WithLocation(5, 15));
         }
 
         [Fact]
@@ -11208,21 +11208,21 @@ namespace N
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,11): error CS0644: 'D' cannot derive from special class 'ValueType'
+                // (5,15): error CS0644: 'D' cannot derive from special class 'ValueType'
                 //     class D : ValueType { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "D").WithArguments("N.D", "System.ValueType").WithLocation(5, 11),
-                // (6,11): error CS0644: 'E' cannot derive from special class 'Delegate'
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "ValueType").WithArguments("N.D", "System.ValueType").WithLocation(5, 15),
+                // (6,15): error CS0644: 'E' cannot derive from special class 'Delegate'
                 //     class E : Delegate { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "E").WithArguments("N.E", "System.Delegate").WithLocation(6, 11),
-                // (4,11): error CS0644: 'C' cannot derive from special class 'Enum'
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Delegate").WithArguments("N.E", "System.Delegate").WithLocation(6, 15),
+                // (4,15): error CS0644: 'C' cannot derive from special class 'Enum'
                 //     class C : Enum { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "C").WithArguments("N.C", "System.Enum").WithLocation(4, 11),
-                // (8,18): error CS0644: 'G' cannot derive from special class 'Array'
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Enum").WithArguments("N.C", "System.Enum").WithLocation(4, 15),
+                // (8,22): error CS0644: 'G' cannot derive from special class 'Array'
                 //     static class G : Array { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "G").WithArguments("N.G", "System.Array").WithLocation(8, 18),
-                // (7,18): error CS0644: 'F' cannot derive from special class 'MulticastDelegate'
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Array").WithArguments("N.G", "System.Array").WithLocation(8, 22),
+                // (7,22): error CS0644: 'F' cannot derive from special class 'MulticastDelegate'
                 //     static class F : MulticastDelegate { }
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "F").WithArguments("N.F", "System.MulticastDelegate").WithLocation(7, 18));
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "MulticastDelegate").WithArguments("N.F", "System.MulticastDelegate").WithLocation(7, 22));
         }
 
         [Fact]
@@ -16150,12 +16150,12 @@ class A {
             CSharpCompilation comp = CreateCompilation(text);
             var classA = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("A").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type;
+            var fieldType = fieldSym.TypeWithAnnotations;
 
-            Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
-            Assert.Equal("B", fieldType.Name);
+            Assert.Equal(SymbolKind.ErrorType, fieldType.Type.Kind);
+            Assert.Equal("B", fieldType.Type.Name);
 
-            var errorFieldType = (ErrorTypeSymbol)fieldType.TypeSymbol;
+            var errorFieldType = (ErrorTypeSymbol)fieldType.Type;
             Assert.Equal(CandidateReason.None, errorFieldType.CandidateReason);
             Assert.Equal(0, errorFieldType.CandidateSymbols.Length);
         }
@@ -16177,7 +16177,7 @@ class A : C {
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
             var classB = (NamedTypeSymbol)classC.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type.TypeSymbol;
+            var fieldType = fieldSym.Type;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
@@ -16214,7 +16214,7 @@ class A : C {
             var classBinN1 = (NamedTypeSymbol)ns1.GetTypeMembers("B").Single();
             var classBinN2 = (NamedTypeSymbol)ns2.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type.TypeSymbol;
+            var fieldType = fieldSym.Type;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);

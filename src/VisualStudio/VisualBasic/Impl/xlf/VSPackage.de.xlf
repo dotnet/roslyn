@@ -18,8 +18,8 @@
         <note />
       </trans-unit>
       <trans-unit id="10160">
-        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions</source>
-        <target state="translated">End-Konstruktionen automatisch einfügen;
+        <source>Automatic insertion of end constructs;Change pretty listing settings;Change outlining mode;Automatic insertion of Interface and MustOverride members;Show or hide procedure line separators;Turn error correction suggestions on or off;Turn highlighting of references and keywords on or off;Regex;Colorize regular expressions;Highlight related components under cursor;Report invalid regular expressions;regex;regular expression;</source>
+        <target state="needs-review-translation">End-Konstruktionen automatisch einfügen;
 Einstellungen für automatische Strukturierung und Einrückung ändern;
 Gliederungsmodus ändern;
 Schnittstellen- und MustOverride-Member automatisch einfügen;
@@ -74,7 +74,7 @@ Nicht zulässige reguläre Ausdrücke melden;</target>
       </trans-unit>
       <trans-unit id="10161">
         <source>Qualify with Me;Prefer intrinsic types;Style;Code Style</source>
-        <target state="translated">Mit mir qualifizieren;systeminterne Typen bevorzugen;Format;Codeformat</target>
+        <target state="translated">Mit Me qualifizieren; Intrinsische Typen bevorzugen; Format; Codeformat</target>
         <note>Code Style options page keywords</note>
       </trans-unit>
       <trans-unit id="110">

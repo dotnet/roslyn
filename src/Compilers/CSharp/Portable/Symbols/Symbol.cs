@@ -208,6 +208,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// The index of this member in the containing symbol. This is an optional
+        /// property, implemented by anonymous type properties only, for comparing
+        /// symbols in flow analysis.
+        /// </summary>
+        /// <remarks>
+        /// Should this be used for tuple fields as well?
+        /// </remarks>
+        internal virtual int? MemberIndexOpt => null;
+
+        /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
         /// symbol by type substitution then OriginalDefinition gets the original symbol as it was defined in
         /// source or metadata.
@@ -925,15 +935,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MergeUseSiteDiagnostics(ref result, info);
         }
 
-        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeSymbolWithAnnotations type)
+        internal bool DeriveUseSiteDiagnosticFromType(ref DiagnosticInfo result, TypeWithAnnotations type)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, type.TypeSymbol) ||
+            return DeriveUseSiteDiagnosticFromType(ref result, type.Type) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, type.CustomModifiers);
         }
 
         internal bool DeriveUseSiteDiagnosticFromParameter(ref DiagnosticInfo result, ParameterSymbol param)
         {
-            return DeriveUseSiteDiagnosticFromType(ref result, param.Type) ||
+            return DeriveUseSiteDiagnosticFromType(ref result, param.TypeWithAnnotations) ||
                    DeriveUseSiteDiagnosticFromCustomModifiers(ref result, param.RefCustomModifiers);
         }
 
@@ -984,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeSymbolWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
+        internal static bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, ImmutableArray<TypeWithAnnotations> types, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
             foreach (var t in types)
             {
@@ -1014,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.Type.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
+                if (parameter.TypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes) ||
                     GetUnificationUseSiteDiagnosticRecursive(ref result, parameter.RefCustomModifiers, owner, ref checkedTypes))
                 {
                     return true;
