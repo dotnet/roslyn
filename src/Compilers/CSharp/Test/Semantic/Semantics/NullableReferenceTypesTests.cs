@@ -92,7 +92,7 @@ namespace System
 using System.Collections.Generic;
 class C
 {
-    void M(object? o, object o2)
+    static void M(object? o, object o2)
     {
         L(o)[0].ToString(); // 1
         foreach (var x in L(o))
@@ -103,7 +103,7 @@ class C
         L(o2)[0].ToString();
     }
 
-    List<T> L<T>(T t) => null!;
+    static List<T> L<T>(T t) => null!;
 }", options: WithNonNullTypesTrue());
 
             // Missing warning on foreach (we should re-infer the enumerator and Current)
@@ -123,8 +123,11 @@ class C
 public class C<T>
 {
     public T Field = default!;
-
-    void M(object? o, object o2)
+    public C<T> this[T index] { get => throw null!; set => throw null!; }
+}
+public class Main
+{
+    static void M(object? o, object o2)
     {
         if (o is null) return;
         L(o)[0].Field.ToString();
@@ -133,18 +136,16 @@ public class C<T>
         L(o2)[0].Field.ToString(); // 1
     }
 
-    C<T> this[T index] { get => throw null!; set => throw null!; }
-
-    C<U> L<U>(U u) => null!;
+    static C<U> L<U>(U u) => null!;
 }", options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
-                // (11,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // (14,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o2 = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 14),
-                // (12,9): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(14, 14),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
                 //         L(o2)[0].Field.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "L(o2)[0].Field").WithLocation(12, 9)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "L(o2)[0].Field").WithLocation(15, 9)
                 );
         }
 
@@ -154,7 +155,11 @@ public class C<T>
             var comp = CreateCompilation(@"
 public class C<T>
 {
-    void M(object? x)
+    public T this[int index] { get => throw null!; set => throw null!; }
+}
+public class Program
+{
+    static void M(object? x)
     {
         var y = L(new[] { x });
         y[0][0].ToString(); // warning
@@ -163,16 +168,14 @@ public class C<T>
         var z = L(new[] { x });
         z[0][0].ToString(); // ok
     }
-
-    T this[int index] { get => throw null!; set => throw null!; }
-
-    C<U> L<U>(U u) => null!;
-}", options: WithNonNullTypesTrue());
+    static C<U> L<U>(U u) => null!;
+}
+", options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
-                // (7,9): warning CS8602: Possible dereference of a null reference.
+                // (11,9): warning CS8602: Possible dereference of a null reference.
                 //         y[0][0].ToString(); // warning
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y[0][0]").WithLocation(7, 9)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y[0][0]").WithLocation(11, 9)
                 );
         }
 
@@ -180,9 +183,13 @@ public class C<T>
         public void IndexerUpdatedBasedOnReceiver_SetterArguments()
         {
             var comp = CreateCompilation(@"
-class C<T>
+public class C<T>
 {
-    void M(object? o, object o2)
+    public int this[T index] { get => throw null!; set => throw null!; }
+}
+class Program
+{
+    static void M(object? o, object o2)
     {
         L(o)[o] = 1;
         L(o)[o2] = 2;
@@ -191,15 +198,14 @@ class C<T>
         L(o2)[o2] = 4;
     }
 
-    int this[T index] { get => throw null!; set => throw null!; }
-
-    C<U> L<U>(U u) => null!;
-}", options: WithNonNullTypesTrue());
+    static C<U> L<U>(U u) => null!;
+}
+", options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
-                // (9,15): warning CS8604: Possible null reference argument for parameter 'index' in 'int C<object>.this[object index]'.
+                // (13,15): warning CS8604: Possible null reference argument for parameter 'index' in 'int C<object>.this[object index]'.
                 //         L(o2)[o] = 3; // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("index", "int C<object>.this[object index]").WithLocation(9, 15)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("index", "int C<object>.this[object index]").WithLocation(13, 15)
                 );
         }
 
@@ -207,9 +213,13 @@ class C<T>
         public void IndexerUpdatedBasedOnReceiver_SetterArguments_Inferred()
         {
             var comp = CreateCompilation(@"
-class C<T>
+public class C<T>
 {
-    void M(object? o, object o2, object? input, object input2)
+    public int this[T index] { get => throw null!; set => throw null!; }
+}
+class Program
+{
+    static void M(object? o, object o2, object? input, object input2)
     {
         if (o is null) return;
         L(o)[input] = 1; // 1
@@ -220,18 +230,16 @@ class C<T>
         L(o2)[input2] = 4;
     }
 
-    int this[T index] { get => throw null!; set => throw null!; }
-
-    C<U> L<U>(U u) => null!;
+    static C<U> L<U>(U u) => null!;
 }", options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
-                // (7,14): warning CS8604: Possible null reference argument for parameter 'index' in 'int C<object>.this[object index]'.
+                // (11,14): warning CS8604: Possible null reference argument for parameter 'index' in 'int C<object>.this[object index]'.
                 //         L(o)[input] = 1; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "input").WithArguments("index", "int C<object>.this[object index]").WithLocation(7, 14),
-                // (10,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "input").WithArguments("index", "int C<object>.this[object index]").WithLocation(11, 14),
+                // (14,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         o2 = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 14)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(14, 14)
                 );
         }
 
@@ -239,9 +247,13 @@ class C<T>
         public void IndexerUpdatedBasedOnReceiver_GetterArguments()
         {
             var comp = CreateCompilation(@"
-class C<T>
+public class C<T>
 {
-    void M(object? o, object o2)
+    public int this[T index] { get => throw null!; set => throw null!; }
+}
+class Program
+{
+    static void M(object? o, object o2)
     {
         _ = L(o)[o];
         _ = L(o)[o2];
@@ -250,15 +262,13 @@ class C<T>
         _ = L(o2)[o2];
     }
 
-    int this[T index] { get => throw null!; set => throw null!; }
-
-    C<U> L<U>(U u) => null!;
+    static C<U> L<U>(U u) => null!;
 }", options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
-                // (9,19): warning CS8604: Possible null reference argument for parameter 'index' in 'int C<object>.this[object index]'.
+                // (13,19): warning CS8604: Possible null reference argument for parameter 'index' in 'int C<object>.this[object index]'.
                 //         _ = L(o2)[o]; // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("index", "int C<object>.this[object index]").WithLocation(9, 19)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("index", "int C<object>.this[object index]").WithLocation(13, 19)
                 );
         }
 
@@ -266,9 +276,13 @@ class C<T>
         public void IndexerUpdatedBasedOnReceiver_SetterArguments_NestedNullability()
         {
             var comp = CreateCompilation(@"
-class C<T>
+public class C<T>
 {
-    void M(object? o, object o2)
+    public int this[C<T> index] { get => throw null!; set => throw null!; }
+}
+class Program
+{
+    static void M(object? o, object o2)
     {
         L(o)[L(o)] = 1;
         L(o)[L(o2)] = 2; // 1
@@ -277,18 +291,16 @@ class C<T>
         L(o2)[L(o2)] = 4;
     }
 
-    int this[C<T> index] { get => throw null!; set => throw null!; }
-
-    C<U> L<U>(U u) => null!;
+    static C<U> L<U>(U u) => null!;
 }", options: WithNonNullTypesTrue());
 
             comp.VerifyDiagnostics(
-                // (7,14): warning CS8620: Argument of type 'C<object>' cannot be used for parameter 'index' of type 'C<object?>' in 'int C<object?>.this[C<object?> index]' due to differences in the nullability of reference types.
+                // (11,14): warning CS8620: Argument of type 'C<object>' cannot be used for parameter 'index' of type 'C<object?>' in 'int C<object?>.this[C<object?> index]' due to differences in the nullability of reference types.
                 //         L(o)[L(o2)] = 2; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "L(o2)").WithArguments("C<object>", "C<object?>", "index", "int C<object?>.this[C<object?> index]").WithLocation(7, 14),
-                // (9,15): warning CS8620: Argument of type 'C<object?>' cannot be used for parameter 'index' of type 'C<object>' in 'int C<object>.this[C<object> index]' due to differences in the nullability of reference types.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "L(o2)").WithArguments("C<object>", "C<object?>", "index", "int C<object?>.this[C<object?> index]").WithLocation(11, 14),
+                // (13,15): warning CS8620: Argument of type 'C<object?>' cannot be used for parameter 'index' of type 'C<object>' in 'int C<object>.this[C<object> index]' due to differences in the nullability of reference types.
                 //         L(o2)[L(o)] = 3; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "L(o)").WithArguments("C<object?>", "C<object>", "index", "int C<object>.this[C<object> index]").WithLocation(9, 15)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "L(o)").WithArguments("C<object?>", "C<object>", "index", "int C<object>.this[C<object> index]").WithLocation(13, 15)
                 );
         }
 
