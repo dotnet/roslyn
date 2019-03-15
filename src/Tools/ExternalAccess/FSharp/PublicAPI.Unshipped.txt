@@ -7,6 +7,7 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.BraceMatchingResult(Microsoft.CodeAnalysis.Text.TextSpan leftSpan, Microsoft.CodeAnalysis.Text.TextSpan rightSpan) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.LeftSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.RightSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.ContentTypeNames
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpBraceMatcher
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpBraceMatcher.FindBracesAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult?>
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap
@@ -88,10 +89,16 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.StructurePrivate = 68 -> Micr
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.StructureProtected = 67 -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.StructurePublic = 66 -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.TypeParameter = 70 -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Shared.Options.ServiceFeatureOnOffOptions
+const Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.ContentTypeNames.RoslynContentType = "Roslyn Languages" -> string
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.ClassificationTags.GetClassificationTypeName(string textTag) -> string
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.EditAndContinue.get -> string[]
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.Microsoft.get -> string[]
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.Unnecessary.get -> string[]
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions.GetMetadata(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace workspace, string fullPath, System.DateTime snapshotTimestamp) -> Microsoft.CodeAnalysis.Metadata
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions.GetOrCreateProjectIdForPath(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace workspace, string filePath, string projectDisplayName) -> Microsoft.CodeAnalysis.ProjectId
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions.GetProjectFilePath(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace workspace, Microsoft.CodeAnalysis.ProjectId projectId) -> string
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions.TryGetProjectIdByBinPath(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace workspace, string filePath, out Microsoft.CodeAnalysis.ProjectId projectId) -> bool
 static readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.CompletionOptions.BlockForCompletionItems -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Shared.Options.ServiceFeatureOnOffOptions.ClosedFileDiagnostic -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool?>
