@@ -9,8 +9,8 @@
     <PackageId>*$(MSBuildProjectFullPath)*</PackageId>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PerformanceSensitive.CSharp.Analyzers" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PerformanceSensitive.Analyzers.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\Utilities\Compiler\Analyzer.Utilities.projitems" Label="Shared" />
   <Import Project="..\..\Utilities\Workspaces\Workspaces.Utilities.projitems" Label="Shared" />

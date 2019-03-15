@@ -4,9 +4,9 @@
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.UnitTests" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(MicrosoftCodeAnalysisVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.csproj" />
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.BannedApiAnalyzers.csproj" />
   </ItemGroup>
 </Project>
