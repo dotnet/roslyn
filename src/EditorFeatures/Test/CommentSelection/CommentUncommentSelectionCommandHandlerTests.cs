@@ -755,7 +755,7 @@ class A
             }
         }
 
-        private async static void CommentOrUncommentSelection(
+        private static void CommentOrUncommentSelection(
             ITextView textView,
             IEnumerable<TextChange> expectedChanges,
             IEnumerable<Span> expectedSelectedSpans,
