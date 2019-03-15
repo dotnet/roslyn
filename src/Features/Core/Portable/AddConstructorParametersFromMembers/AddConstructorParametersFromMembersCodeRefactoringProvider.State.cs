@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 Document document)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(service, selectedMembers, document).ConfigureAwait(true))
+                if (!await state.TryInitializeAsync(service, selectedMembers, document).ConfigureAwait(false))
                 {
                     return null;
                 }
