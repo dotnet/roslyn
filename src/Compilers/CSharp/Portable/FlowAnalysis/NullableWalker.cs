@@ -1582,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (containingSlot >= 0)
                 {
-                    _ = ReportPossibleNullReceiverIfNeeded(node.Type, this.State[containingSlot], checkNullableValueType: false, syntax);
+                    _ = ReportPossibleNullReceiverIfNeeded(node.Type, this.State[containingSlot], checkNullableValueType: false, node.Syntax);
                 }
             }
         }
