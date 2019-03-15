@@ -3,6 +3,12 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.CompletionOptions
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IDiagnosticAnalyzerService
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IDiagnosticAnalyzerService.Reanalyze(Microsoft.CodeAnalysis.Workspace workspace, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectId> projectIds = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId> documentIds = null, bool highPriority = false) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.BraceMatchingResult(Microsoft.CodeAnalysis.Text.TextSpan leftSpan, Microsoft.CodeAnalysis.Text.TextSpan rightSpan) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.LeftSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.RightSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpBraceMatcher
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpBraceMatcher.FindBracesAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult?>
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap.ClassificationTypeMap(Microsoft.VisualStudio.Text.Classification.IClassificationTypeRegistryService registryService) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap.GetClassificationType(string name) -> Microsoft.VisualStudio.Text.Classification.IClassificationType

@@ -5,12 +5,12 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics
 {
     [Export(typeof(IDiagnosticAnalyzerService))]
     [Shared]
-    internal sealed class FSharpDiagnosticAnalyzerService : IDiagnosticAnalyzerService
+    internal class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
         private readonly Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService _delegatee;
 
         [ImportingConstructor]
-        public FSharpDiagnosticAnalyzerService(Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService delegatee)
+        public DiagnosticAnalyzerService(Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService delegatee)
         {
             _delegatee = delegatee;
         }
