@@ -53767,9 +53767,6 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (5,26): error CS0523: Struct member 'S<T>.Instance' of type 'S<T>' causes a cycle in the struct layout
-                //     internal static S<T> Instance = new S<T>();
-                Diagnostic(ErrorCode.ERR_StructLayoutCycle, "Instance").WithArguments("S<T>.Instance", "S<T>").WithLocation(5, 26),
                 // (11,27): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         S<T>.Instance.F = null; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 27),
@@ -85822,6 +85819,21 @@ class G<T>
                 // (118,9): warning CS8602: Possible dereference of a null reference.
                 //         node.ToString(); // 8
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "node").WithLocation(118, 9));
+        }
+
+        [Fact, WorkItem(32934, "https://github.com/dotnet/roslyn/issues/32934")]
+        public void NoCycleInStructLayout()
+        {
+            var source =
+@"
+#nullable enable
+public struct Foo<T>
+{
+    public static Foo<T> Bar;
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
     }
 }
