@@ -72,6 +72,11 @@
         <target state="translated">Der Name "{0}" stimmt nicht mit dem entsprechenden Deconstruct-Parameter "{1}" überein.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">Ein Standardliteral "default" ist als Muster ungültig. Verwenden Sie ggf. ein anderes Literal (z. B. 0 oder "null"). Verwenden Sie zum Abgleich aller Elemente ein discard-Muster "_".</target>

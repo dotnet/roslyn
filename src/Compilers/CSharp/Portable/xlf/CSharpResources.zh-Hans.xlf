@@ -72,6 +72,11 @@
         <target state="translated">名称“{0}”与相应 "Deconstruct" 参数“{1}”不匹配。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern '_'.</source>
         <target state="translated">默认文本 "default" 作为模式无效。请相应使用其他文本(例如 "0" 或 "null")。若要匹配一切项，请使用放弃模式 "_"。</target>

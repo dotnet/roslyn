@@ -1702,6 +1702,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 8707,
         ERR_NotBaseOrImplementedInterface = 8708,
 
+        ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
+
         #endregion diagnostics introduced for C# 8.0
 
         // Note: you will need to re-generate compiler code after adding warnings (eng\generate-compiler-code.cmd)

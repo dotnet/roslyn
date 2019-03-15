@@ -3418,6 +3418,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; cannot be embedded because it has a non-abstract member. Consider setting the &apos;Embed Interop Types&apos; property to false..
+        /// </summary>
+        internal static string ERR_DefaultInterfaceImplementationInNoPIAType {
+            get {
+                return ResourceManager.GetString("ERR_DefaultInterfaceImplementationInNoPIAType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The modifier &apos;{0}&apos; is not valid for this item in C# {1}. Please use language version &apos;{2}&apos; or greater..
         /// </summary>
         internal static string ERR_DefaultInterfaceImplementationModifier {
