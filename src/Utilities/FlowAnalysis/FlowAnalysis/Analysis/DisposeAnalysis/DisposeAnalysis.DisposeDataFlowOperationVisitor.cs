@@ -350,12 +350,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     !operation.Field.IsStatic &&
                     operation.Instance?.Kind == OperationKind.InstanceReference)
                 {
-                    if (!_trackedInstanceFieldLocationsOpt.TryGetValue(operation.Field, out _))
+                    var pointsToAbstractValue = GetPointsToAbstractValue(operation);
+                    if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.KnownLocations &&
+                        pointsToAbstractValue.Locations.Count == 1)
                     {
-                        var pointsToAbstractValue = GetPointsToAbstractValue(operation);
-                        if (HandleInstanceCreation(operation, pointsToAbstractValue, DisposeAbstractValue.NotDisposable) != DisposeAbstractValue.NotDisposable)
+                        var location = pointsToAbstractValue.Locations.Single();
+                        if (location.IsAnalysisEntityDefaultLocation)
                         {
-                            _trackedInstanceFieldLocationsOpt.Add(operation.Field, pointsToAbstractValue);
+                            if (!_trackedInstanceFieldLocationsOpt.TryGetValue(operation.Field, out _))
+                            {
+                                // First field reference on any control flow path.
+                                // Create a default instance to represent the object referenced by the field at start of the method and
+                                // check if the instance has NotDisposed state, indicating it is a disposable field that must be tracked.
+                                if (HandleInstanceCreation(operation, pointsToAbstractValue, defaultValue: DisposeAbstractValue.NotDisposable) == DisposeAbstractValue.NotDisposed)
+                                {
+                                    _trackedInstanceFieldLocationsOpt.Add(operation.Field, pointsToAbstractValue);
+                                }
+                            }
+                            else if (!CurrentAnalysisData.ContainsKey(location))
+                            {
+                                // This field has already started being tracked on a different control flow path.
+                                // Process the default instance creation on this control flow path as well.
+                                var disposedState = HandleInstanceCreation(operation, pointsToAbstractValue, DisposeAbstractValue.NotDisposable);
+                                Debug.Assert(disposedState == DisposeAbstractValue.NotDisposed);
+                            }
                         }
                     }
                 }
