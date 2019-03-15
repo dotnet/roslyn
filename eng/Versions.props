@@ -191,6 +191,7 @@
     <xunitVersion>2.4.1-pre.build.4059</xunitVersion>
     <xunitanalyzersVersion>0.10.0</xunitanalyzersVersion>
     <xunitassertVersion>$(xunitVersion)</xunitassertVersion>
+    <XunitCombinatorialVersion>1.2.7</XunitCombinatorialVersion>
     <xunitextensibilitycoreVersion>$(xunitVersion)</xunitextensibilitycoreVersion>
     <xunitrunnerconsoleVersion>2.4.1-pre.build.4059</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
