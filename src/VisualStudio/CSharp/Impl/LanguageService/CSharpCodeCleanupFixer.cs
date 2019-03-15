@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -348,7 +349,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private Task<bool> FixSolutionAsync(Solution solution, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {
-            return FixAsync(solution.Workspace, ApplyFixAsync, context, cancellationToken);
+            var solutionName = Path.GetFileName(solution.FilePath);
+            return FixAsync(solution.Workspace, ApplyFixAsync, context, solutionName, cancellationToken);
 
             // Local function
             Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken innerCancellationToken)
@@ -359,7 +361,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private Task<bool> FixProjectAsync(Project project, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {
-            return FixAsync(project.Solution.Workspace, ApplyFixAsync, context, cancellationToken);
+            return FixAsync(project.Solution.Workspace, ApplyFixAsync, context, project.Name, cancellationToken);
 
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken innerCancellationToken)
@@ -372,7 +374,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         private Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
         {
             var buffer = textBufferScope.SubjectBuffer;
-            return FixAsync(buffer.GetWorkspace(), ApplyFixAsync, context, cancellationToken);
+            var documentName = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges().Name;
+            return FixAsync(buffer.GetWorkspace(), ApplyFixAsync, context, documentName, cancellationToken);
 
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken innerCancellationToken)
@@ -383,11 +386,22 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
         }
 
-        private async Task<bool> FixAsync(Workspace workspace, Func<ProgressTracker, CancellationToken, Task<Solution>> applyFixAsync, ICodeCleanUpExecutionContext context, CancellationToken cancellationToken)
+        private async Task<bool> FixAsync(Workspace workspace, Func<ProgressTracker, CancellationToken, Task<Solution>> applyFixAsync, ICodeCleanUpExecutionContext context,
+            string contextName, CancellationToken cancellationToken)
         {
             using (var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(context.OperationContext.UserCancellationToken, cancellationToken))
             {
                 cancellationToken = cancellationTokenSource.Token;
+
+                var description = string.Format(EditorFeaturesResources.Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail, contextName);
+                using (var scope = context.OperationContext.AddScope(allowCancellation: true, description))
+                {
+                    var workspaceStatusService = workspace.Services.GetService<IWorkspaceStatusService>();
+                    if (workspaceStatusService != null)
+                    {
+                        await workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(true);
+                    }
+                }
 
                 using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
                 {
