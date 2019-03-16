@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -43,13 +44,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             CancellationToken cancellationToken,
             out PointsToAnalysisResult pointsToAnalysisResult,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
-            bool performCopyAnalysisIfNotUserConfigured = false)
+            bool performCopyAnalysisIfNotUserConfigured = false,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
             return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
-                interproceduralAnalysisConfig, disposeOwnershipTransferLikelyTypes,
-                trackInstanceFields, exceptionPathsAnalysis,
+                interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
+                disposeOwnershipTransferLikelyTypes, trackInstanceFields, exceptionPathsAnalysis,
                 performCopyAnalysis: analyzerOptions.GetCopyAnalysisOption(rule, defaultValue: performCopyAnalysisIfNotUserConfigured, cancellationToken),
                 out pointsToAnalysisResult);
         }
@@ -59,6 +61,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             ISymbol owningSymbol,
             WellKnownTypeProvider wellKnownTypeProvider,
             InterproceduralAnalysisConfiguration interproceduralAnalysisConfig,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt,
             ImmutableHashSet<INamedTypeSymbol> disposeOwnershipTransferLikelyTypes,
             bool trackInstanceFields,
             bool exceptionPathsAnalysis,
@@ -70,10 +73,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             Debug.Assert(owningSymbol != null);
 
             pointsToAnalysisResult = PointsToAnalysis.PointsToAnalysis.GetOrComputeResult(
-                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig, PessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
+                cfg, owningSymbol, wellKnownTypeProvider, interproceduralAnalysisConfig,
+                interproceduralAnalysisPredicateOpt, PessimisticAnalysis, performCopyAnalysis, exceptionPathsAnalysis);
             var analysisContext = DisposeAnalysisContext.Create(
-                DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, PessimisticAnalysis,
-                exceptionPathsAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext, disposeOwnershipTransferLikelyTypes, trackInstanceFields);
+                DisposeAbstractValueDomain.Default, wellKnownTypeProvider, cfg, owningSymbol, interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
+                PessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResult, GetOrComputeResultForAnalysisContext, disposeOwnershipTransferLikelyTypes, trackInstanceFields);
             return GetOrComputeResultForAnalysisContext(analysisContext);
         }
 

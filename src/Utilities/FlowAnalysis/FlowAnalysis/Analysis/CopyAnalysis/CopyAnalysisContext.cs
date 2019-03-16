@@ -26,12 +26,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<CopyAnalysisContext, CopyAnalysisResult> getOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraphOpt,
-            InterproceduralCopyAnalysisData interproceduralAnalysisDataOpt)
+            InterproceduralCopyAnalysisData interproceduralAnalysisDataOpt,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis,
-                  predicateAnalysis: true, exceptionPathsAnalysis, copyAnalysisResultOpt: null, pointsToAnalysisResultOpt: pointsToAnalysisResultOpt,
-                  getOrComputeAnalysisResult: getOrComputeAnalysisResult,
-                  parentControlFlowGraphOpt: parentControlFlowGraphOpt,
-                  interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
+                  predicateAnalysis: true, exceptionPathsAnalysis, copyAnalysisResultOpt: null, pointsToAnalysisResultOpt,
+                  getOrComputeAnalysisResult, parentControlFlowGraphOpt, interproceduralAnalysisDataOpt, interproceduralAnalysisPredicateOpt)
         {
         }
 
@@ -44,11 +43,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             bool pessimisticAnalysis,
             bool exceptionPathsAnalysis,
             PointsToAnalysisResult pointsToAnalysisResultOpt,
-            Func<CopyAnalysisContext, CopyAnalysisResult> getOrComputeAnalysisResult)
+            Func<CopyAnalysisContext, CopyAnalysisResult> getOrComputeAnalysisResult,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
         {
             return new CopyAnalysisContext(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol,
                   interproceduralAnalysisConfig, pessimisticAnalysis, exceptionPathsAnalysis, pointsToAnalysisResultOpt, getOrComputeAnalysisResult,
-                  parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null);
+                  parentControlFlowGraphOpt: null, interproceduralAnalysisDataOpt: null, interproceduralAnalysisPredicateOpt);
         }
 
         public override CopyAnalysisContext ForkForInterproceduralAnalysis(
@@ -60,7 +60,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis
             InterproceduralCopyAnalysisData interproceduralAnalysisData)
         {
             return new CopyAnalysisContext(ValueDomain, WellKnownTypeProvider, invokedControlFlowGraph, invokedMethod, InterproceduralAnalysisConfiguration,
-                PessimisticAnalysis, ExceptionPathsAnalysis, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData);
+                PessimisticAnalysis, ExceptionPathsAnalysis, pointsToAnalysisResultOpt, GetOrComputeAnalysisResult, ControlFlowGraph, interproceduralAnalysisData,
+                InterproceduralAnalysisPredicateOpt);
         }
 
         protected override void ComputeHashCodePartsSpecific(ArrayBuilder<int> builder)

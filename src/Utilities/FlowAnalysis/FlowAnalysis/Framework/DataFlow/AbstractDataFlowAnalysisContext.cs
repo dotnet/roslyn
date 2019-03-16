@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             PointsToAnalysisResult pointsToAnalysisResultOpt,
             Func<TAnalysisContext, TAnalysisResult> getOrComputeAnalysisResult,
             ControlFlowGraph parentControlFlowGraphOpt,
-            InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> interproceduralAnalysisDataOpt)
+            InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> interproceduralAnalysisDataOpt,
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt)
         {
             Debug.Assert(controlFlowGraph != null);
             Debug.Assert(owningSymbol != null);
@@ -57,6 +58,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             PointsToAnalysisResultOpt = pointsToAnalysisResultOpt;
             GetOrComputeAnalysisResult = getOrComputeAnalysisResult;
             InterproceduralAnalysisDataOpt = interproceduralAnalysisDataOpt;
+            InterproceduralAnalysisPredicateOpt = interproceduralAnalysisPredicateOpt;
         }
 
         public AbstractValueDomain<TAbstractAnalysisValue> ValueDomain { get; }
@@ -74,6 +76,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         // Optional data for context sensitive analysis.
         public InterproceduralAnalysisData<TAnalysisData, TAnalysisContext, TAbstractAnalysisValue> InterproceduralAnalysisDataOpt { get; }
+        public InterproceduralAnalysisPredicate InterproceduralAnalysisPredicateOpt { get; }
 
         public abstract TAnalysisContext ForkForInterproceduralAnalysis(
             IMethodSymbol invokedMethod,
@@ -148,6 +151,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             builder.Add(CopyAnalysisResultOpt.GetHashCodeOrDefault());
             builder.Add(PointsToAnalysisResultOpt.GetHashCodeOrDefault());
             builder.Add(InterproceduralAnalysisDataOpt.GetHashCodeOrDefault());
+            builder.Add(InterproceduralAnalysisPredicateOpt.GetHashCodeOrDefault());
             ComputeHashCodePartsSpecific(builder);
         }
     }
