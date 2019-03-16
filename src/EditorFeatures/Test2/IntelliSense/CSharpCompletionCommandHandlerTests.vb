@@ -4671,8 +4671,8 @@ namespace ThenIncludeIntellisenseBug
     public static class EntityFrameworkQuerybleExtensions
     {
         public static IIncludableQueryable<TEntity, TProperty> Include<TEntity, TProperty>(
-         this IQueryable<TEntity> source,
-          Expression<Func<TEntity, TProperty>> navigationPropertyPath)
+            this IQueryable<TEntity> source,
+            Expression<Func<TEntity, TProperty>> navigationPropertyPath)
          where TEntity : class
         {
             return default(IIncludableQueryable<TEntity, TProperty>);
@@ -4698,6 +4698,156 @@ namespace ThenIncludeIntellisenseBug
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
                 Assert.True(state.CompletionItemsContainsAll({"Task", "FirstOrDefault"}))
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenIncludeSecondArgument(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+namespace ThenIncludeIntellisenseBug
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var registrations = new List<Registration>().AsQueryable();
+            var reg = registrations.Include(r => r.Activities).ThenInclude(0, b => b$$);
+        }
+    }
+
+    internal class Registration
+    {
+        public ICollection<Activity> Activities { get; set; }
+    }
+
+    public class Activity
+    {
+        public Task Task { get; set; }
+    }
+
+    public class Task
+    {
+        public string Name { get; set; }
+    }
+
+    public interface IIncludableQueryable<out TEntity, out TProperty> : IQueryable<TEntity>
+    {
+    }
+
+    public static class EntityFrameworkQuerybleExtensions
+    {
+        public static IIncludableQueryable<TEntity, TProperty> Include<TEntity, TProperty>(
+            this IQueryable<TEntity> source,
+            Expression<Func<TEntity, TProperty>> navigationPropertyPath)
+         where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+
+        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+            this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+            int a,
+            Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+
+        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+            this IIncludableQueryable<TEntity, TPreviousProperty> source,
+            int a,
+            Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+    }
+}]]>
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.CompletionItemsContainsAll({"Task", "FirstOrDefault"}))
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenIncludeSecondArgumentNoOverlap(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+
+namespace ThenIncludeIntellisenseBug
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var registrations = new List<Registration>().AsQueryable();
+            var reg = registrations.Include(r => r.Activities).ThenInclude(b => b.Task, b =>b.$$);
+        }
+    }
+
+    internal class Registration
+    {
+        public ICollection<Activity> Activities { get; set; }
+    }
+
+    public class Activity
+    {
+        public Task Task { get; set; }
+    }
+
+    public class Task
+    {
+        public string Name { get; set; }
+    }
+
+    public interface IIncludableQueryable<out TEntity, out TProperty> : IQueryable<TEntity>
+    {
+    }
+
+    public static class EntityFrameworkQuerybleExtensions
+    {
+        public static IIncludableQueryable<TEntity, TProperty> Include<TEntity, TProperty>(
+            this IQueryable<TEntity> source,
+            Expression<Func<TEntity, TProperty>> navigationPropertyPath)
+         where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+
+        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+            this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+            Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath,
+            Expression<Func<TPreviousProperty, TProperty>> anotherNavigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+
+        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+            this IIncludableQueryable<TEntity, TPreviousProperty> source,
+            Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+        {
+            return default(IIncludableQueryable<TEntity, TProperty>);
+        }
+    }
+}]]>
+                              </Document>)
+
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                Assert.True(state.CompletionItemsContainsAll({"FirstOrDefault"}))
+                Assert.False(state.CompletionItemsContainsAny({"Task"}))
             End Using
         End Function
 
