@@ -4,8 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Analyzer.Utilities;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
@@ -14,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class EnumeratorAllocationAnalyzer : AbstractLanguageAllocationAnalyzer<SyntaxKind>
+    internal sealed class EnumeratorAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
     {
         public const string ReferenceTypeEnumeratorRuleId = "HAA0401";
 

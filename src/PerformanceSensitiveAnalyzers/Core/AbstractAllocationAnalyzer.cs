@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
         }
     }
 
-    internal abstract class AbstractLanguageAllocationAnalyzer<TLanguageKindEnum>
+    internal abstract class AbstractAllocationAnalyzer<TLanguageKindEnum>
         : AbstractAllocationAnalyzer
         where TLanguageKindEnum : struct
     {

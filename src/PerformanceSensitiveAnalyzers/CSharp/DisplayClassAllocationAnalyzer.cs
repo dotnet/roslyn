@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class DisplayClassAllocationAnalyzer : AbstractLanguageAllocationAnalyzer<SyntaxKind>
+    internal sealed class DisplayClassAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
     {
         public const string ClosureDriverRuleId = "HAA0301";
         public const string ClosureCaptureRuleId = "HAA0302";

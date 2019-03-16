@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
 
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class TypeConversionAllocationAnalyzer : AbstractLanguageAllocationAnalyzer<SyntaxKind>
+    internal sealed class TypeConversionAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
     {
         public const string ValueTypeToReferenceTypeConversionRuleId = "HAA0601";
         public const string DelegateOnStructInstanceRuleId = "HAA0602";

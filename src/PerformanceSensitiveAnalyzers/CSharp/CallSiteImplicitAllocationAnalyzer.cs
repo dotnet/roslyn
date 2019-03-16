@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers;
 namespace Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CallSiteImplicitAllocationAnalyzer : AbstractLanguageAllocationAnalyzer<SyntaxKind>
+    internal sealed class CallSiteImplicitAllocationAnalyzer : AbstractAllocationAnalyzer<SyntaxKind>
     {
         public const string ParamsParameterRuleId = "HAA0101";
         public const string ValueTypeNonOverridenCallRuleId = "HAA0102";
