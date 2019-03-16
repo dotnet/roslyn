@@ -1144,6 +1144,166 @@ public readonly struct S
         }
 
         [Fact]
+        public void ReadOnlyMethod_GetEnumerator()
+        {
+            var csharp = @"
+using System.Collections;
+
+public struct S1
+{
+    public IEnumerator GetEnumerator() => throw null;
+    void M1()
+    {
+        foreach (var x in this) {} // ok
+    }
+    readonly void M2()
+    {
+        foreach (var x in this) {} // warning-- implicit copy
+    }
+}
+
+public struct S2
+{
+    public readonly IEnumerator GetEnumerator() => throw null;
+    void M1()
+    {
+        foreach (var x in this) {} // ok
+    }
+    readonly void M2()
+    {
+        foreach (var x in this) {} // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (13,27): warning CS8655: Call to non-readonly member 'GetEnumerator' from a 'readonly' member results in an implicit copy of 'this'.
+                //         foreach (var x in this) {} // warning-- implicit copy
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetEnumerator", "this").WithLocation(13, 27));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Using()
+        {
+            // 'using' results in a boxing conversion when the struct implements 'IDisposable'.
+            // Boxing conversions are out of scope of the implicit copy warning.
+            // 'await using' can't be used with ref structs, so implicity copy warnings can't be produced in that scenario.
+            var csharp = @"
+public ref struct S1
+{
+    public void Dispose() {}
+
+    void M1()
+    {
+        using (this) { } // ok
+    }
+
+    readonly void M2()
+    {
+        using (this) { } // should warn
+    }
+}
+
+public ref struct S2
+{
+    public readonly void Dispose() {}
+
+    void M1()
+    {
+        using (this) { } // ok
+    }
+
+    readonly void M2()
+    {
+        using (this) { } // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (13,16): warning CS8655: Call to non-readonly member 'Dispose' from a 'readonly' member results in an implicit copy of 'this'.
+                //         using (this) { } // should warn
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("Dispose", "this").WithLocation(13, 16));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Deconstruct()
+        {
+            var csharp = @"
+public struct S1
+{
+    void M1()
+    {
+        var (x, y) = this; // ok
+    }
+
+    readonly void M2()
+    {
+        var (x, y) = this; // should warn
+    }
+
+    public void Deconstruct(out int x, out int y)
+    {
+        x = 42;
+        y = 123;
+    }
+}
+
+public struct S2
+{
+    void M1()
+    {
+        var (x, y) = this; // ok
+    }
+
+    readonly void M2()
+    {
+        var (x, y) = this; // ok
+    }
+
+    public readonly void Deconstruct(out int x, out int y)
+    {
+        x = 42;
+        y = 123;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (11,22): warning CS8655: Call to non-readonly member 'Deconstruct' from a 'readonly' member results in an implicit copy of 'this'.
+                //         var (x, y) = this; // should warn
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("Deconstruct", "this").WithLocation(11, 22));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Deconstruct_MethodMissing()
+        {
+            var csharp = @"
+public struct S2
+{
+    readonly void M1()
+    {
+        var (x, y) = this; // error
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'x'.
+                //         var (x, y) = this; // error
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "x").WithArguments("x").WithLocation(6, 14),
+                // (6,17): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'y'.
+                //         var (x, y) = this; // error
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "y").WithArguments("y").WithLocation(6, 17),
+                // (6,22): error CS1061: 'S2' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'S2' could be found (are you missing a using directive or an assembly reference?)
+                //         var (x, y) = this; // error
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "this").WithArguments("S2", "Deconstruct").WithLocation(6, 22),
+                // (6,22): error CS8129: No suitable 'Deconstruct' instance or extension method was found for type 'S2', with 2 out parameters and a void return type.
+                //         var (x, y) = this; // error
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "this").WithArguments("S2", "2").WithLocation(6, 22));
+        }
+
+        [Fact]
         public void ReadOnlyDestructor()
         {
             var csharp = @"

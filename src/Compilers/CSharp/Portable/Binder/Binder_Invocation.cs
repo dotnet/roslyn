@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns false if an implicit 'this' copy will occur due to an instance member invocation in a readonly member.
         /// </summary>
-        private bool CheckImplicitThisCopyInReadOnlyMember(BoundExpression receiver, MethodSymbol method, DiagnosticBag diagnostics)
+        internal bool CheckImplicitThisCopyInReadOnlyMember(BoundExpression receiver, MethodSymbol method, DiagnosticBag diagnostics)
         {
             // For now we are warning only in implicit copy scenarios that are only possible with readonly members.
             // Eventually we will warn on implicit value copies in more scenarios. See https://github.com/dotnet/roslyn/issues/33968.
