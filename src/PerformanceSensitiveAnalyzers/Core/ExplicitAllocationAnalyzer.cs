@@ -3,11 +3,10 @@
 using System;
 using System.Collections.Immutable;
 using Analyzer.Utilities;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
 
-namespace Microsoft.PerformanceSensitive.Analyzers
+namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     internal sealed class ExplicitAllocationAnalyzer : AbstractAllocationAnalyzer
