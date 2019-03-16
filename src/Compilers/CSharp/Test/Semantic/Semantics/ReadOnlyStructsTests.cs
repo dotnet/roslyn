@@ -308,7 +308,7 @@ public struct S
         public void ReadOnlyMethod_CallBaseMethod()
         {
             var csharp = @"
-public struct S1
+public struct S
 {
     readonly void M()
     {
@@ -319,8 +319,16 @@ public struct S1
         Equals(null);
     }
 }
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
 
-public struct S2
+        [Fact]
+        public void ReadOnlyMethod_OverrideBaseMethod()
+        {
+            var csharp = @"
+public struct S1
 {
     // note: GetType can't be overridden
     public override string ToString() => throw null;
@@ -334,13 +342,14 @@ public struct S2
         GetHashCode();
         Equals(null);
 
+        // ok
         base.ToString();
         base.GetHashCode();
         base.Equals(null);
     }
 }
 
-public struct S3
+public struct S2
 {
     public readonly override string ToString() => throw null;
     public readonly override int GetHashCode() => throw null;
@@ -358,8 +367,26 @@ public struct S3
         base.Equals(null);
     }
 }
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
 
-public struct S4
+                // (12,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
+                //         ToString();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(12, 9),
+                // (13,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
+                //         GetHashCode();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(13, 9),
+                // (14,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
+                //         Equals(null);
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(14, 9));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Override_AssignThis()
+        {
+            var csharp = @"
+public struct S
 {
     public int i;
 
@@ -371,24 +398,16 @@ public struct S4
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (24,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
-                //         ToString();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(24, 9),
-                // (25,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
-                //         GetHashCode();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(25, 9),
-                // (26,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
-                //         Equals(null);
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(26, 9),
-                // (58,52): error CS1604: Cannot assign to 'this' because it is read-only
+
+                // (7,52): error CS1604: Cannot assign to 'this' because it is read-only
                 //     public readonly override string ToString() => (i++).ToString();
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(58, 52),
-                // (59,52): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(7, 52),
+                // (8,52): error CS1604: Cannot assign to 'this' because it is read-only
                 //     public readonly override int GetHashCode() => (i++).GetHashCode();
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(59, 52),
-                // (60,56): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(8, 52),
+                // (9,56): error CS1604: Cannot assign to 'this' because it is read-only
                 //     public readonly override bool Equals(object o) => (i++).Equals(o);
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(60, 56));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(9, 56));
         }
 
         [Fact]
