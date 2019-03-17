@@ -85,6 +85,225 @@ namespace System
     }
 }";
 
+        [Fact, WorkItem(29964, "https://github.com/dotnet/roslyn/issues/29964")]
+        public void IndexerUpdatedBasedOnReceiver_ReturnType()
+        {
+            var comp = CreateCompilation(@"
+using System.Collections.Generic;
+class C
+{
+    static void M(object? o, object o2)
+    {
+        L(o)[0].ToString(); // 1
+        foreach (var x in L(o))
+        {
+            x.ToString(); // 2
+        }
+
+        L(o2)[0].ToString();
+    }
+
+    static List<T> L<T>(T t) => null!;
+}", options: WithNonNullTypesTrue());
+
+            // Missing warning on foreach (we should re-infer the enumerator and Current)
+            // https://github.com/dotnet/roslyn/issues/33257
+
+            comp.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         L(o)[0].ToString(); // Should get a warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "L(o)[0]").WithLocation(7, 9)
+                );
+        }
+
+        [Fact, WorkItem(29964, "https://github.com/dotnet/roslyn/issues/29964")]
+        public void IndexerUpdatedBasedOnReceiver_ReturnType_Inferred()
+        {
+            var comp = CreateCompilation(@"
+public class C<T>
+{
+    public T Field = default!;
+    public C<T> this[T index] { get => throw null!; set => throw null!; }
+}
+public class Main
+{
+    static void M(object? o, object o2)
+    {
+        if (o is null) return;
+        L(o)[0].Field.ToString();
+
+        o2 = null;
+        L(o2)[0].Field.ToString(); // 1
+    }
+
+    static C<U> L<U>(U u) => null!;
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (14,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         o2 = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(14, 14),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         L(o2)[0].Field.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "L(o2)[0].Field").WithLocation(15, 9)
+                );
+        }
+
+        [Fact, WorkItem(29964, "https://github.com/dotnet/roslyn/issues/29964")]
+        public void IndexerUpdatedBasedOnReceiver_ReturnType_NestedNullability_Inferred()
+        {
+            var comp = CreateCompilation(@"
+public class C<T>
+{
+    public T this[int index] { get => throw null!; set => throw null!; }
+}
+public class Program
+{
+    static void M(object? x)
+    {
+        var y = L(new[] { x });
+        y[0][0].ToString(); // warning
+
+        if (x == null) return;
+        var z = L(new[] { x });
+        z[0][0].ToString(); // ok
+    }
+    static C<U> L<U>(U u) => null!;
+}
+", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         y[0][0].ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y[0][0]").WithLocation(11, 9)
+                );
+        }
+
+        [Fact, WorkItem(29964, "https://github.com/dotnet/roslyn/issues/29964")]
+        public void IndexerUpdatedBasedOnReceiver_SetterArguments()
+        {
+            var comp = CreateCompilation(@"
+public class C<T>
+{
+    public int this[T index] { get => throw null!; set => throw null!; }
+}
+class Program
+{
+    static void M(object? o, object o2)
+    {
+        L(o)[o] = 1;
+        L(o)[o2] = 2;
+
+        L(o2)[o] = 3; // warn
+        L(o2)[o2] = 4;
+    }
+
+    static C<U> L<U>(U u) => null!;
+}
+", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (13,15): warning CS8604: Possible null reference argument for parameter 'index' in 'int C<object>.this[object index]'.
+                //         L(o2)[o] = 3; // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("index", "int C<object>.this[object index]").WithLocation(13, 15)
+                );
+        }
+
+        [Fact, WorkItem(29964, "https://github.com/dotnet/roslyn/issues/29964")]
+        public void IndexerUpdatedBasedOnReceiver_SetterArguments_Inferred()
+        {
+            var comp = CreateCompilation(@"
+public class C<T>
+{
+    public int this[T index] { get => throw null!; set => throw null!; }
+}
+class Program
+{
+    static void M(object? o, object o2, object? input, object input2)
+    {
+        if (o is null) return;
+        L(o)[input] = 1; // 1
+        L(o)[input2] = 2;
+
+        o2 = null;
+        L(o2)[input] = 3;
+        L(o2)[input2] = 4;
+    }
+
+    static C<U> L<U>(U u) => null!;
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (11,14): warning CS8604: Possible null reference argument for parameter 'index' in 'int C<object>.this[object index]'.
+                //         L(o)[input] = 1; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "input").WithArguments("index", "int C<object>.this[object index]").WithLocation(11, 14),
+                // (14,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         o2 = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(14, 14)
+                );
+        }
+
+        [Fact, WorkItem(29964, "https://github.com/dotnet/roslyn/issues/29964")]
+        public void IndexerUpdatedBasedOnReceiver_GetterArguments()
+        {
+            var comp = CreateCompilation(@"
+public class C<T>
+{
+    public int this[T index] { get => throw null!; set => throw null!; }
+}
+class Program
+{
+    static void M(object? o, object o2)
+    {
+        _ = L(o)[o];
+        _ = L(o)[o2];
+
+        _ = L(o2)[o]; // warn
+        _ = L(o2)[o2];
+    }
+
+    static C<U> L<U>(U u) => null!;
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (13,19): warning CS8604: Possible null reference argument for parameter 'index' in 'int C<object>.this[object index]'.
+                //         _ = L(o2)[o]; // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("index", "int C<object>.this[object index]").WithLocation(13, 19)
+                );
+        }
+
+        [Fact, WorkItem(29964, "https://github.com/dotnet/roslyn/issues/29964")]
+        public void IndexerUpdatedBasedOnReceiver_SetterArguments_NestedNullability()
+        {
+            var comp = CreateCompilation(@"
+public class C<T>
+{
+    public int this[C<T> index] { get => throw null!; set => throw null!; }
+}
+class Program
+{
+    static void M(object? o, object o2)
+    {
+        L(o)[L(o)] = 1;
+        L(o)[L(o2)] = 2; // 1
+
+        L(o2)[L(o)] = 3; // 2
+        L(o2)[L(o2)] = 4;
+    }
+
+    static C<U> L<U>(U u) => null!;
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (11,14): warning CS8620: Argument of type 'C<object>' cannot be used for parameter 'index' of type 'C<object?>' in 'int C<object?>.this[C<object?> index]' due to differences in the nullability of reference types.
+                //         L(o)[L(o2)] = 2; // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "L(o2)").WithArguments("C<object>", "C<object?>", "index", "int C<object?>.this[C<object?> index]").WithLocation(11, 14),
+                // (13,15): warning CS8620: Argument of type 'C<object?>' cannot be used for parameter 'index' of type 'C<object>' in 'int C<object>.this[C<object> index]' due to differences in the nullability of reference types.
+                //         L(o2)[L(o)] = 3; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "L(o)").WithArguments("C<object?>", "C<object>", "index", "int C<object>.this[C<object> index]").WithLocation(13, 15)
+                );
+        }
+
         [Fact, WorkItem(33289, "https://github.com/dotnet/roslyn/issues/33289")]
         public void ConditionalReceiver()
         {
