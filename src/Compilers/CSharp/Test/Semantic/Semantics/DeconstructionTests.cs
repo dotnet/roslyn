@@ -4185,12 +4185,12 @@ class Program
 
             var x1 = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("x1", x1.Name);
-            Assert.Equal("System.Int32", ((LocalSymbol)x1).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)x1).TypeWithAnnotations.ToTestDisplayString());
             Assert.Same(x1, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x1").Single()).Symbol);
 
             var x2 = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("x2", x2.Name);
-            Assert.Equal("System.Int32", ((LocalSymbol)x2).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)x2).TypeWithAnnotations.ToTestDisplayString());
             Assert.Same(x2, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x2").Single()).Symbol);
         }
 

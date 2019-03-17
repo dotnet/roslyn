@@ -49,13 +49,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_token_to_rename))
             {
-                ExecuteRenameWorker(args, context.OperationContext.UserCancellationToken);
+                ExecuteRenameWorker(args, context);
             }
 
             return true;
         }
 
-        private void ExecuteRenameWorker(RenameCommandArgs args, CancellationToken cancellationToken)
+        private void ExecuteRenameWorker(RenameCommandArgs args, CommandExecutionContext context)
         {
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
             if (!Workspace.TryGetWorkspace(snapshot.AsText().Container, out var workspace))
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 // Is the caret within any of the rename fields in this buffer?
                 // If so, focus the dashboard
-                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var editableSpan))
+                if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
                 {
                     var dashboard = GetDashboard(args.TextView);
                     dashboard.Focus();
@@ -88,8 +88,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var position = caretPoint.Value;
-            var document = args.SubjectBuffer.CurrentSnapshot.GetDocument();
+            var cancellationToken = context.OperationContext.UserCancellationToken;
+            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                context.OperationContext).WaitAndGetResult(cancellationToken);
             if (document == null)
             {
                 ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);

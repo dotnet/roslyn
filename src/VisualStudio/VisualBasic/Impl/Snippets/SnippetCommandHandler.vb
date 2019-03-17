@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Editor
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
@@ -23,7 +24,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
     <ContentType(ContentTypeNames.VisualBasicContentType)>
     <Name("VB Snippets")>
     <Order(After:=PredefinedCommandHandlerNames.Completion)>
-    <Order(After:=PredefinedCommandHandlerNames.IntelliSense)>
+    <Order(After:=PredefinedCompletionNames.CompletionCommandHandler)>
+    <Order(After:=PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)>
     Friend NotInheritable Class SnippetCommandHandler
         Inherits AbstractSnippetCommandHandler
 

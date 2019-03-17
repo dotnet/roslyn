@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
           DiagnosticBag diagnostics)
             : base(AttributeDescription.NullableAttribute, compilation, diagnostics)
         {
-            var byteType = TypeSymbolWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte));
-            _byteTypeSymbol = byteType.TypeSymbol;
+            var byteType = TypeWithAnnotations.Create(compilation.GetSpecialType(SpecialType.System_Byte));
+            _byteTypeSymbol = byteType.Type;
             Binder.ReportUseSiteDiagnostics(_byteTypeSymbol, diagnostics, Location.None);
 
-            var byteArrayType = TypeSymbolWithAnnotations.Create(
+            var byteArrayType = TypeWithAnnotations.Create(
                 ArrayTypeSymbol.CreateSZArray(
                     _byteTypeSymbol.ContainingAssembly,
                     byteType));
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _fields = ImmutableArray.Create<FieldSymbol>(
                 new SynthesizedFieldSymbol(
                     this,
-                    byteArrayType.TypeSymbol,
+                    byteArrayType.Type,
                     NullableFlagsFieldName,
                     isPublic: true,
                     isReadOnly: true,

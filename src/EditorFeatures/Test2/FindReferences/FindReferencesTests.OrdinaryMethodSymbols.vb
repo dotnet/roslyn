@@ -639,7 +639,8 @@ class C
         End Function
 
         <WorkItem(522786, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522786")>
-        <WpfFact(Skip:="Bug 522786"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(34107, "https://github.com/dotnet/roslyn/issues/34107")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/34107"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceDispose1() As Task
             Dim input =
 <Workspace>
@@ -662,7 +663,8 @@ class C
         End Function
 
         <WorkItem(522786, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/522786")>
-        <WpfFact(Skip:="Bug 522786"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(34107, "https://github.com/dotnet/roslyn/issues/34107")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/34107"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodInterfaceDispose2() As Task
             Dim input =
 <Workspace>
@@ -847,7 +849,8 @@ class C
         End Function
 
         <WorkItem(634818, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/634818")>
-        <WpfFact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(34106, "https://github.com/dotnet/roslyn/issues/34106")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/34106"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodLinqWhere1() As Task
             Dim input =
 <Workspace>
@@ -857,14 +860,18 @@ class C
         using System.Collections.Generic;
         class C
         {
-            public IEnumerable<int> {|Definition:Whe$$re|}(Func<int,bool> pred) { };
-            public IEnumerable<int> Select(Func<int,int> func) { };
             void Zap()
             {
                 var q = from v in this
                         [|where|] v > 21
                         select v;
             }
+        }
+
+        static class Extensions
+        {
+            public static IEnumerable<int> {|Definition:Whe$$re|}(this IEnumerable<int> source, Func<int, bool> predicate) => throw null;
+            public static IEnumerable<int> Select(this IEnumerable<int> source, Func<int, int> func) => throw null;
         }]]>
         </Document>
     </Project>
@@ -873,7 +880,8 @@ class C
         End Function
 
         <WorkItem(636943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636943")>
-        <WpfFact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(34106, "https://github.com/dotnet/roslyn/issues/34106")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/34106"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodLinqWhere2() As Task
             Dim input =
 <Workspace>
@@ -883,14 +891,18 @@ class C
         using System.Collections.Generic;
         class C
         {
-            public IEnumerable<int> {|Definition:Where|}(Func<int,bool> pred) { };
-            public IEnumerable<int> Select(Func<int,int> func) { };
             void Zap()
             {
                 var q = from v in this
                         [|w$$here|] v > 21
                         select v;
             }
+        }
+
+        static class Extensions
+        {
+            public static IEnumerable<int> {|Definition:Where|}(this IEnumerable<int> source, Func<int, bool> predicate) => throw null;
+            public static IEnumerable<int> Select(this IEnumerable<int> source, Func<int, int> func) => throw null;
         }]]>
         </Document>
     </Project>
@@ -899,7 +911,8 @@ class C
         End Function
 
         <WorkItem(636943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636943")>
-        <WpfFact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(34106, "https://github.com/dotnet/roslyn/issues/34106")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/34106"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodLinqSelect1() As Task
             Dim input =
 <Workspace>
@@ -909,14 +922,18 @@ class C
         using System.Collections.Generic;
         class C
         {
-            public IEnumerable<int> Where(Func<int,bool> pred) { };
-            public IEnumerable<int> {|Definition:Sel$$ect|}(Func<int,int> func) { };
             void Zap()
             {
                 var q = from v in this
                         where v > 21
                         [|select|] v + 1;
             }
+        }
+
+        static class Extensions
+        {
+            public static IEnumerable<int> Where(this IEnumerable<int> source, Func<int, bool> predicate) => throw null;
+            public static IEnumerable<int> {|Definition:Sel$$ect|}(this IEnumerable<int> source, Func<int, int> func) => throw null;
         }]]>
         </Document>
     </Project>
@@ -925,7 +942,8 @@ class C
         End Function
 
         <WorkItem(636943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/636943")>
-        <WpfFact(Skip:="636943"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(34106, "https://github.com/dotnet/roslyn/issues/34106")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/34106"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodLinqSelect2() As Task
             Dim input =
 <Workspace>
@@ -935,14 +953,18 @@ class C
         using System.Collections.Generic;
         class C
         {
-            public IEnumerable<int> Where(Func<int,bool> pred) { };
-            public IEnumerable<int> {|Definition:Select|}(Func<int,int> func) { };
             void Zap()
             {
                 var q = from v in this
                         where v > 21
                         [|sel$$ect|] v + 1;
             }
+        }
+
+        static class Extensions
+        {
+            public static IEnumerable<int> Where(this IEnumerable<int> source, Func<int, bool> predicate) => throw null;
+            public static IEnumerable<int> {|Definition:Select|}(this IEnumerable<int> source, Func<int, int> func) => throw null;
         }]]>
         </Document>
     </Project>
@@ -951,7 +973,8 @@ class C
         End Function
 
         <WorkItem(528936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528936")>
-        <WpfFact(Skip:="Bug 528936"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(34105, "https://github.com/dotnet/roslyn/issues/34105")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/34105"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodMonitorEnter() As Task
             Dim input =
 <Workspace>
@@ -963,7 +986,8 @@ class C
         {
             void Zap()
             {
-                Monitor.[|En$$ter|](null);
+                bool lockTaken = false;
+                Monitor.[|TryEn$$ter|](null, ref lockTaken);
                 [|lock|] (new C())
                 {
                 }
@@ -976,7 +1000,8 @@ class C
         End Function
 
         <WorkItem(528936, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528936")>
-        <WpfFact(Skip:="Bug 528936"), Trait(Traits.Feature, Traits.Features.FindReferences)>
+        <WorkItem(34105, "https://github.com/dotnet/roslyn/issues/34105")>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/34105"), Trait(Traits.Feature, Traits.Features.FindReferences)>
         Public Async Function TestOrdinaryMethodMonitorExit() As Task
             Dim input =
 <Workspace>
