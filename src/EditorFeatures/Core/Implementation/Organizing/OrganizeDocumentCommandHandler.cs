@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         private void Organize(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
         {
             var cancellationToken = operationContext.UserCancellationToken;
-            var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(operationContext).WaitAndGetResult(cancellationToken);
+            var document = subjectBuffer.GetFullyLoadedDocumentAsync(operationContext).WaitAndGetResult(cancellationToken);
             if (document != null)
             {
                 var newDocument = OrganizingService.OrganizeAsync(document, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         private void SortAndRemoveUnusedImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
         {
             var cancellationToken = operationContext.UserCancellationToken;
-            var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(operationContext).WaitAndGetResult(cancellationToken);
+            var document = subjectBuffer.GetFullyLoadedDocumentAsync(operationContext).WaitAndGetResult(cancellationToken);
             if (document != null)
             {
                 var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);

@@ -58,14 +58,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         }
 
         /// <summary>
-        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot)"/>
+        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetDocument(ITextSnapshot)"/>
         /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
         /// </summary>
-        public static async Task<Document> GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-            this ITextSnapshot snapshot, IUIThreadOperationContext operationContext)
+        public static async Task<Document> GetFullyLoadedDocumentAsync(
+            this ITextBuffer buffer, IUIThreadOperationContext operationContext)
         {
             // just get a document from whatever we have
-            var document = snapshot.TextBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+            var document = buffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             if (document == null)
             {
                 // we don't know about this buffer yet
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 }
 
                 // get proper document
-                return snapshot.GetDocument();
+                return buffer.CurrentSnapshot.GetDocument();
             }
         }
     }

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Extract_Interface))
             {
-                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                var document = args.SubjectBuffer.GetFullyLoadedDocumentAsync(
                     context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
                 if (document == null)
                 {

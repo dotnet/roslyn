@@ -45,11 +45,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
                 return false;
             }
 
-            var snapshot = args.SubjectBuffer.CurrentSnapshot;
-
             using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView)))
             {
-                var document = snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                var document = args.SubjectBuffer.GetFullyLoadedDocumentAsync(
                     context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
                 if (document == null)
                 {

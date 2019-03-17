@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
             using (var token = _listener.BeginAsyncOperation("EncapsulateField"))
             {
                 var cancellationToken = waitScope.Context.UserCancellationToken;
-                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                var document = args.SubjectBuffer.GetFullyLoadedDocumentAsync(
                     waitScope.Context).WaitAndGetResult(cancellationToken);
                 if (document == null)
                 {
