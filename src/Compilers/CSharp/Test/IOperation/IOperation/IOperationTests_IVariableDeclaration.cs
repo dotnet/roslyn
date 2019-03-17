@@ -1234,7 +1234,7 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
-        public void IVariableDeclaration_InvaliRadIgnoredDimensions_OutVarDeclaration_AtDepthOf20()
+        public void IVariableDeclaration_InvalidIgnoredDimensions_OutVarDeclaration_AtDepthOf20()
         {
             string source = @"
 #nullable enable
