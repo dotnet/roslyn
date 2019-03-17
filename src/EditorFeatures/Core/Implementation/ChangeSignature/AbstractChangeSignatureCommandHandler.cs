@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
         private static VSCommanding.CommandState GetCommandState(ITextBuffer subjectBuffer)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null ||
                 !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
             {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
         private bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return false;

@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             int position,
             CancellationToken cancellationToken)
         {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetDocument();
             if (document == null || !document.SupportsSyntaxTree)
             {
                 return null;

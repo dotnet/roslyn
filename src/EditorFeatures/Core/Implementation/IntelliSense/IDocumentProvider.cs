@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
     internal interface IDocumentProvider
     {
         Task<Document> GetDocumentAsync(ITextSnapshot snapshot, CancellationToken cancellationToken);
-        Document GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot snapshot);
+        Document GetDocument(ITextSnapshot snapshot);
     }
 
     internal class DocumentProvider : ForegroundThreadAffinitizedObject, IDocumentProvider
@@ -27,10 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             return Task.FromResult(snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken));
         }
 
-        public Document GetOpenDocumentInCurrentContextWithChanges(ITextSnapshot snapshot)
-        {
-            var text = snapshot.AsText();
-            return text.GetOpenDocumentInCurrentContextWithChanges();
-        }
+        public Document GetDocument(ITextSnapshot snapshot)
+            => snapshot.AsText().GetDocument();
     }
 }

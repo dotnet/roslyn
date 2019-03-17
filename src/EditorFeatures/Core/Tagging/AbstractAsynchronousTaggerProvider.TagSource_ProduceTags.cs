@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     {
                         CheckSnapshot(span.Snapshot);
 
-                        document = span.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                        document = span.Snapshot.GetDocument();
                         snapshotToDocumentMap[span.Snapshot] = document;
                     }
 

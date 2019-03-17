@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             }
 
             // use binding to see whether it is actually generic type or method 
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetDocument();
             if (document == null)
             {
                 return false;

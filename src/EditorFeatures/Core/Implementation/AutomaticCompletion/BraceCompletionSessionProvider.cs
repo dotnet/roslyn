@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
             this.AssertIsForeground();
 
             var textSnapshot = openingPoint.Snapshot;
-            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = textSnapshot.GetDocument();
             if (document != null)
             {
                 var editorSessionFactory = document.GetLanguageService<IEditorBraceCompletionSessionFactory>();

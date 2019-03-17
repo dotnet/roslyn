@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             var position = caretPoint.Value;
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = args.SubjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);

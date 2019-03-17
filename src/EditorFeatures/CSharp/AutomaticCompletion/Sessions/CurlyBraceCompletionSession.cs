@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             var undoHistory = GetUndoHistory(session.TextView);
             using (var transaction = undoHistory.CreateTransaction(EditorFeaturesResources.Brace_Completion))
             {
-                var document = session.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = session.SubjectBuffer.CurrentSnapshot.GetDocument();
                 if (document != null)
                 {
                     document.InsertText(session.ClosingPoint.GetPosition(session.SubjectBuffer.CurrentSnapshot) - 1, Environment.NewLine, cancellationToken);
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 }
             }
 
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetDocument();
             var style = document != null ? document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).GetOption(SmartIndent)
                                          : SmartIndent.DefaultValue;
 

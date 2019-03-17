@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
 
             using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView)))
             {
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = snapshot.GetDocument();
                 if (document == null)
                 {
                     return true;

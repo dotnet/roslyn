@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 {
                     indentCaretOnCommit = true;
 
-                    var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var document = this.SubjectBuffer.CurrentSnapshot.GetDocument();
                     if (document != null)
                     {
                         var documentOptions = document.GetOptionsAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
@@ -499,7 +499,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return;
             }
 
-            var documentWithImports = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var documentWithImports = this.SubjectBuffer.CurrentSnapshot.GetDocument();
             if (documentWithImports == null)
             {
                 return;

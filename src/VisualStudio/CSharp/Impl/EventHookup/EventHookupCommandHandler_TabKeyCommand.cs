@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                     return;
                 }
 
-                Document document = textView.TextSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                Document document = textView.TextSnapshot.GetDocument();
                 if (document == null)
                 {
                     Contract.Fail("Event Hookup could not find the document for the IBufferView.");
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             if (_inlineRenameService.ActiveSession == null)
             {
-                var document = textView.TextSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = textView.TextSnapshot.GetDocument();
                 if (document != null)
                 {
                     // In the middle of a user action, cannot cancel.

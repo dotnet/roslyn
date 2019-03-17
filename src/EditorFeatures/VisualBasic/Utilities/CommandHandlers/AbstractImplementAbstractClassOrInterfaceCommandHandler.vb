@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
         Private Function TryGenerateEndConstruct(args As ReturnKeyCommandArgs, cancellationToken As CancellationToken) As Boolean
             Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
 
-            Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = textSnapshot.GetDocument()
             If document Is Nothing Then
                 Return False
             End If
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             Dim textSnapshot = args.SubjectBuffer.CurrentSnapshot
             Dim text = textSnapshot.AsText()
 
-            Dim document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = textSnapshot.GetDocument()
             If document Is Nothing Then
                 Return False
             End If

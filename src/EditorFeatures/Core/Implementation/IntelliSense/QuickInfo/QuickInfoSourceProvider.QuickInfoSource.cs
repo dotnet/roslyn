@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 }
 
                 var snapshot = triggerPoint.Value.Snapshot;
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = snapshot.GetDocument();
                 if (document == null)
                 {
                     return null;

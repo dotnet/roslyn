@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                 if (nullablePoint.HasValue)
                                 {
                                     var point = nullablePoint.Value;
-                                    var document = point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                                    var document = point.Snapshot.GetDocument();
 
                                     if (document != null)
                                     {
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
                             if (nullablePoint.HasValue)
                             {
-                                Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                                Document document = snapshot.GetDocument();
                                 if (document != null)
                                 {
                                     var point = nullablePoint.Value;
@@ -404,7 +404,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var subjectBuffer = editorAdapters.GetDataBuffer(pBuffer);
 
                             var textSnapshot = subjectBuffer.CurrentSnapshot;
-                            var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                            var document = textSnapshot.GetDocument();
 
                             if (document != null)
                             {

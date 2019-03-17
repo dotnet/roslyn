@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 
                 if (this.TrackingSession != null && this.TrackingSession.IsDefinitelyRenamableIdentifier())
                 {
-                    var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var document = _buffer.CurrentSnapshot.GetDocument();
                     if (document != null)
                     {
                         // When rename tracking is dismissed via escape, we no longer wish to
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // Can be called on a background thread
 
                 syntaxFactsService = null;
-                var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = _buffer.CurrentSnapshot.GetDocument();
                 if (document != null)
                 {
                     syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 // Can be called on a background thread
 
                 languageHeuristicsService = null;
-                var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = _buffer.CurrentSnapshot.GetDocument();
                 if (document != null)
                 {
                     languageHeuristicsService = document.GetLanguageService<IRenameTrackingLanguageHeuristicsService>();

@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                     return null;
                 }
 
-                return point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                return point.Snapshot.GetDocument();
             }
 
             /// <summary>

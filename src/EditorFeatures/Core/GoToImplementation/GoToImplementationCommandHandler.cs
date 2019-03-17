@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
         private (Document, IFindUsagesService) GetDocumentAndService(ITextSnapshot snapshot)
         {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetDocument();
             return (document, document?.GetLanguageService<IFindUsagesService>());
         }
 

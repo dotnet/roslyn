@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             HandlePossibleTypingCommand(args, nextHandler, span =>
             {
-                var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = args.SubjectBuffer.CurrentSnapshot.GetDocument();
                 if (document == null)
                 {
                     nextHandler();

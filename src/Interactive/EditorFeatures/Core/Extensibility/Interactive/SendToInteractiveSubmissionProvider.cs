@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             ITextSnapshot snapshot,
             CancellationToken cancellationToken)
         {
-            Document doc = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            Document doc = args.SubjectBuffer.CurrentSnapshot.GetDocument();
             var semanticDocument = await SemanticDocument.CreateAsync(doc, cancellationToken).ConfigureAwait(false);
             var root = semanticDocument.Root;
 

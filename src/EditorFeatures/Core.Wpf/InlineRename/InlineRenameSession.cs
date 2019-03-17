@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // This should always be touching a symbol since we verified that upon invocation
             _renameInfo = renameInfo;
 
-            _triggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            _triggerDocument = triggerSpan.Snapshot.GetDocument();
             if (_triggerDocument == null)
             {
                 throw new InvalidOperationException(EditorFeaturesResources.The_triggerSpan_is_not_included_in_the_given_workspace);
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             foreach (var textBuffer in _openTextBuffers.Keys)
             {
-                var document = textBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = textBuffer.CurrentSnapshot.GetDocument();
                 var isClosed = document == null;
 
                 var openBuffer = _openTextBuffers[textBuffer];

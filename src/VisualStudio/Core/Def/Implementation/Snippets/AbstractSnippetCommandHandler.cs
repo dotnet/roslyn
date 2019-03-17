@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             AssertIsForeground();
 
-            Document document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            Document document = subjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return false;

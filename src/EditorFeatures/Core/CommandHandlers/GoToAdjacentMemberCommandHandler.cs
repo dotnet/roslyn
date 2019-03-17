@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         private VSCommanding.CommandState GetCommandStateImpl(EditorCommandArgs args)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = args.SubjectBuffer.CurrentSnapshot.GetDocument();
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             return IsAvailable(document, caretPoint) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
         }
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         private bool ExecuteCommandImpl(EditorCommandArgs args, bool gotoNextMember, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = args.SubjectBuffer.CurrentSnapshot.GetDocument();
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
             if (!IsAvailable(document, caretPoint))
             {

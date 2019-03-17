@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
         public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = args.SubjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null ||
                 !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
                 !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
         public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = args.SubjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return false;

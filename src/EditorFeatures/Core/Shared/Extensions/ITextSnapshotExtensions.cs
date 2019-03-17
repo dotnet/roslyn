@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// </summary>
         public static void FormatAndApplyToBuffer(this ITextSnapshot snapshot, TextSpan span, IEnumerable<AbstractFormattingRule> rules, CancellationToken cancellationToken)
         {
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = snapshot.GetDocument();
             if (document == null)
             {
                 return;

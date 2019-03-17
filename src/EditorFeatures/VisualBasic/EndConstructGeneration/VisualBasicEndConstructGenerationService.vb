@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Return Nothing
             End If
 
-            Dim document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = subjectBuffer.CurrentSnapshot.GetDocument()
             If document Is Nothing Then
                 Return Nothing
             End If
@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             cancellationToken As CancellationToken
         ) As Boolean
 
-            Dim document = view.TextSnapshot.GetOpenDocumentInCurrentContextWithChanges()
+            Dim document = view.TextSnapshot.GetDocument()
             If document Is Nothing Then
                 Return False
             End If

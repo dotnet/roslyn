@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion.Sessi
 
         protected bool CheckClosingTokenKind(IBraceCompletionSession session, CancellationToken cancellationToken)
         {
-            var document = session.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = session.SubjectBuffer.CurrentSnapshot.GetDocument();
             if (document != null)
             {
                 var root = document.GetSyntaxRootSynchronously(cancellationToken);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion.Sessi
 
         protected bool CheckCurrentPosition(IBraceCompletionSession session, CancellationToken cancellationToken)
         {
-            var document = session.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = session.SubjectBuffer.CurrentSnapshot.GetDocument();
             if (document != null)
             {
                 // make sure auto closing is called from a valid position

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// Gets the document from the corresponding workspace's current solution that is associated with the source text's container 
         /// in its current project context, updated to contain the same text as the source if necessary.
         /// </summary>
-        public static Document GetOpenDocumentInCurrentContextWithChanges(this SourceText text)
+        public static Document GetDocument(this SourceText text)
         {
             if (Workspace.TryGetWorkspace(text.Container, out var workspace))
             {

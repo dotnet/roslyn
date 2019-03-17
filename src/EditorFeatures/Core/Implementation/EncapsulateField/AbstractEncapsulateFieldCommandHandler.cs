@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 
         public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = args.SubjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return false;
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
 
         public VSCommanding.CommandState GetCommandState(EncapsulateFieldCommandArgs args)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = args.SubjectBuffer.CurrentSnapshot.GetDocument();
             if (document == null)
             {
                 return VSCommanding.CommandState.Unspecified;

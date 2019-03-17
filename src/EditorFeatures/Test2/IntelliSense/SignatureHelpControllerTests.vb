@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If documentProvider Is Nothing Then
                 documentProvider = New Mock(Of IDocumentProvider)
                 documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(document))
-                documentProvider.Setup(Function(p) p.GetOpenDocumentInCurrentContextWithChanges(It.IsAny(Of ITextSnapshot))).Returns(document)
+                documentProvider.Setup(Function(p) p.GetDocument(It.IsAny(Of ITextSnapshot))).Returns(document)
             End If
 
             If provider Is Nothing Then

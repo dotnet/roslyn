@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticEndConstructCorrect
             End If
 
             ' try holding onto previous Document so that we can use it when we diff syntax tree
-            _previousDocument = e.Before.GetOpenDocumentInCurrentContextWithChanges()
+            _previousDocument = e.Before.GetDocument()
         End Sub
 
         Private Sub OnTextBufferChanged(sender As Object, e As TextContentChangedEventArgs)

@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         protected Document GetThisDocument()
         {
-            var document = this.ContainedDocument.GetOpenTextContainer().CurrentText.GetOpenDocumentInCurrentContextWithChanges();
+            var document = this.ContainedDocument.GetOpenTextContainer().CurrentText.GetDocument();
             if (document == null)
             {
                 throw new InvalidOperationException();

@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 {
                     var position = positionInSubjectBuffer.Value;
 
-                    var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                    var document = subjectBuffer.CurrentSnapshot.GetDocument();
                     if (document != null)
                     {
                         var matchingSpan = braceMatcher.FindMatchingSpanAsync(document, position, cancellationToken).WaitAndGetResult(cancellationToken);
