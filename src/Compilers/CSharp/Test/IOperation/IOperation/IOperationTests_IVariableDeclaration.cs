@@ -1186,6 +1186,8 @@ IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration
       IVariableDeclaratorOperation (Symbol: System.Int32[]?[]?[]?[]?[]?[]?[]?[]?[]?[]?[]? x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x')
         Initializer: 
           null
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(7,22): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
