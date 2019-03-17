@@ -80,6 +80,53 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        public async Task EnsureInitializedCleansUpUnusedValue()
+        {
+            var expected = new object();
+            var notExpected = new object();
+
+            var cleanedUp = false;
+            void CleanUpAction(object value)
+            {
+                Assert.False(cleanedUp);
+                Assert.Same(value, notExpected);
+                cleanedUp = true;
+            }
+
+            var firstInValueFactory = new TaskCompletionSource<object>();
+            var secondCompleted = new TaskCompletionSource<object>();
+
+            var firstInitializedValueTask = AsyncLazyInitializer.EnsureInitializedAsync(
+                () => ref _value,
+                async () =>
+                {
+                    firstInValueFactory.SetResult(null);
+                    await secondCompleted.Task;
+                    return notExpected;
+                },
+                CleanUpAction);
+            var secondInitializedValueTask = AsyncLazyInitializer.EnsureInitializedAsync(
+                () => ref _value,
+                async () =>
+                {
+                    await firstInValueFactory.Task;
+                    return expected;
+                },
+                CleanUpAction);
+
+            var secondInitializedValue = await secondInitializedValueTask;
+            secondCompleted.SetResult(null);
+
+            var firstInitializedValue = await firstInitializedValueTask;
+
+            Assert.True(cleanedUp);
+            Assert.Same(expected, _value);
+            Assert.Same(expected, firstInitializedValue);
+            Assert.Same(expected, secondInitializedValue);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
         public async Task EnsureInitializedWithStateTakesFirstCompleted()
         {
             var expected = new object();
@@ -111,6 +158,56 @@ namespace Microsoft.CodeAnalysis.UnitTests.UtilityTest
 
             var firstInitializedValue = await firstInitializedValueTask;
 
+            Assert.Same(expected, _value);
+            Assert.Same(expected, firstInitializedValue);
+            Assert.Same(expected, secondInitializedValue);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AsyncLazy)]
+        public async Task EnsureInitializedWithStateCleansUpUnusedValue()
+        {
+            var expected = new object();
+            var notExpected = new object();
+
+            var cleanedUp = false;
+            void CleanUpAction(object value, object state)
+            {
+                Assert.False(cleanedUp);
+                Assert.Same(value, notExpected);
+                Assert.Same(this, state);
+                cleanedUp = true;
+            }
+
+            var firstInValueFactory = new TaskCompletionSource<object>();
+            var secondCompleted = new TaskCompletionSource<object>();
+
+            var firstInitializedValueTask = AsyncLazyInitializer.EnsureInitializedAsync(
+                state => ref state._value,
+                async _ =>
+                {
+                    firstInValueFactory.SetResult(null);
+                    await secondCompleted.Task;
+                    return notExpected;
+                },
+                CleanUpAction,
+                this);
+            var secondInitializedValueTask = AsyncLazyInitializer.EnsureInitializedAsync(
+                state => ref state._value,
+                async _ =>
+                {
+                    await firstInValueFactory.Task;
+                    return expected;
+                },
+                CleanUpAction,
+                this);
+
+            var secondInitializedValue = await secondInitializedValueTask;
+            secondCompleted.SetResult(null);
+
+            var firstInitializedValue = await firstInitializedValueTask;
+
+            Assert.True(cleanedUp);
             Assert.Same(expected, _value);
             Assert.Same(expected, firstInitializedValue);
             Assert.Same(expected, secondInitializedValue);
