@@ -39,7 +39,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 </Project>");
             VisualStudio.SolutionExplorer.SaveAll();
             VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
             base.MetadataReference();
         }

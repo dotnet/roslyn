@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetOptionInfer(string projectName, bool value)
         {
             _inProc.SetOptionInfer(projectName, value);
-            WaitForAsyncOperations(FeatureAttribute.Workspace);
+            WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         public void SetPersistenceOption(bool value)
@@ -40,8 +40,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void SetOption(string optionName, string feature, object value)
             => _inProc.SetOption(optionName, feature, value);
 
-        public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
-            => _inProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
+        public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
+            => _inProc.WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
 
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
             => _inProc.WaitForAllAsyncOperations(timeout, featureNames);

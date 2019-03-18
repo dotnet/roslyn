@@ -187,8 +187,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
             public void ErrorTags(params string[] expectedTags)
             {
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-                _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
+                _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
                 var actualTags = _textViewWindow.GetErrorTags();
                 Assert.Equal(expectedTags, actualTags);
             }

@@ -981,9 +981,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             argument = CreateConversion(argument, conversion, typedReferenceType, diagnostics);
 
-            TypeSymbol type = BindType(node.Type, diagnostics).Type;
+            TypeWithAnnotations typeWithAnnotations = BindType(node.Type, diagnostics);
 
-            return new BoundRefValueOperator(node, argument, type, hasErrors);
+            return new BoundRefValueOperator(node, typeWithAnnotations.NullableAnnotation, argument, typeWithAnnotations.Type, hasErrors);
         }
 
         private BoundExpression BindMakeRef(MakeRefExpressionSyntax node, DiagnosticBag diagnostics)
