@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
     {
         private readonly IFSharpBraceMatcher _braceMatcher;
 
+        [ImportingConstructor]
         public FSharpBraceMatcher(IFSharpBraceMatcher braceMatcher)
         {
             _braceMatcher = braceMatcher;

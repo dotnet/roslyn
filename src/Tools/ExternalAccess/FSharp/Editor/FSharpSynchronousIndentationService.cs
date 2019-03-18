@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor
     {
         private readonly IFSharpSynchronousIndentationService _service;
 
+        [ImportingConstructor]
         public FSharpSynchronousIndentationService(IFSharpSynchronousIndentationService service)
         {
             _service = service;

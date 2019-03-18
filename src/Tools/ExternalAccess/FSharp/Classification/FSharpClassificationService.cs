@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification
     {
         private readonly IFSharpClassificationService _service;
 
+        [ImportingConstructor]
         public FSharpClassificationService(IFSharpClassificationService service)
         {
             _service = service;

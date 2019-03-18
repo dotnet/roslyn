@@ -15,6 +15,16 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.RightSpa
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.ContentTypeNames
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpBraceMatcher
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpBraceMatcher.FindBracesAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult?>
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService.GetFormattingChangesAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan? textSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>>
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService.GetFormattingChangesAsync(Microsoft.CodeAnalysis.Document document, char typedChar, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>>
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService.GetFormattingChangesOnPasteAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>>
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService.GetFormattingChangesOnReturnAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextChange>>
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService.SupportsFormatDocument.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService.SupportsFormatOnPaste.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService.SupportsFormatOnReturn.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService.SupportsFormatSelection.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService.SupportsFormattingOnTypedCharacter(Microsoft.CodeAnalysis.Document document, char ch) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpSynchronousIndentationService
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpSynchronousIndentationService.GetDesiredIndentation(Microsoft.CodeAnalysis.Document document, int lineNumber, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult?
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult
