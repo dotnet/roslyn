@@ -177,10 +177,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
                 namingStyles.ToImmutableAndFree(),
                 namingRules.ToImmutableAndFree());
 
-            var oldOptions = OptionStore.GetOptions();
-            var newOptions = oldOptions.WithChangedOption(SimplificationOptions.NamingPreferences, _languageName, info);
-            OptionStore.SetOptions(newOptions);
-            OptionLogger.Log(oldOptions, newOptions);
+            OptionStore.SetOption(SimplificationOptions.NamingPreferences, _languageName, info);
         }
 
         internal override void LoadSettings()

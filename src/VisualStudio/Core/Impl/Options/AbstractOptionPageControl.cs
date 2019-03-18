@@ -158,15 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal virtual void SaveSettings()
         {
-            foreach (var bindingExpression in _bindingExpressions)
-            {
-                if (!bindingExpression.IsDirty)
-                {
-                    continue;
-                }
-
-                bindingExpression.UpdateSource();
-            }
+            
         }
 
         internal virtual void Close()
