@@ -121,7 +121,7 @@ namespace Analyzer.Utilities
             return false;
         }
 
-        private bool HasDisposableOwnershipTransferForParameter(IMethodSymbol containingMethod) =>
+        private bool HasDisposableOwnershipTransferForConstructorParameter(IMethodSymbol containingMethod) =>
             containingMethod.MethodKind == MethodKind.Constructor &&
             containingMethod.Parameters.Any(p => _disposeOwnershipTransferLikelyTypes.Contains(p.Type));
 
@@ -133,7 +133,7 @@ namespace Analyzer.Utilities
         public bool HasAnyDisposableCreationDescendant(ImmutableArray<IOperation> operationBlocks, IMethodSymbol containingMethod)
         {
             return operationBlocks.HasAnyOperationDescendant(IsDisposableCreation) ||
-                HasDisposableOwnershipTransferForParameter(containingMethod);
+                HasDisposableOwnershipTransferForConstructorParameter(containingMethod);
         }
 
         public ImmutableHashSet<IFieldSymbol> GetDisposableFields(INamedTypeSymbol namedType)
@@ -168,7 +168,7 @@ namespace Analyzer.Utilities
             if (location.CreationOpt == null)
             {
                 return location.SymbolOpt?.Kind == SymbolKind.Parameter &&
-                    HasDisposableOwnershipTransferForParameter(containingMethod);
+                    HasDisposableOwnershipTransferForConstructorParameter(containingMethod);
             }
 
             return IsDisposableCreation(location.CreationOpt);
