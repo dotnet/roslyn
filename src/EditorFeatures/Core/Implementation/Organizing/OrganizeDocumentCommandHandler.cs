@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
             {
-                this.Organize(args.SubjectBuffer, context.OperationContext.UserCancellationToken);
+                this.Organize(args.SubjectBuffer, context.OperationContext);
             }
 
             return true;
@@ -93,15 +93,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Organizing_document))
             {
-                this.SortAndRemoveUnusedImports(args.SubjectBuffer, context.OperationContext.UserCancellationToken);
+                this.SortAndRemoveUnusedImports(args.SubjectBuffer, context.OperationContext);
             }
 
             return true;
         }
 
-        private void Organize(ITextBuffer subjectBuffer, CancellationToken cancellationToken)
+        private void Organize(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var cancellationToken = operationContext.UserCancellationToken;
+            var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(operationContext).WaitAndGetResult(cancellationToken);
             if (document != null)
             {
                 var newDocument = OrganizingService.OrganizeAsync(document, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
@@ -112,9 +113,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
             }
         }
 
-        private void SortAndRemoveUnusedImports(ITextBuffer subjectBuffer, CancellationToken cancellationToken)
+        private void SortAndRemoveUnusedImports(ITextBuffer subjectBuffer, IUIThreadOperationContext operationContext)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var cancellationToken = operationContext.UserCancellationToken;
+            var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(operationContext).WaitAndGetResult(cancellationToken);
             if (document != null)
             {
                 var newDocument = document.GetLanguageService<IRemoveUnnecessaryImportsService>().RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
