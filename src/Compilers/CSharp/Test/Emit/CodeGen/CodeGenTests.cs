@@ -11317,9 +11317,12 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34198")]
         public void DecimalBinaryOp_03()
         {
+            // Test temporarily disabled as it fails CI on Linux in master branch
+            // Tracked by https://github.com/dotnet/roslyn/issues/34198
+
             string source = @"
 class C
 {
