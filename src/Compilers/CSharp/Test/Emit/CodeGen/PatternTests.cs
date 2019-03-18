@@ -831,7 +831,7 @@ public class C
 }");
         }
 
-        [Fact, WorkItem(15437, "https://github.com/dotnet/roslyn/issues/15437")]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(15437, "https://github.com/dotnet/roslyn/issues/15437")]
         public void IsTypeDiscard()
         {
             var source =
@@ -1669,7 +1669,7 @@ False
 }");
         }
 
-        [Fact, WorkItem(26387, "https://github.com/dotnet/roslyn/issues/26387")]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(26387, "https://github.com/dotnet/roslyn/issues/26387")]
         public void ValueTypeArgument01()
         {
             var source =
@@ -1970,7 +1970,8 @@ static class Program
 }");
         }
 
-        [Fact]
+        // PROTOPTYPE(nullable-api): Support deconstruction assignment
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void DoNotShareInputForMutatingWhenClause()
         {
             var source =

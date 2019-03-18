@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public Nullability ReferenceTypeConstraintNullability => throw new System.NotImplementedException();
+        public NullableAnnotation ReferenceTypeConstraintNullableAnnotation => throw new System.NotImplementedException();
 
-        public ImmutableArray<Nullability> ConstraintNullabilities => throw new System.NotImplementedException();
+        public ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations => throw new System.NotImplementedException();
     }
 }

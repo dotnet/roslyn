@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Shared Widening Operator CType(info As VisualBasicTypeInfo) As TypeInfo
-            Return New TypeInfo(info.Type, info.ConvertedType, Nullability.NotComputed, Nullability.NotComputed)
+            Return New TypeInfo(info.Type, info.ConvertedType, nullability:=Nothing, convertedNullability:=Nothing)
         End Operator
 
         Friend Sub New(type As TypeSymbol, convertedType As TypeSymbol, implicitConversion As Conversion)

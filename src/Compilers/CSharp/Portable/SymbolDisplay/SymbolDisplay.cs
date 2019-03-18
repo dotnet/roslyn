@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string ToDisplayString(
             ITypeSymbol symbol,
-            Nullability topLevelNullability,
+            CodeAnalysis.NullableFlowState topLevelNullability,
             SymbolDisplayFormat format = null)
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string ToMinimalDisplayString(
             ITypeSymbol symbol,
-            Nullability topLevelNullability,
+            CodeAnalysis.NullableFlowState topLevelNullability,
             SemanticModel semanticModel,
             int position,
             SymbolDisplayFormat format = null)
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ITypeSymbol symbol,
-            Nullability topLevelNullability,
+            CodeAnalysis.NullableFlowState topLevelNullability,
             SymbolDisplayFormat format = null)
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
             ITypeSymbol symbol,
-            Nullability topLevelNullability,
+            CodeAnalysis.NullableFlowState topLevelNullability,
             SemanticModel semanticModel,
             int position,
             SymbolDisplayFormat format = null)
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ISymbol symbol,
-            Nullability? topLevelNullabilityOpt,
+            CodeAnalysis.NullableFlowState? topLevelNullabilityOpt,
             SemanticModel semanticModelOpt,
             int positionOpt,
             SymbolDisplayFormat format,
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt);
             if (topLevelNullabilityOpt.HasValue)
             {
-                visitor.VisitWithNullability((TypeSymbol)symbol, topLevelNullabilityOpt.GetValueOrDefault());
+                visitor.VisitWithNullability((TypeSymbol)symbol, topLevelNullabilityOpt.GetValueOrDefault().ToInternalFlowState());
             }
             else
             {

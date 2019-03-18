@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol Type { get; }
 
         // PROTOTYPE(nullable-api): Document
-        Nullability Nullability { get; }
+        NullableAnnotation NullableAnnotation { get; }
 
         /// <summary>
         /// Returns true if the event is a WinRT type event.

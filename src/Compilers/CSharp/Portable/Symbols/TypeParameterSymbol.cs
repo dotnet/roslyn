@@ -690,9 +690,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region ITypeParameterTypeSymbol Members
 
-        Nullability ITypeParameterSymbol.ReferenceTypeConstraintNullability
+        CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation
         {
-            get => Nullability.NotComputed;
+            get => default;
         }
 
         TypeParameterKind ITypeParameterSymbol.TypeParameterKind
@@ -721,9 +721,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<Nullability> ITypeParameterSymbol.ConstraintNullabilities
+        ImmutableArray<CodeAnalysis.NullableAnnotation> ITypeParameterSymbol.ConstraintNullableAnnotations
         {
-            get => this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => Nullability.NotComputed);
+            get => this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => default(CodeAnalysis.NullableAnnotation));
         }
 
         ITypeParameterSymbol ITypeParameterSymbol.OriginalDefinition

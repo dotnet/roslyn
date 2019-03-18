@@ -1008,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Nullability IMethodSymbol.ReturnNullability => Nullability.NotComputed;
+        CodeAnalysis.NullableAnnotation IMethodSymbol.ReturnNullableAnnotation => default;
 
         ImmutableArray<ITypeSymbol> IMethodSymbol.TypeArguments
         {
@@ -1018,7 +1018,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        ImmutableArray<Nullability> IMethodSymbol.TypeArgumentsNullabilities => TypeArguments.SelectAsArray(_ => Nullability.NotComputed);
+        ImmutableArray<CodeAnalysis.NullableAnnotation> IMethodSymbol.TypeArgumentsNullableAnnotations => TypeArguments.SelectAsArray(_ => default(CodeAnalysis.NullableAnnotation));
 
         ImmutableArray<ITypeParameterSymbol> IMethodSymbol.TypeParameters
         {
@@ -1068,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        Nullability IMethodSymbol.ReceiverNullability => Nullability.NotComputed;
+        CodeAnalysis.NullableAnnotation IMethodSymbol.ReceiverNullableAnnotation => default;
 
         IMethodSymbol IMethodSymbol.ReducedFrom
         {

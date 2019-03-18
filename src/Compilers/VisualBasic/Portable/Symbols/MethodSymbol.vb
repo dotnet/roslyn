@@ -883,9 +883,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_ReceiverNullability As Nullability Implements IMethodSymbol.ReceiverNullability
+        Private ReadOnly Property IMethodSymbol_ReceiverNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReceiverNullableAnnotation
             Get
-                Return Nullability.NotComputed
+                Return NullableAnnotation.NotApplicable
             End Get
         End Property
 
@@ -986,9 +986,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_ReturnNullability As Nullability Implements IMethodSymbol.ReturnNullability
+        Private ReadOnly Property IMethodSymbol_ReturnNullableAnnotation As NullableAnnotation Implements IMethodSymbol.ReturnNullableAnnotation
             Get
-                Return Nullability.NotComputed
+                Return NullableAnnotation.NotApplicable
             End Get
         End Property
 
@@ -998,9 +998,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IMethodSymbol_TypeArgumentsNullabilities As ImmutableArray(Of Nullability) Implements IMethodSymbol.TypeArgumentsNullabilities
+        Private ReadOnly Property IMethodSymbol_TypeArgumentsNullableAnnotation As ImmutableArray(Of NullableAnnotation) Implements IMethodSymbol.TypeArgumentsNullableAnnotations
             Get
-                Return Me.TypeArguments.SelectAsArray(Function(t) Nullability.NotComputed)
+                Return Me.TypeArguments.SelectAsArray(Function(t) NullableAnnotation.NotApplicable)
             End Get
         End Property
 

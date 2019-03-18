@@ -113,22 +113,22 @@ namespace Microsoft.CodeAnalysis
         bool IsUnmanagedType { get; }
 
         // PROTOTYPE(nullable-api): Document
-        string ToDisplayString(Nullability topLevelNullability, SymbolDisplayFormat format = null);
+        string ToDisplayString(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null);
 
         // PROTOTYPE(nullable-api): Document
-        ImmutableArray<SymbolDisplayPart> ToDisplayParts(Nullability topLevelNullability, SymbolDisplayFormat format = null);
+        ImmutableArray<SymbolDisplayPart> ToDisplayParts(NullableFlowState topLevelNullability, SymbolDisplayFormat format = null);
 
         // PROTOTYPE(nullable-api): Document
         string ToMinimalDisplayString(
             SemanticModel semanticModel,
-            Nullability topLevelNullability,
+            NullableFlowState topLevelNullability,
             int position,
             SymbolDisplayFormat format = null);
 
         // PROTOTYPE(nullable-api): Document
         ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
             SemanticModel semanticModel,
-            Nullability topLevelNullability,
+            NullableFlowState topLevelNullability,
             int position,
             SymbolDisplayFormat format = null);
     }

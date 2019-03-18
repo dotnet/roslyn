@@ -307,15 +307,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var annotations in annotationsByMethod)
             {
                 var method = (MethodSymbol)model.GetDeclaredSymbol(annotations.Key);
+
                 var diagnostics = DiagnosticBag.GetInstance();
                 var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
-                var dictionary = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
-                NullableWalker.Analyze(
+                var rewritten = NullableWalker.AnalyzeAndRewrite(
                     compilation,
                     method,
                     block,
-                    diagnostics,
-                    callbackOpt: (BoundExpression expr, TypeSymbolWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
+                    diagnostics);
+                var dictionary = NullabilityRetriever.BuildMap(rewritten);
                 diagnostics.Free();
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));
@@ -405,6 +405,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         break;
                 }
                 return expr;
+            }
+        }
+
+        private sealed class NullabilityRetriever : BoundTreeWalker
+        {
+            private Dictionary<SyntaxNode, TypeSymbolWithAnnotations> _map;
+            private NullabilityRetriever(Dictionary<SyntaxNode, TypeSymbolWithAnnotations> map)
+            {
+                _map = map;
+            }
+
+            public static Dictionary<SyntaxNode, TypeSymbolWithAnnotations> BuildMap(BoundNode rewritten)
+            {
+                var map = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
+                new NullabilityRetriever(map).Visit(rewritten);
+                return map;
+            }
+
+            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override BoundNode Visit(BoundNode node)
+            {
+                // For the purposes of verifying types, implicit conversions should not win over lower nodes
+                // with the same syntax, as when testing we're usually testing the kind before the conversion,
+                // and we have no way from syntax of getting the correct node.
+                if (node is BoundConversion conv && conv.Syntax == conv.Operand.Syntax && conv.Operand.Kind != BoundKind.Lambda)
+                {
+                    _map[conv.Syntax] = new TypeWithState(conv.Type, conv.TopLevelNullability.FlowState.ToInternalFlowState()).ToTypeSymbolWithAnnotations();
+                    base.Visit(node);
+                }
+                else
+                {
+                    base.Visit(node);
+                    if (node is BoundExpression expr)
+                    {
+                        _map[expr.Syntax] = new TypeWithState(expr.Type, expr.TopLevelNullability.FlowState.ToInternalFlowState()).ToTypeSymbolWithAnnotations();
+                    }
+                }
+
+                return null;
             }
         }
     }

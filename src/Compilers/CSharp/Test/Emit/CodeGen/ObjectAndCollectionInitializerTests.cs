@@ -1256,7 +1256,7 @@ class A
             var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void DictionaryInitializerTestSideeffects001namedDynamic()
         {
             var source = @"
@@ -1312,7 +1312,7 @@ class A
         }
 
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void DictionaryInitializerTestSideeffects001a()
         {
             var source = @"
@@ -1429,7 +1429,7 @@ struct A
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void DictionaryInitializerTestSideeffects001a1()
         {
             var source = @"
@@ -1575,7 +1575,7 @@ get
 ");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void DictionaryInitializerTestSideeffects001async()
         {
             var source = @"
@@ -1874,7 +1874,7 @@ class Program
             var compVerifier = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: expectedOutput);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void DictionaryInitializerTest004()
         {
             var source = @"
@@ -2071,7 +2071,7 @@ class C
         }
 
 
-        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerJaggedArrayNestedInitializer()
         {
             var source = @"
@@ -2128,7 +2128,7 @@ class C
 }");
         }
 
-        [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
         public void NestedIndexerInitializerArrayNestedObjectInitializer()
         {
             var source = @"
@@ -3365,7 +3365,7 @@ unsafe class C
             CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1", verify: Verification.Fails);
         }
 
-        [Fact, WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(1089276, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089276")]
         public void PointerIndexing_02()
         {
             var source = @"

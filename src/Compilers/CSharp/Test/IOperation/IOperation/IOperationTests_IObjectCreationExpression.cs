@@ -564,7 +564,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact, WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")]
+        [Fact(Skip = "PROTOTYPE(nullable-api)"), WorkItem(22967, "https://github.com/dotnet/roslyn/issues/22967")]
         public void ObjectCreationWithInvalidMemberInitializer()
         {
             string source = @"
@@ -664,7 +664,7 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         [WorkItem(23154, "https://github.com/dotnet/roslyn/issues/23154")]
         public void ObjectCreationWithDynamicMemberInitializer_01()
         {
@@ -7232,7 +7232,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_39()
         {
             string source = @"
@@ -7316,7 +7316,7 @@ Block[B2] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_40()
         {
             string source = @"
@@ -7406,7 +7406,7 @@ Block[B2] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_41()
         {
             string source = @"
@@ -7548,7 +7548,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_42()
         {
             string source = @"
@@ -7662,7 +7662,7 @@ Block[B4] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_43()
         {
             string source = @"
@@ -7811,7 +7811,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_44()
         {
             string source = @"
@@ -7996,7 +7996,7 @@ Block[B12] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_45()
         {
             string source = @"
@@ -8110,7 +8110,7 @@ Block[B4] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_46()
         {
             string source = @"
@@ -8259,7 +8259,7 @@ Block[B7] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_47()
         {
             string source = @"
@@ -8440,7 +8440,7 @@ Block[B8] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_48()
         {
             string source = @"
@@ -11793,7 +11793,7 @@ Block[B2] - Exit
         }
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void ObjectCreationFlow_69()
         {
             string source = @"

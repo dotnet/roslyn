@@ -116,7 +116,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnostics = DiagnosticBag.GetInstance();
                 var delegateType = Type.GetDelegateType();
                 var compilation = Binder.Compilation;
-                NullableWalker.Analyze(compilation, lambda: this, diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: returnTypes, initialState: nullableState);
+                NullableWalker.Analyze(compilation,
+                                       lambda: this,
+                                       diagnostics,
+                                       delegateInvokeMethod: delegateType?.DelegateInvokeMethod,
+                                       returnTypes: returnTypes,
+                                       initialState: nullableState,
+                                       analyzedNullabilityMapOpt: null);
                 diagnostics.Free();
                 var inferredReturnType = InferReturnType(returnTypes, node: this, compilation, conversions, delegateType, Symbol.IsAsync);
                 returnTypes.Free();

@@ -103,6 +103,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public bool IsRefLikeType => throw new NotImplementedException();
 
-        public ImmutableArray<Nullability> TypeArgumentsNullabilities => throw new NotImplementedException();
+        public ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations => throw new NotImplementedException();
     }
 }

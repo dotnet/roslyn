@@ -2,13 +2,11 @@
 
 namespace Microsoft.CodeAnalysis
 {
-    // PROTOTYPE(nullable-api): Doc comment
-    public enum Nullability
+    // PROTOTYPE(nullable-api): Document
+    public enum NullableFlowState : byte
     {
-        NotApplicable,
-        NotComputed,
-        Unknown,
+        NotApplicable = 0,
         NotNull,
-        MayBeNull
+        MaybeNull
     }
 }

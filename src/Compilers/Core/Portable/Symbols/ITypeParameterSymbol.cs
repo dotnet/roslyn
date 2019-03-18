@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         bool HasReferenceTypeConstraint { get; }
 
-        Nullability ReferenceTypeConstraintNullability { get; }
+        // PROTOTYPE(nullable-api): Document
+        NullableAnnotation ReferenceTypeConstraintNullableAnnotation { get; }
 
         /// <summary>
         /// True if the value type constraint (<c>struct</c>) was specified for the type parameter.
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<ITypeSymbol> ConstraintTypes { get; }
 
         // PROTOTYPE(nullable-api): Document
-        ImmutableArray<Nullability> ConstraintNullabilities { get; }
+        ImmutableArray<NullableAnnotation> ConstraintNullableAnnotations { get; }
 
         /// <summary>
         /// Get the original definition of this type symbol. If this symbol is derived from another

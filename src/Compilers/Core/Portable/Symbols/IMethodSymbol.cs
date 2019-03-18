@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol ReturnType { get; }
 
         // PROTOTYPE(nullable-api): Document
-        Nullability ReturnNullability { get; }
+        NullableAnnotation ReturnNullableAnnotation { get; }
 
         /// <summary>
         /// Returns the type arguments that have been substituted for the type parameters. 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
         ImmutableArray<ITypeSymbol> TypeArguments { get; }
 
         // PROTOTYPE(nullable-api): Document
-        ImmutableArray<Nullability> TypeArgumentsNullabilities { get; }
+        ImmutableArray<NullableAnnotation> TypeArgumentsNullableAnnotations { get; }
 
         /// <summary>
         /// Get the type parameters on this method. If the method has not generic,
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         ITypeSymbol ReceiverType { get; }
 
         // PROTOTYPE(nullable-api): Document
-        Nullability ReceiverNullability { get; }
+        NullableAnnotation ReceiverNullableAnnotation { get; }
 
         /// <summary>
         /// If this method is a reduced extension method, returns the definition of extension

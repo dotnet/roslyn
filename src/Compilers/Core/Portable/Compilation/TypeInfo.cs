@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     public readonly struct TypeInfo : IEquatable<TypeInfo>
     {
-        internal static readonly TypeInfo None = new TypeInfo(null, null, Nullability.NotComputed, Nullability.NotComputed);
+        internal static readonly TypeInfo None = new TypeInfo(type: null, convertedType: null, nullability: default, convertedNullability: default);
 
         /// <summary>
         /// The type of the expression represented by the syntax node. For expressions that do not
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis
         public ITypeSymbol Type { get; }
 
         // PROTOTYPE(nullable-api): Doc Comment
-        public Nullability Nullability { get; }
+        public NullabilityInfo Nullability { get; }
 
         /// <summary>
         /// The type of the expression after it has undergone an implicit conversion. If the type
@@ -27,9 +26,9 @@ namespace Microsoft.CodeAnalysis
         public ITypeSymbol ConvertedType { get; }
 
         // PROTOTYPE(nullable-api): Doc Comment
-        public Nullability ConvertedNullability { get; }
+        public NullabilityInfo ConvertedNullability { get; }
 
-        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, Nullability nullability, Nullability convertedNullability)
+        internal TypeInfo(ITypeSymbol type, ITypeSymbol convertedType, NullabilityInfo nullability, NullabilityInfo convertedNullability)
             : this()
         {
             this.Type = type;
@@ -42,8 +41,8 @@ namespace Microsoft.CodeAnalysis
         {
             return object.Equals(this.Type, other.Type)
                 && object.Equals(this.ConvertedType, other.ConvertedType)
-                && object.Equals(this.Nullability, other.Nullability)
-                && object.Equals(this.ConvertedNullability, other.ConvertedNullability);
+                && this.Nullability.Equals(other.Nullability)
+                && this.ConvertedNullability.Equals(other.ConvertedNullability);
         }
 
         public override bool Equals(object obj)
