@@ -14,16 +14,19 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         public string ErrorMessage { get; }
         public SyntaxNode Container { get; }
         public string OriginalNamespace { get; }
+        public ContainerType Type { get; }
 
         public MoveToNamespaceAnalysisResult(
             Document document,
             SyntaxNode container,
-            string originalNamespace)
+            string originalNamespace,
+            ContainerType containerType)
         {
             CanPerform = true;
             Document = document;
             Container = container;
             OriginalNamespace = originalNamespace;
+            Type = containerType;
         }
 
         public MoveToNamespaceAnalysisResult(string errorMessage)
@@ -31,5 +34,12 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             CanPerform = false;
             ErrorMessage = errorMessage;
         }
+
+        public enum ContainerType
+        {
+            Namespace,
+            NamedType
+        }
+
     }
 }

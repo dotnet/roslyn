@@ -1605,7 +1605,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move To Namespace.
+        ///   Looks up a localized string similar to Move to Namespace.
         /// </summary>
         internal static string Move_to_namespace {
             get {
@@ -1641,11 +1641,11 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Namespace:.
+        ///   Looks up a localized string similar to Namespace.
         /// </summary>
-        internal static string Namespace_colon {
+        internal static string Namespace {
             get {
-                return ResourceManager.GetString("Namespace:", resourceCulture);
+                return ResourceManager.GetString("Namespace", resourceCulture);
             }
         }
         
@@ -2823,6 +2823,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Synchronizing_with_0 {
             get {
                 return ResourceManager.GetString("Synchronizing_with_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Target Namespace:.
+        /// </summary>
+        internal static string Target_Namespace_colon {
+            get {
+                return ResourceManager.GetString("Target_Namespace_colon", resourceCulture);
             }
         }
         

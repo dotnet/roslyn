@@ -69,5 +69,8 @@
   <ItemGroup>
     <PackageReference Include="Humanizer.Core" Version="$(HumanizerCoreVersion)" PrivateAssets="all" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="MoveToNamespace\" />
+  </ItemGroup>
   <Import Project="..\..\..\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
 </Project>

@@ -80,4 +80,7 @@
     <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationErrors.cs" />
     <Compile Remove="ReorderParameters\ReorderParametersTests.InvocationLocation.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="MoveToNamespace\" />
+  </ItemGroup>
 </Project>

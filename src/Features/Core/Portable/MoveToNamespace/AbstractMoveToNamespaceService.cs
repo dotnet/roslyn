@@ -23,12 +23,13 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         public abstract Task<MoveToNamespaceOptionsResult> GetOptionsAsync(Document document, string defaultNamespace, CancellationToken cancellationToken);
     }
 
-    internal abstract class AbstractMoveToNamespaceService<TCompilationSyntax, TNamespaceDeclarationSyntax>
+    internal abstract class AbstractMoveToNamespaceService<TCompilationSyntax, TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
         : AbstractMoveToNamespaceService
     {
         private IMoveToNamespaceOptionsService _moveToNamespaceOptionsService;
 
         protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax syntax);
+        protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax syntax);
 
         public AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
         {
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             int position,
             CancellationToken cancellationToken)
         {
+#if DEBUG // TODO: remove once the feature is done
             var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -60,71 +62,73 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
             var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken: cancellationToken);
             var symbol = symbolInfo.Symbol;
+            var @namespace = symbol?.Name;
 
             if (symbol is INamespaceSymbol namespaceSymbol)
             {
                 node = node.FirstAncestorOrSelf<SyntaxNode>(a => a is TNamespaceDeclarationSyntax);
+                @namespace = GetQualifiedName(namespaceSymbol);
             }
 
             if (node is TNamespaceDeclarationSyntax declarationSyntax)
             {
                 if (ContainsNamespaceDeclaration(node))
                 {
-                    return new MoveToNamespaceAnalysisResult("Container contains nested namespace declaration");
+                    return new MoveToNamespaceAnalysisResult("Namespace container contains nested namespace declaration");
                 }
 
-                var @namespace = symbol?.Name ?? GetNamespaceName(declarationSyntax);
-                return new MoveToNamespaceAnalysisResult(document, node, @namespace);
+                @namespace = @namespace ?? GetNamespaceName(declarationSyntax);
+                return new MoveToNamespaceAnalysisResult(document, node, @namespace, MoveToNamespaceAnalysisResult.ContainerType.Namespace);
+            }
+
+            if (symbol is INamedTypeSymbol namedTypeSymbol)
+            {
+                node = node.FirstAncestorOrSelf<SyntaxNode>(a => a is TNamedTypeDeclarationSyntax);
+                @namespace = GetQualifiedName(namedTypeSymbol.ContainingNamespace);
+            }
+
+            if (node is TNamedTypeDeclarationSyntax namedTypeDeclarationSyntax)
+            {
+                @namespace = @namespace ?? GetNamespaceName(namedTypeDeclarationSyntax);
+                return new MoveToNamespaceAnalysisResult(document, node, @namespace, MoveToNamespaceAnalysisResult.ContainerType.NamedType);
             }
 
             return new MoveToNamespaceAnalysisResult("Not a valid position");
+#else 
+            return new MoveToNamespaceAnalysisResult("Feature is not complete yet");
+#endif
         }
 
         private bool ContainsNamespaceDeclaration(SyntaxNode node)
             => node.DescendantNodes(n => n is TCompilationSyntax || n is TNamespaceDeclarationSyntax)
                         .OfType<TNamespaceDeclarationSyntax>().Any();
 
-        public override async Task<MoveToNamespaceResult> MoveToNamespaceAsync(
+        public override Task<MoveToNamespaceResult> MoveToNamespaceAsync(
             MoveToNamespaceAnalysisResult analysisResult,
             string targetNamespace,
             CancellationToken cancellationToken)
         {
-            if (!analysisResult.CanPerform)
-            {
-                return MoveToNamespaceResult.Failed;
-            }
-
-            var changeNamespaceService = analysisResult.Document.GetLanguageService<IChangeNamespaceService>();
-            if (changeNamespaceService == null)
-            {
-                return MoveToNamespaceResult.Failed;
-            }
-
-            var changedSolution = await changeNamespaceService.ChangeNamespaceAsync(
-                analysisResult.Document,
-                analysisResult.Container,
-                targetNamespace,
-                cancellationToken).ConfigureAwait(false);
-
-            return new MoveToNamespaceResult(changedSolution, analysisResult.Document.Id);
+            // TODO: Implementation will be in a separate PR
+            return Task.FromResult(MoveToNamespaceResult.Failed);
         }
 
         private static SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(
             globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
             typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
 
+        protected static string GetQualifiedName(INamespaceSymbol namespaceSymbol)
+            => namespaceSymbol.ToDisplayString(QualifiedNamespaceFormat);
+
         public override async Task<MoveToNamespaceOptionsResult> GetOptionsAsync(
             Document document,
             string defaultNamespace,
             CancellationToken cancellationToken)
         {
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var namespaces = compilation.GlobalNamespace.GetAllNamespaces(cancellationToken)
                 .Where(n => n.NamespaceKind == NamespaceKind.Module && n.ContainingAssembly == compilation.Assembly)
-                .Select(n => n.ToDisplayString(QualifiedNamespaceFormat));
+                .Select(GetQualifiedName);
 
             return await _moveToNamespaceOptionsService.GetChangeNamespaceOptionsAsync(
                 defaultNamespace,

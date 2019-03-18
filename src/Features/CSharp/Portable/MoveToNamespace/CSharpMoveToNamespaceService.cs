@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
 {
     [ExportLanguageService(typeof(AbstractMoveToNamespaceService), LanguageNames.CSharp), Shared]
     internal class CSharpMoveToNamespaceService :
-        AbstractMoveToNamespaceService<CompilationUnitSyntax, NamespaceDeclarationSyntax>
+        AbstractMoveToNamespaceService<CompilationUnitSyntax, NamespaceDeclarationSyntax, TypeDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -21,8 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
         }
 
         protected override string GetNamespaceName(NamespaceDeclarationSyntax syntax)
-        {
-            return syntax.Name.ToString();
-        }
+            => syntax.Name.ToString();
+
+        protected override string GetNamespaceName(TypeDeclarationSyntax syntax)
+            => GetNamespaceName(syntax.FirstAncestorOrSelf<NamespaceDeclarationSyntax>());
     }
 }

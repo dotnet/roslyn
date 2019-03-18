@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         private readonly MoveToNamespaceDialogViewModel _viewModel;
 
         public string MoveToNamespaceDialogTitle => ServicesVSResources.Move_to_namespace;
-        public string NamespaceLabelText => "Target Namespace:"; // ServicesVSResources.Namespace_colon;
+        public string NamespaceLabelText => ServicesVSResources.Target_Namespace_colon;
         public string OK => ServicesVSResources.OK;
         public string Cancel => ServicesVSResources.Cancel;
 
