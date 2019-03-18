@@ -52,14 +52,15 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
             {
                 var subjectBuffer = args.SubjectBuffer;
-                var document = subjectBuffer.GetFullyLoadedDocument(context.OperationContext);
-                var findUsagesService = document?.GetLanguageService<IFindUsagesService>();
-                if (findUsagesService != null)
+                var document = subjectBuffer.GetFullyLoadedDocument(context.OperationContext, shouldLoad:
+                    doc => doc.GetLanguageService<IFindUsagesService>() != null);
+
+                if (document != null)
                 {
                     var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
                     if (caret.HasValue)
                     {
-                        ExecuteCommand(document, caret.Value, findUsagesService, context);
+                        ExecuteCommand(document, caret.Value, context);
                         return true;
                     }
                 }
@@ -69,10 +70,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         }
 
         private void ExecuteCommand(
-            Document document, int caretPosition,
-            IFindUsagesService streamingService,
-            CommandExecutionContext context)
+            Document document, int caretPosition, CommandExecutionContext context)
         {
+            var streamingService = document.GetLanguageService<IFindUsagesService>();
             var streamingPresenter = GetStreamingPresenter();
 
             if (streamingService != null)

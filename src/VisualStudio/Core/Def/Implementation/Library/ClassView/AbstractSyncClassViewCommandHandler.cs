@@ -47,23 +47,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
 
             using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView)))
             {
-                var document = args.SubjectBuffer.GetFullyLoadedDocument(context.OperationContext);
+                var document = args.SubjectBuffer.GetFullyLoadedDocument(context.OperationContext, doc =>
+                {
+                    var syntaxFactsService = doc.GetLanguageService<ISyntaxFactsService>();
+                    var libraryService = doc.GetLanguageService<ILibraryService>();
+
+                    return syntaxFactsService != null && libraryService != null;
+                });
+
                 if (document == null)
                 {
                     return true;
                 }
 
                 var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-                if (syntaxFactsService == null)
-                {
-                    return true;
-                }
-
                 var libraryService = document.GetLanguageService<ILibraryService>();
-                if (libraryService == null)
-                {
-                    return true;
-                }
 
                 var userCancellationToken = context.OperationContext.UserCancellationToken;
                 var semanticModel = document

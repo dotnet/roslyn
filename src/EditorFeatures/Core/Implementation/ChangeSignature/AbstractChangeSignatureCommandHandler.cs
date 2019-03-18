@@ -54,33 +54,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
         private bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
         {
+            var caretPoint = textView.GetCaretPoint(subjectBuffer);
+            if (!caretPoint.HasValue)
+            {
+                return false;
+            }
+
             using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
-                var document = subjectBuffer.GetFullyLoadedDocument(context.OperationContext);
+                var document = subjectBuffer.GetFullyLoadedDocument(context.OperationContext, shouldLoad: doc =>
+                {
+                    var workspace = doc.Project.Solution.Workspace;
+                    if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+                    {
+                        return false;
+                    }
+
+                    var supportsFeatureService = doc.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
+                    if (!supportsFeatureService.SupportsRefactorings(doc))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                });
+
                 if (document == null)
                 {
                     return false;
                 }
 
-                // TODO: reuse GetCommandState instead
                 var workspace = document.Project.Solution.Workspace;
-                if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-                {
-                    return false;
-                }
-
-                var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-                if (!supportsFeatureService.SupportsRefactorings(document))
-                {
-                    return false;
-                }
-
-                var caretPoint = textView.GetCaretPoint(subjectBuffer);
-                if (!caretPoint.HasValue)
-                {
-                    return false;
-                }
-
                 var reorderParametersService = document.GetLanguageService<AbstractChangeSignatureService>();
                 var result = reorderParametersService.ChangeSignature(
                     document,

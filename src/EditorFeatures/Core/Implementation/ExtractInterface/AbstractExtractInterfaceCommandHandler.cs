@@ -48,30 +48,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
         public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
         {
+            var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
+            if (!caretPoint.HasValue)
+            {
+                return false;
+            }
+
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Extract_Interface))
             {
-                var document = args.SubjectBuffer.GetFullyLoadedDocument(context.OperationContext);
+                var document = args.SubjectBuffer.GetFullyLoadedDocument(context.OperationContext, shouldLoad: doc =>
+                {
+                    var workspace = doc.Project.Solution.Workspace;
+
+                    if (!workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
+                        !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+                    {
+                        return false;
+                    }
+
+                    var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
+                    if (!supportsFeatureService.SupportsRefactorings(doc))
+                    {
+                        return false;
+                    }
+
+                    return true;
+                });
+
                 if (document == null)
-                {
-                    return false;
-                }
-
-                var workspace = document.Project.Solution.Workspace;
-
-                if (!workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
-                    !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-                {
-                    return false;
-                }
-
-                var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-                if (!supportsFeatureService.SupportsRefactorings(document))
-                {
-                    return false;
-                }
-
-                var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-                if (!caretPoint.HasValue)
                 {
                     return false;
                 }
@@ -79,6 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
                 // We are about to show a modal UI dialog so we should take over the command execution
                 // wait context. That means the command system won't attempt to show its own wait dialog 
                 // and also will take it into consideration when measuring command handling duration.
+                var workspace = document.Project.Solution.Workspace;
                 context.OperationContext.TakeOwnership();
                 var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
                 var result = _threadingContext.JoinableTaskFactory.Run(() =>

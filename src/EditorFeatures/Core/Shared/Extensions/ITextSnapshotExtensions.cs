@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -64,11 +65,27 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static Document GetFullyLoadedDocument(
             this ITextBuffer buffer, IUIThreadOperationContext operationContext)
         {
+            return GetFullyLoadedDocument(buffer, operationContext, _ => true);
+        }
+
+        /// <summary>
+        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetDocument(ITextSnapshot)"/>
+        /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns.
+        /// </summary>
+        /// <param name="shouldLoad">Whether this function should wait for the solution to fully load.</param>
+        public static Document GetFullyLoadedDocument(
+            this ITextBuffer buffer, IUIThreadOperationContext operationContext, Func<Document, bool> shouldLoad)
+        {
             // just get a document from whatever we have
             var document = buffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             if (document == null)
             {
                 // we don't know about this buffer yet
+                return null;
+            }
+
+            if (!shouldLoad(document))
+            {
                 return null;
             }
 
