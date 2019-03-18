@@ -39097,6 +39097,15 @@ class C2
 
         // line 5
         (string h1, (C<string> h2, string h3)) = (null!, (c!, null!)); // no warnings
+
+        // line 6
+        (string i1, (C<string> i2, string i3)) = default((string, (C<string>, string)))!;
+
+        // line 7
+        (string j1, (C<string> j2, string j3)) = (null, default((C<string>, string))!);
+
+        // line 8
+        (string k1, (C<string> k2, string k3)) = (null!, default((C<string>, string))!);
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -39141,7 +39150,37 @@ class C2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C<string?>", "C<string>").WithLocation(19, 59),
                 // (19,62): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         (string g1, (C<string> g2, string g3)) = (null!, (c, null)!);
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(19, 62)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(19, 62),
+
+                // line 6
+                // (25,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string i1, (C<string> i2, string i3)) = default((string, (C<string>, string)))!;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((string, (C<string>, string)))").WithLocation(25, 50),
+                // (25,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string i1, (C<string> i2, string i3)) = default((string, (C<string>, string)))!;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((string, (C<string>, string)))").WithLocation(25, 50),
+                // (25,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string i1, (C<string> i2, string i3)) = default((string, (C<string>, string)))!;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((string, (C<string>, string)))").WithLocation(25, 50),
+
+                // line 7
+                // (28,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string j1, (C<string> j2, string j3)) = (null, default((C<string>, string))!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(28, 51),
+                // (28,57): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string j1, (C<string> j2, string j3)) = (null, default((C<string>, string))!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((C<string>, string))").WithLocation(28, 57),
+                // (28,57): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string j1, (C<string> j2, string j3)) = (null, default((C<string>, string))!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((C<string>, string))").WithLocation(28, 57),
+
+                // line 8
+                // (31,58): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string k1, (C<string> k2, string k3)) = (null!, default((C<string>, string))!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((C<string>, string))").WithLocation(31, 58),
+                // (31,58): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string k1, (C<string> k2, string k3)) = (null!, default((C<string>, string))!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((C<string>, string))").WithLocation(31, 58)
                 );
         }
 
