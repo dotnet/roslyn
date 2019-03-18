@@ -1358,7 +1358,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Filter out warnings based on the compiler options (/nowarn, /warn and /warnaserror) and the pragma warning directives.
         /// </summary>
-        /// <returns>True when there is no error.</returns>
+        /// <returns>True if there are no unsuppressed errors (i.e., no errors which fail compilation).</returns>
         internal bool FilterAndAppendDiagnostics(DiagnosticBag accumulator, IEnumerable<Diagnostic> incoming, HashSet<int> exclude)
         {
             bool hasError = false;
