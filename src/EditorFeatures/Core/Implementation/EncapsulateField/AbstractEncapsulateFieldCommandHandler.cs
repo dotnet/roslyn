@@ -60,20 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
         {
             using (var token = _listener.BeginAsyncOperation("EncapsulateField"))
             {
-                var text = args.TextView.TextBuffer.CurrentSnapshot.AsText();
                 var cancellationToken = waitScope.Context.UserCancellationToken;
-                if (!Workspace.TryGetWorkspace(text.Container, out var workspace))
-                {
-                    return false;
-                }
-
-                var documentId = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (documentId == null)
-                {
-                    return false;
-                }
-
-                var document = workspace.CurrentSolution.GetDocument(documentId);
+                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                    waitScope.Context).WaitAndGetResult(cancellationToken);
                 if (document == null)
                 {
                     return false;
@@ -90,6 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 // and also will take it into consideration when measuring command handling duration.
                 waitScope.Context.TakeOwnership();
 
+                var workspace = document.Project.Solution.Workspace;
                 if (result == null)
                 {
                     var notificationService = workspace.Services.GetService<INotificationService>();
