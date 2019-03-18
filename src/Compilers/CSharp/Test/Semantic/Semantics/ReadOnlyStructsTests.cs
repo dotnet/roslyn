@@ -398,7 +398,6 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-
                 // (7,52): error CS1604: Cannot assign to 'this' because it is read-only
                 //     public readonly override string ToString() => (i++).ToString();
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(7, 52),
@@ -408,6 +407,151 @@ public struct S
                 // (9,56): error CS1604: Cannot assign to 'this' because it is read-only
                 //     public readonly override bool Equals(object o) => (i++).Equals(o);
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(9, 56));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_GetPinnableReference()
+        {
+            var csharp = @"
+public unsafe struct S1
+{
+    static int i = 0;
+    ref int GetPinnableReference() => ref i;
+    void M1()
+    {
+        fixed (int *i = this) {} // ok
+    }
+    readonly void M2()
+    {
+        fixed (int *i = this) {} // warn
+    }
+}
+
+public unsafe struct S2
+{
+    static int i = 0;
+    readonly ref int GetPinnableReference() => ref i;
+    void M1()
+    {
+        fixed (int *i = this) {} // ok
+    }
+    readonly void M2()
+    {
+        fixed (int *i = this) {} // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (12,25): warning CS8655: Call to non-readonly member 'GetPinnableReference' from a 'readonly' member results in an implicit copy of 'this'.
+                //         fixed (int *i = this) {} // warn
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetPinnableReference", "this").WithLocation(12, 25));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Iterator()
+        {
+            var csharp = @"
+using System.Collections.Generic;
+
+public struct S
+{
+    public int i;
+    public readonly IEnumerable<int> M1()
+    {
+        yield return i;
+        yield return i+1;
+    }
+
+    public readonly IEnumerable<int> M2()
+    {
+        yield return i;
+        i++;
+        yield return i;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         i++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(16, 9));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Async()
+        {
+            var csharp = @"
+
+using System.Threading.Tasks;
+
+public struct S
+{
+    public int i;
+    public readonly async Task<int> M1()
+    {
+        await Task.Delay(1);
+        return i;
+    }
+
+    public readonly async Task<int> M2()
+    {
+        await Task.Delay(1);
+        i++;
+        await Task.Delay(1);
+        return i;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
+                //         i++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(16, 9));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_AsyncStreams()
+        {
+            var csharp = @"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+public struct S1
+{
+    public IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
+
+    public async Task M1()
+    {
+        await foreach (var x in this) {}
+    }
+
+    public readonly async Task M2()
+    {
+        await foreach (var x in this) {} // warn
+    }
+}
+
+public struct S2
+{
+    public readonly IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
+
+    public async Task M1()
+    {
+        await foreach (var x in this) {}
+    }
+
+    public readonly async Task M2()
+    {
+        await foreach (var x in this) {} // ok
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { csharp, AsyncStreamsTypes });
+            comp.VerifyDiagnostics(
+                // (16,33): warning CS8655: Call to non-readonly member 'GetAsyncEnumerator' from a 'readonly' member results in an implicit copy of 'this'.
+                //         await foreach (var x in this) {} // warn
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetAsyncEnumerator", "this").WithLocation(16, 33));
         }
 
         [Fact]
@@ -1199,6 +1343,25 @@ public struct S2
                 // (13,27): warning CS8655: Call to non-readonly member 'GetEnumerator' from a 'readonly' member results in an implicit copy of 'this'.
                 //         foreach (var x in this) {} // warning-- implicit copy
                 Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetEnumerator", "this").WithLocation(13, 27));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_GetEnumerator_MethodMissing()
+        {
+            var csharp = @"
+public struct S1
+{
+    readonly void M2()
+    {
+        foreach (var x in this) {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS1579: foreach statement cannot operate on variables of type 'S1' because 'S1' does not contain a public instance definition for 'GetEnumerator'
+                //         foreach (var x in this) {}
+                Diagnostic(ErrorCode.ERR_ForEachMissingMember, "this").WithArguments("S1", "GetEnumerator").WithLocation(6, 27));
         }
 
         [Fact]

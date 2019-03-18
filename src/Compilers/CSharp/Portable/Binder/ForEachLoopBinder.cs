@@ -207,7 +207,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             AwaitableInfo awaitInfo = null;
             MethodSymbol getEnumeratorMethod = builder.GetEnumeratorMethod;
-            originalBinder.CheckImplicitThisCopyInReadOnlyMember(collectionExpr, getEnumeratorMethod, diagnostics);
+            if (getEnumeratorMethod != null)
+            {
+                originalBinder.CheckImplicitThisCopyInReadOnlyMember(collectionExpr, getEnumeratorMethod, diagnostics);
+            }
             if (IsAsync)
             {
                 var placeholder = new BoundAwaitableValuePlaceholder(_syntax.Expression, builder.MoveNextMethod?.ReturnType.TypeSymbol ?? CreateErrorType());
