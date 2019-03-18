@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             return emptyResult;
         }
 
-
         private static CommentSelectionResult ToggleBlockComments(CommentSelectionInfo commentInfo, SyntaxNode root,
             NormalizedSnapshotSpanCollection selectedSpans)
         {
