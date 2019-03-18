@@ -1537,6 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (node.Kind)
             {
                 case BoundKind.ObjectInitializerExpression:
+                    checkImplicitReceiver();
                     foreach (var initializer in ((BoundObjectInitializerExpression)node).Initializers)
                     {
                         switch (initializer.Kind)
@@ -1551,6 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case BoundKind.CollectionInitializerExpression:
+                    checkImplicitReceiver();
                     foreach (var initializer in ((BoundCollectionInitializerExpression)node).Initializers)
                     {
                         switch (initializer.Kind)
@@ -1574,6 +1576,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TrackNullableStateForAssignment(node, type, containingSlot, resultType, MakeSlot(node));
                     }
                     break;
+            }
+
+            void checkImplicitReceiver()
+            {
+                if (containingSlot >= 0)
+                {
+                    _ = ReportPossibleNullReceiverIfNeeded(node.Type, this.State[containingSlot], checkNullableValueType: false, node.Syntax);
+                }
             }
         }
 
@@ -5596,19 +5606,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
                 Debug.Assert(receiverOpt.Type is null || AreCloseEnough(receiverOpt.Type, resultTypeSymbol));
 #endif
-                if (ResultType.MayBeNull)
+                if (!ReportPossibleNullReceiverIfNeeded(resultTypeSymbol, ResultType.State, checkNullableValueType, receiverOpt.Syntax))
                 {
-                    bool isValueType = resultTypeSymbol.IsValueType;
-                    if (isValueType && (!checkNullableValueType || !resultTypeSymbol.IsNullableTypeOrTypeParameter() || resultTypeSymbol.GetNullableUnderlyingType().IsErrorType()))
-                    {
-                        return;
-                    }
-
-                    ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
+                    return;
                 }
 
                 LearnFromNonNullTest(receiverOpt, ref this.State);
             }
+        }
+
+        // Returns false if the type wasn't interesting
+        private bool ReportPossibleNullReceiverIfNeeded(TypeSymbol type, NullableFlowState state, bool checkNullableValueType, SyntaxNode syntax)
+        {
+            if (state.MayBeNull())
+            {
+                bool isValueType = type.IsValueType;
+                if (isValueType && (!checkNullableValueType || !type.IsNullableTypeOrTypeParameter() || type.GetNullableUnderlyingType().IsErrorType()))
+                {
+                    return false;
+                }
+
+                ReportSafetyDiagnostic(isValueType ? ErrorCode.WRN_NullableValueTypeMayBeNull : ErrorCode.WRN_NullReferenceReceiver, syntax);
+            }
+
+            return true;
         }
 
         private static bool IsNullabilityMismatch(TypeWithAnnotations type1, TypeWithAnnotations type2)
