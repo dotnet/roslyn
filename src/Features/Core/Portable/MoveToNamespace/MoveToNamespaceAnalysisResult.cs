@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
-    internal class MoveToNamespaceAnalysisResult
+    internal partial class MoveToNamespaceAnalysisResult
     {
         public bool CanPerform { get; }
         public Document Document { get; }
@@ -33,12 +33,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             CanPerform = false;
             ErrorMessage = errorMessage;
-        }
-
-        public enum ContainerType
-        {
-            Namespace,
-            NamedType
         }
 
     }

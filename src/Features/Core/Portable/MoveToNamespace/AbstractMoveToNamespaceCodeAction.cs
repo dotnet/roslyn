@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
-    internal abstract class AbstractMoveToNamespaceCodeAction : CodeActionWithOptions
+    internal abstract partial class AbstractMoveToNamespaceCodeAction : CodeActionWithOptions
     {
         private readonly AbstractMoveToNamespaceService _changeNamespaceService;
         private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult;
@@ -58,27 +58,5 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
             _ => throw new InvalidOperationException($"Unexpected type {analysisResult.Type}")
         };
-
-        private class MoveItemsToNamespaceCodeAction : AbstractMoveToNamespaceCodeAction
-        {
-            public override string Title => FeaturesResources.Move_items_to_namespace;
-
-            public MoveItemsToNamespaceCodeAction(AbstractMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
-                : base(changeNamespaceService, analysisResult)
-            {
-            }
-
-        }
-
-        private class MoveTypeToNamespaceCodeAction : AbstractMoveToNamespaceCodeAction
-        {
-            public override string Title => FeaturesResources.Move_to_namespace;
-
-            public MoveTypeToNamespaceCodeAction(AbstractMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
-                : base(changeNamespaceService, analysisResult)
-            {
-            }
-
-        }
     }
 }
