@@ -262,6 +262,11 @@
         <target state="new">Show completion list</target>
         <note />
       </trans-unit>
+      <trans-unit id="Target_Namespace_colon">
+        <source>Target Namespace:</source>
+        <target state="new">Target Namespace:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unused_value_is_explicitly_assigned_to_an_unused_local">
         <source>Unused value is explicitly assigned to an unused local</source>
         <target state="translated">未使用のローカルに未使用の値が明示的に割り当てられます</target>

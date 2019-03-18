@@ -7,24 +7,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveToNamespace;
-using Microsoft.CodeAnalysis.Notification;
-using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {
     [Export(typeof(IMoveToNamespaceOptionsService)), Shared]
     internal class VisualStudioMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
     {
-        private readonly IGlyphService _glyphService;
         private readonly IThreadingContext _threadingContext;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioMoveToNamespaceOptionsService(IGlyphService glyphService, IThreadingContext threadingContext)
+        public VisualStudioMoveToNamespaceOptionsService(IThreadingContext threadingContext)
         {
-            _glyphService = glyphService;
             _threadingContext = threadingContext;
         }
 

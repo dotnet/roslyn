@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,14 +9,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
-    internal class MoveToNamespaceCodeAction : CodeActionWithOptions
+    internal abstract class AbstractMoveToNamespaceCodeAction : CodeActionWithOptions
     {
         private readonly AbstractMoveToNamespaceService _changeNamespaceService;
         private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult;
 
-        public override string Title => FeaturesResources.Move_to_namespace;
-
-        public MoveToNamespaceCodeAction(AbstractMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+        public AbstractMoveToNamespaceCodeAction(AbstractMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
         {
             _changeNamespaceService = changeNamespaceService;
             _moveToNamespaceAnalysisResult = analysisResult;
@@ -50,6 +49,36 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             }
 
             return operations;
+        }
+
+        public static AbstractMoveToNamespaceCodeAction Generate(AbstractMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+            => analysisResult.Type switch
+        {
+            MoveToNamespaceAnalysisResult.ContainerType.NamedType => (AbstractMoveToNamespaceCodeAction)new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
+            MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
+            _ => throw new InvalidOperationException($"Unexpected type {analysisResult.Type}")
+        };
+
+        private class MoveItemsToNamespaceCodeAction : AbstractMoveToNamespaceCodeAction
+        {
+            public override string Title => FeaturesResources.Move_items_to_namespace;
+
+            public MoveItemsToNamespaceCodeAction(AbstractMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+                : base(changeNamespaceService, analysisResult)
+            {
+            }
+
+        }
+
+        private class MoveTypeToNamespaceCodeAction : AbstractMoveToNamespaceCodeAction
+        {
+            public override string Title => FeaturesResources.Move_to_namespace;
+
+            public MoveTypeToNamespaceCodeAction(AbstractMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+                : base(changeNamespaceService, analysisResult)
+            {
+            }
+
         }
     }
 }

@@ -2625,6 +2625,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move items to namespace....
+        /// </summary>
+        internal static string Move_items_to_namespace {
+            get {
+                return ResourceManager.GetString("Move_items_to_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move to namespace....
         /// </summary>
         internal static string Move_to_namespace {

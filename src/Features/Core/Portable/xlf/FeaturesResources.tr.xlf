@@ -212,9 +212,9 @@
         <target state="translated">Dosyayı proje kök klasörüne taşı</target>
         <note />
       </trans-unit>
-      <trans-unit id="Move_to_namespace">
-        <source>Move to namespace...</source>
-        <target state="new">Move to namespace...</target>
+      <trans-unit id="Move_items_to_namespace">
+        <source>Move items to namespace...</source>
+        <target state="new">Move items to namespace...</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">

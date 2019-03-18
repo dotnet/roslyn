@@ -1647,4 +1647,7 @@ This version used in: {2}</value>
     <value>Make readonly fields writable</value>
     <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
   </data>
+  <data name="Move_items_to_namespace" xml:space="preserve">
+    <value>Move items to namespace...</value>
+  </data>
 </root>

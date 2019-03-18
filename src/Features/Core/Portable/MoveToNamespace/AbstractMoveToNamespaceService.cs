@@ -3,13 +3,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,7 +13,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     internal abstract class AbstractMoveToNamespaceService : ILanguageService
     {
-        internal abstract Task<ImmutableArray<MoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+        internal abstract Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
         internal abstract Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
         public abstract Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
         public abstract Task<MoveToNamespaceOptionsResult> GetOptionsAsync(Document document, string defaultNamespace, CancellationToken cancellationToken);
@@ -36,16 +32,19 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             _moveToNamespaceOptionsService = moveToNamespaceOptionsService;
         }
 
-        internal override async Task<ImmutableArray<MoveToNamespaceCodeAction>> GetCodeActionsAsync(
+        internal override async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan span,
             CancellationToken cancellationToken)
         {
             var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, cancellationToken).ConfigureAwait(false);
 
-            return typeAnalysisResult.CanPerform
-                ? ImmutableArray.Create(new MoveToNamespaceCodeAction(this, typeAnalysisResult))
-                : ImmutableArray<MoveToNamespaceCodeAction>.Empty;
+            if (typeAnalysisResult.CanPerform)
+            {
+                return ImmutableArray.Create(AbstractMoveToNamespaceCodeAction.Generate(this, typeAnalysisResult));
+            }
+
+            return ImmutableArray<AbstractMoveToNamespaceCodeAction>.Empty;
         }
 
         internal override async Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(
