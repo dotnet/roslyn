@@ -200,20 +200,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         private static ICommentSelectionService GetService(Document document)
         {
-            // First, try to get the new service for comment selection.
             var service = document.GetLanguageService<ICommentSelectionService>();
             if (service != null)
             {
                 return service;
-            }
-
-            // If we couldn't find one, fallback to the legacy service.
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacyService = document.GetLanguageService<ICommentUncommentService>();
-#pragma warning restore CS0618 // Type or member is obsolete
-            if (legacyService != null)
-            {
-                return new CommentSelectionServiceProxy(legacyService);
             }
 
             return null;
