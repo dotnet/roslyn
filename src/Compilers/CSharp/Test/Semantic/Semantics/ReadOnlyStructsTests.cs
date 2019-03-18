@@ -187,6 +187,7 @@ public struct A
                 // (11,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this = default;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(11, 9),
+                // PROTOTYPE: The error message should state the specific thing being assigned and more specifically why it can't be assigned.
                 // (13,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this.x = 1;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this").WithLocation(13, 9));
@@ -533,50 +534,6 @@ public struct S
                 // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         i++;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(16, 9));
-        }
-
-        [Fact]
-        public void ReadOnlyMethod_AsyncStreams()
-        {
-            var csharp = @"
-using System.Threading.Tasks;
-using System.Collections.Generic;
-
-public struct S1
-{
-    public IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
-
-    public async Task M1()
-    {
-        await foreach (var x in this) {}
-    }
-
-    public readonly async Task M2()
-    {
-        await foreach (var x in this) {} // warn
-    }
-}
-
-public struct S2
-{
-    public readonly IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
-
-    public async Task M1()
-    {
-        await foreach (var x in this) {}
-    }
-
-    public readonly async Task M2()
-    {
-        await foreach (var x in this) {} // ok
-    }
-}
-";
-            var comp = CreateCompilationWithTasksExtensions(new[] { csharp, AsyncStreamsTypes });
-            comp.VerifyDiagnostics(
-                // (16,33): warning CS8655: Call to non-readonly member 'GetAsyncEnumerator' from a 'readonly' member results in an implicit copy of 'this'.
-                //         await foreach (var x in this) {} // warn
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetAsyncEnumerator", "this").WithLocation(16, 33));
         }
 
         [Fact]
@@ -1387,6 +1344,50 @@ public struct S1
                 // (6,27): error CS1579: foreach statement cannot operate on variables of type 'S1' because 'S1' does not contain a public instance definition for 'GetEnumerator'
                 //         foreach (var x in this) {}
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "this").WithArguments("S1", "GetEnumerator").WithLocation(6, 27));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_AsyncStreams()
+        {
+            var csharp = @"
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+public struct S1
+{
+    public IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
+
+    public async Task M1()
+    {
+        await foreach (var x in this) {}
+    }
+
+    public readonly async Task M2()
+    {
+        await foreach (var x in this) {} // warn
+    }
+}
+
+public struct S2
+{
+    public readonly IAsyncEnumerator<int> GetAsyncEnumerator() => throw null;
+
+    public async Task M1()
+    {
+        await foreach (var x in this) {}
+    }
+
+    public readonly async Task M2()
+    {
+        await foreach (var x in this) {} // ok
+    }
+}
+";
+            var comp = CreateCompilationWithTasksExtensions(new[] { csharp, AsyncStreamsTypes });
+            comp.VerifyDiagnostics(
+                // (16,33): warning CS8655: Call to non-readonly member 'GetAsyncEnumerator' from a 'readonly' member results in an implicit copy of 'this'.
+                //         await foreach (var x in this) {} // warn
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetAsyncEnumerator", "this").WithLocation(16, 33));
         }
 
         [Fact]
