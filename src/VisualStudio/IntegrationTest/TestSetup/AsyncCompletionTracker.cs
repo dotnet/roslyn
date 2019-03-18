@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -42,9 +43,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         {
             var listener = _asynchronousOperationListenerProvider.GetListener(FeatureAttribute.CompletionSet);
             var token = listener.BeginAsyncOperation(nameof(IAsyncCompletionBroker.CompletionTriggered));
-            e.CompletionSession.Dismissed += delegate { token.Dispose(); };
-            e.CompletionSession.ItemCommitted += delegate { token.Dispose(); };
-            e.CompletionSession.ItemsUpdated += delegate { token.Dispose(); };
+
+            e.CompletionSession.Dismissed += ReleaseToken;
+            e.CompletionSession.ItemCommitted += ReleaseToken;
+            e.CompletionSession.ItemsUpdated += ReleaseToken;
+
+            return;
+
+            // Local function
+            void ReleaseToken(object sender, EventArgs e)
+                => Interlocked.Exchange(ref token, null)?.Dispose();
         }
     }
 }
