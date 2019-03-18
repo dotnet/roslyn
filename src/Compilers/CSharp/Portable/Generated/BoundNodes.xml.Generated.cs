@@ -1237,16 +1237,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRefValueOperator : BoundExpression
     {
-        public BoundRefValueOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
+        public BoundRefValueOperator(SyntaxNode syntax, NullableAnnotation nullableAnnotation, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.RefValueOperator, syntax, type, hasErrors || operand.HasErrors())
         {
 
             Debug.Assert((object)operand != null, "Field 'operand' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.NullableAnnotation = nullableAnnotation;
             this.Operand = operand;
         }
 
+
+        public NullableAnnotation NullableAnnotation { get; }
 
         public BoundExpression Operand { get; }
 
@@ -1255,11 +1258,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitRefValueOperator(this);
         }
 
-        public BoundRefValueOperator Update(BoundExpression operand, TypeSymbol type)
+        public BoundRefValueOperator Update(NullableAnnotation nullableAnnotation, BoundExpression operand, TypeSymbol type)
         {
-            if (operand != this.Operand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (nullableAnnotation != this.NullableAnnotation || operand != this.Operand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundRefValueOperator(this.Syntax, operand, type, this.HasErrors);
+                var result = new BoundRefValueOperator(this.Syntax, nullableAnnotation, operand, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1268,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundRefValueOperator(this.Syntax, this.Operand, this.Type, this.HasErrors);
+            var result = new BoundRefValueOperator(this.Syntax, this.NullableAnnotation, this.Operand, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -11164,7 +11167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(operand, type);
+            return node.Update(node.NullableAnnotation, operand, type);
         }
         public override BoundNode VisitFromEndIndexExpression(BoundFromEndIndexExpression node)
         {
@@ -12366,6 +12369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("refValueOperator", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("nullableAnnotation", node.NullableAnnotation, null),
                 new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
                 new TreeDumperNode("type", node.Type, null),
                 new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
