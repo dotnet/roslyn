@@ -2954,30 +2954,23 @@ class Program
 
         [WorkItem(34176, "https://github.com/dotnet/roslyn/issues/34176")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_RazorCodeBlock_EndOfLine_NotEndOfString()
+        public void DontComplete_VerbatimStringAsMethodArgument_EndOfLine_NotEndOfString()
         {
             var code = @"
-            var code = Foo(@""@{
-                void Foo()
-                {
-                    var people = new List<string>$$
-                    < string > Hello the time is @time </ strong >
-                    }
-            }
-            "") ;
+            var code = Foo(@""$$
+"") ;
 ";
             VerifyNoSpecialSemicolonHandling(code);
         }
 
         [WorkItem(34176, "https://github.com/dotnet/roslyn/issues/34176")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
-        public void DontComplete_RazorCodeBlock_EndOfString_NotEndOfLine()
+        public void DontComplete_VerbatimStringAsMethodArgument_EndOfString_NotEndOfLine()
         {
+
             var code = @"
-            var code = Foo(@""@{
-                void Foo()
-                {
-                    var people = new List<string>()$$"" //tests
+            var code = Foo(@""  $$"" //comments
+);
 ";
             VerifyNoSpecialSemicolonHandling(code);
         }
