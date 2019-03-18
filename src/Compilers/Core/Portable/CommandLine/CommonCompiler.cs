@@ -434,6 +434,14 @@ namespace Microsoft.CodeAnalysis
         private bool ReportErrors(DiagnosticBag diagnostics, TextWriter consoleOutput, ErrorLogger errorLoggerOpt)
             => ReportErrors(diagnostics.ToReadOnly(), consoleOutput, errorLoggerOpt);
 
+        /// <summary>
+        /// Returns true if there are any diagnostics in the bag which have error severity and are
+        /// not marked "suppressed". Note: does NOT do filtering, so it may return false if a
+        /// non-error diagnostic were later elevated to an error through filtering (e.g., through
+        /// warn-as-error). This is meant to be a check if there are any "real" errors, in the bag
+        /// since diagnostics with default "error" severity can never be suppressed or reduced
+        /// below error severity.
+        /// </summary>
         internal static bool HasUnsuppressedErrors(DiagnosticBag diagnostics)
         {
             foreach (var diag in diagnostics.AsEnumerable())
