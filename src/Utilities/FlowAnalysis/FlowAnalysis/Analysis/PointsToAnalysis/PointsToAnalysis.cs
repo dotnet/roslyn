@@ -90,6 +90,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis
             return new PointsToAnalysisResult(
                 dataFlowAnalysisResult,
                 operationVisitor.GetEscapedLocationsThroughOperationsMap(),
+                operationVisitor.GetEscapedLocationsThroughReturnValuesMap(),
                 operationVisitor.GetEscapedLocationsThroughEntitiesMap());
         }
         protected override PointsToBlockAnalysisResult ToBlockResult(BasicBlock basicBlock, PointsToAnalysisData blockAnalysisData)
