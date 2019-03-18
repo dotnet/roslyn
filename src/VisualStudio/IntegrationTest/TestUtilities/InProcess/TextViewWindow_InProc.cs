@@ -8,9 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess.ReflectionExtensions;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -77,27 +75,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 object obj = null;
                 shell.PostExecCommand(cmdGroup, (uint)cmdID, (uint)cmdExecOpt, ref obj);
             });
-        }
-
-        public void WaitForCompletion(TimeSpan timeout)
-        {
-            var textView = GetActiveTextView();
-            if (textView is null)
-                return;
-
-            var completionBroker = GetComponentModelService<IAsyncCompletionBroker>();
-            var completionSession = completionBroker?.GetSession(textView);
-            if (completionSession is null)
-                return;
-
-            var computation = completionSession.GetFieldValue("_computation");
-            if (computation is null)
-                return;
-
-            var waitAndGetResult = computation.GetType().GetMethod("WaitAndGetResult", new[] { typeof(bool), typeof(CancellationToken) });
-            var cancelUi = false;
-            using var cancellationTokenSource = new CancellationTokenSource(timeout);
-            waitAndGetResult.Invoke(computation, new object[] { cancelUi, cancellationTokenSource.Token });
         }
 
         public void WaitForLightBulbSession()
