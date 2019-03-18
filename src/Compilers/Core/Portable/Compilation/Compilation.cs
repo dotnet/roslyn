@@ -1371,7 +1371,6 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-
                 var filtered = Options.FilterDiagnostic(d);
                 if (filtered == null ||
                     (!reportSuppressedDiagnostics && filtered.IsSuppressed))

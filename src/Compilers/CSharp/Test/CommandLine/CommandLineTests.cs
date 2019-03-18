@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
             return CSharpCommandLineParser.Default.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories);
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = ConditionalSkipReason.TestHasWindowsPaths)]
+        [ConditionalFact(typeof(WindowsDesktopOnly))]
         [WorkItem(34101, "https://github.com/dotnet/roslyn/issues/34101")]
         public void SuppressedWarnAsErrorsStillEmit()
         {

@@ -43,23 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
-        [Fact]
-        public void EmitWithSuppressedWarnAsError()
-        {
-            var src = @"
-#pragma warning disable 1591
-
-public class P {
-    public static void Main() {}
-}";
-            var parseOptions = TestOptions.RegularWithDocumentationComments;
-            var options = TestOptions.ReleaseDll
-                .WithXmlReferenceResolver(XmlFileResolver.Default)
-                .WithGeneralDiagnosticOption(ReportDiagnostic.Error);
-
-            var verifier = CompileAndVerify(src, parseOptions: parseOptions, options: options);
-        }
-
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle. 
         [WorkItem(16669, "https://github.com/dotnet/roslyn/issues/16669")]
