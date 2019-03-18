@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetDocument(ITextSnapshot)"/>
         /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns
         /// </summary>
-        public static async Task<Document> GetFullyLoadedDocumentAsync(
+        public static Document GetFullyLoadedDocument(
             this ITextBuffer buffer, IUIThreadOperationContext operationContext)
         {
             // just get a document from whatever we have
@@ -82,7 +82,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 {
                     // TODO: decide for prototype, we don't do anything complex and just ask workspace whether it is fully loaded
                     // later we might need to go and change all these with more specific info such as document/project/solution
-                    await service.WaitUntilFullyLoadedAsync(operationContext.UserCancellationToken).ConfigureAwait(false);
+                    var cancellationToken = operationContext.UserCancellationToken;
+                    service.WaitUntilFullyLoadedAsync(cancellationToken).Wait(cancellationToken);
                 }
 
                 // get proper document

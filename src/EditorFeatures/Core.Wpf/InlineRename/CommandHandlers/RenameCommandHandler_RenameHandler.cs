@@ -89,8 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             var cancellationToken = context.OperationContext.UserCancellationToken;
-            var document = args.SubjectBuffer.GetFullyLoadedDocumentAsync(
-                context.OperationContext).WaitAndGetResult(cancellationToken);
+            var document = args.SubjectBuffer.GetFullyLoadedDocument(context.OperationContext);
             if (document == null)
             {
                 ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);

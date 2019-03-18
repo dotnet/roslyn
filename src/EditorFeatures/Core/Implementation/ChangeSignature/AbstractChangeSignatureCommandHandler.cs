@@ -56,8 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         {
             using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
-                var document = subjectBuffer.GetFullyLoadedDocumentAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                var document = subjectBuffer.GetFullyLoadedDocument(context.OperationContext);
                 if (document == null)
                 {
                     return false;

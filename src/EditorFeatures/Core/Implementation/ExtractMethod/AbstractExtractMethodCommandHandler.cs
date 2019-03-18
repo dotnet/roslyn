@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return false;
             }
 
-            var document = textBuffer.GetFullyLoadedDocumentAsync(waitContext).WaitAndGetResult(cancellationToken);
+            var document = textBuffer.GetFullyLoadedDocument(waitContext);
             if (document == null)
             {
                 return false;

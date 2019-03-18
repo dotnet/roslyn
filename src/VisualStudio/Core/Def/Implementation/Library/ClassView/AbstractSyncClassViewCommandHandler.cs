@@ -47,8 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
 
             using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView)))
             {
-                var document = args.SubjectBuffer.GetFullyLoadedDocumentAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                var document = args.SubjectBuffer.GetFullyLoadedDocument(context.OperationContext);
                 if (document == null)
                 {
                     return true;

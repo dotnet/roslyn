@@ -52,8 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
             {
                 var subjectBuffer = args.SubjectBuffer;
-                var document = subjectBuffer.GetFullyLoadedDocumentAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                var document = subjectBuffer.GetFullyLoadedDocument(context.OperationContext);
                 var findUsagesService = document?.GetLanguageService<IFindUsagesService>();
                 if (findUsagesService != null)
                 {
