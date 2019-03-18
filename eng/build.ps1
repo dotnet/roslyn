@@ -219,8 +219,11 @@ function BuildSolution() {
     $enableAnalyzers = !$skipAnalyzers
     $toolsetBuildProj = InitializeToolset
 
+    # Have to disable quiet restore during bootstrap builds to work around 
+    # an arcade bug
+    # https://github.com/dotnet/arcade/issues/2220
     $quietRestore = !($ci -or ($bootstrapDir -ne ""))
-    $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" } 
+    $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
     $ibcSourceBranchName = GetIbcSourceBranchName
     $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
 
