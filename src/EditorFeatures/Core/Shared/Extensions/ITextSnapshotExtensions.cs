@@ -72,20 +72,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetDocument(ITextSnapshot)"/>
         /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns.
         /// </summary>
-        /// <param name="shouldLoad">Whether this function should wait for the solution to fully load.</param>
+        /// <param name="shouldFullyLoad">Whether this function should wait for the solution to fully load.</param>
         public static Document GetFullyLoadedDocument(
-            this ITextBuffer buffer, IUIThreadOperationContext operationContext, Func<Document, bool> shouldLoad)
+            this ITextBuffer buffer, IUIThreadOperationContext operationContext, Func<Document, bool> shouldFullyLoad)
         {
-            return GetFullyLoadedDocument(buffer, operationContext, (d, ws) => shouldLoad(d));
+            return GetFullyLoadedDocument(buffer, operationContext, (d, ws) => shouldFullyLoad(d));
         }
 
         /// <summary>
         /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetDocument(ITextSnapshot)"/>
         /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns.
         /// </summary>
-        /// <param name="shouldLoad">Whether this function should wait for the solution to fully load.</param>
+        /// <param name="shouldFullyLoad">Whether this function should wait for the solution to fully load.</param>
         public static Document GetFullyLoadedDocument(
-            this ITextBuffer buffer, IUIThreadOperationContext operationContext, Func<Document, Workspace, bool> shouldLoad)
+            this ITextBuffer buffer, IUIThreadOperationContext operationContext, Func<Document, Workspace, bool> shouldFullyLoad)
         {
             // just get a document from whatever we have
             var document = buffer.AsTextContainer().GetOpenDocumentInCurrentContext();
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return null;
             }
 
-            if (!shouldLoad(document, document.Project.Solution.Workspace))
+            if (!shouldFullyLoad(document, document.Project.Solution.Workspace))
             {
                 return null;
             }

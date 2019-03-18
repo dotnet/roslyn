@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
             {
                 var document = args.SubjectBuffer.GetFullyLoadedDocument(
                     context.OperationContext,
-                    shouldLoad: (doc, ws) =>
+                    shouldFullyLoad: (doc, ws) =>
                         ws.CanApplyChange(ApplyChangesKind.AddDocument) &&
                         ws.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
                         ws.Services.GetService<IDocumentSupportsFeatureService>().SupportsRefactorings(doc));

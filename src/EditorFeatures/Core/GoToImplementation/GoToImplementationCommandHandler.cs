@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 var subjectBuffer = args.SubjectBuffer;
                 var document = subjectBuffer.GetFullyLoadedDocument(
                     context.OperationContext,
-                    shouldLoad: doc => doc.GetLanguageService<IFindUsagesService>() != null);
+                    shouldFullyLoad: doc => doc.GetLanguageService<IFindUsagesService>() != null);
 
                 if (document != null)
                 {

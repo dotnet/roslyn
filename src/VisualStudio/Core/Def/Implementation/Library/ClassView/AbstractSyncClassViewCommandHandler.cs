@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
             {
                 var document = args.SubjectBuffer.GetFullyLoadedDocument(
                     context.OperationContext,
-                    shouldLoad: doc =>
+                    shouldFullyLoad: doc =>
                         doc.GetLanguageService<ISyntaxFactsService>() != null &&
                         doc.GetLanguageService<ILibraryService>() != null);
 

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
             {
                 var document = subjectBuffer.GetFullyLoadedDocument(
                     context.OperationContext,
-                    shouldLoad: (doc, ws) =>
+                    shouldFullyLoad: (doc, ws) =>
                         ws.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
                         ws.Services.GetService<IDocumentSupportsFeatureService>().SupportsRefactorings(doc));
 
