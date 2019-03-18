@@ -254,6 +254,32 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyMethod_RefLocal()
+        {
+            var csharp = @"
+public struct S
+{
+    public void M1()
+    {
+        ref S s1 = ref this; // ok
+        ref readonly S s2 = ref this; // ok
+    }
+
+    public readonly void M2()
+    {
+        ref S s1 = ref this; // error
+        ref readonly S s2 = ref this; // ok
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (12,24): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //         ref S s1 = ref this; // error
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(12, 24));
+        }
+
+        [Fact]
         public void ReadOnlyMethod_PassFieldByRef()
         {
             var csharp = @"
