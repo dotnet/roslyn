@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.Text
         /// associated with the buffer if it is linked into multiple projects or is part of a Shared Project. In this case, the <see cref="Workspace"/>
         /// is responsible for keeping track of which of these <see cref="Document"/>s is in the current project context.
         /// </summary>
-        [Obsolete("Use GetDocument instead.", error: true)]
+        [Obsolete("Use GetDocument instead.")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static Document GetOpenDocumentInCurrentContextWithChanges(this ITextSnapshot text)
             => text.GetDocument();
 
