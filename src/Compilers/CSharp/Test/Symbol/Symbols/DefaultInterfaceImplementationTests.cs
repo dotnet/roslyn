@@ -28901,7 +28901,7 @@ I4.M1
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
-            Assert.Equal(m1.ExplicitInterfaceImplementations.Single().DeclaredAccessibility, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
 
             if (m1.ContainingModule is PEModuleSymbol peModule)
             {
@@ -29454,7 +29454,7 @@ class Test1 : I1
             Assert.NotEqual(m1.OriginalDefinition is PEMethodSymbol, m1.IsExtern);
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
 
             if (m1.ContainingModule is PEModuleSymbol peModule)
             {
@@ -29544,7 +29544,7 @@ class Test1 : I1
                 Assert.False(m1.IsExtern);
                 Assert.NotEqual(m1 is PEMethodSymbol, m1.IsAsync);
                 Assert.False(m1.IsOverride);
-                Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
 
                 if (m1.ContainingModule is PEModuleSymbol peModule)
                 {
@@ -31962,7 +31962,7 @@ I4.M1
             Assert.False(m1.IsStatic);
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsOverride);
-            Assert.Equal(m1.ExplicitInterfaceImplementations.Single().DeclaredAccessibility, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
 
             ValidateAccessor(m1.GetMethod);
             ValidateAccessor(m1.SetMethod);
@@ -32580,7 +32580,7 @@ class Test1 : I1
             Assert.False(m1.IsStatic);
             Assert.NotEqual(m1.OriginalDefinition is PEPropertySymbol, m1.IsExtern);
             Assert.False(m1.IsOverride);
-            Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
 
             ValidateAccessor(m1.GetMethod);
             ValidateAccessor(m1.SetMethod);
@@ -34177,7 +34177,7 @@ I4.M1.remove
             Assert.False(m1.IsStatic);
             Assert.False(m1.IsExtern);
             Assert.False(m1.IsOverride);
-            Assert.Equal(m1.ExplicitInterfaceImplementations.Single().DeclaredAccessibility, m1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Protected, m1.DeclaredAccessibility);
 
             ValidateAccessor(m1.AddMethod);
             ValidateAccessor(m1.RemoveMethod);
@@ -42926,12 +42926,11 @@ class C
         [Fact]
         public void ExplicitBase_011()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     void Test()
     {
-        System.Console.WriteLine(base(B).F1);
         System.Console.WriteLine(base(C).F1);
     }
 
@@ -42940,7 +42939,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 #pragma warning disable CS0414
 class B : C
 {
@@ -42953,14 +42953,34 @@ class C
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
 @"
 C
-C
 ");
+            var source2 = @"
+class A : B
+{
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (6,34): error CS8710: 'C.F1' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1", "B").WithLocation(6, 34)
+                );
         }
 
         [Fact]
@@ -43227,12 +43247,11 @@ class C
         [Fact]
         public void ExplicitBase_017()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     void Test()
     {
-        System.Console.WriteLine(base(B).F1());
         System.Console.WriteLine(base(C).F1());
     }
 
@@ -43241,7 +43260,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     new private char F1() => 'B';
@@ -43253,14 +43273,33 @@ class C
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
 @"
 C
-C
 ");
+            var source2 = @"
+class A : B
+{
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1());
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (6,34): error CS8710: 'C.F1()' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1());
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1()", "B").WithLocation(6, 34)
+                );
         }
 
         [Fact]
@@ -43446,13 +43485,11 @@ class C
         [Fact]
         public void ExplicitBase_023()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     void Test()
     {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
         System.Console.WriteLine(base(C).F1);
         base(C).F1 = 'y';
     }
@@ -43462,7 +43499,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     new private char F1 { get => 'B'; set => System.Console.WriteLine(""set B"");}
@@ -43474,16 +43512,38 @@ class C
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
 @"
 C
 set C
-C
-set C
 ");
+            var source2 = @"
+class A : B
+{
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (6,34): error CS8710: 'C.F1.get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(6, 34),
+                // (7,9): error CS8710: 'C.F1.set' is not an immediate member of B.
+                //         base(B).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(7, 9)
+                );
         }
 
         [Fact]
@@ -43812,13 +43872,11 @@ class C
         [Fact]
         public void ExplicitBase_033()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     void Test()
     {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
         System.Console.WriteLine(base(C)[0]);
         base(C)[0] = 'y';
     }
@@ -43828,7 +43886,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     new private char this[int i] { get => 'B'; set => System.Console.WriteLine(""set B"");}
@@ -43840,16 +43899,38 @@ class C
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
 @"
 C
 set C
-C
-set C
 ");
+            var source2 = @"
+class A : B
+{
+    void Test()
+    {
+        System.Console.WriteLine(base(B)[0]);
+        base(B)[0] = 'x';
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (6,34): error CS8710: 'C.this[int].get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B)[0]);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(6, 34),
+                // (7,9): error CS8710: 'C.this[int].set' is not an immediate member of B.
+                //         base(B)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].set", "B").WithLocation(7, 9)
+                );
         }
 
         [Fact]
@@ -44175,13 +44256,11 @@ class C
         [Fact]
         public void ExplicitBase_043()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     void Test()
     {
-        base(B).F1 += null;
-        base(B).F1 -= null;
         base(C).F1 += null;
         base(C).F1 -= null;
     }
@@ -44191,7 +44270,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     new private event System.Action F1 { add => System.Console.WriteLine(""add B""); remove => System.Console.WriteLine(""remove B"");}
@@ -44203,16 +44283,38 @@ class C
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
 @"
 add C
 remove C
-add C
-remove C
 ");
+            var source2 = @"
+class A : B
+{
+    void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (6,9): error CS8710: 'C.F1.add' is not an immediate member of B.
+                //         base(B).F1 += null;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(6, 9),
+                // (7,9): error CS8710: 'C.F1.remove' is not an immediate member of B.
+                //         base(B).F1 -= null;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(7, 9)
+                );
         }
 
         [Fact]
@@ -44724,12 +44826,11 @@ interface C
         [Fact]
         public void ExplicitBase_051()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     void Test()
     {
-        System.Console.WriteLine(base(B).F1());
         System.Console.WriteLine(base(C).F1());
     }
 
@@ -44745,7 +44846,6 @@ struct D : B
 {
     public void Test()
     {
-        System.Console.WriteLine(base(B).F1());
         System.Console.WriteLine(base(C).F1());
     }
 }
@@ -44754,14 +44854,14 @@ interface E : B
 {
     sealed void Test()
     {
-        System.Console.WriteLine(base(B).F1());
         System.Console.WriteLine(base(C).F1());
     }
 }
 
 class F : E
 {}
-
+";
+            var source0 = @"
 interface B : C
 {
     new private char F1() => 'B';
@@ -44773,7 +44873,7 @@ interface C
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -44781,10 +44881,55 @@ interface C
 C
 C
 C
-C
-C
-C
 ", verify: VerifyOnMonoOrCoreClr);
+
+            var source2 = @"
+class A : B
+{
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1());
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new D().Test();
+        ((E)new F()).Test();
+    }
+}
+
+struct D : B
+{
+    public void Test()
+    {
+        System.Console.WriteLine(base(B).F1());
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(B).F1());
+    }
+}
+
+class F : E
+{}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (6,34): error CS8710: 'C.F1()' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1());
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1()", "B").WithLocation(6, 34),
+                // (21,34): error CS8710: 'C.F1()' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1());
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1()", "B").WithLocation(21, 34),
+                // (29,34): error CS8710: 'C.F1()' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1());
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1()", "B").WithLocation(29, 34)
+                );
         }
 
         [Fact]
@@ -45110,17 +45255,26 @@ interface B : I1, I2
 ";
 
             var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation3.VerifyDiagnostics();
-
-            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-1
-2
-1
-2
-1
-2
-", verify: VerifyOnMonoOrCoreClr);
+            compilation3.VerifyDiagnostics(
+                // (6,34): error CS8710: 'I1.F1(int)' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1(1));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I1.F1(int)", "B").WithLocation(6, 34),
+                // (7,34): error CS8710: 'I2.F1(string)' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1("1"));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I2.F1(string)", "B").WithLocation(7, 34),
+                // (22,34): error CS8710: 'I1.F1(int)' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1(1));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I1.F1(int)", "B").WithLocation(22, 34),
+                // (23,34): error CS8710: 'I2.F1(string)' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1("1"));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I2.F1(string)", "B").WithLocation(23, 34),
+                // (31,34): error CS8710: 'I1.F1(int)' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1(1));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I1.F1(int)", "B").WithLocation(31, 34),
+                // (32,34): error CS8710: 'I2.F1(string)' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1("1"));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("I2.F1(string)", "B").WithLocation(32, 34)
+                );
         }
 
         [Fact]
@@ -45369,13 +45523,11 @@ interface C
         [Fact]
         public void ExplicitBase_059()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     void Test()
     {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
         System.Console.WriteLine(base(C).F1);
         base(C).F1 = 'y';
     }
@@ -45392,8 +45544,6 @@ struct D : B
 {
     public void Test()
     {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
         System.Console.WriteLine(base(C).F1);
         base(C).F1 = 'y';
     }
@@ -45403,8 +45553,6 @@ interface E : B
 {
     sealed void Test()
     {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
         System.Console.WriteLine(base(C).F1);
         base(C).F1 = 'y';
     }
@@ -45412,7 +45560,8 @@ interface E : B
 
 class F : E
 {}
-
+";
+            var source0 = @"
 interface B : C
 {
     new private char F1 { get => 'B'; set => System.Console.WriteLine(""set B"");}
@@ -45424,7 +45573,7 @@ interface C
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -45435,13 +45584,67 @@ C
 set C
 C
 set C
-C
-set C
-C
-set C
-C
-set C
 ", verify: VerifyOnMonoOrCoreClr);
+
+            var source2 = @"
+class A : B
+{
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new D().Test();
+        ((E)new F()).Test();
+    }
+}
+
+struct D : B
+{
+    public void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+        base(B).F1 = 'x';
+    }
+}
+
+class F : E
+{}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (6,34): error CS8710: 'C.F1.get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(6, 34),
+                // (7,9): error CS8710: 'C.F1.set' is not an immediate member of B.
+                //         base(B).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(7, 9),
+                // (22,34): error CS8710: 'C.F1.get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(22, 34),
+                // (23,9): error CS8710: 'C.F1.set' is not an immediate member of B.
+                //         base(B).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(23, 9),
+                // (31,34): error CS8710: 'C.F1.get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(31, 34),
+                // (32,9): error CS8710: 'C.F1.set' is not an immediate member of B.
+                //         base(B).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(32, 9)
+                );
         }
 
         [Fact]
@@ -46183,13 +46386,11 @@ interface C
         [Fact]
         public void ExplicitBase_070()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     void Test()
     {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
         System.Console.WriteLine(base(C)[0]);
         base(C)[0] = 'y';
     }
@@ -46206,8 +46407,6 @@ struct D : B
 {
     public void Test()
     {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
         System.Console.WriteLine(base(C)[0]);
         base(C)[0] = 'y';
     }
@@ -46217,8 +46416,6 @@ interface E : B
 {
     sealed void Test()
     {
-        System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
         System.Console.WriteLine(base(C)[0]);
         base(C)[0] = 'y';
     }
@@ -46226,7 +46423,8 @@ interface E : B
 
 class F : E
 {}
-
+";
+            var source0 = @"
 interface B : C
 {
     new private char this[int i] { get => 'B'; set => System.Console.WriteLine(""set B"");}
@@ -46238,7 +46436,7 @@ interface C
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -46249,13 +46447,67 @@ C
 set C
 C
 set C
-C
-set C
-C
-set C
-C
-set C
 ", verify: VerifyOnMonoOrCoreClr);
+
+            var source2 = @"
+class A : B
+{
+    void Test()
+    {
+        System.Console.WriteLine(base(B)[0]);
+        base(B)[0] = 'x';
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new D().Test();
+        ((E)new F()).Test();
+    }
+}
+
+struct D : B
+{
+    public void Test()
+    {
+        System.Console.WriteLine(base(B)[0]);
+        base(B)[0] = 'x';
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(B)[0]);
+        base(B)[0] = 'x';
+    }
+}
+
+class F : E
+{}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (6,34): error CS8710: 'C.this[int].get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B)[0]);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(6, 34),
+                // (7,9): error CS8710: 'C.this[int].set' is not an immediate member of B.
+                //         base(B)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].set", "B").WithLocation(7, 9),
+                // (22,34): error CS8710: 'C.this[int].get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B)[0]);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(22, 34),
+                // (23,9): error CS8710: 'C.this[int].set' is not an immediate member of B.
+                //         base(B)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].set", "B").WithLocation(23, 9),
+                // (31,34): error CS8710: 'C.this[int].get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B)[0]);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(31, 34),
+                // (32,9): error CS8710: 'C.this[int].set' is not an immediate member of B.
+                //         base(B)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].set", "B").WithLocation(32, 9)
+                );
         }
 
         [Fact]
@@ -46848,17 +47100,26 @@ interface B : I1, I2
 ";
 
             var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation3.VerifyDiagnostics();
-
-            CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-1
-set 2
-1
-set 2
-1
-set 2
-", verify: VerifyOnMonoOrCoreClr);
+            compilation3.VerifyDiagnostics(
+                // (6,34): error CS8710: 'I1.this[int].get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B)[0]);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("I1.this[int].get", "B").WithLocation(6, 34),
+                // (7,9): error CS8710: 'I2.this[string].set' is not an immediate member of B.
+                //         base(B)["0"] = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, @"base(B)[""0""]").WithArguments("I2.this[string].set", "B").WithLocation(7, 9),
+                // (22,34): error CS8710: 'I1.this[int].get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B)[0]);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("I1.this[int].get", "B").WithLocation(22, 34),
+                // (23,9): error CS8710: 'I2.this[string].set' is not an immediate member of B.
+                //         base(B)["0"] = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, @"base(B)[""0""]").WithArguments("I2.this[string].set", "B").WithLocation(23, 9),
+                // (31,34): error CS8710: 'I1.this[int].get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B)[0]);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("I1.this[int].get", "B").WithLocation(31, 34),
+                // (32,9): error CS8710: 'I2.this[string].set' is not an immediate member of B.
+                //         base(B)["0"] = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, @"base(B)[""0""]").WithArguments("I2.this[string].set", "B").WithLocation(32, 9)
+                );
         }
 
         [Fact]
@@ -47049,13 +47310,11 @@ interface C
         [Fact]
         public void ExplicitBase_081()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     void Test()
     {
-        base(B).F1 += null;
-        base(B).F1 -= null;
         base(C).F1 += null;
         base(C).F1 -= null;
     }
@@ -47072,8 +47331,6 @@ struct D : B
 {
     public void Test()
     {
-        base(B).F1 += null;
-        base(B).F1 -= null;
         base(C).F1 += null;
         base(C).F1 -= null;
     }
@@ -47083,8 +47340,6 @@ interface E : B
 {
     sealed void Test()
     {
-        base(B).F1 += null;
-        base(B).F1 -= null;
         base(C).F1 += null;
         base(C).F1 -= null;
     }
@@ -47092,7 +47347,8 @@ interface E : B
 
 class F : E
 {}
-
+";
+            var source0 = @"
 interface B : C
 {
     new private event System.Action F1 { add => System.Console.WriteLine(""add B""); remove => System.Console.WriteLine(""remove B"");}
@@ -47104,7 +47360,7 @@ interface C
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -47115,13 +47371,67 @@ add C
 remove C
 add C
 remove C
-add C
-remove C
-add C
-remove C
-add C
-remove C
 ", verify: VerifyOnMonoOrCoreClr);
+
+            var source2 = @"
+class A : B
+{
+    void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new D().Test();
+        ((E)new F()).Test();
+    }
+}
+
+struct D : B
+{
+    public void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        base(B).F1 += null;
+        base(B).F1 -= null;
+    }
+}
+
+class F : E
+{}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (6,9): error CS8710: 'C.F1.add' is not an immediate member of B.
+                //         base(B).F1 += null;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(6, 9),
+                // (7,9): error CS8710: 'C.F1.remove' is not an immediate member of B.
+                //         base(B).F1 -= null;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(7, 9),
+                // (22,9): error CS8710: 'C.F1.add' is not an immediate member of B.
+                //         base(B).F1 += null;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(22, 9),
+                // (23,9): error CS8710: 'C.F1.remove' is not an immediate member of B.
+                //         base(B).F1 -= null;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(23, 9),
+                // (31,9): error CS8710: 'C.F1.add' is not an immediate member of B.
+                //         base(B).F1 += null;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(31, 9),
+                // (32,9): error CS8710: 'C.F1.remove' is not an immediate member of B.
+                //         base(B).F1 -= null;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(32, 9)
+                );
         }
 
         [Fact]
@@ -47455,7 +47765,7 @@ remove 2
         [Fact]
         public void ExplicitBase_086()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     protected override char F1(int pA) => 'A';
@@ -47464,10 +47774,8 @@ class A : B
     {
         System.Console.WriteLine(F1(1));
         System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(C).F1(1));
         System.Console.WriteLine(base(D).F1(1));
         System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(C).F1(pD: 1));
         System.Console.WriteLine(base(D).F1(pD: 1));
     }
 
@@ -47477,7 +47785,8 @@ class A : B
         new F().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     protected override char F1(int pB) => 'B';
@@ -47508,7 +47817,7 @@ struct F
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1, expectedOutput:
@@ -47516,9 +47825,7 @@ struct F
 A
 B
 D
-D
 B
-D
 D
 F
 ");
@@ -47537,12 +47844,39 @@ F
   IL_0017:  ret
 }
 ");
+            var source2 = @"
+class A : B
+{
+    protected override char F1(int pA) => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(base(C).F1(1));
+        System.Console.WriteLine(base(C).F1(pD: 1));
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (8,34): error CS8710: 'D.F1(int)' is not an immediate member of C.
+                //         System.Console.WriteLine(base(C).F1(1));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(8, 34),
+                // (9,34): error CS8710: 'D.F1(int)' is not an immediate member of C.
+                //         System.Console.WriteLine(base(C).F1(pD: 1));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(9, 34)
+                );
         }
 
         [Fact]
         public void ExplicitBase_086_Delegate()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     protected override char F1(int pA) => 'A';
@@ -47551,7 +47885,6 @@ class A : B
     {
         System.Console.WriteLine(new System.Func<int, char>(F1)(1));
         System.Console.WriteLine(new System.Func<int, char>(base(B).F1)(1));
-        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
         System.Console.WriteLine(new System.Func<int, char>(base(D).F1)(1));
     }
 
@@ -47561,7 +47894,8 @@ class A : B
         new F().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     protected override char F1(int pB) => 'B';
@@ -47592,14 +47926,13 @@ struct F
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1, expectedOutput:
 @"
 A
 B
-D
 D
 F
 ");
@@ -47620,6 +47953,29 @@ F
   IL_0022:  ret
 }
 ");
+            var source2 = @"
+class A : B
+{
+    protected override char F1(int pA) => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (8,61): error CS8710: 'D.F1(int)' is not an immediate member of C.
+                //         System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(8, 61)
+                );
         }
 
         [Fact]
@@ -47717,7 +48073,7 @@ abstract class D
         [Fact]
         public void ExplicitBase_089()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
@@ -47728,8 +48084,6 @@ class A : B
         F1 = 'x';
         System.Console.WriteLine(base(B).F1);
         base(B).F1 = 'x';
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
         System.Console.WriteLine(base(D).F1);
         base(D).F1 = 'x';
     }
@@ -47739,7 +48093,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     protected override char F1 { get => 'B'; set => System.Console.WriteLine(""set B"");}
@@ -47760,7 +48115,7 @@ abstract class E
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
@@ -47771,9 +48126,33 @@ B
 set B
 D
 set D
-D
-set D
 ");
+            var source2 = @"
+class A : B
+{
+    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        System.Console.WriteLine(base(C).F1);
+        base(C).F1 = 'x';
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (8,34): error CS8710: 'D.F1.get' is not an immediate member of C.
+                //         System.Console.WriteLine(base(C).F1);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(8, 34),
+                // (9,9): error CS8710: 'D.F1.set' is not an immediate member of C.
+                //         base(C).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(9, 9)
+                );
         }
 
         [Fact]
@@ -47834,7 +48213,7 @@ abstract class D
         [Fact]
         public void ExplicitBase_091()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
@@ -47842,7 +48221,6 @@ class A : B
     void Test()
     {
         System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
     }
 
     static void Main()
@@ -47850,7 +48228,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     protected override char F1 { get => 'B';}
@@ -47867,27 +48246,20 @@ abstract class D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
 @"
 B
-set C
 ");
-        }
-
-        [Fact]
-        public void ExplicitBase_092()
-        {
-            var source = @"
+            var source2 = @"
 class A : B
 {
     protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
 
     void Test()
     {
-        System.Console.WriteLine(base(B).F1);
         base(B).F1 = 'x';
     }
 
@@ -47896,7 +48268,35 @@ class A : B
         new A().Test();
     }
 }
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (8,9): error CS8710: 'C.F1.set' is not an immediate member of B.
+                //         base(B).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(8, 9)
+                );
+        }
 
+        [Fact]
+        public void ExplicitBase_092()
+        {
+            var source1 = @"
+class A : B
+{
+    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        base(B).F1 = 'x';
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var source0 = @"
 class B : C
 {
     protected override char F1 { set => System.Console.WriteLine(""set B"");}
@@ -47913,14 +48313,35 @@ abstract class D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
 @"
-C
 set B
 ");
+            var source2 = @"
+class A : B
+{
+    protected override char F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1);
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (8,34): error CS8710: 'C.F1.get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B).F1);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(8, 34)
+                );
         }
 
         [Fact]
@@ -47935,6 +48356,8 @@ class A : C
     {
         _ = base(C).F1;
         base(C).F1 = 'x';
+        _ = base(D).F1;
+        base(D).F1 = 'x';
     }
 }
 
@@ -47951,9 +48374,15 @@ abstract class D
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS0205: Cannot call an abstract base member: 'C.F1'
+                // (8,13): error CS8710: 'D.F1.get' is not an immediate member of C.
                 //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C).F1").WithArguments("C.F1").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(8, 13),
+                // (10,13): error CS0205: Cannot call an abstract base member: 'D.F1'
+                //         _ = base(D).F1;
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1").WithArguments("D.F1").WithLocation(10, 13),
+                // (11,9): error CS0205: Cannot call an abstract base member: 'D.F1'
+                //         base(D).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1").WithArguments("D.F1").WithLocation(11, 9)
                 );
         }
 
@@ -47985,9 +48414,9 @@ abstract class D
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
-                // (9,9): error CS0205: Cannot call an abstract base member: 'C.F1'
+                // (9,9): error CS8710: 'D.F1.set' is not an immediate member of C.
                 //         base(C).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C).F1").WithArguments("C.F1").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(9, 9)
                 );
         }
 
@@ -48019,6 +48448,9 @@ abstract class D
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
+                // (8,13): error CS8710: 'D.F1.get' is not an immediate member of C.
+                //         _ = base(C).F1;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(8, 13),
                 // (9,9): error CS0205: Cannot call an abstract base member: 'C.F1'
                 //         base(C).F1 = 'x';
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C).F1").WithArguments("C.F1").WithLocation(9, 9)
@@ -48055,14 +48487,17 @@ abstract class D
             compilation1.VerifyDiagnostics(
                 // (8,13): error CS0205: Cannot call an abstract base member: 'C.F1'
                 //         _ = base(C).F1;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C).F1").WithArguments("C.F1").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C).F1").WithArguments("C.F1").WithLocation(8, 13),
+                // (9,9): error CS8710: 'D.F1.set' is not an immediate member of C.
+                //         base(C).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(9, 9)
                 );
         }
 
         [Fact]
         public void ExplicitBase_097()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
@@ -48073,8 +48508,6 @@ class A : B
         this[0] = 'x';
         System.Console.WriteLine(base(B)[0]);
         base(B)[0] = 'x';
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'x';
         System.Console.WriteLine(base(D)[0]);
         base(D)[0] = 'x';
     }
@@ -48084,7 +48517,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     protected override char this[int i] { get => 'B'; set => System.Console.WriteLine(""set B"");}
@@ -48105,7 +48539,7 @@ abstract class E
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
@@ -48116,9 +48550,33 @@ B
 set B
 D
 set D
-D
-set D
 ");
+            var source2 = @"
+class A : B
+{
+    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        System.Console.WriteLine(base(C)[0]);
+        base(C)[0] = 'x';
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (8,34): error CS8710: 'D.this[int].get' is not an immediate member of C.
+                //         System.Console.WriteLine(base(C)[0]);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(8, 34),
+                // (9,9): error CS8710: 'D.this[int].set' is not an immediate member of C.
+                //         base(C)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(9, 9)
+                );
         }
 
         [Fact]
@@ -48179,7 +48637,7 @@ abstract class D
         [Fact]
         public void ExplicitBase_099()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
@@ -48187,7 +48645,6 @@ class A : B
     void Test()
     {
         System.Console.WriteLine(base(B)[0]);
-        base(B)[0] = 'x';
     }
 
     static void Main()
@@ -48195,7 +48652,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     protected override char this[int i] { get => 'B';}
@@ -48212,27 +48670,20 @@ abstract class D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
 @"
 B
-set C
 ");
-        }
-
-        [Fact]
-        public void ExplicitBase_100()
-        {
-            var source = @"
+            var source2 = @"
 class A : B
 {
     protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
 
     void Test()
     {
-        System.Console.WriteLine(base(B)[0]);
         base(B)[0] = 'x';
     }
 
@@ -48241,7 +48692,35 @@ class A : B
         new A().Test();
     }
 }
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (8,9): error CS8710: 'C.this[int].set' is not an immediate member of B.
+                //         base(B)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].set", "B").WithLocation(8, 9)
+                );
+        }
 
+        [Fact]
+        public void ExplicitBase_100()
+        {
+            var source1 = @"
+class A : B
+{
+    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        base(B)[0] = 'x';
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var source0 = @"
 class B : C
 {
     protected override char this[int i] { set => System.Console.WriteLine(""set B"");}
@@ -48258,14 +48737,35 @@ abstract class D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
 @"
-C
 set B
 ");
+            var source2 = @"
+class A : B
+{
+    protected override char this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        System.Console.WriteLine(base(B)[0]);
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (8,34): error CS8710: 'C.this[int].get' is not an immediate member of B.
+                //         System.Console.WriteLine(base(B)[0]);
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(8, 34)
+                );
         }
 
         [Fact]
@@ -48280,6 +48780,8 @@ class A : C
     {
         _ = base(C)[0];
         base(C)[0] = 'x';
+        _ = base(D)[0];
+        base(D)[0] = 'x';
     }
 }
 
@@ -48296,9 +48798,15 @@ abstract class D
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
-                // (8,13): error CS0205: Cannot call an abstract base member: 'C.this[int]'
+                // (8,13): error CS8710: 'D.this[int].get' is not an immediate member of C.
                 //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C)[0]").WithArguments("C.this[int]").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(8, 13),
+                // (10,13): error CS0205: Cannot call an abstract base member: 'D.this[int]'
+                //         _ = base(D)[0];
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D)[0]").WithArguments("D.this[int]").WithLocation(10, 13),
+                // (11,9): error CS0205: Cannot call an abstract base member: 'D.this[int]'
+                //         base(D)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D)[0]").WithArguments("D.this[int]").WithLocation(11, 9)
                 );
         }
 
@@ -48330,9 +48838,9 @@ abstract class D
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
-                // (9,9): error CS0205: Cannot call an abstract base member: 'C.this[int]'
+                // (9,9): error CS8710: 'D.this[int].set' is not an immediate member of C.
                 //         base(C)[0] = 'x';
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C)[0]").WithArguments("C.this[int]").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(9, 9)
                 );
         }
 
@@ -48364,6 +48872,9 @@ abstract class D
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
+                // (8,13): error CS8710: 'D.this[int].get' is not an immediate member of C.
+                //         _ = base(C)[0];
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(8, 13),
                 // (9,9): error CS0205: Cannot call an abstract base member: 'C.this[int]'
                 //         base(C)[0] = 'x';
                 Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C)[0]").WithArguments("C.this[int]").WithLocation(9, 9)
@@ -48400,14 +48911,17 @@ abstract class D
             compilation1.VerifyDiagnostics(
                 // (8,13): error CS0205: Cannot call an abstract base member: 'C.this[int]'
                 //         _ = base(C)[0];
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C)[0]").WithArguments("C.this[int]").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(C)[0]").WithArguments("C.this[int]").WithLocation(8, 13),
+                // (9,9): error CS8710: 'D.this[int].set' is not an immediate member of C.
+                //         base(C)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(9, 9)
                 );
         }
 
         [Fact]
         public void ExplicitBase_105()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     protected override event System.Action F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
@@ -48418,8 +48932,6 @@ class A : B
         F1 -= null;
         base(B).F1 += null;
         base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
         base(D).F1 += null;
         base(D).F1 -= null;
     }
@@ -48429,7 +48941,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 class B : C
 {
     protected override event System.Action F1 { add => System.Console.WriteLine(""add B""); remove => System.Console.WriteLine(""remove B"");}
@@ -48450,7 +48963,7 @@ abstract class E
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe);
             compilation1.VerifyDiagnostics();
 
             CompileAndVerify(compilation1, expectedOutput:
@@ -48461,9 +48974,33 @@ add B
 remove B
 add D
 remove D
-add D
-remove D
 ");
+            var source2 = @"
+class A : B
+{
+    protected override event System.Action F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
+
+    void Test()
+    {
+        base(C).F1 += null;
+        base(C).F1 -= null;
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe);
+            compilation2.VerifyDiagnostics(
+                // (8,9): error CS8710: 'D.F1.add' is not an immediate member of C.
+                //         base(C).F1 += null;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1 += null").WithArguments("D.F1.add", "C").WithLocation(8, 9),
+                // (9,9): error CS8710: 'D.F1.remove' is not an immediate member of C.
+                //         base(C).F1 -= null;
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(C).F1 -= null").WithArguments("D.F1.remove", "C").WithLocation(9, 9)
+                );
         }
 
         [Fact]
@@ -48503,23 +49040,23 @@ abstract class D
             compilation1.VerifyDiagnostics(
                 // (8,9): error CS0205: Cannot call an abstract base member: 'B.F1'
                 //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.F1").WithLocation(8, 9),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1 += null").WithArguments("B.F1").WithLocation(8, 9),
                 // (9,9): error CS0205: Cannot call an abstract base member: 'B.F1'
                 //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1").WithArguments("B.F1").WithLocation(9, 9),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(B).F1 -= null").WithArguments("B.F1").WithLocation(9, 9),
                 // (10,9): error CS0205: Cannot call an abstract base member: 'D.F1'
                 //         base(D).F1 += null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1").WithArguments("D.F1").WithLocation(10, 9),
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1 += null").WithArguments("D.F1").WithLocation(10, 9),
                 // (11,9): error CS0205: Cannot call an abstract base member: 'D.F1'
                 //         base(D).F1 -= null;
-                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1").WithArguments("D.F1").WithLocation(11, 9)
+                Diagnostic(ErrorCode.ERR_AbstractBaseCall, "base(D).F1 -= null").WithArguments("D.F1").WithLocation(11, 9)
                 );
         }
 
         [Fact]
         public void ExplicitBase_107()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     char B.F1(int pA) => 'A';
@@ -48528,10 +49065,8 @@ class A : B
     void Test()
     {
         System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(C).F1(1));
         System.Console.WriteLine(base(D).F1(1));
         System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(C).F1(pD: 1));
         System.Console.WriteLine(base(D).F1(pD: 1));
     }
 
@@ -48551,10 +49086,8 @@ struct F : B
     public void Test()
     {
         System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(C).F1(1));
         System.Console.WriteLine(base(D).F1(1));
         System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(C).F1(pD: 1));
         System.Console.WriteLine(base(D).F1(pD: 1));
     }
 }
@@ -48564,14 +49097,13 @@ interface E : B
     sealed void Test()
     {
         System.Console.WriteLine(base(B).F1(1));
-        System.Console.WriteLine(base(C).F1(1));
         System.Console.WriteLine(base(D).F1(1));
         System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(C).F1(pD: 1));
         System.Console.WriteLine(base(D).F1(pD: 1));
     }
 }
-
+";
+            var source0 = @"
 class G : E
 {
     char B.F1(int pA) => 'G';
@@ -48593,35 +49125,29 @@ interface D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 D
+B
 D
 B
 D
+B
 D
 B
 D
-D
 B
-D
-D
-B
-D
-D
-B
-D
 D
 ", verify: VerifyOnMonoOrCoreClr);
 
             verifier.VerifyIL("F.Test",
 @"
 {
-  // Code size      140 (0x8c)
+  // Code size       94 (0x5e)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
@@ -48642,33 +49168,81 @@ D
   IL_0030:  ldobj      ""F""
   IL_0035:  box        ""F""
   IL_003a:  ldc.i4.1
-  IL_003b:  call       ""char D.F1(int)""
+  IL_003b:  call       ""char B.F1(int)""
   IL_0040:  call       ""void System.Console.WriteLine(char)""
   IL_0045:  nop
   IL_0046:  ldarg.0
   IL_0047:  ldobj      ""F""
   IL_004c:  box        ""F""
   IL_0051:  ldc.i4.1
-  IL_0052:  call       ""char B.F1(int)""
+  IL_0052:  call       ""char D.F1(int)""
   IL_0057:  call       ""void System.Console.WriteLine(char)""
   IL_005c:  nop
-  IL_005d:  ldarg.0
-  IL_005e:  ldobj      ""F""
-  IL_0063:  box        ""F""
-  IL_0068:  ldc.i4.1
-  IL_0069:  call       ""char D.F1(int)""
-  IL_006e:  call       ""void System.Console.WriteLine(char)""
-  IL_0073:  nop
-  IL_0074:  ldarg.0
-  IL_0075:  ldobj      ""F""
-  IL_007a:  box        ""F""
-  IL_007f:  ldc.i4.1
-  IL_0080:  call       ""char D.F1(int)""
-  IL_0085:  call       ""void System.Console.WriteLine(char)""
-  IL_008a:  nop
-  IL_008b:  ret
+  IL_005d:  ret
 }
 ");
+            var source2 = @"
+class A : B
+{
+    char B.F1(int pA) => 'A';
+    char D.F1(int pA) => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(base(C).F1(1));
+        System.Console.WriteLine(base(C).F1(pD: 1));
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char B.F1(int pA) => 'F';
+    char D.F1(int pA) => 'F';
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(C).F1(1));
+        System.Console.WriteLine(base(C).F1(pD: 1));
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(C).F1(1));
+        System.Console.WriteLine(base(C).F1(pD: 1));
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (9,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1(1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(9, 34),
+                // (10,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1(pD: 1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(10, 34),
+                // (28,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1(1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(28, 34),
+                // (29,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1(pD: 1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(29, 34),
+                // (37,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1(1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(37, 34),
+                // (38,34): error CS8709: 'D.F1(int)' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1(pD: 1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(38, 34)
+                );
         }
 
         [Fact]
@@ -48676,7 +49250,7 @@ D
         [WorkItem(33535, "https://github.com/dotnet/roslyn/issues/33535")]
         public void ExplicitBase_107_Delegate()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     char B.F1(int pA) => 'A';
@@ -48685,7 +49259,6 @@ class A : B
     void Test()
     {
         System.Console.WriteLine(new System.Func<int, char>(base(B).F1)(1));
-        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
         System.Console.WriteLine(new System.Func<int, char>(base(D).F1)(1));
     }
 
@@ -48705,7 +49278,6 @@ struct F : B
     public void Test()
     {
         System.Console.WriteLine(new System.Func<int, char>(base(B).F1)(1));
-        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
         System.Console.WriteLine(new System.Func<int, char>(base(D).F1)(1));
     }
 }
@@ -48715,11 +49287,11 @@ interface E : B
     sealed void Test()
     {
         System.Console.WriteLine(new System.Func<int, char>(base(B).F1)(1));
-        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
         System.Console.WriteLine(new System.Func<int, char>(base(D).F1)(1));
     }
 }
-
+";
+            var source0 = @"
 class G : E
 {
     char B.F1(int pA) => 'G';
@@ -48741,7 +49313,7 @@ interface D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1
@@ -48750,12 +49322,9 @@ interface D
 @"
 B
 D
-D
 B
 D
-D
 B
-D
 D
 "
 #endif
@@ -48764,7 +49333,7 @@ D
             verifier.VerifyIL("F.Test",
 @"
 {
-  // Code size      104 (0x68)
+  // Code size       70 (0x46)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
@@ -48785,18 +49354,59 @@ D
   IL_003a:  callvirt   ""char System.Func<int, char>.Invoke(int)""
   IL_003f:  call       ""void System.Console.WriteLine(char)""
   IL_0044:  nop
-  IL_0045:  ldarg.0
-  IL_0046:  ldobj      ""F""
-  IL_004b:  box        ""F""
-  IL_0050:  ldftn      ""char D.F1(int)""
-  IL_0056:  newobj     ""System.Func<int, char>..ctor(object, System.IntPtr)""
-  IL_005b:  ldc.i4.1
-  IL_005c:  callvirt   ""char System.Func<int, char>.Invoke(int)""
-  IL_0061:  call       ""void System.Console.WriteLine(char)""
-  IL_0066:  nop
-  IL_0067:  ret
+  IL_0045:  ret
 }
 ");
+            var source2 = @"
+class A : B
+{
+    char B.F1(int pA) => 'A';
+    char D.F1(int pA) => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char B.F1(int pA) => 'F';
+    char D.F1(int pA) => 'F';
+
+    public void Test()
+    {
+        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (9,61): error CS8709: 'D.F1(int)' is not implemented in base interface C.
+                //         System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(9, 61),
+                // (27,61): error CS8709: 'D.F1(int)' is not implemented in base interface C.
+                //         System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(27, 61),
+                // (35,61): error CS8709: 'D.F1(int)' is not implemented in base interface C.
+                //         System.Console.WriteLine(new System.Func<int, char>(base(C).F1)(1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1(int)", "C").WithLocation(35, 61)
+                );
         }
 
         [Fact]
@@ -48865,7 +49475,7 @@ interface B : I1, I2
         [Fact]
         public void ExplicitBase_110()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     char I1.F1(int pA) => 'A';
@@ -48875,8 +49485,6 @@ class A : B
     {
         System.Console.WriteLine(base(I1).F1(1));
         System.Console.WriteLine(base(I2).F1(1));
-        System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(B).F1(pD: 1));
     }
 
     static void Main()
@@ -48884,7 +49492,8 @@ class A : B
         new A().Test();
     }
 }
-
+";
+            var source0 = @"
 interface I1
 {
     virtual char F1(int pB) => '1';
@@ -48900,16 +49509,42 @@ interface B : I1, I2
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 1
 2
-1
-2
 ", verify: VerifyOnMonoOrCoreClr);
+
+            var source2 = @"
+class A : B
+{
+    char I1.F1(int pA) => 'A';
+    char I2.F1(int pA) => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(base(B).F1(pB: 1));
+        System.Console.WriteLine(base(B).F1(pD: 1));
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (9,34): error CS8709: 'I1.F1(int)' is not implemented in base interface B.
+                //         System.Console.WriteLine(base(B).F1(pB: 1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("I1.F1(int)", "B").WithLocation(9, 34),
+                // (10,34): error CS8709: 'I2.F1(int)' is not implemented in base interface B.
+                //         System.Console.WriteLine(base(B).F1(pD: 1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("I2.F1(int)", "B").WithLocation(10, 34)
+                );
         }
 
         [Fact]
@@ -48949,19 +49584,20 @@ interface B : I1, I2
 ";
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-1
-2
-", verify: VerifyOnMonoOrCoreClr);
+            compilation1.VerifyDiagnostics(
+                // (9,34): error CS8709: 'I1.F1(int)' is not implemented in base interface B.
+                //         System.Console.WriteLine(base(B).F1(1));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("I1.F1(int)", "B").WithLocation(9, 34),
+                // (10,34): error CS8709: 'I2.F1(string)' is not implemented in base interface B.
+                //         System.Console.WriteLine(base(B).F1("1"));
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("I2.F1(string)", "B").WithLocation(10, 34)
+                );
         }
 
         [Fact]
         public void ExplicitBase_112()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     char B.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
@@ -48971,8 +49607,6 @@ class A : B
     {
         System.Console.WriteLine(base(B).F1);
         base(B).F1 = 'x';
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
         System.Console.WriteLine(base(D).F1);
         base(D).F1 = 'x';
     }
@@ -48994,8 +49628,6 @@ struct F : B
     {
         System.Console.WriteLine(base(B).F1);
         base(B).F1 = 'x';
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
         System.Console.WriteLine(base(D).F1);
         base(D).F1 = 'x';
     }
@@ -49007,13 +49639,12 @@ interface E : B
     {
         System.Console.WriteLine(base(B).F1);
         base(B).F1 = 'x';
-        System.Console.WriteLine(base(C).F1);
-        base(C).F1 = 'x';
         System.Console.WriteLine(base(D).F1);
         base(D).F1 = 'x';
     }
 }
-
+";
+            var source0 = @"
 class G : E
 {
     char B.F1 { get => 'G'; set => System.Console.WriteLine(""set G"");}
@@ -49035,7 +49666,7 @@ interface D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -49044,21 +49675,78 @@ B
 set B
 D
 set D
-D
-set D
 B
 set B
 D
 set D
-D
-set D
 B
 set B
-D
-set D
 D
 set D
 ", verify: VerifyOnMonoOrCoreClr);
+
+            var source2 = @"
+class A : B
+{
+    char B.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
+    char D.F1 { get => 'A'; set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        System.Console.WriteLine(base(C).F1);
+        base(C).F1 = 'x';
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char B.F1 { get => 'F'; set => System.Console.WriteLine(""set F"");}
+    char D.F1 { get => 'F'; set => System.Console.WriteLine(""set F"");}
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(C).F1);
+        base(C).F1 = 'x';
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(C).F1);
+        base(C).F1 = 'x';
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (9,34): error CS8709: 'D.F1.get' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1);
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(9, 34),
+                // (10,9): error CS8709: 'D.F1.set' is not implemented in base interface C.
+                //         base(C).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(10, 9),
+                // (28,34): error CS8709: 'D.F1.get' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1);
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(28, 34),
+                // (29,9): error CS8709: 'D.F1.set' is not implemented in base interface C.
+                //         base(C).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(29, 9),
+                // (37,34): error CS8709: 'D.F1.get' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1);
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.get", "C").WithLocation(37, 34),
+                // (38,9): error CS8709: 'D.F1.set' is not implemented in base interface C.
+                //         base(C).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1.set", "C").WithLocation(38, 9)
+                );
         }
 
         [Fact]
@@ -49185,7 +49873,7 @@ set 2
         [Fact]
         public void ExplicitBase_116()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     char B.this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
@@ -49195,8 +49883,6 @@ class A : B
     {
         System.Console.WriteLine(base(B)[0]);
         base(B)[0] = 'x';
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'x';
         System.Console.WriteLine(base(D)[0]);
         base(D)[0] = 'x';
     }
@@ -49218,8 +49904,6 @@ struct F : B
     {
         System.Console.WriteLine(base(B)[0]);
         base(B)[0] = 'x';
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'x';
         System.Console.WriteLine(base(D)[0]);
         base(D)[0] = 'x';
     }
@@ -49231,13 +49915,12 @@ interface E : B
     {
         System.Console.WriteLine(base(B)[0]);
         base(B)[0] = 'x';
-        System.Console.WriteLine(base(C)[0]);
-        base(C)[0] = 'x';
         System.Console.WriteLine(base(D)[0]);
         base(D)[0] = 'x';
     }
 }
-
+";
+            var source0 = @"
 class G : E
 {
     char B.this[int i] { get => 'G'; set => System.Console.WriteLine(""set G"");}
@@ -49259,7 +49942,7 @@ interface D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -49268,21 +49951,78 @@ B
 set B
 D
 set D
-D
-set D
 B
 set B
 D
 set D
-D
-set D
 B
 set B
-D
-set D
 D
 set D
 ", verify: VerifyOnMonoOrCoreClr);
+
+            var source2 = @"
+class A : B
+{
+    char B.this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
+    char D.this[int i] { get => 'A'; set => System.Console.WriteLine(""set A"");}
+
+    void Test()
+    {
+        System.Console.WriteLine(base(C)[0]);
+        base(C)[0] = 'x';
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char B.this[int i] { get => 'F'; set => System.Console.WriteLine(""set F"");}
+    char D.this[int i] { get => 'F'; set => System.Console.WriteLine(""set F"");}
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(C)[0]);
+        base(C)[0] = 'x';
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(C)[0]);
+        base(C)[0] = 'x';
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (9,34): error CS8709: 'D.this[int].get' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C)[0]);
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(9, 34),
+                // (10,9): error CS8709: 'D.this[int].set' is not implemented in base interface C.
+                //         base(C)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(10, 9),
+                // (28,34): error CS8709: 'D.this[int].get' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C)[0]);
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(28, 34),
+                // (29,9): error CS8709: 'D.this[int].set' is not implemented in base interface C.
+                //         base(C)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(29, 9),
+                // (37,34): error CS8709: 'D.this[int].get' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C)[0]);
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].get", "C").WithLocation(37, 34),
+                // (38,9): error CS8709: 'D.this[int].set' is not implemented in base interface C.
+                //         base(C)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C)[0]").WithArguments("D.this[int].set", "C").WithLocation(38, 9)
+                );
         }
 
         [Fact]
@@ -49445,21 +50185,26 @@ interface B : I1, I2
 ";
 
             var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics();
-
-            var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
-@"
-1
-set 1
-2
-set 2
-", verify: VerifyOnMonoOrCoreClr);
+            compilation1.VerifyDiagnostics(
+                // (9,34): error CS8709: 'I1.this[int].get' is not implemented in base interface B.
+                //         System.Console.WriteLine(base(B)[0]);
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B)[0]").WithArguments("I1.this[int].get", "B").WithLocation(9, 34),
+                // (10,9): error CS8709: 'I1.this[int].set' is not implemented in base interface B.
+                //         base(B)[0] = 'x';
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B)[0]").WithArguments("I1.this[int].set", "B").WithLocation(10, 9),
+                // (11,34): error CS8709: 'I2.this[string].get' is not implemented in base interface B.
+                //         System.Console.WriteLine(base(B)["0"]);
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, @"base(B)[""0""]").WithArguments("I2.this[string].get", "B").WithLocation(11, 34),
+                // (12,9): error CS8709: 'I2.this[string].set' is not implemented in base interface B.
+                //         base(B)["0"] = 'x';
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, @"base(B)[""0""]").WithArguments("I2.this[string].set", "B").WithLocation(12, 9)
+                );
         }
 
         [Fact]
         public void ExplicitBase_121()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     event System.Action B.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
@@ -49469,8 +50214,6 @@ class A : B
     {
         base(B).F1 += null;
         base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
         base(D).F1 += null;
         base(D).F1 -= null;
     }
@@ -49492,8 +50235,6 @@ struct F : B
     {
         base(B).F1 += null;
         base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
         base(D).F1 += null;
         base(D).F1 -= null;
     }
@@ -49505,13 +50246,12 @@ interface E : B
     {
         base(B).F1 += null;
         base(B).F1 -= null;
-        base(C).F1 += null;
-        base(C).F1 -= null;
         base(D).F1 += null;
         base(D).F1 -= null;
     }
 }
-
+";
+            var source0 = @"
 class G : E
 {
     event System.Action B.F1 { add => System.Console.WriteLine(""add G""); remove => System.Console.WriteLine(""remove G"");}
@@ -49533,7 +50273,7 @@ interface D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
@@ -49542,21 +50282,78 @@ add B
 remove B
 add D
 remove D
-add D
-remove D
 add B
 remove B
 add D
 remove D
-add D
-remove D
 add B
 remove B
-add D
-remove D
 add D
 remove D
 ", verify: VerifyOnMonoOrCoreClr);
+
+            var source2 = @"
+class A : B
+{
+    event System.Action B.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
+    event System.Action D.F1 { add => System.Console.WriteLine(""add A""); remove => System.Console.WriteLine(""remove A"");}
+
+    void Test()
+    {
+        base(C).F1 += null;
+        base(C).F1 -= null;
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    event System.Action B.F1 { add => System.Console.WriteLine(""add F""); remove => System.Console.WriteLine(""remove F"");}
+    event System.Action D.F1 { add => System.Console.WriteLine(""add F""); remove => System.Console.WriteLine(""remove F"");}
+
+    public void Test()
+    {
+        base(C).F1 += null;
+        base(C).F1 -= null;
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        base(C).F1 += null;
+        base(C).F1 -= null;
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (9,9): error CS8709: 'D.F1.add' is not implemented in base interface C.
+                //         base(C).F1 += null;
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 += null").WithArguments("D.F1.add", "C").WithLocation(9, 9),
+                // (10,9): error CS8709: 'D.F1.remove' is not implemented in base interface C.
+                //         base(C).F1 -= null;
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 -= null").WithArguments("D.F1.remove", "C").WithLocation(10, 9),
+                // (28,9): error CS8709: 'D.F1.add' is not implemented in base interface C.
+                //         base(C).F1 += null;
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 += null").WithArguments("D.F1.add", "C").WithLocation(28, 9),
+                // (29,9): error CS8709: 'D.F1.remove' is not implemented in base interface C.
+                //         base(C).F1 -= null;
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 -= null").WithArguments("D.F1.remove", "C").WithLocation(29, 9),
+                // (37,9): error CS8709: 'D.F1.add' is not implemented in base interface C.
+                //         base(C).F1 += null;
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 += null").WithArguments("D.F1.add", "C").WithLocation(37, 9),
+                // (38,9): error CS8709: 'D.F1.remove' is not implemented in base interface C.
+                //         base(C).F1 -= null;
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1 -= null").WithArguments("D.F1.remove", "C").WithLocation(38, 9)
+                );
         }
 
         [Fact]
@@ -49680,7 +50477,7 @@ remove 2
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_125()
         {
             var source0 = @"
@@ -49783,7 +50580,7 @@ B
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
         public void ExplicitBase_125_Delegate()
         {
@@ -49975,9 +50772,9 @@ class A : B
             {
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics(
-                    // (8,13): error CS8705: Interface member 'C.F1()' does not have a most specific implementation. Neither 'I1.C.F1()', nor 'I2.C.F1()' are most specific.
+                    // (8,13): error CS8709: 'C.F1()' is not implemented in base interface B.
                     //         _ = base(B).F1();
-                    Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1").WithArguments("C.F1()", "I1.C.F1()", "I2.C.F1()").WithLocation(8, 13)
+                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1()", "B").WithLocation(8, 13)
                     );
             }
         }
@@ -50114,7 +50911,7 @@ class A : B
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_130()
         {
             var source0 = @"
@@ -50436,12 +51233,12 @@ class A : B
             {
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics(
-                    // (8,13): error CS8705: Interface member 'C.F1.get' does not have a most specific implementation. Neither 'I1.C.F1.get', nor 'I2.C.F1.get' are most specific.
+                    // (8,13): error CS8709: 'C.F1.get' is not implemented in base interface B.
                     //         _ = base(B).F1;
-                    Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1").WithArguments("C.F1.get", "I1.C.F1.get", "I2.C.F1.get").WithLocation(8, 13),
-                    // (9,9): error CS8705: Interface member 'C.F1.set' does not have a most specific implementation. Neither 'I1.C.F1.set', nor 'I2.C.F1.set' are most specific.
+                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(8, 13),
+                    // (9,9): error CS8709: 'C.F1.set' is not implemented in base interface B.
                     //         base(B).F1 = 'z';
-                    Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1").WithArguments("C.F1.set", "I1.C.F1.set", "I2.C.F1.set").WithLocation(9, 9)
+                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(9, 9)
                     );
             }
         }
@@ -50771,7 +51568,13 @@ class A : B
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0535: 'A' does not implement interface member 'C.F1'
                 // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "C.F1").WithLocation(2, 11)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "C.F1").WithLocation(2, 11),
+                // (6,13): error CS8709: 'C.F1.get' is not implemented in base interface B.
+                //         _ = base(B).F1;
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(6, 13),
+                // (7,9): error CS8709: 'C.F1.set' is not implemented in base interface B.
+                //         base(B).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(7, 9)
                 );
 
             var source2 = @"
@@ -50781,8 +51584,8 @@ class A : D, C
 
     void Test()
     {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
+        System.Console.WriteLine(base(I1).F1);
+        base(I2).F1 = 'x';
     }
 
     static void Main()
@@ -51882,7 +52685,13 @@ class A : B
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0535: 'A' does not implement interface member 'C.F1'
                 // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "C.F1").WithLocation(2, 11)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "C.F1").WithLocation(2, 11),
+                // (6,13): error CS8709: 'C.F1.get' is not implemented in base interface B.
+                //         _ = base(B).F1;
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(6, 13),
+                // (7,9): error CS8709: 'C.F1.set' is not implemented in base interface B.
+                //         base(B).F1 = 'x';
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(7, 9)
                 );
 
             var source2 = @"
@@ -51892,8 +52701,8 @@ class A : D, C
 
     void Test()
     {
-        System.Console.WriteLine(base(B).F1);
-        base(B).F1 = 'x';
+        System.Console.WriteLine(base(I1).F1);
+        base(I2).F1 = 'x';
     }
 
     static void Main()
@@ -52992,12 +53801,12 @@ class A : B
             var compilation2 = CreateCompilation(source2, references: new[] { reference },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
             compilation2.VerifyDiagnostics(
-                // (8,34): error CS8705: Interface member 'C.F1.get' does not have a most specific implementation. Neither 'I1.F1.get', nor 'I0.C.F1.get' are most specific.
+                // (8,34): error CS8709: 'C.F1.get' is not implemented in base interface B.
                 //         System.Console.WriteLine(base(B).F1);
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1").WithArguments("C.F1.get", "I1.F1.get", "I0.C.F1.get").WithLocation(8, 34),
-                // (9,9): error CS8705: Interface member 'C.F1.set' does not have a most specific implementation. Neither 'I2.F1.set', nor 'I0.C.F1.set' are most specific.
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(8, 34),
+                // (9,9): error CS8709: 'C.F1.set' is not implemented in base interface B.
                 //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1").WithArguments("C.F1.set", "I2.F1.set", "I0.C.F1.set").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(9, 9)
                 );
         }
 
@@ -53161,16 +53970,16 @@ class A : B
             var compilation2 = CreateCompilation(source2, references: new[] { reference },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
             compilation2.VerifyDiagnostics(
-                // (8,34): error CS8705: Interface member 'C.F1.get' does not have a most specific implementation. Neither 'I1.C.get_F1()', nor 'I0.C.F1.get' are most specific.
+                // (8,34): error CS8709: 'C.F1.get' is not implemented in base interface B.
                 //         System.Console.WriteLine(base(B).F1);
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1").WithArguments("C.F1.get", "I1.C.get_F1()", "I0.C.F1.get").WithLocation(8, 34),
-                // (9,9): error CS8705: Interface member 'C.F1.set' does not have a most specific implementation. Neither 'I2.C.set_F1(char)', nor 'I0.C.F1.set' are most specific.
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.get", "B").WithLocation(8, 34),
+                // (9,9): error CS8709: 'C.F1.set' is not implemented in base interface B.
                 //         base(B).F1 = 'x';
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1").WithArguments("C.F1.set", "I2.C.set_F1(char)", "I0.C.F1.set").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1").WithArguments("C.F1.set", "B").WithLocation(9, 9)
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_138()
         {
             var source0 = @"
@@ -53507,25 +54316,18 @@ class A : B
             var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
             compilation0.VerifyDiagnostics();
 
-            var compilation1 = CreateCompilation(source1, references: new[] { compilation0.ToMetadataReference() }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation1.VerifyDiagnostics(
-                // (8,13): error CS8705: Interface member 'C.this[int].get' does not have a most specific implementation. Neither 'I1.C.this[int].get', nor 'I2.C.this[int].get' are most specific.
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B)[0]").WithArguments("C.this[int].get", "I1.C.this[int].get", "I2.C.this[int].get").WithLocation(8, 13),
-                // (9,9): error CS8705: Interface member 'C.this[int].set' does not have a most specific implementation. Neither 'I1.C.this[int].set', nor 'I2.C.this[int].set' are most specific.
-                //         base(B)[1] = 'z';
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B)[1]").WithArguments("C.this[int].set", "I1.C.this[int].set", "I2.C.this[int].set").WithLocation(9, 9)
-                );
-
-            var compilation2 = CreateCompilation(source1, references: new[] { compilation0.EmitToImageReference() }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
-            compilation2.VerifyDiagnostics(
-                // (8,13): error CS8705: Interface member 'C.this[int].get' does not have a most specific implementation. Neither 'I1.C.get_Item(int)', nor 'I2.C.get_Item(int)' are most specific.
-                //         _ = base(B)[0];
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B)[0]").WithArguments("C.this[int].get", "I1.C.get_Item(int)", "I2.C.get_Item(int)").WithLocation(8, 13),
-                // (9,9): error CS8705: Interface member 'C.this[int].set' does not have a most specific implementation. Neither 'I1.C.set_Item(int, char)', nor 'I2.C.set_Item(int, char)' are most specific.
-                //         base(B)[1] = 'z';
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B)[1]").WithArguments("C.this[int].set", "I1.C.set_Item(int, char)", "I2.C.set_Item(int, char)").WithLocation(9, 9)
-                );
+            foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
+            {
+                var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+                compilation1.VerifyDiagnostics(
+                    // (8,13): error CS8709: 'C.this[int].get' is not implemented in base interface B.
+                    //         _ = base(B)[0];
+                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B)[0]").WithArguments("C.this[int].get", "B").WithLocation(8, 13),
+                    // (9,9): error CS8709: 'C.this[int].set' is not implemented in base interface B.
+                    //         base(B)[1] = 'z';
+                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B)[1]").WithArguments("C.this[int].set", "B").WithLocation(9, 9)
+                    );
+            }
         }
 
         [ConditionalFact(typeof(MonoOrCoreClrOnly))]
@@ -53739,7 +54541,7 @@ class A : B
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_142()
         {
             var source0 = @"
@@ -53883,12 +54685,12 @@ class A : B
             {
                 var compilation1 = CreateCompilation(source1, references: new[] { reference }, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
                 compilation1.VerifyDiagnostics(
-                    // (8,9): error CS8705: Interface member 'C.F1.add' does not have a most specific implementation. Neither 'I1.C.F1.add', nor 'I2.C.F1.add' are most specific.
+                    // (8,9): error CS8709: 'C.F1.add' is not implemented in base interface B.
                     //         base(B).F1 += null;
-                    Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1 += null").WithArguments("C.F1.add", "I1.C.F1.add", "I2.C.F1.add").WithLocation(8, 9),
-                    // (9,9): error CS8705: Interface member 'C.F1.remove' does not have a most specific implementation. Neither 'I1.C.F1.remove', nor 'I2.C.F1.remove' are most specific.
+                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(8, 9),
+                    // (9,9): error CS8709: 'C.F1.remove' is not implemented in base interface B.
                     //         base(B).F1 -= null;
-                    Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1 -= null").WithArguments("C.F1.remove", "I1.C.F1.remove", "I2.C.F1.remove").WithLocation(9, 9)
+                    Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(9, 9)
                     );
             }
         }
@@ -54223,7 +55025,13 @@ class A : B
             compilation1.VerifyDiagnostics(
                 // (2,11): error CS0535: 'A' does not implement interface member 'C.F1'
                 // class A : B
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "C.F1").WithLocation(2, 11)
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "B").WithArguments("A", "C.F1").WithLocation(2, 11),
+                // (6,9): error CS8709: 'C.F1.add' is not implemented in base interface B.
+                //         base(B).F1 += null;
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(6, 9),
+                // (7,9): error CS8709: 'C.F1.remove' is not implemented in base interface B.
+                //         base(B).F1 -= null;
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(7, 9)
                 );
 
             var source2 = @"
@@ -54233,8 +55041,8 @@ class A : D, C
 
     void Test()
     {
-        base(B).F1 += null;
-        base(B).F1 -= null;
+        base(I1).F1 += null;
+        base(I2).F1 -= null;
     }
 
     static void Main()
@@ -54458,12 +55266,12 @@ class A : B
             var compilation2 = CreateCompilation(source2, references: new[] { reference },
                                                  options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
             compilation2.VerifyDiagnostics(
-                // (8,9): error CS8705: Interface member 'C.F1.add' does not have a most specific implementation. Neither 'I1.C.add_F1(Action)', nor 'I0.C.F1.add' are most specific.
+                // (8,9): error CS8709: 'C.F1.add' is not implemented in base interface B.
                 //         base(B).F1 += null;
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1 += null").WithArguments("C.F1.add", "I1.C.add_F1(System.Action)", "I0.C.F1.add").WithLocation(8, 9),
-                // (9,9): error CS8705: Interface member 'C.F1.remove' does not have a most specific implementation. Neither 'I2.C.remove_F1(Action)', nor 'I0.C.F1.remove' are most specific.
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 += null").WithArguments("C.F1.add", "B").WithLocation(8, 9),
+                // (9,9): error CS8709: 'C.F1.remove' is not implemented in base interface B.
                 //         base(B).F1 -= null;
-                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "base(B).F1 -= null").WithArguments("C.F1.remove", "I2.C.remove_F1(System.Action)", "I0.C.F1.remove").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(B).F1 -= null").WithArguments("C.F1.remove", "B").WithLocation(9, 9)
                 );
         }
 
@@ -54539,9 +55347,7 @@ class A : D
         System.Console.WriteLine(base(B).F1(1));
         System.Console.WriteLine(base(B).F1(pC: 1));
         System.Console.WriteLine(base(B).F1(pB: 1));
-        System.Console.WriteLine(base(D).F1(1));
         System.Console.WriteLine(base(D).F1(pC: 1));
-        System.Console.WriteLine(base(D).F1(pB: 1));
     }
 
     static void Main()
@@ -54564,9 +55370,7 @@ class A : D
 B
 B
 B
-B
 D
-B
 B
 A
 B
@@ -54594,6 +55398,34 @@ class A : D
                 //         System.Console.WriteLine(base(D).F1(pD: 1));
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "pD").WithArguments("F1", "pD").WithLocation(9, 45)
                 );
+
+            var source4 = @"
+class A : D
+{
+    char C.F1(int pA) => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(base(D).F1(1));
+        System.Console.WriteLine(base(D).F1(pB: 1));
+    }
+
+    static void Main()
+    {
+        new A().Test();
+    }
+}
+";
+            var compilation4 = CreateCompilation(source4, references: new[] { reference },
+                                                 options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation4.VerifyDiagnostics(
+                // (8,34): error CS8710: 'B.F1(int)' is not an immediate member of D.
+                //         System.Console.WriteLine(base(D).F1(1));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(D).F1").WithArguments("B.F1(int)", "D").WithLocation(8, 34),
+                // (9,34): error CS8710: 'B.F1(int)' is not an immediate member of D.
+                //         System.Console.WriteLine(base(D).F1(pB: 1));
+                Diagnostic(ErrorCode.ERR_NotDeclaredInBase, "base(D).F1").WithArguments("B.F1(int)", "D").WithLocation(9, 34)
+                );
         }
 
         [Fact]
@@ -54603,6 +55435,27 @@ class A : D
 public interface B : C
 {
     I1 C.F1() => null;
+    void C.F2(I1 x) => throw null;
+    I1 C.P1 => null;
+    I1 C.P2
+    { 
+        set => throw null;
+    }
+    I1 C.P3
+    { 
+        get => null;
+        set => throw null;
+    }
+    event System.Action<I1> C.E1
+    { 
+        add => throw null;
+        remove => throw null;
+    }
+    int C.this[I1 x] => 0;
+    I1 C.this[int x]
+    { 
+        set => throw null;
+    }
 }
 
 internal interface I1
@@ -54611,6 +55464,13 @@ internal interface I1
 internal interface C
 {
     I1 F1();
+    void F2(I1 x);
+    I1 P1 {get;}
+    I1 P2 {set;}
+    I1 P3 {get; set;}
+    event System.Action<I1> E1;
+    int this[I1 x] {get;}
+    I1 this[int x] {set;}
 }
 ";
 
@@ -54622,10 +55482,10 @@ internal interface C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_150()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     char D.F1() => 'A';
@@ -54633,7 +55493,6 @@ class A : B
     void Test()
     {
         System.Console.WriteLine(base(B).F1());
-        System.Console.WriteLine(base(C).F1());
         System.Console.WriteLine(base(D).F1());
     }
 
@@ -54652,7 +55511,6 @@ struct F : B
     public void Test()
     {
         System.Console.WriteLine(base(B).F1());
-        System.Console.WriteLine(base(C).F1());
         System.Console.WriteLine(base(D).F1());
     }
 }
@@ -54662,11 +55520,11 @@ interface E : B
     sealed void Test()
     {
         System.Console.WriteLine(base(B).F1());
-        System.Console.WriteLine(base(C).F1());
         System.Console.WriteLine(base(D).F1());
     }
 }
-
+";
+            var source0 = @"
 class G : E
 {
     char D.F1() => 'G';
@@ -54687,26 +55545,23 @@ interface D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
 @"
 B
 D
-D
 B
 D
-D
 B
-D
 D
 ", verify: VerifyOnMonoOrCoreClr);
 
             verifier.VerifyIL("F.Test",
 @"
 {
-  // Code size       68 (0x44)
+  // Code size       46 (0x2e)
   .maxstack  1
   IL_0000:  nop
   IL_0001:  ldarg.0
@@ -54721,15 +55576,57 @@ D
   IL_0022:  call       ""char D.F1()""
   IL_0027:  call       ""void System.Console.WriteLine(char)""
   IL_002c:  nop
-  IL_002d:  ldarg.0
-  IL_002e:  ldobj      ""F""
-  IL_0033:  box        ""F""
-  IL_0038:  call       ""char D.F1()""
-  IL_003d:  call       ""void System.Console.WriteLine(char)""
-  IL_0042:  nop
-  IL_0043:  ret
+  IL_002d:  ret
 }
 ");
+            var source2 = @"
+class A : B
+{
+    char D.F1() => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(base(C).F1());
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char D.F1() => 'F';
+
+    public void Test()
+    {
+        System.Console.WriteLine(base(C).F1());
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(base(C).F1());
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (8,34): error CS8709: 'D.F1()' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1());
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(8, 34),
+                // (25,34): error CS8709: 'D.F1()' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1());
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(25, 34),
+                // (33,34): error CS8709: 'D.F1()' is not implemented in base interface C.
+                //         System.Console.WriteLine(base(C).F1());
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(33, 34)
+                );
         }
 
         [Fact]
@@ -54737,7 +55634,7 @@ D
         [WorkItem(33535, "https://github.com/dotnet/roslyn/issues/33535")]
         public void ExplicitBase_150_Delegate()
         {
-            var source = @"
+            var source1 = @"
 class A : B
 {
     char D.F1() => 'A';
@@ -54745,7 +55642,6 @@ class A : B
     void Test()
     {
         System.Console.WriteLine(new System.Func<char>(base(B).F1)());
-        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
         System.Console.WriteLine(new System.Func<char>(base(D).F1)());
     }
 
@@ -54764,7 +55660,6 @@ struct F : B
     public void Test()
     {
         System.Console.WriteLine(new System.Func<char>(base(B).F1)());
-        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
         System.Console.WriteLine(new System.Func<char>(base(D).F1)());
     }
 }
@@ -54774,11 +55669,11 @@ interface E : B
     sealed void Test()
     {
         System.Console.WriteLine(new System.Func<char>(base(B).F1)());
-        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
         System.Console.WriteLine(new System.Func<char>(base(D).F1)());
     }
 }
-
+";
+            var source0 = @"
 class G : E
 {
     char D.F1() => 'G';
@@ -54799,7 +55694,7 @@ interface D
 }
 ";
 
-            var compilation1 = CreateCompilation(source, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(compilation1
@@ -54808,12 +55703,9 @@ interface D
 @"
 B
 D
-D
 B
 D
-D
 B
-D
 D
 "
 #endif
@@ -54822,7 +55714,7 @@ D
             verifier.VerifyIL("F.Test",
 @"
 {
-  // Code size      101 (0x65)
+  // Code size       68 (0x44)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
@@ -54841,20 +55733,60 @@ D
   IL_0038:  callvirt   ""char System.Func<char>.Invoke()""
   IL_003d:  call       ""void System.Console.WriteLine(char)""
   IL_0042:  nop
-  IL_0043:  ldarg.0
-  IL_0044:  ldobj      ""F""
-  IL_0049:  box        ""F""
-  IL_004e:  ldftn      ""char D.F1()""
-  IL_0054:  newobj     ""System.Func<char>..ctor(object, System.IntPtr)""
-  IL_0059:  callvirt   ""char System.Func<char>.Invoke()""
-  IL_005e:  call       ""void System.Console.WriteLine(char)""
-  IL_0063:  nop
-  IL_0064:  ret
+  IL_0043:  ret
 }
 ");
+            var source2 = @"
+class A : B
+{
+    char D.F1() => 'A';
+
+    void Test()
+    {
+        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
+    }
+
+    static void Main()
+    {
+        new A().Test();
+        new F().Test();
+        ((E)new G()).Test();
+    }
+}
+
+struct F : B
+{
+    char D.F1() => 'F';
+
+    public void Test()
+    {
+        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
+    }
+}
+
+interface E : B
+{
+    sealed void Test()
+    {
+        System.Console.WriteLine(new System.Func<char>(base(C).F1)());
+    }
+}
+";
+            var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation2.VerifyDiagnostics(
+                // (8,56): error CS8709: 'D.F1()' is not implemented in base interface C.
+                //         System.Console.WriteLine(new System.Func<char>(base(C).F1)());
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(8, 56),
+                // (25,56): error CS8709: 'D.F1()' is not implemented in base interface C.
+                //         System.Console.WriteLine(new System.Func<char>(base(C).F1)());
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(25, 56),
+                // (33,56): error CS8709: 'D.F1()' is not implemented in base interface C.
+                //         System.Console.WriteLine(new System.Func<char>(base(C).F1)());
+                Diagnostic(ErrorCode.ERR_NotImplementedInBase, "base(C).F1").WithArguments("D.F1()", "C").WithLocation(33, 56)
+                );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_151()
         {
             var source1 =
@@ -54948,7 +55880,7 @@ C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
         public void ExplicitBase_152()
         {
             var source1 =
@@ -55027,17 +55959,17 @@ class G : E
             {
                 var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest, assemblyName: "ExplicitBase_151_lib3",
                                                      references: references);
-                compilation3.VerifyDiagnostics(
-                    // (8,9): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
-                    //         base(B).F1();
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1").WithArguments("B.C.F1()").WithLocation(8, 9),
-                    // (26,9): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
-                    //         base(B).F1();
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1").WithArguments("B.C.F1()").WithLocation(26, 9),
-                    // (35,9): error CS0122: 'B.C.F1()' is inaccessible due to its protection level
-                    //         base(B).F1();
-                    Diagnostic(ErrorCode.ERR_BadAccess, "base(B).F1").WithArguments("B.C.F1()").WithLocation(35, 9)
-                    );
+                compilation3.VerifyDiagnostics();
+
+                CompileAndVerify(compilation3, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"
+B
+C
+B
+C
+B
+C
+", verify: VerifyOnMonoOrCoreClr);
             }
         }
 

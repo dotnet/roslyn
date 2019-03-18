@@ -144,7 +144,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((mods & DeclarationModifiers.AccessibilityMask) == 0)
             {
-                mods |= (mods & DeclarationModifiers.Partial) == 0 ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+                if ((mods & DeclarationModifiers.Partial) == 0)
+                {
+                    mods |= isExplicitInterfaceImplementation ? DeclarationModifiers.Protected : DeclarationModifiers.Public;
+                }
+                else
+                {
+                    mods |= DeclarationModifiers.Private;
+                }
             }
 
             return mods;
@@ -306,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static CSDiagnosticInfo CheckAccessibility(DeclarationModifiers modifiers, Symbol symbol)
+        internal static CSDiagnosticInfo CheckAccessibility(DeclarationModifiers modifiers, Symbol symbol, bool isExplicitInterfaceImplementation)
         {
             if (!IsValidAccessibility(modifiers))
             {
@@ -314,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new CSDiagnosticInfo(ErrorCode.ERR_BadMemberProtection);
             }
 
-            if (symbol.Kind != SymbolKind.Method || (modifiers & DeclarationModifiers.Partial) == 0)
+            if (!isExplicitInterfaceImplementation && (symbol.Kind != SymbolKind.Method || (modifiers & DeclarationModifiers.Partial) == 0))
             {
                 switch (modifiers & DeclarationModifiers.AccessibilityMask)
                 {

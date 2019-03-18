@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<EventSymbol> _explicitInterfaceImplementations;
 
         internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, EventDeclarationSyntax syntax, DiagnosticBag diagnostics) :
-            base(containingType, syntax, syntax.Modifiers, isFieldLike:false,
-                 interfaceSpecifierSyntaxOpt:syntax.ExplicitInterfaceSpecifier,
-                 nameTokenSyntax:syntax.Identifier, diagnostics:diagnostics)
+            base(containingType, syntax, syntax.Modifiers, isFieldLike: false,
+                 interfaceSpecifierSyntaxOpt: syntax.ExplicitInterfaceSpecifier,
+                 nameTokenSyntax: syntax.Identifier, diagnostics: diagnostics)
         {
             ExplicitInterfaceSpecifierSyntax interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
             SyntaxToken nameToken = syntax.Identifier;
@@ -163,26 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<EventSymbol> ExplicitInterfaceImplementations
         {
             get { return _explicitInterfaceImplementations; }
-        }
-
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                if (!_explicitInterfaceImplementations.IsDefaultOrEmpty && ContainingType.IsInterface)
-                {
-                    Debug.Assert(_explicitInterfaceImplementations.Length == 1);
-                    // PROTOTYPE(DefaultInterfaceImplementation): This is better than 'private' accessibility, but might still be not where
-                    //                                            we want to be for implementations of internal members, because those can be 
-                    //                                            inaccessible for base-access from a different assembly that otherwise has 
-                    //                                            access to the original implemented member. That scenario has the internals
-                    //                                            being exposed to other assemblies by using InternalsVisibleTo attribute. 
-                    //                                            See DefaultInterfaceImplementationTests.ExplicitBase_152 unit-test, for example.
-                    return _explicitInterfaceImplementations[0].DeclaredAccessibility;
-                }
-
-                return base.DeclaredAccessibility;
-            }
         }
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)

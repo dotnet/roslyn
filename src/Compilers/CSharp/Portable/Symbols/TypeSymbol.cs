@@ -1014,65 +1014,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return implicitImpl;
         }
 
-        internal static MethodSymbol TryFindBaseImplementationInInterface(NamedTypeSymbol baseInterface, MethodSymbol method, DiagnosticBag diagnosticsOpt, SyntaxNode nodeOpt, Binder accessCheckBinderOpt)
-        {
-            Debug.Assert(baseInterface.IsInterface);
-            Debug.Assert(diagnosticsOpt is null == nodeOpt is null);
-            Debug.Assert(diagnosticsOpt is null == accessCheckBinderOpt is null);
-
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Symbol conflictingImplementation1 = null;
-            Symbol conflictingImplementation2 = null;
-            Symbol implementingMember;
-            MultiDictionary<Symbol, Symbol>.ValueSet set = TypeSymbol.FindImplementationInInterface(method, baseInterface);
-
-            switch (set.Count)
-            {
-                case 0:
-                    implementingMember =  TypeSymbol.FindMostSpecificImplementationInBases(method, baseInterface,
-                                                                                           ref useSiteDiagnostics,
-                                                                                           out conflictingImplementation1, out conflictingImplementation2);
-                    break;
-                case 1:
-                    implementingMember = set.Single();
-                    break;
-                default:
-                    implementingMember = null;
-                    break;
-            }
-
-            if (implementingMember is null)
-            {
-                if (diagnosticsOpt != null)
-                {
-                    if (!(conflictingImplementation1 is null))
-                    {
-                        Debug.Assert(!(conflictingImplementation2 is null));
-                        diagnosticsOpt.Add(ErrorCode.ERR_MostSpecificImplementationIsNotFound, nodeOpt.Location,
-                              method, conflictingImplementation1, conflictingImplementation2);
-                    }
-                    else
-                    {
-                        diagnosticsOpt.Add(ErrorCode.ERR_AbstractBaseCall, nodeOpt.Location, method);
-                    }
-                }
-            }
-            else if (accessCheckBinderOpt != null && !accessCheckBinderOpt.IsAccessible(implementingMember, ref useSiteDiagnostics, accessThroughType: null))
-            {
-                diagnosticsOpt.Add(ErrorCode.ERR_BadAccess, nodeOpt.Location, implementingMember);
-                implementingMember = null;
-            }
-            else if (implementingMember.IsAbstract)
-            {
-                diagnosticsOpt.Add(ErrorCode.ERR_AbstractBaseCall, nodeOpt.Location, implementingMember);
-                implementingMember = null;
-            }
-
-            diagnosticsOpt?.Add(nodeOpt, useSiteDiagnostics);
-
-            return (MethodSymbol)implementingMember;
-        }
-
         private static Symbol FindMostSpecificImplementation(Symbol interfaceMember, NamedTypeSymbol implementingInterface)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -1210,7 +1151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        private static MultiDictionary<Symbol, Symbol>.ValueSet FindImplementationInInterface(Symbol interfaceMember, NamedTypeSymbol interfaceType)
+        internal static MultiDictionary<Symbol, Symbol>.ValueSet FindImplementationInInterface(Symbol interfaceMember, NamedTypeSymbol interfaceType)
         {
             Debug.Assert(interfaceType.IsInterface);
 

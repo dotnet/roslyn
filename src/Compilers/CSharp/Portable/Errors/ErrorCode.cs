@@ -1695,6 +1695,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 8707,
         ERR_NotBaseOrImplementedInterface = 8708,
+        ERR_NotImplementedInBase = 8709,
+        ERR_NotDeclaredInBase = 8710,
 
         #endregion diagnostics introduced for C# 8.0
 

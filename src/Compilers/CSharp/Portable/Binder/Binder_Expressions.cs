@@ -6492,7 +6492,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            CheckRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
+            if (!IsBadBaseAccess(node, receiver, fieldSymbol, diagnostics))
+            {
+                CheckRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
+            }
 
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).TypeSymbol;
             BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
