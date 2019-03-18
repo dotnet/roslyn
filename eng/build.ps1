@@ -57,6 +57,7 @@ param (
     [switch][Alias('test')]$testDesktop,
     [switch]$testCoreClr,
     [switch]$testIOperation,
+    [switch]$testLegacyCompletion,
 
     [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -87,6 +88,7 @@ function Print-Usage() {
     Write-Host "  -testCoreClr              Run CoreClr unit tests"
     Write-Host "  -testVsi                  Run all integration tests"
     Write-Host "  -testIOperation           Run extra checks to validate IOperations"
+    Write-Host "  -testLegacyCompletion     Run integration tests with legacy completion"
     Write-Host ""
     Write-Host "Advanced settings:"
     Write-Host "  -ci                       Set when running on CI server"
@@ -325,6 +327,10 @@ function TestUsingOptimizedRunner() {
         $env:ROSLYN_TEST_IOPERATION = "true"
     }
 
+    if ($testLegacyCompletion) {
+        $env:ROSLYN_TEST_LEGACY_COMPLETION = "true"
+    }
+
     $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
     $binDir = Join-Path $ArtifactsDir "bin" 
     $runTests = GetProjectOutputBinary "RunTests.exe"
@@ -370,7 +376,7 @@ function TestUsingOptimizedRunner() {
     if ($ci) {
         $args += " -xml"
         if ($testVsi) {
-            $args += " -timeout:120"
+            $args += " -timeout:110"
         } else {
             $args += " -timeout:65"
         }
@@ -396,6 +402,9 @@ function TestUsingOptimizedRunner() {
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
         if ($testIOperation) {
             Remove-Item env:\ROSLYN_TEST_IOPERATION
+        }
+        if ($testLegacyCompletion) {
+            Remove-Item env:\ROSLYN_TEST_LEGACY_COMPLETION
         }
     }
 }
@@ -505,6 +514,47 @@ try {
     if ($ci) {
         List-Processes
         Prepare-TempDir
+
+        if ($testVsi) {
+            $screenshotPath = (Join-Path $LogDir "StartingBuild.png")
+            try {
+                Capture-Screenshot $screenshotPath
+            }
+            catch {
+                Write-Host "Screenshot failed; attempting to connect to the console"
+
+                # Keep the session open so we have a UI to interact with
+                $quserItems = ((quser $env:USERNAME | select -Skip 1) -split '\s+')
+                $sessionid = $quserItems[2]
+                if ($sessionid -eq 'Disc') {
+                    # When the session isn't connected, the third value is 'Disc' instead of the ID
+                    $sessionid = $quserItems[1]
+                }
+
+                if ($quserItems[1] -eq 'console') {
+                    Write-Host "Disconnecting from console before attempting reconnection"
+                    try {
+                        tsdiscon
+                    } catch {
+                        # ignore
+                    }
+
+                    # Disconnection is asynchronous, so wait a few seconds for it to complete
+                    Start-Sleep -Seconds 3
+                    query user
+                }
+
+                Write-Host "tscon $sessionid /dest:console"
+                tscon $sessionid /dest:console
+
+                # Connection is asynchronous, so wait a few seconds for it to complete
+                Start-Sleep 3
+                query user
+
+                # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
+                Capture-Screenshot $screenshotPath
+            }
+        }
     }
 
     if ($bootstrap) {

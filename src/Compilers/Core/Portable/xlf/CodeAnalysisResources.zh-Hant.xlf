@@ -161,7 +161,7 @@
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt;in-memory module&gt;</target>
+        <target state="translated">&lt;記憶體內部模組&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">

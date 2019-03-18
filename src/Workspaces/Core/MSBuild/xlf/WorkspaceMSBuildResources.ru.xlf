@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Project_does_not_contain_0_target">
         <source>Project does not contain '{0}' target.</source>
-        <target state="translated">Project does not contain '{0}' target.</target>
+        <target state="translated">Проект не содержит целевого объекта "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_project_with_the_same_file_path_and_output_path_as_another_project_0">

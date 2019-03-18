@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Path">
         <source>Path</source>
-        <target state="translated">PATH</target>
+        <target state="translated">Caminho</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="Tags">
         <source>Tags</source>
-        <target state="translated">Marcas</target>
+        <target state="translated">Tags</target>
         <note />
       </trans-unit>
       <trans-unit id="Title">

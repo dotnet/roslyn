@@ -19,13 +19,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
-
-        public bool IsUseSuggestionModeOn()
-            => _inProc.IsUseSuggestionModeOn();
-
-        public void SetUseSuggestionMode(bool value)
-            => _inProc.SetUseSuggestionMode(value);
-
         public void SetOptionInfer(string projectName, bool value)
         {
             _inProc.SetOptionInfer(projectName, value);
