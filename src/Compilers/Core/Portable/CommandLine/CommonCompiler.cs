@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool HasUnsuppressedErrors(DiagnosticBag diagnostics)
         {
-            foreach (var diag in diagnostics.AsEnumerableWithoutResolution())
+            foreach (var diag in diagnostics.AsEnumerable())
             {
                 if (IsReportedError(diag))
                 {
