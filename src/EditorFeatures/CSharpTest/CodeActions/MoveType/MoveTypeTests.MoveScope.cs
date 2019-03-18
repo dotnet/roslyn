@@ -64,7 +64,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -101,7 +101,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -146,7 +146,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -179,7 +179,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -216,7 +216,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -261,7 +261,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -321,7 +321,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -391,7 +391,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -481,7 +481,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -555,7 +555,7 @@ namespace N1
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
@@ -638,7 +638,7 @@ namespace N2
     }
 }";
 
-            return TestNamespaceMove(code, expected, expectOperation: false);
+            return TestNamespaceMove(code, expected);
         }
 
         private async Task TestNamespaceMove(string originalCode, string expectedCode, bool expectOperation = true)
@@ -652,26 +652,18 @@ namespace N2
                 var moveTypeService = documentToModify.GetLanguageService<IMoveTypeService>();
                 Assert.NotNull(moveTypeService);
 
-                var refactorings = await moveTypeService.GetRefactoringAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeScope, CancellationToken.None).ConfigureAwait(false);
-                Assert.NotEmpty(refactorings);
+                var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(documentToModify, textSpan, MoveTypeOperationKind.MoveTypeNamespaceScope, CancellationToken.None).ConfigureAwait(false);
 
-                foreach (var refactoring in refactorings)
+                if (expectOperation)
                 {
-                    Assert.True(refactoring.IsApplicable(workspace));
-                    var operations = await refactoring.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
-
-                    if (expectOperation)
-                    {
-                        Assert.NotEmpty(operations);
-                    }
-
-                    foreach (var operation in operations)
-                    {
-                        operation.Apply(workspace, CancellationToken.None);
-                    }
+                    Assert.NotEqual(documentToModify.Project.Solution, modifiedSolution);
+                }
+                else
+                {
+                    Assert.Equal(documentToModify.Project.Solution, modifiedSolution);
                 }
 
-                var modifiedDocument = workspace.CurrentSolution.GetDocument(documentToModifyId);
+                var modifiedDocument = modifiedSolution.GetDocument(documentToModifyId);
                 var formattedDocument = await Formatter.FormatAsync(modifiedDocument).ConfigureAwait(false);
 
                 var formattedText = await formattedDocument.GetTextAsync().ConfigureAwait(false);

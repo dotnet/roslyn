@@ -40,29 +40,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return actions;
         }
 
-        public async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
+        public async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
         {
             var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
             if (state == null)
             {
-                return ImmutableArray<CodeAction>.Empty;
+                return document.Project.Solution;
             }
 
-            ImmutableArray<CodeAction> actions;
+            var suggestedFileNames = GetSuggestedFileNames(
+                state.TypeNode,
+                IsNestedType(state.TypeNode),
+                state.TypeName,
+                state.SemanticDocument.Document.Name,
+                state.SemanticDocument.SemanticModel,
+                cancellationToken);
 
-            switch (operationKind)
-            {
-                case MoveTypeOperationKind.MoveTypeScope:
-                    actions = ImmutableArray.Create(GetCodeAction(state, state.SemanticDocument.Document.Name, operationKind: operationKind));
-                    break;
-                default:
-                    actions = CreateActions(state, cancellationToken);
-                    break;
-            }
-
-            Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
-            return actions;
+            var editor = Editor.GetEditor(operationKind, (TService)this, state, suggestedFileNames.FirstOrDefault(), cancellationToken);
+            var modifiedSolution = await editor.GetModifiedSolutionAsync().ConfigureAwait(false);
+            return modifiedSolution ?? document.Project.Solution;
         }
 
         private async Task<State> CreateStateAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         return string.Format(FeaturesResources.Rename_type_to_0, _state.DocumentNameWithoutExtension);
                     case MoveTypeOperationKind.RenameFile:
                         return string.Format(FeaturesResources.Rename_file_to_0, _fileName);
-                    case MoveTypeOperationKind.MoveTypeScope:
+                    case MoveTypeOperationKind.MoveTypeNamespaceScope:
                         return string.Empty;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(_operationKind);
@@ -53,25 +53,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
             protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             {
-                var editor = GetEditor(cancellationToken);
+                var editor = Editor.GetEditor(_operationKind, _service, _state, _fileName, cancellationToken);
                 return await editor.GetOperationsAsync().ConfigureAwait(false);
-            }
-
-            private Editor GetEditor(CancellationToken cancellationToken)
-            {
-                switch (_operationKind)
-                {
-                    case MoveTypeOperationKind.MoveType:
-                        return new MoveTypeEditor(_service, _state, _fileName, cancellationToken);
-                    case MoveTypeOperationKind.RenameType:
-                        return new RenameTypeEditor(_service, _state, _fileName, cancellationToken);
-                    case MoveTypeOperationKind.RenameFile:
-                        return new RenameFileEditor(_service, _state, _fileName, cancellationToken);
-                    case MoveTypeOperationKind.MoveTypeScope:
-                        return new MoveTypeScopeEditor(_service, _state, _fileName, cancellationToken);
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(_operationKind);
-                }
             }
 
             internal override bool PerformFinalApplicabilityCheck => true;
@@ -82,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 {
                     case MoveTypeOperationKind.RenameFile:
                         return workspace.CanRenameFilesDuringCodeActions(_state.SemanticDocument.Document.Project);
-                    case MoveTypeOperationKind.MoveTypeScope:
+                    case MoveTypeOperationKind.MoveTypeNamespaceScope:
                         return _state.TypeNode.Parent is TNamespaceDeclarationSyntax;
                 }
 

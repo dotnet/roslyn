@@ -1,14 +1,11 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -18,68 +15,59 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
     {
         /// <summary>
+        /// Annotation to mark the namespace encapsulating the type that has been moved
+        /// </summary>
+        public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new SyntaxAnnotation(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
+
+        /// <summary>
         /// Editor that takes a type in a scope and creates a scope beside it. For example, if the type is contained within a namespace 
         /// it will evaluate if the namespace scope needs to be closed and reopened to create a new scope. 
         /// </summary>
-        private class MoveTypeScopeEditor : Editor
+        private class MoveTypeNamespaceScope : Editor
         {
-            public MoveTypeScopeEditor(TService service, State state, string fileName, CancellationToken cancellationToken)
+            public MoveTypeNamespaceScope(TService service, State state, string fileName, CancellationToken cancellationToken)
                 : base(service, state, fileName, cancellationToken)
             {
             }
 
-            internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
+            public override async Task<Solution> GetModifiedSolutionAsync()
             {
                 var node = State.TypeNode;
                 var documentToEdit = State.SemanticDocument.Document;
 
-                var parent = node.Parent;
-
-                if (parent == null)
+                if (node.Parent is TNamespaceDeclarationSyntax namespaceDeclaration)
                 {
-                    return ImmutableArray<CodeActionOperation>.Empty;
+                    return await GetNamespaceScopeChangedSolutionAsync(namespaceDeclaration, node, documentToEdit, CancellationToken).ConfigureAwait(false);
                 }
 
-                CodeActionOperation operationToPerform = null;
-                switch (parent)
-                {
-                    case TNamespaceDeclarationSyntax namespaceDeclaration:
-                        operationToPerform = await GetNamespaceScopeOperationAsync(namespaceDeclaration, node, documentToEdit, CancellationToken.None).ConfigureAwait(false);
-                        break;
-                    case TTypeDeclarationSyntax _:
-                        Debug.Assert(false, "Moving a nested type is not supported");
-                        break;
-                }
-
-                if (operationToPerform == null)
-                {
-                    return ImmutableArray<CodeActionOperation>.Empty;
-                }
-
-                return ImmutableArray.Create(operationToPerform);
+                return null;
             }
 
-            private async Task<CodeActionOperation> GetNamespaceScopeOperationAsync(TNamespaceDeclarationSyntax namespaceDeclaration, TTypeDeclarationSyntax typeToMove, Document documentToEdit, CancellationToken cancellationToken)
+            private static async Task<Solution> GetNamespaceScopeChangedSolutionAsync(
+                TNamespaceDeclarationSyntax namespaceDeclaration,
+                TTypeDeclarationSyntax typeToMove,
+                Document documentToEdit,
+                CancellationToken cancellationToken)
             {
                 var syntaxFactsService = documentToEdit.GetLanguageService<ISyntaxFactsService>();
                 var childNodes = syntaxFactsService.GetMembersOfNamespaceDeclaration(namespaceDeclaration);
+
                 if (childNodes.Count <= 1)
                 {
                     return null;
                 }
 
                 var editor = await DocumentEditor.CreateAsync(documentToEdit, cancellationToken).ConfigureAwait(false);
-                var syntaxGenerator = editor.Generator;
+                editor.RemoveNode(typeToMove, SyntaxRemoveOptions.KeepNoTrivia);
 
+                var syntaxGenerator = editor.Generator;
                 var index = childNodes.IndexOf(typeToMove);
 
                 var itemsBefore = index > 0 ? childNodes.Take(index) : Enumerable.Empty<SyntaxNode>();
                 var itemsAfter = index < childNodes.Count - 1 ? childNodes.Skip(index + 1) : Enumerable.Empty<SyntaxNode>();
 
                 var name = syntaxFactsService.GetDisplayName(namespaceDeclaration, DisplayNameOptions.IncludeNamespaces);
-
-                var newNamespaceDeclaration = syntaxGenerator.NamespaceDeclaration(name, WithElasticTrivia(typeToMove));
-                editor.RemoveNode(typeToMove, SyntaxRemoveOptions.KeepNoTrivia);
+                var newNamespaceDeclaration = syntaxGenerator.NamespaceDeclaration(name, WithElasticTrivia(typeToMove)).WithAdditionalAnnotations(NamespaceScopeMovedAnnotation);
 
                 if (itemsBefore.Any() && itemsAfter.Any())
                 {
@@ -106,16 +94,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     var nodeToCleanup = itemsAfter.First();
                     editor.ReplaceNode(nodeToCleanup, WithElasticTrivia(nodeToCleanup, trailing: false));
                 }
-                else
-                {
-                    throw new Exception("WTF Happened");
-                }
 
-
-                return new ApplyChangesOperation(editor.GetChangedDocument().Project.Solution);
+                var changedDocument = editor.GetChangedDocument();
+                return changedDocument.Project.Solution;
             }
 
-            private SyntaxNode WithElasticTrivia(SyntaxNode syntaxNode, bool leading = true, bool trailing = true)
+            private static SyntaxNode WithElasticTrivia(SyntaxNode syntaxNode, bool leading = true, bool trailing = true)
             {
                 if (leading && syntaxNode.HasLeadingTrivia)
                 {
@@ -127,15 +111,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     syntaxNode = syntaxNode.WithTrailingTrivia(syntaxNode.GetTrailingTrivia().Select(AsElasticTrivia));
                 }
 
-                return syntaxNode.WithAdditionalAnnotations(Formatter.Annotation);
+                return syntaxNode;
             }
 
-            private IEnumerable<SyntaxNode> WithElasticTrivia(IEnumerable<SyntaxNode> syntaxNodes)
+            private static IEnumerable<SyntaxNode> WithElasticTrivia(IEnumerable<SyntaxNode> syntaxNodes)
             {
                 if (syntaxNodes.Any())
                 {
-                    var firstNode = syntaxNodes.FirstOrDefault();
-                    var lastNode = syntaxNodes.LastOrDefault();
+                    var firstNode = syntaxNodes.First();
+                    var lastNode = syntaxNodes.Last();
 
                     if (firstNode == lastNode)
                     {
@@ -147,23 +131,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
                         foreach (var node in syntaxNodes.Skip(1))
                         {
-                            if (node != lastNode)
+                            if (node == lastNode)
                             {
-                                yield return node;
+                                yield return WithElasticTrivia(node, leading: false);
                             }
                             else
                             {
-                                yield return WithElasticTrivia(node, leading: false);
+                                yield return node;
                             }
                         }
                     }
                 }
             }
 
-            private SyntaxTrivia AsElasticTrivia(SyntaxTrivia trivia)
-            {
-                return trivia.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation);
-            }
+            private static SyntaxTrivia AsElasticTrivia(SyntaxTrivia trivia)
+                => trivia.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation);
         }
     }
 }
