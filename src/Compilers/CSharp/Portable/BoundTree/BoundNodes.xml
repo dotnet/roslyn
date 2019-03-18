@@ -329,6 +329,7 @@
 
   <Node Name="BoundRefValueOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="NullableAnnotation" Type="NullableAnnotation" />
     <Field Name="Operand" Type="BoundExpression"/>
   </Node>
 
