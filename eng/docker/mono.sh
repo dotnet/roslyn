@@ -11,6 +11,7 @@ dockerfile="$dir"/Mono
 
 [ -z "$CONTAINER_TAG" ] && CONTAINER_TAG="roslyn-build"
 [ -z "$CONTAINER_NAME" ] && CONTAINER_NAME="roslyn-build-container-mono-nightly"
+[ -z "$BUILD_SOURCEBRANCHNAME" ] && CONTAINER_NAME="roslyn-build-container-mono-nightly-$BUILD_SOURCEBRANCHNAME"
 [ -z "$DOCKER_HOST_SHARE_dir" ] && DOCKER_HOST_SHARE_DIR="$dir"/../..
 
 # Ensure the container isn't already running. Can happened for cancelled jobs in CI
