@@ -5820,4 +5820,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NotDeclaredInBase" xml:space="preserve">
     <value>'{0}' is not an immediate member of {1}.</value>
   </data>
+  <data name="ERR_DefaultInterfaceImplementationInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
 </root>

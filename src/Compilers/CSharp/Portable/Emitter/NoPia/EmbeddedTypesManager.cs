@@ -231,6 +231,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             switch (namedType.TypeKind)
             {
                 case TypeKind.Interface:
+                    foreach (Symbol member in namedType.GetMembersUnordered())
+                    {
+                        if (member.Kind != SymbolKind.NamedType && !member.IsAbstract)
+                        {
+                            error = ErrorCode.ERR_DefaultInterfaceImplementationInNoPIAType;
+                            break;
+                        }
+                    }
+
+                    if (error != ErrorCode.Unknown)
+                    {
+                        break;
+                    }
+
+                    goto case TypeKind.Struct;
                 case TypeKind.Struct:
                 case TypeKind.Delegate:
                 case TypeKind.Enum:
