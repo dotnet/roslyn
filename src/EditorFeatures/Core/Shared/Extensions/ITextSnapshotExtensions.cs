@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static Document GetFullyLoadedDocument(
             this ITextBuffer buffer, IUIThreadOperationContext operationContext)
         {
-            return GetFullyLoadedDocument(buffer, operationContext, _ => true);
+            return GetFullyLoadedDocument(buffer, operationContext, (_1, _2) => true);
         }
 
         /// <summary>
@@ -76,6 +76,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         public static Document GetFullyLoadedDocument(
             this ITextBuffer buffer, IUIThreadOperationContext operationContext, Func<Document, bool> shouldLoad)
         {
+            return GetFullyLoadedDocument(buffer, operationContext, (d, ws) => shouldLoad(d));
+        }
+
+        /// <summary>
+        /// Get <see cref="Document"/> from <see cref="Text.Extensions.GetDocument(ITextSnapshot)"/>
+        /// once <see cref="IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken)"/> returns.
+        /// </summary>
+        /// <param name="shouldLoad">Whether this function should wait for the solution to fully load.</param>
+        public static Document GetFullyLoadedDocument(
+            this ITextBuffer buffer, IUIThreadOperationContext operationContext, Func<Document, Workspace, bool> shouldLoad)
+        {
             // just get a document from whatever we have
             var document = buffer.AsTextContainer().GetOpenDocumentInCurrentContext();
             if (document == null)
@@ -84,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return null;
             }
 
-            if (!shouldLoad(document))
+            if (!shouldLoad(document, document.Project.Solution.Workspace))
             {
                 return null;
             }

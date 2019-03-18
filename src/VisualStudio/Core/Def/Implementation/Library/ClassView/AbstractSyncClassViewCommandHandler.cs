@@ -47,13 +47,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
 
             using (var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView)))
             {
-                var document = args.SubjectBuffer.GetFullyLoadedDocument(context.OperationContext, doc =>
-                {
-                    var syntaxFactsService = doc.GetLanguageService<ISyntaxFactsService>();
-                    var libraryService = doc.GetLanguageService<ILibraryService>();
-
-                    return syntaxFactsService != null && libraryService != null;
-                });
+                var document = args.SubjectBuffer.GetFullyLoadedDocument(
+                    context.OperationContext,
+                    shouldLoad: doc =>
+                        doc.GetLanguageService<ISyntaxFactsService>() != null &&
+                        doc.GetLanguageService<ILibraryService>() != null);
 
                 if (document == null)
                 {

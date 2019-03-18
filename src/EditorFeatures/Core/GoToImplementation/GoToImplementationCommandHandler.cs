@@ -52,8 +52,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
             {
                 var subjectBuffer = args.SubjectBuffer;
-                var document = subjectBuffer.GetFullyLoadedDocument(context.OperationContext, shouldLoad:
-                    doc => doc.GetLanguageService<IFindUsagesService>() != null);
+                var document = subjectBuffer.GetFullyLoadedDocument(
+                    context.OperationContext,
+                    shouldLoad: doc => doc.GetLanguageService<IFindUsagesService>() != null);
 
                 if (document != null)
                 {

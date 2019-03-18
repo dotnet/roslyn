@@ -62,22 +62,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
             using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
-                var document = subjectBuffer.GetFullyLoadedDocument(context.OperationContext, shouldLoad: doc =>
-                {
-                    var workspace = doc.Project.Solution.Workspace;
-                    if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-                    {
-                        return false;
-                    }
-
-                    var supportsFeatureService = doc.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-                    if (!supportsFeatureService.SupportsRefactorings(doc))
-                    {
-                        return false;
-                    }
-
-                    return true;
-                });
+                var document = subjectBuffer.GetFullyLoadedDocument(
+                    context.OperationContext,
+                    shouldLoad: (doc, ws) =>
+                        ws.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+                        ws.Services.GetService<IDocumentSupportsFeatureService>().SupportsRefactorings(doc));
 
                 if (document == null)
                 {

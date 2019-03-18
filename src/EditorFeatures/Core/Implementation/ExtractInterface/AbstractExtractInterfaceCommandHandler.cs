@@ -56,24 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Extract_Interface))
             {
-                var document = args.SubjectBuffer.GetFullyLoadedDocument(context.OperationContext, shouldLoad: doc =>
-                {
-                    var workspace = doc.Project.Solution.Workspace;
-
-                    if (!workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
-                        !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-                    {
-                        return false;
-                    }
-
-                    var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
-                    if (!supportsFeatureService.SupportsRefactorings(doc))
-                    {
-                        return false;
-                    }
-
-                    return true;
-                });
+                var document = args.SubjectBuffer.GetFullyLoadedDocument(
+                    context.OperationContext,
+                    shouldLoad: (doc, ws) =>
+                        ws.CanApplyChange(ApplyChangesKind.AddDocument) &&
+                        ws.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+                        ws.Services.GetService<IDocumentSupportsFeatureService>().SupportsRefactorings(doc));
 
                 if (document == null)
                 {
