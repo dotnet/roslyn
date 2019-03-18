@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckModifiersForBody(syntax, location, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation: methodKind == MethodKind.ExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -691,30 +691,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                if ((object)_explicitInterfaceType != null && ContainingType.IsInterface)
-                {
-                    LazyMethodChecks();
-                    if (!_lazyExplicitInterfaceImplementations.IsDefaultOrEmpty)
-                    {
-                        Debug.Assert(_lazyExplicitInterfaceImplementations.Length == 1);
-                        // PROTOTYPE(DefaultInterfaceImplementation): This is better than 'private' accessibility, but might still be not where
-                        //                                            we want to be for implementations of internal members, because those can be 
-                        //                                            inaccessible for base-access from a different assembly that otherwise has 
-                        //                                            access to the original implemented member. That scenario has the internals
-                        //                                            being exposed to other assemblies by using InternalsVisibleTo attribute. 
-                        //                                            See DefaultInterfaceImplementationTests.ExplicitBase_152 unit-test, for example.
-                        return _lazyExplicitInterfaceImplementations[0].DeclaredAccessibility;
-                    }
-                }
-
-                return base.DeclaredAccessibility;
-            }
-        }
-
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {
             get
@@ -775,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool isInterface = this.ContainingType.IsInterface;
             bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
-            var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            var defaultAccess = isInterface && modifiers.IndexOf(SyntaxKind.PartialKeyword) < 0 ? (isExplicitInterfaceImplementation ? DeclarationModifiers.Protected : DeclarationModifiers.Public) : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;

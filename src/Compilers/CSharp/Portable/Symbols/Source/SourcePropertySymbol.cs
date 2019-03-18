@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool modifierErrors;
             _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isIndexer,
-                                       accessorsHaveImplementation, location, 
+                                       accessorsHaveImplementation, location,
                                        diagnostics, out modifierErrors);
-            this.CheckAccessibility(location, diagnostics);
+            this.CheckAccessibility(location, diagnostics, isExplicitInterfaceImplementation);
 
             this.CheckModifiers(location, isIndexer, diagnostics);
 
@@ -268,6 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         arrowExpression,
                         explicitlyImplementedProperty,
                         aliasQualifierOpt,
+                        isExplicitInterfaceImplementation,
                         diagnostics);
                 }
                 else
@@ -391,8 +392,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void GetAcessorDeclarations(BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics, 
-                                                   out bool isAutoProperty, out bool hasAccessorList, 
+        private static void GetAcessorDeclarations(BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics,
+                                                   out bool isAutoProperty, out bool hasAccessorList,
                                                    out AccessorDeclarationSyntax getSyntax, out AccessorDeclarationSyntax setSyntax)
         {
             isAutoProperty = true;
@@ -706,18 +707,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (!_explicitInterfaceImplementations.IsDefaultOrEmpty && ContainingType.IsInterface)
-                {
-                    Debug.Assert(_explicitInterfaceImplementations.Length == 1);
-                    // PROTOTYPE(DefaultInterfaceImplementation): This is better than 'private' accessibility, but might still be not where
-                    //                                            we want to be for implementations of internal members, because those can be 
-                    //                                            inaccessible for base-access from a different assembly that otherwise has 
-                    //                                            access to the original implemented member. That scenario has the internals
-                    //                                            being exposed to other assemblies by using InternalsVisibleTo attribute. 
-                    //                                            See DefaultInterfaceImplementationTests.ExplicitBase_152 unit-test, for example.
-                    return _explicitInterfaceImplementations[0].DeclaredAccessibility;
-                }
-
                 return ModifierUtils.EffectiveAccessibility(_modifiers);
             }
         }
@@ -813,21 +802,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ParameterHelpers.EnsureNullableAttributeExists(this.Parameters, diagnostics, modifyCompilation: true);
         }
 
-        private void CheckAccessibility(Location location, DiagnosticBag diagnostics)
+        private void CheckAccessibility(Location location, DiagnosticBag diagnostics, bool isExplicitInterfaceImplementation)
         {
-            var info = ModifierUtils.CheckAccessibility(_modifiers, this);
+            var info = ModifierUtils.CheckAccessibility(_modifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(new CSDiagnostic(info, location));
             }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool isExplicitInterfaceImplementation, 
+        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, bool isExplicitInterfaceImplementation,
                                                    bool isIndexer, bool accessorsHaveImplementation,
                                                    Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            var defaultAccess = isInterface ? (isExplicitInterfaceImplementation ? DeclarationModifiers.Protected : DeclarationModifiers.Public) : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Unsafe;
@@ -1507,7 +1496,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var type = binder.BindType(typeSyntax, diagnostics);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (!this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
+            if (syntax.ExplicitInterfaceSpecifier == null && !this.IsNoMoreVisibleThan(type, ref useSiteDiagnostics))
             {
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
@@ -1533,7 +1522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (ParameterSymbol param in parameters)
             {
-                if (!this.IsNoMoreVisibleThan(param.Type, ref useSiteDiagnostics))
+                if (syntax.ExplicitInterfaceSpecifier == null && !this.IsNoMoreVisibleThan(param.Type, ref useSiteDiagnostics))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, _location, this, param.Type.TypeSymbol);
                 }

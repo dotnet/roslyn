@@ -281,9 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (method.IsImplementableInterfaceMember() &&
                     baseReference.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() == true)
                 {
-                    method = TypeSymbol.TryFindBaseImplementationInInterface((NamedTypeSymbol)baseReference.ExplicitBaseReferenceOpt.Type, method,
-                                                                             diagnosticsOpt: null, nodeOpt: null, accessCheckBinderOpt: null);
-                    Debug.Assert(!(method is null));
+                    method = (MethodSymbol)TypeSymbol.FindImplementationInInterface(method, (NamedTypeSymbol)baseReference.ExplicitBaseReferenceOpt.Type).Single();
                 }
             }
 

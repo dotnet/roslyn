@@ -781,18 +781,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE: availability of well-known members is checked in BindEventAssignment because
                 // we don't have the context to determine whether addition or subtraction is being performed.
 
-                if (receiver?.Kind == BoundKind.BaseReference && eventSymbol.IsAbstract)
-                {
-                    var baseReference = (BoundBaseReference)receiver;
-
-                    if (!eventSymbol.IsImplementableInterfaceMember() ||
-                        baseReference.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() != true)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, boundEvent.Syntax, eventSymbol);
-                        return false;
-                    }
-                }
-
                 if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
                 {
                     // NOTE: BindEventAssignment checks use site errors on the specific accessor 
@@ -1059,25 +1047,69 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, MethodSymbol method, DiagnosticBag diagnostics,
-                                     PropertySymbol propertySymbolOpt = null, bool checkOnlyAccessThroughInterface = false)
+        private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol member, DiagnosticBag diagnostics,
+                                     Symbol propertyOrEventSymbolOpt = null)
         {
+            Debug.Assert(member.Kind != SymbolKind.Property);
+            Debug.Assert(member.Kind != SymbolKind.Event);
+
             if (receiverOpt?.Kind == BoundKind.BaseReference)
             {
                 var baseReference = (BoundBaseReference)receiverOpt;
 
-                if (method.IsImplementableInterfaceMember() &&
-                    baseReference.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() == true)
+                if (baseReference.ExplicitBaseReferenceOpt != null)
                 {
-                    if (TypeSymbol.TryFindBaseImplementationInInterface((NamedTypeSymbol)baseReference.ExplicitBaseReferenceOpt.Type, method, diagnostics, node, this) is null)
+                    if (baseReference.HasErrors)
                     {
-                        Debug.Assert(!diagnostics.IsEmptyWithoutResolution);
+                        return true;
+                    }
+
+                    TypeSymbol baseType = baseReference.ExplicitBaseReferenceOpt.Type;
+
+                    if (baseType.IsInterfaceType() && (member as MethodSymbol)?.IsImplementable() == true)
+                    {
+                        MultiDictionary<Symbol, Symbol>.ValueSet set = TypeSymbol.FindImplementationInInterface(member, (NamedTypeSymbol)baseType);
+
+                        if (set.Count == 1)
+                        {
+                            member = set.Single();
+
+                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                            if (!IsAccessible(member, ref useSiteDiagnostics, accessThroughType: null))
+                            {
+                                diagnostics.Add(node, useSiteDiagnostics);
+                                Error(diagnostics, ErrorCode.ERR_BadAccess, node, member);
+                                return true;
+                            }
+                            else if (member.IsAbstract)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, member);
+                                return true;
+                            }
+                        }
+                        else if (!member.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_NotImplementedInBase, node, member, baseType);
+                            return true;
+                        }
+                        else
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, member);
+                            return true;
+                        }
+
+                        return false;
+                    }
+                    else if (!member.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_NotDeclaredInBase, node, member, baseType);
                         return true;
                     }
                 }
-                else if (!checkOnlyAccessThroughInterface && method.IsAbstract)
+
+                if (member.IsAbstract)
                 {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertySymbolOpt ?? (Symbol)method);
+                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertyOrEventSymbolOpt ?? member);
                     return true;
                 }
             }

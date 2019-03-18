@@ -731,5 +731,48 @@ class Test
 </Workspace>",
                 expectedActionSet: Enumerable.Empty<string>());
         }
+
+        [Fact]
+        public async Task UpgradeProjectForDefaultInterfaceImplementation_CS8703()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+public interface I1
+{
+    public void [|M01|]();
+}
+",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForDefaultInterfaceImplementation_CS8706()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <ProjectReference>Assembly2</ProjectReference>
+        <Document FilePath=""Test1.cs"">
+class Test1 : [|I1|]
+{}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" LanguageVersion=""Preview"">
+        <Document FilePath=""Test2.cs"">
+public interface I1
+{
+    void M1() 
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
     }
 }
