@@ -168,16 +168,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         // TODO: Use PreserveSig instead of throwing these exceptions for common cases.
         public void ReportError2(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority, int iStartLine, int iStartColumn, int iEndLine, int iEndColumn, string bstrFileName)
         {
-            // This is showing up in our NetCore tests for brief periods of time due to the following issue
-            // https://github.com/dotnet/cli/issues/10989
-            if (bstrErrorId != "NETSDK1005")
+            // first we check whether given error is something we can take care.
+            if (!CanHandle(bstrErrorId))
             {
-                // first we check whether given error is something we can take care.
-                if (!CanHandle(bstrErrorId))
-                {
-                    // it is not, let project system takes care.
-                    throw new NotImplementedException();
-                }
+                // it is not, let project system takes care.
+                throw new NotImplementedException();
             }
 
             if ((iEndLine >= 0 && iEndColumn >= 0) &&
