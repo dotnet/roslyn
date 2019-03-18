@@ -51,7 +51,8 @@
       <_RelativePath>$([MSBuild]::MakeRelative($(RepoRoot), $(MSBuildProjectDirectory)))</_RelativePath>
       
       <!-- TODO: Proper URL escaping -->
-      <_RawUrl>$(RepositoryRawUrl)/$(SourceRevisionId)/$(_RelativePath.Replace('\', '/'))/*</_RawUrl>
+      <_RepositoryRawUrl>https://raw.githubusercontent.com/dotnet/roslyn</_RepositoryRawUrl>
+      <_RawUrl>$(_RepositoryRawUrl)/$(SourceRevisionId)/$(_RelativePath.Replace('\', '/'))/*</_RawUrl>
       
       <_Content>
         <![CDATA[<?xml version="1.0" encoding="utf-8"?>
