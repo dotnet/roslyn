@@ -1,4 +1,9 @@
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.ClassificationTags
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.IFSharpClassificationService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.IFSharpClassificationService.AddLexicalClassifications(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Collections.Generic.List<Microsoft.CodeAnalysis.Classification.ClassifiedSpan> result, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.IFSharpClassificationService.AddSemanticClassificationsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Collections.Generic.List<Microsoft.CodeAnalysis.Classification.ClassifiedSpan> result, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.IFSharpClassificationService.AddSyntacticClassificationsAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Collections.Generic.List<Microsoft.CodeAnalysis.Classification.ClassifiedSpan> result, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.IFSharpClassificationService.AdjustStaleClassification(Microsoft.CodeAnalysis.Text.SourceText text, Microsoft.CodeAnalysis.Classification.ClassifiedSpan classifiedSpan) -> Microsoft.CodeAnalysis.Classification.ClassifiedSpan
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Completion.CompletionOptions
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.IDiagnosticAnalyzerService
@@ -10,6 +15,12 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult.RightSpa
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.ContentTypeNames
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpBraceMatcher
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpBraceMatcher.FindBracesAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.BraceMatchingResult?>
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpSynchronousIndentationService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpSynchronousIndentationService.GetDesiredIndentation(Microsoft.CodeAnalysis.Document document, int lineNumber, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult?
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult.BasePosition.get -> int
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult.IndentationResult(int basePosition, int offset) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult.Offset.get -> int
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap.ClassificationTypeMap(Microsoft.VisualStudio.Text.Classification.IClassificationTypeRegistryService registryService) -> void
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Utilities.ClassificationTypeMap.GetClassificationType(string name) -> Microsoft.VisualStudio.Text.Classification.IClassificationType
