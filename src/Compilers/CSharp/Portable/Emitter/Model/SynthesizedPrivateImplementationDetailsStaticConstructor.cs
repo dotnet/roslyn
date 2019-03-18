@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     BoundStatement payloadInitialization =
                         factory.Assignment(
                             factory.InstrumentationPayloadRoot(analysisKind, payloadArrayType),
-                            factory.Array(payloadArrayType.ElementType.TypeSymbol, factory.Binary(BinaryOperatorKind.Addition, factory.SpecialType(SpecialType.System_Int32), factory.MaximumMethodDefIndex(), factory.Literal(1))));
+                            factory.Array(payloadArrayType.ElementType, factory.Binary(BinaryOperatorKind.Addition, factory.SpecialType(SpecialType.System_Int32), factory.MaximumMethodDefIndex(), factory.Literal(1))));
                     body.Add(payloadInitialization);
                 }
 

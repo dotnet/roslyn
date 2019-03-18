@@ -15,20 +15,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>Anonymous type field location</summary>
         public readonly Location Location;
 
-        /// <summary>Anonymous type field type</summary>
-        public readonly TypeSymbolWithAnnotations Type;
+        /// <summary>Anonymous type field type with annotations</summary>
+        public readonly TypeWithAnnotations TypeWithAnnotations;
 
-        public AnonymousTypeField(string name, Location location, TypeSymbolWithAnnotations type)
+        /// <summary>Anonymous type field type</summary>
+        public TypeSymbol Type => TypeWithAnnotations.Type;
+
+        public AnonymousTypeField(string name, Location location, TypeWithAnnotations typeWithAnnotations)
         {
             this.Name = name;
             this.Location = location;
-            this.Type = type;
+            this.TypeWithAnnotations = typeWithAnnotations;
         }
 
         [Conditional("DEBUG")]
         internal void AssertIsGood()
         {
-            Debug.Assert(this.Name != null && this.Location != null && !this.Type.IsNull);
+            Debug.Assert(this.Name != null && this.Location != null && this.TypeWithAnnotations.HasType);
         }
     }
 }

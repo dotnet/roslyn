@@ -663,7 +663,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
-                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -672,11 +673,11 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
                          WellKnownMember.System_Index__ctor,
-                         WellKnownMember.System_Index__IsFromEnd,
-                         WellKnownMember.System_Index__Value,
-                         WellKnownMember.System_Range__Start,
-                         WellKnownMember.System_Range__End,
+                         WellKnownMember.System_Index__GetOffset,
                          WellKnownMember.System_Range__ctor,
+                         WellKnownMember.System_Range__EndAt,
+                         WellKnownMember.System_Range__get_All,
+                         WellKnownMember.System_Range__StartAt,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,
@@ -797,7 +798,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Complete,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__Create,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T,
-                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -806,11 +808,11 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
                          WellKnownMember.System_Index__ctor,
-                         WellKnownMember.System_Index__IsFromEnd,
-                         WellKnownMember.System_Index__Value,
-                         WellKnownMember.System_Range__Start,
-                         WellKnownMember.System_Range__End,
+                         WellKnownMember.System_Index__GetOffset,
                          WellKnownMember.System_Range__ctor,
+                         WellKnownMember.System_Range__EndAt,
+                         WellKnownMember.System_Range__get_All,
+                         WellKnownMember.System_Range__StartAt,
                          WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Item,
                          WellKnownMember.System_Runtime_CompilerServices_ITuple__get_Length,

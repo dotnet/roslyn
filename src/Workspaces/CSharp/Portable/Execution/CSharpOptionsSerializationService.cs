@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
 
             WriteOptionTo(options, CSharpCodeStyleOptions.PreferBraces, writer, cancellationToken);
             WriteOptionTo(options, CSharpCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken);
+            WriteOptionTo(options, CSharpCodeStyleOptions.PreferStaticLocalFunction, writer, cancellationToken);
         }
 
         public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -69,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
 
             options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferBraces, reader, cancellationToken);
             options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken);
+            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferStaticLocalFunction, reader, cancellationToken);
 
             return options;
         }

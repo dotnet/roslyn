@@ -10,17 +10,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class BestTypeInferrer
     {
-        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeSymbolWithAnnotations> types)
+        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithAnnotations> types)
         {
             NullableAnnotation result = NullableAnnotation.NotAnnotated;
             foreach (var type in types)
             {
-                Debug.Assert(!type.IsNull);
+                Debug.Assert(type.HasType);
                 Debug.Assert(type.Equals(types[0], TypeCompareKind.AllIgnoreOptions));
                 // This uses the covariant merging rules.
-                result = result.JoinForFixingLowerBounds(type.AsSpeakable().NullableAnnotation);
+                result = result.Join(type.NullableAnnotation);
             }
 
+            return result;
+        }
+
+        public static NullableAnnotation GetNullableAnnotation(ArrayBuilder<TypeWithState> types)
+        {
+            ArrayBuilder<TypeWithAnnotations> builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
+            foreach (var type in types)
+            {
+                builder.Add(type.ToTypeWithAnnotations());
+            }
+            var result = GetNullableAnnotation(builder);
+            builder.Free();
             return result;
         }
 
@@ -57,10 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return type;
                     }
 
-                    if (conversions.IncludeNullability)
-                    {
-                        type = type.SetSpeakableNullabilityForReferenceTypes();
-                    }
                     candidateTypes.Add(type);
                 }
             }
@@ -244,10 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (type1.Equals(type2, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                 {
                     return MethodTypeInferrer.Merge(
-                        TypeSymbolWithAnnotations.Create(type1),
-                        TypeSymbolWithAnnotations.Create(type2),
+                        TypeWithAnnotations.Create(type1),
+                        TypeWithAnnotations.Create(type2),
                         VarianceKind.Out,
-                        conversions).TypeSymbol;
+                        conversions).Type;
                 }
 
                 return null;

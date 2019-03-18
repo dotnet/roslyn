@@ -105,12 +105,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             return true;
         }
 
-        private IEnumerable<IFormattingRule> GetFormattingRules(Document document)
+        private IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return SpecializedCollections.SingletonEnumerable(BraceCompletionFormattingRule.Instance).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
-        private void FormatTrackingSpan(IBraceCompletionSession session, bool shouldHonorAutoFormattingOnCloseBraceOption, IEnumerable<IFormattingRule> rules = null)
+        private void FormatTrackingSpan(IBraceCompletionSession session, bool shouldHonorAutoFormattingOnCloseBraceOption, IEnumerable<AbstractFormattingRule> rules = null)
         {
             if (!session.SubjectBuffer.GetFeatureOnOffOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace) && shouldHonorAutoFormattingOnCloseBraceOption)
             {
@@ -195,9 +195,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
         {
             private static readonly Predicate<SuppressOperation> s_predicate = o => o == null || o.Option.IsOn(SuppressOption.NoWrapping);
 
-            public static readonly IFormattingRule Instance = new BraceCompletionFormattingRule();
+            public static readonly AbstractFormattingRule Instance = new BraceCompletionFormattingRule();
 
-            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustNewLinesOperation> nextOperation)
+            public override AdjustNewLinesOperation GetAdjustNewLinesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, in NextGetAdjustNewLinesOperation nextOperation)
             {
                 // Eg Cases -
                 // new MyObject {
@@ -221,12 +221,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                     }
                 }
 
-                return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, nextOperation);
+                return base.GetAdjustNewLinesOperation(previousToken, currentToken, optionSet, in nextOperation);
             }
 
-            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<AlignTokensOperation> nextOperation)
+            public override void AddAlignTokensOperations(List<AlignTokensOperation> list, SyntaxNode node, OptionSet optionSet, in NextAlignTokensOperationAction nextOperation)
             {
-                base.AddAlignTokensOperations(list, node, optionSet, nextOperation);
+                base.AddAlignTokensOperations(list, node, optionSet, in nextOperation);
                 if (optionSet.GetOption(SmartIndent, node.Language) == IndentStyle.Block)
                 {
                     var bracePair = node.GetBracePair();
@@ -237,9 +237,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                 }
             }
 
-            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<SuppressOperation> nextOperation)
+            public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, OptionSet optionSet, in NextSuppressOperationAction nextOperation)
             {
-                base.AddSuppressOperations(list, node, optionSet, nextOperation);
+                base.AddSuppressOperations(list, node, optionSet, in nextOperation);
 
                 // remove suppression rules for array and collection initializer
                 if (node.IsInitializerForArrayOrCollectionCreationExpression())

@@ -24,9 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
         public override bool OpenFileOnly(Workspace workspace)
         {
-            var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes).Notification;
-            var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent).Notification;
-            var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible).Notification;
+            var forIntrinsicTypesOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarForBuiltInTypes).Notification;
+            var whereApparentOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent).Notification;
+            var wherePossibleOption = workspace.Options.GetOption(CSharpCodeStyleOptions.VarElsewhere).Notification;
 
             return !(forIntrinsicTypesOption == NotificationOption.Warning || forIntrinsicTypesOption == NotificationOption.Error ||
                      whereApparentOption == NotificationOption.Warning || whereApparentOption == NotificationOption.Error ||

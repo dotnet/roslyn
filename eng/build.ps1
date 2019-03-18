@@ -61,6 +61,11 @@ param (
 
     [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
+if ($PSVersionTable.PSVersion.Major -lt "5") {
+    Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
+    exit 1
+}
+
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
@@ -203,7 +208,11 @@ function BuildSolution() {
     $projects = Join-Path $RepoRoot $solution
     $enableAnalyzers = !$skipAnalyzers
     $toolsetBuildProj = InitializeToolset
-    $quietRestore = !$ci
+
+    # Have to disable quiet restore during bootstrap builds to work around 
+    # an arcade bug
+    # https://github.com/dotnet/arcade/issues/2220
+    $quietRestore = !($ci -or ($bootstrapDir -ne ""))
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
     $ibcSourceBranchName = GetIbcSourceBranchName
     $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
@@ -485,11 +494,11 @@ function Ensure-ProcDump() {
 }
 
 function Prepare-TempDir() {
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\NuGet.Config") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.rsp") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\NuGet.Config") $TempDir
 }
 
 function List-Processes() {

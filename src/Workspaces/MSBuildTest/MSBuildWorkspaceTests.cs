@@ -3606,6 +3606,28 @@ class C { }";
             }
         }
 
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled)), Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [WorkItem(31390, "https://github.com/dotnet/roslyn/issues/31390")]
+        public async Task TestDuplicateProjectReference()
+        {
+            var files = GetDuplicateProjectReferenceSolutionFiles();
+            CreateFiles(files);
+
+            var fullPath = GetSolutionFileName(@"CSharpProjectReference.sln");
+
+            using (var workspace = CreateMSBuildWorkspace())
+            {
+                var solution = await workspace.OpenSolutionAsync(fullPath);
+                var project = solution.Projects.Single(p => p.FilePath.EndsWith("CSharpProject_ProjectReference.csproj"));
+
+                Assert.Single(project.ProjectReferences);
+
+                var compilation = await project.GetCompilationAsync();
+
+                Assert.Single(compilation.References.OfType<CompilationReference>());
+            }
+        }
+
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)

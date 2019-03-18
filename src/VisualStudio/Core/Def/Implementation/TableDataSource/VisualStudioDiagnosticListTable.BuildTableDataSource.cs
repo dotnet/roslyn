@@ -43,22 +43,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
                 SetStableState(errorSource.IsInProgress);
 
-                errorSource.BuildStarted += OnBuildStarted;
+                errorSource.BuildProgressChanged += OnBuildProgressChanged;
             }
 
-            private void OnBuildStarted(object sender, bool started)
+            private void OnBuildProgressChanged(object sender, ExternalErrorDiagnosticUpdateSource.BuildProgress progress)
             {
-                SetStableState(started);
+                SetStableState(progress == ExternalErrorDiagnosticUpdateSource.BuildProgress.Done);
 
-                if (!started)
+                if (progress != ExternalErrorDiagnosticUpdateSource.BuildProgress.Started)
                 {
                     OnDataAddedOrChanged(_key);
                 }
             }
 
-            private void SetStableState(bool started)
+            private void SetStableState(bool done)
             {
-                IsStable = !started;
+                IsStable = done;
                 ChangeStableState(IsStable);
             }
 

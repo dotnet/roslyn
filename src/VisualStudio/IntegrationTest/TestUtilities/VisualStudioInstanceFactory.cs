@@ -63,14 +63,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
                 var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
-                var baseFileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}";
+                var baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
 
                 var maxLength = logDir.Length + 1 + baseFileName.Length + ".Watson.log".Length + 1;
                 const int MaxPath = 260;
                 if (maxLength > MaxPath)
                 {
                     testName = testName.Substring(0, testName.Length - (maxLength - MaxPath));
-                    baseFileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}";
+                    baseFileName = $"{DateTime.UtcNow:HH.mm.ss}-{testName}-{eventArgs.Exception.GetType().Name}";
                 }
 
                 Directory.CreateDirectory(logDir);
@@ -272,15 +272,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 return isMatch;
             });
 
-            var instanceFoundWithInvalidState = false;
+            var messages = new List<string>();
 
             foreach (ISetupInstance2 instance in instances)
             {
-                var packages = instance.GetPackages()
-                                       .Where((package) => requiredPackageIds.Contains(package.GetId()));
+                var instancePackagesIds = instance.GetPackages().Select(p => p.GetId()).ToHashSet();
+                var missingPackageIds = requiredPackageIds.Where(p => !instancePackagesIds.Contains(p)).ToList();
 
-                if (packages.Count() != requiredPackageIds.Count())
+                if (missingPackageIds.Count > 0)
                 {
+                    messages.Add($"An instance of {instance.GetDisplayName()} at {instance.GetInstallationPath()} was found but was missing these packages: " +
+                        string.Join(", ", missingPackageIds));
                     continue;
                 }
 
@@ -288,18 +290,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 var state = instance.GetState();
 
-                if ((state & minimumRequiredState) == minimumRequiredState)
+                if ((state & minimumRequiredState) != minimumRequiredState)
                 {
-                    return instance;
+                    messages.Add($"An instance of {instance.GetDisplayName()} at {instance.GetInstallationPath()} matched the specified requirements but had an invalid state. (State: {state})");
+                    continue;
                 }
 
-                Debug.WriteLine($"An instance matching the specified requirements but had an invalid state. (State: {state})");
-                instanceFoundWithInvalidState = true;
+                return instance;
             }
 
-            throw new Exception(instanceFoundWithInvalidState ?
-                                "An instance matching the specified requirements was found but it was in an invalid state." :
-                                "There were no instances of Visual Studio found that match the specified requirements.");
+            throw new Exception(string.Join(Environment.NewLine, messages));
         }
 
         private static Process StartNewVisualStudioProcess(string installationPath, int majorVersion)

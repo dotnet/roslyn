@@ -50,13 +50,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Overrides Sub SendDownKey()
             ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of DownKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of DownKeyCommandArgs))
-            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendDownKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub()
+                                                                                                                                                        EditorOperations.MoveLineDown(extendSelection:=False)
+                                                                                                                                                    End Sub)
         End Sub
 
         Public Overrides Sub SendUpKey()
             ' The legacy handler implements VSCommanding.IChainedCommandHandler(Of UpKeyCommandArgs)
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of UpKeyCommandArgs))
-            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub() Return)
+            MyBase.SendUpKey(Sub(a, n, c) handler.ExecuteCommand(a, Sub() SignatureHelpAfterCompletionCommandHandler.ExecuteCommand(a, n, c), c), Sub()
+                                                                                                                                                      EditorOperations.MoveLineUp(extendSelection:=False)
+                                                                                                                                                  End Sub)
         End Sub
 
         Public Overrides Sub SendPageUp()
@@ -190,23 +194,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overrides Function CompletionItemsContainsAll(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Dim items = GetRoslynCompletionItems()
+            Dim items = GetCompletionItems()
             Return displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v))
         End Function
 
         Public Overrides Function CompletionItemsContainsAny(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Dim items = GetRoslynCompletionItems()
+            Dim items = GetCompletionItems()
             Return displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v))
-        End Function
-
-        Public Overrides Function CompletionItemsContainsAny(displayText As String, displayTextSuffix As String) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
-            Assert.NotNull(session)
-            Dim items = session.GetComputedItems(CancellationToken.None)
-
-            Return items.Items.Any(Function(i) i.DisplayText = displayText AndAlso i.Suffix = displayTextSuffix)
         End Function
 
         Public Overrides Sub AssertItemsInOrder(expectedOrder As String())
@@ -227,7 +222,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                     Optional isSoftSelected As Boolean? = Nothing,
                                                     Optional isHardSelected As Boolean? = Nothing,
                                                     Optional shouldFormatOnCommit As Boolean? = Nothing,
+                                                    Optional inlineDescription As String = Nothing,
                                                     Optional projectionsView As ITextView = Nothing) As Task
+            ' inlineDescription is not used in this implementation.
+
             Dim view = If(projectionsView, TextView)
 
             Await WaitForAsynchronousOperationsAsync()
@@ -310,23 +308,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return Nothing
         End Function
 
-        Private Function GetRoslynCompletionItems() As CompletionItem()
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
-            Assert.NotNull(session)
-            Return session.GetComputedItems(CancellationToken.None).Items.Select(Function(item)
-                                                                                     Return GetRoslynCompletionItemOpt(item)
-                                                                                 End Function).WhereNotNull().ToArray()
-        End Function
-
         Public Overrides Function GetCompletionItems() As IList(Of CompletionItem)
-            Return New List(Of CompletionItem)(GetCompletionItemsAsync().Result)
-        End Function
-
-        Private Async Function GetCompletionItemsAsync() As Task(Of IEnumerable(Of CompletionItem))
-            Await WaitForAsynchronousOperationsAsync()
+            WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
-            Return session.GetComputedItems(CancellationToken.None).Items.Select(Function(item) GetRoslynCompletionItem(item))
+            Return session.GetComputedItems(CancellationToken.None).Items.Select(Function(item) GetRoslynCompletionItem(item)).ToList()
         End Function
 
         Private Shared Function GetRoslynCompletionItem(item As Data.CompletionItem) As CompletionItem

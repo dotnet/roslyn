@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var fieldSymbol = GetDeclaredFieldSymbol(variableDecl.Variables.First());
                                     if ((object)fieldSymbol != null)
                                     {
-                                        result = fieldSymbol.Type.TypeSymbol;
+                                        result = fieldSymbol.Type;
                                     }
                                 }
                             }
@@ -1144,7 +1144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AliasSymbol aliasOpt;
             DiagnosticBag discarded = DiagnosticBag.GetInstance();
-            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt).TypeSymbol;
+            var attributeType = (NamedTypeSymbol)enclosingBinder.BindType(attribute.Name, discarded, out aliasOpt).Type;
             discarded.Free();
 
             return AttributeSemanticModel.Create(

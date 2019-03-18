@@ -943,17 +943,23 @@ class C
     event D<I<short>> E;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,9): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "int").WithArguments("I<T>", "T", "int").WithLocation(5, 9),
                 // (8,23): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     event D<I<short>> E;
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "E").WithArguments("I<T>", "T", "short").WithLocation(8, 23),
+                // (5,14): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     C(I<int> i) { }
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "i").WithArguments("I<T>", "T", "int").WithLocation(5, 14),
                 // (6,13): error CS0452: The type 'byte' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<byte> P { get; set; }
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "P").WithArguments("I<T>", "T", "byte").WithLocation(6, 13),
-                // (7,15): error CS0452: The type 'double' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
-                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("I<T>", "T", "double").WithLocation(7, 15),
                 // (7,29): error CS0452: The type 'float' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<double> this[I<float> index] { get { return null; } }
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "index").WithArguments("I<T>", "T", "float").WithLocation(7, 29),
+                // (7,15): error CS0452: The type 'double' must be a reference type in order to use it as parameter 'T' in the generic type or method 'I<T>'
+                //     I<double> this[I<float> index] { get { return null; } }
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("I<T>", "T", "double").WithLocation(7, 15),
                 // (8,23): warning CS0067: The event 'C.E' is never used
+                //     event D<I<short>> E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(8, 23));
         }
 
@@ -3351,7 +3357,7 @@ class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
 
             var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
-            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].TypeSymbol;
+            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
             Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
         }

@@ -27,6 +27,11 @@
         <target state="translated">新增/移除單行控制項陳述式的括弧</target>
         <note />
       </trans-unit>
+      <trans-unit id="Allow_unsafe_code_in_this_project">
+        <source>Allow unsafe code in this project</source>
+        <target state="new">Allow unsafe code in this project</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_expression_block_body_preferences">
         <source>Apply expression/block body preferences</source>
         <target state="translated">套用延伸模組/區塊主體喜好設定</target>
@@ -67,6 +72,11 @@
         <target state="translated">宣告為可為 Null</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_return_type">
+        <source>Fix return type</source>
+        <target state="new">Fix return type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_temporary_variable">
         <source>Inline temporary variable</source>
         <target state="translated">內嵌暫存變數</target>
@@ -81,6 +91,11 @@
         <source>Make private fields readonly when possible</source>
         <target state="translated">若可能的話，請將私用欄位設定為唯讀</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Make_ref_struct">
+        <source>Make 'ref struct'</source>
+        <target state="new">Make 'ref struct'</target>
+        <note>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
@@ -110,6 +125,11 @@
       <trans-unit id="Sort_accessibility_modifiers">
         <source>Sort accessibility modifiers</source>
         <target state="translated">排序協助工具修飾詞</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unseal_class_0">
+        <source>Unseal class '{0}'</source>
+        <target state="new">Unseal class '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">

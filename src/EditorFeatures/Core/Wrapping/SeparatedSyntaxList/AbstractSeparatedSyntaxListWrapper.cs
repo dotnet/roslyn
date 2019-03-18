@@ -30,7 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.SeparatedSyntaxList
 
         protected abstract string Wrap_every_item { get; }
 
-        protected abstract IBlankLineIndentationService GetIndentationService();
+        protected AbstractSeparatedSyntaxListWrapper(IBlankLineIndentationService indentationService)
+            : base(indentationService)
+        {
+        }
 
         protected abstract TListSyntax TryGetApplicableList(SyntaxNode node);
         protected abstract SeparatedSyntaxList<TListItemSyntax> GetListItems(TListSyntax listSyntax);
