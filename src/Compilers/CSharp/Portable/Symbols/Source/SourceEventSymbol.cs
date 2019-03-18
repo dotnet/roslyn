@@ -368,6 +368,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Virtual) != 0; }
         }
 
+        internal bool IsReadOnly
+        {
+            get { return (_modifiers & DeclarationModifiers.ReadOnly) != 0; }
+        }
+
         public sealed override Accessibility DeclaredAccessibility
         {
             get { return ModifierUtils.EffectiveAccessibility(_modifiers); }
@@ -435,6 +440,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (this.ContainingType.IsStructType())
+            {
+                allowedModifiers |= DeclarationModifiers.ReadOnly;
+            }
+
             if (!isInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern;
@@ -467,6 +477,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // A static member '{0}' cannot be marked as override, virtual, or abstract
                 diagnostics.Add(ErrorCode.ERR_StaticNotVirtual, location, this);
+            }
+            else if (IsReadOnly && (IsStatic || HasAssociatedField))
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
             }
             else if (IsOverride && (IsNew || IsVirtual))
             {

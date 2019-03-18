@@ -772,6 +772,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
             }
 
+            if (ContainingType.IsStructType())
+            {
+                allowedModifiers |= DeclarationModifiers.ReadOnly;
+            }
+
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
@@ -932,6 +937,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // The modifier '{0}' is not valid for this item
                 diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.VirtualKeyword));
+            }
+            else if (IsStatic && IsDeclaredReadOnly)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
             }
             else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {

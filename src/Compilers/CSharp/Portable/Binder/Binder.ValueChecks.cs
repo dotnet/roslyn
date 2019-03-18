@@ -2967,7 +2967,7 @@ moreArguments:
                         return true;
                     }
 
-                    if (!IsAnyReadOnly(addressKind) && type.IsReadOnly)
+                    if (!IsAnyReadOnly(addressKind) && method.IsEffectivelyReadOnly)
                     {
                         return method.MethodKind == MethodKind.Constructor;
                     }

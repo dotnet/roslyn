@@ -509,6 +509,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsDeclaredReadOnly
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
+            }
+        }
+
         internal sealed override Cci.CallingConvention CallingConvention
         {
             get

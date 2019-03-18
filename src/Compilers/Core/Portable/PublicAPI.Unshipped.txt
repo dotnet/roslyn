@@ -116,6 +116,7 @@ Microsoft.CodeAnalysis.FlowAnalysis.IStaticLocalInitializationSemaphoreOperation
 Microsoft.CodeAnalysis.IFieldSymbol.IsFixedSizeBuffer.get -> bool
 Microsoft.CodeAnalysis.ILocalSymbol.IsFixed.get -> bool
 Microsoft.CodeAnalysis.IOperation.SemanticModel.get -> Microsoft.CodeAnalysis.SemanticModel
+Microsoft.CodeAnalysis.ITypeSymbol.IsReadOnly.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsRefLikeType.get -> bool
 Microsoft.CodeAnalysis.ITypeSymbol.IsUnmanagedType.get -> bool
 Microsoft.CodeAnalysis.OperationKind.Binary = 32 -> Microsoft.CodeAnalysis.OperationKind
