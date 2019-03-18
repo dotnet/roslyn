@@ -119,41 +119,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void FlattenConcatArg(BoundExpression lowered, ArrayBuilder<BoundExpression> flattened)
         {
+            if (TryExtractStringConcatArgs(lowered, out var arguments))
+            {
+                flattened.AddRange(arguments);
+            }
+            else
+            {
+                // fallback - if nothing above worked, leave arg as-is
+                flattened.Add(lowered);
+            }
+        }
+
+        private bool TryExtractStringConcatArgs(BoundExpression lowered, out ImmutableArray<BoundExpression> arguments)
+        {
             switch (lowered.Kind)
             {
                 case BoundKind.Call:
-                    var boundCall = (BoundCall)lowered;
-
-                    var method = boundCall.Method;
-                    if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
-                    {
-                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
-                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
-                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString) ||
-                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObject) ||
-                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObject) ||
-                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObjectObject))
-                        {
-                            flattened.AddRange(boundCall.Arguments);
-                            return;
-                        }
-
-                        if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray) ||
-                            (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectArray))
-                        {
-                            var args = boundCall.Arguments[0] as BoundArrayCreation;
-                            if (args != null)
-                            {
-                                var initializer = args.InitializerOpt;
-                                if (initializer != null)
-                                {
-                                    flattened.AddRange(initializer.Initializers);
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                    break;
+                    return TryExtractStringConcatArgsFromBoundCall((BoundCall)lowered, out arguments);
 
                 case BoundKind.NullCoalescingOperator:
                     var boundCoalesce = (BoundNullCoalescingOperator)lowered;
@@ -168,16 +150,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var rightConstant = boundCoalesce.RightOperand.ConstantValue;
                         if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
                         {
-                            flattened.Add(boundCoalesce.LeftOperand);
-                            return;
+                            // The left operand might be a call to string.Concat(object)
+                            if (boundCoalesce.LeftOperand.Kind == BoundKind.Call &&
+                                TryExtractStringConcatArgsFromBoundCall((BoundCall)boundCoalesce.LeftOperand, out arguments))
+                            {
+                                return true;
+                            }
+
+                            arguments = ImmutableArray.Create(boundCoalesce.LeftOperand);
+                            return true;
                         }
                     }
                     break;
             }
 
-            // fallback - if nothing above worked, leave arg as-is
-            flattened.Add(lowered);
-            return;
+            arguments = default;
+            return false;
+        }
+
+        private bool TryExtractStringConcatArgsFromBoundCall(BoundCall boundCall, out ImmutableArray<BoundExpression> arguments)
+        {
+            var method = boundCall.Method;
+            if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
+            {
+                if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObject) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObject) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObjectObject))
+                {
+                    arguments = boundCall.Arguments;
+                    return true;
+                }
+
+                if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringArray) ||
+                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectArray))
+                {
+                    var args = boundCall.Arguments[0] as BoundArrayCreation;
+                    if (args != null)
+                    {
+                        var initializer = args.InitializerOpt;
+                        if (initializer != null)
+                        {
+                            arguments = initializer.Initializers;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            arguments = default;
+            callCanReturnNull = default;
+            return false;
         }
 
         /// <summary>
@@ -257,14 +282,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (loweredOperand.Type.SpecialType == SpecialType.System_String)
             {
-                // loweredOperand ?? ""
-                return _factory.Coalesce(loweredOperand, _factory.Literal(""));
+                // It it's a call to string.Concat, we already know the result is not null. Otherwise return loweredOperand ?? ""
+                if (TryExtractStringConcatArgs(loweredOperand, out _))
+                {
+                    return loweredOperand;
+                }
+                else
+                {
+                    return _factory.Coalesce(loweredOperand, _factory.Literal(""));
+                }
             }
 
             var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatObject);
             Debug.Assert((object)method != null);
 
-            return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredOperand);
+            // string.Concat(object) might return null (if the object's ToString method returns null): convert to ""
+            return _factory.Coalesce((BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredOperand), _factory.Literal(""));
         }
 
         private BoundExpression RewriteStringConcatenationTwoExprs(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
