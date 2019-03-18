@@ -482,7 +482,6 @@ public struct S
         public void ReadOnlyMethod_Async()
         {
             var csharp = @"
-
 using System.Threading.Tasks;
 
 public struct S
