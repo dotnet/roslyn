@@ -1,0 +1,55 @@
+﻿using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging
+{
+    public struct DebugLocationInfo
+    {
+        public readonly string Name;
+        public readonly int LineOffset;
+
+        public DebugLocationInfo(string name, int lineOffset)
+        {
+            Debug.Assert(name != null);
+            this.Name = name;
+            this.LineOffset = lineOffset;
+        }
+
+        public bool IsDefault
+        {
+            get { return Name == null; }
+        }
+    }
+
+    public struct DebugDataTipInfo
+    {
+        public readonly TextSpan Span;
+        public readonly string Text;
+
+        public DebugDataTipInfo(TextSpan span, string text)
+        {
+            this.Span = span;
+            this.Text = text;
+        }
+
+        public bool IsDefault
+        {
+            get { return Span.Length == 0 && Span.Start == 0 && Text == null; }
+        }
+    }
+
+    public interface IFSharpLanguageDebugInfoService
+    {
+        Task<DebugLocationInfo> GetLocationInfoAsync(Document document, int position, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Find an appropriate span to pass the debugger given a point in a snapshot.  Optionally
+        /// pass back a string to pass to the debugger instead if no good span can be found.  For
+        /// example, if the user hovers on "var" then we actually want to pass the fully qualified
+        /// name of the type that 'var' binds to, to the debugger.
+        /// </summary>
+        Task<DebugDataTipInfo> GetDataTipInfoAsync(Document document, int position, CancellationToken cancellationToken);
+    }
+}

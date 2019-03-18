@@ -27,6 +27,23 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingServi
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpEditorFormattingService.SupportsFormattingOnTypedCharacter(Microsoft.CodeAnalysis.Document document, char ch) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpSynchronousIndentationService
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IFSharpSynchronousIndentationService.GetDesiredIndentation(Microsoft.CodeAnalysis.Document document, int lineNumber, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult?
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult.Document.get -> Microsoft.CodeAnalysis.Document
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult.IsLineBreakpoint.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult.LocationNameOpt.get -> string
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult.TextSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugDataTipInfo
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugDataTipInfo.DebugDataTipInfo(Microsoft.CodeAnalysis.Text.TextSpan span, string text) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugDataTipInfo.IsDefault.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugLocationInfo
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugLocationInfo.DebugLocationInfo(string name, int lineOffset) -> void
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugLocationInfo.IsDefault.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.IFSharpBreakpointResolutionService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.IFSharpBreakpointResolutionService.ResolveBreakpointAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult>
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.IFSharpBreakpointResolutionService.ResolveBreakpointsAsync(Microsoft.CodeAnalysis.Solution solution, string name, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult>>
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.IFSharpLanguageDebugInfoService
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.IFSharpLanguageDebugInfoService.GetDataTipInfoAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugDataTipInfo>
+Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.IFSharpLanguageDebugInfoService.GetLocationInfoAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugLocationInfo>
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult.BasePosition.get -> int
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.IndentationResult.IndentationResult(int basePosition, int offset) -> void
@@ -113,10 +130,16 @@ Microsoft.CodeAnalysis.ExternalAccess.FSharp.Glyph.TypeParameter = 70 -> Microso
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions
 Microsoft.CodeAnalysis.ExternalAccess.FSharp.Shared.Options.ServiceFeatureOnOffOptions
 const Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.ContentTypeNames.RoslynContentType = "Roslyn Languages" -> string
+readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugDataTipInfo.Span -> Microsoft.CodeAnalysis.Text.TextSpan
+readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugDataTipInfo.Text -> string
+readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugLocationInfo.LineOffset -> int
+readonly Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.DebugLocationInfo.Name -> string
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Classification.ClassificationTags.GetClassificationTypeName(string textTag) -> string
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.EditAndContinue.get -> string[]
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.Microsoft.get -> string[]
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.DiagnosticCustomTags.Unnecessary.get -> string[]
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult.CreateLineResult(Microsoft.CodeAnalysis.Document document, string locationNameOpt = null) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult
+static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult.CreateSpanResult(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, string locationNameOpt = null) -> Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Implementation.Debugging.BreakpointResolutionResult
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions.GetMetadata(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace workspace, string fullPath, System.DateTime snapshotTimestamp) -> Microsoft.CodeAnalysis.Metadata
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions.GetOrCreateProjectIdForPath(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace workspace, string filePath, string projectDisplayName) -> Microsoft.CodeAnalysis.ProjectId
 static Microsoft.CodeAnalysis.ExternalAccess.FSharp.LanguageServices.VisualStudioWorkspaceExtensions.GetProjectFilePath(this Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace workspace, Microsoft.CodeAnalysis.ProjectId projectId) -> string
