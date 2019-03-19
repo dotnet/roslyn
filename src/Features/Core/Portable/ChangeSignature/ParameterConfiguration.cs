@@ -7,12 +7,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     internal sealed class ParameterConfiguration
     {
         public readonly IParameterSymbol ThisParameter;
-        public readonly List<IParameterSymbol> ParametersWithoutDefaultValues;
-        public readonly List<IParameterSymbol> RemainingEditableParameters;
+        public readonly List<CoolParameter> ParametersWithoutDefaultValues;
+        public readonly List<CoolParameter> RemainingEditableParameters;
         public readonly IParameterSymbol ParamsParameter;
         public readonly int SelectedIndex;
 
-        public ParameterConfiguration(IParameterSymbol thisParameter, List<IParameterSymbol> parametersWithoutDefaultValues, List<IParameterSymbol> remainingEditableParameters, IParameterSymbol paramsParameter, int selectedIndex)
+        public ParameterConfiguration(IParameterSymbol thisParameter, List<CoolParameter> parametersWithoutDefaultValues, List<CoolParameter> remainingEditableParameters, IParameterSymbol paramsParameter, int selectedIndex)
         {
             ThisParameter = thisParameter;
             ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         public static ParameterConfiguration Create(List<IParameterSymbol> parameters, bool isExtensionMethod, int selectedIndex)
         {
             IParameterSymbol thisParameter = null;
-            var parametersWithoutDefaultValues = new List<IParameterSymbol>();
-            var remainingReorderableParameters = new List<IParameterSymbol>();
+            var parametersWithoutDefaultValues = new List<CoolParameter>();
+            var remainingReorderableParameters = new List<CoolParameter>();
             IParameterSymbol paramsParameter = null;
 
             if (parameters.Count > 0 && isExtensionMethod)
@@ -48,19 +48,19 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     seenDefaultValues = true;
                 }
 
-                (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
+                (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(new ExistingParameter(param));
             }
 
             return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues, remainingReorderableParameters, paramsParameter, selectedIndex);
         }
 
-        public List<IParameterSymbol> ToListOfParameters()
+        public List<CoolParameter> ToListOfParameters()
         {
-            var list = new List<IParameterSymbol>();
+            var list = new List<CoolParameter>();
 
             if (ThisParameter != null)
             {
-                list.Add(ThisParameter);
+                list.Add(new ExistingParameter(ThisParameter));
             }
 
             list.AddRange(ParametersWithoutDefaultValues);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (ParamsParameter != null)
             {
-                list.Add(ParamsParameter);
+                list.Add(new ExistingParameter(ParamsParameter));
             }
 
             return list;
