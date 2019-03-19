@@ -67,12 +67,10 @@ if ($PSVersionTable.PSVersion.Major -lt "5") {
 }
 
 function Check-MaxPath {
-    $regOutput = reg query HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled
-    if ($regOutput -like "*0x1*") {
-        return
+    $regOutput = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
+    if (($NULL -eq $regOutput) -or ($regOutput.LongPathsEnabled -ne 1)) {
+        Write-Warning "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with ``reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1``"
     }
-
-    Write-Warning "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with ``reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1``"
 }
 
 Check-MaxPath
