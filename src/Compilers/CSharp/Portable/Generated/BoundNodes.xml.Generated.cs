@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         DagTemp,
         DagTypeTest,
         DagNonNullTest,
-        DagNullTest,
+        DagExplicitNullTest,
         DagValueTest,
         DagDeconstructEvaluation,
         DagTypeEvaluation,
@@ -780,15 +780,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypeExpression : BoundExpression
     {
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, BoundTypeExpression boundContainingTypeOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, BoundTypeExpression boundContainingTypeOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.TypeExpression, syntax, type, hasErrors || boundContainingTypeOpt.HasErrors())
         {
 
-            Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert((object)typeWithAnnotations != null, "Field 'typeWithAnnotations' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.AliasOpt = aliasOpt;
             this.InferredType = inferredType;
             this.BoundContainingTypeOpt = boundContainingTypeOpt;
+            this.TypeWithAnnotations = typeWithAnnotations;
         }
 
 
@@ -798,16 +799,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression BoundContainingTypeOpt { get; }
 
+        public TypeWithAnnotations TypeWithAnnotations { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitTypeExpression(this);
         }
 
-        public BoundTypeExpression Update(AliasSymbol aliasOpt, bool inferredType, BoundTypeExpression boundContainingTypeOpt, TypeSymbol type)
+        public BoundTypeExpression Update(AliasSymbol aliasOpt, bool inferredType, BoundTypeExpression boundContainingTypeOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol type)
         {
-            if (aliasOpt != this.AliasOpt || inferredType != this.InferredType || boundContainingTypeOpt != this.BoundContainingTypeOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (aliasOpt != this.AliasOpt || inferredType != this.InferredType || boundContainingTypeOpt != this.BoundContainingTypeOpt || typeWithAnnotations != this.TypeWithAnnotations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTypeExpression(this.Syntax, aliasOpt, inferredType, boundContainingTypeOpt, type, this.HasErrors);
+                var result = new BoundTypeExpression(this.Syntax, aliasOpt, inferredType, boundContainingTypeOpt, typeWithAnnotations, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -816,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundTypeExpression(this.Syntax, this.AliasOpt, this.InferredType, this.BoundContainingTypeOpt, this.Type, this.HasErrors);
+            var result = new BoundTypeExpression(this.Syntax, this.AliasOpt, this.InferredType, this.BoundContainingTypeOpt, this.TypeWithAnnotations, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -5041,10 +5044,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundDagNullTest : BoundDagTest
+    internal sealed partial class BoundDagExplicitNullTest : BoundDagTest
     {
-        public BoundDagNullTest(SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
-            : base(BoundKind.DagNullTest, syntax, input, hasErrors || input.HasErrors())
+        public BoundDagExplicitNullTest(SyntaxNode syntax, BoundDagTemp input, bool hasErrors = false)
+            : base(BoundKind.DagExplicitNullTest, syntax, input, hasErrors || input.HasErrors())
         {
 
             Debug.Assert((object)input != null, "Field 'input' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -5054,14 +5057,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
-            return visitor.VisitDagNullTest(this);
+            return visitor.VisitDagExplicitNullTest(this);
         }
 
-        public BoundDagNullTest Update(BoundDagTemp input)
+        public BoundDagExplicitNullTest Update(BoundDagTemp input)
         {
             if (input != this.Input)
             {
-                var result = new BoundDagNullTest(this.Syntax, input, this.HasErrors);
+                var result = new BoundDagExplicitNullTest(this.Syntax, input, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8483,8 +8486,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDagTypeTest(node as BoundDagTypeTest, arg);
                 case BoundKind.DagNonNullTest: 
                     return VisitDagNonNullTest(node as BoundDagNonNullTest, arg);
-                case BoundKind.DagNullTest: 
-                    return VisitDagNullTest(node as BoundDagNullTest, arg);
+                case BoundKind.DagExplicitNullTest: 
+                    return VisitDagExplicitNullTest(node as BoundDagExplicitNullTest, arg);
                 case BoundKind.DagValueTest: 
                     return VisitDagValueTest(node as BoundDagValueTest, arg);
                 case BoundKind.DagDeconstructEvaluation: 
@@ -9073,7 +9076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
-        public virtual R VisitDagNullTest(BoundDagNullTest node, A arg)
+        public virtual R VisitDagExplicitNullTest(BoundDagExplicitNullTest node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -9801,7 +9804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
-        public virtual BoundNode VisitDagNullTest(BoundDagNullTest node)
+        public virtual BoundNode VisitDagExplicitNullTest(BoundDagExplicitNullTest node)
         {
             return this.DefaultVisit(node);
         }
@@ -10655,7 +10658,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Input);
             return null;
         }
-        public override BoundNode VisitDagNullTest(BoundDagNullTest node)
+        public override BoundNode VisitDagExplicitNullTest(BoundDagExplicitNullTest node)
         {
             this.Visit(node.Input);
             return null;
@@ -11108,7 +11111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundTypeExpression boundContainingTypeOpt = (BoundTypeExpression)this.Visit(node.BoundContainingTypeOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.AliasOpt, node.InferredType, boundContainingTypeOpt, type);
+            return node.Update(node.AliasOpt, node.InferredType, boundContainingTypeOpt, node.TypeWithAnnotations, type);
         }
         public override BoundNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
         {
@@ -11671,7 +11674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             return node.Update(input);
         }
-        public override BoundNode VisitDagNullTest(BoundDagNullTest node)
+        public override BoundNode VisitDagExplicitNullTest(BoundDagExplicitNullTest node)
         {
             BoundDagTemp input = (BoundDagTemp)this.Visit(node.Input);
             return node.Update(input);
@@ -12256,6 +12259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("aliasOpt", node.AliasOpt, null),
                 new TreeDumperNode("inferredType", node.InferredType, null),
                 new TreeDumperNode("boundContainingTypeOpt", null, new TreeDumperNode[] { Visit(node.BoundContainingTypeOpt, null) }),
+                new TreeDumperNode("typeWithAnnotations", node.TypeWithAnnotations, null),
                 new TreeDumperNode("type", node.Type, null),
                 new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
             }
@@ -13290,9 +13294,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
-        public override TreeDumperNode VisitDagNullTest(BoundDagNullTest node, object arg)
+        public override TreeDumperNode VisitDagExplicitNullTest(BoundDagExplicitNullTest node, object arg)
         {
-            return new TreeDumperNode("dagNullTest", null, new TreeDumperNode[]
+            return new TreeDumperNode("dagExplicitNullTest", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("input", null, new TreeDumperNode[] { Visit(node.Input, null) })
             }

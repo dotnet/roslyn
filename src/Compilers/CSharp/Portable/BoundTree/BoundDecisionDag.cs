@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     switch (choice)
                     {
-                        case BoundDagNullTest d:
+                        case BoundDagExplicitNullTest d:
                             return inputConstant.IsNull;
                         case BoundDagNonNullTest d:
                             return !inputConstant.IsNull;

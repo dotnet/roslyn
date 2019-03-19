@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// If the method was written as an iterator method (i.e. with yield statements in its body) returns the
-        /// element type of the iterator.  Otherwise returns default(TypeSymbolWithAnnotations).
+        /// element type of the iterator.  Otherwise returns default(TypeWithAnnotations).
         /// </summary>
         internal virtual TypeWithAnnotations IteratorElementTypeWithAnnotations
         {
