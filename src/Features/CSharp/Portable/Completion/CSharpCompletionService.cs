@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new DeclarationNameCompletionProvider(),
                 new InternalsVisibleToCompletionProvider(),
                 new PropertySubpatternCompletionProvider(),
-                new EmbeddedLanguageCompletionProvider(CSharpEmbeddedLanguageFeaturesProvider.Instance));
+                new EmbeddedLanguageCompletionProvider(CSharpEmbeddedLanguageFeaturesProvider.Instance),
+                new TypeImportCompletionProvider());
 
         private readonly Workspace _workspace;
 

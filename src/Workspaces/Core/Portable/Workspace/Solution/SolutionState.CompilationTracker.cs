@@ -813,6 +813,15 @@ namespace Microsoft.CodeAnalysis
                     : state.DeclarationOnlyCompilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
             }
 
+            public INamespaceDeclaration GetDeclarationRootFromDeclarationOnlyCompilation()
+            {
+                // DO NOT expose declaration only compilation to outside since it can be held alive long time, we don't want to create any symbol from the declaration only compilation.
+                var state = this.ReadState();
+                return state.DeclarationOnlyCompilation == null
+                    ? default
+                    : state.DeclarationOnlyCompilation.DeclarationRoot;
+            }
+
             /// <summary>
             /// get all syntax trees that contain declaration node with the given name
             /// </summary>

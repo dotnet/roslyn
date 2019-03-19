@@ -1904,6 +1904,25 @@ namespace Microsoft.CodeAnalysis
             return compilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
         }
 
+        internal async Task<INamespaceDeclaration> GetDeclarationRootAsync(ProjectId id, CancellationToken cancellationToken)
+        {
+            var result = GetCompilationTracker(id).GetDeclarationRootFromDeclarationOnlyCompilation();
+            if (result != null)
+            {
+                return result;
+            }
+
+            // it looks like declaration compilation doesn't exist yet. we have to build full compilation
+            var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
+            if (compilation == null)
+            {
+                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
+                return null;
+            }
+
+            return compilation.DeclarationRoot;
+        }
+
         public async Task<ImmutableArray<DocumentState>> GetDocumentsWithNameAsync(
             ProjectId id, Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
