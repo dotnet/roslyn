@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sourceTuple.Syntax,
                 sourceTuple.Type,
                 convertedArguments.ToImmutableAndFree(),
-                targetType);
+                targetType).WithSuppression(sourceTuple.IsSuppressed);
 
             if (!TypeSymbol.Equals(sourceTuple.Type, destination, TypeCompareKind.ConsiderEverything2))
             {
