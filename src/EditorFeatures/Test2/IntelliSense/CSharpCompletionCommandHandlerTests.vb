@@ -121,6 +121,29 @@ class C
 
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestEnterDoesNotTriggerCompletion(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+using System;
+
+class C
+{
+    void M()
+    {
+        String.Equals("foo", "bar", $$StringComparison.CurrentCulture)
+    }
+}
+
+                              </Document>)
+
+                state.SendReturn()
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertNoCompletionSession()
+            End Using
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNotAtStartOfExistingWord(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                               <Document>$$using</Document>)
