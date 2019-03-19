@@ -394,8 +394,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <param name="argument">The argument that is passed to the action whenever it is invoked</param>
-        internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, TArg argument)
+        internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, in TArg argument)
         {
+recurse:
             switch (type.Kind())
             {
                 case SyntaxKind.ArrayType:
@@ -408,39 +409,52 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case SyntaxKind.NullableType:
                     var nullableTypeSyntax = (NullableTypeSyntax)type;
-                    nullableTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
-                    break;
+                    type = nullableTypeSyntax.ElementType;
+                    goto recurse;
                 case SyntaxKind.PointerType:
                     var pointerTypeSyntax = (PointerTypeSyntax)type;
-                    pointerTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
-                    break;
+                    type = pointerTypeSyntax.ElementType;
+                    goto recurse;
                 case SyntaxKind.TupleType:
                     var tupleTypeSyntax = (TupleTypeSyntax)type;
-                    foreach (var element in tupleTypeSyntax.Elements)
+                    var elementsCount = tupleTypeSyntax.Elements.Count;
+                    if (elementsCount == 0)
+                        break;
+
+                    for (int index = 0; index < elementsCount - 1; index++)
                     {
+                        var element = tupleTypeSyntax.Elements[index];
                         element.Type.VisitRankSpecifiers(action, argument);
                     }
-                    break;
+
+                    type = tupleTypeSyntax.Elements[elementsCount - 1].Type;
+                    goto recurse;
                 case SyntaxKind.RefType:
                     var refTypeSyntax = (RefTypeSyntax)type;
-                    refTypeSyntax.Type.VisitRankSpecifiers(action, argument);
-                    break;
+                    type = refTypeSyntax.Type;
+                    goto recurse;
                 case SyntaxKind.GenericName:
                     var genericNameSyntax = (GenericNameSyntax)type;
-                    foreach (var typeArgument in genericNameSyntax.TypeArgumentList.Arguments)
+                    var argsCount = genericNameSyntax.TypeArgumentList.Arguments.Count;
+                    Debug.Assert(argsCount != 0);
+
+                    for (int index = 0; index < argsCount - 1; index++)
                     {
+                        var typeArgument = genericNameSyntax.TypeArgumentList.Arguments[index];
                         typeArgument.VisitRankSpecifiers(action, argument);
                     }
-                    break;
+
+                    type = genericNameSyntax.TypeArgumentList.Arguments[argsCount - 1];
+                    goto recurse;
                 case SyntaxKind.QualifiedName:
                     var qualifiedNameSyntax = (QualifiedNameSyntax)type;
                     qualifiedNameSyntax.Left.VisitRankSpecifiers(action, argument);
-                    qualifiedNameSyntax.Right.VisitRankSpecifiers(action, argument);
-                    break;
+                    type = qualifiedNameSyntax.Right;
+                    goto recurse;
                 case SyntaxKind.AliasQualifiedName:
                     var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)type;
-                    aliasQualifiedNameSyntax.Name.VisitRankSpecifiers(action, argument);
-                    break;
+                    type = aliasQualifiedNameSyntax.Name;
+                    goto recurse;
                 case SyntaxKind.IdentifierName:
                 case SyntaxKind.OmittedTypeArgument:
                 case SyntaxKind.PredefinedType:
