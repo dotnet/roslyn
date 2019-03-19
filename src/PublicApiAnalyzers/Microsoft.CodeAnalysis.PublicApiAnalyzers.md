@@ -9,7 +9,7 @@ The following files have to be added to any project referencing this package to 
 This can be done by:
 
 - In Visual Studio, right click project in Solution Explorer, and choose "Add -> New Items", then select "Text File" in "Add new item" dialog.
-- Or, create these two files at the location you desire, then add the following text to your project file (replace the file path if they are not located at the project root directory):
+- Or, create these two files at the location you desire, then add the following text to your project/target file (replace file path with its actual location):
 
 ```xml
   <ItemGroup>
