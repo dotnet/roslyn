@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.E
 
                 foreach (var projectItem in currentItems.OfType<ProjectItem>())
                 {
-                    if (projectItem.TryGetFullPath(out var filePath) && comparer.Compare(filePath, itemFilePath) == 0)
+                    if (projectItem.TryGetFullPath(out var filePath) && comparer.Equals(filePath, itemFilePath))
                     {
                         return projectItem;
                     }

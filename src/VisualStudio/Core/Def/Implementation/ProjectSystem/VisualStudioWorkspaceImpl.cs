@@ -1095,13 +1095,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (document.Name != updatedInfo.Name)
             {
-                GetProjectData(updatedInfo.Id.ProjectId, out var _, out var project);
+                GetProjectData(updatedInfo.Id.ProjectId, out var _, out var dteProject);
 
-                var projectItemForDocument = project.FindItemByPath(document.FilePath, StringComparer.OrdinalIgnoreCase);
+                var projectItemForDocument = dteProject.FindItemByPath(document.FilePath, StringComparer.OrdinalIgnoreCase);
 
                 if (projectItemForDocument == null)
                 {
-                    // TODO: The document might actually belong to a Shared Project.
+                    // TODO(https://github.com/dotnet/roslyn/issues/34276):
+                    // The document might actually belong to a Shared Project.
                     return;
                 }
 
@@ -1120,10 +1121,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         /// <summary>
-        /// The VisualStudioWorkspace currently supports only a subset of DocumentInfo changes.
+        /// The <see cref="VisualStudioWorkspace"/> currently supports only a subset of <see cref="DocumentInfo"/> 
+        /// changes.
         /// </summary>
         private void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
         {
+            FailIfPropertyChanged(document.SourceCodeKind, updatedInfo.SourceCodeKind, nameof(document.SourceCodeKind));
+
             if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
             {
                 throw new InvalidOperationException(
