@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 {
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                             .OfType<IMethodSymbol>()
                                             .Where(m => !m.Equals(renamedMethod) && m.Arity == renamedMethod.Arity);
 
-            return GetConflictLocations(renamedMethod, potentiallyConfictingMethods, isMethod:true,
+            return GetConflictLocations(renamedMethod, potentiallyConfictingMethods, isMethod: true,
                 (method) => GetAllSignatures((method as IMethodSymbol).Parameters, trimOptionalParameters));
         }
 
@@ -30,10 +29,10 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                             .Where(m => !m.Equals(renamedProperty) && m.Parameters.Count() == renamedProperty.Parameters.Count());
 
             return GetConflictLocations(renamedProperty, potentiallyConfictingProperties, isMethod: false,
-                (property)=>GetAllSignatures((property as IPropertySymbol).Parameters, trimOptionalParameters));
+                (property) => GetAllSignatures((property as IPropertySymbol).Parameters, trimOptionalParameters));
         }
 
-        private static ImmutableArray<Location> GetConflictLocations(ISymbol renamedMember, 
+        private static ImmutableArray<Location> GetConflictLocations(ISymbol renamedMember,
             IEnumerable<ISymbol> potentiallyConfictingMembers,
             bool isMethod,
             Func<ISymbol, ImmutableArray<ImmutableArray<ITypeSymbol>>> getAllSignatures)
