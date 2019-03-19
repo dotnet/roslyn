@@ -9,7 +9,5 @@ namespace Microsoft.CodeAnalysis
         Disabled,      // No information. Think oblivious.
         NotAnnotated, // Type is not annotated - string, int, T (including the case when T is unconstrained).
         Annotated,    // Type is annotated - string?, T? where T : class; and for int?, T? where T : struct.
-        NotNullable,  // Explicitly set by flow analysis
-        Nullable,     // Explicitly set by flow analysis
     }
 }

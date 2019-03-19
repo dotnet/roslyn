@@ -202,25 +202,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
                 _attributes &= ~(BoundNodeAttributes.TopLevelAnnotationMask | BoundNodeAttributes.TopLevelFlowStateMaybeNull);
 
-                switch (value.Annotation)
+                _attributes |= value.Annotation switch
                 {
-                    case CodeAnalysis.NullableAnnotation.Annotated:
-                    case CodeAnalysis.NullableAnnotation.Nullable:
-                        _attributes |= BoundNodeAttributes.TopLevelAnnotated;
-                        break;
-
-                    case CodeAnalysis.NullableAnnotation.NotAnnotated:
-                    case CodeAnalysis.NullableAnnotation.NotNullable:
-                        _attributes |= BoundNodeAttributes.TopLevelNotAnnotated;
-                        break;
-
-                    case CodeAnalysis.NullableAnnotation.Disabled:
-                        _attributes |= BoundNodeAttributes.TopLevelDisabled;
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(value.Annotation);
-                }
+                    CodeAnalysis.NullableAnnotation.Annotated => BoundNodeAttributes.TopLevelAnnotated,
+                    CodeAnalysis.NullableAnnotation.NotAnnotated => BoundNodeAttributes.TopLevelNotAnnotated,
+                    CodeAnalysis.NullableAnnotation.Disabled => BoundNodeAttributes.TopLevelDisabled,
+                    var a => throw ExceptionUtilities.UnexpectedValue(a),
+                };
 
                 switch (value.FlowState)
                 {

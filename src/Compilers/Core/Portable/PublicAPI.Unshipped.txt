@@ -25,8 +25,6 @@ Microsoft.CodeAnalysis.NullableAnnotation.Annotated = 3 -> Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.NullableAnnotation.Disabled = 1 -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated = 2 -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableAnnotation.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.NotNullable = 4 -> Microsoft.CodeAnalysis.NullableAnnotation
-Microsoft.CodeAnalysis.NullableAnnotation.Nullable = 5 -> Microsoft.CodeAnalysis.NullableAnnotation
 Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableFlowState.MaybeNull = 2 -> Microsoft.CodeAnalysis.NullableFlowState
 Microsoft.CodeAnalysis.NullableFlowState.NotApplicable = 0 -> Microsoft.CodeAnalysis.NullableFlowState

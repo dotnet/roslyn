@@ -75768,7 +75768,7 @@ class Program
         var a1 = new C<string>() { F = s };
         F(a1.F/*T:object?*/); // 1
         var b1 = a1;
-        F(b1.F/*T:string!*/); // 2
+        F(b1.F/*T:object!*/); // 2
     }
     static void F2<T>(T? t) where T : class
     {

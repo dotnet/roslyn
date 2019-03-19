@@ -15,12 +15,7 @@ namespace Microsoft.CodeAnalysis
 
         internal NullabilityInfo(NullableAnnotation annotation, NullableFlowState flowState)
         {
-            Annotation = annotation switch
-            {
-                NullableAnnotation.Nullable => NullableAnnotation.Annotated,
-                NullableAnnotation.NotNullable => NullableAnnotation.NotAnnotated,
-                _ => annotation
-            };
+            Annotation = annotation;
             FlowState = flowState;
         }
 
