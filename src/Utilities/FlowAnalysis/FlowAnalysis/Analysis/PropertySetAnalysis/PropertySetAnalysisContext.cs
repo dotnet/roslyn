@@ -42,10 +42,8 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
             HazardousUsageEvaluatorCollection hazardousUsageEvaluators,
             ImmutableDictionary<INamedTypeSymbol, string> hazardousUsageTypesToNames)
             : base(valueDomain, wellKnownTypeProvider, controlFlowGraph, owningSymbol, interproceduralAnalysisConfig, pessimisticAnalysis,
-                  predicateAnalysis: false, exceptionPathsAnalysis: false, copyAnalysisResultOpt: null, pointsToAnalysisResultOpt: pointsToAnalysisResult,
-                  getOrComputeAnalysisResult: getOrComputeAnalysisResult,
-                  parentControlFlowGraphOpt: parentControlFlowGraphOpt,
-                  interproceduralAnalysisDataOpt: interproceduralAnalysisDataOpt)
+                  predicateAnalysis: false, exceptionPathsAnalysis: false, copyAnalysisResultOpt: null, pointsToAnalysisResult,
+                  getOrComputeAnalysisResult, parentControlFlowGraphOpt, interproceduralAnalysisDataOpt, interproceduralAnalysisPredicateOpt: null)
         {
             this.ValueContentAnalysisResultOpt = valueContentAnalysisResultOpt;
             this.TypeToTrackMetadataName = typeToTrackMetadataName;

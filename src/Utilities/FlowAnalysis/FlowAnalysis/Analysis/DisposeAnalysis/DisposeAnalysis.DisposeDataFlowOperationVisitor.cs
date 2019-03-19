@@ -223,6 +223,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             {
                 var value = base.Visit(operation, argument);
                 HandlePossibleEscapingOperation(operation, GetEscapedLocations(operation));
+
+                // HACK: Workaround for missing IOperation/CFG support for C# 'using' declarations
+                // https://github.com/dotnet/roslyn-analyzers/issues/2152
+                if (operation?.Kind == OperationKind.None &&
+                    operation.Syntax.GetFirstToken().ToString() == "using" &&
+                    operation.Language == LanguageNames.CSharp)
+                {
+                    var previousOperation = CurrentBasicBlock.GetPreviousOperationInBlock(operation);
+                    if (previousOperation is ISimpleAssignmentOperation simpleAssignment)
+                    {
+                        HandleDisposingOperation(disposingOperation: operation, disposedInstance: simpleAssignment.Value);
+                    }
+                }
+
                 return value;
             }
 
@@ -294,9 +308,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                 return value;
             }
 
-            protected override void ApplyInterproceduralAnalysisResult(DisposeAnalysisData resultData, bool isLambdaOrLocalFunction, DisposeAnalysisResult interproceduralResult)
+            protected override void ApplyInterproceduralAnalysisResult(
+                DisposeAnalysisData resultData,
+                bool isLambdaOrLocalFunction,
+                bool hasParameterWithDelegateType,
+                DisposeAnalysisResult interproceduralResult)
             {
-                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, interproceduralResult);
+                base.ApplyInterproceduralAnalysisResult(resultData, isLambdaOrLocalFunction, hasParameterWithDelegateType, interproceduralResult);
 
                 // Apply the tracked instance field locations from interprocedural analysis.
                 if (_trackedInstanceFieldLocationsOpt != null)
@@ -346,12 +364,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
                     !operation.Field.IsStatic &&
                     operation.Instance?.Kind == OperationKind.InstanceReference)
                 {
-                    if (!_trackedInstanceFieldLocationsOpt.TryGetValue(operation.Field, out _))
+                    var pointsToAbstractValue = GetPointsToAbstractValue(operation);
+                    if (pointsToAbstractValue.Kind == PointsToAbstractValueKind.KnownLocations &&
+                        pointsToAbstractValue.Locations.Count == 1)
                     {
-                        var pointsToAbstractValue = GetPointsToAbstractValue(operation);
-                        if (HandleInstanceCreation(operation, pointsToAbstractValue, DisposeAbstractValue.NotDisposable) != DisposeAbstractValue.NotDisposable)
+                        var location = pointsToAbstractValue.Locations.Single();
+                        if (location.IsAnalysisEntityDefaultLocation)
                         {
-                            _trackedInstanceFieldLocationsOpt.Add(operation.Field, pointsToAbstractValue);
+                            if (!_trackedInstanceFieldLocationsOpt.TryGetValue(operation.Field, out _))
+                            {
+                                // First field reference on any control flow path.
+                                // Create a default instance to represent the object referenced by the field at start of the method and
+                                // check if the instance has NotDisposed state, indicating it is a disposable field that must be tracked.
+                                if (HandleInstanceCreation(operation, pointsToAbstractValue, defaultValue: DisposeAbstractValue.NotDisposable) == DisposeAbstractValue.NotDisposed)
+                                {
+                                    _trackedInstanceFieldLocationsOpt.Add(operation.Field, pointsToAbstractValue);
+                                }
+                            }
+                            else if (!CurrentAnalysisData.ContainsKey(location))
+                            {
+                                // This field has already started being tracked on a different control flow path.
+                                // Process the default instance creation on this control flow path as well.
+                                var disposedState = HandleInstanceCreation(operation, pointsToAbstractValue, DisposeAbstractValue.NotDisposable);
+                                Debug.Assert(disposedState == DisposeAbstractValue.NotDisposed);
+                            }
                         }
                     }
                 }

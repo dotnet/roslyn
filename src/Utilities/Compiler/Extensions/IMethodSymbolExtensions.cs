@@ -385,6 +385,15 @@ namespace Analyzer.Utilities.Extensions
                method.Name.StartsWith("Add", StringComparison.Ordinal) &&
                method.ContainingType.AllInterfaces.Any(i => iCollectionTypes.Contains(i.OriginalDefinition));
 
+        /// <summary>
+        /// Determine if the specific method is a Task.FromResult method that wraps a result in a task.
+        /// </summary>
+        /// <param name="method">The method to test.</param>
+        /// <param name="taskType">Task types.</param>
+        public static bool IsTaskFromResultMethod(this IMethodSymbol method, INamedTypeSymbol taskType)
+            => method.Name.Equals("FromResult", StringComparison.Ordinal) &&
+               method.ContainingType.Equals(taskType);
+
 #if HAS_IOPERATION
         /// <summary>
         /// PERF: Cache from method symbols to their topmost block operations to enable interprocedural flow analysis
@@ -497,5 +506,8 @@ namespace Analyzer.Utilities.Extensions
                    method.Parameters.Length >= 1 &&
                    method.Parameters[0].Type.SpecialType == SpecialType.System_Object;
         }
+
+        public static bool HasParameterWithDelegateType(this IMethodSymbol methodSymbol)
+            => methodSymbol.Parameters.Any(p => p.Type.TypeKind == TypeKind.Delegate);
     }
 }
