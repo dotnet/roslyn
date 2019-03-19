@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             // mutable state
             private Workspace _workspace;
-            private IWorkspaceStatusService _workspaceStatusChangedService;
+            private IWorkspaceStatusService _workspaceStatusService;
             private int _lastSolutionVersionReported;
 
             public event EventHandler<EventArgs> SuggestedActionsChanged;
@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     updateSource.DiagnosticsUpdated -= OnDiagnosticsUpdated;
                 }
 
-                if (_workspaceStatusChangedService != null)
+                if (_workspaceStatusService != null)
                 {
-                    _workspaceStatusChangedService.StatusChanged -= OnWorkspaceStatusChanged;
+                    _workspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
                 }
 
                 if (_workspace != null)
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 _owner = null;
                 _workspace = null;
-                _workspaceStatusChangedService = null;
+                _workspaceStatusService = null;
                 _registration = null;
                 _textView = null;
                 _subjectBuffer = null;
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                if (_workspaceStatusChangedService != null)
+                if (_workspaceStatusService != null)
                 {
                     // TODO: right now, LightBulb uses IVsThreadedWaitDialog directly rather than new
                     //       IUIThreadOperationContext. we need to talk to editor team whether we want to
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     //       IWaitIndicator abstraction (which is a thin wrapper on top of IVsThreadedWaitDialog) directly
                     //       for now, we use the one LB created before calling us. meaning we don't update
                     //       text on the wait dialog window
-                    _workspaceStatusChangedService.WaitUntilFullyLoadedAsync(cancellationToken).Wait(cancellationToken);
+                    _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).Wait(cancellationToken);
                 }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
@@ -891,9 +891,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // one doesn't need to hold onto workspace in field.
 
                 // remove existing event registration
-                if (_workspaceStatusChangedService != null)
+                if (_workspaceStatusService != null)
                 {
-                    _workspaceStatusChangedService.StatusChanged -= OnWorkspaceStatusChanged;
+                    _workspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
                 }
 
                 if (_workspace != null)
@@ -916,8 +916,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 _workspace.DocumentActiveContextChanged += OnActiveContextChanged;
-                _workspaceStatusChangedService = workspace.Services.GetService<IWorkspaceStatusService>();
-                _workspaceStatusChangedService.StatusChanged += OnWorkspaceStatusChanged;
+                _workspaceStatusService = workspace.Services.GetService<IWorkspaceStatusService>();
+                _workspaceStatusService.StatusChanged += OnWorkspaceStatusChanged;
             }
 
             private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public async Task<ISuggestedActionCategorySet> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
-                if (_workspaceStatusChangedService != null && !await _workspaceStatusChangedService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
+                if (_workspaceStatusService != null && !await _workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // never show light bulb if solution is not fully loaded yet
                     return null;
