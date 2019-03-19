@@ -525,6 +525,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Callsite.
+        /// </summary>
+        internal static string Callsite {
+            get {
+                return ResourceManager.GetString("Callsite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to camel Case Name.
         /// </summary>
         internal static string camel_Case_Name {

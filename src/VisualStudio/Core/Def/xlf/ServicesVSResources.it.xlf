@@ -87,6 +87,11 @@
         <target state="translated">Calcolo dei dipendenti...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Callsite">
+        <source>Callsite</source>
+        <target state="new">Callsite</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Classifications">
         <source>Classifications</source>
         <target state="translated">Classificazioni</target>

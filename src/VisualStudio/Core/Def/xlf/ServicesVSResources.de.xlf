@@ -87,6 +87,11 @@
         <target state="translated">Abhängige Objekte werden berechnet...</target>
         <note />
       </trans-unit>
+      <trans-unit id="Callsite">
+        <source>Callsite</source>
+        <target state="new">Callsite</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Classifications">
         <source>Classifications</source>
         <target state="translated">Klassifizierungen</target>
