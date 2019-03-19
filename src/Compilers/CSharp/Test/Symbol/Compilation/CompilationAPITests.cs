@@ -2031,7 +2031,7 @@ class C { }", options: TestOptions.Script);
         [Fact]
         public void AppConfig2()
         {
-            // Create a dll with a reference to .net system
+            // Create a dll with a reference to .NET system
             string libSource = @"
 using System.Runtime.Versioning;
 public class C { public static FrameworkName Goo() { return null; }}";
