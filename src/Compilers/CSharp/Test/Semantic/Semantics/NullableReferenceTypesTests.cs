@@ -85,6 +85,179 @@ namespace System
     }
 }";
 
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitObjectInitializerReceiver()
+        {
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? f2;
+    public B? f3;
+}
+public class C
+{
+    public B? f;
+    static void Main()
+    {
+        new C() { f = { f2 = null, f3 = null }};
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (12,23): warning CS8602: Possible dereference of a null reference.
+                //         new C() { f = { f2 = null, f3 = null }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ f2 = null, f3 = null }").WithLocation(12, 23)
+                );
+        }
+
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitObjectInitializerReceiver_ReceiverNotNullable()
+        {
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? f2;
+}
+public class C
+{
+    public B f;
+    static void Main()
+    {
+        new C() { f = { f2 = null }};
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (6,14): warning CS8618: Non-nullable field 'f' is uninitialized.
+                // public class C
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "f").WithLocation(6, 14)
+                );
+        }
+
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitObjectInitializerReceiver_ReceiverOblivious()
+        {
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? f2;
+}
+public class C
+{
+#nullable disable
+    public B f;
+#nullable enable
+    static void Main()
+    {
+        new C() { f = { f2 = null }};
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitObjectInitializerReceiver_ReceiverNullableIndexer()
+        {
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? f2;
+}
+public class C
+{
+    static void Main()
+    {
+        new C() { [0] = { f2 = null }};
+    }
+    public B? this[int i] { get => throw null!; set => throw null!; }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (10,25): warning CS8602: Possible dereference of a null reference.
+                //         new C() { [0] = { f2 = null }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ f2 = null }").WithLocation(10, 25)
+                );
+        }
+
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitObjectInitializerReceiver_Nested()
+        {
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? f2;
+}
+public class C
+{
+    public C? fc;
+    public B? fb;
+    static void Main()
+    {
+        new C() { fc = { fb = { f2 = null} }};
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (12,24): warning CS8602: Possible dereference of a null reference.
+                //         new C() { fc = { fb = { f2 = null} }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ fb = { f2 = null} }").WithLocation(12, 24),
+                // (12,31): warning CS8602: Possible dereference of a null reference.
+                //         new C() { fc = { fb = { f2 = null} }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ f2 = null}").WithLocation(12, 31)
+                );
+        }
+
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitObjectInitializerReceiver_Index()
+        {
+            var comp = CreateCompilation(@"
+public class B
+{
+    public B? this[int i] { get => throw null!; set => throw null!; }
+}
+public class C
+{
+    public B? f;
+    static void Main()
+    {
+        new C() { f = { [0] = null }};
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (11,23): warning CS8602: Possible dereference of a null reference.
+                //         new C() { f = { [0] = null }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ [0] = null }").WithLocation(11, 23)
+                );
+        }
+
+        [Fact, WorkItem(32495, "https://github.com/dotnet/roslyn/issues/32495")]
+        public void CheckImplicitCollectionInitializerReceiver()
+        {
+            var comp = CreateCompilation(@"
+public class B : System.Collections.Generic.IEnumerable<int>
+{
+    public void Add(int i) { }
+    System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator() => throw null!;
+    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => throw null!;
+}
+public class C
+{
+    public B? f;
+    static void Main()
+    {
+        new C() { f = { 1 }};
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics(
+                // (13,23): warning CS8602: Possible dereference of a null reference.
+                //         new C() { f = { 1 }};
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "{ 1 }").WithLocation(13, 23)
+                );
+        }
+
         [Fact, WorkItem(29964, "https://github.com/dotnet/roslyn/issues/29964")]
         public void IndexerUpdatedBasedOnReceiver_ReturnType()
         {
@@ -40747,6 +40920,247 @@ class C
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
+
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Deconstruction()
+        {
+            var source = @"
+class C<T>
+{
+}
+class C2
+{
+    void M(C<string?> c)
+    {
+        // line 1
+        (string d1, (C<string> d2, string d3)) = (null, (c, null));
+
+        // line 2
+        (string e1, (C<string> e2, string e3)) = (null, (c, null))!;
+
+        // line 3
+        (string f1, (C<string> f2, string f3)) = (null, (c, null)!);
+
+        // line 4
+        (string g1, (C<string> g2, string g3)) = (null!, (c, null)!);
+
+        // line 5
+        (string h1, (C<string> h2, string h3)) = (null!, (c!, null!)); // no warnings
+
+        // line 6
+        (string i1, (C<string> i2, string i3)) = default((string, (C<string>, string)))!;
+
+        // line 7
+        (string j1, (C<string> j2, string j3)) = (null, default((C<string>, string))!);
+
+        // line 8
+        (string k1, (C<string> k2, string k3)) = (null!, default((C<string>, string))!);
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // line 1
+
+                // (10,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string d1, (C<string> d2, string d3)) = (null, (c, null));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 51),
+                // (10,58): warning CS8619: Nullability of reference types in value of type 'C<string?>' doesn't match target type 'C<string>'.
+                //         (string d1, (C<string> d2, string d3)) = (null, (c, null));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C<string?>", "C<string>").WithLocation(10, 58),
+                // (10,61): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string d1, (C<string> d2, string d3)) = (null, (c, null));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 61),
+
+                // line 2
+                // (13,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string e1, (C<string> e2, string e3)) = (null, (c, null))!;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 51),
+                // (13,58): warning CS8619: Nullability of reference types in value of type 'C<string?>' doesn't match target type 'C<string>'.
+                //         (string e1, (C<string> e2, string e3)) = (null, (c, null))!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C<string?>", "C<string>").WithLocation(13, 58),
+                // (13,61): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string e1, (C<string> e2, string e3)) = (null, (c, null))!;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 61),
+
+                // line 3
+                // (16,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string f1, (C<string> f2, string f3)) = (null, (c, null)!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(16, 51),
+                // (16,58): warning CS8619: Nullability of reference types in value of type 'C<string?>' doesn't match target type 'C<string>'.
+                //         (string f1, (C<string> f2, string f3)) = (null, (c, null)!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C<string?>", "C<string>").WithLocation(16, 58),
+                // (16,61): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string f1, (C<string> f2, string f3)) = (null, (c, null)!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(16, 61),
+
+                // line 4
+                // (19,59): warning CS8619: Nullability of reference types in value of type 'C<string?>' doesn't match target type 'C<string>'.
+                //         (string g1, (C<string> g2, string g3)) = (null!, (c, null)!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C<string?>", "C<string>").WithLocation(19, 59),
+                // (19,62): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string g1, (C<string> g2, string g3)) = (null!, (c, null)!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(19, 62),
+
+                // line 6
+                // (25,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string i1, (C<string> i2, string i3)) = default((string, (C<string>, string)))!;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((string, (C<string>, string)))").WithLocation(25, 50),
+                // (25,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string i1, (C<string> i2, string i3)) = default((string, (C<string>, string)))!;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((string, (C<string>, string)))").WithLocation(25, 50),
+                // (25,50): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string i1, (C<string> i2, string i3)) = default((string, (C<string>, string)))!;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((string, (C<string>, string)))").WithLocation(25, 50),
+
+                // line 7
+                // (28,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string j1, (C<string> j2, string j3)) = (null, default((C<string>, string))!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(28, 51),
+                // (28,57): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string j1, (C<string> j2, string j3)) = (null, default((C<string>, string))!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((C<string>, string))").WithLocation(28, 57),
+                // (28,57): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string j1, (C<string> j2, string j3)) = (null, default((C<string>, string))!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((C<string>, string))").WithLocation(28, 57),
+
+                // line 8
+                // (31,58): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string k1, (C<string> k2, string k3)) = (null!, default((C<string>, string))!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((C<string>, string))").WithLocation(31, 58),
+                // (31,58): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (string k1, (C<string> k2, string k3)) = (null!, default((C<string>, string))!);
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default((C<string>, string))").WithLocation(31, 58)
+                );
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_Tuple()
+        {
+            var source = @"
+class C<T> { }
+class C2
+{
+    static T Id<T>(T t) => t;
+    void M(C<string?> c)
+    {
+        // line 1
+        (string, (C<string>, string)) t1 = (null, (c, null));
+        t1.Item1.ToString(); // warn
+        Id(t1).Item1.ToString(); // no warn
+
+        // line 2
+        (string, (C<string>, string)) t2 = (null, (c, null))!;
+        t2.Item1.ToString(); // warn
+        Id(t2).Item1.ToString(); // no warn
+
+        // line 3
+        (string, (C<string>, string)) t3 = (null, (c, null)!);
+        t3.Item1.ToString(); // warn
+        Id(t3).Item1.ToString(); // no warn
+
+        // line 4
+        (string, (C<string>, string)) t4 = (null, (c, null)!)!; // no warn
+        t4.Item1.ToString(); // warn
+        Id(t4).Item1.ToString(); // no warn
+
+        // line 5
+        (string, (C<string>, string)) t5 = (null!, (c, null)!); // no warn
+        t5.Item1.ToString(); // no warn
+        Id(t5).Item1.ToString(); // no warn
+
+        // line 6
+        (string, (C<string>, string)) t6 = (null!, (c!, null!)); // warn
+        t6.Item1.ToString(); // no warn
+        Id(t6).Item1.ToString(); // no warn
+
+        // line 7
+        (string, (C<string>, string)) t7 = (null!, (c!, null!)!); // no warn
+        t7.Item1.ToString(); // no warn
+        Id(t7).Item1.ToString(); // no warn
+
+        // line 8
+        (string, (C<string>, string)) t8 = (null, (c, null))!; // warn
+        t8.Item1.ToString(); // warn
+        Id(t8).Item1.ToString(); // no warn
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // line 1
+                // (9,51): warning CS8619: Nullability of reference types in value of type '(C<string?> c, string?)' doesn't match target type '(C<string>, string)'.
+                //         (string, (C<string>, string)) t1 = (null, (c, null));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(c, null)").WithArguments("(C<string?> c, string?)", "(C<string>, string)").WithLocation(9, 51),
+                // (9,44): warning CS8619: Nullability of reference types in value of type '(string?, (C<string>, string))' doesn't match target type '(string, (C<string>, string))'.
+                //         (string, (C<string>, string)) t1 = (null, (c, null));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(null, (c, null))").WithArguments("(string?, (C<string>, string))", "(string, (C<string>, string))").WithLocation(9, 44),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         t1.Item1.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1.Item1").WithLocation(10, 9),
+
+                // line 2
+                // (14,51): warning CS8619: Nullability of reference types in value of type '(C<string?> c, string?)' doesn't match target type '(C<string>, string)'.
+                //         (string, (C<string>, string)) t2 = (null, (c, null))!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(c, null)").WithArguments("(C<string?> c, string?)", "(C<string>, string)").WithLocation(14, 51),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         t2.Item1.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2.Item1").WithLocation(15, 9),
+
+                // line 3
+                // (19,44): warning CS8619: Nullability of reference types in value of type '(string?, (C<string>, string))' doesn't match target type '(string, (C<string>, string))'.
+                //         (string, (C<string>, string)) t3 = (null, (c, null)!);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(null, (c, null)!)").WithArguments("(string?, (C<string>, string))", "(string, (C<string>, string))").WithLocation(19, 44),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         t3.Item1.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t3.Item1").WithLocation(20, 9),
+
+                // line 4
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         t4.Item1.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t4.Item1").WithLocation(25, 9),
+
+                // line 6
+                // (34,52): warning CS8619: Nullability of reference types in value of type '(C<string?>, string)' doesn't match target type '(C<string>, string)'.
+                //         (string, (C<string>, string)) t6 = (null!, (c!, null!)); // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(c!, null!)").WithArguments("(C<string?>, string)", "(C<string>, string)").WithLocation(34, 52),
+
+                // line 8
+                // (44,51): warning CS8619: Nullability of reference types in value of type '(C<string?> c, string?)' doesn't match target type '(C<string>, string)'.
+                //         (string, (C<string>, string)) t8 = (null, (c, null))!; // warn
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(c, null)").WithArguments("(C<string?> c, string?)", "(C<string>, string)").WithLocation(44, 51),
+                // (45,9): warning CS8602: Possible dereference of a null reference.
+                //         t8.Item1.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t8.Item1").WithLocation(45, 9));
+
+            CompileAndVerify(comp);
+        }
+
+        [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
+        public void SuppressNullableWarning_TupleEquality()
+        {
+            var source =
+@"class C<T>
+{
+    static void M((string, C<string>) t, C<string?> c)
+    {
+        _ = t == (null, c);
+        _ = t == (null, c)!;
+        _ = (1, t) == (1, (null, c));
+        _ = (1, t) == (1, (null, c)!);
+        _ = (1, t) == (1, (null!, c!));
+        _ = (1, t!) == (1, (null, c));
+        _ = (t, (null, c)!) == ((null, c)!, t);
+        _ = (t, (null!, c!)) == ((null!, c!), t);
+        _ = (t!, (null, c)) == ((null, c), t!);
+        _ = (t, (null, c))! == ((null, c), t);
+        _ = (t, (null, c)) == ((null, c), t)!;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp);
+        }
+
 
         [Fact]
         public void SuppressNullableWarning_ValueType_01()

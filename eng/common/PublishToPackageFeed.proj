@@ -11,11 +11,17 @@
   </PropertyGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)DefaultVersions.props" Condition="Exists('$(MSBuildThisFileDirectory)DefaultVersions.props')" />
+
+  <!--
+    This won't be necessary once we solve this issue:
+    https://github.com/dotnet/arcade/issues/2266
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)ArtifactsCategory.props" Condition="Exists('$(MSBuildThisFileDirectory)ArtifactsCategory.props')" />
   
   <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
 
   <Target Name="PublishToFeed">
-    <Error Condition="'$(TargetStaticFeed)' == ''" Text="TargetStaticFeed: Target feed for publishing assets wasn't provided." />
+    <Error Condition="'$(ArtifactsCategory)' == ''" Text="ArtifactsCategory: The artifacts' category produced by the build wasn't provided." />
     <Error Condition="'$(AccountKeyToStaticFeed)' == ''" Text="AccountKeyToStaticFeed: Account key for target feed wasn't provided." />
     <Error Condition="'$(ManifestsBasePath)' == ''" Text="Full path to asset manifests directory wasn't provided." />
     <Error Condition="'$(BlobBasePath)' == '' AND '$(PackageBasePath)' == ''" Text="A valid full path to BlobBasePath of PackageBasePath is required." />
@@ -26,7 +32,21 @@
     </ItemGroup>
 
     <Error Condition="'@(ManifestFiles)' == ''" Text="No manifest file was found in the provided path: $(ManifestsBasePath)" />
-	
+
+    <!--
+      For now the type of packages being published will be informed for the whole build.
+      Eventually this will be specified on a per package basis:
+      TODO: https://github.com/dotnet/arcade/issues/2266
+    -->
+    <PropertyGroup>
+      <TargetStaticFeed Condition="'$(ArtifactsCategory.ToUpper())' == '.NETCORE'">https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json</TargetStaticFeed>
+      <TargetStaticFeed Condition="'$(ArtifactsCategory.ToUpper())' == '.NETCOREVALIDATION'">https://dotnetfeed.blob.core.windows.net/arcade-validation/index.json</TargetStaticFeed>
+    </PropertyGroup>
+
+    <Error 
+      Condition="'$(TargetStaticFeed)' == ''" 
+      Text="'$(ArtifactsCategory)' wasn't recognized as a valid artifact category. Valid categories are: '.NetCore' and '.NetCoreValidation'" />
+
     <!-- Iterate publishing assets from each manifest file. -->
     <PushArtifactsInManifestToFeed
       ExpectedFeedUrl="$(TargetStaticFeed)"
