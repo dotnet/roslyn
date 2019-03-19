@@ -17,14 +17,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 typeDeclaration.Arity);
 
             return CommonCompletionItem.Create(
-                typeDeclaration.Arity == 0 ? typeDeclaration.Name : typeDeclaration.Name + "<>",
-                displayTextSuffix: $" (in {containingNamespace})",
-                CompletionItemRules.Default,
+                displayText: typeDeclaration.Arity == 0 ? typeDeclaration.Name : typeDeclaration.Name + "<>",
+                displayTextSuffix: null,
+                rules: CompletionItemRules.Default,
                 glyph: GetGlyph(typeDeclaration),
                 sortText: typeDeclaration.Name,
                 properties: ImmutableDictionary<string, string>.Empty
                     .Add(MetadataNameString, metadataname)
-                    .Add(ContainingNamespaceString, containingNamespace));
+                    .Add(ContainingNamespaceString, containingNamespace),
+                inlineDescription: $" (in {containingNamespace})");
         }
 
         public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace)
@@ -34,14 +35,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 typeSymbol.Arity);
 
             return CommonCompletionItem.Create(
-                typeSymbol.Arity == 0 ? typeSymbol.Name : typeSymbol.Name + "<>",
-                displayTextSuffix: $" (in {containingNamespace})",
-                CompletionItemRules.Default,
+                displayText: typeSymbol.Arity == 0 ? typeSymbol.Name : typeSymbol.Name + "<>",
+                displayTextSuffix: null,
+                rules: CompletionItemRules.Default,
                 glyph: typeSymbol.GetGlyph(),
                 sortText: typeSymbol.Name,
                 properties: ImmutableDictionary<string, string>.Empty
                     .Add(MetadataNameString, metadataname)
-                    .Add(ContainingNamespaceString, containingNamespace));
+                    .Add(ContainingNamespaceString, containingNamespace),
+                inlineDescription: $" (in {containingNamespace})");
         }
 
         public static bool TryGetMetadataName(CompletionItem item, out string metadataName)
