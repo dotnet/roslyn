@@ -67,29 +67,12 @@ if ($PSVersionTable.PSVersion.Major -lt "5") {
 }
 
 function Check-MaxPath {
-    $files = Get-ChildItem -r -file .. 
-    $longestFile = $files | 
-        Foreach-Object { 
-        @{
-            Item       = $_ 
-            NameLength = $_.FullName.Length
-        }
-    } | 
-        Sort-Object -Property NameLength |
-        Foreach-Object {
-        $_.Item 
-    } |
-        Select-Object -First 1 
-    
-    if ($longestFile.FullName -gt $env:MAX_PATH) {
-        $regOutput = reg query HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled
-        if ($regOutput -like "*0x1*") {
-            return 
-        }
-
-        Write-Warning "$($longestFile.FullName) exceeds MAX_PATH. You may hit build errors."
-        Write-Warning "You can avoid MAX_PATH issues by enabling LongPath with ``reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1``"
+    $regOutput = reg query HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled
+    if ($regOutput -like "*0x1*") {
+        return
     }
+
+    Write-Warning "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with ``reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1``"
 }
 
 Check-MaxPath
