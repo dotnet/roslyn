@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,15 @@ namespace Microsoft.CodeAnalysis.Host
     internal sealed class WorkspaceStatusService : IWorkspaceStatusService
     {
         public readonly static WorkspaceStatusService Default = new WorkspaceStatusService();
+
+#pragma warning disable 0067
+        public event EventHandler<bool> StatusChanged
+        {
+            // it never used
+            add { }
+            remove { }
+        }
+#pragma warning restore 0067
 
         public Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
         {

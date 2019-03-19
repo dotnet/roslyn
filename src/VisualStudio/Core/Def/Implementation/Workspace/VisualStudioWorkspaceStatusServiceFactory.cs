@@ -48,6 +48,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             private readonly VisualStudioWorkspace _workspace;
 
+            // only needed for testing
+            private ResettableDelay _lastTimeCalled;
+
+            public event EventHandler<bool> StatusChanged;
+
             public Service(VisualStudioWorkspace workspace)
             {
                 // until we get new platform API, use legacy one that is not fully do what we want
@@ -77,6 +82,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
             {
+                if (_workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_ForceDelay))
+                {
+                    // for testing. 
+                    // 1. when this is first called, we return false and start timer to change its status in delayInMS
+                    // 2. once delayInMs passed, we clear the delay and return true.
+                    // 3. if it is called before the timeout, we reset the timer and return false
+                    if (_lastTimeCalled == null)
+                    {
+                        var delay = _workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_DelayInMS);
+                        _lastTimeCalled = new ResettableDelay(delayInMilliseconds: delay);
+                        _ = _lastTimeCalled.Task.SafeContinueWith(_ => StatusChanged?.Invoke(this, true), TaskScheduler.Default);
+
+                        return SpecializedTasks.False;
+                    }
+
+                    if (_lastTimeCalled.Task.IsCompleted)
+                    {
+                        _lastTimeCalled = null;
+                        return SpecializedTasks.True;
+                    }
+
+                    _lastTimeCalled.Reset();
+                    return SpecializedTasks.False;
+                }
+
                 // we are using this API for now, until platform provide us new API for prototype
                 return KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive ? SpecializedTasks.True : SpecializedTasks.False;
             }
