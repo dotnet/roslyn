@@ -1,14 +1,14 @@
 ﻿<vs:DialogWindow 
     x:Uid="ParameterDetailsDialog"
     x:Name="dialog"
-    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature.ParameterDetailsDialog"
+    x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature.AddParameterDialog"
     x:ClassModifier="internal"         
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
-    Height="200" Width="300"
-    MinHeight="200" MinWidth="300"
-    Title="{Binding ElementName=dialog, Path=ParameterDetailsDialogTitle}"
+    Height="200" Width="400"
+    MinHeight="200" MinWidth="400"
+    Title="Add Parameter"
     HasHelpButton="False"
     ResizeMode="CanResizeWithGrip"
     ShowInTaskbar="False"
@@ -27,21 +27,21 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Height="Auto" Width="Auto" Orientation="Vertical">
-            <StackPanel Orientation="Horizontal">
+            <!--<StackPanel Orientation="Horizontal">
                 <Label>Modifier:</Label>
                 <Label Content="{Binding Modifier}"/>
-            </StackPanel>
+            </StackPanel>-->
             <StackPanel Orientation="Horizontal">
                 <Label>Type:</Label>
-                <Label Content="{Binding Type}"/>
+                <TextBox Width="200" Text="{Binding TypeName}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <Label>Name:</Label>
-                <Label Content="{Binding Name}"/>
+                <TextBox Width="200" Text="{Binding ParameterName}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <Label>Default:</Label>
-                <Label Content="{Binding Default}"/>
+                <Label>Callsite value:</Label>
+                <TextBox Width="200" Text="{Binding CallsiteValue}"/>
             </StackPanel>
         </StackPanel>
 

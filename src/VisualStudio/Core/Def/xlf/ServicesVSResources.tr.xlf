@@ -12,6 +12,11 @@
         <target state="translated">Yeni bir ad alanı oluşturulacak</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add">
+        <source>_Add</source>
+        <target state="new">_Add</target>
+        <note>Adding an element to a list</note>
+      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">Geçerli _dosyaya ekle</target>

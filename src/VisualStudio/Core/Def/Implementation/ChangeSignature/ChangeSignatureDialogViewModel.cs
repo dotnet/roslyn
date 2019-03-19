@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -41,20 +42,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             if (parameters.ThisParameter != null)
             {
-                _thisParameter = new ParameterViewModel(this, parameters.ThisParameter);
+                _thisParameter = new ExistingParameterViewModel(this, parameters.ThisParameter);
                 _disabledParameters.Add(parameters.ThisParameter);
             }
 
             if (parameters.ParamsParameter != null)
             {
-                _paramsParameter = new ParameterViewModel(this, parameters.ParamsParameter);
+                _paramsParameter = new ExistingParameterViewModel(this, parameters.ParamsParameter);
             }
 
             _symbol = symbol;
             _declarationParts = symbol.ToDisplayParts(s_symbolDeclarationDisplayFormat);
 
-            _parameterGroup1 = parameters.ParametersWithoutDefaultValues.Select(p => new ParameterViewModel(this, p)).ToList();
-            _parameterGroup2 = parameters.RemainingEditableParameters.Select(p => new ParameterViewModel(this, p)).ToList();
+            _parameterGroup1 = parameters.ParametersWithoutDefaultValues.Select(p => new ExistingParameterViewModel(this, p)).ToList<ParameterViewModel>();
+            _parameterGroup2 = parameters.RemainingEditableParameters.Select(p => new ExistingParameterViewModel(this, p)).ToList<ParameterViewModel>();
 
             var selectedIndex = parameters.SelectedIndex;
             this.SelectedIndex = (parameters.ThisParameter != null && selectedIndex == 0) ? 1 : selectedIndex;
@@ -160,6 +161,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             RemoveRestoreNotifyPropertyChanged();
         }
 
+        internal void AddParameter(AddParameterDialogViewModel addParameterViewModel)
+        {
+            _parameterGroup1.Add(new AddedParameterViewModel(this, addParameterViewModel));
+
+            RemoveRestoreNotifyPropertyChanged();
+        }
+
         internal void RemoveRestoreNotifyPropertyChanged()
         {
             NotifyPropertyChanged(nameof(AllParameters));
@@ -176,12 +184,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         internal ParameterConfiguration GetParameterConfiguration()
         {
-            return new ParameterConfiguration(
-                _originalParameterConfiguration.ThisParameter,
-                _parameterGroup1.Where(p => !p.IsRemoved).Select(p => p.ParameterSymbol).ToList(),
-                _parameterGroup2.Where(p => !p.IsRemoved).Select(p => p.ParameterSymbol).ToList(),
-                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : _paramsParameter.ParameterSymbol,
-                selectedIndex: -1);
+            return null;
+            // TODO
+            //return new ParameterConfiguration(
+            //    _originalParameterConfiguration.ThisParameter,
+            //    _parameterGroup1.Where(p => !p.IsRemoved).Select(p => p.ParameterSymbol).ToList(),
+            //    _parameterGroup2.Where(p => !p.IsRemoved).Select(p => p.ParameterSymbol).ToList(),
+            //    (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : _paramsParameter.ParameterSymbol,
+            //    selectedIndex: -1);
         }
 
         private static readonly SymbolDisplayFormat s_symbolDeclarationDisplayFormat = new SymbolDisplayFormat(
@@ -260,7 +270,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
 
                 first = false;
-                displayParts.AddRange(parameter.ParameterSymbol.ToDisplayParts(s_parameterDisplayFormat));
+                //TODO: displayParts.AddRange(parameter.ParameterSymbol.ToDisplayParts(s_parameterDisplayFormat));
             }
 
             displayParts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Punctuation, null, ")"));
@@ -368,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private bool IsDisabled(ParameterViewModel parameterViewModel)
         {
-            return _disabledParameters.Contains(parameterViewModel.ParameterSymbol);
+            return _disabledParameters.Contains((parameterViewModel as ExistingParameterViewModel)?.ParameterSymbol);
         }
 
         private IList<ParameterViewModel> GetSelectedGroup()
@@ -382,9 +392,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         {
             get
             {
-                return AllParameters.Any(p => p.IsRemoved) ||
-                    !_parameterGroup1.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.ParametersWithoutDefaultValues) ||
-                    !_parameterGroup2.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.RemainingEditableParameters);
+                return true;
+
+                //return AllParameters.Any(p => p.IsRemoved) ||
+                //    !_parameterGroup1.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.ParametersWithoutDefaultValues) ||
+                //    !_parameterGroup2.Select(p => p.ParameterSymbol).SequenceEqual(_originalParameterConfiguration.RemainingEditableParameters);
             }
         }
 
@@ -484,19 +496,56 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
         }
 
-        public class ParameterViewModel
+        public abstract class ParameterViewModel
+        {
+            protected readonly ChangeSignatureDialogViewModel changeSignatureDialogViewModel;
+
+            public abstract string Type { get; }
+            public abstract string Parameter { get; }
+            public abstract bool IsRemoved { get; set; }
+            public abstract string ParameterAutomationText { get; }
+            public abstract bool IsDisabled { get; }
+
+            public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel)
+            {
+                this.changeSignatureDialogViewModel = changeSignatureDialogViewModel;
+            }
+        }
+
+        public class AddedParameterViewModel : ParameterViewModel
+        {
+            private readonly AddParameterDialogViewModel _addParameterViewModel;
+
+            public AddedParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, AddParameterDialogViewModel addParameterViewModel)
+                : base(changeSignatureDialogViewModel)
+            {
+                _addParameterViewModel = addParameterViewModel;
+            }
+
+            public override string Type => _addParameterViewModel.TypeName;
+
+            public override string Parameter => _addParameterViewModel.ParameterName;
+
+            public override bool IsRemoved { get => false; set => throw new InvalidOperationException(); }
+
+            public override string ParameterAutomationText => $"{Type} {Parameter}";
+            public override bool IsDisabled => false;
+        }
+
+        public class ExistingParameterViewModel : ParameterViewModel
         {
             private readonly ChangeSignatureDialogViewModel _changeSignatureDialogViewModel;
+            private AddParameterDialogViewModel _addParameterViewModel;
 
             public IParameterSymbol ParameterSymbol { get; }
 
-            public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, IParameterSymbol parameter)
+            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, IParameterSymbol parameter)
+                : base(changeSignatureDialogViewModel)
             {
-                _changeSignatureDialogViewModel = changeSignatureDialogViewModel;
                 ParameterSymbol = parameter;
             }
 
-            public string ParameterAutomationText => $"{Type} {Parameter}";
+            public override string ParameterAutomationText => $"{Type} {Parameter}";
 
             public string Modifier
             {
@@ -539,9 +588,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
             }
 
-            public string Type => ParameterSymbol.Type.ToDisplayString(s_parameterDisplayFormat);
+            public override string Type => ParameterSymbol.Type.ToDisplayString(s_parameterDisplayFormat);
 
-            public string Parameter => ParameterSymbol.Name;
+            public override string Parameter => ParameterSymbol.Name;
 
             public string Default
             {
@@ -570,7 +619,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
             }
 
-            public bool IsDisabled => _changeSignatureDialogViewModel.IsDisabled(this);
+            public override bool IsDisabled => _changeSignatureDialogViewModel.IsDisabled(this);
 
             public bool NeedsBottomBorder
             {
@@ -597,7 +646,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
             }
 
-            public bool IsRemoved { get; set; }
+            public override bool IsRemoved { get; set; }
         }
     }
 }
