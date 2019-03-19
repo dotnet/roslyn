@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpVSResources {
@@ -1245,6 +1245,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Show_completion_list_after_a_character_is_typed {
             get {
                 return ResourceManager.GetString("Show_completion_list_after_a_character_is_typed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show _import completion items.
+        /// </summary>
+        internal static string Show_import_completion_items {
+            get {
+                return ResourceManager.GetString("Show_import_completion_items", resourceCulture);
             }
         }
         

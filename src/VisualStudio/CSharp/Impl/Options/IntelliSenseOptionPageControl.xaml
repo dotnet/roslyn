@@ -64,6 +64,10 @@
                     <CheckBox x:Uid="Show_name_suggestions"
                                   x:Name="Show_name_suggestions"
                                   Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_name_suggestions}" />
+                    
+                    <CheckBox x:Uid="Show_import_completion_items"
+                                  x:Name="Show_import_completion_items"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_import_completion_items}" />
                 </StackPanel>
             </GroupBox>
         </StackPanel>

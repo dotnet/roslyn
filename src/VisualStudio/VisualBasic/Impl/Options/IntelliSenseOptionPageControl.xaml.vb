@@ -27,6 +27,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Never_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Never, LanguageNames.VisualBasic)
             BindToOption(Only_add_new_line_on_enter_with_whole_word, CompletionOptions.EnterKeyBehavior, EnterKeyRule.AfterFullyTypedWord, LanguageNames.VisualBasic)
             BindToOption(Always_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Always, LanguageNames.VisualBasic)
+
+            BindToOption(Show_import_completion_items, CompletionOptions.ShowImportCompletionItems, LanguageNames.VisualBasic)
         End Sub
 
         Private Sub Show_completion_list_after_a_character_is_deleted_Checked(sender As Object, e As RoutedEventArgs)
