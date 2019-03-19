@@ -40,18 +40,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
         {
         }
 
-        protected override async Task<IBlockCommentDocumentDataProvider> GetBlockCommentDocumentData(Document document, ITextSnapshot snapshot,
+        protected override async Task<IToggleBlockCommentDocumentDataProvider> GetBlockCommentDocumentData(Document document, ITextSnapshot snapshot,
             CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return new CSharpDocumentDataProvider(root);
+            return new CSharpToggleBlockCommentDocumentDataProvider(root);
         }
 
-        private class CSharpDocumentDataProvider : IBlockCommentDocumentDataProvider
+        private class CSharpToggleBlockCommentDocumentDataProvider : IToggleBlockCommentDocumentDataProvider
         {
             private readonly SyntaxNode _root;
 
-            public CSharpDocumentDataProvider(SyntaxNode root)
+            public CSharpToggleBlockCommentDocumentDataProvider(SyntaxNode root)
             {
                 _root = root;
             }

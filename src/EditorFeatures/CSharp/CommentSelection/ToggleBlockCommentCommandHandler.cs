@@ -79,10 +79,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             return emptyResult;
         }
 
-        protected virtual async Task<IBlockCommentDocumentDataProvider> GetBlockCommentDocumentData(Document document, ITextSnapshot snapshot,
+        protected virtual async Task<IToggleBlockCommentDocumentDataProvider> GetBlockCommentDocumentData(Document document, ITextSnapshot snapshot,
             CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
-            return new DocumentDataProvider(snapshot, commentInfo);
+            return new ToggleBlockCommentDocumentDataProvider(snapshot, commentInfo);
         }
 
         private async Task<CommentSelectionResult> ToggleBlockComments(Document document, CommentSelectionInfo commentInfo,
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             }
         }
 
-        private static void BlockCommentSpan(BlockCommentSelectionHelper blockCommentSelection, IBlockCommentDocumentDataProvider blockCommentDataProvider,
+        private static void BlockCommentSpan(BlockCommentSelectionHelper blockCommentSelection, IToggleBlockCommentDocumentDataProvider blockCommentDataProvider,
             List<TextChange> textChanges, List<CommentTrackingSpan> trackingSpans, CommentSelectionInfo commentInfo)
         {
             // Add sequential block comments if the selection contains any intersecting comments.
@@ -407,12 +407,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             }
         }
 
-        private class DocumentDataProvider : IBlockCommentDocumentDataProvider
+        private class ToggleBlockCommentDocumentDataProvider : IToggleBlockCommentDocumentDataProvider
         {
             private readonly ITextSnapshot _snapshot;
             private readonly CommentSelectionInfo _commentInfo;
 
-            public DocumentDataProvider(ITextSnapshot textSnapshot, CommentSelectionInfo commentInfo)
+            public ToggleBlockCommentDocumentDataProvider(ITextSnapshot textSnapshot, CommentSelectionInfo commentInfo)
             {
                 _snapshot = textSnapshot;
                 _commentInfo = commentInfo;

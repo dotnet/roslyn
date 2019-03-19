@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
 {
-    interface IBlockCommentDocumentDataProvider
+    interface IToggleBlockCommentDocumentDataProvider
     {
         int GetLocationAfterToken(int location);
         IEnumerable<TextSpan> GetBlockCommentsInDocument();
