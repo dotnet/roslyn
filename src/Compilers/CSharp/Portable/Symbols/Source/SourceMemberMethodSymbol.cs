@@ -1618,6 +1618,11 @@ done:
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
+            if (IsDeclaredReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
+
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;
 
