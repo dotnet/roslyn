@@ -1087,9 +1087,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        protected override void ApplyDocumentInfoChanged(DocumentId id, DocumentInfo updatedInfo)
+        protected override void ApplyDocumentInfoChanged(DocumentId documentId, DocumentInfo updatedInfo)
         {
-            var document = CurrentSolution.GetDocument(id);
+            var document = CurrentSolution.GetDocument(documentId);
 
             FailIfDocumentInfoChangesNotSupported(document, updatedInfo);
 
