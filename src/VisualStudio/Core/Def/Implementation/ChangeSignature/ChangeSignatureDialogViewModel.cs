@@ -505,6 +505,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public abstract bool IsRemoved { get; set; }
             public abstract string ParameterAutomationText { get; }
             public abstract bool IsDisabled { get; }
+            public abstract string Callsite { get; }
 
             public ParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel)
             {
@@ -530,6 +531,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public override string ParameterAutomationText => $"{Type} {Parameter}";
             public override bool IsDisabled => false;
+            public override string Callsite => _addParameterViewModel.CallsiteValue;
         }
 
         public class ExistingParameterViewModel : ParameterViewModel
@@ -546,6 +548,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
 
             public override string ParameterAutomationText => $"{Type} {Parameter}";
+
+            public override string Callsite => string.Empty;
 
             public string Modifier
             {
