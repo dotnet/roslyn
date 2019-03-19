@@ -2,10 +2,8 @@
 
 using System.Collections.Immutable;
 using Microsoft.VisualStudio.Imaging.Interop;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Imaging;
-using Microsoft.CodeAnalysis.MoveToNamespace;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
@@ -19,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             NamespaceName = defaultNamespace;
             AvailableNamespaces = availableNamespaces;
 
-            this.PropertyChanged += MoveToNamespaceDialogViewModel_PropertyChanged;
+            PropertyChanged += MoveToNamespaceDialogViewModel_PropertyChanged;
         }
 
         private void MoveToNamespaceDialogViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -40,14 +38,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             if (isNewNamespace && isValidName)
             {
                 Icon = KnownMonikers.StatusInformation;
-                Message = $"'{NamespaceName}' will be created as a new namespace";
+                Message = string.Format(ServicesVSResources._0_will_be_created_as_a_new_namespace, NamespaceName);
                 ShowMessage = true;
                 CanSubmit = true;
             }
             else if (!isValidName)
             {
                 Icon = KnownMonikers.StatusInvalid;
-                Message = $"'{NamespaceName}' is not a valid namespace";
+                Message = string.Format(ServicesVSResources._0_is_an_invalid_namespace, NamespaceName);
                 ShowMessage = true;
                 CanSubmit = false;
             }

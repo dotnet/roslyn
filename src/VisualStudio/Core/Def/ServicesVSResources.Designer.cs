@@ -70,6 +70,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is an invalid namespace.
+        /// </summary>
+        internal static string _0_is_an_invalid_namespace {
+            get {
+                return ResourceManager.GetString("_0_is_an_invalid_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} references.
         /// </summary>
         internal static string _0_references {
@@ -113,6 +122,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string _0_will_be_changed_to_public {
             get {
                 return ResourceManager.GetString("_0_will_be_changed_to_public", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; will be created as a new namespace.
+        /// </summary>
+        internal static string _0_will_be_created_as_a_new_namespace {
+            get {
+                return ResourceManager.GetString("_0_will_be_created_as_a_new_namespace", resourceCulture);
             }
         }
         
