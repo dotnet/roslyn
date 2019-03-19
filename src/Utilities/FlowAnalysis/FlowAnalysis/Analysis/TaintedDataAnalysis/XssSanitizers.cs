@@ -2,7 +2,8 @@
 
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
-using Microsoft.CodeAnalysis;
+using Analyzer.Utilities.PooledObjects;
+using Analyzer.Utilities.PooledObjects.Extensions;
 
 namespace Analyzer.Utilities.FlowAnalysis.Analysis.TaintedDataAnalysis
 {
