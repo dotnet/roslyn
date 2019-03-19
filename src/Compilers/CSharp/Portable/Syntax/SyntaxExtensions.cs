@@ -436,7 +436,8 @@ recurse:
                 case SyntaxKind.GenericName:
                     var genericNameSyntax = (GenericNameSyntax)type;
                     var argsCount = genericNameSyntax.TypeArgumentList.Arguments.Count;
-                    Debug.Assert(argsCount != 0);
+                    if (argsCount == 0)
+                        break;
 
                     for (int index = 0; index < argsCount - 1; index++)
                     {
