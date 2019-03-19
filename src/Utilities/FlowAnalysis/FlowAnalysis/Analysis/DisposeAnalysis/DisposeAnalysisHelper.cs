@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
+using Analyzer.Utilities.PooledObjects;
 
 namespace Analyzer.Utilities
 {

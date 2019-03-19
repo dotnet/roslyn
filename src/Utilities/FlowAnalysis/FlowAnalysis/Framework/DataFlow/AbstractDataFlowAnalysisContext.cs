@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 
