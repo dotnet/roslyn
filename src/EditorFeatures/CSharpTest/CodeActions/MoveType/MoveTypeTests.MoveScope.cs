@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Formatting;
@@ -35,6 +34,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public Task MoveType_NamespaceScope_SingleItemNamespaceComment()
+        {
+            var code =
+@"// Comment on the namespace
+namespace N1
+{
+    class [||]Class1
+    {
+    }
+}";
+
+            var expected =
+@"// Comment on the namespace
+namespace N1
+{
+    class Class1
+    {
+    }
+}";
+
+            return TestNamespaceMove(code, expected, expectOperation: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public Task MoveType_NamespaceScope_ItemAtTop()
         {
             var code =
@@ -51,6 +74,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.MoveType
 
             var expected =
 @"namespace N1
+{
+    class Class1
+    {
+    }
+}
+
+namespace N1
+{
+    class Class2
+    {
+    }
+}";
+
+            return TestNamespaceMove(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public Task MoveType_NamespaceScope_ItemAtTopNamespaceComment()
+        {
+            var code =
+@"// Comment on the namespace
+namespace N1
+{
+    class [||]Class1
+    {
+    }
+
+    class Class2
+    {
+    }
+}";
+
+            var expected =
+@"// Comment on the namespace
+namespace N1
 {
     class Class1
     {
@@ -183,6 +241,41 @@ namespace N1
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public Task MoveType_NamespaceScope_ItemAtBottomNamespaceComments()
+        {
+            var code =
+@"// Comment on the namespace
+namespace N1
+{
+    class Class1
+    {
+    }
+
+    class [||]Class2
+    {
+    }
+}";
+
+            var expected =
+@"// Comment on the namespace
+namespace N1
+{
+    class Class1
+    {
+    }
+}
+
+namespace N1
+{
+    class Class2
+    {
+    }
+}";
+
+            return TestNamespaceMove(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
         public Task MoveType_NamespaceScope_ItemAtBottomWithComments()
         {
             var code =
@@ -293,6 +386,68 @@ namespace N1
 
             var expected =
 @"namespace N1
+{
+    class Class1
+    {
+    }
+
+    class Class2
+    {
+    }
+}
+
+namespace N1
+{
+    class Class3
+    {
+    }
+}
+
+namespace N1
+{
+    class Class4
+    {
+    }
+
+    class Class5
+    {
+    }
+}";
+
+            return TestNamespaceMove(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public Task MoveType_NamespaceScope_ItemInMiddleNamespaceComment()
+        {
+            var code =
+@"// Comment on the namespace
+namespace N1
+{
+    class Class1
+    {
+    }
+
+    class Class2
+    {
+    }
+
+    class [||]Class3
+    {
+    }
+
+    class Class4
+    {
+    }
+
+    class Class5
+    {
+    }
+}";
+
+            var expected =
+@"// Comment on the namespace
+namespace N1
 {
     class Class1
     {
