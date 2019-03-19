@@ -389,80 +389,64 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Visits all the ArrayRankSpecifiers of a typeSyntax, invoking an action on each one in turn, up to a depth of 20.
+        /// Visits all the ArrayRankSpecifiers of a typeSyntax, invoking an action on each one in turn.
         /// </summary>
         /// <param name="type"></param>
         /// <param name="action"></param>
         /// <param name="argument">The argument that is passed to the action whenever it is invoked</param>
         internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, TArg argument)
         {
-            VisitRankSpecifiersInternal(type, action, argument, 0);
-
-            void VisitRankSpecifiersInternal(TypeSyntax typeInternal, Action<ArrayRankSpecifierSyntax, TArg> actionInternal, TArg argumentInternal, int recursionDepth)
+            switch (type.Kind())
             {
-                // Currently we only use this method to provide a better tooling experience when compiling incorrect syntax.
-                // Since this is not a must-have, we don't risk causing a stack overflow exception, so don't visit to a depth greater than 20.
-                const int MAX_RECURSION_DEPTH = 20;
-                if (recursionDepth > MAX_RECURSION_DEPTH)
-                    return;
-
-                recursionDepth++;
-
-                switch (typeInternal.Kind())
-                {
-                    case SyntaxKind.ArrayType:
-                        var arrayTypeSyntax = (ArrayTypeSyntax)typeInternal;
-                        VisitRankSpecifiersInternal(arrayTypeSyntax.ElementType, actionInternal, argumentInternal, recursionDepth);
-                        foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
-                        {
-                            actionInternal(rankSpecifier, argumentInternal);
-                        }
-
-                        break;
-                    case SyntaxKind.NullableType:
-                        var nullableTypeSyntax = (NullableTypeSyntax)typeInternal;
-                        VisitRankSpecifiersInternal(nullableTypeSyntax.ElementType, actionInternal, argumentInternal, recursionDepth);
-                        break;
-                    case SyntaxKind.PointerType:
-                        var pointerTypeSyntax = (PointerTypeSyntax)typeInternal;
-                        VisitRankSpecifiersInternal(pointerTypeSyntax.ElementType, actionInternal, argumentInternal, recursionDepth);
-                        break;
-                    case SyntaxKind.TupleType:
-                        var tupleTypeSyntax = (TupleTypeSyntax)typeInternal;
-                        foreach (var element in tupleTypeSyntax.Elements)
-                        {
-                            VisitRankSpecifiersInternal(element.Type, actionInternal, argumentInternal, recursionDepth);
-                        }
-
-                        break;
-                    case SyntaxKind.RefType:
-                        var refTypeSyntax = (RefTypeSyntax)typeInternal;
-                        VisitRankSpecifiersInternal(refTypeSyntax.Type, actionInternal, argumentInternal, recursionDepth);
-                        break;
-                    case SyntaxKind.GenericName:
-                        var genericNameSyntax = (GenericNameSyntax)typeInternal;
-                        foreach (var typeArgument in genericNameSyntax.TypeArgumentList.Arguments)
-                        {
-                            VisitRankSpecifiersInternal(typeArgument, actionInternal, argumentInternal, recursionDepth);
-                        }
-
-                        break;
-                    case SyntaxKind.QualifiedName:
-                        var qualifiedNameSyntax = (QualifiedNameSyntax)typeInternal;
-                        VisitRankSpecifiersInternal(qualifiedNameSyntax.Left, actionInternal, argumentInternal, recursionDepth);
-                        VisitRankSpecifiersInternal(qualifiedNameSyntax.Right, actionInternal, argumentInternal, recursionDepth);
-                        break;
-                    case SyntaxKind.AliasQualifiedName:
-                        var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)typeInternal;
-                        VisitRankSpecifiersInternal(aliasQualifiedNameSyntax.Name, actionInternal, argumentInternal, recursionDepth);
-                        break;
-                    case SyntaxKind.IdentifierName:
-                    case SyntaxKind.OmittedTypeArgument:
-                    case SyntaxKind.PredefinedType:
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(typeInternal.Kind());
-                }
+                case SyntaxKind.ArrayType:
+                    var arrayTypeSyntax = (ArrayTypeSyntax)type;
+                    arrayTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
+                    foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
+                    {
+                        action(rankSpecifier, argument);
+                    }
+                    break;
+                case SyntaxKind.NullableType:
+                    var nullableTypeSyntax = (NullableTypeSyntax)type;
+                    nullableTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
+                    break;
+                case SyntaxKind.PointerType:
+                    var pointerTypeSyntax = (PointerTypeSyntax)type;
+                    pointerTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
+                    break;
+                case SyntaxKind.TupleType:
+                    var tupleTypeSyntax = (TupleTypeSyntax)type;
+                    foreach (var element in tupleTypeSyntax.Elements)
+                    {
+                        element.Type.VisitRankSpecifiers(action, argument);
+                    }
+                    break;
+                case SyntaxKind.RefType:
+                    var refTypeSyntax = (RefTypeSyntax)type;
+                    refTypeSyntax.Type.VisitRankSpecifiers(action, argument);
+                    break;
+                case SyntaxKind.GenericName:
+                    var genericNameSyntax = (GenericNameSyntax)type;
+                    foreach (var typeArgument in genericNameSyntax.TypeArgumentList.Arguments)
+                    {
+                        typeArgument.VisitRankSpecifiers(action, argument);
+                    }
+                    break;
+                case SyntaxKind.QualifiedName:
+                    var qualifiedNameSyntax = (QualifiedNameSyntax)type;
+                    qualifiedNameSyntax.Left.VisitRankSpecifiers(action, argument);
+                    qualifiedNameSyntax.Right.VisitRankSpecifiers(action, argument);
+                    break;
+                case SyntaxKind.AliasQualifiedName:
+                    var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)type;
+                    aliasQualifiedNameSyntax.Name.VisitRankSpecifiers(action, argument);
+                    break;
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.OmittedTypeArgument:
+                case SyntaxKind.PredefinedType:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(type.Kind());
             }
         }
     }
