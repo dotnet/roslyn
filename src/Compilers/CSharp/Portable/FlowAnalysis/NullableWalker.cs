@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void Analyze(
             CSharpCompilation compilation,
-            MethodSymbol method,
+            MethodSymbol? method,
             BoundNode node,
             DiagnosticBag diagnostics,
             bool useMethodSignatureReturnType,
@@ -639,11 +639,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case BoundKind.Conversion:
                                 {
                                     var operandConversion = (BoundConversion)operandOpt;
-                                    return isSupportedConversion(operandConversion.Conversion, operandConversion.Operand);
+                                    // https://github.com/dotnet/roslyn/issues/34246: Infer nullability in switch on conditional access operator.
+                                    return isSupportedConversion(operandConversion!.Conversion, operandConversion.Operand);
                                 }
                             case BoundKind.ConvertedTupleLiteral:
                                 {
-                                    var arguments = ((BoundConvertedTupleLiteral)operandOpt).Arguments;
+                                    // https://github.com/dotnet/roslyn/issues/34246: Infer nullability in switch on conditional access operator.
+                                    var arguments = ((BoundConvertedTupleLiteral)operandOpt!).Arguments;
                                     var conversions = conversion.UnderlyingConversions;
                                     for (int i = 0; i < arguments.Length; i++)
                                     {
@@ -1514,10 +1516,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // a nullable value type created with its default constructor is by definition null
                             resultState = NullableFlowState.MaybeNull;
                         }
-                        else if (constructor.ParameterCount == 1)
+                        else if (constructor?.ParameterCount == 1)
                         {
                             // if we deal with one-parameter ctor that takes underlying, then Value state is inferred from the argument.
-                            var parameterType = constructor.ParameterTypesWithAnnotations[0];
+                            var parameterType = constructor!.ParameterTypesWithAnnotations[0];
                             if (AreNullableAndUnderlyingTypes(type, parameterType.Type, out TypeWithAnnotations underlyingType))
                             {
                                 TrackNullableStateOfNullableValue(node, arguments[0], type, underlyingType);
@@ -4081,7 +4083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (useLegacyWarnings && operandOpt?.Kind == BoundKind.Conversion)
                     {
                         var operandConversion = (BoundConversion)operandOpt;
-                        var explicitType = operandConversion.ConversionGroupOpt.ExplicitType;
+                        var explicitType = operandConversion!.ConversionGroupOpt.ExplicitType;
                         if (explicitType.HasType && explicitType.Equals(targetTypeWithNullability, TypeCompareKind.ConsiderEverything))
                         {
                             return operandType;
@@ -5741,7 +5743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitCatchBlock(node, ref finallyState);
         }
 
-        public override BoundNode VisitLockStatement(BoundLockStatement node)
+        public override BoundNode? VisitLockStatement(BoundLockStatement node)
         {
             VisitRvalue(node.Argument);
             CheckPossibleNullReceiver(node.Argument);
@@ -5749,7 +5751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitAttribute(BoundAttribute node)
+        public override BoundNode? VisitAttribute(BoundAttribute node)
         {
             VisitArguments(node, node.ConstructorArguments, ImmutableArray<RefKind>.Empty, node.Constructor, argsToParamsOpt: node.ConstructorArgumentsToParamsOpt, expanded: node.ConstructorExpanded);
             foreach (var assignment in node.NamedArguments)
