@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Class SingleTypeDeclaration
         Inherits SingleNamespaceOrTypeDeclaration
+        Implements ITypeDeclaration
 
         Private ReadOnly _children As ImmutableArray(Of SingleTypeDeclaration)
 
@@ -52,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property Arity As Integer
+        Public ReadOnly Property Arity As Integer Implements ITypeDeclaration.Arity
             Get
                 Return _arity
             End Get
@@ -95,6 +96,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public ReadOnly Property MemberNames As ImmutableHashSet(Of String)
+
+        Private ReadOnly Property ITypeDeclaration_TypeKind As TypeKind Implements ITypeDeclaration.TypeKind
+            Get
+                Return Me.Kind.ToTypeKind()
+            End Get
+        End Property
+
+        Private ReadOnly Property DeclaredAccessibility As Accessibility Implements ITypeDeclaration.DeclaredAccessibility
+            Get
+                Return Me.Modifiers.ToAccessibility()
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeDeclaration_Children As ImmutableArray(Of ITypeDeclaration) Implements ITypeDeclaration.Children
+            Get
+                Return ImmutableArray(Of ITypeDeclaration).CastUp(Me.Children)
+            End Get
+        End Property
 
         Protected Overrides Function GetNamespaceOrTypeDeclarationChildren() As ImmutableArray(Of SingleNamespaceOrTypeDeclaration)
             Return StaticCast(Of SingleNamespaceOrTypeDeclaration).From(_children)

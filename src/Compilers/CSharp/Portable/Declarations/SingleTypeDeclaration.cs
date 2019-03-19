@@ -3,11 +3,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class SingleTypeDeclaration : SingleNamespaceOrTypeDeclaration
+    internal sealed class SingleTypeDeclaration : SingleNamespaceOrTypeDeclaration, ITypeDeclaration
     {
         private readonly DeclarationKind _kind;
         private readonly TypeDeclarationFlags _flags;
@@ -135,6 +136,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new TypeDeclarationIdentity(this);
             }
         }
+
+        TypeKind ITypeDeclaration.TypeKind => this.Kind.ToTypeKind();
+
+        Accessibility ITypeDeclaration.DeclaredAccessibility => ModifierUtils.EffectiveAccessibility(this.Modifiers);
+
+        ImmutableArray<ITypeDeclaration> ITypeDeclaration.Children
+            => ImmutableArray<ITypeDeclaration>.CastUp(this.Children);
 
         // identity that is used when collecting all declarations 
         // of same type across multiple containers

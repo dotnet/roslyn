@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     // An invariant of a merged type declaration is that all of its children are also merged
     // declarations.
-    internal sealed class MergedTypeDeclaration : MergedNamespaceOrTypeDeclaration
+    internal sealed class MergedTypeDeclaration : MergedNamespaceOrTypeDeclaration, ITypeDeclaration
     {
         private readonly ImmutableArray<SingleTypeDeclaration> _declarations;
         private ImmutableArray<MergedTypeDeclaration> _lazyChildren;
@@ -224,5 +225,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _lazyMemberNames;
             }
         }
+
+        TypeKind ITypeDeclaration.TypeKind => this.Kind.ToTypeKind();
+
+        Accessibility ITypeDeclaration.DeclaredAccessibility
+        {
+            get
+            {
+                var aggregatedModifier = DeclarationModifiers.None;
+                foreach (var declaration in this.Declarations)
+                {
+                    aggregatedModifier |= declaration.Modifiers;
+                }
+
+                return ModifierUtils.EffectiveAccessibility(aggregatedModifier);
+            }
+        }
+
+        ImmutableArray<ITypeDeclaration> ITypeDeclaration.Children
+            => ImmutableArray<ITypeDeclaration>.CastUp(this.Children);
     }
 }

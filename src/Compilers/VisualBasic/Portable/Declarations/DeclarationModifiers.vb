@@ -67,6 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Friend Function ToAccessibility(modifiers As DeclarationModifiers) As Accessibility
             Select Case modifiers And DeclarationModifiers.AllAccessibilityModifiers
+                Case DeclarationModifiers.None : Return Accessibility.NotApplicable
                 Case DeclarationModifiers.Private : Return Accessibility.Private
                 Case DeclarationModifiers.Public : Return Accessibility.Public
                 Case DeclarationModifiers.Protected : Return Accessibility.Protected

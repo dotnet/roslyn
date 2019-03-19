@@ -3187,5 +3187,7 @@ namespace Microsoft.CodeAnalysis
 
             return foundVersion;
         }
+
+        public abstract INamespaceDeclaration DeclarationRoot { get; }
     }
 }

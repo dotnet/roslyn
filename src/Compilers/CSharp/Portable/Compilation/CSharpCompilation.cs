@@ -3247,6 +3247,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override INamespaceDeclaration DeclarationRoot
+            => Declarations.GetDeclarationRoot(this);
+
         private abstract class AbstractSymbolSearcher
         {
             private readonly PooledDictionary<Declaration, NamespaceOrTypeSymbol> _cache;

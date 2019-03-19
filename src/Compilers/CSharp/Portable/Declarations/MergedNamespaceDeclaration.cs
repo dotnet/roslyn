@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     // An invariant of a merged declaration is that all of its children 
     // are also merged declarations.
-    internal sealed class MergedNamespaceDeclaration : MergedNamespaceOrTypeDeclaration
+    internal sealed class MergedNamespaceDeclaration : MergedNamespaceOrTypeDeclaration, INamespaceDeclaration
     {
         private readonly ImmutableArray<SingleNamespaceDeclaration> _declarations;
         private ImmutableArray<MergedNamespaceOrTypeDeclaration> _lazyChildren;
