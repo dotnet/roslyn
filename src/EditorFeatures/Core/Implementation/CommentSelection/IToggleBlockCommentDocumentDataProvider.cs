@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// <summary>
         /// Gets the location to insert an empty comment.
         /// </summary>
-        /// <param name="location"></param>
-        /// <returns></returns>
         int GetEmptyCommentStartLocation(int location);
 
         /// <summary>

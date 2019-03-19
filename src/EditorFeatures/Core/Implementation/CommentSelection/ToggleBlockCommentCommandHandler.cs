@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             return emptyResult;
         }
 
+        /// <summary>
+        /// Retrieves data about the commented selection that can be optionally overriden by subclasses.
+        /// </summary>
         protected virtual async Task<IToggleBlockCommentDocumentDataProvider> GetBlockCommentDocumentData(Document document, ITextSnapshot snapshot,
             CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
