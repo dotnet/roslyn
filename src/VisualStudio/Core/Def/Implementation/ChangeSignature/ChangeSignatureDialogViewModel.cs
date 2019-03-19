@@ -184,14 +184,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         internal ParameterConfiguration GetParameterConfiguration()
         {
-            return null;
-            // TODO
-            //return new ParameterConfiguration(
-            //    _originalParameterConfiguration.ThisParameter,
-            //    _parameterGroup1.Where(p => !p.IsRemoved).Select(p => p.ParameterSymbol).ToList(),
-            //    _parameterGroup2.Where(p => !p.IsRemoved).Select(p => p.ParameterSymbol).ToList(),
-            //    (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : _paramsParameter.ParameterSymbol,
-            //    selectedIndex: -1);
+            return new ParameterConfiguration(
+                _originalParameterConfiguration.ThisParameter,
+                _parameterGroup1.Where(p => !p.IsRemoved).Select(p => p.MakeCoolParameter()).ToList(),
+                _parameterGroup2.Where(p => !p.IsRemoved).Select(p => p.MakeCoolParameter()).ToList(),
+                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (_paramsParameter as ExistingParameterViewModel).ParameterSymbol,
+                selectedIndex: -1);
         }
 
         private static readonly SymbolDisplayFormat s_symbolDeclarationDisplayFormat = new SymbolDisplayFormat(
@@ -511,6 +509,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 this.changeSignatureDialogViewModel = changeSignatureDialogViewModel;
             }
+
+            internal abstract CoolParameter MakeCoolParameter();
         }
 
         public class AddedParameterViewModel : ParameterViewModel
@@ -532,6 +532,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public override string ParameterAutomationText => $"{Type} {Parameter}";
             public override bool IsDisabled => false;
             public override string Callsite => _addParameterViewModel.CallsiteValue;
+
+            internal override CoolParameter MakeCoolParameter()
+            {
+                return new AddedParameter(Type, Parameter, Callsite);
+            }
         }
 
         public class ExistingParameterViewModel : ParameterViewModel
@@ -541,10 +546,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
             public IParameterSymbol ParameterSymbol { get; }
 
-            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, IParameterSymbol parameter)
+            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, CoolParameter parameter)
                 : base(changeSignatureDialogViewModel)
             {
-                ParameterSymbol = parameter;
+                ParameterSymbol = (parameter as ExistingParameter).Symbol;
+            }
+
+            internal override CoolParameter MakeCoolParameter()
+            {
+                return new ExistingParameter(ParameterSymbol);
             }
 
             public override string ParameterAutomationText => $"{Type} {Parameter}";
