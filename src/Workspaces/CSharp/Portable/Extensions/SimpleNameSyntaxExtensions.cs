@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // "Standalone type name".  
                 //
                 // 1. Users are not going to name types the same name as C# keywords (contextual or otherwise).
-                // 2. Types in .Net are virtually always start with a Uppercase. While keywords are lowercase)
+                // 2. Types in .NET are virtually always start with a Uppercase. While keywords are lowercase)
                 //
                 // Having a lowercase identifier which matches a c# keyword is enough of a signal 
                 // to just not treat this as a standalone type name (even though for some identifiers

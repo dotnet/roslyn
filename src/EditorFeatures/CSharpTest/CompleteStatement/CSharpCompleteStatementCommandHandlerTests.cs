@@ -3122,6 +3122,43 @@ using System.$$Linq
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(33851, "https://github.com/dotnet/roslyn/issues/33851")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void AtEndOfLineOutsideParens()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        string s = ""Test"";
+        string t = s.Replace(""T"", ""t"")$$
+            .Trim();
+
+    }
+}
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(33851, "https://github.com/dotnet/roslyn/issues/33851")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void OutsideParensBeforeSpaceDot()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        string s = ""Test"";
+        string t = s.Replace(""T"", ""t"")$$ .Trim();
+
+    }
+}
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         internal override VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace)
         {
             return workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();

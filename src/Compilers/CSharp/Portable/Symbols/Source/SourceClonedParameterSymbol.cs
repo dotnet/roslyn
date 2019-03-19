@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Forwarded
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return _originalParam.Type; }
+            get { return _originalParam.TypeWithAnnotations; }
         }
 
         public override RefKind RefKind
