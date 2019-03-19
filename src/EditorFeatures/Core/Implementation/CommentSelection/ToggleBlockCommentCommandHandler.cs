@@ -8,8 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,16 +21,16 @@ using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
-    /* TODO - Modify these once the toggle block comment handler is added.*/
+    /* TODO - Modify these once the toggle block comment handler is added.
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.CommentSelection)]
+    [Name(PredefinedCommandHandlerNames.CommentSelection)]*/
     internal class ToggleBlockCommentCommandHandler :
         // Value tuple to represent that there is no distinct command to be passed in.
-        AbstractCommentSelectionBase<ValueTuple>,
-        VSCommanding.ICommandHandler<CommentSelectionCommandArgs>
+        AbstractCommentSelectionBase<ValueTuple>/*,
+        VSCommanding.ICommandHandler<CommentSelectionCommandArgs>*/
     {
         [ImportingConstructor]
         internal ToggleBlockCommentCommandHandler(
@@ -42,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
         {
         }
 
-        /* TODO - modify once the toggle block comment handler is added.*/
+        /* TODO - modify once the toggle block comment handler is added.
         public VSCommanding.CommandState GetCommandState(CommentSelectionCommandArgs args)
         {
             return GetCommandState(args.SubjectBuffer);
@@ -51,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
         public bool ExecuteCommand(CommentSelectionCommandArgs args, CommandExecutionContext context)
         {
             return ExecuteCommand(args.TextView, args.SubjectBuffer, ValueTuple.Create(), context);
-        }
+        }*/
 
         public override string DisplayName => EditorFeaturesResources.Toggle_Block_Comment;
 
@@ -88,7 +86,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
         private async Task<CommentSelectionResult> ToggleBlockComments(Document document, CommentSelectionInfo commentInfo,
             NormalizedSnapshotSpanCollection selectedSpans, CancellationToken cancellationToken)
         {
-            //var blockCommentedSpans = GetDescendentBlockCommentSpansFromRoot(root);
             var blockCommentDataProvider = await GetBlockCommentDocumentData(document, selectedSpans.First().Snapshot, commentInfo, cancellationToken).ConfigureAwait(false);
 
             var blockCommentedSpans = blockCommentDataProvider.GetBlockCommentsInDocument();
@@ -276,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
                 bool IsLocationWhitespace(int location)
                 {
                     var character = _snapshot.GetPoint(location).GetChar();
-                    return SyntaxFacts.IsWhitespace(character) || SyntaxFacts.IsNewLine(character);
+                    return char.IsWhiteSpace(character);
                 }
             }
 

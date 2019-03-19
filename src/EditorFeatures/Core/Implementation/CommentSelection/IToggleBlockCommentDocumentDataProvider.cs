@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
     interface IToggleBlockCommentDocumentDataProvider
     {
