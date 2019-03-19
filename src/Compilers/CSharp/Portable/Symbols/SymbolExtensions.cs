@@ -414,6 +414,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     returnType = parameter.TypeWithAnnotations;
                     refCustomModifiers = parameter.RefCustomModifiers;
                     break;
+                case SymbolKind.ErrorType:
+                    refKind = RefKind.None;
+                    returnType = TypeWithAnnotations.Create((TypeSymbol)symbol);
+                    refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }

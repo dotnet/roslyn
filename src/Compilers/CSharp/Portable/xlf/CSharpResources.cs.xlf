@@ -1567,6 +1567,16 @@
         <target state="translated">Výraz switch nezpracovává všechny možné vstupy (není vyčerpávající).</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull">
+        <source>The switch expression does not handle some null inputs (it is not exhaustive).</source>
+        <target state="new">The switch expression does not handle some null inputs (it is not exhaustive).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_SwitchExpressionNotExhaustiveForNull_Title">
+        <source>The switch expression does not handle some null inputs.</source>
+        <target state="new">The switch expression does not handle some null inputs.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="translated">Výraz switch nezpracovává všechny možné vstupy (není vyčerpávající).</target>

@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Since analysis may proceed in multiple passes, it is possible the slot is already assigned.
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
-                var variableType = VariableTypeWithAnnotations(symbol).Type;
+                var variableType = symbol.GetTypeOrReturnType().Type;
                 if (_emptyStructTypeCache.IsEmptyStructType(variableType))
                 {
                     return -1;
@@ -243,28 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return GetOrCreateSlot(member, containingSlot);
-        }
-
-        protected static TypeWithAnnotations VariableTypeWithAnnotations(Symbol s)
-        {
-            switch (s.Kind)
-            {
-                case SymbolKind.Local:
-                    return ((LocalSymbol)s).TypeWithAnnotations;
-                case SymbolKind.Field:
-                    return ((FieldSymbol)s).TypeWithAnnotations;
-                case SymbolKind.Parameter:
-                    return ((ParameterSymbol)s).TypeWithAnnotations;
-                case SymbolKind.Method:
-                    Debug.Assert(((MethodSymbol)s).MethodKind == MethodKind.LocalFunction);
-                    return default;
-                case SymbolKind.Property:
-                    return ((PropertySymbol)s).TypeWithAnnotations;
-                case SymbolKind.Event:
-                    return ((EventSymbol)s).TypeWithAnnotations;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(s.Kind);
-            }
         }
     }
 }

@@ -424,18 +424,44 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypeExpression
     {
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, BoundTypeExpression boundContainingTypeOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
+            : this(syntax, aliasOpt, inferredType, boundContainingTypeOpt, typeWithAnnotations, typeWithAnnotations.Type, hasErrors)
+        {
+            Debug.Assert((object)typeWithAnnotations.Type != null, "Field 'type' cannot be null");
+        }
+
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeWithAnnotations type, bool hasErrors = false)
             : this(syntax, aliasOpt, false, null, type, hasErrors)
         {
         }
 
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeSymbol type)
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeWithAnnotations type)
             : this(syntax, aliasOpt, false, null, type)
         {
         }
 
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, TypeSymbol type, bool hasErrors = false)
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, TypeWithAnnotations type, bool hasErrors = false)
             : this(syntax, aliasOpt, inferredType, null, type, hasErrors)
+        {
+        }
+
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, BoundTypeExpression boundContainingTypeOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, aliasOpt, inferredType, boundContainingTypeOpt, TypeWithAnnotations.Create(type), hasErrors)
+        {
+        }
+
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, aliasOpt, TypeWithAnnotations.Create(type), hasErrors)
+        {
+        }
+
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, TypeSymbol type)
+            : this(syntax, aliasOpt, TypeWithAnnotations.Create(type))
+        {
+        }
+
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, aliasOpt, inferredType, TypeWithAnnotations.Create(type), hasErrors)
         {
         }
     }
@@ -568,5 +594,15 @@ namespace Microsoft.CodeAnalysis.CSharp
              : this(syntax, operand, isManaged: false, type, hasErrors)
         {
         }
+    }
+
+    internal partial class BoundDagTemp
+    {
+        public BoundDagTemp(SyntaxNode syntax, TypeSymbol type, BoundDagEvaluation source)
+            : this(syntax, type, source, index: 0, hasErrors: false)
+        {
+        }
+
+        public static BoundDagTemp ForOriginalInput(BoundExpression expr) => new BoundDagTemp(expr.Syntax, expr.Type, source: null);
     }
 }

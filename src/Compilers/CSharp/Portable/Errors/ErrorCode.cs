@@ -1244,7 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidDebugInfo = 7103,
         #endregion diagnostics introduced in C# 6
 
-        // huge gap here; unused 7104-8000
+        // unused 7104-8000
 
         #region more diagnostics introduced in Roslyn (C# 6)
         WRN_UnimplementedCommandLineSwitch = 8001,
@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_LocalFunctionMissingBody = 8112,
         ERR_InvalidHashAlgorithmName = 8113,
 
-        // Available = 8113, 8114, 8115
+        // Unused 8113, 8114, 8115
 
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_ThrowMisplaced = 8115,
@@ -1450,7 +1450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadLanguageVersion = 8192,
         #endregion
 
-        // Available  = 8193-8195
+        // Unused 8193-8195
 
         #region diagnostics for out var
         ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8196,
@@ -1633,9 +1633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullReferenceReceiver = 8602,
         WRN_NullReferenceReturn = 8603,
         WRN_NullReferenceArgument = 8604,
-        // Available = 8605,
-        // Available = 8606,
-        // Available = 8607,
+        // Unused 8605-8607
         WRN_NullabilityMismatchInTypeOnOverride = 8608,
         WRN_NullabilityMismatchInReturnTypeOnOverride = 8609,
         WRN_NullabilityMismatchInParameterTypeOnOverride = 8610,
@@ -1667,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadNullableContextOption = 8636,
         ERR_NullableDirectiveQualifierExpected = 8637,
         WRN_ConditionalAccessMayReturnNull = 8638,
-        // Available = 8639,
+        // Unused 8639
         ERR_ExpressionTreeCantContainRefStruct = 8640,
         ERR_ElseCannotStartStatement = 8641,
         ERR_ExpressionTreeCantContainNullCoalescingAssignment = 8642,
@@ -1683,6 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureInPreview = 8652,
         WRN_DefaultExpressionMayIntroduceNullT = 8653,
         WRN_NullLiteralMayIntroduceNullT = 8654,
+        WRN_SwitchExpressionNotExhaustiveForNull = 8655,
 
         #endregion diagnostics introduced for C# 8.0
 
