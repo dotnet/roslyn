@@ -26,13 +26,13 @@
   
   <!-- TODO: Can we figure out the AnalyzerNupkgAssembly and AnalyzerRulesetAssembly items from the referenced projects instead of hardcoding them as AnalyzerRulesetAssembly items here? -->
   <ItemGroup>
-    <AnalyzerNupkgDependency Include="DotNetAnalyzers.PublicApiAnalyzer" />
-    <AnalyzerNupkgDependency Include="DotNetAnalyzers.BannedApiAnalyzer" />
+    <AnalyzerNupkgDependency Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" />
+    <AnalyzerNupkgDependency Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" />
   </ItemGroup>
   <ItemGroup>
-    <AnalyzerRulesetAssembly Include="DotNetAnalyzers.PublicApiAnalyzer.dll" />
-    <AnalyzerRulesetAssembly Include="DotNetAnalyzers.BannedApiAnalyzer.dll" />
-    <AnalyzerRulesetAssembly Include="DotNetAnalyzers.CSharp.BannedApiAnalyzer.dll" />
-    <AnalyzerRulesetAssembly Include="DotNetAnalyzers.VisualBasic.BannedApiAnalyzer.dll" />
+    <AnalyzerRulesetAssembly Include="Microsoft.CodeAnalysis.PublicApiAnalyzers.dll" />
+    <AnalyzerRulesetAssembly Include="Microsoft.CodeAnalysis.BannedApiAnalyzers.dll" />
+    <AnalyzerRulesetAssembly Include="Microsoft.CodeAnalysis.CSharp.BannedApiAnalyzers.dll" />
+    <AnalyzerRulesetAssembly Include="Microsoft.CodeAnalysis.VisualBasic.BannedApiAnalyzers.dll" />
   </ItemGroup>
 </Project>
