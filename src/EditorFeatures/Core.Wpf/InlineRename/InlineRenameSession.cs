@@ -274,18 +274,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             AssertIsForeground();
 
             var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
-            _allRenameLocationsTask = allRenameLocationsTask;
-            allRenameLocationsTask.SafeContinueWithFromAsync(
+            _allRenameLocationsTask = allRenameLocationsTask.SafeContinueWithFromAsync(
                 async t =>
                 {
                     await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _cancellationTokenSource.Token);
                     _cancellationTokenSource.Token.ThrowIfCancellationRequested();
 
                     RaiseSessionSpansUpdated(t.Result.Locations.ToImmutableArray());
+
+                    return t.Result;
                 },
                 _cancellationTokenSource.Token,
                 TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default).CompletesAsyncOperation(asyncToken);
+                TaskScheduler.Default);
+            _allRenameLocationsTask.CompletesAsyncOperation(asyncToken);
 
             UpdateConflictResolutionTask();
             QueueApplyReplacements();
