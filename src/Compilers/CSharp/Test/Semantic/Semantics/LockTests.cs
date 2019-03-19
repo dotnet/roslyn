@@ -601,7 +601,7 @@ partial class Test
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type.TypeSymbol, isSymbolNull: true);
+            VerifySemanticInfoForLockStatements(compilation, symbol.Type, isSymbolNull: true);
         }
 
         [Fact()]
@@ -625,7 +625,7 @@ class Test
             var model = compilation.GetSemanticModel(tree);
             var localDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(localDecl.Declaration.Variables.Single());
-            VerifySemanticInfoForLockStatements(compilation, symbol.Type.TypeSymbol);
+            VerifySemanticInfoForLockStatements(compilation, symbol.Type);
         }
 
         [Fact()]

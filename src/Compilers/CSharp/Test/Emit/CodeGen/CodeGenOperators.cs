@@ -5829,21 +5829,12 @@ class C
         t1 = t1 ?? t2;
     }
 }";
-            var expected = new[]
-            {
-                // (6,14): error CS8652: The feature 'unconstrained type parameters in null coalescing operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         t1 = t1 ?? t2;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator").WithLocation(6, 14)
-            };
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
-            comp.VerifyDiagnostics(expected);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault);
-            comp.VerifyDiagnostics(expected);
-
-            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8652: The feature 'unconstrained type parameters in null coalescing operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         t1 = t1 ?? t2;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "t1 ?? t2").WithArguments("unconstrained type parameters in null coalescing operator").WithLocation(6, 14));
         }
     }
 }
