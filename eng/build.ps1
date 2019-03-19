@@ -14,7 +14,7 @@
 # it's fine to call `build.ps1 -build -testDesktop` followed by repeated calls to
 # `.\build.ps1 -testDesktop`.
 
-[CmdletBinding(PositionalBinding=$false)]
+[CmdletBinding(PositionalBinding = $false)]
 param (
     [string][Alias('c')]$configuration = "Debug",
     [string][Alias('v')]$verbosity = "m",
@@ -59,12 +59,40 @@ param (
     [switch]$testIOperation,
     [switch]$testLegacyCompletion,
 
-    [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
+    [parameter(ValueFromRemainingArguments = $true)][string[]]$properties)
 
 if ($PSVersionTable.PSVersion.Major -lt "5") {
     Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
     exit 1
 }
+
+function Check-MaxPath {
+    $files = Get-ChildItem -r -file .. 
+    $longestFile = $files | 
+        Foreach-Object { 
+        @{
+            Item       = $_ 
+            NameLength = $_.FullName.Length
+        }
+    } | 
+        Sort-Object -Property NameLength |
+        Foreach-Object {
+        $_.Item 
+    } |
+        Select-Object -First 1 
+    
+    if ($longestFile.FullName -gt $env:MAX_PATH) {
+        $regOutput = reg query HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled
+        if ($regOutput -like "*0x1*") {
+            return 
+        }
+
+        Write-Warning "$($longestFile.FullName) exceeds MAX_PATH. You may hit build errors."
+        Write-Warning "You can avoid MAX_PATH issues by enabling LongPath with ``reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1``"
+    }
+}
+
+Check-MaxPath
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
@@ -133,7 +161,8 @@ function Process-Arguments() {
                 Write-Host "$argName can only be specified for official builds"
                 exit 1
             }
-        } else {
+        }
+        else {
             if ($officialBuildId) {
                 Write-Host "$argName must be specified in official builds"
                 exit 1
@@ -142,8 +171,8 @@ function Process-Arguments() {
     }
 
     if ($help -or (($properties -ne $null) -and ($properties.Contains("/help") -or $properties.Contains("/?")))) {
-       Print-Usage
-       exit 0
+        Print-Usage
+        exit 0
     }
 
     OfficialBuildOnly "officialSkipTests"
@@ -157,7 +186,8 @@ function Process-Arguments() {
         $script:procdump = $true
         $script:testDesktop = ![System.Boolean]::Parse($officialSkipTests)
         $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
-    } else {
+    }
+    else {
         $script:applyOptimizationData = $false
     }
 
@@ -260,7 +290,7 @@ function BuildSolution() {
 # IBC data are only merged in official built, but we want to test some of the logic in CI builds as well.
 function GetIbcSourceBranchName() {
     if (Test-Path variable:global:_IbcSourceBranchName) {
-      return $global:_IbcSourceBranchName
+        return $global:_IbcSourceBranchName
     }
 
     function calculate {
@@ -359,10 +389,12 @@ function TestUsingOptimizedRunner() {
     if ($testDesktop -or $testIOperation) {
         if ($test32) {
             $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" $binDir
-        } else {
+        }
+        else {
             $dlls = Get-ChildItem -Recurse -Include "*.UnitTests.dll" -Exclude "*InteractiveHost*" $binDir
         }
-    } elseif ($testVsi) {
+    }
+    elseif ($testVsi) {
         # Since they require Visual Studio to be installed, ensure that the MSBuildWorkspace tests run along with our VS
         # integration tests in CI.
         if ($ci) {
@@ -370,23 +402,25 @@ function TestUsingOptimizedRunner() {
         }
 
         $dlls += @(Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir)
-    } else {
+    }
+    else {
         $dlls = Get-ChildItem -Recurse -Include "*.IntegrationTests.dll" $binDir
         $args += " -trait:Feature=NetCore"
     }
 
     # Exclude out the multi-targetted netcore app projects
-    $dlls = $dlls | ?{ -not ($_.FullName -match ".*netcoreapp.*") }
+    $dlls = $dlls | ? { -not ($_.FullName -match ".*netcoreapp.*") }
 
     # Exclude out the ref assemblies
-    $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
-    $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
+    $dlls = $dlls | ? { -not ($_.FullName -match ".*\\ref\\.*") }
+    $dlls = $dlls | ? { -not ($_.FullName -match ".*/ref/.*") }
 
     if ($ci) {
         $args += " -xml"
         if ($testVsi) {
             $args += " -timeout:110"
-        } else {
+        }
+        else {
             $args += " -timeout:65"
         }
     }
@@ -407,7 +441,8 @@ function TestUsingOptimizedRunner() {
 
     try {
         Exec-Console $runTests $args
-    } finally {
+    }
+    finally {
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
         if ($testIOperation) {
             Remove-Item env:\ROSLYN_TEST_IOPERATION
@@ -544,7 +579,8 @@ try {
                     Write-Host "Disconnecting from console before attempting reconnection"
                     try {
                         tsdiscon
-                    } catch {
+                    }
+                    catch {
                         # ignore
                     }
 
