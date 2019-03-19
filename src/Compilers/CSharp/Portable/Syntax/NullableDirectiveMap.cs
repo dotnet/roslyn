@@ -63,12 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 state = _directives[index].State;
             }
 
-            if (state == null && _isGeneratedCode)
-            {
-                // Generated files have a default nullable context that is "disabled".
-                state = false;
-            }
-
             return state;
         }
 
