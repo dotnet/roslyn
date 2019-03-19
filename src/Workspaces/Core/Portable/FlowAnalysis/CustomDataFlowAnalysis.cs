@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var toVisit = new SortedSet<int>();
 
             var firstBlock = blocks[firstBlockOrdinal];
-            analyzer.SetCurrentAnalysisData(firstBlock, initialAnalysisData);
+            analyzer.SetCurrentAnalysisData(firstBlock, initialAnalysisData, cancellationToken);
             toVisit.Add(firstBlock.Ordinal);
 
             var processedBlocks = PooledHashSet<BasicBlock>.GetInstance();
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         continue;
                     }
 
-                    analyzer.SetCurrentAnalysisData(current, analyzer.GetEmptyAnalysisData());
+                    analyzer.SetCurrentAnalysisData(current, analyzer.GetEmptyAnalysisData(), cancellationToken);
                 }
 
                 if (current.Ordinal < firstBlockOrdinal || current.Ordinal > lastBlockOrdinal)
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             if ((current.IsReachable || !destination.IsReachable) &&
                                 (!analyzer.IsEqual(currentDestinationData, mergedAnalysisData) || !processedBlocks.Contains(destination)))
                             {
-                                analyzer.SetCurrentAnalysisData(destination, mergedAnalysisData);
+                                analyzer.SetCurrentAnalysisData(destination, mergedAnalysisData, cancellationToken);
                                 toVisit.Add(branch.Destination.Ordinal);
                             }
                         }

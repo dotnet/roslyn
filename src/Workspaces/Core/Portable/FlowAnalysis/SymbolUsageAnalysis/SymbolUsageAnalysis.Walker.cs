@@ -173,6 +173,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 return false;
             }
+
             private void ProcessPendingWritesForAssignmentTarget(IAssignmentOperation operation)
             {
                 if (_pendingWritesMap.TryGetValue(operation, out var pendingWrites))
