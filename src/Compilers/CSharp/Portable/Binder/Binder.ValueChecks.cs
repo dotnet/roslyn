@@ -438,8 +438,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return CheckLocalValueKind(node, local, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.ThisReference:
-                    var thisref = (BoundThisReference)expr;
-
                     // `this` is never ref assignable
                     if (RequiresRefAssignableVariable(valueKind))
                     {
@@ -457,14 +455,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SPEC: of a struct, it is classified as a variable. 
 
                     // Note: RValueOnly is checked at the beginning of this method. Since we are here we need more than readable.
-                    //"this" is readonly in members of readonly structs, unless we are in a constructor.
-                    if (!thisref.Type.IsValueType ||
-                            (RequiresAssignableVariable(valueKind) &&
-                             thisref.Type.IsReadOnly &&
-                             (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor))
+                    // "this" is readonly in members marked "readonly" and in members of readonly structs, unless we are in a constructor.
+                    var isValueType = ((BoundThisReference)expr).Type.IsValueType;
+                    if (!isValueType || (RequiresAssignableVariable(valueKind) && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true))
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
-                        Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);
+                        Error(diagnostics, GetThisLvalueError(valueKind, isValueType), node, ThisParameterSymbol.SymbolName);
                         return false;
                     }
 
@@ -994,7 +990,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, node, receiver?.Kind == BoundKind.BaseReference);
 
-                    if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, BindValueKind.Assignable, diagnostics))
+                    var setValueKind = setMethod.IsEffectivelyReadOnly ? BindValueKind.RValue : BindValueKind.Assignable;
+                    if (RequiresVariableReceiver(receiver, setMethod) && !CheckIsValidReceiverForVariable(node, receiver, setValueKind, diagnostics))
                     {
                         return false;
                     }
@@ -1041,6 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
+                    CheckImplicitThisCopyInReadOnlyMember(receiver, getMethod, diagnostics);
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
                 }
             }
@@ -1518,7 +1516,7 @@ moreArguments:
             Error(diagnostics, ReadOnlyLocalErrors[index], node, local, cause.Localize());
         }
 
-        static private ErrorCode GetThisLvalueError(BindValueKind kind)
+        static private ErrorCode GetThisLvalueError(BindValueKind kind, bool isValueType)
         {
             switch (kind)
             {
@@ -1533,7 +1531,7 @@ moreArguments:
                     return ErrorCode.ERR_InvalidAddrOp;
 
                 case BindValueKind.IncrementDecrement:
-                    return ErrorCode.ERR_IncrementLvalueExpected;
+                    return isValueType ? ErrorCode.ERR_AssgReadonlyLocal : ErrorCode.ERR_IncrementLvalueExpected;
 
                 case BindValueKind.RefReturn:
                 case BindValueKind.ReadonlyRef:
@@ -2969,7 +2967,7 @@ moreArguments:
 
                     if (!IsAnyReadOnly(addressKind) && method.IsEffectivelyReadOnly)
                     {
-                        return method.MethodKind == MethodKind.Constructor;
+                        return false;
                     }
 
                     return true;

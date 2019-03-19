@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Indicates whether the method is effectively readonly,
         /// by either the method or the containing type being marked readonly.
         /// </summary>
-        internal bool IsEffectivelyReadOnly => IsDeclaredReadOnly || ContainingType?.IsReadOnly == true;
+        internal bool IsEffectivelyReadOnly => (IsDeclaredReadOnly || ContainingType?.IsReadOnly == true) && MethodKind != MethodKind.Constructor;
 
         /// <summary>
         /// Returns interface methods explicitly implemented by this method.

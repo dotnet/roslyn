@@ -1683,6 +1683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureInPreview = 8652,
         WRN_DefaultExpressionMayIntroduceNullT = 8653,
         WRN_NullLiteralMayIntroduceNullT = 8654,
+        WRN_ImplicitCopyInReadOnlyMember = 8655,
 
         #endregion diagnostics introduced for C# 8.0
 
