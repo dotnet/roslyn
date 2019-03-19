@@ -2850,6 +2850,12 @@ OuterBreak:
                     if (!ImplicitConversionExists(source, destination, ref useSiteDiagnostics, conversions.WithNullability(false)))
                     {
                         candidates.Remove(candidate);
+                        if (conversions.IncludeNullability)
+                        {
+                            candidates.Remove(bound);
+                            var newBound = TypeWithAnnotations.Create(bound.Type, bound.NullableAnnotation.MergeNullableAnnotation(candidate.NullableAnnotation, variance));
+                            candidates.Add(newBound, newBound);
+                        }
                     }
                     else if (bound.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {

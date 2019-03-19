@@ -86491,5 +86491,52 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "__refvalue(r, string?)").WithLocation(7, 13)
                 );
         }
+
+        [WorkItem(30987, "https://github.com/dotnet/roslyn/issues/30987")]
+        [Fact]
+        public void TypeInference_LowerBounds_TopLevelNullability_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static T F<T>(T x, T y) => x;
+    static void G1(A x, B? y)
+    {
+        F(x, x)/*T:A!*/;
+        F(x, y)/*T:A?*/;
+        F(y, x)/*T:A?*/;
+        F(y, y)/*T:B?*/;
+    }
+    static void G2(A x, B? y)
+    {
+        _ = new [] { x, x }[0]/*T:A!*/;
+        _ = new [] { x, y }[0]/*T:A?*/;
+        _ = new [] { y, x }[0]/*T:A?*/;
+        _ = new [] { y, y }[0]/*T:B?*/;
+    }
+    static T M<T>(Func<T> func) => func();
+    static void G3(bool b, A x, B? y)
+    {
+        M(() => { if (b) return x; return x; })/*T:A!*/;
+        M(() => { if (b) return x; return y; })/*T:A?*/;
+        M(() => { if (b) return y; return x; })/*T:A?*/;
+        M(() => { if (b) return y; return y; })/*T:B?*/;
+    }
+    static void G4(bool b, A x, B? y)
+    {
+        _ = (b ? x : x)/*T:A!*/;
+        _ = (b ? x : y)/*T:A?*/;
+        _ = (b ? y : x)/*T:A?*/;
+        _ = (b ? y : y)/*T:B?*/;
+    }
+}
+class A { }
+class B : A { }
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
     }
 }
