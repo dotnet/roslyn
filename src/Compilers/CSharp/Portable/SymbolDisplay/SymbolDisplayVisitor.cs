@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!(symbol is null));
             Visit(symbol);
-            AddNullableAnnotations(new TypeWithState(symbol, topLevelNullability).ToTypeSymbolWithAnnotations());
+            AddNullableAnnotations(new TypeWithState(symbol, topLevelNullability).ToTypeWithAnnotations());
         }
 
         public override void VisitAssembly(IAssemblySymbol symbol)
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var local = symbol as LocalSymbol;
                 if ((object)local != null)
                 {
-                    VisitTypeSymbolWithAnnotations(local.Type);
+                    VisitTypeWithAnnotations(local.TypeWithAnnotations);
                 }
                 else
                 {

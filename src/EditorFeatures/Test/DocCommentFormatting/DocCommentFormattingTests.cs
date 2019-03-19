@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic.DocumentationComments;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocCommentFormatting
@@ -239,6 +240,47 @@ This is part of a paragraph.";
 @"This is part of a paragraph.
 
 This is part of the summary, too.";
+
+            TestFormat(comment, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
+        public void Paragraphs5()
+        {
+            var comment =
+@"
+<para>This is part of a<br/>paragraph.</para>
+<para>This is also part of a paragraph.</para>
+";
+
+            var expected =
+@"This is part of a
+paragraph.
+
+This is also part of a paragraph.";
+
+            TestFormat(comment, expected);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.DocCommentFormatting)]
+        [InlineData("<br/><br/>")]
+        [InlineData("<br/><br/><br/>")]
+        [WorkItem(32838, "https://github.com/dotnet/roslyn/issues/32838")]
+        public void Paragraphs6(string lineBreak)
+        {
+            var comment =
+$@"
+<para>This is part of a{lineBreak}paragraph.</para>
+<para>This is also part of a paragraph.</para>
+";
+
+            var expected =
+@"This is part of a
+
+paragraph.
+
+This is also part of a paragraph.";
 
             TestFormat(comment, expected);
         }

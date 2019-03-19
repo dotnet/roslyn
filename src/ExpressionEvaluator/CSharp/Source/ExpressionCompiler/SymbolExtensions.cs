@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal static ReadOnlyCollection<byte> GetCustomTypeInfoPayload(this MethodSymbol method)
         {
-            return method.DeclaringCompilation.GetCustomTypeInfoPayload(method.ReturnType.TypeSymbol, method.ReturnType.CustomModifiers.Length + method.RefCustomModifiers.Length, RefKind.None);
+            return method.DeclaringCompilation.GetCustomTypeInfoPayload(method.ReturnType, method.ReturnTypeWithAnnotations.CustomModifiers.Length + method.RefCustomModifiers.Length, RefKind.None);
         }
     }
 }

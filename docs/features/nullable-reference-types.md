@@ -44,9 +44,9 @@ All value types are marked with flag 0 (oblivious).
 To optimize trivial cases the attribute can be omitted, or instead can be replaced with an attribute that takes a single byte value rather than an array.  
 
 Trivial/optimized cases:
-1)	All parts are NotAnnotated – a NullableAttribute with a single value 1 (rather than an array of 1s)
+1)	All parts are NotAnnotated â€“ a NullableAttribute with a single value 1 (rather than an array of 1s)
 2)	All parts are Annotated - a NullableAttribute with a single value 2 (rather than an array of 2s)
-3)	All parts are Oblivious – the attribute is omitted, this matches how we interpret the lack of an attribute in legacy assemblies.
+3)	All parts are Oblivious â€“ the attribute is omitted, this matches how we interpret the lack of an attribute in legacy assemblies.
     For completeness, we would also recognize a NullableAttribute with a single value 0 (rather than an array of 0s),
     but compiler will never emit an attribute like this. 
 
@@ -245,13 +245,13 @@ var z = new [] { listOfNotNull, listOfMaybeNull, listOfOblivious }; // List<~>!
 ```
 
 ### Anonymous types
-Fields of anonymous types have nullability of the arguments. Field types may be _unspeakable_ types.
+Fields of anonymous types have nullability of the arguments, inferred from the initializing expression.
 ```c#
 static void F<T>(T x, T y)
 {
     if (x == null) return;
-    var a = new { x, y };
-    a.x.ToString(); // ok
+    var a = new { x, y }; // inferred as x:T, y:T (both Unannotated)
+    a.x.ToString(); // ok (non-null tracked by the nullable flow state of the initial value for property x)
     a.y.ToString(); // warning
 }
 ```

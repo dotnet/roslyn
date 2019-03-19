@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get;
         }
 
-        public sealed override TypeSymbolWithAnnotations Type
+        public sealed override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
-                return this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                return this.RetargetingModule.RetargetingTranslator.Retarget(_underlyingParameter.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
             }
         }
 

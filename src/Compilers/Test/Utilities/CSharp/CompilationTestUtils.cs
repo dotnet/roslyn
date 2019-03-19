@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var reducedFrom = reducedMethod.ReducedFrom;
             CheckReducedExtensionMethod(reducedMethod, reducedFrom);
-            Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type.TypeSymbol, reducedMethod.ReceiverType);
+            Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type, reducedMethod.ReceiverType);
 
             var constructedFrom = reducedMethod.ConstructedFrom;
             CheckConstructedMethod(reducedMethod, constructedFrom);
@@ -322,21 +322,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
 
-                foreach (var entry in dictionary.Values.Where(v => v.HasType))
-                {
-                    // Result types cannot have nested types that are unspeakables
-                    Assert.Null(entry.VisitType(typeOpt: null,
-                        typeWithAnnotationsPredicateOpt: (tswa, a, b) => !tswa.Equals(entry, TypeCompareKind.ConsiderEverything) && !tswa.NullableAnnotation.IsSpeakable(),
-                        typePredicateOpt: (ts, _, b) => false, arg: (object)null, canDigThroughNullable: true));
-                }
-
                 string toDisplayString(SyntaxNode syntaxOpt)
                 {
                     // We don't support VerifyTypes on suppressions at the moment
                     Assert.NotEqual(syntaxOpt.Kind(), SyntaxKind.SuppressNullableWarningExpression);
 
                     return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type) ?
-                        (!type.HasType ? "<null>" : type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat)) :
+                        (!type.HasType ? "<null>" : type.ToDisplayString(TypeWithAnnotations.TestDisplayFormat)) :
                         null;
                 }
             }
@@ -410,15 +402,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private sealed class NullabilityRetriever : BoundTreeWalker
         {
-            private Dictionary<SyntaxNode, TypeSymbolWithAnnotations> _map;
-            private NullabilityRetriever(Dictionary<SyntaxNode, TypeSymbolWithAnnotations> map)
+            private Dictionary<SyntaxNode, TypeWithAnnotations> _map;
+            private NullabilityRetriever(Dictionary<SyntaxNode, TypeWithAnnotations> map)
             {
                 _map = map;
             }
 
-            public static Dictionary<SyntaxNode, TypeSymbolWithAnnotations> BuildMap(BoundNode rewritten)
+            public static Dictionary<SyntaxNode, TypeWithAnnotations> BuildMap(BoundNode rewritten)
             {
-                var map = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
+                var map = new Dictionary<SyntaxNode, TypeWithAnnotations>();
                 new NullabilityRetriever(map).Visit(rewritten);
                 return map;
             }
@@ -435,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // and we have no way from syntax of getting the correct node.
                 if (node is BoundConversion conv && conv.Syntax == conv.Operand.Syntax && conv.Operand.Kind != BoundKind.Lambda)
                 {
-                    _map[conv.Syntax] = new TypeWithState(conv.Type, conv.TopLevelNullability.FlowState.ToInternalFlowState()).ToTypeSymbolWithAnnotations();
+                    _map[conv.Syntax] = new TypeWithState(conv.Type, conv.TopLevelNullability.FlowState.ToInternalFlowState()).ToTypeWithAnnotations();
                     base.Visit(node);
                 }
                 else
@@ -443,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     base.Visit(node);
                     if (node is BoundExpression expr)
                     {
-                        _map[expr.Syntax] = new TypeWithState(expr.Type, expr.TopLevelNullability.FlowState.ToInternalFlowState()).ToTypeSymbolWithAnnotations();
+                        _map[expr.Syntax] = new TypeWithState(expr.Type, expr.TopLevelNullability.FlowState.ToInternalFlowState()).ToTypeWithAnnotations();
                     }
                 }
 

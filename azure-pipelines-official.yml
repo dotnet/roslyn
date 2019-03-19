@@ -6,8 +6,8 @@ variables:
   SignType: real
   SkipTests: false
   SkipApplyOptimizationData: false
-  IbcSourceBranchName: 'master-vs-deps'
-  IbcDropId: '75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1'
+  IbcSourceBranchName: 'default'
+  IbcDropId: 'default'
 
 jobs:
 - job: OfficialBuild
@@ -91,6 +91,15 @@ jobs:
       toLowerCase: false
       usePat: false
     displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
+    condition: succeeded()
+
+  # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
+  # a build execution.
+  - task: PublishBuildArtifacts@1
+    displayName: Publish OptProf Data Files
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+      ArtifactName: 'OptProf Data Files'
     condition: succeeded()
 
   # Build VS bootstrapper

@@ -170,10 +170,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return ((object)namedType != null && namedType.IsGenericType) ? namedType.AsUnboundGenericType() : type;
         }
 
-        private static TypeSymbolWithAnnotations CreateType(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
+        private static TypeWithAnnotations CreateType(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             // The actual annotation will be set when these types are transformed by the caller.
-            return TypeSymbolWithAnnotations.Create(type, NullableAnnotation.Unknown, CSharpCustomModifier.Convert(customModifiers));
+            return TypeWithAnnotations.Create(type, NullableAnnotation.Oblivious, CSharpCustomModifier.Convert(customModifiers));
         }
     }
 }

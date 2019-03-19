@@ -48,8 +48,11 @@ end class
 
                 state.SendTypeChars("[")
 
+                ' WaitForAsynchronousOperationsAsync is not enough for waiting in the async completion.
+                ' To be sure that calculations are done, need to check session.GetComputedItems, 
+                ' E.g. via AssertSelectedCompletionItem.
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("[  character-group  ]")
                 state.SendDownKey()
                 state.SendDownKey()
                 state.SendDownKey()
@@ -58,7 +61,7 @@ end class
                 state.SendTab()
                 Await state.AssertNoCompletionSession()
                 Assert.Contains("New Regex(""[^-]"")", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-                Await state.AssertLineTextAroundCaret("        Dim r = New Regex(""[^", "-]"")")
+                Await state.AssertLineTextAroundCaret("        dim r = New Regex(""[^", "-]"")")
             End Using
         End Function
 

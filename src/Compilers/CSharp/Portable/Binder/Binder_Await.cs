@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The expression await t is classified the same way as the expression (t).GetAwaiter().GetResult(). Thus,
             // if the return type of GetResult is void, the await-expression is classified as nothing. If it has a
             // non-void return type T, the await-expression is classified as a value of type T.
-            TypeSymbol awaitExpressionType = info.GetResult?.ReturnType.TypeSymbol ?? (hasErrors ? CreateErrorType() : Compilation.DynamicType);
+            TypeSymbol awaitExpressionType = info.GetResult?.ReturnType ?? (hasErrors ? CreateErrorType() : Compilation.DynamicType);
 
             return new BoundAwaitExpression(node, expression, info, awaitExpressionType, hasErrors);
         }
@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             info = method.ReturnsVoid ?
                                 new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutVoidAsyncMethod) :
-                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, method.ReturnType.TypeSymbol);
+                                new CSDiagnosticInfo(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, method.ReturnType);
                         }
                         break;
                 }
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            TypeSymbol awaiterType = getAwaiter.ReturnType.TypeSymbol;
+            TypeSymbol awaiterType = getAwaiter.ReturnType;
             return GetIsCompletedProperty(awaiterType, node, expression.Type, diagnostics, out isCompleted)
                 && AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics)
                 && GetGetResultMethod(getAwaiterCall, node, expression.Type, diagnostics, out getResult, out getAwaiterGetResultCall);
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiver = new BoundLiteral(node, ConstantValue.Null, awaiterType);
             var name = WellKnownMemberNames.IsCompleted;
-            var qualified = BindInstanceMemberAccess(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbolWithAnnotations>), invoked: false, indexed: false, diagnostics);
+            var qualified = BindInstanceMemberAccess(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), invoked: false, indexed: false, diagnostics);
             if (qualified.HasAnyErrors)
             {
                 isCompletedProperty = null;
