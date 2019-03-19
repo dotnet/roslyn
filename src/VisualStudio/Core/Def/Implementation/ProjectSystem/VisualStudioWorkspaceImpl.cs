@@ -1126,8 +1126,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         private void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
         {
-            FailIfPropertyChanged(document.SourceCodeKind, updatedInfo.SourceCodeKind, nameof(document.SourceCodeKind));
-
             if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
             {
                 throw new InvalidOperationException(
