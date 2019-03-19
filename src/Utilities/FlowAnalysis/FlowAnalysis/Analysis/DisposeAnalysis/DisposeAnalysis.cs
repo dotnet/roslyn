@@ -45,12 +45,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             out PointsToAnalysisResult pointsToAnalysisResult,
             InterproceduralAnalysisKind interproceduralAnalysisKind = InterproceduralAnalysisKind.ContextSensitive,
             bool performCopyAnalysisIfNotUserConfigured = false,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null,
+            bool defaultDisposeOwnershipTransferAtConstructor = false)
         {
             var interproceduralAnalysisConfig = InterproceduralAnalysisConfiguration.Create(
                 analyzerOptions, rule, interproceduralAnalysisKind, cancellationToken);
             var disposeOwnershipTransferAtConstructor = analyzerOptions.GetDisposeOwnershipTransferAtConstructorOption(
-                rule, defaultValue: false, cancellationToken);
+                rule, defaultValue: defaultDisposeOwnershipTransferAtConstructor, cancellationToken);
             return GetOrComputeResult(cfg, owningSymbol, wellKnownTypeProvider,
                 interproceduralAnalysisConfig, interproceduralAnalysisPredicateOpt,
                 disposeOwnershipTransferLikelyTypes, disposeOwnershipTransferAtConstructor, trackInstanceFields, exceptionPathsAnalysis,

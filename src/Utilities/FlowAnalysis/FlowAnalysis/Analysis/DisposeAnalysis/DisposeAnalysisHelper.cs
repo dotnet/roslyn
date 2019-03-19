@@ -99,7 +99,8 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken,
             out DisposeAnalysisResult disposeAnalysisResult,
             out PointsToAnalysisResult pointsToAnalysisResult,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null,
+            bool defaultDisposeOwnershipTransferAtConstructor = false)
         {
             foreach (var operationRoot in operationBlocks)
             {
@@ -111,7 +112,8 @@ namespace Analyzer.Utilities
                     disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
                         analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
-                        interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt);
+                        interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
+                        defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
                     return true;
                 }
             }
