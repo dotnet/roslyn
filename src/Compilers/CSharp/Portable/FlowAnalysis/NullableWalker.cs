@@ -4210,13 +4210,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (reportRemainingWarnings && !canConvertNestedNullability)
                 {
+                    var operandTypeArg = GetTypeAsDiagnosticArgument(operandType.Type);
                     if (assignmentKind == AssignmentKind.Argument)
                     {
-                        ReportNullabilityMismatchInArgument(node, operandType.Type, target!, targetType, forOutput: false);
+                        ReportNullabilityMismatchInArgument(node, operandTypeArg, target!, targetType, forOutput: false);
                     }
                     else
                     {
-                        ReportNullabilityMismatchInAssignment(node.Syntax, GetTypeAsDiagnosticArgument(operandType.Type), targetType);
+                        ReportNullabilityMismatchInAssignment(node.Syntax, operandTypeArg, targetType);
                     }
                 }
             }
@@ -4847,7 +4848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Report warning passing argument where nested nullability does not match
         /// parameter (e.g.: calling `void F(object[] o)` with `F(new[] { maybeNull })`).
         /// </summary>
-        private void ReportNullabilityMismatchInArgument(BoundExpression argument, TypeSymbol argumentType, ParameterSymbol parameter, TypeSymbol parameterType, bool forOutput)
+        private void ReportNullabilityMismatchInArgument(BoundExpression argument, object argumentType, ParameterSymbol parameter, TypeSymbol parameterType, bool forOutput)
         {
             ReportSafetyDiagnostic(forOutput ? ErrorCode.WRN_NullabilityMismatchInArgumentForOutput : ErrorCode.WRN_NullabilityMismatchInArgument,
                 argument.Syntax, argumentType, parameterType,
