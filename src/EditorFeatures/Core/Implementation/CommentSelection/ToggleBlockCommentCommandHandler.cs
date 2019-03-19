@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 if (spanToAdd.IsEmpty)
                 {
                     // The location for the comment should be the caret or the location after the end of the token the caret is inside of.
-                    var locationAfterToken = blockCommentDataProvider.GetLocationAfterToken(spanToAdd.Start);
+                    var locationAfterToken = blockCommentDataProvider.GetEmptyCommentStartLocation(spanToAdd.Start);
                     spanToAdd = TextSpan.FromBounds(locationAfterToken, locationAfterToken);
                 }
 
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 _commentInfo = commentInfo;
             }
 
-            public int GetLocationAfterToken(int location)
+            public int GetEmptyCommentStartLocation(int location)
             {
                 return location;
             }

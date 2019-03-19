@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
             /// <summary>
             /// Get a location of itself or the end of the token it is located in.
             /// </summary>
-            public int GetLocationAfterToken(int location)
+            public int GetEmptyCommentStartLocation(int location)
             {
                 var token = _root.FindToken(location);
                 if (token.Span.Contains(location))

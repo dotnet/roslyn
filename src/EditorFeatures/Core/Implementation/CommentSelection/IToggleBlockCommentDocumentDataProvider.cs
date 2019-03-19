@@ -7,7 +7,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
     interface IToggleBlockCommentDocumentDataProvider
     {
-        int GetLocationAfterToken(int location);
+        /// <summary>
+        /// Gets the location to insert an empty comment.
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        int GetEmptyCommentStartLocation(int location);
+
+        /// <summary>
+        /// Gets all block comments in a particular document.
+        /// </summary>
         IEnumerable<TextSpan> GetBlockCommentsInDocument();
     }
 }
