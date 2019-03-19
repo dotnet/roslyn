@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             _notificationService = notificationService;
 
             InitializeComponent();
-            LoadSettings();
+            OnLoad();
         }
 
         private NamingStyleOptionPageViewModel.NamingRuleViewModel CreateItemWithNoSelections()
@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             }
         }
 
-        internal override void SaveSettings()
+        internal override void OnSave()
         {
             var symbolSpecifications = ArrayBuilder<SymbolSpecification>.GetInstance();
             var namingRules = ArrayBuilder<SerializableNamingRule>.GetInstance();
@@ -180,9 +180,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
             OptionStore.SetOption(SimplificationOptions.NamingPreferences, _languageName, info);
         }
 
-        internal override void LoadSettings()
+        internal override void OnLoad()
         {
-            base.LoadSettings();
+            base.OnLoad();
 
             var preferences = OptionStore.GetOption(SimplificationOptions.NamingPreferences, _languageName);
             if (preferences == null)

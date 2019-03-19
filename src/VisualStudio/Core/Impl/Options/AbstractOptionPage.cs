@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             if (_needsLoadOnNextActivate)
             {
                 // For pages that don't use option bindings we need to load setting changes.
-                pageControl.LoadSettings();
+                pageControl.OnLoad();
 
                 _needsLoadOnNextActivate = false;
             }
@@ -89,8 +89,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             // they may have been changed programmatically. Therefore, we'll set a flag so we load
             // next time
 
-            // If we are being canceled after the pageControl has already been created then
-            // we need to reset the option store on next load.
+            // When pageControl is null we know that Activation has not happened for this page.
+            // We only need to update the OptionStore after a cancel or close click (2).
             s_needsToUpdateOptionStore = pageControl != null;
 
             // For pages that don't use option bindings we need to load settings when it is
@@ -104,10 +104,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             // Allow page controls to perist their settings to the option store before updating the
             // option service.
-            pageControl.SaveSettings();
+            pageControl.OnSave();
 
             // Save the changes that were accumulated in the option store.
-            s_optionService.SetOptions(s_optionStore.GetOptions());
+            var oldOptions = s_optionService.GetOptions();
+            var newOptions = s_optionStore.GetOptions();
+            s_optionService.SetOptions(newOptions);
+            OptionLogger.Log(oldOptions, newOptions);
 
             // Make sure we load the next time a page is activated, in case that options changed
             // programmatically between now and the next time the page is activated
