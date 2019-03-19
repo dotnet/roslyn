@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <_BootstrapBuildDir>$([MSBuild]::EnsureTrailingSlash($(BootstrapBuildPath)))</_BootstrapBuildDir>
+  </PropertyGroup>
+
+  <Import Project="$(_BootstrapBuildDir)build\Microsoft.Net.Compilers.Toolset.props" />
+
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap" AssemblyFile="$(RoslynTasksAssembly)" />
+</Project>

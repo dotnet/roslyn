@@ -81,9 +81,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        public PortableExecutableReference CreateMetadataReference(string filePath, MetadataReferenceProperties properties)
+        public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
         {
-            return new VisualStudioPortableExecutableReference(this, properties, filePath, fileChangeTrackerOpt: null);
+            return new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
         }
 
         public void ClearCache()

@@ -12166,7 +12166,7 @@ var y, y1(Dummy(3 is var x1, x1));
 
             var y1 = model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single();
             Assert.Equal("var y1", y1.ToTestDisplayString());
-            Assert.True(((LocalSymbol)y1).Type.TypeSymbol.IsErrorType());
+            Assert.True(((LocalSymbol)y1).Type.IsErrorType());
         }
 
         [Fact]
@@ -12220,7 +12220,7 @@ public class X
             var e = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(e);
             Assert.Equal("var e", symbol.ToTestDisplayString());
-            Assert.True(symbol.Type.TypeSymbol.IsErrorType());
+            Assert.True(symbol.Type.IsErrorType());
         }
 
         [Fact]
@@ -13785,7 +13785,7 @@ class Program
             VerifyModelForDeclarationOrVarSimplePattern(model, designation, refs);
 
             var x1 = (LocalSymbol)model.GetDeclaredSymbol(designation);
-            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
         }
     }
 }

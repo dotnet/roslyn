@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             GC.KeepAlive(b.GetReference());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly))]
         public void ResizeCompactsAllDead()
         {
             var a = Create("A");

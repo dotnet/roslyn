@@ -46,8 +46,9 @@ param (
     [string]$officialBuildId = "",
     [string]$officialSkipApplyOptimizationData = "",
     [string]$officialSkipTests = "",
-    [string]$vsDropName = "",
-    [string]$vsDropAccessToken = "",
+    [string]$officialSourceBranchName = "",
+    [string]$officialIbcSourceBranchName = "",
+    [string]$officialIbcDropId = "",
 
     # Test actions
     [switch]$test32,
@@ -56,8 +57,14 @@ param (
     [switch][Alias('test')]$testDesktop,
     [switch]$testCoreClr,
     [switch]$testIOperation,
+    [switch]$testLegacyCompletion,
 
     [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
+
+if ($PSVersionTable.PSVersion.Major -lt "5") {
+    Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
+    exit 1
+}
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
@@ -86,6 +93,7 @@ function Print-Usage() {
     Write-Host "  -testCoreClr              Run CoreClr unit tests"
     Write-Host "  -testVsi                  Run all integration tests"
     Write-Host "  -testIOperation           Run extra checks to validate IOperations"
+    Write-Host "  -testLegacyCompletion     Run integration tests with legacy completion"
     Write-Host ""
     Write-Host "Advanced settings:"
     Write-Host "  -ci                       Set when running on CI server"
@@ -97,13 +105,16 @@ function Print-Usage() {
     Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
     Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
     Write-Host "  -warnAsError              Treat all warnings as errors"
-    Write-Host ""    
+    Write-Host ""
     Write-Host "Official build settings:"
     Write-Host "  -officialBuildId                            An official build id, e.g. 20190102.3"
     Write-Host "  -officialSkipTests <bool>                   Pass 'true' to not run tests"
     Write-Host "  -officialSkipApplyOptimizationData <bool>   Pass 'true' to not apply optimization data"
-    Write-Host "  -vsDropName                                 Visual Studio product drop name"
-    Write-Host "  -vsDropAccessToken                          Visual Studio drop access token"
+    Write-Host "  -officialSourceBranchName <string>          The source branch name"
+    Write-Host "  -officialIbcDropId <string>                 IBC data drop to use (e.g. '20190210.1/935479/1')."
+    Write-Host "                                              'default' for the most recent available for the branch."
+    Write-Host "  -officialIbcSourceBranchName <string>       IBC source branch (e.g. 'master-vs-deps')"
+    Write-Host "                                              'default' to select branch based on eng/config/PublishData.json."
     Write-Host ""
     Write-Host "Command line arguments starting with '/p:' are passed through to MSBuild."
 }
@@ -120,12 +131,12 @@ function Process-Arguments() {
         if ((Get-Variable $argName -Scope Script).Value) {
             if (!$officialBuildId) {
                 Write-Host "$argName can only be specified for official builds"
-                exit 1          
+                exit 1
             }
         } else {
             if ($officialBuildId) {
                 Write-Host "$argName must be specified in official builds"
-                exit 1          
+                exit 1
             }
         }
     }
@@ -135,21 +146,25 @@ function Process-Arguments() {
        exit 0
     }
 
-    OfficialBuildOnly "vsDropName"
-    OfficialBuildOnly "vsDropAccessToken"
     OfficialBuildOnly "officialSkipTests"
     OfficialBuildOnly "officialSkipApplyOptimizationData"
+    OfficialBuildOnly "officialSourceBranchName"
+    OfficialBuildOnly "officialIbcDropId"
+    OfficialBuildOnly "officialIbcSourceBranchName"
 
     if ($officialBuildId) {
+        $script:useGlobalNuGetCache = $false
         $script:procdump = $true
         $script:testDesktop = ![System.Boolean]::Parse($officialSkipTests)
         $script:applyOptimizationData = ![System.Boolean]::Parse($officialSkipApplyOptimizationData)
-        $script:buildOptimizationData = $true
     } else {
-        $script:vsDropName = "Products/DummyDrop"
-        $script:applyOptimizationData = $script:buildOptimizationData = $ci -and $configuration -eq "Release" -and $msbuildEngine -eq "vs"
+        $script:applyOptimizationData = $false
     }
-    
+
+    if ($ci) {
+        $script:binaryLog = $true
+    }
+
     if ($test32 -and $test64) {
         Write-Host "Cannot combine -test32 and -test64"
         exit 1
@@ -186,20 +201,27 @@ function Process-Arguments() {
 function BuildSolution() {
     # Roslyn.sln can't be built with dotnet due to WPF and VSIX build task dependencies
     $solution = if ($msbuildEngine -eq 'dotnet') { "Compilers.sln" } else { "Roslyn.sln" }
-    
+
     Write-Host "$($solution):"
 
     $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
     $projects = Join-Path $RepoRoot $solution
     $enableAnalyzers = !$skipAnalyzers
     $toolsetBuildProj = InitializeToolset
-    $quietRestore = !$ci
+
+    # Have to disable quiet restore during bootstrap builds to work around 
+    # an arcade bug
+    # https://github.com/dotnet/arcade/issues/2220
+    $quietRestore = !($ci -or ($bootstrapDir -ne ""))
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
-    
-    # Do not set the property to true explicitly, since that would override value projects might set.
+    $ibcSourceBranchName = GetIbcSourceBranchName
+    $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
+
+    # Do not set this property to true explicitly, since that would override values set in projects.
     $suppressExtensionDeployment = if (!$deployExtensions) { "/p:DeployExtension=false" } else { "" } 
 
-    $optDataDir = if ($applyOptimizationData) { $IbcOptimizationDataDir } else { "" }
+    # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
+    $ibcDir = Join-Path $RepoRoot ".o%5c"
 
     # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
     # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
@@ -224,89 +246,73 @@ function BuildSolution() {
         /p:QuietRestore=$quietRestore `
         /p:QuietRestoreBinaryLog=$binaryLog `
         /p:TestTargetFrameworks=$testTargetFrameworks `
-        /p:VisualStudioDropName=$vsDropName `
         /p:TreatWarningsAsErrors=true `
-        /p:IbcOptimizationDataDir=$optDataDir `
+        /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
+        /p:VisualStudioIbcDropId=$ibcDropId `
+        /p:EnablePartialNgenOptimization=$applyOptimizationData `
+        /p:IbcOptimizationDataDir=$ibcDir `
         $suppressExtensionDeployment `
         @properties
 }
 
-function Restore-OptProfData() {
-    $dropToolDir = Get-PackageDir "Drop.App"
-    $dropToolPath = Join-Path $dropToolDir "lib\net45\drop.exe"
 
-    if (!(Test-Path $dropToolPath)) {
+# Get the branch that produced the IBC data this build is going to consume.
+# IBC data are only merged in official built, but we want to test some of the logic in CI builds as well.
+function GetIbcSourceBranchName() {
+    if (Test-Path variable:global:_IbcSourceBranchName) {
+      return $global:_IbcSourceBranchName
+    }
 
-        # Only report error when running in an official build.
-        # Allows to test optimization data operations locally by running 
-        # cibuild.cmd after manually restoring internal tools project.
-        if (!$officialBuildId) {
-            $script:applyOptimizationData = $false
-            return
+    function calculate {
+        $fallback = "master-vs-deps"
+
+        if (!$officialIbcSourceBranchName) {
+            return $fallback
+        }  
+
+        if ($officialIbcSourceBranchName -ne "default") {
+            return $officialIbcSourceBranchName
         }
 
-        Write-Host "Internal tool not found: '$dropToolPath'." -ForegroundColor Red 
-        Write-Host "Run nuget restore `"$EngRoot\internal\Toolset.csproj`"." -ForegroundColor DarkGray 
-        ExitWithExitCode 1
+        $branchData = GetBranchPublishData $officialSourceBranchName
+        if ($branchData -eq $null) {
+            Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using IBC data from '$fallback'." -ForegroundColor Yellow
+            Write-Host "Override by setting IbcSourceBranchName build variable." -ForegroundColor Yellow
+            return $fallback
+        }
+
+        if (Get-Member -InputObject $branchData -Name "ibcSourceBranch") {
+            return $branchData.ibcSourceBranch 
+        }
+
+        return $officialSourceBranchName
     }
-    
-    function find-latest-drop($drops) {
-         $result = $null
-         [DateTime]$latest = [DateTime]::New(0)
-         foreach ($drop in $drops) {
-             $dt = [DateTime]::Parse($drop.CreatedDateUtc)
-             if ($result -eq $null -or ($drop.UploadComplete -and !$drop.DeletePending -and ($dt -gt $latest))) {
-                 $result = $drop
-                 $latest = $dt
-             }
-         }
 
-         return $result
-    }
-   
-    Write-Host "Acquiring optimization data"
-
-    Create-Directory $IbcOptimizationDataDir
-
-    $dropServiceUrl = "https://devdiv.artifacts.visualstudio.com"
-    $dropNamePrefix = "OptimizationData/dotnet/roslyn/master-vs-deps"
-    $patAuth = if ($officialBuildId) { "--patAuth `"$vsDropAccessToken`"" } else { "" }
-
-    $dropsJsonPath = Join-Path $LogDir "OptimizationDataDrops.json"
-    $logFile = Join-Path $LogDir "OptimizationDataAcquisition.log"
-
-    Exec-Console $dropToolPath "list --dropservice `"$dropServiceUrl`" $patAuth --pathPrefixFilter `"$dropNamePrefix`" --toJsonFile `"$dropsJsonPath`" --traceto `"$logFile`""
-    $dropsJson = Get-Content -Raw -Path $dropsJsonPath | ConvertFrom-Json
-    
-    $latestDrop = find-latest-drop($dropsJson)
-    
-    if ($latestDrop -eq $null) {
-        Write-Host "No drop matching given name found: $dropServiceUrl/$dropNamePrefix/*" -ForegroundColor Red 
-        ExitWithExitCode 1
-    }
-    
-    # Temporarily hardcoding the drop location name to the last good Preview2 drop. The pipeline that generates new new OptProf drops is generating incomplete data.
-    #$latestDropName = $($latestDrop.Name)
-    $latestDropName = "OptimizationData/dotnet/roslyn/master-vs-deps/75e3797e1105a4da4c10dddda76c3b9398f7725a/223453/935479/1"
-
-    Write-Host "Downloading optimization data from service $dropServiceUrl drop $latestDropName"
-    Exec-Console $dropToolPath "get --dropservice `"$dropServiceUrl`" $patAuth --name `"$latestDropName`" --dest `"$IbcOptimizationDataDir`" --traceto `"$logFile`""
+    return $global:_IbcSourceBranchName = calculate
 }
 
-function Build-OptProfData() {
+# Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
+function SetVisualStudioBootstrapperBuildArgs() {
+    $fallbackBranch = "master-vs-deps"
+
+    $branchName = if ($officialSourceBranchName) { $officialSourceBranchName } else { $fallbackBranch }
+    $branchData = GetBranchPublishData $branchName
+
+    if ($branchData -eq $null) {
+        Write-Host "Warning: Branch $officialSourceBranchName is not listed in PublishData.json. Using VS bootstrapper for branch '$fallbackBranch'. " -ForegroundColor Yellow
+        $branchData = GetBranchPublishData $fallbackBranch
+    }
+
+    # VS branch name is e.g. "lab/d16.0stg", "rel/d15.9", "lab/ml", etc.
+    $vsBranchSimpleName = $branchData.vsBranch.Split('/')[-1]
+    $vsMajorVersion = $branchData.vsMajorVersion
+    $vsChannel = "int.$vsBranchSimpleName"
+
+    Write-Host "##vso[task.setvariable variable=VisualStudio.MajorVersion;]$vsMajorVersion"        
+    Write-Host "##vso[task.setvariable variable=VisualStudio.ChannelName;]$vsChannel"
+
     $insertionDir = Join-Path $VSSetupDir "Insertion"
-    $optProfDataDir = Join-Path $ArtifactsDir "OptProf\$configuration\Data"
-
-    $optProfConfigFile = Join-Path $EngRoot "config\OptProf.json"
-    $optProfToolDir = Get-PackageDir "RoslynTools.OptProf"
-    $optProfToolExe = Join-Path $optProfToolDir "tools\roslyn.optprof.exe"
-
-    Write-Host "Generating optimization data using '$optProfConfigFile' into '$optProfDataDir'"
-    Exec-Console $optProfToolExe "--configFile $optProfConfigFile --insertionFolder $insertionDir --outputFolder $optProfDataDir"
-
-    # Set VSO variables used by MicroBuildBuildVSBootstrapper pipeline task
     $manifestList = [string]::Join(',', (Get-ChildItem "$insertionDir\*.vsman"))
-
     Write-Host "##vso[task.setvariable variable=VisualStudio.SetupManifestList;]$manifestList"
 }
 
@@ -330,6 +336,10 @@ function TestUsingOptimizedRunner() {
         $env:ROSLYN_TEST_IOPERATION = "true"
     }
 
+    if ($testLegacyCompletion) {
+        $env:ROSLYN_TEST_LEGACY_COMPLETION = "true"
+    }
+
     $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
     $binDir = Join-Path $ArtifactsDir "bin" 
     $runTests = GetProjectOutputBinary "RunTests.exe"
@@ -342,6 +352,7 @@ function TestUsingOptimizedRunner() {
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net472"
     $args = "`"$xunitDir`""
     $args += " `"-out:$testResultsDir`""
+    $args += " `"-logs:$LogDir`""
     $args += " -nocache"
     $args += " -tfm:net472"
 
@@ -374,7 +385,7 @@ function TestUsingOptimizedRunner() {
     if ($ci) {
         $args += " -xml"
         if ($testVsi) {
-            $args += " -timeout:120"
+            $args += " -timeout:110"
         } else {
             $args += " -timeout:65"
         }
@@ -400,6 +411,9 @@ function TestUsingOptimizedRunner() {
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
         if ($testIOperation) {
             Remove-Item env:\ROSLYN_TEST_IOPERATION
+        }
+        if ($testLegacyCompletion) {
+            Remove-Item env:\ROSLYN_TEST_LEGACY_COMPLETION
         }
     }
 }
@@ -439,7 +453,7 @@ function Deploy-VsixViaTool() {
     Write-Host "Installing all Roslyn VSIX"
 
     # VSIX files need to be installed in this specific order:
-    $orderedVsixFileNames = @(	
+    $orderedVsixFileNames = @(
         "Roslyn.Compilers.Extension.vsix",
         "Roslyn.VisualStudio.Setup.vsix",
         "Roslyn.VisualStudio.Setup.Dependencies.vsix",
@@ -480,11 +494,11 @@ function Ensure-ProcDump() {
 }
 
 function Prepare-TempDir() {
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\.editorconfig") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.props") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.targets") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\Directory.Build.rsp") $TempDir
-    Copy-Item (Join-Path $RepoRoot "src\Workspaces\CoreTestUtilities\Resources\NuGet.Config") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\.editorconfig") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.props") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.targets") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\Directory.Build.rsp") $TempDir
+    Copy-Item (Join-Path $RepoRoot "src\Workspaces\MSBuildTest\Resources\NuGet.Config") $TempDir
 }
 
 function List-Processes() {
@@ -509,10 +523,47 @@ try {
     if ($ci) {
         List-Processes
         Prepare-TempDir
-    }
 
-    if ($applyOptimizationData -and $restore) {
-        Restore-OptProfData
+        if ($testVsi) {
+            $screenshotPath = (Join-Path $LogDir "StartingBuild.png")
+            try {
+                Capture-Screenshot $screenshotPath
+            }
+            catch {
+                Write-Host "Screenshot failed; attempting to connect to the console"
+
+                # Keep the session open so we have a UI to interact with
+                $quserItems = ((quser $env:USERNAME | select -Skip 1) -split '\s+')
+                $sessionid = $quserItems[2]
+                if ($sessionid -eq 'Disc') {
+                    # When the session isn't connected, the third value is 'Disc' instead of the ID
+                    $sessionid = $quserItems[1]
+                }
+
+                if ($quserItems[1] -eq 'console') {
+                    Write-Host "Disconnecting from console before attempting reconnection"
+                    try {
+                        tsdiscon
+                    } catch {
+                        # ignore
+                    }
+
+                    # Disconnection is asynchronous, so wait a few seconds for it to complete
+                    Start-Sleep -Seconds 3
+                    query user
+                }
+
+                Write-Host "tscon $sessionid /dest:console"
+                tscon $sessionid /dest:console
+
+                # Connection is asynchronous, so wait a few seconds for it to complete
+                Start-Sleep 3
+                query user
+
+                # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
+                Capture-Screenshot $screenshotPath
+            }
+        }
     }
 
     if ($bootstrap) {
@@ -522,9 +573,9 @@ try {
     if ($restore -or $build -or $rebuild -or $pack -or $sign -or $publish -or $testCoreClr) {
         BuildSolution
     }
-    
-    if ($buildOptimizationData -and $build) {
-        Build-OptProfData
+
+    if ($ci -and $build -and $msbuildEngine -eq "vs") {
+        SetVisualStudioBootstrapperBuildArgs
     }
 
     if ($testDesktop -or $testVsi -or $testIOperation) {

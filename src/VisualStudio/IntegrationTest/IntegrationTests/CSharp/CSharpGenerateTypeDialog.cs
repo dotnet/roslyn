@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -17,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         private GenerateTypeDialog_OutOfProc GenerateTypeDialog => VisualStudio.GenerateTypeDialog;
 
-        public CSharpGenerateTypeDialog(VisualStudioInstanceFactory instanceFactory)
-                    : base(instanceFactory, nameof(CSharpGenerateTypeDialog))
+        public CSharpGenerateTypeDialog(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+                    : base(instanceFactory, testOutputHelper, nameof(CSharpGenerateTypeDialog))
         {
         }
 

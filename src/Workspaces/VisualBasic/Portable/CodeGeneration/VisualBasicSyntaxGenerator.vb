@@ -670,6 +670,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 GetStatementList(statements))
         End Function
 
+        Friend Overrides Function ScopeBlock(statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Throw New NotSupportedException()
+        End Function
+
         Friend Overrides Function RefExpression(expression As SyntaxNode) As SyntaxNode
             Return expression
         End Function
@@ -2821,6 +2825,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function GetModifierList(accessibility As Accessibility, modifiers As DeclarationModifiers, kind As DeclarationKind, Optional isDefault As Boolean = False) As SyntaxTokenList
             Dim _list = SyntaxFactory.TokenList()
 
+            ' While partial must always be last in C#, its preferred position in VB is to be first,
+            ' even before accessibility modifiers. This order is enforced by line commit.
+            If modifiers.IsPartial Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword))
+            End If
+
             If isDefault Then
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.DefaultKeyword))
             End If
@@ -2898,11 +2908,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             If modifiers.IsWithEvents Then
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.WithEventsKeyword))
-            End If
-
-            ' partial must be last
-            If modifiers.IsPartial Then
-                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword))
             End If
 
             If (kind = DeclarationKind.Field AndAlso _list.Count = 0) Then
@@ -4166,6 +4171,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return trivia.IsRegularOrDocComment()
         End Function
 
+        Friend Overrides Function RemoveAllComments(node As SyntaxNode) As SyntaxNode
+            Return RemoveLeadingAndTrailingComments(node)
+        End Function
+
+        Friend Overrides Function RemoveCommentLines(syntaxList As SyntaxTriviaList) As SyntaxTriviaList
+            Return syntaxList.Where(Function(s) Not IsRegularOrDocComment(s)).ToSyntaxTriviaList()
+        End Function
 #End Region
 
 #Region "Patterns"

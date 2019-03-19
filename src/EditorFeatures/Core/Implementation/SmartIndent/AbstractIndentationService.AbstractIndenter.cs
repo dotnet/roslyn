@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
             protected readonly TSyntaxRoot Root;
             protected readonly SyntaxTree Tree;
-            protected readonly IEnumerable<IFormattingRule> Rules;
+            protected readonly IEnumerable<AbstractFormattingRule> Rules;
             protected readonly BottomUpBaseIndentationFinder Finder;
 
             private static readonly Func<SyntaxToken, bool> s_tokenHasDirective = tk => tk.ContainsDirectives &&
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             public AbstractIndenter(
                 ISyntaxFactsService syntaxFacts,
                 SyntaxTree syntaxTree,
-                IEnumerable<IFormattingRule> rules,
+                IEnumerable<AbstractFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine lineToBeIndented,
                 CancellationToken cancellationToken)

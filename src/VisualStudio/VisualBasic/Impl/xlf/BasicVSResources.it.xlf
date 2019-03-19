@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">Mai</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
@@ -134,7 +134,7 @@
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="translated">Vai alla definizione</target>
+        <target state="translated">Vai a definizione</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -264,12 +264,12 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">Variabile locale inutilizzata</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
-        <target state="new">VB Coding Conventions</target>
+        <target state="translated">Convenzioni di scrittura codice VB</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

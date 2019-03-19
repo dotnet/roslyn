@@ -45,31 +45,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void AddProject(ProjectUtils.Project projectName, string projectTemplate, string languageName)
         {
             _inProc.AddProject(projectName.Name, projectTemplate, languageName);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void AddCustomProject(ProjectUtils.Project projectName, string projectFileExtension, string projectFileContent)
+        {
+            _inProc.AddCustomProject(projectName.Name, projectFileExtension, projectFileContent);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         public void AddProjectReference(ProjectUtils.Project fromProjectName, ProjectUtils.ProjectReference toProjectName)
         {
             _inProc.AddProjectReference(fromProjectName.Name, toProjectName.Name);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         public void RemoveProjectReference(ProjectUtils.Project projectName, ProjectUtils.ProjectReference projectReferenceName)
         {
             _inProc.RemoveProjectReference(projectName.Name, projectReferenceName.Name);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         public void AddMetadataReference(ProjectUtils.AssemblyReference fullyQualifiedAssemblyName, ProjectUtils.Project projectName)
         {
             _inProc.AddMetadataReference(fullyQualifiedAssemblyName.Name, projectName.Name);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         public void RemoveMetadataReference(ProjectUtils.AssemblyReference assemblyName, ProjectUtils.Project projectName)
         {
             _inProc.RemoveMetadataReference(assemblyName.Name, projectName.Name);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         /// <summary>
@@ -108,7 +114,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
             _inProc.OpenFile(project.Name, fileName);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
         public void UpdateFile(string projectName, string fileName, string contents, bool open = false)
@@ -118,11 +124,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         {
             // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
             _inProc.RenameFile(project.Name, oldFileName, newFileName);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
         }
 
-        public void CloseFile(ProjectUtils.Project project, string fileName, bool saveFile)
-            => _inProc.CloseFile(project.Name, fileName, saveFile);
+        public void RenameFileViaDTE(ProjectUtils.Project project, string oldFileName, string newFileName)
+        {
+            // Wireup to open files can happen asynchronously in the case we're being notified of changes on background threads.
+            _inProc.RenameFileViaDTE(project.Name, oldFileName, newFileName);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
+        }
+
+        public void CloseDesignerFile(ProjectUtils.Project project, string fileName, bool saveFile)
+            => _inProc.CloseDesignerFile(project.Name, fileName, saveFile);
+
+        public void CloseCodeFile(ProjectUtils.Project project, string fileName, bool saveFile)
+            => _inProc.CloseCodeFile(project.Name, fileName, saveFile);
 
         public void SaveFile(ProjectUtils.Project project, string fileName)
             => _inProc.SaveFile(project.Name, fileName);

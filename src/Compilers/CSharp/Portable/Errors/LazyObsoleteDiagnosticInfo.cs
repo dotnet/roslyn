@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LazyObsoleteDiagnosticInfo(object symbol, Symbol containingSymbol, BinderFlags binderFlags)
             : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
         {
-            Debug.Assert(symbol is Symbol || symbol is TypeSymbolWithAnnotations);
+            Debug.Assert(symbol is Symbol || symbol is TypeWithAnnotations);
             _symbolOrSymbolWithAnnotations = symbol;
             _containingSymbol = containingSymbol;
             _binderFlags = binderFlags;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // A symbol's Obsoleteness may not have been calculated yet if the symbol is coming
                 // from a different compilation's source. In that case, force completion of attributes.
-                var symbol = (_symbolOrSymbolWithAnnotations as Symbol) ?? ((TypeSymbolWithAnnotations)_symbolOrSymbolWithAnnotations).TypeSymbol;
+                var symbol = (_symbolOrSymbolWithAnnotations as Symbol) ?? ((TypeWithAnnotations)_symbolOrSymbolWithAnnotations).Type;
                 symbol.ForceCompleteObsoleteAttribute();
 
                 var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(symbol, _containingSymbol, forceComplete: true);

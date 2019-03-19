@@ -270,7 +270,7 @@ class C
             var defaultInfo = model.GetDeconstructionInfo(assignment);
             Assert.Null(defaultInfo.Method);
             Assert.Empty(defaultInfo.Nested);
-            Assert.Equal(ConversionKind.NoConversion, defaultInfo.Conversion.Value.Kind);
+            Assert.Equal(ConversionKind.UnsetConversionKind, defaultInfo.Conversion.Value.Kind);
         }
 
         [Fact]
@@ -301,7 +301,7 @@ class C
             var foreachDeconstruction = (ForEachVariableStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachVariableStatement).AsNode();
             Assert.Equal(@"foreach (char in s) { }", foreachDeconstruction.ToString());
             var deconstructionInfo = model.GetDeconstructionInfo(foreachDeconstruction);
-            Assert.Equal(Conversion.NoConversion, deconstructionInfo.Conversion);
+            Assert.Equal(Conversion.UnsetConversion, deconstructionInfo.Conversion);
             Assert.Null(deconstructionInfo.Method);
             Assert.Empty(deconstructionInfo.Nested);
         }
@@ -1673,7 +1673,7 @@ class C
 
                 var x = (LocalSymbol)model.GetDeclaredSymbol(declarations.ElementAt(7));
                 Assert.Equal("(System.Int32, System.Int32) d", x.ToTestDisplayString());
-                Assert.True(x.Type.TypeSymbol.TupleElementNames.IsDefault);
+                Assert.True(x.Type.TupleElementNames.IsDefault);
 
                 Assert.Equal("(System.Int32 x, System.Int32, System.Int32 y, (System.Int32, System.Int32, System.Int32), (System.Int32 x, System.Int32 y)) nested",
                     model.GetDeclaredSymbol(declarations.ElementAt(8)).ToTestDisplayString());
@@ -3513,7 +3513,7 @@ Deconstructing (1, hello)
 
             var local = (SourceLocalSymbol)symbol;
             var typeSyntax = GetTypeSyntax(decl);
-            if (local.IsVar && local.Type.TypeSymbol.IsErrorType())
+            if (local.IsVar && local.Type.IsErrorType())
             {
                 Assert.Null(model.GetSymbolInfo(typeSyntax).Symbol);
             }
@@ -3521,7 +3521,7 @@ Deconstructing (1, hello)
             {
                 if (typeSyntax != null)
                 {
-                    Assert.Equal(local.Type.TypeSymbol, model.GetSymbolInfo(typeSyntax).Symbol);
+                    Assert.Equal(local.Type, model.GetSymbolInfo(typeSyntax).Symbol);
                 }
             }
 
@@ -3530,7 +3530,7 @@ Deconstructing (1, hello)
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
-                Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
+                Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
             }
         }
 
@@ -3549,7 +3549,7 @@ Deconstructing (1, hello)
                 Assert.Same(field, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(field, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
-                Assert.Equal(field.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
+                Assert.Equal(field.Type, model.GetTypeInfo(reference).Type);
             }
         }
 
@@ -5352,15 +5352,15 @@ int (x, y) = (1, 2);
             var x = GetDeconstructionVariable(tree, "x");
             var xSymbol = model.GetDeclaredSymbol(x);
             Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
-            var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.False(xType.TypeSymbol.IsErrorType());
+            var xType = ((FieldSymbol)xSymbol).TypeWithAnnotations;
+            Assert.False(xType.Type.IsErrorType());
             Assert.Equal("System.Int32", xType.ToTestDisplayString());
 
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
             Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
-            var yType = ((FieldSymbol)ySymbol).Type;
-            Assert.False(yType.TypeSymbol.IsErrorType());
+            var yType = ((FieldSymbol)ySymbol).TypeWithAnnotations;
+            Assert.False(yType.Type.IsErrorType());
             Assert.Equal("System.Int32", yType.ToTestDisplayString());
         }
 
@@ -5386,15 +5386,15 @@ int (x, y) = (1, 2);
             var x = GetDeconstructionVariable(tree, "x");
             var xSymbol = model.GetDeclaredSymbol(x);
             Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
-            var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.False(xType.TypeSymbol.IsErrorType());
+            var xType = ((FieldSymbol)xSymbol).TypeWithAnnotations;
+            Assert.False(xType.Type.IsErrorType());
             Assert.Equal("System.Int32", xType.ToTestDisplayString());
 
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
             Assert.Equal("System.Int32 Script.y", ySymbol.ToTestDisplayString());
-            var yType = ((FieldSymbol)ySymbol).Type;
-            Assert.False(yType.TypeSymbol.IsErrorType());
+            var yType = ((FieldSymbol)ySymbol).TypeWithAnnotations;
+            Assert.False(yType.Type.IsErrorType());
             Assert.Equal("System.Int32", yType.ToTestDisplayString());
         }
 
@@ -5518,8 +5518,8 @@ var (x, y) = (1, 2);
             var xRef = GetReference(tree, "x");
             Assert.Equal("System.Int32 Script.x", xSymbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x, xRef);
-            var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.False(xType.TypeSymbol.IsErrorType());
+            var xType = ((FieldSymbol)xSymbol).TypeWithAnnotations;
+            Assert.False(xType.Type.IsErrorType());
             Assert.Equal("System.Int32", xType.ToTestDisplayString());
         }
 
@@ -5556,18 +5556,18 @@ var (x, y) = (1, null);
             var x = GetDeconstructionVariable(tree, "x");
             var xSymbol = model.GetDeclaredSymbol(x);
             Assert.Equal("var Script.x", xSymbol.ToTestDisplayString());
-            var xType = ((FieldSymbol)xSymbol).Type;
-            Assert.True(xType.TypeSymbol.IsErrorType());
+            var xType = ((FieldSymbol)xSymbol).TypeWithAnnotations;
+            Assert.True(xType.Type.IsErrorType());
             Assert.Equal("var", xType.ToTestDisplayString());
 
-            var xTypeISymbol = (ISymbol)xType.TypeSymbol;
+            var xTypeISymbol = (ISymbol)xType.Type;
             Assert.Equal(SymbolKind.ErrorType, xTypeISymbol.Kind);
 
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
             Assert.Equal("var Script.y", ySymbol.ToTestDisplayString());
-            var yType = ((FieldSymbol)ySymbol).Type;
-            Assert.True(yType.TypeSymbol.IsErrorType());
+            var yType = ((FieldSymbol)ySymbol).TypeWithAnnotations;
+            Assert.True(yType.Type.IsErrorType());
             Assert.Equal("var", yType.ToTestDisplayString());
         }
 
@@ -5597,18 +5597,18 @@ var (x1, x2) = (x2, x1);
             var x1Ref = GetReference(tree, "x1");
             Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x1, x1Ref);
-            var x1Type = ((FieldSymbol)x1Symbol).Type;
-            Assert.True(x1Type.TypeSymbol.IsErrorType());
-            Assert.Equal("var", x1Type.Name);
+            var x1Type = ((FieldSymbol)x1Symbol).TypeWithAnnotations;
+            Assert.True(x1Type.Type.IsErrorType());
+            Assert.Equal("var", x1Type.Type.Name);
 
             var x2 = GetDeconstructionVariable(tree, "x2");
             var x2Symbol = model.GetDeclaredSymbol(x2);
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x2, x2Ref);
-            var x2Type = ((FieldSymbol)x2Symbol).Type;
-            Assert.True(x2Type.TypeSymbol.IsErrorType());
-            Assert.Equal("var", x2Type.Name);
+            var x2Type = ((FieldSymbol)x2Symbol).TypeWithAnnotations;
+            Assert.True(x2Type.Type.IsErrorType());
+            Assert.Equal("var", x2Type.Type.Name);
         }
 
         [Fact]
@@ -5641,18 +5641,18 @@ var (y1, y2) = (x1, x2);
             var x1Ref = GetReference(tree, "x1");
             Assert.Equal("var Script.x1", x1Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x1, x1Ref);
-            var x1Type = ((FieldSymbol)x1Symbol).Type;
-            Assert.True(x1Type.TypeSymbol.IsErrorType());
-            Assert.Equal("var", x1Type.Name);
+            var x1Type = ((FieldSymbol)x1Symbol).TypeWithAnnotations;
+            Assert.True(x1Type.Type.IsErrorType());
+            Assert.Equal("var", x1Type.Type.Name);
 
             var x2 = GetDeconstructionVariable(tree, "x2");
             var x2Symbol = model.GetDeclaredSymbol(x2);
             var x2Ref = GetReference(tree, "x2");
             Assert.Equal("var Script.x2", x2Symbol.ToTestDisplayString());
             VerifyModelForDeconstructionField(model, x2, x2Ref);
-            var x2Type = ((FieldSymbol)x2Symbol).Type;
-            Assert.True(x2Type.TypeSymbol.IsErrorType());
-            Assert.Equal("var", x2Type.Name);
+            var x2Type = ((FieldSymbol)x2Symbol).TypeWithAnnotations;
+            Assert.True(x2Type.Type.IsErrorType());
+            Assert.Equal("var", x2Type.Type.Name);
         }
 
         [Fact]
@@ -6302,7 +6302,7 @@ class C
             var discard = GetDiscardIdentifiers(tree).First();
             Assert.Equal("(_, x)", discard.Parent.Parent.ToString());
             var symbol = (LocalSymbol)model.GetSymbolInfo(discard).Symbol;
-            Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", symbol.TypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]

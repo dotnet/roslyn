@@ -32,11 +32,6 @@
         <target state="translated">Propriétés de diagnostic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Could_not_find_project_0">
-        <source>Could not find project {0}.</source>
-        <target state="translated">Projet {0} introuvable.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_rule_set_file_is_specified_or_the_file_does_not_exist">
         <source>No rule set file is specified, or the file does not exist.</source>
         <target state="translated">Aucun fichier d'ensemble de règles indiqué ou le fichier n'existe pas.</target>
@@ -74,7 +69,7 @@
       </trans-unit>
       <trans-unit id="Info">
         <source>Info</source>
-        <target state="translated">Informations</target>
+        <target state="translated">Info</target>
         <note />
       </trans-unit>
       <trans-unit id="Hidden">

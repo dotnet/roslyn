@@ -156,30 +156,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 public BasicBlockAnalysisData GetBlockAnalysisData(BasicBlock basicBlock)
                     => _analysisDataByBasicBlockMap[basicBlock];
 
-                public BasicBlockAnalysisData GetOrCreateBlockAnalysisData(BasicBlock basicBlock)
+                public BasicBlockAnalysisData GetOrCreateBlockAnalysisData(BasicBlock basicBlock, CancellationToken cancellationToken)
                 {
                     if (_analysisDataByBasicBlockMap[basicBlock] == null)
                     {
                         _analysisDataByBasicBlockMap[basicBlock] = CreateBlockAnalysisData();
                     }
 
-                    HandleCatchOrFilterOrFinallyInitialization(basicBlock);
+                    HandleCatchOrFilterOrFinallyInitialization(basicBlock, cancellationToken);
                     return _analysisDataByBasicBlockMap[basicBlock];
                 }
 
-                private PooledHashSet<(ISymbol, IOperation)> GetOrCreateSymbolWritesInBlockRange(int firstBlockOrdinal, int lastBlockOrdinal)
+                private PooledHashSet<(ISymbol, IOperation)> GetOrCreateSymbolWritesInBlockRange(int firstBlockOrdinal, int lastBlockOrdinal, CancellationToken cancellationToken)
                 {
                     if (!_symbolWritesInsideBlockRangeMap.TryGetValue((firstBlockOrdinal, lastBlockOrdinal), out var writesInBlockRange))
                     {
                         // Compute all descendant operations in basic block range.
                         var operations = PooledHashSet<IOperation>.GetInstance();
-                        for (int i = firstBlockOrdinal; i <= lastBlockOrdinal; i++)
-                        {
-                            foreach (var operation in ControlFlowGraph.Blocks[i].DescendantOperations())
-                            {
-                                operations.Add(operation);
-                            }
-                        }
+                        AddDescendantOperationsInRange(ControlFlowGraph, firstBlockOrdinal, lastBlockOrdinal, operations, cancellationToken);
 
                         // Filter down the operations to writes within this block range.
                         writesInBlockRange = PooledHashSet<(ISymbol, IOperation)>.GetInstance();
@@ -195,13 +189,110 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     return writesInBlockRange;
                 }
 
+                private void AddDescendantOperationsInRange(
+                    ControlFlowGraph cfg,
+                    int firstBlockOrdinal,
+                    int lastBlockOrdinal,
+                    PooledHashSet<IOperation> operationsBuilder,
+                    CancellationToken cancellationToken)
+                {
+                    // Compute all descendant operations in basic block range.
+                    for (int i = firstBlockOrdinal; i <= lastBlockOrdinal; i++)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        foreach (var operation in cfg.Blocks[i].DescendantOperations())
+                        {
+                            var added = operationsBuilder.Add(operation);
+                            if (added && operation is IInvocationOperation invocation)
+                            {
+                                if (invocation.Instance != null &&
+                                    _reachingDelegateCreationTargets.TryGetValue(invocation.Instance, out var targets))
+                                {
+                                    AddDescendantOperationsFromDelegateCreationTargets(targets);
+                                }
+                                else if (invocation.TargetMethod.IsLocalFunction())
+                                {
+                                    var localFunctionGraph = cfg.GetLocalFunctionControlFlowGraphInScope(invocation.TargetMethod);
+                                    if (localFunctionGraph != null)
+                                    {
+                                        AddDescendantOperationsInLambdaOrLocalFunctionGraph(localFunctionGraph);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    return;
+
+                    // Local functions.
+                    void AddDescendantOperationsFromDelegateCreationTargets(PooledHashSet<IOperation> targets)
+                    {
+                        foreach (var target in targets)
+                        {
+                            ControlFlowGraph lambdaOrLocalFunctionCfgOpt = null;
+                            switch (target)
+                            {
+                                case IFlowAnonymousFunctionOperation flowAnonymousFunctionOperation:
+                                    lambdaOrLocalFunctionCfgOpt = TryGetAnonymousFunctionControlFlowGraphInScope(flowAnonymousFunctionOperation);
+                                    break;
+
+                                case ILocalFunctionOperation localFunctionOperation:
+                                    lambdaOrLocalFunctionCfgOpt = TryGetLocalFunctionControlFlowGraphInScope(localFunctionOperation.Symbol);
+                                    break;
+
+                                case IMethodReferenceOperation methodReferenceOperation when (methodReferenceOperation.Method.IsLocalFunction()):
+                                    lambdaOrLocalFunctionCfgOpt = TryGetLocalFunctionControlFlowGraphInScope(methodReferenceOperation.Method);
+                                    break;
+                            }
+
+                            if (lambdaOrLocalFunctionCfgOpt != null &&
+                                operationsBuilder.Add(target))
+                            {
+                                AddDescendantOperationsInLambdaOrLocalFunctionGraph(lambdaOrLocalFunctionCfgOpt);
+                            }
+                        }
+                    }
+
+                    void AddDescendantOperationsInLambdaOrLocalFunctionGraph(ControlFlowGraph lambdaOrLocalFunctionCfg)
+                    {
+                        Debug.Assert(lambdaOrLocalFunctionCfg != null);
+                        AddDescendantOperationsInRange(lambdaOrLocalFunctionCfg, firstBlockOrdinal: 0,
+                            lastBlockOrdinal: lambdaOrLocalFunctionCfg.Blocks.Length - 1, operationsBuilder, cancellationToken);
+                    }
+
+                    ControlFlowGraph TryGetAnonymousFunctionControlFlowGraphInScope(IFlowAnonymousFunctionOperation flowAnonymousFunctionOperation)
+                    {
+                        if (_lambdaTargetsToAccessingCfgMap.TryGetValue(flowAnonymousFunctionOperation, out var lambdaAccessingCfg))
+                        {
+                            var anonymousFunctionCfg = lambdaAccessingCfg.GetAnonymousFunctionControlFlowGraphInScope(flowAnonymousFunctionOperation);
+                            Debug.Assert(anonymousFunctionCfg != null);
+                            return anonymousFunctionCfg;
+                        }
+
+                        return null;
+                    }
+
+                    ControlFlowGraph TryGetLocalFunctionControlFlowGraphInScope(IMethodSymbol localFunction)
+                    {
+                        Debug.Assert(localFunction.IsLocalFunction());
+                        if (_localFunctionTargetsToAccessingCfgMap.TryGetValue(localFunction, out var localFunctionAccessingCfg))
+                        {
+                            var localFunctionCfg = localFunctionAccessingCfg.GetLocalFunctionControlFlowGraphInScope(localFunction);
+                            Debug.Assert(localFunctionCfg != null);
+                            return localFunctionCfg;
+                        }
+
+                        return null;
+                    }
+                }
+
                 /// <summary>
                 /// Special handling to ensure that at start of catch/filter/finally region analysis,
                 /// we mark all symbol writes from the corresponding try region as reachable in the
                 /// catch/filter/finally region.
                 /// </summary>
                 /// <param name="basicBlock"></param>
-                private void HandleCatchOrFilterOrFinallyInitialization(BasicBlock basicBlock)
+                private void HandleCatchOrFilterOrFinallyInitialization(BasicBlock basicBlock, CancellationToken cancellationToken)
                 {
                     Debug.Assert(_analysisDataByBasicBlockMap[basicBlock] != null);
 
@@ -259,7 +350,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     mergedAnalysisData.SetAnalysisDataFrom(GetBlockAnalysisData(firstBasicBlockInOutermostRegion));
 
                     // All symbol writes within the try region are considered reachable at start of catch/finally region.
-                    foreach (var (symbol, write) in GetOrCreateSymbolWritesInBlockRange(containingTryCatchFinallyRegion.FirstBlockOrdinal, basicBlock.Ordinal - 1))
+                    foreach (var (symbol, write) in GetOrCreateSymbolWritesInBlockRange(containingTryCatchFinallyRegion.FirstBlockOrdinal, basicBlock.Ordinal - 1, cancellationToken))
                     {
                         mergedAnalysisData.OnWriteReferenceFound(symbol, write, maybeWritten: true);
                         SymbolsWriteBuilder[(symbol, write)] = true;
@@ -269,8 +360,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                     SetBlockAnalysisData(basicBlock, mergedAnalysisData);
                 }
 
-                public void SetCurrentBlockAnalysisDataFrom(BasicBlock basicBlock)
-                    => SetCurrentBlockAnalysisDataFrom(GetOrCreateBlockAnalysisData(basicBlock));
+                public void SetCurrentBlockAnalysisDataFrom(BasicBlock basicBlock, CancellationToken cancellationToken)
+                    => SetCurrentBlockAnalysisDataFrom(GetOrCreateBlockAnalysisData(basicBlock, cancellationToken));
 
                 public void SetAnalysisDataOnEntryBlockStart()
                 {
@@ -284,8 +375,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
                 public void SetBlockAnalysisData(BasicBlock basicBlock, BasicBlockAnalysisData data)
                     => _analysisDataByBasicBlockMap[basicBlock] = data;
 
-                public void SetBlockAnalysisDataFrom(BasicBlock basicBlock, BasicBlockAnalysisData data)
-                    => GetOrCreateBlockAnalysisData(basicBlock).SetAnalysisDataFrom(data);
+                public void SetBlockAnalysisDataFrom(BasicBlock basicBlock, BasicBlockAnalysisData data, CancellationToken cancellationToken)
+                    => GetOrCreateBlockAnalysisData(basicBlock, cancellationToken).SetAnalysisDataFrom(data);
 
                 public void SetAnalysisDataOnExitBlockEnd()
                 {
