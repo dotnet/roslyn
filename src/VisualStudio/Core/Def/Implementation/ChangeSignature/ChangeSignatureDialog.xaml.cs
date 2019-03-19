@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         public string PreviewReferenceChanges { get { return ServicesVSResources.Preview_reference_changes; } }
         public string Remove { get { return ServicesVSResources.Re_move; } }
         public string Restore { get { return ServicesVSResources.Restore; } }
-        public string Edit { get { return ServicesVSResources.Edit; } }
+        public string Add { get { return ServicesVSResources.Add; } }
         public string OK { get { return ServicesVSResources.OK; } }
         public string Cancel { get { return ServicesVSResources.Cancel; } }
 
@@ -126,18 +126,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             SetFocusToSelectedRow();
         }
 
-        private void Edit_Click(object sender, RoutedEventArgs e)
+        private void Add_Click(object sender, RoutedEventArgs e)
         {
-            if (_viewModel.CanEdit)
-            {
-                var parameterViewModel = new ParameterDetailsDialogViewModel(null, _viewModel.AllParameters[Members.SelectedIndex].ParameterSymbol);
-                var dialog = new ParameterDetailsDialog(parameterViewModel);
-                var result = dialog.ShowModal();
+            var addParameterViewModel = new AddParameterDialogViewModel();
+            var dialog = new AddParameterDialog(addParameterViewModel);
+            var result = dialog.ShowModal();
 
-                if (result == true)
-                {
-                    // TODO
-                }
+            if (result == true)
+            {
+                _viewModel.AddParameter(addParameterViewModel);
             }
 
             SetFocusToSelectedRow();

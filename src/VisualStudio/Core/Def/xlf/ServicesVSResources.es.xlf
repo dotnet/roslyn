@@ -12,6 +12,11 @@
         <target state="translated">Se creará un espacio de nombres</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add">
+        <source>_Add</source>
+        <target state="new">_Add</target>
+        <note>Adding an element to a list</note>
+      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">Agregar al archivo _actual</target>

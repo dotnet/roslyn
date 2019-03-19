@@ -288,11 +288,10 @@
 
                 <vs:DialogButton
                         Margin="9 29 0 0"
-                        IsEnabled="{Binding CanEdit, Mode=OneWay}"
-                        AutomationProperties.Name="{Binding EditAutomationText}"
-                        Click="Edit_Click"
-                        AutomationProperties.AutomationId="EditButton"
-                        Content="{Binding ElementName=dialog, Path=Edit}"
+                        AutomationProperties.Name="{Binding AddAutomationText}"
+                        Click="Add_Click"
+                        AutomationProperties.AutomationId="AddButton"
+                        Content="{Binding ElementName=dialog, Path=Add}"
                         Height="Auto" Width="Auto"/>
             </StackPanel>
         </Grid>

@@ -12,6 +12,11 @@
         <target state="translated">將會建立新的命名空間</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add">
+        <source>_Add</source>
+        <target state="new">_Add</target>
+        <note>Adding an element to a list</note>
+      </trans-unit>
       <trans-unit id="Add_to_current_file">
         <source>Add to _current file</source>
         <target state="translated">新增至 _current 檔案</target>
