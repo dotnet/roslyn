@@ -16,23 +16,13 @@ This can be done by:
   </ItemGroup>
   ```
 
-To add a symbol to banned list, just add an enrty in the format below to the BannedSymbols.txt (Please note that things enclosed in square brackets are optional, and Description Text defined in the entry will be part of the diagnostic description):
+To add a symbol to banned list, just add an enrty in the format below to the BannedSymbols.txt (Description Text will be displayed as description in diagnostics, which is optional):
 
-        {Symbol Declaration Comment ID}[;Description Text]
+        {Documentation Comment ID string for the symbol}[;Description Text]
 
-_Symbol Declaration Comment ID_ :  
-_{Kind Character}:{Symbol Declaration Comment ID Name}_
+For details on ID string format, please refer to ["Documentation comments"](https://github.com/dotnet/csharplang/blob/master/spec/documentation-comments.md#id-string-format).
 
-Supported Kind Character:
-- E: event  
-- F: field  
-- M: method  
-- P: property  
-- T: named type  
-
-
-
-Examples of banned API entries for symbols declared in the source below:
+Examples of BannedSymbols.txt entries for symbols declared in the source below:
 
 ```cs
 namespace N
@@ -50,15 +40,14 @@ namespace N
 }
 ```
 
-| Symbol in Source                      | Metadata Name |
+| Symbol in Source                      | Sample Entry in BannedSymbols.txt  |
 | -----------                           | ----------- |
-| `class BannedType`                    | `T:N.BannedType`       |
+| `class BannedType`                    | `T:N.BannedType;Don't use BannedType`       |
 | `BannedType()`                        | `M:N.BannedType.#ctor`       |
 | `int BannedMethod()`                  | `M:N.BannedType.BannedMethod~System.Int32`       |
-| `void BannedMethod(int i)`            | `M:N.BannedType.BannedMethod(System.Int32)`       |
-| `void BannedMethod<T>(T t)`           | ``M:N.BannedType.BannedMethod`1(`0)``       |
+| `void BannedMethod(int i)`            | `M:N.BannedType.BannedMethod(System.Int32);Don't use BannedMethod`       |
+| `void BannedMethod<T>(T t)`           | `M:N.BannedType.BannedMethod``1(``0)`       |
 
-For more details on how Symbol Declaration Comment ID is created, please refer to [DocumentationCommentId](http://source.roslyn.io/#Microsoft.CodeAnalysis/DocumentationCommentId.cs,483141c2cbc3eaa6).
 
 Rules
 --------------------------------
