@@ -6,25 +6,27 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
-    internal struct CommentSelectionResult
+    internal readonly struct CommentSelectionResult
     {
         /// <summary>
         /// Text changes to make for this operation.
         /// </summary>
-        public ImmutableList<TextChange> TextChanges { get; }
+        public ImmutableArray<TextChange> TextChanges { get; }
         /// <summary>
         /// Tracking spans used to format and set the output selection after edits.
         /// </summary>
-        public ImmutableList<CommentTrackingSpan> TrackingSpans { get; }
+        public ImmutableArray<CommentTrackingSpan> TrackingSpans { get; }
         /// <summary>
         /// The type of text changes being made.
+        /// This is known beforehand in some cases (comment selection)
+        /// and determined after as a result in others (toggle comment).
         /// </summary>
         public Operation ResultOperation { get; }
 
-        public CommentSelectionResult(List<TextChange> textChanges, List<CommentTrackingSpan> trackingSpans, Operation resultOperation)
+        public CommentSelectionResult(IEnumerable<TextChange> textChanges, IEnumerable<CommentTrackingSpan> trackingSpans, Operation resultOperation)
         {
-            TextChanges = textChanges.ToImmutableList();
-            TrackingSpans = trackingSpans.ToImmutableList();
+            TextChanges = textChanges.ToImmutableArray();
+            TrackingSpans = trackingSpans.ToImmutableArray();
             ResultOperation = resultOperation;
         }
     }

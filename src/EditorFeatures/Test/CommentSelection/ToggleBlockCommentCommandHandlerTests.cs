@@ -990,6 +990,19 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        public void RemoveComment_AtBeginningOfFile()
+        {
+            var markup = @"[|/**/|]";
+            var expected = @"";
+
+            var expectedSelectedSpans = new[]
+            {
+                Span.FromBounds(0, 0)
+            };
+            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
         public void RemoveComment_CaretInsideBlock()
         {
             var markup =

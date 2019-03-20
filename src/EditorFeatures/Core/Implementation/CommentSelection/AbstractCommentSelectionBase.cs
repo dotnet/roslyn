@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -66,12 +67,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 : VSCommanding.CommandState.Unspecified;
         }
 
-        protected static void InsertText(List<TextChange> textChanges, int position, string text)
+        protected static void InsertText(ArrayBuilder<TextChange> textChanges, int position, string text)
         {
             textChanges.Add(new TextChange(new TextSpan(position, 0), text));
         }
 
-        protected static void DeleteText(List<TextChange> textChanges, TextSpan span)
+        protected static void DeleteText(ArrayBuilder<TextChange> textChanges, TextSpan span)
         {
             textChanges.Add(new TextChange(span, string.Empty));
         }
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     return true;
                 }
 
-                var service = GetService(document);
+                var service = document.GetLanguageService<ICommentSelectionService>();
                 if (service == null)
                 {
                     return true;
@@ -121,8 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             // Create tracking spans to track the text changes.
             var currentSnapshot = subjectBuffer.CurrentSnapshot;
             var trackingSpans = edits.TrackingSpans
-                .Select(textSpan => (originalSpan: textSpan, trackingSpan: CreateTrackingSpan(edits.ResultOperation, currentSnapshot, textSpan.TrackingTextSpan)))
-                .ToImmutableList();
+                .SelectAsArray(textSpan => (originalSpan: textSpan, trackingSpan: CreateTrackingSpan(edits.ResultOperation, currentSnapshot, textSpan.TrackingTextSpan)));
 
             // Apply the text changes.
             using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
@@ -141,13 +141,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     // Format the document only during uncomment operations.  Use second transaction so it can be undone.
                     using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        Format(service, subjectBuffer.CurrentSnapshot, trackingSnapshotSpans, CancellationToken.None);
+                        var formattedDocument = Format(service, subjectBuffer.CurrentSnapshot, trackingSnapshotSpans, CancellationToken.None);
+                        formattedDocument?.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, CancellationToken.None);
                         transaction.Complete();
                     }
                 }
 
-                // Set the selection after the edits have been applied.
                 var spansToSelect = trackingSnapshotSpans.Select(s => new Selection(s));
+                // Set the multi selection with the last selection as the primary after edits have been applied.
                 textView.GetMultiSelectionBroker().SetSelectionRange(spansToSelect, spansToSelect.Last());
             }
         }
@@ -158,6 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// </summary>
         internal static ITrackingSpan CreateTrackingSpan(Operation operation, ITextSnapshot snapshot, TextSpan textSpan)
         {
+            // If a comment is being added, the tracking span must include changes at the edge.
             var spanTrackingMode = operation == Operation.Comment
                 ? SpanTrackingMode.EdgeInclusive
                 : SpanTrackingMode.EdgeExclusive;
@@ -174,8 +176,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             var snapshotSpan = trackingSpan.GetSpan(snapshot);
             if (originalSpan.HasPostApplyChanges())
             {
-                var updatedStart = snapshotSpan.Start.Position + originalSpan.AmountToAddToStart;
-                var updatedEnd = snapshotSpan.End.Position + originalSpan.AmountToAddToEnd;
+                var updatedStart = snapshotSpan.Start.Position + originalSpan.AmountToAddToTrackingSpanStart;
+                var updatedEnd = snapshotSpan.End.Position + originalSpan.AmountToAddToTrackingSpanEnd;
                 if (updatedStart >= snapshotSpan.Start.Position && updatedEnd <= snapshotSpan.End.Position)
                 {
                     snapshotSpan = new SnapshotSpan(snapshot, Span.FromBounds(updatedStart, updatedEnd));
@@ -185,28 +187,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             return snapshotSpan;
         }
 
-        private static void Format(ICommentSelectionService service, ITextSnapshot snapshot, IEnumerable<SnapshotSpan> changes, CancellationToken cancellationToken)
+        private static Document Format(ICommentSelectionService service, ITextSnapshot snapshot, IEnumerable<SnapshotSpan> changes, CancellationToken cancellationToken)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return;
+                return null;
             }
 
-            var textSpans = changes.Select(change => change.Span.ToTextSpan()).ToImmutableArray();
-            var newDocument = service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
-            newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
-        }
-
-        private static ICommentSelectionService GetService(Document document)
-        {
-            var service = document.GetLanguageService<ICommentSelectionService>();
-            if (service != null)
-            {
-                return service;
-            }
-
-            return null;
+            var textSpans = changes.SelectAsArray(change => change.Span.ToTextSpan());
+            return service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
         }
     }
 }
