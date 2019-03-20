@@ -275,6 +275,12 @@
     <PrivateVisualStudioPackage Include="VSLangProj140" />
     <PrivateVisualStudioPackage Include="VsWebsite.Interop" />
   </ItemGroup>
+
+  <!-- Additional .NET Core Runtimes to install for testing -->
+  <ItemGroup>
+    <DotNetCoreRuntimeVersion Include="2.1.503" />
+  </ItemGroup>
+
   <PropertyGroup>
     <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
