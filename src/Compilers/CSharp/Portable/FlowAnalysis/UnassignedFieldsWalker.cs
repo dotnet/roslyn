@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (HasThisConstructorInitializer(method))
+            if (HasThisConstructorInitializer(method) || method.ContainingType.IsValueType)
             {
                 return;
             }
