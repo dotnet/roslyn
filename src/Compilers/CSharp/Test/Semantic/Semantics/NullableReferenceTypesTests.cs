@@ -75775,7 +75775,7 @@ class Program
         var a2 = new C<T>() { F = t };
         F(a2.F/*T:object?*/); // 3
         var b2 = a2;
-        F(b2.F/*T:T!*/); // 4
+        F(b2.F/*T:object!*/); // 4
     }
     static void F(object o)
     {
