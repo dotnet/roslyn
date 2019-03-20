@@ -1,45 +1,12 @@
-### RS0001: Use SpecializedCollections.EmptyEnumerable() ###
 
-Category: Performance
-
-Severity: Warning
-
-### RS0002: Use SpecializedCollections.SingletonEnumerable() ###
-
-Category: Performance
-
-Severity: Warning
-
-### RS0004: Invoke the correct property to ensure correct use site diagnostics. ###
-
-Category: Usage
-
-Severity: Error
-
-### RS0005: Do not use generic CodeAction.Create to create CodeAction ###
-
-Category: Performance
-
-Severity: Warning
-
-### RS0013: Do not invoke Diagnostic.Descriptor ###
-
-Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.
-
-Category: Performance
-
-Severity: Warning
-
-### RS0019: SymbolDeclaredEvent must be generated for source symbols ###
-
-Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.
-
-Category: Reliability
-
-Severity: Error
-
-### RS0022: Constructor make noninheritable base class inheritable ###
-
-Category: ApiDesign
-
-Severity: Warning
+Sr. No. | Rule ID | Title | Category | Enabled | CodeFix | Description |
+--------|---------|-------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------|
+1 | RS0016 | Add public types and members to the declared API | ApiDesign | True | False | All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes. |
+2 | RS0017 | Remove deleted types and members from the declared API | ApiDesign | True | False | When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes. |
+3 | RS0022 | Constructor make noninheritable base class inheritable | ApiDesign | True | False | Constructor makes its noninheritable base class inheritable, thereby exposing its protected members. |
+4 | RS0024 | The contents of the public API files are invalid | ApiDesign | True | False | The contents of the public API files are invalid: {0} |
+5 | RS0025 | Do not duplicate symbols in public API files | ApiDesign | True | False | The symbol '{0}' appears more than once in the public API files. |
+6 | [RS0026](https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md) | Do not add multiple public overloads with optional parameters | ApiDesign | True | False | Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details. |
+7 | [RS0027](https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md) | Public API with optional parameter(s) should have the most parameters amongst its public overloads. | ApiDesign | True | False | Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details. |
+8 | [RS0030](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) | Do not used banned APIs | ApiDesign | True | False | The symbol has been marked as banned in this project, and an alternate should be used instead. |
+9 | [RS0031](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) | The list of banned symbols contains a duplicate | ApiDesign | True | False | The list of banned symbols contains a duplicate. |
