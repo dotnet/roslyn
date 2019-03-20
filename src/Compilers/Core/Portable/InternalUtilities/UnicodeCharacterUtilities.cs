@@ -109,27 +109,6 @@ namespace Roslyn.Utilities
             return true;
         }
 
-        /// <summary>
-        /// Returns true if every identifier in a namespace is valid using <see cref="IsValidIdentifier(string)"/>
-        /// </summary>
-        public static bool IsValidNamespace(string @namespace)
-        {
-            if (string.IsNullOrEmpty(@namespace))
-            {
-                return false;
-            }
-
-            foreach (var identifier in @namespace.Split('.'))
-            {
-                if (!IsValidIdentifier(identifier))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private static bool IsLetterChar(UnicodeCategory cat)
         {
             // letter-character:

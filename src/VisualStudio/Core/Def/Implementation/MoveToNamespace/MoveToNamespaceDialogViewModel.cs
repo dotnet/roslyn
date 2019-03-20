@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Imaging;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         public void OnNamespaceUpdated()
         {
             var isNewNamespace = !AvailableNamespaces.Contains(NamespaceName);
-            var isValidName = !isNewNamespace || UnicodeCharacterUtilities.IsValidNamespace(NamespaceName);
+            var isValidName = !isNewNamespace || IsValidNamespace(NamespaceName);
 
             if (isNewNamespace && isValidName)
             {
@@ -54,6 +55,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
                 ShowMessage = false;
                 CanSubmit = true;
             }
+        }
+
+        private static bool IsValidNamespace(string namespaceName)
+        {
+            if (string.IsNullOrEmpty(namespaceName))
+            {
+                return false;
+            }
+
+            foreach (var identifier in namespaceName.Split('.'))
+            {
+                if (UnicodeCharacterUtilities.IsValidIdentifier(identifier))
+                {
+                    continue;
+                }
+
+                return false;
+            }
+
+            return true;
         }
 
         private string _namespaceName;
