@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis
 
                 var entryBlockAnalysisData = GetEmptyAnalysisData();
                 entryBlockAnalysisData.SetAnalysisDataFrom(parentAnalysisData.CurrentBlockAnalysisData);
-                _analysisData.SetBlockAnalysisData(cfg.EntryBlock(), entryBlockAnalysisData);
+                _analysisData.SetBlockAnalysisData(cfg.GetEntry(), entryBlockAnalysisData);
             }
 
             public static SymbolUsageResult RunAnalysis(ControlFlowGraph cfg, ISymbol owningSymbol, CancellationToken cancellationToken)
