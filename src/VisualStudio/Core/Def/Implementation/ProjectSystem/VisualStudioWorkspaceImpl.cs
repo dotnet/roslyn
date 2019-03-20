@@ -1113,10 +1113,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     Path.GetFileNameWithoutExtension(updatedInfo.Name),
                     Path.GetExtension(updatedInfo.Name));
 
+                // Get the current undoManager before any file renames/documentId changes happen
+                var undoManager = TryGetUndoManager();
+
                 // By setting this property, Visual Studio will perform the file rename, which 
                 // will cause the workspace's current solution to update and will fire the 
                 // necessary workspace changed events.
                 projectItemForDocument.Name = uniqueName;
+
+                if (projectItemForDocument.TryGetFullPath(out var newPath))
+                {
+                    undoManager?.Add(new RenameDocumentUndoUnit(this, uniqueName, document.Name, newPath));
+                }
             }
         }
 
