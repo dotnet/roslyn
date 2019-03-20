@@ -8,6 +8,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using System.Diagnostics;
 
 #if DEBUG
 using System.Linq.Expressions;
@@ -47,6 +48,12 @@ namespace Roslyn.Utilities
             return s_isThreadPoolThread.Value(thread);
         }
 #endif
+
+        public static T CompletedResult<T>(this Task<T> task)
+        {
+            Debug.Assert(task.IsCompleted);
+            return task.WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+        }
 
         public static T WaitAndGetResult<T>(this Task<T> task, CancellationToken cancellationToken)
         {
