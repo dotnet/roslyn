@@ -86630,15 +86630,15 @@ class C
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (16,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                // (16,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         F(string.Empty, null); // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 15),
-                // (22,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 25),
+                // (22,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         G(string.Empty, null, string.Empty); // 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 15),
-                // (27,30): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 25),
+                // (27,40): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         G(string.Empty, new object[] { null }); // 3
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 30)
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 40)
                 );
         }
     }
