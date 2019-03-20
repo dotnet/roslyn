@@ -52,6 +52,7 @@ jobs:
           /p:ManifestsPath='$(Build.StagingDirectory)/Download/AssetManifests'
           /p:BuildAssetRegistryToken=$(MaestroAccessToken)
           /p:MaestroApiEndpoint=https://maestro-prod.westus2.cloudapp.azure.com
+          /p:PublishUsingPipelines=$(_PublishUsingPipelines)
           /p:Configuration=$(_BuildConfig)
       condition: ${{ parameters.condition }}
       continueOnError: ${{ parameters.continueOnError }}
