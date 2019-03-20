@@ -1586,6 +1586,80 @@ public readonly struct S2
         }
 
         [Fact]
+        public void StaticReadOnlyMethod_FromMetadata()
+        {
+            var il = @"
+.class private auto ansi '<Module>'
+{
+} // end of class <Module>
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.IsReadOnlyAttribute
+    extends [mscorlib]System.Attribute
+{
+    // Methods
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor () cil managed
+    {
+        // Method begins at RVA 0x2050
+        // Code size 7 (0x7)
+        .maxstack 8
+
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    } // end of method IsReadOnlyAttribute::.ctor
+
+} // end of class System.Runtime.CompilerServices.IsReadOnlyAttribute
+
+.class public sequential ansi sealed beforefieldinit S
+	extends [mscorlib]System.ValueType
+{
+	.pack 0
+	.size 1
+	// Methods
+	.method public hidebysig
+		instance void M1 () cil managed
+	{
+		.custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2058
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method S::M1
+
+	// Methods
+	.method public hidebysig static
+		void M2 () cil managed
+	{
+		.custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+			01 00 00 00
+		)
+		// Method begins at RVA 0x2058
+		// Code size 1 (0x1)
+		.maxstack 8
+		IL_0000: ret
+	} // end of method S::M2
+} // end of class S
+";
+            var ilRef = CompileIL(il);
+
+            var comp = CreateCompilation("", references: new[] { ilRef });
+            var s = comp.GetMember<NamedTypeSymbol>("S");
+
+            var m1 = s.GetMethod("M1");
+            Assert.True(m1.IsDeclaredReadOnly);
+            Assert.True(m1.IsEffectivelyReadOnly);
+
+            // even though the IsReadOnlyAttribute is in metadata,
+            // we ruled out the possibility of the method being readonly because it's static
+            var m2 = s.GetMethod("M2");
+            Assert.False(m2.IsDeclaredReadOnly);
+            Assert.False(m2.IsEffectivelyReadOnly);
+        }
+
+        [Fact]
         public void ReadOnlyMethod_CallNormalMethod()
         {
             var csharp = @"
