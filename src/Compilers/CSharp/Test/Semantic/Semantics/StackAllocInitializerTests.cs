@@ -58,9 +58,6 @@ class C
                 // (10,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('RefG<string>')
                 //         var x2 = stackalloc RefG<string>[10];
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "RefG<string>").WithArguments("RefG<string>").WithLocation(10, 29),
-                // (11,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('RefG<int>')
-                //         var x3 = stackalloc RefG<int>[10];
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "RefG<int>").WithArguments("RefG<int>").WithLocation(11, 29),
                 // (16,22): error CS0611: Array elements cannot be of type 'RefS'
                 //         var y1 = new RefS[10];
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefS").WithArguments("RefS").WithLocation(16, 22),

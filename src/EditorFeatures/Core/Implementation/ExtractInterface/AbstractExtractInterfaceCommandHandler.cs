@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
@@ -47,59 +48,63 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
         public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Extract_Interface))
             {
-                return false;
-            }
+                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                if (document == null)
+                {
+                    return false;
+                }
 
-            var workspace = document.Project.Solution.Workspace;
+                var workspace = document.Project.Solution.Workspace;
 
-            if (!workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
-                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return false;
-            }
+                if (!workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
+                    !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+                {
+                    return false;
+                }
 
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
-            {
-                return false;
-            }
+                var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
+                if (!supportsFeatureService.SupportsRefactorings(document))
+                {
+                    return false;
+                }
 
-            var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (!caretPoint.HasValue)
-            {
-                return false;
-            }
+                var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                if (!caretPoint.HasValue)
+                {
+                    return false;
+                }
 
-            // We are about to show a modal UI dialog so we should take over the command execution
-            // wait context. That means the command system won't attempt to show its own wait dialog 
-            // and also will take it into consideration when measuring command handling duration.
-            context.OperationContext.TakeOwnership();
-            var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
-            var result = _threadingContext.JoinableTaskFactory.Run(() =>
-                extractInterfaceService.ExtractInterfaceAsync(
-                    document,
-                    caretPoint.Value.Position,
-                    (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
-                    CancellationToken.None));
+                // We are about to show a modal UI dialog so we should take over the command execution
+                // wait context. That means the command system won't attempt to show its own wait dialog 
+                // and also will take it into consideration when measuring command handling duration.
+                context.OperationContext.TakeOwnership();
+                var extractInterfaceService = document.GetLanguageService<AbstractExtractInterfaceService>();
+                var result = _threadingContext.JoinableTaskFactory.Run(() =>
+                    extractInterfaceService.ExtractInterfaceAsync(
+                        document,
+                        caretPoint.Value.Position,
+                        (errorMessage, severity) => workspace.Services.GetService<INotificationService>().SendNotification(errorMessage, severity: severity),
+                        CancellationToken.None));
 
-            if (result == null || !result.Succeeded)
-            {
+                if (result == null || !result.Succeeded)
+                {
+                    return true;
+                }
+
+                if (!document.Project.Solution.Workspace.TryApplyChanges(result.UpdatedSolution))
+                {
+                    // TODO: handle failure
+                    return true;
+                }
+
+                var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
+                navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0);
+
                 return true;
             }
-
-            if (!document.Project.Solution.Workspace.TryApplyChanges(result.UpdatedSolution))
-            {
-                // TODO: handle failure
-                return true;
-            }
-
-            var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
-            navigationService.TryNavigateToPosition(workspace, result.NavigationDocumentId, 0);
-
-            return true;
         }
     }
 }

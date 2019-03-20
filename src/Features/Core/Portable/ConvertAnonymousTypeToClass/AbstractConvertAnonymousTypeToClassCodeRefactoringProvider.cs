@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToClass
             // in the type.  Instead, we just want to generate auto-props. So we effectively clone
             // the property, just throwing aways anything we don't need for that purpose.
             // 
-            // We also want to follow general .net naming.  So that means converting to pascal
+            // We also want to follow general .NET naming.  So that means converting to pascal
             // case from camel-case.
 
             var getMethod = prop.GetMethod != null ? CreateAccessorSymbol(prop, MethodKind.PropertyGet) : null;
