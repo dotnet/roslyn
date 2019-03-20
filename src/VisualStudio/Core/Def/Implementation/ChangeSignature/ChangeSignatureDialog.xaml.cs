@@ -48,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             typeHeader.Header = ServicesVSResources.Type;
             parameterHeader.Header = ServicesVSResources.Parameter;
             callsiteHeader.Header = ServicesVSResources.Callsite;
+            indexHeader.Header = "Index";
 
             ParameterText = SystemParameters.HighContrast ? SystemColors.WindowTextBrush : new SolidColorBrush(Color.FromArgb(0xFF, 0x1E, 0x1E, 0x1E));
             RemovedParameterText = SystemParameters.HighContrast ? SystemColors.WindowTextBrush : new SolidColorBrush(Colors.Gray);
