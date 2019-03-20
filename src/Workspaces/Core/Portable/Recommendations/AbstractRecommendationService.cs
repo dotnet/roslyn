@@ -4,9 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
@@ -35,6 +37,82 @@ namespace Microsoft.CodeAnalysis.Recommendations
             var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(context, cancellationToken);
             symbols = symbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
             return symbols;
+        }
+
+        protected static ImmutableArray<ITypeSymbol> GetTypeSymbols(
+            SemanticModel semanticModel, ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
+        {
+            var builder = ArrayBuilder<ITypeSymbol>.GetInstance();
+            var expressionSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
+            var funcSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(Func<>).FullName);
+
+            foreach (var candidateSymbol in candidateSymbols)
+            {
+                if (candidateSymbol is IMethodSymbol method)
+                {
+                    if (method.Parameters.Length > ordinalInInvocation)
+                    {
+                        var methodParameterSymbool = method.Parameters[ordinalInInvocation];
+                        var type = methodParameterSymbool.Type;
+                        if (type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
+                            Equals(expressionSymbolNamedTypeCandidate.OriginalDefinition, expressionSymbol))
+                        {
+                            type = type.GetAllTypeArguments().Single();
+                        }
+
+                        if (type is INamedTypeSymbol funcSymbolNamedTypeCandidate &&
+                            Equals(funcSymbolNamedTypeCandidate.Name, funcSymbol.Name) &&
+                            Equals(funcSymbolNamedTypeCandidate.ContainingNamespace, funcSymbol.ContainingNamespace))
+                        {
+                            type = type.GetAllTypeArguments()[ordinalInLambda];
+                        }
+
+                        builder.Add(type);
+                    }
+                }
+            }
+
+            return builder.ToImmutableAndFree().Distinct();
+        }
+
+        protected static ImmutableArray<ISymbol> GetSymbols<TLambdaExpressionSyntax, TArgumentSyntax, TArgumentListSyntax, TInvocationExpressionSyntax>(
+            SemanticModel semanticModel,
+            IParameterSymbol parameter,
+            int position,
+            bool excludeInstance,
+            Func<TArgumentListSyntax, SeparatedSyntaxList<TArgumentSyntax>> getArguments,
+            CancellationToken cancellationToken)
+            where TArgumentListSyntax : SyntaxNode
+            where TArgumentSyntax : SyntaxNode
+            where TInvocationExpressionSyntax : SyntaxNode
+            where TLambdaExpressionSyntax : SyntaxNode
+
+        {
+            if (!(parameter.ContainingSymbol is IMethodSymbol containingMethod &&
+                containingMethod.MethodKind == MethodKind.AnonymousFunction))
+            {
+                return default;
+            }
+
+            var lambdaSyntax = containingMethod.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken) as TLambdaExpressionSyntax;
+            if (!(lambdaSyntax.Parent is TArgumentSyntax argumentSyntax &&
+                argumentSyntax.Parent is TArgumentListSyntax argumentListSyntax &&
+                argumentListSyntax.Parent is TInvocationExpressionSyntax invocationExpression))
+            {
+                return default;
+            }
+
+            var ordinalInInvocation = getArguments(argumentListSyntax).IndexOf(argumentSyntax);
+            var invocation = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
+            var candidateSymbols =
+                invocation.CandidateSymbols.Length > 0
+                ? invocation.CandidateSymbols
+                : new[] { invocation.Symbol }.ToImmutableArray();
+
+            var parameterTypeSymbols = GetTypeSymbols(
+                semanticModel, candidateSymbols, ordinalInInvocation: ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+
+            return GetSymbols(parameterTypeSymbols, semanticModel, position, excludeInstance);
         }
 
         private sealed class ShouldIncludeSymbolContext

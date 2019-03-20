@@ -3386,7 +3386,7 @@ Namespace ThenIncludeIntellisenseBug
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
                                                                              source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
                                                                              a as Integer,
-                                                                             navigationPropertyPath As Expression(Of Func(Of string, string TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
+                                                                             navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
     End Module

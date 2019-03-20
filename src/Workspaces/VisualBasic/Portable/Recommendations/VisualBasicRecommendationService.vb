@@ -4,7 +4,6 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Recommendations
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
