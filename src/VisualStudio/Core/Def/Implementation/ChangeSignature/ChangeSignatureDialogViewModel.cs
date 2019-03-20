@@ -41,22 +41,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             _classificationFormatMap = classificationFormatMap;
             _classificationTypeMap = classificationTypeMap;
 
+            var initialIndex = 1;
+
             if (parameters.ThisParameter != null)
             {
-                _thisParameter = new ExistingParameterViewModel(this, parameters.ThisParameter);
+                _thisParameter = new ExistingParameterViewModel(this, parameters.ThisParameter, initialIndex++);
                 _disabledParameters.Add(_thisParameter);
-            }
-
-            if (parameters.ParamsParameter != null)
-            {
-                _paramsParameter = new ExistingParameterViewModel(this, parameters.ParamsParameter);
             }
 
             _symbol = symbol;
             _declarationParts = symbol.ToDisplayParts(s_symbolDeclarationDisplayFormat);
 
-            _parameterGroup1 = parameters.ParametersWithoutDefaultValues.Select(p => new ExistingParameterViewModel(this, p)).ToList<ParameterViewModel>();
-            _parameterGroup2 = parameters.RemainingEditableParameters.Select(p => new ExistingParameterViewModel(this, p)).ToList<ParameterViewModel>();
+            _parameterGroup1 = parameters.ParametersWithoutDefaultValues.Select(p => new ExistingParameterViewModel(this, p, initialIndex++)).ToList<ParameterViewModel>();
+            _parameterGroup2 = parameters.RemainingEditableParameters.Select(p => new ExistingParameterViewModel(this, p, initialIndex++)).ToList<ParameterViewModel>();
+
+            if (parameters.ParamsParameter != null)
+            {
+                _paramsParameter = new ExistingParameterViewModel(this, parameters.ParamsParameter, initialIndex++);
+            }
 
             var selectedIndex = parameters.SelectedIndex;
             this.SelectedIndex = (parameters.ThisParameter != null && selectedIndex == 0) ? 1 : selectedIndex;
@@ -512,6 +514,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             }
 
             internal abstract CoolParameter MakeCoolParameter();
+
+            public abstract string InitialIndex { get; }
         }
 
         public class AddedParameterViewModel : ParameterViewModel
@@ -538,16 +542,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             {
                 return new AddedParameter(Type, Parameter, Callsite);
             }
+
+            public override string InitialIndex => "NEW";
         }
 
         public class ExistingParameterViewModel : ParameterViewModel
         {
             public IParameterSymbol ParameterSymbol { get; }
 
-            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, CoolParameter parameter)
+            public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, CoolParameter parameter, int initialIndex)
                 : base(changeSignatureDialogViewModel)
             {
                 ParameterSymbol = (parameter as ExistingParameter).Symbol;
+                InitialIndex = initialIndex.ToString();
             }
 
             internal override CoolParameter MakeCoolParameter()
@@ -558,6 +565,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             public override string ParameterAutomationText => $"{Type} {Parameter}";
 
             public override string Callsite => string.Empty;
+
+            public override string InitialIndex { get; }
 
             public string Modifier
             {
