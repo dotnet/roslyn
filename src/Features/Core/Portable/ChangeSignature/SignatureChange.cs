@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature
 {
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             for (var i = 0; i < originalParameterList.Count; i++)
             {
                 var parameter = originalParameterList[i];
-                var updatedIndex = updatedParameterList.IndexOf(parameter);
+                var updatedIndex = updatedParameterList.IndexOf(p => p.Symbol == parameter.Symbol);
                 _originalIndexToUpdatedIndexMap.Add(i, updatedIndex != -1 ? updatedIndex : (int?)null);
             }
         }
