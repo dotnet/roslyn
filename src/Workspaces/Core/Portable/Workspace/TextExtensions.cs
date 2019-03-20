@@ -33,14 +33,15 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (Workspace.TryGetWorkspace(text.Container, out var workspace))
             {
+                var solution = workspace.CurrentSolution;
                 var id = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (id == null || !workspace.CurrentSolution.ContainsDocument(id))
+                if (id == null || !solution.ContainsDocument(id))
                 {
                     return null;
                 }
 
-                var sol = workspace.CurrentSolution.WithDocumentText(id, text, PreservationMode.PreserveIdentity);
-                return sol.GetDocument(id);
+                return solution.WithDocumentText(id, text, PreservationMode.PreserveIdentity)
+                               .GetDocument(id);
             }
 
             return null;
