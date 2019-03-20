@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     // NOTE: default values do not need to be initialized. 
-                    //       .Net arrays are always zero-inited.
+                    //       .NET arrays are always zero-inited.
                     if (!init.IsDefaultValue())
                     {
                         initCount += 1;

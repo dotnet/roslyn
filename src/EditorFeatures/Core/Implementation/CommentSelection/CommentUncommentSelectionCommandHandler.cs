@@ -146,15 +146,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 return service;
             }
 
-            // If we couldn't find one, fallback to the legacy service.
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacyService = document.GetLanguageService<ICommentUncommentService>();
-#pragma warning restore CS0618 // Type or member is obsolete
-            if (legacyService != null)
-            {
-                return new CommentSelectionServiceProxy(legacyService);
-            }
-
             return null;
         }
 

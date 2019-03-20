@@ -6981,7 +6981,7 @@ public class CF3<T>
                     forwardedTypes1Ref
                 }, TestOptions.ReleaseDll);
 
-            // Exported types in .Net modules cause PEVerify to fail on some platforms.
+            // Exported types in .NET modules cause PEVerify to fail on some platforms.
             CompileAndVerify(compilation, verify: Verification.Skipped).VerifyDiagnostics();
 
             compilation = CreateCompilation("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<byte>))]",
