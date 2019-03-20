@@ -1341,24 +1341,33 @@ public struct S
                 var peModule = (PEModuleSymbol)module;
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Signature.ReturnParam.Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p1).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Signature.ReturnParam.Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.SetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p4).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p5).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.GetMethod).Signature.ReturnParam.Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.SetMethod).Signature.ReturnParam.Handle));
 
                 AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
             }
@@ -1466,23 +1475,31 @@ public readonly struct S
                 var peModule = (PEModuleSymbol)module;
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Signature.ReturnParam.Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p1).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p4).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p5).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.GetMethod).Signature.ReturnParam.Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p5.SetMethod).Signature.ReturnParam.Handle));
 
                 AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
             }

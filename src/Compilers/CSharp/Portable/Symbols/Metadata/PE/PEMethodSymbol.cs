@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!_packedFlags.IsReadOnlyPopulated)
                 {
                     bool isReadOnly = false;
-                    if (CouldBeReadOnly)
+                    if (IsValidReadOnlyTarget)
                     {
                         var moduleSymbol = _containingType.ContainingPEModule;
                         isReadOnly = moduleSymbol.Module.HasIsReadOnlyAttribute(_handle);
