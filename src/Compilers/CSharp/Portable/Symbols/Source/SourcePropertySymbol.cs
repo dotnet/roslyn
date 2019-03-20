@@ -1195,7 +1195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }
 
-            if (this.ReturnsByRefReadonly || HasReadOnlyModifier)
+            if (this.ReturnsByRefReadonly)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }

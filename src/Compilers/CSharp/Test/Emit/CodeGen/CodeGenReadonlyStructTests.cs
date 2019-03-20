@@ -1347,7 +1347,7 @@ public struct S
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.SetMethod).Handle));
 
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
@@ -1365,9 +1365,78 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyMembers_RefReturn_Metadata()
+        {
+            var csharp = @"
+public struct S
+{
+    static int i;
+
+    public ref int M1() => ref i;
+    public readonly ref int M2() => ref i;
+    public ref readonly int M3() => ref i;
+    public readonly ref readonly int M4() => ref i;
+
+    public ref int P1 { get => ref i; }
+    public readonly ref int P2 { get => ref i; }
+    public ref readonly int P3 { get => ref i; }
+    public readonly ref readonly int P4 { get => ref i; }
+}
+";
+            CompileAndVerify(csharp, symbolValidator: validate);
+
+            void validate(ModuleSymbol module)
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("S");
+                var m1 = type.GetMethod("M1");
+                var m2 = type.GetMethod("M2");
+                var m3 = type.GetMethod("M3");
+                var m4 = type.GetMethod("M4");
+
+                var p1 = type.GetProperty("P1");
+                var p2 = type.GetProperty("P2");
+                var p3 = type.GetProperty("P3");
+                var p4 = type.GetProperty("P4");
+
+                var peModule = (PEModuleSymbol)module;
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m1).Signature.ReturnParam.Handle));
+
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m2).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m3).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m3).Signature.ReturnParam.Handle));
+
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m4).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)m4).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p1).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Signature.ReturnParam.Handle));
+
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Signature.ReturnParam.Handle));
+
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Signature.ReturnParam.Handle));
+
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p4).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Handle));
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Signature.ReturnParam.Handle));
+
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Internal);
+            }
+        }
+
+        [Fact]
         public void ReadOnlyStruct_ReadOnlyMembers_Metadata()
         {
             var csharp = @"
+// note that both the type and member declarations are marked 'readonly'
 public readonly struct S
 {
     public void M1() {}
@@ -1402,7 +1471,7 @@ public readonly struct S
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p1).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p1.GetMethod).Handle));
 
-                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p2).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p2.GetMethod).Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
@@ -1453,6 +1522,9 @@ public readonly struct S2
 
             var comp = CreateCompilation("", references: new[] { externalComp.EmitToImageReference() });
             verify(comp);
+
+            var comp2 = CreateCompilation("", references: new[] { externalComp.ToMetadataReference() });
+            verify(comp2);
 
             void verify(CSharpCompilation comp)
             {

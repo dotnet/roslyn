@@ -998,6 +998,26 @@ public readonly class C
         }
 
         [Fact]
+        public void ReadOnlyClass_NormalMethod()
+        {
+            var csharp = @"
+public readonly class C
+{
+    int i;
+    void M()
+    {
+        i++;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (2,23): error CS0106: The modifier 'readonly' is not valid for this item
+                // public readonly class C
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("readonly").WithLocation(2, 23));
+        }
+
+        [Fact]
         public void ReadOnlyInterface()
         {
             var csharp = @"
