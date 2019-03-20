@@ -51911,7 +51911,7 @@ class C
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-               // (3,16): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // (3,16): warning CS8618: Non-nullable field 'F' is uninitialized.
                 //     internal T F;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "F").WithArguments("field", "F").WithLocation(3, 16),
                 // (21,27): warning CS8625: Cannot convert null literal to non-nullable reference type.
