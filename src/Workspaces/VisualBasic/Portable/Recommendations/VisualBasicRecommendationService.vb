@@ -26,5 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                                                  cancellationToken As CancellationToken) As AbstractRecommendationServiceRunner(Of VisualBasicSyntaxContext)
             Return New VisualBasicRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken)
         End Function
+
     End Class
 End Namespace

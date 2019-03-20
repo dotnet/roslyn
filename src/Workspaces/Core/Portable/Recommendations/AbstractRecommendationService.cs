@@ -75,46 +75,6 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return builder.ToImmutableAndFree().Distinct();
         }
 
-        protected static ImmutableArray<ISymbol> GetSymbols<TLambdaExpressionSyntax, TArgumentSyntax, TArgumentListSyntax, TInvocationExpressionSyntax>(
-            SemanticModel semanticModel,
-            IParameterSymbol parameter,
-            int position,
-            bool excludeInstance,
-            Func<TArgumentListSyntax, SeparatedSyntaxList<TArgumentSyntax>> getArguments,
-            CancellationToken cancellationToken)
-            where TArgumentListSyntax : SyntaxNode
-            where TArgumentSyntax : SyntaxNode
-            where TInvocationExpressionSyntax : SyntaxNode
-            where TLambdaExpressionSyntax : SyntaxNode
-
-        {
-            if (!(parameter.ContainingSymbol is IMethodSymbol containingMethod &&
-                containingMethod.MethodKind == MethodKind.AnonymousFunction))
-            {
-                return default;
-            }
-
-            var lambdaSyntax = containingMethod.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken) as TLambdaExpressionSyntax;
-            if (!(lambdaSyntax.Parent is TArgumentSyntax argumentSyntax &&
-                argumentSyntax.Parent is TArgumentListSyntax argumentListSyntax &&
-                argumentListSyntax.Parent is TInvocationExpressionSyntax invocationExpression))
-            {
-                return default;
-            }
-
-            var ordinalInInvocation = getArguments(argumentListSyntax).IndexOf(argumentSyntax);
-            var invocation = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
-            var candidateSymbols =
-                invocation.CandidateSymbols.Length > 0
-                ? invocation.CandidateSymbols
-                : new[] { invocation.Symbol }.ToImmutableArray();
-
-            var parameterTypeSymbols = GetTypeSymbols(
-                semanticModel, candidateSymbols, ordinalInInvocation: ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
-
-            return GetSymbols(parameterTypeSymbols, semanticModel, position, excludeInstance);
-        }
-
         private sealed class ShouldIncludeSymbolContext
         {
             private readonly SyntaxContext _context;
