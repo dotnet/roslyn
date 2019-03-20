@@ -24,14 +24,8 @@ public class MyClass
     [PerformanceSensitive(""uri"")]
     public void Testing()
     {
-        var @struct = new TestStruct { Name = ""Bob"" };
         var @class = new TestClass { Name = ""Bob"" };
     }
-}
-
-public struct TestStruct
-{
-    public string Name { get; set; }
 }
 
 public class TestClass
@@ -39,7 +33,31 @@ public class TestClass
     public string Name { get; set; }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
-                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 22));
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 22));
+        }
+
+
+        [Fact]
+        public async Task ExplicitAllocation_ObjectInitializerStruct_NoWarning()
+        {
+            var sampleProgram =
+    @"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        var @struct = new TestStruct { Name = ""Bob"" };
+    }
+}
+
+public struct TestStruct
+{
+    public string Name { get; set; }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
         }
 
         [Fact]
@@ -112,7 +130,6 @@ public class MyClass
     public void Testing()
     {
         var allocation = new String('a', 10);
-        var noAllocation = new DateTime();
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
@@ -179,7 +196,6 @@ public class MyClass
     public void Foo() 
     {
         System.ValueType box = new S();
-        S noBox = new S();
     }
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
@@ -207,6 +223,28 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(source,
                 VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(13, 17));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_StructCreation_NoWarning()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public struct S { }
+
+public class MyClass
+{
+
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        var noBox1 = new DateTime();
+        S noBox2 = new S();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
         }
     }
 }
