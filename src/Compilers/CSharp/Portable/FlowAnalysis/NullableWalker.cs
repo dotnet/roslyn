@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             VariableState initialState,
             Action<BoundExpression, TypeWithAnnotations> callbackOpt)
-            : base(compilation, method, node, new NeverEmptyStructTypeCache(), trackUnassignments: true)
+            : base(compilation, method, node, new EmptyStructTypeCache(compilation: null, false), trackUnassignments: true)
         {
             _callbackOpt = callbackOpt;
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);

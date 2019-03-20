@@ -51794,7 +51794,7 @@ class C
         object o;
         o = F.P; // 1
         F.P = new object();
-        o = F.P; // 2
+        o = F.P;
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), references: new[] { ref0 });
