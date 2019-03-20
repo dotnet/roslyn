@@ -4632,7 +4632,7 @@ class C
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenInclude(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document>><![CDATA[
+                              <Document><![CDATA[
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -4705,7 +4705,7 @@ namespace ThenIncludeIntellisenseBug
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeNoExpression(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document>><![CDATA[
+                              <Document><![CDATA[
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -4778,7 +4778,7 @@ namespace ThenIncludeIntellisenseBug
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgument(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document>><![CDATA[
+                              <Document><![CDATA[
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -4853,7 +4853,7 @@ namespace ThenIncludeIntellisenseBug
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgumentAndMultiArgumentLambda(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document>><![CDATA[
+                              <Document><![CDATA[
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -4928,7 +4928,7 @@ namespace ThenIncludeIntellisenseBug
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgumentNoOverlap(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document>><![CDATA[
+                              <Document><![CDATA[
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5003,7 +5003,7 @@ namespace ThenIncludeIntellisenseBug
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap(completionImplementation As CompletionImplementation) As Task
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document>><![CDATA[
+                              <Document><![CDATA[
 using System;
 using System.Collections.Generic;
 using System.Linq;
