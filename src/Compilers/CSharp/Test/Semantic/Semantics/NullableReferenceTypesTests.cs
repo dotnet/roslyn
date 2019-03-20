@@ -3849,6 +3849,105 @@ public class C
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(33782, "https://github.com/dotnet/roslyn/issues/33782")]
+        public void AnnotationInXmlDoc_TwoDeclarations()
+        {
+            var source = @"
+/// <summary />
+public class C
+{
+    void M<T>(T? t) where T : struct { }
+    void M<T>(T t) where T : class { }
+
+    /// <summary>
+    /// See <see cref=""M{T}(T?)""/>
+    /// </summary>
+    void M2() { }
+
+    /// <summary>
+    /// See <see cref=""M{T}(T)""/>
+    /// </summary>
+    void M3() { }
+}";
+            // In cref, `T?` always binds to `Nullable<T>`
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var firstCref = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<NameMemberCrefSyntax>().First();
+            var firstCrefSymbol = model.GetSymbolInfo(firstCref).Symbol;
+            Assert.Equal("void C.M<T>(T? t)", firstCrefSymbol.ToTestDisplayString());
+
+            var lastCref = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<NameMemberCrefSyntax>().Last();
+            var lastCrefSymbol = model.GetSymbolInfo(lastCref).Symbol;
+            Assert.Equal("void C.M<T>(T t)", lastCrefSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(33782, "https://github.com/dotnet/roslyn/issues/33782")]
+        public void AnnotationInXmlDoc_DeclaredAsNonNullableReferenceType()
+        {
+            var source = @"
+/// <summary />
+public class C
+{
+    void M<T>(T t) where T : class { }
+
+    /// <summary>
+    /// <see cref=""M{T}(T?)""/> warn 1
+    /// </summary>
+    void M2() { }
+
+    /// <summary>
+    /// <see cref=""M{T}(T)""/>
+    /// </summary>
+    void M3() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,20): warning CS1574: XML comment has cref attribute 'M{T}(T?)' that could not be resolved
+                //     /// <see cref="M{T}(T?)"/> warn 1
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "M{T}(T?)").WithArguments("M{T}(T?)").WithLocation(8, 20));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var lastCref = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<NameMemberCrefSyntax>().Last();
+            var lastCrefSymbol = model.GetSymbolInfo(lastCref).Symbol;
+            Assert.Equal("void C.M<T>(T t)", lastCrefSymbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(33782, "https://github.com/dotnet/roslyn/issues/33782")]
+        public void AnnotationInXmlDoc_DeclaredAsNullableReferenceType()
+        {
+            var source = @"
+/// <summary />
+public class C
+{
+    void M<T>(T? t) where T : class { }
+
+    /// <summary>
+    /// <see cref=""M{T}(T?)""/> warn 1
+    /// </summary>
+    void M2() { }
+
+    /// <summary>
+    /// <see cref=""M{T}(T)""/>
+    /// </summary>
+    void M3() { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularWithDocumentationComments, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,20): warning CS1574: XML comment has cref attribute 'M{T}(T?)' that could not be resolved
+                //     /// <see cref="M{T}(T?)"/> warn 1
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "M{T}(T?)").WithArguments("M{T}(T?)").WithLocation(8, 20));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var lastCref = tree.GetRoot().DescendantNodes(descendIntoTrivia: true).OfType<NameMemberCrefSyntax>().Last();
+            var lastCrefSymbol = model.GetSymbolInfo(lastCref).Symbol;
+            Assert.Equal("void C.M<T>(T? t)", lastCrefSymbol.ToTestDisplayString());
+        }
+
         [Fact, WorkItem(30955, "https://github.com/dotnet/roslyn/issues/30955")]
         public void ArrayTypeInference_Verify30955()
         {

@@ -131,12 +131,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _openFileTrackerOpt = openFileTracker;
             }
 
-            openFileTracker.CheckForOpenDocumentsByEnumeratingTheRunningDocumentTable();
+            openFileTracker.ProcessQueuedWorkOnUIThread();
         }
 
-        public void CheckForOpenDocuments(ImmutableArray<string> newFileNames)
+        public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
         {
-            _openFileTrackerOpt?.CheckForFilesBeingOpen(newFileNames);
+            _openFileTrackerOpt?.QueueCheckForFilesBeingOpen(newFileNames);
+        }
+
+        public void ProcessQueuedWorkOnUIThread()
+        {
+            _openFileTrackerOpt?.ProcessQueuedWorkOnUIThread();
         }
 
         internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectSystemName)
