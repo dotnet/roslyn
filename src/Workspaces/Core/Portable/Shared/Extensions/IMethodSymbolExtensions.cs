@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -368,5 +369,134 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                method.Parameters.Length == 2 &&
                method.Parameters[0].Type.SpecialType == SpecialType.System_Object &&
                method.Parameters[1].Type.InheritsFromOrEquals(eventArgsType);
+
+        /// <summary>
+        /// Checks if the given method implements <see cref="IDisposable.Dispose"/> or overrides an implementation of <see cref="IDisposable.Dispose"/>.
+        /// </summary>
+        public static bool IsDisposeImplementation(this IMethodSymbol method, INamedTypeSymbol iDisposable)
+        {
+            if (method == null)
+            {
+                return false;
+            }
+
+            if (method.IsOverride)
+            {
+                return method.OverriddenMethod.IsDisposeImplementation(iDisposable);
+            }
+
+            // Identify the implementor of IDisposable.Dispose in the given method's containing type and check
+            // if it is the given method.
+            return method.ReturnsVoid &&
+                method.Parameters.Length == 0 &&
+                method.IsImplementationOfInterfaceMethod(null, iDisposable, "Dispose");
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "void Dispose()".
+        /// </summary>
+        private static bool HasDisposeMethodSignature(this IMethodSymbol method)
+        {
+            return method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.IsEmpty;
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "void Dispose(bool)".
+        /// </summary>
+        public static bool HasDisposeBoolMethodSignature(this IMethodSymbol method)
+        {
+            if (method.Name == "Dispose" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.Length == 1)
+            {
+                IParameterSymbol parameter = method.Parameters[0];
+                return parameter.Type != null &&
+                    parameter.Type.SpecialType == SpecialType.System_Boolean &&
+                    parameter.RefKind == RefKind.None;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "void Close()".
+        /// </summary>
+        private static bool HasDisposeCloseMethodSignature(this IMethodSymbol method)
+        {
+            return method.Name == "Close" && method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnsVoid && method.Parameters.IsEmpty;
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "Task DisposeAsync()".
+        /// </summary>
+        private static bool HasDisposeAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol task)
+        {
+            return method.Name == "DisposeAsync" &&
+                method.MethodKind == MethodKind.Ordinary &&
+                method.ReturnType.Equals(task) &&
+                method.Parameters.IsEmpty;
+        }
+
+        /// <summary>
+        /// Checks if the given method has the signature "override Task DisposeCoreAsync(bool)".
+        /// </summary>
+        private static bool HasOverriddenDisposeCoreAsyncMethodSignature(this IMethodSymbol method, INamedTypeSymbol task)
+        {
+            return method.Name == "DisposeCoreAsync" &&
+                method.MethodKind == MethodKind.Ordinary &&
+                method.IsOverride &&
+                method.ReturnType.Equals(task) &&
+                method.Parameters.Length == 1 &&
+                method.Parameters[0].Type.SpecialType == SpecialType.System_Boolean;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="DisposeMethodKind"/> for the given method.
+        /// </summary>
+        public static DisposeMethodKind GetDisposeMethodKind(
+            this IMethodSymbol method,
+            INamedTypeSymbol iDisposable,
+            INamedTypeSymbol task)
+        {
+            if (method.ContainingType.IsDisposable(iDisposable))
+            {
+                if (IsDisposeImplementation(method, iDisposable) ||
+                    (method.ContainingType == iDisposable &&
+                     method.HasDisposeMethodSignature()))
+                {
+                    return DisposeMethodKind.Dispose;
+                }
+                else if (method.HasDisposeBoolMethodSignature())
+                {
+                    return DisposeMethodKind.DisposeBool;
+                }
+                else if (method.HasDisposeAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.DisposeAsync;
+                }
+                else if (method.HasOverriddenDisposeCoreAsyncMethodSignature(task))
+                {
+                    return DisposeMethodKind.DisposeCoreAsync;
+                }
+                else if (method.HasDisposeCloseMethodSignature())
+                {
+                    return DisposeMethodKind.Close;
+                }
+            }
+
+            return DisposeMethodKind.None;
+        }
+
+        /// <summary>
+        /// Checks if the given method is an implementation of the given interface method 
+        /// Substituted with the given typeargument.
+        /// </summary>
+        public static bool IsImplementationOfInterfaceMethod(this IMethodSymbol method, ITypeSymbol typeArgument, INamedTypeSymbol interfaceType, string interfaceMethodName)
+        {
+            INamedTypeSymbol constructedInterface = typeArgument != null ? interfaceType?.Construct(typeArgument) : interfaceType;
+
+            return constructedInterface?.GetMembers(interfaceMethodName).Single() is IMethodSymbol interfaceMethod && method.Equals(method.ContainingType.FindImplementationForInterfaceMember(interfaceMethod));
+        }
     }
 }

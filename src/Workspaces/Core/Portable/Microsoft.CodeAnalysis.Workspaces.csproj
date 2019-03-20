@@ -349,5 +349,8 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.FlowAnalysis.Utilities" Version="$(MicrosoftCodeAnalysisFlowAnalysisUtilitiesVersion)" PrivateAssets="all" />
+  </ItemGroup>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
 </Project>

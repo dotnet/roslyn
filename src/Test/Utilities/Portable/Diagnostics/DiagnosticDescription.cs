@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public object Code => _code;
+        public bool HasLocation => _startPosition != null;
 
         public override bool Equals(object obj)
         {

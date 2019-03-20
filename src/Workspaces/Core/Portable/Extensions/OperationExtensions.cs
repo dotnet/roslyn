@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
@@ -193,6 +194,39 @@ namespace Microsoft.CodeAnalysis
                 default:
                     return false;
             }
+        }
+
+        public static bool IsInsideCatchRegion(this IOperation operation, ControlFlowGraph cfg)
+        {
+            foreach (var block in cfg.Blocks)
+            {
+                var isCatchRegionBlock = false;
+                var currentRegion = block.EnclosingRegion;
+                while (currentRegion != null)
+                {
+                    switch (currentRegion.Kind)
+                    {
+                        case ControlFlowRegionKind.Catch:
+                            isCatchRegionBlock = true;
+                            break;
+                    }
+
+                    currentRegion = currentRegion.EnclosingRegion;
+                }
+
+                if (isCatchRegionBlock)
+                {
+                    foreach (var descendant in block.DescendantOperations())
+                    {
+                        if (operation == descendant)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
