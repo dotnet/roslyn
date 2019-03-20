@@ -24,6 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
             => syntax.Name.ToString();
 
         protected override string GetNamespaceName(TypeDeclarationSyntax syntax)
-            => GetNamespaceName(syntax.FirstAncestorOrSelf<NamespaceDeclarationSyntax>());
+        {
+            var namespaceDecl = syntax.FirstAncestorOrSelf<NamespaceDeclarationSyntax>();
+            if (namespaceDecl == null)
+            {
+                return string.Empty;
+            }
+
+            return GetNamespaceName(namespaceDecl);
+        }
     }
 }
