@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -56,14 +56,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     if (!TryInitializeExplicitInterface(service, document, node, cancellationToken))
                     {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                        Debug.Assert(SpecializedTasks.False.IsCompleted);
                         return SpecializedTasks.False;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                     }
                 }
                 else if (service.IsSimpleNameGeneration(node))
                 {
                     if (!TryInitializeSimpleName(service, document, (TSimpleNameSyntax)node, cancellationToken))
                     {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                        Debug.Assert(SpecializedTasks.False.IsCompleted);
                         return SpecializedTasks.False;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                     }
                 }
 

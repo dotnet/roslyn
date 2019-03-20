@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -259,7 +260,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         _map[name] = new MemoryStream();
                         stream.CopyTo(_map[name]);
 
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                        Debug.Assert(SpecializedTasks.True.IsCompleted);
                         return SpecializedTasks.True;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                     }
 
                     public Task<bool> WriteStreamAsync(Project project, string name, Stream stream, CancellationToken cancellationToken = default)
@@ -267,7 +271,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         _map[Tuple.Create(project, name)] = new MemoryStream();
                         stream.CopyTo(_map[Tuple.Create(project, name)]);
 
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                        Debug.Assert(SpecializedTasks.True.IsCompleted);
                         return SpecializedTasks.True;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                     }
 
                     public Task<bool> WriteStreamAsync(Document document, string name, Stream stream, CancellationToken cancellationToken = default)
@@ -275,7 +282,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         _map[Tuple.Create(document, name)] = new MemoryStream();
                         stream.CopyTo(_map[Tuple.Create(document, name)]);
 
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                        Debug.Assert(SpecializedTasks.True.IsCompleted);
                         return SpecializedTasks.True;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                     }
 
                     protected virtual void Dispose(bool disposing)

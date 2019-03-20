@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -36,14 +37,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 {
                     if (!TryInitializeImplicitConversion(service, document, node, cancellationToken))
                     {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                        Debug.Assert(SpecializedTasks.False.IsCompleted);
                         return SpecializedTasks.False;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                     }
                 }
                 else if (service.IsExplicitConversionGeneration(node))
                 {
                     if (!TryInitializeExplicitConversion(service, document, node, cancellationToken))
                     {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                        Debug.Assert(SpecializedTasks.False.IsCompleted);
                         return SpecializedTasks.False;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                     }
                 }
 

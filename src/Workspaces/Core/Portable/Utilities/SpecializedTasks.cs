@@ -5,23 +5,30 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
     internal static class SpecializedTasks
     {
+        [NoMainThreadDependency(AlwaysCompleted = true)]
         public static readonly Task<bool> True = Task.FromResult(true);
+
+        [NoMainThreadDependency(AlwaysCompleted = true)]
         public static readonly Task<bool> False = Task.FromResult(false);
 
         // This is being consumed through InternalsVisibleTo by Source-Based test discovery
         [Obsolete("Use Task.CompletedTask instead which is available in the framework.")]
+        [NoMainThreadDependency(AlwaysCompleted = true)]
         public static readonly Task EmptyTask = Task.CompletedTask;
 
+        [return: NoMainThreadDependency(AlwaysCompleted = true)]
         public static Task<T> Default<T>()
         {
             return Empty<T>.Default;
         }
 
+        [return: NoMainThreadDependency(AlwaysCompleted = true)]
         public static Task<T> DefaultOrResult<T>(T value)
         {
             if (EqualityComparer<T>.Default.Equals(value, default))
@@ -32,26 +39,31 @@ namespace Roslyn.Utilities
             return Task.FromResult(value);
         }
 
+        [return: NoMainThreadDependency(AlwaysCompleted = true)]
         public static Task<IReadOnlyList<T>> EmptyReadOnlyList<T>()
         {
             return Empty<T>.EmptyReadOnlyList;
         }
 
+        [return: NoMainThreadDependency(AlwaysCompleted = true)]
         public static Task<IList<T>> EmptyList<T>()
         {
             return Empty<T>.EmptyList;
         }
 
+        [return: NoMainThreadDependency(AlwaysCompleted = true)]
         public static Task<ImmutableArray<T>> EmptyImmutableArray<T>()
         {
             return Empty<T>.EmptyImmutableArray;
         }
 
+        [return: NoMainThreadDependency(AlwaysCompleted = true)]
         public static Task<IEnumerable<T>> EmptyEnumerable<T>()
         {
             return Empty<T>.EmptyEnumerable;
         }
 
+        [return: NoMainThreadDependency(AlwaysCompleted = true)]
         public static Task<T> FromResult<T>(T t) where T : class
         {
             return FromResultCache<T>.FromResult(t);
@@ -59,10 +71,19 @@ namespace Roslyn.Utilities
 
         private static class Empty<T>
         {
+            [NoMainThreadDependency(AlwaysCompleted = true)]
             public static readonly Task<T> Default = Task.FromResult<T>(default);
+
+            [NoMainThreadDependency(AlwaysCompleted = true)]
             public static readonly Task<IEnumerable<T>> EmptyEnumerable = Task.FromResult<IEnumerable<T>>(SpecializedCollections.EmptyEnumerable<T>());
+
+            [NoMainThreadDependency(AlwaysCompleted = true)]
             public static readonly Task<ImmutableArray<T>> EmptyImmutableArray = Task.FromResult(ImmutableArray<T>.Empty);
+
+            [NoMainThreadDependency(AlwaysCompleted = true)]
             public static readonly Task<IList<T>> EmptyList = Task.FromResult(SpecializedCollections.EmptyList<T>());
+
+            [NoMainThreadDependency(AlwaysCompleted = true)]
             public static readonly Task<IReadOnlyList<T>> EmptyReadOnlyList = Task.FromResult(SpecializedCollections.EmptyReadOnlyList<T>());
         }
 
@@ -71,6 +92,7 @@ namespace Roslyn.Utilities
             private static readonly ConditionalWeakTable<T, Task<T>> s_fromResultCache = new ConditionalWeakTable<T, Task<T>>();
             private static readonly ConditionalWeakTable<T, Task<T>>.CreateValueCallback s_taskCreationCallback = Task.FromResult<T>;
 
+            [return: NoMainThreadDependency(AlwaysCompleted = true)]
             public static Task<T> FromResult(T t)
             {
                 return s_fromResultCache.GetValue(t, s_taskCreationCallback);
