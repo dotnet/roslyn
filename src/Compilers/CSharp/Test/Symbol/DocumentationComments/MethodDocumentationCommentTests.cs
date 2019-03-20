@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     internal static CSharpErrors.ClassMethods F = null;
 }");
             var type = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            type = (NamedTypeSymbol)type.GetMember<FieldSymbol>("F").Type.TypeSymbol;
+            type = (NamedTypeSymbol)type.GetMember<FieldSymbol>("F").Type;
             var members = type.GetMembers();
             Assert.InRange(members.Length, 1, int.MaxValue);
             foreach (var member in members)

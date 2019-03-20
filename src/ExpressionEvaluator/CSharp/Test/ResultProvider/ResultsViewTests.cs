@@ -1842,6 +1842,47 @@ class C
             }
         }
 
+        [Fact]
+        public void NoSideEffects()
+        {
+            var source =
+@"using System.Collections;
+class C : IEnumerable
+{
+    private readonly IEnumerable e;
+    internal C(IEnumerable e)
+    {
+        this.e = e;
+    }
+    public IEnumerator GetEnumerator()
+    {
+        return this.e.GetEnumerator();
+    }
+}";
+            var assembly = GetAssembly(source);
+            var assemblies = ReflectionUtilities.GetMscorlibAndSystemCore(assembly);
+            using (ReflectionUtilities.LoadAssemblies(assemblies))
+            {
+                var runtime = new DkmClrRuntimeInstance(assemblies);
+                var type = assembly.GetType("C");
+                var value = CreateDkmClrValue(
+                    value: type.Instantiate(new[] { 1, 2 }),
+                    type: runtime.GetType((TypeImpl)type));
+                var inspectionContext = CreateDkmInspectionContext(DkmEvaluationFlags.NoSideEffects);
+                var evalResult = FormatResult("o", value, inspectionContext: inspectionContext);
+                Verify(evalResult,
+                    EvalResult("o", "{C}", "C", "o", DkmEvaluationResultFlags.Expandable));
+                var children = GetChildren(evalResult, inspectionContext: inspectionContext);
+                Verify(children,
+                    EvalResult(
+                        "e",
+                        "{int[2]}",
+                        "System.Collections.IEnumerable {int[]}",
+                        "o.e",
+                        DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly));
+            }
+        }
+
         private DkmEvaluationResult FormatPropertyValue(DkmClrRuntimeInstance runtime, object value, string propertyName)
         {
             var propertyInfo = value.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);

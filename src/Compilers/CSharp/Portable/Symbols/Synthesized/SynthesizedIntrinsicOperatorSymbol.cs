@@ -221,19 +221,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
-                return TypeSymbolWithAnnotations.Create(_returnType);
+                return TypeWithAnnotations.Create(_returnType);
             }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
-                return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+                return ImmutableArray<TypeWithAnnotations>.Empty;
             }
         }
 
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 for (int i = 0; i < _parameters.Length; i++)
                 {
-                    if (!TypeSymbol.Equals(_parameters[i].Type.TypeSymbol, other._parameters[i].Type.TypeSymbol, TypeCompareKind.ConsiderEverything2))
+                    if (!TypeSymbol.Equals(_parameters[i].Type, other._parameters[i].Type, TypeCompareKind.ConsiderEverything2))
                     {
                         return false;
                     }
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 TypeSymbol type,
                 int ordinal,
                 string name
-            ) : base(container, TypeSymbolWithAnnotations.Create(type), ordinal, RefKind.None, name)
+            ) : base(container, TypeWithAnnotations.Create(type), ordinal, RefKind.None, name)
             {
             }
 

@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 enumeratorInfoOpt.MoveNextMethod,
                 currentProperty: (PropertySymbol)enumeratorInfoOpt.CurrentPropertyGetter?.AssociatedSymbol,
                 disposeMethod,
-                enumeratorInfoOpt.ElementType.TypeSymbol,
+                enumeratorInfoOpt.ElementType,
                 boundForEach.ElementConversion,
                 enumeratorInfoOpt.CurrentConversion);
         }
@@ -1912,6 +1912,11 @@ done:
                     case SyntaxKind.CheckedExpression:
                     case SyntaxKind.UncheckedExpression:
                         node = ((CheckedExpressionSyntax)node).Expression;
+                        continue;
+
+                    // Simple mitigation to give a result for suppressions. Public API tracked by https://github.com/dotnet/roslyn/issues/26198
+                    case SyntaxKind.SuppressNullableWarningExpression:
+                        node = ((PostfixUnaryExpressionSyntax)node).Operand;
                         continue;
                 }
 

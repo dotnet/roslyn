@@ -3,8 +3,8 @@
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// The nullable state of an rvalue computed in NullableWalker.
-    /// When in doubt we conservatively use <see cref="NotNull"/>
+    /// The nullable state of an rvalue computed in <see cref="NullableWalker"/>.
+    /// When in doubt we conservatively use <see cref="NullableFlowState.NotNull"/>
     /// to minimize diagnostics.
     /// </summary>
     internal enum NullableFlowState : byte

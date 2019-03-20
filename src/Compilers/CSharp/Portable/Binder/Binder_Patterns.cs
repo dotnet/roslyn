@@ -376,11 +376,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(inputType != (object)null);
             Debug.Assert(!typeSyntax.IsVar); // if the syntax had `var`, it would have been parsed as a var pattern.
-            TypeSymbolWithAnnotations declType = BindType(typeSyntax, diagnostics, out AliasSymbol aliasOpt);
+            TypeWithAnnotations declType = BindType(typeSyntax, diagnostics, out AliasSymbol aliasOpt);
             Debug.Assert(declType.HasType);
             Debug.Assert(typeSyntax.Kind() != SyntaxKind.NullableType); // the syntax does not permit nullable annotations
-            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: false, type: declType.TypeSymbol);
-            hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.TypeSymbol, patternTypeWasInSource: true, diagnostics: diagnostics);
+            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: false, type: declType.Type);
+            hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
             return boundDeclType;
         }
 
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                             CheckFeatureAvailability(designation, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
 
-                        localSymbol.SetType(TypeSymbolWithAnnotations.Create(declType));
+                        localSymbol.SetTypeWithAnnotations(TypeWithAnnotations.Create(declType));
                         localSymbol.SetValEscape(GetValEscape(declType, inputValEscape));
 
                         // Check for variable declaration errors.
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(designation.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
                         GlobalExpressionVariable expressionVariableField = LookupDeclaredField(singleVariableDesignation);
                         DiagnosticBag tempDiagnostics = DiagnosticBag.GetInstance();
-                        expressionVariableField.SetType(TypeSymbolWithAnnotations.Create(declType), tempDiagnostics);
+                        expressionVariableField.SetTypeWithAnnotations(TypeWithAnnotations.Create(declType), tempDiagnostics);
                         tempDiagnostics.Free();
                         BoundExpression receiver = SynthesizeReceiver(designation, expressionVariableField, diagnostics);
 
@@ -508,12 +508,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
                     // required to identify it.  When that bug is fixed we should be able to remove this if statement.
                     BindValueTupleSubpatterns(
-                        positionalClause, declType, ImmutableArray<TypeSymbolWithAnnotations>.Empty, inputValEscape, ref hasErrors, patternsBuilder, diagnostics);
+                        positionalClause, declType, ImmutableArray<TypeWithAnnotations>.Empty, inputValEscape, ref hasErrors, patternsBuilder, diagnostics);
                 }
                 else if (declType.IsTupleType)
                 {
                     // It is a tuple type. Work according to its elements
-                    BindValueTupleSubpatterns(positionalClause, declType, declType.TupleElementTypes, inputValEscape, ref hasErrors, patternsBuilder, diagnostics);
+                    BindValueTupleSubpatterns(positionalClause, declType, declType.TupleElementTypesWithAnnotations, inputValEscape, ref hasErrors, patternsBuilder, diagnostics);
                 }
                 else
                 {
@@ -654,23 +654,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void BindValueTupleSubpatterns(
             PositionalPatternClauseSyntax node,
             TypeSymbol declType,
-            ImmutableArray<TypeSymbolWithAnnotations> elementTypes,
+            ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations,
             uint inputValEscape,
             ref bool hasErrors,
             ArrayBuilder<BoundSubpattern> patterns,
             DiagnosticBag diagnostics)
         {
-            if (elementTypes.Length != node.Subpatterns.Count && !hasErrors)
+            if (elementTypesWithAnnotations.Length != node.Subpatterns.Count && !hasErrors)
             {
-                diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, node.Location, declType, elementTypes.Length, node.Subpatterns.Count);
+                diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, node.Location, declType, elementTypesWithAnnotations.Length, node.Subpatterns.Count);
                 hasErrors = true;
             }
 
             for (int i = 0; i < node.Subpatterns.Count; i++)
             {
                 var subpatternSyntax = node.Subpatterns[i];
-                bool isError = i >= elementTypes.Length;
-                TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i].TypeSymbol;
+                bool isError = i >= elementTypesWithAnnotations.Length;
+                TypeSymbol elementType = isError ? CreateErrorType() : elementTypesWithAnnotations[i].Type;
                 FieldSymbol foundField = null;
                 if (subpatternSyntax.NameColon != null && !isError)
                 {
@@ -860,12 +860,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Work around https://github.com/dotnet/roslyn/issues/20648: The compiler's internal APIs such as `declType.IsTupleType`
                             // do not correctly treat the non-generic struct `System.ValueTuple` as a tuple type.  We explicitly perform the tests
                             // required to identify it.  When that bug is fixed we should be able to remove this if statement.
-                            addSubpatternsForTuple(ImmutableArray<TypeSymbolWithAnnotations>.Empty);
+                            addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations>.Empty);
                         }
                         else if (strippedInputType.IsTupleType)
                         {
                             // It is a tuple type. Work according to its elements
-                            addSubpatternsForTuple(strippedInputType.TupleElementTypes);
+                            addSubpatternsForTuple(strippedInputType.TupleElementTypesWithAnnotations);
                         }
                         else
                         {
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             syntax: node, declaredType: null, inputType: inputType, deconstructMethod: deconstructMethod,
                             deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null, hasErrors: hasErrors);
 
-                        void addSubpatternsForTuple(ImmutableArray<TypeSymbolWithAnnotations> elementTypes)
+                        void addSubpatternsForTuple(ImmutableArray<TypeWithAnnotations> elementTypes)
                         {
                             if (elementTypes.Length != tupleDesignation.Variables.Count && !hasErrors)
                             {
@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 var variable = tupleDesignation.Variables[i];
                                 bool isError = i >= elementTypes.Length;
-                                TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i].TypeSymbol;
+                                TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i].Type;
                                 BoundPattern pattern = BindVarDesignation(variable, elementType, GetValEscape(elementType, inputValEscape), isError, diagnostics);
                                 subPatterns.Add(new BoundSubpattern(variable, symbol: null, pattern));
                             }
@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (inputType.IsErrorType() || hasErrors || symbol == (object)null)
                 memberType = CreateErrorType();
             else
-                memberType = symbol.GetTypeOrReturnType().TypeSymbol;
+                memberType = symbol.GetTypeOrReturnType().Type;
 
             return symbol;
         }
@@ -997,7 +997,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rightName: name,
                 rightArity: 0,
                 typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>),
-                typeArguments: default(ImmutableArray<TypeSymbolWithAnnotations>),
+                typeArgumentsWithAnnotations: default(ImmutableArray<TypeWithAnnotations>),
                 invoked: false,
                 indexed: false,
                 diagnostics: diagnostics);
