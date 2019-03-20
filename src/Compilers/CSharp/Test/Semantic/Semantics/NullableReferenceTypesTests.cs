@@ -86641,5 +86641,32 @@ class C
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 40)
                 );
         }
+
+        [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
+        public void PragmaIgnored_InDisabledCode()
+        {
+            var source =
+@"
+#if UNDEF
+#nullable disable
+#endif
+
+#define UNDEF
+
+#if UNDEF
+#nullable disable // 1
+#endif
+
+";
+            CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (9,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // #nullable disable // 1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(9, 2)
+                );
+
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue())
+                .VerifyDiagnostics();
+        }
     }
 }

@@ -430,7 +430,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseNullableDirective(SyntaxToken hash, SyntaxToken token, bool isActive)
         {
-            token = CheckFeatureAvailability(token, MessageID.IDS_FeatureNullableReferenceTypes);
+            if (isActive)
+            {
+                token = CheckFeatureAvailability(token, MessageID.IDS_FeatureNullableReferenceTypes);
+            }
 
             SyntaxToken setting;
 
