@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -14352,6 +14352,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_IllegalPragma_Title {
             get {
                 return ResourceManager.GetString("WRN_IllegalPragma_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Call to non-readonly member &apos;{0}&apos; from a &apos;readonly&apos; member results in an implicit copy of &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_ImplicitCopyInReadOnlyMember {
+            get {
+                return ResourceManager.GetString("WRN_ImplicitCopyInReadOnlyMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Call to non-readonly member from a &apos;readonly&apos; member results in an implicit copy..
+        /// </summary>
+        internal static string WRN_ImplicitCopyInReadOnlyMember_Title {
+            get {
+                return ResourceManager.GetString("WRN_ImplicitCopyInReadOnlyMember_Title", resourceCulture);
             }
         }
         

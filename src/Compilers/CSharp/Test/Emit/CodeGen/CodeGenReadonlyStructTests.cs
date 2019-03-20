@@ -1307,5 +1307,257 @@ unsafe class Test
 
             CompileAndVerify(comp, expectedOutput: "SpanOpCalled", verify: Verification.Fails);
         }
+
+        [Fact]
+        public void ReadOnlyMethod_CallNormalMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+
+    public readonly void M1()
+    {
+        // should create local copy
+        M2();
+        System.Console.Write(i);
+
+        // explicit local copy, no warning
+        var copy = this;
+        copy.M2();
+        System.Console.Write(copy.i);
+    }
+
+    void M2()
+    {
+        i = 23;
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        s.M1();
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+
+            verifier.VerifyDiagnostics(
+                // (9,9): warning CS8655: Call to non-readonly member 'M2' from a 'readonly' member results in an implicit copy of 'this'.
+                //         M2();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M2").WithArguments("M2", "this").WithLocation(9, 9));
+
+            verifier.VerifyIL("S.M1", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (S V_0, //copy
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void S.M2()""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""int S.i""
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ldarg.0
+  IL_001a:  ldobj      ""S""
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""void S.M2()""
+  IL_0027:  ldloc.0
+  IL_0028:  ldfld      ""int S.i""
+  IL_002d:  call       ""void System.Console.Write(int)""
+  IL_0032:  ret
+}");
+        }
+
+        [Fact]
+        public void InMethod_CallNormalMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+
+    public static void M1(in S s)
+    {
+        // should create local copy
+        s.M2();
+        System.Console.Write(s.i);
+
+        // explicit local copy, no warning
+        var copy = s;
+        copy.M2();
+        System.Console.Write(copy.i);
+    }
+
+    void M2()
+    {
+        i = 23;
+    }
+
+    static void Main()
+    {
+        var s = new S { i = 1 };
+        M1(in s);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(csharp, expectedOutput: "123");
+            // should warn about calling s.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("S.M1", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  1
+  .locals init (S V_0, //copy
+                S V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  stloc.1
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void S.M2()""
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      ""int S.i""
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ldarg.0
+  IL_001a:  ldobj      ""S""
+  IL_001f:  stloc.0
+  IL_0020:  ldloca.s   V_0
+  IL_0022:  call       ""void S.M2()""
+  IL_0027:  ldloc.0
+  IL_0028:  ldfld      ""int S.i""
+  IL_002d:  call       ""void System.Console.Write(int)""
+  IL_0032:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallReadOnlyMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public readonly int M1() => M2() + 1;
+    public readonly int M2() => i;
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyIL("S.M1", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int S.M2()""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InParam_CallReadOnlyMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public int i;
+    public static int M1(in S s) => s.M2() + 1;
+    public readonly int M2() => i;
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyIL("S.M1", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int S.M2()""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallReadOnlyMethodOnField()
+        {
+            var csharp = @"
+public struct S1
+{
+    public readonly void M1() {}
+}
+
+public struct S2
+{
+    S1 s1;
+
+    public readonly void M2()
+    {
+        s1.M1();
+    }
+}
+";
+            var comp = CompileAndVerify(csharp);
+
+            comp.VerifyIL("S2.M2", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S1 S2.s1""
+  IL_0006:  call       ""void S1.M1()""
+  IL_000b:  ret
+}");
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallNormalMethodOnField()
+        {
+            var csharp = @"
+public struct S1
+{
+    public void M1() {}
+}
+
+public struct S2
+{
+    S1 s1;
+
+    public readonly void M2()
+    {
+        s1.M1();
+    }
+}
+";
+            var comp = CompileAndVerify(csharp);
+
+            comp.VerifyIL("S2.M2", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""S1 S2.s1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""void S1.M1()""
+  IL_000e:  ret
+}");
+
+            // should warn about calling s2.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
+            comp.VerifyDiagnostics();
+        }
     }
 }

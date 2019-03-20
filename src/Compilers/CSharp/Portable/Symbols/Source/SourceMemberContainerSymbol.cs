@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsReadOnly
+        public override bool IsReadOnly
         {
             get
             {

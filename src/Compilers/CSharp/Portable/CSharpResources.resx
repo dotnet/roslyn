@@ -5421,6 +5421,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_NullLiteralMayIntroduceNullT_Title" xml:space="preserve">
     <value>A null literal introduces a null value for a type parameter.</value>
   </data>
+  <data name="WRN_ImplicitCopyInReadOnlyMember" xml:space="preserve">
+    <value>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</value>
+  </data>
+  <data name="WRN_ImplicitCopyInReadOnlyMember_Title" xml:space="preserve">
+    <value>Call to non-readonly member from a 'readonly' member results in an implicit copy.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
     <value>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</value>
   </data>

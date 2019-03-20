@@ -1263,6 +1263,16 @@
         <target state="translated">Nullable attendu après un avertissement #pragma safeonly</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
+        <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
+        <target state="new">Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
+        <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
+        <target state="new">Call to non-readonly member from a 'readonly' member results in an implicit copy.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
         <source>The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</source>
         <target state="translated">Le nom '_' fait référence au type '{0}', pas au modèle d'abandon. Utilisez '@_' pour le type, ou 'var _' pour abandonner.</target>

@@ -1264,6 +1264,16 @@
         <target state="translated">Tipo que acepta valores NULL esperado después de advertencia de #pragma "safeonly"</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
+        <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
+        <target state="new">Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
+        <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
+        <target state="new">Call to non-readonly member from a 'readonly' member results in an implicit copy.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
         <source>The name '_' refers to the type '{0}', not the discard pattern. Use '@_' for the type, or 'var _' to discard.</source>
         <target state="translated">El nombre "_" hace referencia al tipo "{0}", no al patrón de descarte. Use "@_" para el tipo o "var _" para el descarte.</target>
