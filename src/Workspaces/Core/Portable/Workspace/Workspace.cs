@@ -1329,7 +1329,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            // update info if changed
+            // Update document info if changed. Updating the info can cause files to move on disk (or have other side effects),
+            // so we do this after any text changes have been applied.
             if (newDoc.HasInfoChanged(oldDoc))
             {
                 // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
