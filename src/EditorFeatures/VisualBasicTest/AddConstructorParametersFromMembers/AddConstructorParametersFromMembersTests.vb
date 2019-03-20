@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddConstructorPara
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
+        <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAdd1() As Task
             Await TestInRegularAndScriptAsync(
@@ -36,10 +37,11 @@ End Class",
         Me.i = i
         Me.s = s
     End Sub
-End Class")
+End Class", title:=String.Format(FeaturesResources.Add_parameters_to_0, "Program(Integer)"))
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
+        <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)>
         Public Async Function TestAddOptional1() As Task
             Await TestInRegularAndScriptAsync(
@@ -57,8 +59,7 @@ End Class",
         Me.i = i
         Me.s = s
     End Sub
-End Class",
-index:=1)
+End Class", index:=1, title:=String.Format(FeaturesResources.Add_optional_parameters_to_0, "Program(Integer)"))
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
@@ -91,7 +92,7 @@ End Class",
         Me.s = s
         Me.b = b
     End Sub
-End Class", index:=1)
+End Class", index:=1, title:=String.Format(FeaturesResources.Add_to_0, "Program(Integer, String)"))
         End Function
 
         <WorkItem(530592, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530592")>
@@ -124,8 +125,7 @@ End Class",
         Me.s = s
         Me.b = b
     End Sub
-End Class",
-index:=3)
+End Class", index:=3, title:=String.Format(FeaturesResources.Add_to_0, "Program(Integer, String)"))
         End Function
 
         <WorkItem(28775, "https://github.com/dotnet/roslyn/issues/28775")>
@@ -345,7 +345,7 @@ End Class",
 
     Public Sub New(i As Integer, j As Integer, k As Integer)
     End Sub
-End Class", index:=0)
+End Class", index:=0, title:=String.Format(FeaturesResources.Add_to_0, "Program(Integer)"))
         End Function
 
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
@@ -378,7 +378,7 @@ End Class",
 
     Public Sub New(i As Integer, j As Integer, k As Integer)
     End Sub
-End Class", index:=1)
+End Class", index:=1, title:=String.Format(FeaturesResources.Add_to_0, "Program(Integer, Integer)"))
         End Function
 
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
@@ -411,7 +411,7 @@ End Class",
     Public Sub New(i As Integer, j As Integer, k As Integer, l As Integer)
         Me.l = l
     End Sub
-End Class", index:=2)
+End Class", index:=2, title:=String.Format(FeaturesResources.Add_to_0, "Program(Integer, Integer, Integer)"))
         End Function
 
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
@@ -450,7 +450,7 @@ End Class",
     Public Sub New(i As Integer, j As Double, l As Integer)
         Me.l = l
     End Sub
-End Class", index:=1)
+End Class", index:=1, title:=String.Format(FeaturesResources.Add_to_0, "Program(Integer, Double)"))
         End Function
 
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
@@ -489,7 +489,7 @@ End Class",
     ' index 1, and 4 as optional
     Public Sub New(i As Integer, j As Double)
     End Sub
-End Class", index:=3)
+End Class", index:=3, title:=String.Format(FeaturesResources.Add_to_0, "Program(Double)"))
         End Function
 
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
@@ -522,7 +522,7 @@ End Class",
 
     Public Sub New(l As Integer, m As Integer, Optional n As Integer = Nothing)
     End Sub
-End Class", index:=0)
+End Class", index:=0, title:=String.Format(FeaturesResources.Add_to_0, "Program(Integer)"))
         End Function
 
         <WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")>
@@ -555,7 +555,7 @@ End Class",
     Public Sub New(l As Integer, m As Integer, Optional n As Integer = Nothing, Optional p As Integer = Nothing)
         Me.p = p
     End Sub
-End Class", index:=2)
+End Class", index:=2, title:=String.Format(FeaturesResources.Add_to_0, "Program(Integer, Integer, Integer)"))
         End Function
     End Class
 End Namespace

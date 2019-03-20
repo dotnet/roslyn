@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateFromMembers.Add
             => FlattenActions(actions);
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAdd1()
         {
@@ -51,10 +52,11 @@ class Program
         this.i = i;
         this.s = s;
     }
-}");
+}", title: string.Format(FeaturesResources.Add_parameters_to_0, "Program(int)"));
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
+        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddOptional1()
         {
@@ -83,60 +85,13 @@ class Program
         this.i = i;
         this.s = s;
     }
-}",
-index: 1);
+}", index: 1, title: string.Format(FeaturesResources.Add_optional_parameters_to_0, "Program(int)"));
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
         public async Task TestAddToConstructorWithMostMatchingParameters1()
-        {
-            // behavior change with 33603, now all constructors offered
-            await TestInRegularAndScriptAsync(
-@"using System.Collections.Generic;
-
-class Program
-{
-    [|int i;
-    string s;
-    bool b;|]
-
-    public Program(int i)
-    {
-        this.i = i;
-    }
-
-    public Program(int i, string s) : this(i)
-    {
-        this.s = s;
-    }
-}",
-@"using System.Collections.Generic;
-
-class Program
-{
-    int i;
-    string s;
-    bool b;
-
-    public Program(int i, string s, bool b)
-    {
-        this.i = i;
-        this.s = s;
-        this.b = b;
-    }
-
-    public Program(int i, string s) : this(i)
-    {
-        this.s = s;
-    }
-}", index: 0);
-        }
-
-        [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
-        public async Task TestAddToConstructorWithMostMatchingParameters2()
         {
             // behavior change with 33603, now all constructors offered
             await TestInRegularAndScriptAsync(
@@ -176,7 +131,7 @@ class Program
         this.s = s;
         this.b = b;
     }
-}", index: 1);
+}", index: 1, title: string.Format(FeaturesResources.Add_to_0, "Program(int, string)"));
         }
 
         [WorkItem(308077, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/308077")]
@@ -217,13 +172,12 @@ class Program
         this.i = i;
     }
 
-    public Program(int i, string s, bool b) : this(i)
+    public Program(int i, string s, bool b = false) : this(i)
     {
         this.s = s;
         this.b = b;
     }
-}",
-index: 1);
+}", index: 3, title: string.Format(FeaturesResources.Add_to_0, "Program(int, string)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
@@ -860,7 +814,7 @@ class C
     {
     }
 }";
-            await TestInRegularAndScriptAsync(source, expected, index: 0);
+            await TestInRegularAndScriptAsync(source, expected, index: 0, title: string.Format(FeaturesResources.Add_to_0, "C(int)"));
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -898,7 +852,7 @@ class C
     {
     }
 }";
-            await TestInRegularAndScriptAsync(source, expected, index: 1);
+            await TestInRegularAndScriptAsync(source, expected, index: 1, title: string.Format(FeaturesResources.Add_to_0, "C(int, int)"));
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -937,7 +891,7 @@ class C
         this.l = l;
     }
 }";
-            await TestInRegularAndScriptAsync(source, expected, index: 2);
+            await TestInRegularAndScriptAsync(source, expected, index: 2, title: string.Format(FeaturesResources.Add_to_0, "C(int, int, int)"));
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -975,12 +929,12 @@ class C
     {
     }
 }";
-            await TestInRegularAndScriptAsync(source, expected, 3);
+            await TestInRegularAndScriptAsync(source, expected, index: 3, title: string.Format(FeaturesResources.Add_to_0, "C(int)"));
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
-        public async Task TestMultipleConstructorsSecondOptionalOfThree()
+        public async Task TestMultipleConstructors_SecondOptionalOfThree()
         {
             var source =
 @"
@@ -1013,7 +967,7 @@ class C
     {
     }
 }";
-            await TestInRegularAndScriptAsync(source, expected, index: 4);
+            await TestInRegularAndScriptAsync(source, expected, index: 4, title: string.Format(FeaturesResources.Add_to_0, "C(int, int)"));
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -1051,7 +1005,7 @@ class C
         this.l = l;
     }
 }";
-            await TestInRegularAndScriptAsync(source, expected, index: 5);
+            await TestInRegularAndScriptAsync(source, expected, index: 5, title: string.Format(FeaturesResources.Add_to_0, "C(int, int, int)"));
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -1101,7 +1055,7 @@ class C
         this.l = l;
     }
 }";
-            await TestInRegularAndScriptAsync(source, expected, index: 1);
+            await TestInRegularAndScriptAsync(source, expected, index: 1, title: string.Format(FeaturesResources.Add_to_0, "C(int, double, int)"));
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -1151,7 +1105,7 @@ class C
     {
     }
 }";
-            await TestInRegularAndScriptAsync(source, expected, index: 3);
+            await TestInRegularAndScriptAsync(source, expected, index: 3, title: string.Format(FeaturesResources.Add_to_0, "C(int, double)"));
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -1189,7 +1143,7 @@ class C
     {
     }
 }";
-            await TestInRegularAndScriptAsync(source, expected, index: 0);
+            await TestInRegularAndScriptAsync(source, expected, index: 0, title: string.Format(FeaturesResources.Add_to_0, "C(int)"));
         }
 
         [WorkItem(33603, "https://github.com/dotnet/roslyn/issues/33603")]
@@ -1227,7 +1181,7 @@ class C
         this.p = p;
     }
 }";
-            await TestInRegularAndScriptAsync(source, expected, index: 2);
+            await TestInRegularAndScriptAsync(source, expected, index: 2, title: string.Format(FeaturesResources.Add_to_0, "C(int, double, int)"));
         }
 
         [WorkItem(33623, "https://github.com/dotnet/roslyn/issues/33623")]

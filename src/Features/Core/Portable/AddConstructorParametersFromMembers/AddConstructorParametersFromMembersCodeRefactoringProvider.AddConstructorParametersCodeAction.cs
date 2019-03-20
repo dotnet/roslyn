@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             private readonly Document _document;
             private readonly ConstructorCandidate _constructorCandidate;
             private readonly ISymbol _containingType;
-            private readonly ImmutableArray<IParameterSymbol> _parametersToAdd;
+            private readonly ImmutableArray<IParameterSymbol> _missingParameters;
 
             /// <summary>
-            /// If there is more than one constructor, the suggested actions will be split into two sub menus,  
-            /// one for regular parameters and one for optional. This boolean is used by the Title property 
+            /// If there is more than one constructor, the suggested actions will be split into two sub menus,
+            /// one for regular parameters and one for optional. This boolean is used by the Title property
             /// to determine if the code action should be given the complete title or the sub menu title
             /// </summary>
             private readonly bool _useSubMenuName;
@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 Document document,
                 ConstructorCandidate constructorCandidate,
                 ISymbol containingType,
-                ImmutableArray<IParameterSymbol> parametersToAdd,
+                ImmutableArray<IParameterSymbol> missingParameters,
                 bool useSubMenuName)
             {
                 _document = document;
                 _constructorCandidate = constructorCandidate;
                 _containingType = containingType;
-                _parametersToAdd = parametersToAdd;
+                _missingParameters = missingParameters;
                 _useSubMenuName = useSubMenuName;
             }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 var constructor = declarationService.GetDeclarations(_constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var newConstructor = constructor;
-                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _parametersToAdd, workspace);
+                newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, workspace);
                 newConstructor = CodeGenerator.AddStatements(newConstructor, CreateAssignStatements(_constructorCandidate), workspace)
                                                       .WithAdditionalAnnotations(Formatter.Annotation);
 
@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             private IEnumerable<SyntaxNode> CreateAssignStatements(ConstructorCandidate constructorCandidate)
             {
                 var factory = _document.GetLanguageService<SyntaxGenerator>();
-                for (var i = 0; i < _parametersToAdd.Length; ++i)
+                for (var i = 0; i < _missingParameters.Length; ++i)
                 {
                     var memberName = constructorCandidate.MissingMembers[i].Name;
-                    var parameterName = _parametersToAdd[i].Name;
+                    var parameterName = _missingParameters[i].Name;
                     yield return factory.ExpressionStatement(
                         factory.AssignmentStatement(
                             factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(memberName)),
@@ -82,16 +82,15 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 {
                     var parameters = _constructorCandidate.Constructor.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
                     var parameterString = string.Join(", ", parameters);
-                    var signature = $"{_containingType}({parameterString})";
-                    var submenu = _useSubMenuName;
+                    var signature = $"{_containingType.Name}({parameterString})";
 
-                    if (submenu)
+                    if (_useSubMenuName)
                     {
                         return string.Format(FeaturesResources.Add_to_0, signature);
                     }
                     else
                     {
-                        return _parametersToAdd[0].IsOptional
+                        return _missingParameters[0].IsOptional
                             ? string.Format(FeaturesResources.Add_optional_parameters_to_0, signature)
                             : string.Format(FeaturesResources.Add_parameters_to_0, signature);
                     }

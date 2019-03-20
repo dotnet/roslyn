@@ -1,8 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -20,10 +20,12 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             public static async Task<State> GenerateAsync(
                 AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers,
-                Document document)
+                Document document,
+                CancellationToken cancellationToken)
             {
                 var state = new State();
-                if (!await state.TryInitializeAsync(service, selectedMembers, document).ConfigureAwait(false))
+                if (!await state.TryInitializeAsync(
+                    service, selectedMembers, document, cancellationToken).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -34,104 +36,95 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             private async Task<bool> TryInitializeAsync(
                 AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers,
-                Document document)
+                Document document,
+                CancellationToken cancellationToken)
             {
-                if (!selectedMembers.All(IsWritableInstanceFieldOrProperty))
-                {
-                    return false;
-                }
-
                 ContainingType = selectedMembers[0].ContainingType;
-                if (ContainingType == null || ContainingType.TypeKind == TypeKind.Interface)
+                if (!selectedMembers.All(IsWritableInstanceFieldOrProperty) ||
+                    ContainingType == null ||
+                    ContainingType.TypeKind == TypeKind.Interface)
                 {
                     return false;
                 }
 
-                var parametersForSelectedMembers = service.DetermineParameters(selectedMembers);
-                // We are trying to add these parameters into an existing constructor's parameter list.
-                // Comparing parameters based on names to make sure parameter list won't contains duplicate parameters after we
-                // append the new parameters
-                ConstructorCandidates = await GetConstructorCandidatesInfo(ContainingType, parametersForSelectedMembers, selectedMembers, document).ConfigureAwait(false);
+                ConstructorCandidates = await GetConstructorCandidatesInfoAsync(
+                    ContainingType, service, selectedMembers, document, cancellationToken).ConfigureAwait(false);
 
-                if (ConstructorCandidates.IsEmpty)
-                {
-                    return false;
-                }
-
-                return true;
+                return !ConstructorCandidates.IsEmpty;
             }
 
             /// <summary>
-            /// Try to find all constructors in <paramref name="containingType"/> whose parameters is the subset of <paramref name="parametersForSelectedMembers"/> by comparing name.
-            /// These constructors will not be considered as potential candidates 
+            /// Try to find all constructors in <paramref name="containingType"/> whose parameters
+            /// are a subset of <paramref name="parametersForSelectedMembers"/> by comparing name.
+            /// These constructors will not be considered as potential candidates:
             ///  - if the constructor's parameter list contains 'ref' or 'params'
             ///  - any constructor that has a params[] parameter
             ///  - deserialization constructor
             ///  - implicit default constructor
             /// </summary>
-            private async Task<ImmutableArray<ConstructorCandidate>> GetConstructorCandidatesInfo(
+            private async Task<ImmutableArray<ConstructorCandidate>> GetConstructorCandidatesInfoAsync(
                 INamedTypeSymbol containingType,
-                ImmutableArray<IParameterSymbol> parametersForSelectedMembers,
+                AddConstructorParametersFromMembersCodeRefactoringProvider service,
                 ImmutableArray<ISymbol> selectedMembers,
-                Document document)
+                Document document,
+                CancellationToken cancellationToken)
             {
-                var parameterNamesForSelectedMembers = parametersForSelectedMembers.SelectAsArray(p => p.Name);
+                var parametersForSelectedMembers = service.DetermineParameters(selectedMembers);
                 var applicableConstructors = ArrayBuilder<ConstructorCandidate>.GetInstance();
-                var constructors = containingType.InstanceConstructors;
-                foreach (var constructor in constructors)
+
+                foreach (var constructor in containingType.InstanceConstructors)
                 {
-                    var constructorParams = constructor.Parameters;
-
-                    if (constructorParams.Length == 2)
+                    if (await IsApplicableConstructorAsync(
+                        constructor, document, parametersForSelectedMembers.SelectAsArray(p => p.Name), cancellationToken).ConfigureAwait(false))
                     {
-                        var compilation = await document.Project.GetCompilationAsync().ConfigureAwait(false);
-                        var deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
-                        if (deserializationConstructorCheck.IsDeserializationConstructor(constructor))
-                        {
-                            continue;
-                        }
+                        applicableConstructors.Add(CreateConstructorCandidate(parametersForSelectedMembers, selectedMembers, constructor));
                     }
-
-                    if (!constructorParams.All(parameter => parameter.RefKind == RefKind.None) ||
-                        (constructorParams.Length == 0 && constructor.IsImplicitlyDeclared) ||
-                        constructorParams.Any(p => p.IsParams) ||
-                        SelectedMembersAlreadyExistAsParameters(parameterNamesForSelectedMembers, constructorParams))
-                    {
-                        continue;
-                    }
-
-                    var missingParametersBuilder = ArrayBuilder<IParameterSymbol>.GetInstance();
-                    var missingMembersBuilder = ArrayBuilder<ISymbol>.GetInstance();
-                    var constructorParamNames = constructor.Parameters.SelectAsArray(p => p.Name);
-                    var zippedParametersAndSelectedMembers = parametersForSelectedMembers.Zip(selectedMembers, (parameter, selectedMember) => (parameter, selectedMember));
-                    foreach ((var parameter, var selectedMember) in zippedParametersAndSelectedMembers)
-                    {
-                        if (!constructorParamNames.Contains(parameter.Name))
-                        {
-                            missingParametersBuilder.Add(parameter);
-                            missingMembersBuilder.Add(selectedMember);
-                        }
-                    }
-
-                    applicableConstructors.Add(new ConstructorCandidate(constructor, missingMembersBuilder.ToImmutableAndFree(), missingParametersBuilder.ToImmutableAndFree()));
                 }
 
                 return applicableConstructors.ToImmutableAndFree();
             }
 
-            private static bool SelectedMembersAlreadyExistAsParameters(ImmutableArray<string> parameterNamesForSelectedMembers, ImmutableArray<IParameterSymbol> constructorParams)
+            private static async Task<bool> IsApplicableConstructorAsync(IMethodSymbol constructor, Document document, ImmutableArray<string> parameterNamesForSelectedMembers, CancellationToken cancellationToken)
             {
-                if (constructorParams.Length == 0)
+                var constructorParams = constructor.Parameters;
+
+                if (constructorParams.Length == 2)
                 {
-                    return false;
+                    var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
+                    if (deserializationConstructorCheck.IsDeserializationConstructor(constructor))
+                    {
+                        return false;
+                    }
                 }
 
-                if (parameterNamesForSelectedMembers.Except(constructorParams.Select(p => p.Name)).Any())
+                return constructorParams.All(parameter => parameter.RefKind == RefKind.None) &&
+                    !constructor.IsImplicitlyDeclared &&
+                    !constructorParams.Any(p => p.IsParams) &&
+                    !SelectedMembersAlreadyExistAsParameters(parameterNamesForSelectedMembers, constructorParams);
+            }
+
+            private static bool SelectedMembersAlreadyExistAsParameters(ImmutableArray<string> parameterNamesForSelectedMembers, ImmutableArray<IParameterSymbol> constructorParams)
+                => constructorParams.Length != 0 && !parameterNamesForSelectedMembers.Except(constructorParams.Select(p => p.Name)).Any();
+
+            private static ConstructorCandidate CreateConstructorCandidate(ImmutableArray<IParameterSymbol> parametersForSelectedMembers, ImmutableArray<ISymbol> selectedMembers, IMethodSymbol constructor)
+            {
+                var missingParametersBuilder = ArrayBuilder<IParameterSymbol>.GetInstance();
+                var missingMembersBuilder = ArrayBuilder<ISymbol>.GetInstance();
+                var constructorParamNames = constructor.Parameters.SelectAsArray(p => p.Name);
+                var zippedParametersAndSelectedMembers = 
+                    parametersForSelectedMembers.Zip(selectedMembers, (parameter, selectedMember) => (parameter, selectedMember));
+                foreach (var (parameter, selectedMember) in zippedParametersAndSelectedMembers)
                 {
-                    return false;
+                    if (!constructorParamNames.Contains(parameter.Name))
+                    {
+                        missingParametersBuilder.Add(parameter);
+                        missingMembersBuilder.Add(selectedMember);
+                    }
                 }
 
-                return true;
+                return new ConstructorCandidate(
+                    constructor, missingMembersBuilder.ToImmutableAndFree(), missingParametersBuilder.ToImmutableAndFree());
             }
         }
     }
