@@ -1584,6 +1584,34 @@ public readonly delegate int Del();
         }
 
         [Fact]
+        public void ReadOnlyLocalFunction()
+        {
+            var csharp = @"
+public struct S
+{
+    void M1()
+    {
+        local();
+        readonly void local() {}
+    }
+    readonly void M2()
+    {
+        local();
+        readonly void local() {}
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (7,9): error CS0106: The modifier 'readonly' is not valid for this item
+                //         readonly void local() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(7, 9),
+                // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
+                //         readonly void local() {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9));
+        }
+
+        [Fact]
         public void ReadOnlyIndexer()
         {
             var csharp = @"
