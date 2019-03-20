@@ -1112,6 +1112,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // will cause the workspace's current solution to update and will fire the 
                 // necessary workspace changed events.
                 projectItemForDocument.Name = uniqueName;
+
+                // TODO(https://github.com/dotnet/roslyn/issues/34290):
+                // Support undo
+                var undoManager = TryGetUndoManager();
+                undoManager?.Add(new RenameDocumentUndoUnit(this, documentId, uniqueName, document.Name));
             }
         }
 

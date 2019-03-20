@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Rename;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
@@ -17,19 +18,28 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             internal override Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
-                => Task.FromResult(RenameFileToMatchTypeName());
+                => RenameFileToMatchTypeNameAsync();
 
             /// <summary>
             /// Renames the file to match the type contained in it.
             /// </summary>
-            private ImmutableArray<CodeActionOperation> RenameFileToMatchTypeName()
+            private async Task<ImmutableArray<CodeActionOperation>> RenameFileToMatchTypeNameAsync()
             {
-                var documentId = SemanticDocument.Document.Id;
-                var oldSolution = SemanticDocument.Document.Project.Solution;
-                var newSolution = oldSolution.WithDocumentName(documentId, FileName);
+                // What I actually want to do:
+                //var documentId = SemanticDocument.Document.Id;
+                //var oldSolution = SemanticDocument.Document.Project.Solution;
+                //var newSolution = oldSolution.WithDocumentName(documentId, FileName);
 
-                return ImmutableArray.Create<CodeActionOperation>(
-                    new ApplyChangesOperation(newSolution));
+                //return ImmutableArray.Create<CodeActionOperation>(
+                //    new ApplyChangesOperation(newSolution));
+
+                // Just testing things out
+                var solution = SemanticDocument.Document.Project.Solution;
+                var symbol = State.SemanticDocument.SemanticModel.GetDeclaredSymbol(State.TypeNode, CancellationToken);
+                var documentOptions = await SemanticDocument.Document.GetOptionsAsync(CancellationToken).ConfigureAwait(false);
+                var newSolution = await Renamer.RenameSymbolAsync(solution, symbol, "WOW", documentOptions, CancellationToken).ConfigureAwait(false);
+                newSolution = newSolution.WithDocumentName(SemanticDocument.Document.Id, FileName);
+                return ImmutableArray.Create<CodeActionOperation>(new ApplyChangesOperation(newSolution));
             }
         }
     }
