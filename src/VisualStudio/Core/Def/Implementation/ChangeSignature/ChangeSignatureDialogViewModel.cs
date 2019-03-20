@@ -29,7 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
         private readonly List<ParameterViewModel> _parameterGroup1;
         private readonly List<ParameterViewModel> _parameterGroup2;
         private readonly ParameterViewModel _paramsParameter;
-        private readonly HashSet<IParameterSymbol> _disabledParameters = new HashSet<IParameterSymbol>();
+        private HashSet<ParameterViewModel> _disabledParameters = new HashSet<ParameterViewModel>();
+
         private ImmutableArray<SymbolDisplayPart> _declarationParts;
         private bool _previewChanges;
 
@@ -43,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             if (parameters.ThisParameter != null)
             {
                 _thisParameter = new ExistingParameterViewModel(this, parameters.ThisParameter);
-                _disabledParameters.Add(parameters.ThisParameter);
+                _disabledParameters.Add(_thisParameter);
             }
 
             if (parameters.ParamsParameter != null)
@@ -188,7 +189,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 _originalParameterConfiguration.ThisParameter,
                 _parameterGroup1.Where(p => !p.IsRemoved).Select(p => p.MakeCoolParameter()).ToList(),
                 _parameterGroup2.Where(p => !p.IsRemoved).Select(p => p.MakeCoolParameter()).ToList(),
-                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (_paramsParameter as ExistingParameterViewModel).ParameterSymbol,
+                (_paramsParameter == null || _paramsParameter.IsRemoved) ? null : (_paramsParameter as ExistingParameterViewModel).MakeCoolParameter(),
                 selectedIndex: -1);
         }
 
@@ -376,7 +377,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         private bool IsDisabled(ParameterViewModel parameterViewModel)
         {
-            return _disabledParameters.Contains((parameterViewModel as ExistingParameterViewModel)?.ParameterSymbol);
+            return _disabledParameters.Contains(parameterViewModel);
         }
 
         private IList<ParameterViewModel> GetSelectedGroup()
@@ -541,9 +542,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
 
         public class ExistingParameterViewModel : ParameterViewModel
         {
-            private readonly ChangeSignatureDialogViewModel _changeSignatureDialogViewModel;
-            private AddParameterDialogViewModel _addParameterViewModel;
-
             public IParameterSymbol ParameterSymbol { get; }
 
             public ExistingParameterViewModel(ChangeSignatureDialogViewModel changeSignatureDialogViewModel, CoolParameter parameter)
@@ -592,8 +590,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                             return @params ?? string.Empty;
                         }
 
-                        if (_changeSignatureDialogViewModel._thisParameter != null &&
-                            Equals(ParameterSymbol, _changeSignatureDialogViewModel._thisParameter.ParameterSymbol))
+                        if (changeSignatureDialogViewModel._thisParameter != null &&
+                            ParameterSymbol == (changeSignatureDialogViewModel._thisParameter as ExistingParameterViewModel).ParameterSymbol)
                         {
                             return @this ?? string.Empty;
                         }
@@ -633,25 +631,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
                 }
             }
 
-            public override bool IsDisabled => _changeSignatureDialogViewModel.IsDisabled(this);
+            public override bool IsDisabled => changeSignatureDialogViewModel.IsDisabled(this);
 
             public bool NeedsBottomBorder
             {
                 get
                 {
-                    if (this == _changeSignatureDialogViewModel._thisParameter)
+                    if (this == changeSignatureDialogViewModel._thisParameter)
                     {
                         return true;
                     }
 
-                    if (this == _changeSignatureDialogViewModel._parameterGroup1.LastOrDefault() &&
-                        (_changeSignatureDialogViewModel._parameterGroup2.Any() || _changeSignatureDialogViewModel._paramsParameter != null))
+                    if (this == changeSignatureDialogViewModel._parameterGroup1.LastOrDefault() &&
+                        (changeSignatureDialogViewModel._parameterGroup2.Any() || changeSignatureDialogViewModel._paramsParameter != null))
                     {
                         return true;
                     }
 
-                    if (this == _changeSignatureDialogViewModel._parameterGroup2.LastOrDefault() &&
-                        _changeSignatureDialogViewModel._paramsParameter != null)
+                    if (this == changeSignatureDialogViewModel._parameterGroup2.LastOrDefault() &&
+                        changeSignatureDialogViewModel._paramsParameter != null)
                     {
                         return true;
                     }

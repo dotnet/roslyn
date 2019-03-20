@@ -6,13 +6,13 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 {
     internal sealed class ParameterConfiguration
     {
-        public readonly IParameterSymbol ThisParameter;
+        public readonly CoolParameter ThisParameter;
         public readonly List<CoolParameter> ParametersWithoutDefaultValues;
         public readonly List<CoolParameter> RemainingEditableParameters;
-        public readonly IParameterSymbol ParamsParameter;
+        public readonly CoolParameter ParamsParameter;
         public readonly int SelectedIndex;
 
-        public ParameterConfiguration(IParameterSymbol thisParameter, List<CoolParameter> parametersWithoutDefaultValues, List<CoolParameter> remainingEditableParameters, IParameterSymbol paramsParameter, int selectedIndex)
+        public ParameterConfiguration(CoolParameter thisParameter, List<CoolParameter> parametersWithoutDefaultValues, List<CoolParameter> remainingEditableParameters, CoolParameter paramsParameter, int selectedIndex)
         {
             ThisParameter = thisParameter;
             ParametersWithoutDefaultValues = parametersWithoutDefaultValues;
@@ -21,12 +21,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SelectedIndex = selectedIndex;
         }
 
-        public static ParameterConfiguration Create(List<IParameterSymbol> parameters, bool isExtensionMethod, int selectedIndex)
+        public static ParameterConfiguration Create(List<CoolParameter> parameters, bool isExtensionMethod, int selectedIndex)
         {
-            IParameterSymbol thisParameter = null;
+            CoolParameter thisParameter = null;
             var parametersWithoutDefaultValues = new List<CoolParameter>();
             var remainingReorderableParameters = new List<CoolParameter>();
-            IParameterSymbol paramsParameter = null;
+            CoolParameter paramsParameter = null;
 
             if (parameters.Count > 0 && isExtensionMethod)
             {
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 parameters.RemoveAt(0);
             }
 
-            if (parameters.Count > 0 && parameters[parameters.Count - 1].IsParams)
+            if (parameters.Count > 0 && (parameters[parameters.Count - 1] as ExistingParameter)?.Symbol.IsParams == true)
             {
                 paramsParameter = parameters[parameters.Count - 1];
                 parameters.RemoveAt(parameters.Count - 1);
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                     seenDefaultValues = true;
                 }
 
-                (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(new ExistingParameter(param));
+                (seenDefaultValues ? remainingReorderableParameters : parametersWithoutDefaultValues).Add(param);
             }
 
             return new ParameterConfiguration(thisParameter, parametersWithoutDefaultValues, remainingReorderableParameters, paramsParameter, selectedIndex);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (ThisParameter != null)
             {
-                list.Add(new ExistingParameter(ThisParameter));
+                list.Add(ThisParameter);
             }
 
             list.AddRange(ParametersWithoutDefaultValues);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
 
             if (ParamsParameter != null)
             {
-                list.Add(new ExistingParameter(ParamsParameter));
+                list.Add(ParamsParameter);
             }
 
             return list;

@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.IncorrectKind);
             }
 
-            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().ToList(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod, selectedIndex);
+            var parameterConfiguration = ParameterConfiguration.Create(symbol.GetParameters().Select(p => new ExistingParameter(p)).ToList<CoolParameter>(), symbol is IMethodSymbol && (symbol as IMethodSymbol).IsExtensionMethod, selectedIndex);
             if (!parameterConfiguration.IsChangeable())
             {
                 return new ChangeSignatureAnalyzedContext(CannotChangeSignatureReason.InsufficientParameters);
@@ -476,6 +476,15 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                 }
             }
 
+            // 6. TODO MOVE AROUND. Add added arguments
+
+            var brandNewParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters().Where(p => p is AddedParameter).Cast<AddedParameter>();
+
+            foreach (var brandNewParameter in brandNewParameters)
+            {
+                // newArguments.Add(new IUnifiedArgumentSyntax());
+            }
+
             return newArguments;
         }
 
@@ -483,18 +492,18 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
         {
             if (declarationSymbol.GetParameters().Length > updatedSignature.OriginalConfiguration.ToListOfParameters().Count)
             {
-                var origStuff = updatedSignature.OriginalConfiguration.ToListOfParameters();
-                var newStuff = updatedSignature.UpdatedConfiguration.ToListOfParameters();
+                var originalConfigurationParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
+                var updatedConfigurationParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
-                var realStuff = declarationSymbol.GetParameters();
+                var realParameters = declarationSymbol.GetParameters();
 
-                var bonusParameters = realStuff.Skip(origStuff.Count);
+                var bonusParameters = realParameters.Skip(originalConfigurationParameters.Count);
 
-                origStuff.AddRange(bonusParameters);
-                newStuff.AddRange(bonusParameters);
+                originalConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
+                updatedConfigurationParameters.AddRange(bonusParameters.Select(p => new ExistingParameter(p)));
 
-                var newOrigParams = ParameterConfiguration.Create(origStuff, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
-                var newUpdatedParams = ParameterConfiguration.Create(newStuff, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
+                var newOrigParams = ParameterConfiguration.Create(originalConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
+                var newUpdatedParams = ParameterConfiguration.Create(updatedConfigurationParameters, updatedSignature.OriginalConfiguration.ThisParameter != null, selectedIndex: 0);
                 updatedSignature = new SignatureChange(newOrigParams, newUpdatedParams);
             }
 

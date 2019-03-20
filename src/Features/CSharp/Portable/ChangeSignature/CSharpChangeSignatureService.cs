@@ -416,15 +416,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             var originalParameters = updatedSignature.OriginalConfiguration.ToListOfParameters();
             var reorderedParameters = updatedSignature.UpdatedConfiguration.ToListOfParameters();
 
+            int numAddedParameters = 0;
+
             var newParameters = new List<T>();
             for (var index = 0; index < reorderedParameters.Count; index++)
             {
                 var newParam = reorderedParameters[index];
-                var pos = originalParameters.IndexOf(newParam);
+                var pos = originalParameters.IndexOf(p => p.Symbol == newParam.Symbol);
+
+                if (pos == -1)
+                {
+                    // Added parameter
+                    numAddedParameters++;
+
+                    var newParameter = SyntaxFactory.Parameter(
+                        attributeLists: SyntaxFactory.List<AttributeListSyntax>(),
+                        modifiers: SyntaxFactory.TokenList(),
+                        type: SyntaxFactory.ParseTypeName((newParam as AddedParameter).TypeName),
+                        SyntaxFactory.Identifier((newParam as AddedParameter).ParameterName),
+                        @default: default);
+
+                    newParameters.Add(newParameter as T);
+
+                    continue;
+                }
+
                 var param = list[pos];
 
                 // copy whitespace trivia from original position
-                param = TransferLeadingWhitespaceTrivia(param, list[index]);
+                param = TransferLeadingWhitespaceTrivia(param, list[index - numAddedParameters]);
 
                 newParameters.Add(param);
             }
@@ -625,9 +645,18 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         private static List<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip = 0) where T : SyntaxNode
         {
             var separators = new List<SyntaxToken>();
-            for (var i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
+
+            for (int i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
             {
-                separators.Add(arguments.GetSeparator(i));
+                // TODO
+                if (i >= arguments.SeparatorCount)
+                {
+                    separators.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
+                }
+                else
+                {
+                    separators.Add(arguments.GetSeparator(i));
+                }
             }
 
             return separators;
