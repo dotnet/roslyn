@@ -86613,33 +86613,31 @@ class C
     {
         // Both calls here are invoked in normal form, not expanded
 
-        F("""", null); // 1
-        G("""", null);
+        F(string.Empty, null); // 1
+        G(string.Empty, null);
 
         // These are called with expanded form
 
-        F("""", null, """"); 
-        G("""", null, """"); // 2
+        F(string.Empty, null, string.Empty); 
+        G(string.Empty, null, string.Empty); // 2
 
         // Explicitly called with array
 
-        F("""", new object?[] { null }); 
-        G("""", new object[] { null }); // 3
-
-
+        F(string.Empty, new object?[] { null }); 
+        G(string.Empty, new object[] { null }); // 3
     }
 }
 ";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (16,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         F("", null); // 1
+                //         F(string.Empty, null); // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 15),
                 // (22,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         G("", null, ""); // 2
+                //         G(string.Empty, null, string.Empty); // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 15),
                 // (27,30): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         G("", new object[] { null }); // 3
+                //         G(string.Empty, new object[] { null }); // 3
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 30)
                 );
         }
