@@ -86593,5 +86593,55 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "__refvalue(r, string?)").WithLocation(7, 13)
                 );
         }
+
+        [Fact, WorkItem(25375, "https://github.com/dotnet/roslyn/issues/25375")]
+        public void ParamsNullable_SingleNullParam()
+        {
+            var source =
+@"
+class C
+{
+    static void F(object x, params object?[] y)
+    {
+    }
+
+    static void G(object x, params object[]? y)
+    {
+    }
+
+    static void Main()
+    {
+        // Both calls here are invoked in normal form, not expanded
+
+        F("""", null); // 1
+        G("""", null);
+
+        // These are called with expanded form
+
+        F("""", null, """"); 
+        G("""", null, """"); // 2
+
+        // Explicitly called with array
+
+        F("""", new object?[] { null }); 
+        G("""", new object[] { null }); // 3
+
+
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (16,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         F("", null); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 15),
+                // (22,15): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         G("", null, ""); // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 15),
+                // (27,30): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         G("", new object[] { null }); // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 30)
+                );
+        }
     }
 }
