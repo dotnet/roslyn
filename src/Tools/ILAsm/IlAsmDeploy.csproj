@@ -12,9 +12,6 @@
     <TargetLatestRuntimePatch>false</TargetLatestRuntimePatch>
     <SelfContained>true</SelfContained>
 
-    <!-- Do not build again when publishing -->
-    <NoBuild>true</NoBuild>
-
     <PublishDir>$(ArtifactsDir)tools\ILAsm\$(Configuration)\</PublishDir>
   </PropertyGroup>
 
