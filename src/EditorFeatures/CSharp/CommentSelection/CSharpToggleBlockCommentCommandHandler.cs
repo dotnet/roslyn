@@ -14,14 +14,15 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
 {
-    /* TODO - Modify these once the toggle block comment handler is added.
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
-    [Name(PredefinedCommandHandlerNames.CommentSelection)]*/
+    // TODO - Change to toggle handler.
+    [Name(PredefinedCommandHandlerNames.CommentSelection)]
     internal class CSharpToggleBlockCommentCommandHandler :
         ToggleBlockCommentCommandHandler
     {
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         internal CSharpToggleBlockCommentCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)

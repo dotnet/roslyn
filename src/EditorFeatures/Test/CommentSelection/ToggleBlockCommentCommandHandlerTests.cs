@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
@@ -1421,9 +1421,8 @@ class C
 
         internal override ToggleBlockCommentCommandHandler GetToggleBlockCommentCommandHandler(TestWorkspace workspace)
         {
-            return new ToggleBlockCommentCommandHandler(
-                    workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
-                    workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
+            return (ToggleBlockCommentCommandHandler)workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>()
+                .First(export => typeof(ToggleBlockCommentCommandHandler).Equals(export.GetType()));
         }
     }
 }

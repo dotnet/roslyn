@@ -4,10 +4,10 @@ using Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Test.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Xunit;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
 {
@@ -271,9 +271,8 @@ class C
 
         internal override ToggleBlockCommentCommandHandler GetToggleBlockCommentCommandHandler(TestWorkspace workspace)
         {
-            return new CSharpToggleBlockCommentCommandHandler(
-                    workspace.ExportProvider.GetExportedValue<ITextUndoHistoryRegistry>(),
-                    workspace.ExportProvider.GetExportedValue<IEditorOperationsFactoryService>());
+            return (ToggleBlockCommentCommandHandler)workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>()
+                .First(export => typeof(CSharpToggleBlockCommentCommandHandler).Equals(export.GetType()));
         }
     }
 }
