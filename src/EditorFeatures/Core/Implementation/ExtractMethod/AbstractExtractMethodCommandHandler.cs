@@ -72,23 +72,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
 
         public bool ExecuteCommand(ExtractMethodCommandArgs args, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return false;
-            }
-
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(args.SubjectBuffer))
-            {
-                return false;
-            }
-
             // Finish any rename that had been started. We'll do this here before we enter the
             // wait indicator for Extract Method
             if (_renameService.ActiveSession != null)
             {
                 _renameService.ActiveSession.Commit();
+            }
+
+            var subjectBuffer = args.SubjectBuffer;
+            if (!Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+            {
+                return false;
+            }
+
+            var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+            if (!supportsFeatureService.SupportsRefactorings(subjectBuffer))
+            {
+                return false;
+            }
+
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document == null)
+            {
+                return false;
             }
 
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Applying_Extract_Method_refactoring))

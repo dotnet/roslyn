@@ -50,14 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Extract_Interface))
             {
-                var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-                if (document == null)
+                var subjectBuffer = args.SubjectBuffer;
+                if (!Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
                 {
                     return false;
                 }
-
-                var workspace = document.Project.Solution.Workspace;
 
                 if (!workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
                     !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
@@ -65,14 +62,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
                     return false;
                 }
 
-                var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
-                if (!supportsFeatureService.SupportsRefactorings(args.SubjectBuffer))
+                var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+                if (!supportsFeatureService.SupportsRefactorings(subjectBuffer))
                 {
                     return false;
                 }
 
-                var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
                 if (!caretPoint.HasValue)
+                {
+                    return false;
+                }
+
+                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                if (document == null)
                 {
                     return false;
                 }

@@ -56,21 +56,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         {
             using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
-                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-                if (document == null)
+                if (!Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
                 {
                     return false;
                 }
 
-                // TODO: reuse GetCommandState instead
-                var workspace = document.Project.Solution.Workspace;
                 if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
                 {
                     return false;
                 }
 
-                var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+                var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
                 if (!supportsFeatureService.SupportsRefactorings(subjectBuffer))
                 {
                     return false;
@@ -78,6 +74,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
                 var caretPoint = textView.GetCaretPoint(subjectBuffer);
                 if (!caretPoint.HasValue)
+                {
+                    return false;
+                }
+
+                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                if (document == null)
                 {
                     return false;
                 }
