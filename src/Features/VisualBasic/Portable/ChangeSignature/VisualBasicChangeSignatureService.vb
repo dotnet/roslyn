@@ -607,5 +607,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             Return SpecializedCollections.SingletonEnumerable(Of AbstractFormattingRule)(New ChangeSignatureFormattingRule()).
                 Concat(Formatter.GetDefaultFormattingRules(document))
         End Function
+
+        Protected Overrides Function CreateRegularArgumentSyntax(callsiteValue As String) As IUnifiedArgumentSyntax
+            Return UnifiedArgumentSyntax.Create(SyntaxFactory.SimpleArgument(SyntaxFactory.ParseExpression(callsiteValue)))
+        End Function
     End Class
 End Namespace
