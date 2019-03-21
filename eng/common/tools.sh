@@ -113,13 +113,13 @@ function InitializeDotNetCli {
   local dotnet_sdk_version=$_ReadGlobalVersion
   local dotnet_root=""
 
+  # Acquire the dotnet install script so the build can install additional runtimes for developer builds
+  GetDotNetInstallScript "$repo_root/.dotnet"
+
   # Use dotnet installation specified in DOTNET_INSTALL_DIR if it contains the required SDK version,
   # otherwise install the dotnet CLI and SDK to repo local .dotnet directory to avoid potential permission issues.
   if [[ -n "${DOTNET_INSTALL_DIR:-}" && -d "$DOTNET_INSTALL_DIR/sdk/$dotnet_sdk_version" ]]; then
     dotnet_root="$DOTNET_INSTALL_DIR"
-
-    # Acquire the dotnet install script so the build can install additional runtimes for developer builds
-    GetDotNetInstallScript "$repo_root/.dotnet"
   else
     dotnet_root="$repo_root/.dotnet"
     export DOTNET_INSTALL_DIR="$dotnet_root"

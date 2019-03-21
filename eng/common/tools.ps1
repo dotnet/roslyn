@@ -117,15 +117,14 @@ function InitializeDotNetCli([bool]$install) {
 
   $dotnetSdkVersion = $GlobalJson.tools.dotnet
 
+  # Acquire the dotnet install script so the build can install additional runtimes for developer builds
+  GetDotNetInstallScript (Join-Path $RepoRoot ".dotnet") | Out-Null
+
   # Use dotnet installation specified in DOTNET_INSTALL_DIR if it contains the required SDK version,
   # otherwise install the dotnet CLI and SDK to repo local .dotnet directory to avoid potential permission issues.
   if (($env:DOTNET_INSTALL_DIR -ne $null) -and (Test-Path(Join-Path $env:DOTNET_INSTALL_DIR "sdk\$dotnetSdkVersion"))) {
     $dotnetRoot = $env:DOTNET_INSTALL_DIR
-
-    # Acquire the dotnet install script so the build can install additional runtimes for developer builds
-    GetDotNetInstallScript (Join-Path $RepoRoot ".dotnet") | Out-Null
   } else {
-    $dotnetRoot = Join-Path $RepoRoot ".dotnet"
 
     if (-not (Test-Path(Join-Path $dotnetRoot "sdk\$dotnetSdkVersion"))) {
       if ($install) {
