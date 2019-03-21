@@ -652,7 +652,7 @@ Class c
 End Class</document>)
                 state.SendTypeChars("Sy")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"OperatingSystem", "System"}))
+                state.AssertCompletionItemsContainAll(displayText:={"OperatingSystem", "System"})
                 state.AssertCompletionItemsDoNotContainAny(displayText:={"Exception", "Activator"})
             End Using
         End Function
@@ -668,7 +668,7 @@ Class c
 End Class</document>)
                 state.SendTypeChars(" ")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"Attribute", "Exception"}))
+                state.AssertCompletionItemsContainAll(displayText:={"Attribute", "Exception"})
             End Using
         End Function
 
@@ -711,11 +711,11 @@ End Module]]></Document>)
                 state.SendTypeChars(" ")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList", "List", "System"}))
+                state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List", "System"})
                 state.SendTypeChars("Li")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList", "List"}))
+                state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List"})
                 state.AssertCompletionItemsDoNotContainAny(displayText:={"System"})
                 state.SendTypeChars("n")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -874,7 +874,7 @@ end class
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ToString"}))
+                state.AssertCompletionItemsContainAll({"ToString"})
             End Using
         End Function
 
@@ -2839,7 +2839,7 @@ End Class
 
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.CompletionItemsContainsAll({"x", "Shortcut"}))
+                state.AssertCompletionItemsContainAll({"x", "Shortcut"})
             End Using
         End Function
 

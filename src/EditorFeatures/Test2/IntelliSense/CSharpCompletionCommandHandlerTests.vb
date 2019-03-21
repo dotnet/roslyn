@@ -144,7 +144,7 @@ class c : $$
                 state.SendTypeChars("A")
                 Await state.AssertCompletionSession()
 
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"Attribute", "Exception", "IDisposable"}))
+                state.AssertCompletionItemsContainAll(displayText:={"Attribute", "Exception", "IDisposable"})
             End Using
         End Function
 
@@ -161,7 +161,7 @@ class c { $$
                 state.SendTypeChars("Sy")
                 Await state.AssertCompletionSession()
 
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"OperatingSystem", "System", "SystemException"}))
+                state.AssertCompletionItemsContainAll(displayText:={"OperatingSystem", "System", "SystemException"})
                 state.AssertCompletionItemsDoNotContainAny(displayText:={"Exception", "Activator"})
             End Using
         End Function
@@ -178,7 +178,7 @@ class C { $$ } struct S { } enum E { } interface I { } delegate void D();
 
                 state.SendTypeChars("C")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"C", "S", "E", "I", "D"}))
+                state.AssertCompletionItemsContainAll(displayText:={"C", "S", "E", "I", "D"})
             End Using
         End Function
 
@@ -194,7 +194,7 @@ $$
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"abstract", "class", "namespace"}))
+                state.AssertCompletionItemsContainAll(displayText:={"abstract", "class", "namespace"})
             End Using
         End Function
 
@@ -221,7 +221,7 @@ class c { void M() { 3.$$ } }
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ToString"}))
+                state.AssertCompletionItemsContainAll({"ToString"})
             End Using
         End Function
 
@@ -238,7 +238,7 @@ class c { void M() { this$$.ToString() } }
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ToString"}))
+                state.AssertCompletionItemsContainAll({"ToString"})
             End Using
         End Function
 
@@ -271,7 +271,7 @@ class c { void M() { this.$$.ToString() } }
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ToString"}))
+                state.AssertCompletionItemsContainAll({"ToString"})
             End Using
         End Function
 
@@ -340,11 +340,11 @@ class C
                 state.SendTypeChars(" ")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List<int>", isHardSelected:=True)
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList", "List", "System"}))
+                state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List", "System"})
                 state.SendTypeChars("Li")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List<int>", isHardSelected:=True)
-                Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList", "List"}))
+                state.AssertCompletionItemsContainAll(displayText:={"LinkedList", "List"})
                 state.AssertCompletionItemsDoNotContainAny(displayText:={"System"})
                 state.SendTypeChars("n")
                 Await state.WaitForAsynchronousOperationsAsync()
@@ -519,7 +519,7 @@ class Variable
                 state.SendTypeChars(" ")
                 Assert.Contains("(Variable x, Variable ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
                 Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=False)
-                Assert.True(state.CompletionItemsContainsAll({"variable"}))
+                state.AssertCompletionItemsContainAll({"variable"})
             End Using
         End Function
 
@@ -1755,7 +1755,7 @@ class Goo
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
                 Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
-                Assert.True(state.CompletionItemsContainsAll({"System", "int"}))
+                state.AssertCompletionItemsContainAll({"System", "int"})
             End Using
         End Function
 

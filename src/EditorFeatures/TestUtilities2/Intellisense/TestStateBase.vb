@@ -213,6 +213,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Overloads Function CompletionItemsContainsAll(displayText As String()) As Boolean
 
+        Public Sub AssertCompletionItemsContainAll(displayText As String())
+            AssertNoAsynchronousOperationsRunning()
+            Dim items = GetCompletionItems()
+            Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
+        End Sub
+
         Public Sub AssertCompletionItemsDoNotContainAny(displayText As String())
             AssertNoAsynchronousOperationsRunning()
             Dim items = GetCompletionItems()
