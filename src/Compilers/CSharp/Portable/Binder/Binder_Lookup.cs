@@ -1430,11 +1430,11 @@ symIsHidden:;
                     return true;
 
                 case SymbolKind.Field:
-                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).TypeSymbol;
+                    type = ((FieldSymbol)symbol).GetFieldType(this.FieldsBeingBound).Type;
                     break;
 
                 case SymbolKind.Property:
-                    type = ((PropertySymbol)symbol).Type.TypeSymbol;
+                    type = ((PropertySymbol)symbol).Type;
                     break;
             }
 

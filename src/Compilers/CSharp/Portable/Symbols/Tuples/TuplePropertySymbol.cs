@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
-                return _underlyingProperty.Type;
+                return _underlyingProperty.TypeWithAnnotations;
             }
         }
 

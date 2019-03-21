@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
-        <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
-        <target state="needs-review-translation">若要对内插逐字字符串使用 “@$” 而不是 “$@”，请使用语言版本 {0} 或更高版本。</target>
+        <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</source>
+        <target state="translated">若要对内插逐字字符串使用 “@$” 而不是 “$@”，请使用语言版本 {0} 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="ERR_AsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable reference type '{0}?' in an as expression; use the underlying type '{0}' instead.</target>
+        <target state="translated">在 as 表达式中使用可以为 null 的引用类型“{0}?”是非法的；请改用基础类型“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
@@ -70,11 +70,6 @@
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">名称“{0}”与相应 "Deconstruct" 参数“{1}”不匹配。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
-        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
-        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -129,7 +124,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureInPreview">
         <source>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</source>
-        <target state="new">The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</target>
+        <target state="translated">功能“{0}”当前为预览版且*不受支持*。要使用预览版功能，请使用“预览”语言版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureIsExperimental">
@@ -164,7 +159,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalSuppression">
         <source>The suppression operator is not allowed in this context</source>
-        <target state="new">The suppression operator is not allowed in this context</target>
+        <target state="translated">此上下文中不允许使用抑制运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
@@ -194,7 +189,7 @@
       </trans-unit>
       <trans-unit id="ERR_IsNullableType">
         <source>It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</source>
-        <target state="new">It is not legal to use nullable reference type '{0}?' in an is-type expression; use the underlying type '{0}' instead.</target>
+        <target state="translated">在 is-type 表达式中使用可以为 null 的引用类型“{0}?”是非法的；请改用基础类型“{0}”。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IsPatternImpossible">
@@ -204,7 +199,7 @@
       </trans-unit>
       <trans-unit id="ERR_IteratorMustBeAsync">
         <source>Method '{0}' with an iterator block must be 'async' to return '{1}'</source>
-        <target state="new">Method '{0}' with an iterator block must be 'async' to return '{1}'</target>
+        <target state="translated">具有迭代器块的方法“{0}”必须是“异步的”，这样才能返回“{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingPattern">
@@ -219,27 +214,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">“{0}”: 异步 using 语句中使用的类型必须可隐式转换为 "System.IAsyncDisposable"。是否希望使用 "using" 而非 "await using"?</target>
+        <target state="translated">“{0}”: 异步 using 语句中使用的类型必须可隐式转换为 "System.IAsyncDisposable" 或实现适用的 "DisposeAsync" 方法。是否希望使用 "using" 而非 "await using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">“{0}”: using 语句中使用的类型必须可隐式转换为 "System.IDisposable"。是否希望使用 "await using" 而非 "using"?</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotBaseOrImplementedInterface">
-        <source>'{0}' is not base type or interface of {1}.</source>
-        <target state="new">'{0}' is not base type or interface of {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotDeclaredInBase">
-        <source>'{0}' is not an immediate member of {1}.</source>
-        <target state="new">'{0}' is not an immediate member of {1}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_NotImplementedInBase">
-        <source>'{0}' is not implemented in base interface {1}.</source>
-        <target state="new">'{0}' is not implemented in base interface {1}.</target>
+        <target state="translated">“{0}”: using 语句中使用的类型必须可隐式转换为 "System.IDisposable" 或实现适用的 "Dispose" 方法。是否希望使用 "await using" 而非 "using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
@@ -248,8 +228,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
-        <target state="needs-review-translation">无效的“{0}”值: C# {2} 的“{1}”。请使用语言版本 {3} 或更高版本。</target>
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</source>
+        <target state="translated">无效的“{0}”值: C# {2} 的“{1}”。请使用语言版本 {3} 或更高版本。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -290,11 +270,6 @@
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
         <target state="translated">ref 赋值左侧必须为 ref 本地函数或参数。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
-        <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
-        <target state="new">Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
@@ -382,10 +357,301 @@
         <target state="translated">文件名“{0}”为空、包含无效字符、未使用绝对路径指定驱动器或太长</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_BaseTypeInBaseExpression">
-        <source>specifying base type in base expression</source>
-        <target state="new">specifying base type in base expression</target>
-        <note />
+      <trans-unit id="IDS_CSCHelp">
+        <source>
+                             Visual C# Compiler Options
+
+                       - OUTPUT FILES -
+-out:&lt;file&gt;                   Specify output file name (default: base name of
+                              file with main class or first file)
+-target:exe                   Build a console executable (default) (Short
+                              form: -t:exe)
+-target:winexe                Build a Windows executable (Short form:
+                              -t:winexe)
+-target:library               Build a library (Short form: -t:library)
+-target:module                Build a module that can be added to another
+                              assembly (Short form: -t:module)
+-target:appcontainerexe       Build an Appcontainer executable (Short form:
+                              -t:appcontainerexe)
+-target:winmdobj              Build a Windows Runtime intermediate file that
+                              is consumed by WinMDExp (Short form: -t:winmdobj)
+-doc:&lt;file&gt;                   XML Documentation file to generate
+-refout:&lt;file&gt;                Reference assembly output to generate
+-platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
+                              anycpu. The default is anycpu.
+
+                       - INPUT FILES -
+-recurse:&lt;wildcard&gt;           Include all files in the current directory and
+                              subdirectories according to the wildcard
+                              specifications
+-reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
+                              file using the given alias (Short form: -r)
+-reference:&lt;file list&gt;        Reference metadata from the specified assembly
+                              files (Short form: -r)
+-addmodule:&lt;file list&gt;        Link the specified modules into this assembly
+-link:&lt;file list&gt;             Embed metadata from the specified interop
+                              assembly files (Short form: -l)
+-analyzer:&lt;file list&gt;         Run the analyzers from this assembly
+                              (Short form: -a)
+-additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
+                              generation but may be used by analyzers for producing
+                              errors or warnings.
+-embed                        Embed all source files in the PDB.
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
+
+                       - RESOURCES -
+-win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
+-win32icon:&lt;file&gt;             Use this icon for the output
+-win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
+-nowin32manifest              Do not include the default Win32 manifest
+-resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
+-linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
+                              (Short form: -linkres) Where the resinfo format
+                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
+
+                       - CODE GENERATION -
+-debug[+|-]                   Emit debugging information
+-debug:{full|pdbonly|portable|embedded}
+                              Specify debugging type ('full' is default,
+                              'portable' is a cross-platform format,
+                              'embedded' is a cross-platform format embedded into
+                              the target .dll or .exe)
+-optimize[+|-]                Enable optimizations (Short form: -o)
+-deterministic                Produce a deterministic assembly
+                              (including module version GUID and timestamp)
+-refonly                      Produce a reference assembly in place of the main output
+-instrument:TestCoverage      Produce an assembly instrumented to collect
+                              coverage information
+-sourcelink:&lt;file&gt;            Source link info to embed into PDB.
+
+                       - ERRORS AND WARNINGS -
+-warnaserror[+|-]             Report all warnings as errors
+-warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
+-warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
+-nowarn:&lt;warn list&gt;           Disable specific warning messages
+-ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
+                              diagnostics.
+-errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
+                              diagnostics.
+-reportanalyzer               Report additional analyzer information, such as
+                              execution time.
+
+                       - LANGUAGE -
+-checked[+|-]                 Generate overflow checks
+-unsafe[+|-]                  Allow 'unsafe' code
+-define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
+                              form: -d)
+-langversion:?                Display the allowed values for language version
+-langversion:&lt;string&gt;         Specify language version such as
+                              `default` (latest major version), or
+                              `latest` (latest version, including minor versions),
+                              or specific versions like `6` or `7.1`
+-nullable[+|-]                Specify nullable context option enable|disable.
+-nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
+                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
+
+                       - SECURITY -
+-delaysign[+|-]               Delay-sign the assembly using only the public
+                              portion of the strong name key
+-publicsign[+|-]              Public-sign the assembly using only the public
+                              portion of the strong name key
+-keyfile:&lt;file&gt;               Specify a strong name key file
+-keycontainer:&lt;string&gt;        Specify a strong name key container
+-highentropyva[+|-]           Enable high-entropy ASLR
+
+                       - MISCELLANEOUS -
+@&lt;file&gt;                       Read response file for more options
+-help                         Display this usage message (Short form: -?)
+-nologo                       Suppress compiler copyright message
+-noconfig                     Do not auto include CSC.RSP file
+-parallel[+|-]                Concurrent build.
+-version                      Display the compiler version number and exit.
+
+                       - ADVANCED -
+-baseaddress:&lt;address&gt;        Base address for the library to be built
+-checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
+                              checksum stored in PDB. Supported values are:
+                              SHA1 or SHA256 (default).
+-codepage:&lt;n&gt;                 Specify the codepage to use when opening source
+                              files
+-utf8output                   Output compiler messages in UTF-8 encoding
+-main:&lt;type&gt;                  Specify the type that contains the entry point
+                              (ignore all other possible entry points) (Short
+                              form: -m)
+-fullpaths                    Compiler generates fully qualified paths
+-filealign:&lt;n&gt;                Specify the alignment used for output file
+                              sections
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              Specify a mapping for source path names output by
+                              the compiler.
+-pdb:&lt;file&gt;                   Specify debug information file name (default:
+                              output file name with .pdb extension)
+-errorendlocation             Output line and column of the end location of
+                              each error
+-preferreduilang              Specify the preferred output language name.
+-nosdkpath                    Disable searching the default SDK path for standard library assemblies.
+-nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
+-lib:&lt;file list&gt;              Specify additional directories to search in for
+                              references
+-errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
+                              prompt, send, queue, or none. The default is
+                              queue.
+-appconfig:&lt;file&gt;             Specify an application configuration file
+                              containing assembly binding settings
+-moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
+                              a part of
+-modulename:&lt;string&gt;          Specify the name of the source module
+</source>
+        <target state="needs-review-translation">
+                              Visual C# 编译器选项
+
+                        - 输出文件 -
+-out:&lt;file&gt;                   指定输出文件名称(默认: 具有主类的文件或
+                               第一个文件的基名称)
+-target:exe                   生成控制台可执行文件(默认)(缩
+                               写: -t:exe)
+-target:winexe                生成 Windows 可执行文件(缩写:
+                               -t:winexe)
+-target:library               生成库(缩写: -t:library)
+-target:module                生成可添加到另一个程序集的
+                               模块(缩写: -t:module)
+-target:appcontainerexe       生成 Appcontainer 可执行文件(缩写:
+                               -t:appcontainerexe)
+-target:winmdobj              生成 WinMDExp 使用的
+                               Windows 运行时中间文件(缩写: -t:winmdobj)
+-doc:&lt;file&gt;                   要生成的 XML 文档文件
+-refout:&lt;file&gt;                要生成的引用程序集输出
+-platform:&lt;string&gt;            限制此代码可以在其上运行的平台: x86、
+                               Itanium、x64、arm、arm64、anycpu32bitpreferred 或
+                               anycpu。默认平台为 anycpu。
+
+                        - 输入文件 -
+-recurse:&lt;wildcard&gt;           根据通配符规范包括当前目录和
+                               子目录中的所有
+                               文件
+-reference:&lt;alias &gt;=&lt;file&gt;     使用给定别名从指定程序集
+                               引用元数据(缩写: -r)
+-reference:&lt;file list&gt;        从指定程序集文件引用
+                               元数据(缩写: -r)
+-addmodule:&lt;file list&gt;        将指定模块链接到此程序集中
+-link:&lt;file list&gt;             嵌入指定互操作程序集文件中的
+                               元数据(缩写: -l)
+-analyzer:&lt;file list&gt;         运行此程序集中的分析器
+                               (缩写: -a)
+-additionalfile:&lt;file list&gt;   不会直接影响代码生成
+                               但可能被分析器用于生成
+                               错误或警告的其他文件。
+-embed                        嵌入 PDB 中的所有源文件。
+-embed:&lt;file list&gt;            嵌入 PDB 中的特定文件
+
+                        - 资源 -
+-win32res:&lt;file&gt;              指定 Win32 资源文件(.res)
+-win32icon:&lt;file&gt;             使用此图标输出
+-win32manifest:&lt;file&gt;         指定 Win32 清单文件(.xml)
+-nowin32manifest              不包括默认的 Win32 清单
+-resource:&lt;resinfo&gt;           嵌入指定资源(缩写: -res)
+-linkresource:&lt;resinfo&gt;       将指定资源链接到此程序集
+                               (缩写: -linkres)其中 resinfo 的格式
+                               是 &lt;文件&gt;[,&lt;字符串名称&gt;[,public|private]]
+
+                        - 代码生成 -
+-debug[+|-]                   发出调试信息
+-debug:{full|pdbonly|portable|embedded}
+                               指定调试类型(默认为 "full"，
+                               "portable" 为跨平台格式，
+                               "embedded" 为嵌入目标 .dll 或 .exe 的
+                               跨平台格式)
+-optimize[+|-]                启用优化(缩写: -o)
+-deterministic                生成确定性的程序集
+                               (包括模块版本 GUID 和时间戳)
+-refonly                      生成引用程序集来替换主要输出
+-instrument:TestCoverage      生成对其检测以收集覆盖率信息的
+                               程序集
+-sourcelink:&lt;file&gt;            要嵌入到 PDB 中的源链接信息。
+
+                        - 错误和警告 -
+-warnaserror[+|-]             将所有警告报告为错误
+-warnaserror[+|-]:&lt;warn list&gt; 将特定警告报告为错误
+-warn:&lt;n&gt;                     设置警告级别(0-4)(缩写: -w)
+-nowarn:&lt;warn list&gt;           禁用特定警告消息
+-ruleset:&lt;file&gt;               指定禁用特定诊断的
+                               规则集文件。
+-errorlog:&lt;file&gt;              指定用于记录所有编译器和分析器诊断的
+                               文件。
+-reportanalyzer               报告其他分析器信息，如
+                               执行时间。
+
+                        - 语言 -
+-checked[+|-]                 生成溢出检查
+-unsafe[+|-]                  允许 "unsafe" 代码
+-define:&lt;symbol list&gt;         定义条件编译符号(缩
+                               写: -d)
+-langversion:?                显示允许的语言版本值
+-langversion:&lt;string&gt;         指定语言版本，如
+                               “default” (最新主要版本)、
+                               “latest” (最新版本，包括次要版本)
+                               或 “6”、”7.1”等特定版本
+-nullable[+|-]                指定可为 null 的上下文选项 enable|disable。
+-nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
+                              指定可为 null 的上下文选项 enable|disable|safeonly|warnings|safeonlywarnings。
+
+
+                        - 安全 -
+-delaysign[+|-]               仅使用强名称密钥的公共部分对程序集
+                               进行延迟签名
+-publicsign[+|-]              仅使用强名称密钥的公共部分对程序集
+                               进行公共签名
+-keyfile:&lt;file&gt;               指定强名称密钥文件
+-keycontainer:&lt;string&gt;        指定强名称密钥容器
+-highentropyva[+|-]           启用高平均信息量 ASLR
+
+                        - 杂项 -
+ @&lt;file&gt;                       读取响应文件以获取更多选项
+-help                         显示此用法消息(缩写: -?)
+-nologo                       取消显示编译器版权消息
+-noconfig                     不自动包括 CSC.RSP 文件
+-parallel[+|-]                并发生成。
+-version                      显示编译器版本号并退出。
+
+                        - 高级 -
+-baseaddress:&lt;address&gt;        要生成的库的基址
+-checksumalgorithm:&lt;alg&gt;      指定计算存储在 PDB 中的源文件
+                               校验和的算法。支持的值是:
+                               SHA1 或 SHA256 (默认)。
+-codepage:&lt;n&gt;                 指定打开源文件时要使用的
+                               代码页
+-utf8output                   以 UTF-8 编码格式输出编译器消息
+-main:&lt;type&gt;                  指定包含入口点的类型
+                               (忽略所有其他可能的入口点)(缩
+                               写: -m)
+-fullpaths                    编译器生成完全限定路径
+-filealign:&lt;n&gt;                指定用于输出文件节的
+                               对齐方式
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                               通过编译器指定源路径名称输出的
+                               映射。
+-pdb:&lt;file&gt;                   指定调试信息文件名称(默认:
+                               具有 .pdb 扩展名的输出文件名)
+-errorendlocation             输出每个错误的结束位置
+                               行和列
+-preferreduilang              指定首选输出语言名称。
+-nosdkpath                    禁用搜索标准库程序集的默认 SDK 路径
+-nostdlib[+|-]                不引用标准库(mscorlib.dll)
+-subsystemversion:&lt;string&gt;    指定此程序集的子系统版本
+-lib:&lt;file list&gt;              指定要在其中搜索引用的附加
+                               目录
+-errorreport:&lt;string&gt;         指定如何处理内部编译器错误:
+                               prompt、send、queue 或 none。默认为
+                               queue。
+-appconfig:&lt;file&gt;             指定包含程序集绑定设置的
+                               应用程序配置文件
+-moduleassemblyname:&lt;string&gt;  此模块所属程序集
+                               的名称
+-modulename:&lt;string&gt;          指定源模块的名称
+</target>
+        <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
@@ -434,7 +700,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureNameShadowingInNestedFunctions">
         <source>name shadowing in nested functions</source>
-        <target state="new">name shadowing in nested functions</target>
+        <target state="translated">在嵌套函数中的名称映射</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureNullableReferenceTypes">
@@ -449,7 +715,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">
         <source>warning action enable or safeonly</source>
-        <target state="new">warning action enable or safeonly</target>
+        <target state="translated">警告操作 enable 或 safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRangeOperator">
@@ -989,12 +1255,12 @@
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarningSafeOnly">
         <source>Expected nullable</source>
-        <target state="new">Expected nullable</target>
+        <target state="translated">应是可为 null</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
         <source>Expected nullable after #pragma warning safeonly</source>
-        <target state="new">Expected nullable after #pragma warning safeonly</target>
+        <target state="translated">在 #pragma warning safeonly 之后应是可为 null</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
@@ -1653,8 +1919,18 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceEventInitializer">
-        <source>'{0}': instance event in interface cannot have initializer</source>
-        <target state="needs-review-translation">'“{0}”: 接口中的事件不能有初始值设定项</target>
+        <source>'{0}': event in interface cannot have initializer</source>
+        <target state="translated">'“{0}”: 接口中的事件不能有初始值设定项</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_EventPropertyInInterface">
+        <source>An event in an interface cannot have add or remove accessors</source>
+        <target state="translated">接口中的事件不能具有 add 或 remove 访问器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SizeofUnsafe">
+        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
+        <target state="needs-review-translation">'“{0}”没有预定义的大小，因此 sizeof 只能在不安全的上下文中使用(请考虑使用 System.Runtime.InteropServices.Marshal.SizeOf)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -2392,11 +2668,6 @@
         <target state="translated">params 参数必须是形参表中的最后一个参数</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SizeofUnsafe">
-        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
-        <target state="needs-review-translation">'“{0}”没有预定义的大小，因此 sizeof 只能在不安全的上下文中使用(请考虑使用 System.Runtime.InteropServices.Marshal.SizeOf)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
         <source>The type or namespace name '{0}' does not exist in the namespace '{1}' (are you missing an assembly reference?)</source>
         <target state="translated">命名空间“{1}”中不存在类型或命名空间名“{0}”(是否缺少程序集引用?)</target>
@@ -2580,6 +2851,11 @@
       <trans-unit id="ERR_DuplicatePropertyAccessMods">
         <source>Cannot specify accessibility modifiers for both accessors of the property or indexer '{0}'</source>
         <target state="translated">不能为属性或索引器“{0}”的两个访问器同时指定可访问性修饰符</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PropertyAccessModInInterface">
+        <source>'{0}': accessibility modifiers may not be used on accessors in an interface</source>
+        <target state="translated">'“{0}”: 可访问性修饰符不能在接口中的访问器上使用</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AccessModMissingAccessor">
@@ -3236,14 +3512,19 @@ If such a class is used as a base class and if the deriving class defines a dest
         <target state="translated">“{1}”类型的结构成员“{0}”在结构布局中导致循环</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InterfacesCannotContainTypes">
+        <source>'{0}': interfaces cannot declare types</source>
+        <target state="translated">'“{0}”: 接口不能声明类型</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainFields">
-        <source>Interfaces cannot contain instance fields</source>
-        <target state="needs-review-translation">接口不能包含字段</target>
+        <source>Interfaces cannot contain fields</source>
+        <target state="translated">接口不能包含字段</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain instance constructors</source>
-        <target state="needs-review-translation">接口不能包含构造函数</target>
+        <source>Interfaces cannot contain constructors</source>
+        <target state="translated">接口不能包含构造函数</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">
@@ -3264,6 +3545,11 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_CycleInInterfaceInheritance">
         <source>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</source>
         <target state="translated">继承接口“{1}”在“{0}”的接口层次结构中导致一个循环</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfaceMemberHasBody">
+        <source>'{0}': interface members cannot have a definition</source>
+        <target state="translated">'“{0}”: 接口成员不能有定义</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HidingAbstractMethod">
@@ -3292,8 +3578,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
-        <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</source>
-        <target state="needs-review-translation">'显式接口声明中的“{0}”不是接口成员</target>
+        <source>'{0}' in explicit interface declaration is not a member of interface</source>
+        <target state="translated">'显式接口声明中的“{0}”不是接口成员</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
@@ -3302,8 +3588,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
-        <target state="needs-review-translation">'“{0}”: 显式接口声明只能在类或结构中声明</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class or struct</source>
+        <target state="translated">'“{0}”: 显式接口声明只能在类或结构中声明</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -3409,6 +3695,11 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
         <target state="translated">重载移位运算符的第一个操作数的类型必须与包含类型相同，第二个操作数的类型必须是 int 类型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfacesCantContainOperators">
+        <source>Interfaces cannot contain operators</source>
+        <target state="translated">接口不能包含运算符</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructsCantContainDefaultConstructor">
@@ -4202,8 +4493,8 @@ If such a class is used as a base class and if the deriving class defines a dest
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
-        <target state="needs-review-translation">分部方法必须在分部类或分部结构内声明</target>
+        <source>A partial method must be declared within a partial class or partial struct</source>
+        <target state="translated">分部方法必须在分部类或分部结构内声明</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
@@ -4956,8 +5247,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
-        <target state="needs-review-translation">'为 Main 方法指定的“{0}”必须是有效的非泛型类或结构</target>
+        <source>'{0}' specified for Main method must be a valid non-generic class or struct</source>
+        <target state="translated">'为 Main 方法指定的“{0}”必须是有效的非泛型类或结构</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -5357,12 +5648,12 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning">
         <source>Expected disable, restore, enable or safeonly</source>
-        <target state="needs-review-translation">应为 disable 或 restore</target>
+        <target state="translated">应为 disable、restore、enable 或 safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IllegalPPWarning_Title">
         <source>Expected disable, restore, enable or safeonly after #pragma warning</source>
-        <target state="needs-review-translation">#pragma 警告后应为 disable 或 restore</target>
+        <target state="translated">应在 #pragma warning 之后为 disable、restore、enable 或 safeonly</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadRestoreNumber">
@@ -5607,7 +5898,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.</source>
-        <target state="needs-review-translation">“{0}”: using 语句中使用的类型必须可隐式转换为 "System.IDisposable"。</target>
+        <target state="translated">“{0}”: using 语句中使用的类型必须可隐式转换为 "System.IDisposable" 或实现适用的 "Dispose" 方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -7611,7 +7902,7 @@ You should consider suppressing the warning only if you're sure that you don't w
 To embed interop type information for both assemblies, use /link for references to each assembly (set the Embed Interop Types property to True).
 
 To remove the warning, you can use /reference instead (set the Embed Interop Types property to False). In this case, a primary interop assembly (PIA) provides interop type information.</source>
-        <target state="translated">使用 /link 添加了对程序集的引用(“嵌入互操作类型”属性设置为 True)。这指示编译器嵌入来自该程序集的互操作类型信息。但是，编译器无法嵌入来自该程序集的互操作类型信息，因为已引用的另一个程序集也使用 /reference 引用该程序集(“嵌入互操作类型”属性设置为 False)。
+        <target state="needs-review-translation">使用 /link 添加了对程序集的引用(“嵌入互操作类型”属性设置为 True)。这指示编译器嵌入来自该程序集的互操作类型信息。但是，编译器无法嵌入来自该程序集的互操作类型信息，因为已引用的另一个程序集也使用 /reference 引用该程序集(“嵌入互操作类型”属性设置为 False)。
 
 要嵌入两个程序集的互操作类型信息，请对每个程序集的引用使用 /link (将“嵌入互操作类型”属性设置为 True)。
 
@@ -8133,301 +8424,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">支持的语言版本:</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_CSCHelp">
-        <source>
-                             Visual C# Compiler Options
-
-                       - OUTPUT FILES -
--out:&lt;file&gt;                   Specify output file name (default: base name of
-                              file with main class or first file)
--target:exe                   Build a console executable (default) (Short
-                              form: -t:exe)
--target:winexe                Build a Windows executable (Short form:
-                              -t:winexe)
--target:library               Build a library (Short form: -t:library)
--target:module                Build a module that can be added to another
-                              assembly (Short form: -t:module)
--target:appcontainerexe       Build an Appcontainer executable (Short form:
-                              -t:appcontainerexe)
--target:winmdobj              Build a Windows Runtime intermediate file that
-                              is consumed by WinMDExp (Short form: -t:winmdobj)
--doc:&lt;file&gt;                   XML Documentation file to generate
--refout:&lt;file&gt;                Reference assembly output to generate
--platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred, or
-                              anycpu. The default is anycpu.
-
-                       - INPUT FILES -
--recurse:&lt;wildcard&gt;           Include all files in the current directory and
-                              subdirectories according to the wildcard
-                              specifications
--reference:&lt;alias&gt;=&lt;file&gt;     Reference metadata from the specified assembly
-                              file using the given alias (Short form: -r)
--reference:&lt;file list&gt;        Reference metadata from the specified assembly
-                              files (Short form: -r)
--addmodule:&lt;file list&gt;        Link the specified modules into this assembly
--link:&lt;file list&gt;             Embed metadata from the specified interop
-                              assembly files (Short form: -l)
--analyzer:&lt;file list&gt;         Run the analyzers from this assembly
-                              (Short form: -a)
--additionalfile:&lt;file list&gt;   Additional files that don't directly affect code
-                              generation but may be used by analyzers for producing
-                              errors or warnings.
--embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB.
-
-                       - RESOURCES -
--win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
--win32icon:&lt;file&gt;             Use this icon for the output
--win32manifest:&lt;file&gt;         Specify a Win32 manifest file (.xml)
--nowin32manifest              Do not include the default Win32 manifest
--resource:&lt;resinfo&gt;           Embed the specified resource (Short form: -res)
--linkresource:&lt;resinfo&gt;       Link the specified resource to this assembly
-                              (Short form: -linkres) Where the resinfo format
-                              is &lt;file&gt;[,&lt;string name&gt;[,public|private]]
-
-                       - CODE GENERATION -
--debug[+|-]                   Emit debugging information
--debug:{full|pdbonly|portable|embedded}
-                              Specify debugging type ('full' is default,
-                              'portable' is a cross-platform format,
-                              'embedded' is a cross-platform format embedded into
-                              the target .dll or .exe)
--optimize[+|-]                Enable optimizations (Short form: -o)
--deterministic                Produce a deterministic assembly
-                              (including module version GUID and timestamp)
--refonly                      Produce a reference assembly in place of the main output
--instrument:TestCoverage      Produce an assembly instrumented to collect
-                              coverage information
--sourcelink:&lt;file&gt;            Source link info to embed into PDB.
-
-                       - ERRORS AND WARNINGS -
--warnaserror[+|-]             Report all warnings as errors
--warnaserror[+|-]:&lt;warn list&gt; Report specific warnings as errors
--warn:&lt;n&gt;                     Set warning level (0-4) (Short form: -w)
--nowarn:&lt;warn list&gt;           Disable specific warning messages
--ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
-                              diagnostics.
--errorlog:&lt;file&gt;              Specify a file to log all compiler and analyzer
-                              diagnostics.
--reportanalyzer               Report additional analyzer information, such as
-                              execution time.
-
-                       - LANGUAGE -
--checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
--define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
-                              form: -d)
--langversion:?                Display the allowed values for language version
--langversion:&lt;string&gt;         Specify language version such as
-                              `default` (latest major version), or
-                              `latest` (latest version, including minor versions),
-                              or specific versions like `6` or `7.1`
--nullable[+|-]                Specify nullable context option enable|disable.
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              Specify nullable context option enable|disable|safeonly|warnings|safeonlywarnings.
-
-                       - SECURITY -
--delaysign[+|-]               Delay-sign the assembly using only the public
-                              portion of the strong name key
--publicsign[+|-]              Public-sign the assembly using only the public
-                              portion of the strong name key
--keyfile:&lt;file&gt;               Specify a strong name key file
--keycontainer:&lt;string&gt;        Specify a strong name key container
--highentropyva[+|-]           Enable high-entropy ASLR
-
-                       - MISCELLANEOUS -
-@&lt;file&gt;                       Read response file for more options
--help                         Display this usage message (Short form: -?)
--nologo                       Suppress compiler copyright message
--noconfig                     Do not auto include CSC.RSP file
--parallel[+|-]                Concurrent build.
--version                      Display the compiler version number and exit.
-
-                       - ADVANCED -
--baseaddress:&lt;address&gt;        Base address for the library to be built
--checksumalgorithm:&lt;alg&gt;      Specify algorithm for calculating source file
-                              checksum stored in PDB. Supported values are:
-                              SHA1 or SHA256 (default).
--codepage:&lt;n&gt;                 Specify the codepage to use when opening source
-                              files
--utf8output                   Output compiler messages in UTF-8 encoding
--main:&lt;type&gt;                  Specify the type that contains the entry point
-                              (ignore all other possible entry points) (Short
-                              form: -m)
--fullpaths                    Compiler generates fully qualified paths
--filealign:&lt;n&gt;                Specify the alignment used for output file
-                              sections
--pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Specify a mapping for source path names output by
-                              the compiler.
--pdb:&lt;file&gt;                   Specify debug information file name (default:
-                              output file name with .pdb extension)
--errorendlocation             Output line and column of the end location of
-                              each error
--preferreduilang              Specify the preferred output language name.
--nosdkpath                    Disable searching the default SDK path for standard library assemblies.
--nostdlib[+|-]                Do not reference standard library (mscorlib.dll)
--subsystemversion:&lt;string&gt;    Specify subsystem version of this assembly
--lib:&lt;file list&gt;              Specify additional directories to search in for
-                              references
--errorreport:&lt;string&gt;         Specify how to handle internal compiler errors:
-                              prompt, send, queue, or none. The default is
-                              queue.
--appconfig:&lt;file&gt;             Specify an application configuration file
-                              containing assembly binding settings
--moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
-                              a part of
--modulename:&lt;string&gt;          Specify the name of the source module
-</source>
-        <target state="needs-review-translation">
-                              Visual C# 编译器选项
-
-                        - 输出文件 -
--out:&lt;file&gt;                   指定输出文件名称(默认: 具有主类的文件或
-                               第一个文件的基名称)
--target:exe                   生成控制台可执行文件(默认)(缩
-                               写: -t:exe)
--target:winexe                生成 Windows 可执行文件(缩写: 
-                               -t:winexe)
--target:library               生成库(缩写: -t:library)
--target:module                生成可添加到另一个程序集的
-                               模块(缩写: -t:module)
--target:appcontainerexe       生成 Appcontainer 可执行文件(缩写: 
-                               -t:appcontainerexe)
--target:winmdobj              生成 WinMDExp 使用的
-                               Windows 运行时中间文件(缩写: -t:winmdobj)
--doc:&lt;file&gt;                   要生成的 XML 文档文件
--refout:&lt;file&gt;                要生成的引用程序集输出
--platform:&lt;string&gt;            限制此代码可以在其上运行的平台: x86、
-                               Itanium、x64、arm、arm64、anycpu32bitpreferred 或
-                               anycpu。默认平台为 anycpu。
-
-                        - 输入文件 -
--recurse:&lt;wildcard&gt;           根据通配符规范包括当前目录和
-                               子目录中的所有
-                               文件
--reference:&lt;alias &gt;=&lt;file&gt;     使用给定别名从指定程序集
-                               引用元数据(缩写: -r)
--reference:&lt;file list&gt;        从指定程序集文件引用
-                               元数据(缩写: -r)
--addmodule:&lt;file list&gt;        将指定模块链接到此程序集中
--link:&lt;file list&gt;             嵌入指定互操作程序集文件中的
-                               元数据(缩写: -l)
--analyzer:&lt;file list&gt;         运行此程序集中的分析器
-                               (缩写: -a)
--additionalfile:&lt;file list&gt;   不会直接影响代码生成
-                               但可能被分析器用于生成
-                               错误或警告的其他文件。
--embed                        嵌入 PDB 中的所有源文件。
--embed:&lt;file list&gt;            嵌入 PDB 中的特定文件
-
-                        - 资源 -
--win32res:&lt;file&gt;              指定 Win32 资源文件(.res)
--win32icon:&lt;file&gt;             使用此图标输出
--win32manifest:&lt;file&gt;         指定 Win32 清单文件(.xml)
--nowin32manifest              不包括默认的 Win32 清单
--resource:&lt;resinfo&gt;           嵌入指定资源(缩写: -res)
--linkresource:&lt;resinfo&gt;       将指定资源链接到此程序集
-                               (缩写: -linkres)其中 resinfo 的格式
-                               是 &lt;文件&gt;[,&lt;字符串名称&gt;[,public|private]]
-
-                        - 代码生成 -
--debug[+|-]                   发出调试信息
--debug:{full|pdbonly|portable|embedded}
-                               指定调试类型(默认为 "full"，
-                               "portable" 为跨平台格式，
-                               "embedded" 为嵌入目标 .dll 或 .exe 的
-                               跨平台格式)
--optimize[+|-]                启用优化(缩写: -o)
--deterministic                生成确定性的程序集
-                               (包括模块版本 GUID 和时间戳)
--refonly                      生成引用程序集来替换主要输出
--instrument:TestCoverage      生成对其检测以收集覆盖率信息的
-                               程序集
--sourcelink:&lt;file&gt;            要嵌入到 PDB 中的源链接信息。
-
-                        - 错误和警告 -
--warnaserror[+|-]             将所有警告报告为错误
--warnaserror[+|-]:&lt;warn list&gt; 将特定警告报告为错误
--warn:&lt;n&gt;                     设置警告级别(0-4)(缩写: -w)
--nowarn:&lt;warn list&gt;           禁用特定警告消息
--ruleset:&lt;file&gt;               指定禁用特定诊断的
-                               规则集文件。
--errorlog:&lt;file&gt;              指定用于记录所有编译器和分析器诊断的
-                               文件。
--reportanalyzer               报告其他分析器信息，如
-                               执行时间。
- 
-                        - 语言 -
--checked[+|-]                 生成溢出检查
--unsafe[+|-]                  允许 "unsafe" 代码
--define:&lt;symbol list&gt;         定义条件编译符号(缩 
-                               写: -d)
--langversion:?                显示允许的语言版本值
--langversion:&lt;string&gt;         指定语言版本，如
-                               “default” (最新主要版本)、
-                               “latest” (最新版本，包括次要版本)
-                               或 “6”、”7.1”等特定版本
--nullable[+|-]                指定可为 null 的上下文选项 enable|disable。
--nullable:{enable|disable|safeonly|warnings|safeonlywarnings}
-                              指定可为 null 的上下文选项 enable|disable|safeonly|warnings|safeonlywarnings。
-
-                        - 安全 -
--delaysign[+|-]               仅使用强名称密钥的公共部分对程序集
-                               进行延迟签名
--publicsign[+|-]              仅使用强名称密钥的公共部分对程序集
-                               进行公共签名
--keyfile:&lt;file&gt;               指定强名称密钥文件
--keycontainer:&lt;string&gt;        指定强名称密钥容器
--highentropyva[+|-]           启用高平均信息量 ASLR
-
-                        - 杂项 -
- @&lt;file&gt;                       读取响应文件以获取更多选项
--help                         显示此用法消息(缩写: -?)
--nologo                       取消显示编译器版权消息
--noconfig                     不自动包括 CSC.RSP 文件
--parallel[+|-]                并发生成。
--version                      显示编译器版本号并退出。
-
-                        - 高级 -
--baseaddress:&lt;address&gt;        要生成的库的基址
--checksumalgorithm:&lt;alg&gt;      指定计算存储在 PDB 中的源文件
-                               校验和的算法。支持的值是:
-                               SHA1 (默认)或 SHA256。
--codepage:&lt;n&gt;                 指定打开源文件时要使用的
-                               代码页
--utf8output                   以 UTF-8 编码格式输出编译器消息
--main:&lt;type&gt;                  指定包含入口点的类型
-                               (忽略所有其他可能的入口点)(缩 
-                               写: -m)
--fullpaths                    编译器生成完全限定路径
--filealign:&lt;n&gt;                指定用于输出文件节的
-                               对齐方式
--pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                               通过编译器指定源路径名称输出的
-                               映射。
--pdb:&lt;file&gt;                   指定调试信息文件名称(默认: 
-                               具有 .pdb 扩展名的输出文件名)
--errorendlocation             输出每个错误的结束位置
-                               行和列
--preferreduilang              指定首选输出语言名称。
--nosdkpath                    禁用搜索标准库程序集的默认 SDK 路径
--nostdlib[+|-]                不引用标准库(mscorlib.dll)
--subsystemversion:&lt;string&gt;    指定此程序集的子系统版本
--lib:&lt;file list&gt;              指定要在其中搜索引用的附加
-                               目录
--errorreport:&lt;string&gt;         指定如何处理内部编译器错误:
-                               prompt、send、queue 或 none。默认为
-                               queue。
--appconfig:&lt;file&gt;             指定包含程序集绑定设置的
-                               应用程序配置文件
--moduleassemblyname:&lt;string&gt;  此模块所属程序集
-                               的名称
--modulename:&lt;string&gt;          指定源模块的名称
-</target>
-        <note>Visual C# Compiler Options</note>
-      </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
         <source>'{0}': a class with the ComImport attribute cannot specify field initializers.</source>
         <target state="translated">'“{0}”: 具有 ComImport 特性的类不能指定字段初始值设定项。</target>
@@ -8529,8 +8525,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="needs-review-translation">接口中自动实现的属性不能具有初始值设定项。</target>
+        <source>Auto-implemented properties inside interfaces cannot have initializers.</source>
+        <target state="translated">接口中自动实现的属性不能具有初始值设定项。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
@@ -9510,7 +9506,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">“{0}”: 异步 using 语句中使用的类型必须可隐式转换为 “System.IAsyncDisposable”</target>
+        <target state="translated">“{0}”: 异步 using 语句中使用的类型必须可隐式转换为 "System.IAsyncDisposable" 或实现适用的 "DisposeAsync" 方法。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
@@ -9521,46 +9517,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
         <target state="translated">异步 foreach 语句实现“{1}”的多个实例化，因此不能在“{0}”类型的变量上运行；请尝试强制转换到特定的接口实例化</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
-        <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
-        <target state="new">Interfaces cannot contain conversion, equality, or inequality operators</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_DefaultInterfaceImplementation">
-        <source>default interface implementation</source>
-        <target state="new">default interface implementation</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
-        <source>Target runtime doesn't support default interface implementation.</source>
-        <target state="new">Target runtime doesn't support default interface implementation.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
-        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
-        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
-        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
-        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
-        <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
-        <target state="new">Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
-        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
         <note />
       </trans-unit>
     </body>
