@@ -186,9 +186,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 AddBlockComment(commentInfo, uncommentedSpan, textChanges);
             }
 
+            var startsWithCommentMarker = blockCommentSelection.StartsWithAnyBlockCommentMarker(commentInfo);
+            var endsWithCommentMarker = blockCommentSelection.EndsWithAnyBlockCommentMarker(commentInfo);
             // If the start is commented (and not a comment marker), close the current comment and open a new one.
-            if (blockCommentSelection.IsLocationCommented(selectedSpan.Start)
-                && !blockCommentSelection.StartsWithAnyBlockCommentMarker(commentInfo))
+            if (blockCommentSelection.IsLocationCommented(selectedSpan.Start) && !startsWithCommentMarker)
             {
                 InsertText(textChanges, selectedSpan.Start, commentInfo.BlockCommentEndString);
                 InsertText(textChanges, selectedSpan.Start, commentInfo.BlockCommentStartString);
@@ -197,8 +198,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             }
 
             // If the end is commented (and not a comment marker), close the current comment and open a new one.
-            if (blockCommentSelection.IsLocationCommented(selectedSpan.End)
-                && !blockCommentSelection.EndsWithAnyBlockCommentMarker(commentInfo))
+            if (blockCommentSelection.IsLocationCommented(selectedSpan.End) && !endsWithCommentMarker)
             {
                 InsertText(textChanges, selectedSpan.End, commentInfo.BlockCommentEndString);
                 InsertText(textChanges, selectedSpan.End, commentInfo.BlockCommentStartString);

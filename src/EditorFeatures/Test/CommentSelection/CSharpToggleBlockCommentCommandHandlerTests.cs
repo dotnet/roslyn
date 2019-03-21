@@ -33,15 +33,11 @@ class C
 {
     void M()
     {
-        var/**/ i = 1;
+        var[|/**/|] i = 1;
     }
 }";
 
-            var expectedSelectedSpans = new[]
-            {
-                Span.FromBounds(46, 50)
-            };
-            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+            ToggleBlockComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -61,15 +57,11 @@ class C
 {
     void M()
     {
-        Func<int, bool> myFunc = x =>/**/ x == 5;
+        Func<int, bool> myFunc = x =>[|/**/|] x == 5;
     }
 }";
 
-            var expectedSelectedSpans = new[]
-            {
-                Span.FromBounds(72, 76)
-            };
-            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+            ToggleBlockComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -93,16 +85,12 @@ class C
     void M()
     {
         string s = '/*';
-        /*var j = 2;
-        var k = 3;*/
+        [|/*var j = 2;
+        var k = 3;*/|]
     }
 }";
 
-            var expectedSelectedSpans = new[]
-            {
-                Span.FromBounds(69, 103)
-            };
-            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+            ToggleBlockComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -127,19 +115,15 @@ class C
 {
     void M()
     {
-        /*var i = 1;
+        [|/*var i = 1;
 #if false
         /*var j = 2;*/
 #endif
-        var k = 3;*/
+        var k = 3;*/|]
     }
 }";
 
-            var expectedSelectedSpans = new[]
-            {
-                Span.FromBounds(43, 120),
-            };
-            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+            ToggleBlockComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -162,17 +146,13 @@ class C
 {
     void M()
     {
-        /*var i = 1;
+        [|/*var i = 1;
         string s = '/*';
-        var k = 3;*/
+        var k = 3;*/|]
     }
 }";
 
-            var expectedSelectedSpans = new[]
-            {
-                Span.FromBounds(43, 103)
-            };
-            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+            ToggleBlockComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -195,17 +175,13 @@ class C
 {
     void M()
     {
-        /*var i = 1;
+        [|/*var i = 1;
         string s = '/*';
-        var k = 3;*/
+        var k = 3;*/|]
     }
 }";
 
-            var expectedSelectedSpans = new[]
-            {
-                Span.FromBounds(43, 103)
-            };
-            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+            ToggleBlockComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -228,17 +204,13 @@ class C
 {
     void M()
     {
-        /*var i = 1;
-        var j = 2;*/
+        [|/*var i = 1;
+        var j = 2;*/|]
         string s = '*/';
     }
 }";
 
-            var expectedSelectedSpans = new[]
-            {
-                Span.FromBounds(43, 77)
-            };
-            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+            ToggleBlockComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -263,17 +235,13 @@ class C
     void M()
     {
         string s = '/*';
-        var i = 1;
+        [|var i = 1;
         var j = 2;
-        var k = 3;
+        var k = 3;|]
     }
 }";
 
-            var expectedSelectedSpans = new[]
-            {
-                Span.FromBounds(69, 119)
-            };
-            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+            ToggleBlockComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -294,15 +262,11 @@ class C
 {
     void M()
     {
-        string s = '/*';
+        [|string s = '/*';|]
     }
 }";
 
-            var expectedSelectedSpans = new[]
-            {
-                Span.FromBounds(43, 59)
-            };
-            ToggleBlockComment(markup, expected, expectedSelectedSpans);
+            ToggleBlockComment(markup, expected);
         }
 
         internal override ToggleBlockCommentCommandHandler GetToggleBlockCommentCommandHandler(TestWorkspace workspace)

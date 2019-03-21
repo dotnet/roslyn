@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
@@ -23,17 +25,17 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
     {
         abstract internal ToggleBlockCommentCommandHandler GetToggleBlockCommentCommandHandler(TestWorkspace workspace);
 
-        protected void ToggleBlockComment(string markup, string expected, IEnumerable<Span> expectedSelectedSpans)
+        protected void ToggleBlockComment(string markup, string expected)
         {
-            ToggleBlockCommentMultiple(markup, new string[] { expected }, new IEnumerable<Span>[] { expectedSelectedSpans });
+            ToggleBlockCommentMultiple(markup, new string[] { expected });
         }
 
-        protected void ToggleBlockCommentMultiple(string markup, string[] expectedText, IEnumerable<Span>[] expectedSelections)
+        protected void ToggleBlockCommentMultiple(string markup, string[] expectedText)
         {
-            Assert.Equal(expectedText.Length, expectedSelections.Length);
             var exportProvider = ExportProviderCache
                 .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(MockToggleBlockCommentExperimentationService)))
                 .CreateExportProvider();
+
             using (var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider))
             {
 
@@ -47,18 +49,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
                 for (var i = 0; i < expectedText.Length; i++)
                 {
                     commandHandler.ExecuteCommand(textView, textBuffer, ValueTuple.Create(), TestCommandExecutionContext.Create());
-                    AssertCommentResult(doc.TextBuffer, textView, expectedText[i], expectedSelections[i]);
+                    AssertCommentResult(doc.TextBuffer, textView, expectedText[i]);
                 }
             }
         }
 
-        private static void AssertCommentResult(ITextBuffer textBuffer, IWpfTextView textView, string expectedText, IEnumerable<Span> expectedSelection)
+        private static void AssertCommentResult(ITextBuffer textBuffer, IWpfTextView textView, string expectedText)
         {
-            Assert.Equal(expectedText, textBuffer.CurrentSnapshot.GetText());
+            MarkupTestFile.GetSpans(expectedText, out var actualExpectedText, out ImmutableArray<TextSpan> expectedSpans);
 
-            if (expectedSelection != null)
+            Assert.Equal(actualExpectedText, textBuffer.CurrentSnapshot.GetText());
+
+            if (!expectedSpans.IsEmpty)
             {
-                AssertEx.Equal(expectedSelection, textView.Selection.SelectedSpans.Select(snapshotSpan => snapshotSpan.Span));
+                AssertEx.Equal(expectedSpans, textView.Selection.SelectedSpans.Select(snapshotSpan => TextSpan.FromBounds(snapshotSpan.Start, snapshotSpan.End)));
             }
         }
 
