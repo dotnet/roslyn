@@ -2,7 +2,7 @@ parameters:
   HelixSource: 'pr/default'              # required -- sources must start with pr/, official/, prodcon/, or agent/
   HelixType: 'tests/default/'            # required -- Helix telemetry which identifies what type of data this is; should include "test" for clarity and must end in '/'
   HelixBuild: $(Build.BuildNumber)       # required -- the build number Helix will use to identify this -- automatically set to the AzDO build number
-  HelixTargetQueues: ''                  # required -- semicolon delimited list of Helix queues to test on; see https://helix.dot.net/api/2018-03-14/info/queues for a list of queues
+  HelixTargetQueues: ''                  # required -- semicolon delimited list of Helix queues to test on; see https://helix.dot.net/ for a list of queues
   HelixAccessToken: ''                   # required -- access token to make Helix API requests; should be provided by the appropriate variable group
   HelixPreCommands: ''                   # optional -- commands to run before Helix work item execution
   HelixPostCommands: ''                  # optional -- commands to run after Helix work item execution

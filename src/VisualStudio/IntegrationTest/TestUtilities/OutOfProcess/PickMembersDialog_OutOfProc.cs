@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickCancel()
         {
             DialogHelpers.PressButton(GetMainWindowHWnd(), PickMembersDialogID, "CancelButton");
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
 
         private IntPtr GetMainWindowHWnd()

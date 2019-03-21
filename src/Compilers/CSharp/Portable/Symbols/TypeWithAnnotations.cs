@@ -215,8 +215,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var typeSymbol = this.Type;
 
-            // It is not safe to check if a type parameter is a reference type right away, this can send us into a cycle.
-            // In this case we delay asking this question as long as possible.
             if (typeSymbol.TypeKind != TypeKind.TypeParameter)
             {
                 if (!typeSymbol.IsValueType && !typeSymbol.IsErrorType())
@@ -225,11 +223,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    return Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol)));
+                    return makeNullableT();
                 }
             }
 
+            if (((TypeParameterSymbol)typeSymbol).TypeParameterKind == TypeParameterKind.Cref)
+            {
+                // We always bind annotated type parameters in cref as `Nullable<T>`
+                return makeNullableT();
+            }
+
+            // It is not safe to check if a type parameter is a reference type right away, this can send us into a cycle.
+            // In this case we delay asking this question as long as possible.
             return CreateLazyNullableType(compilation, this);
+
+            TypeWithAnnotations makeNullableT()
+                => Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol)));
         }
 
         private TypeWithAnnotations AsNullableReferenceType() => _extensions.AsNullableReferenceType(this);

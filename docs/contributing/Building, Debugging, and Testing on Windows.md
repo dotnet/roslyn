@@ -18,7 +18,8 @@ The minimal required version of .NET Framework is 4.7.2.
 1. [Visual Studio 2019 RC](https://visualstudio.microsoft.com/downloads/#2019rc)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "RC1" or greater
-1. [.NET Core SDK 2.1.401](https://www.microsoft.com/net/download/core) (the installers are: [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.401/dotnet-sdk-2.1.401-win-x64.exe), [Windows x86 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.401/dotnet-sdk-2.1.401-win-x86.exe))
+    - Ensure "Use Previews" is checked in Tools -> Options -> Projects and Solutions -> .NET Core
+1. [.NET Core SDK 3.0 Preview 3](https://dotnet.microsoft.com/download/dotnet-core/3.0) [Windows x64 installer](https://dotnet.microsoft.com/download/thank-you/dotnet-sdk-3.0.100-preview3-windows-x64-installer)
 1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on Windows 7. The download link is under the "upgrading existing Windows PowerShell" heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
@@ -43,7 +44,7 @@ The Test.cmd script will run our unit test on already built binaries.  It can be
 2. Navigate to the directory of your Git clone.
 3. Run `msbuild /v:m /m /nodereuse:false BuildAndTest.proj` in the command prompt.
 
-You can more precisely control how the tests are run by running the eng/build.ps1 script directly with the relevant options. For example passing in the `-test` switch will run the tests on .Net Framework, whilst passing in the `-testCoreClr` switch will run the tests on .Net Core.
+You can more precisely control how the tests are run by running the eng/build.ps1 script directly with the relevant options. For example passing in the `-test` switch will run the tests on .NET Framework, whilst passing in the `-testCoreClr` switch will run the tests on .NET Core.
 
 The results of the tests can be viewed in the artifacts/TestResults directory.
 
