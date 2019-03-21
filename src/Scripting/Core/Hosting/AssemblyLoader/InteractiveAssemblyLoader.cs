@@ -302,17 +302,17 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     {
                         Guid mvid;
                         if (TryReadMvid(assemblyFilePathOpt, out mvid) &&
-                            CorLightup.Desktop.GetModuleVersionId(loadedAssemblyWithEqualNameAndVersionOpt.Assembly.ManifestModule) == mvid)
+                            loadedAssemblyWithEqualNameAndVersionOpt.Assembly.ManifestModule.ModuleVersionId == mvid)
                         {
                             return loadedAssemblyWithEqualNameAndVersionOpt.Assembly;
                         }
-                        
+
                         // error: attempt to load an assembly with the same identity as already loaded assembly but different content
                         throw new InteractiveAssemblyLoaderException(
-                            string.Format(null, ScriptingResources.AssemblyAlreadyLoaded, 
-                            identity.Name, 
-                            identity.Version, 
-                            loadedAssemblyWithEqualNameAndVersionOpt.LocationOpt, 
+                            string.Format(null, ScriptingResources.AssemblyAlreadyLoaded,
+                            identity.Name,
+                            identity.Version,
+                            loadedAssemblyWithEqualNameAndVersionOpt.LocationOpt,
                             assemblyFilePathOpt)
                         );
                     }

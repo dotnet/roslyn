@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var symbolKindsWithNoCodeBlocks = new HashSet<SymbolKind>();
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
 
+            // Add nodes that are not yet in AllInOneCSharpCode to this list.
             var missingSyntaxKinds = new HashSet<SyntaxKind>();
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();

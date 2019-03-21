@@ -418,12 +418,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // that lambda needs a closure that captures the analysis payload of the constructor.
                     return true;
 
+                case SyntaxKind.SwitchExpression:
+                case SyntaxKind.AwaitExpression:
+                    // These translate into a BoundSpillSequence, which is then translated into a block
+                    // containing temps required for spilling subexpressions. That block has the syntax of the switch
+                    // expression or await expression.
+                    return true;
+
                 default:
                     // With the introduction of pattern-matching, many nodes now contain top-level
                     // expressions that may introduce pattern variables.
                     if (node.Parent != null)
                     {
-                        switch(node.Parent.Kind())
+                        switch (node.Parent.Kind())
                         {
                             case SyntaxKind.EqualsValueClause:
                                 return true;

@@ -31,7 +31,7 @@ $@"class MyClass
     {accessibility} int[| _goo |];
 }}");
         }
-        
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeFieldReadonly)]
         public async Task FieldIsEvent()
         {

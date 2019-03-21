@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Completion
             // Note: we keep any context with items *or* with a suggested item.  
             var triggeredCompletionContexts = await ComputeNonEmptyCompletionContextsAsync(
                 document, caretPosition, trigger, options,
-                defaultItemSpan, triggeredProviders, 
+                defaultItemSpan, triggeredProviders,
                 cancellationToken).ConfigureAwait(false);
 
             // If we didn't even get any back with items, then there's nothing to do.

@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestAsync(
 @"using var = System;",
                 Keyword("using"),
-                Identifier("var"),
+                Namespace("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon);
         }
 
@@ -72,9 +72,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Class("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Class("Math"),
+                Static("Math"),
                 Punctuation.Semicolon);
         }
 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Delegate("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Delegate("Action"),
                 Punctuation.Semicolon);
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Struct("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Struct("DateTime"),
                 Punctuation.Semicolon);
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Enum("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Enum("DayOfWeek"),
                 Punctuation.Semicolon);
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("using"),
                 Interface("var"),
                 Operators.Equals,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Interface("IDisposable"),
                 Punctuation.Semicolon);
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("class"),
                 Class("var"),
                 Punctuation.OpenCurly,
-                Identifier("var"),
+                Class("var"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -161,13 +162,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
             await TestAsync(
 @"using IO = global::System.IO;",
                 Keyword("using"),
-                Identifier("IO"),
+                Namespace("IO"),
                 Operators.Equals,
                 Keyword("global"),
                 Operators.ColonColon,
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
-                Identifier("IO"),
+                Namespace("IO"),
                 Punctuation.Semicolon);
         }
 
@@ -200,14 +201,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Keyword("static"),
                 Keyword("dynamic"),
                 Method("dynamic"),
+                Static("dynamic"),
                 Punctuation.OpenAngle,
                 TypeParameter("partial"),
                 Punctuation.CloseAngle,
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                Keyword("return"),
+                ControlKeyword("return"),
                 Method("dynamic"),
+                Static("dynamic"),
                 Punctuation.OpenAngle,
                 Keyword("dynamic"),
                 Punctuation.CloseAngle,
@@ -223,11 +226,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task VarInForeach()
         {
             await TestInMethodAsync(@"foreach (var v in args) { }",
-                Keyword("foreach"),
+                ControlKeyword("foreach"),
                 Punctuation.OpenParen,
                 Keyword("var"),
                 Local("v"),
-                Keyword("in"),
+                ControlKeyword("in"),
                 Identifier("args"),
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -390,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Local("o"),
                 Operators.Equals,
                 Keyword("new"),
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
                 Interface("IDisposable"),
                 Punctuation.OpenParen,
@@ -469,7 +472,7 @@ class var : Attribute
 {
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon,
                 Punctuation.OpenBracket,
                 Class("var"),
@@ -494,7 +497,7 @@ class varAttribute : Attribute
 {
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon,
                 Punctuation.OpenBracket,
                 Class("var"),
@@ -522,7 +525,7 @@ class C
     }
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("C"),
@@ -530,6 +533,7 @@ class C
                 Keyword("static"),
                 Keyword("void"),
                 Method("Main"),
+                Static("Main"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
@@ -537,6 +541,7 @@ class C
                 Local("tree"),
                 Operators.Equals,
                 Class("Console"),
+                Static("Console"),
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
         }
@@ -558,7 +563,7 @@ namespace C
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly,
                 Keyword("namespace"),
-                Identifier("C"),
+                Namespace("C"),
                 Punctuation.OpenCurly,
                 Punctuation.CloseCurly);
         }
@@ -661,11 +666,11 @@ namespace N
                 XmlDoc.AttributeName("cref"),
                 XmlDoc.Delimiter("="),
                 XmlDoc.AttributeQuotes("\""),
-                Identifier("N"),
+                Namespace("N"),
                 XmlDoc.AttributeQuotes("\""),
                 XmlDoc.Delimiter("/>"),
                 Keyword("namespace"),
-                Identifier("N"),
+                Namespace("N"),
                 Punctuation.OpenCurly,
                 Keyword("class"),
                 Class("Program"),
@@ -736,7 +741,7 @@ class MyClass
                 XmlDoc.AttributeQuotes("\""),
                 Class("MyClass"),
                 Operators.Dot,
-                Method("MyClass"),
+                Class("MyClass"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Punctuation.CloseParen,
@@ -751,7 +756,7 @@ class MyClass
                 Class("MyClass"),
                 Punctuation.OpenCurly,
                 Keyword("public"),
-                Identifier("MyClass"),
+                Class("MyClass"),
                 Punctuation.OpenParen,
                 Keyword("int"),
                 Parameter("x"),
@@ -772,11 +777,11 @@ class Program : IReadOnlyCollection
 {
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
-                Identifier("Collections"),
+                Namespace("Collections"),
                 Operators.Dot,
-                Identifier("Generic"),
+                Namespace("Generic"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("Program"),
@@ -797,11 +802,11 @@ class Program : IReadOnlyCollection<int,string>
 {
 }",
                 Keyword("using"),
-                Identifier("System"),
+                Namespace("System"),
                 Operators.Dot,
-                Identifier("Collections"),
+                Namespace("Collections"),
                 Operators.Dot,
-                Identifier("Generic"),
+                Namespace("Generic"),
                 Punctuation.Semicolon,
                 Keyword("class"),
                 Class("Program"),
@@ -830,11 +835,13 @@ class Program : IReadOnlyCollection<int,string>
                 Keyword("static"),
                 Keyword("class"),
                 Class("ExtMethod"),
+                Static("ExtMethod"),
                 Punctuation.OpenCurly,
                 Keyword("public"),
                 Keyword("static"),
                 Keyword("void"),
                 ExtensionMethod("TestMethod"),
+                Static("TestMethod"),
                 Punctuation.OpenParen,
                 Keyword("this"),
                 Identifier("C"),
@@ -868,12 +875,14 @@ class C
                 ParseOptions(Options.Regular),
                 Keyword("static"),
                 Keyword("class"),
+                Static("ExtMethod"),
                 Class("ExtMethod"),
                 Punctuation.OpenCurly,
                 Keyword("public"),
                 Keyword("static"),
                 Keyword("void"),
                 ExtensionMethod("TestMethod"),
+                Static("TestMethod"),
                 Punctuation.OpenParen,
                 Keyword("this"),
                 Class("C"),
@@ -890,9 +899,11 @@ class C
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
+                Static("ExtMethod"),
                 Class("ExtMethod"),
                 Operators.Dot,
                 Method("TestMethod"),
+                Static("TestMethod"),
                 Punctuation.OpenParen,
                 Keyword("new"),
                 Class("C"),
@@ -999,7 +1010,7 @@ namespace OtherScope
 }
 class X<T> where T : unmanaged { }",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1091,7 +1102,7 @@ class X
     void M<T>() where T : unmanaged { }
 }",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1172,7 +1183,7 @@ namespace OtherScope
 }
 delegate void D<T>() where T : unmanaged;",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1214,7 +1225,8 @@ class X
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("M"), Punctuation.OpenAngle,
+                Method("M"),
+                Punctuation.OpenAngle,
                 TypeParameter("T"),
                 Punctuation.CloseAngle,
                 Punctuation.OpenParen,
@@ -1254,7 +1266,8 @@ class X
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("M"), Punctuation.OpenAngle,
+                Method("M"),
+                Punctuation.OpenAngle,
                 TypeParameter("T"),
                 Punctuation.CloseAngle,
                 Punctuation.OpenParen,
@@ -1285,7 +1298,7 @@ class X
     }
 }",
                 Keyword("namespace"),
-                Identifier("OtherScope"),
+                Namespace("OtherScope"),
                 Punctuation.OpenCurly,
                 Keyword("interface"),
                 Interface("unmanaged"),
@@ -1301,7 +1314,7 @@ class X
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenAngle,
                 TypeParameter("T"),
                 Punctuation.CloseAngle,
@@ -1315,6 +1328,82 @@ class X
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [WorkItem(29492, "https://github.com/dotnet/roslyn/issues/29492")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestOperatorOverloading()
+        {
+            await TestAsync(@"
+class C
+{
+    void M()
+    {
+        var a = 1 + 1;
+        var b = new True() + new True();
+    }
+}
+class True
+{
+    public static True operator +(True a, True b)
+    {
+         return new True();
+    }
+}",
+    Keyword("class"),
+    Class("C"),
+    Punctuation.OpenCurly,
+    Keyword("void"),
+    Method("M"),
+    Punctuation.OpenParen,
+    Punctuation.CloseParen,
+    Punctuation.OpenCurly,
+    Keyword("var"),
+    Local("a"),
+    Operators.Equals,
+    Number("1"),
+    Operators.Plus,
+    Number("1"),
+    Punctuation.Semicolon,
+    Keyword("var"),
+    Local("b"),
+    Operators.Equals,
+    Keyword("new"),
+    Class("True"),
+    Punctuation.OpenParen,
+    Punctuation.CloseParen,
+    OverloadedOperators.Plus,
+    Keyword("new"),
+    Class("True"),
+    Punctuation.OpenParen,
+    Punctuation.CloseParen,
+    Punctuation.Semicolon,
+    Punctuation.CloseCurly,
+    Punctuation.CloseCurly,
+    Keyword("class"),
+    Class("True"),
+    Punctuation.OpenCurly,
+    Keyword("public"),
+    Keyword("static"),
+    Class("True"),
+    Keyword("operator"),
+    Operators.Plus,
+    Punctuation.OpenParen,
+    Class("True"),
+    Parameter("a"),
+    Punctuation.Comma,
+    Class("True"),
+    Parameter("b"),
+    Punctuation.CloseParen,
+    Punctuation.OpenCurly,
+    ControlKeyword("return"),
+    Keyword("new"),
+    Class("True"),
+    Punctuation.OpenParen,
+    Punctuation.CloseParen,
+    Punctuation.Semicolon,
+    Punctuation.CloseCurly,
+    Punctuation.CloseCurly);
         }
     }
 }

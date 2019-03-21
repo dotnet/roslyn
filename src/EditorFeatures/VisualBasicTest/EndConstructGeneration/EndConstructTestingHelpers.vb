@@ -58,10 +58,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
                 Assert.Equal(after, view.TextSnapshot.GetText())
 
                 Dim actualLine As Integer
-                Dim actualCol As Integer
-                view.Caret.Position.BufferPosition.GetLineAndColumn(actualLine, actualCol)
+                Dim actualChar As Integer
+                view.Caret.Position.BufferPosition.GetLineAndCharacter(actualLine, actualChar)
                 Assert.Equal(endCaretPos(0), actualLine)
-                Assert.Equal(endCaretPos(1), actualCol)
+                Assert.Equal(endCaretPos(1), actualChar)
             End Using
         End Sub
 

@@ -7,7 +7,7 @@ using System.IO;
 
 namespace RunTests
 {
-    internal struct ProcDumpInfo
+    internal readonly struct ProcDumpInfo
     {
         private const string KeyProcDumpFilePath = "ProcDumpFilePath";
         private const string KeyProcDumpDirectory = "ProcDumpOutputPath";

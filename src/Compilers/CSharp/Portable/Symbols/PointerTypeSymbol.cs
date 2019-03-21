@@ -15,15 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed partial class PointerTypeSymbol : TypeSymbol, IPointerTypeSymbol
     {
-        private readonly TypeSymbolWithAnnotations _pointedAtType;
+        private readonly TypeWithAnnotations _pointedAtType;
 
         /// <summary>
         /// Create a new PointerTypeSymbol.
         /// </summary>
         /// <param name="pointedAtType">The type being pointed at.</param>
-        internal PointerTypeSymbol(TypeSymbolWithAnnotations pointedAtType)
+        internal PointerTypeSymbol(TypeWithAnnotations pointedAtType)
         {
-            Debug.Assert(!pointedAtType.IsNull);
+            Debug.Assert(pointedAtType.HasType);
 
             _pointedAtType = pointedAtType;
         }
@@ -58,15 +58,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Gets the type of the storage location that an instance of the pointer type points to.
+        /// Gets the type of the storage location that an instance of the pointer type points to, along with its annotations.
         /// </summary>
-        public TypeSymbolWithAnnotations PointedAtType
+        public TypeWithAnnotations PointedAtTypeWithAnnotations
         {
             get
             {
                 return _pointedAtType;
             }
         }
+
+        /// <summary>
+        /// Gets the type of the storage location that an instance of the pointer type points to.
+        /// </summary>
+        public TypeSymbol PointedAtType => PointedAtTypeWithAnnotations.Type;
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
@@ -77,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved)
         {
             // Pointers do not support boxing, so they really have no interfaces
             return ImmutableArray<NamedTypeSymbol>.Empty;
@@ -99,15 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => ManagedKind.Unmanaged;
 
-        internal sealed override bool IsByRefLikeType
+        public sealed override bool IsRefLikeType
         {
             get
             {
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             while (current.TypeKind == TypeKind.Pointer)
             {
                 indirections += 1;
-                current = ((PointerTypeSymbol)current).PointedAtType.TypeSymbol;
+                current = ((PointerTypeSymbol)current).PointedAtType;
             }
 
             return Hash.Combine(current, indirections);
@@ -249,17 +248,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        internal override void AddNullableTransforms(ArrayBuilder<byte> transforms)
         {
-            PointedAtType.AddNullableTransforms(transforms);
+            PointedAtTypeWithAnnotations.AddNullableTransforms(transforms);
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, INonNullTypesContext nonNullTypesContext, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(byte defaultTransformFlag, ImmutableArray<byte> transforms, ref int position, out TypeSymbol result)
         {
-            TypeSymbolWithAnnotations oldPointedAtType = PointedAtType;
-            TypeSymbolWithAnnotations newPointedAtType;
+            TypeWithAnnotations oldPointedAtType = PointedAtTypeWithAnnotations;
+            TypeWithAnnotations newPointedAtType;
 
-            if (!oldPointedAtType.ApplyNullableTransforms(transforms, nonNullTypesContext, ref position, out newPointedAtType))
+            if (!oldPointedAtType.ApplyNullableTransforms(defaultTransformFlag, transforms, ref position, out newPointedAtType))
             {
                 result = this;
                 return false;
@@ -269,21 +268,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
         {
-            return WithPointedAtType(PointedAtType.SetUnknownNullabilityForReferenceTypes());
+            return WithPointedAtType(transform(PointedAtTypeWithAnnotations));
         }
 
-        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance, out bool hadNullabilityMismatch)
+        internal override TypeSymbol MergeNullability(TypeSymbol other, VarianceKind variance)
         {
             Debug.Assert(this.Equals(other, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-            TypeSymbolWithAnnotations pointedAtType = PointedAtType.MergeNullability(((PointerTypeSymbol)other).PointedAtType, VarianceKind.None, out hadNullabilityMismatch);
+            TypeWithAnnotations pointedAtType = PointedAtTypeWithAnnotations.MergeNullability(((PointerTypeSymbol)other).PointedAtTypeWithAnnotations, VarianceKind.None);
             return WithPointedAtType(pointedAtType);
         }
 
-        private PointerTypeSymbol WithPointedAtType(TypeSymbolWithAnnotations newPointedAtType)
+        private PointerTypeSymbol WithPointedAtType(TypeWithAnnotations newPointedAtType)
         {
-            return PointedAtType.IsSameAs(newPointedAtType) ? this : new PointerTypeSymbol(newPointedAtType);
+            return PointedAtTypeWithAnnotations.IsSameAs(newPointedAtType) ? this : new PointerTypeSymbol(newPointedAtType);
         }
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
@@ -291,25 +290,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticInfo result = null;
 
             // Check type, custom modifiers
-            DeriveUseSiteDiagnosticFromType(ref result, this.PointedAtType);
+            DeriveUseSiteDiagnosticFromType(ref result, this.PointedAtTypeWithAnnotations);
             return result;
         }
 
         internal override bool GetUnificationUseSiteDiagnosticRecursive(ref DiagnosticInfo result, Symbol owner, ref HashSet<TypeSymbol> checkedTypes)
         {
-            return this.PointedAtType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
+            return this.PointedAtTypeWithAnnotations.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
         }
 
         #region IPointerTypeSymbol Members
 
         ITypeSymbol IPointerTypeSymbol.PointedAtType
         {
-            get { return this.PointedAtType.TypeSymbol; }
+            get { return this.PointedAtType; }
         }
 
         ImmutableArray<CustomModifier> IPointerTypeSymbol.CustomModifiers
         {
-            get { return this.PointedAtType.CustomModifiers; }
+            get { return this.PointedAtTypeWithAnnotations.CustomModifiers; }
         }
 
         #endregion

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SourceCustomEventSymbol : SourceEventSymbol
     {
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
         private readonly string _name;
         private readonly SourceCustomEventAccessorSymbol _addMethod;
         private readonly SourceCustomEventAccessorSymbol _removeMethod;
@@ -59,13 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     EventSymbol overriddenEvent = this.OverriddenEvent;
                     if ((object)overriddenEvent != null)
                     {
-                        CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly, nonNullTypesContext: this);
+                        CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly);
                     }
                 }
             }
             else if ((object)explicitlyImplementedEvent != null)
             {
-                CopyEventCustomModifiers(explicitlyImplementedEvent, ref _type, ContainingAssembly, nonNullTypesContext: this);
+                CopyEventCustomModifiers(explicitlyImplementedEvent, ref _type, ContainingAssembly);
             }
 
             AccessorDeclarationSyntax addSyntax = null;
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<EventSymbol>(explicitlyImplementedEvent);
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var explicitInterfaceSpecifier = this.ExplicitInterfaceSpecifier;
                 Debug.Assert(explicitInterfaceSpecifier != null);
-                _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
+                _explicitInterfaceType.CheckAllConstraints(DeclaringCompilation, conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
             }
 
             if (!_explicitInterfaceImplementations.IsEmpty)

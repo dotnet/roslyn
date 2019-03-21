@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.InvertIf
                             currentParent,
                             statementsBeforeIf.Concat(updatedIf).Concat(UnwrapBlock(ifBody)));
 
-                        return root.ReplaceNode(currentParent, updatedParent .WithAdditionalAnnotations(Formatter.Annotation));
+                        return root.ReplaceNode(currentParent, updatedParent.WithAdditionalAnnotations(Formatter.Annotation));
                     }
 
                 case InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement:

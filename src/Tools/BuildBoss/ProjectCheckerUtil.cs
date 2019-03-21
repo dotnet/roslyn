@@ -57,7 +57,7 @@ namespace BuildBoss
                     allGood &= CheckForProperty(textWriter, "ProjectTypeGuids");
                     allGood &= CheckForProperty(textWriter, "TargetFrameworkProfile");
                 }
-                
+
                 allGood &= CheckRoslynProjectType(textWriter);
                 allGood &= CheckProjectReferences(textWriter);
                 allGood &= CheckPackageReferences(textWriter);

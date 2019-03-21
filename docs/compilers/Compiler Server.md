@@ -54,7 +54,9 @@ To diagnose problems with the server compilation, you can enable an
 environment variable that writes a diagnostic log file:
 
 ```
-export RoslynCommandLineLogFile=/path/to/log/file
+(UNIX): export RoslynCommandLineLogFile=/path/to/log/file
+(Windows CMD, using directory path): setx RoslynCommandLineLogFile="C:\path\to\log"
+(Windows CMD, using file path): setx RoslynCommandLineLogFile="C:\path\to\log\file.log"
 ```
 
 This file contains diagnostic logging for both the client and server,

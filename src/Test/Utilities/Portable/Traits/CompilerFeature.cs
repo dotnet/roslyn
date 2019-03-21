@@ -33,5 +33,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         StackAllocInitializer,
         NullCoalescingAssignment,
         AsyncStreams,
+        NullableReferenceTypes,
     }
 }

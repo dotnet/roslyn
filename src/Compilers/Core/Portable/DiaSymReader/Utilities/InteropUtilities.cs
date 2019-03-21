@@ -47,7 +47,7 @@ namespace Microsoft.DiaSymReader
                 }
                 else
                 {
-                    // If the buffer is not given then reuturn the full length.
+                    // If the buffer is not given then return the full length.
                     *qualifiedNameLength = fullLength;
                 }
             }

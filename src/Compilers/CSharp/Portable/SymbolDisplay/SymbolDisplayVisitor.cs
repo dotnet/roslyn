@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocal(ILocalSymbol symbol)
         {
-            if (symbol.IsRef && 
+            if (symbol.IsRef &&
                 format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeRef))
             {
                 AddKeyword(SyntaxKind.RefKeyword);
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var local = symbol as LocalSymbol;
                 if ((object)local != null)
                 {
-                    VisitTypeSymbolWithAnnotations(local.Type);
+                    VisitTypeWithAnnotations(local.TypeWithAnnotations);
                 }
                 else
                 {
@@ -209,7 +209,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddSpace();
             }
 
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
+            if (symbol.IsConst)
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.ConstantName, symbol, symbol.Name));
+            }
+            else
+            {
+                builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
+            }
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
                 symbol.IsConst &&

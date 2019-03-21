@@ -218,11 +218,11 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilationWithILAndMscorlib40(csharp, ilreadonlyStructWithWriteableFieldIL, options:TestOptions.ReleaseExe);
-            
+            var comp = CreateCompilationWithILAndMscorlib40(csharp, ilreadonlyStructWithWriteableFieldIL, options: TestOptions.ReleaseExe);
+
             comp.VerifyDiagnostics();
-            
-            CompileAndVerify(comp, expectedOutput:"123");
+
+            CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact()]

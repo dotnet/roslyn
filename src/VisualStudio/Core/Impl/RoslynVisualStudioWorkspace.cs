@@ -34,8 +34,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         private RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
-            : base(exportProvider, AsyncServiceProvider.GlobalProvider) // TODO: switch to the cleaner MEF import
+            [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
+            [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
+            : base(exportProvider, asyncServiceProvider)
         {
             _streamingPresenters = streamingPresenters;
 
@@ -43,37 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             {
                 Services.GetRequiredService<IOptionService>().RegisterDocumentOptionsProvider(providerFactory.Create(this));
             }
-        }
-
-        public override EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId)
-        {
-            if (documentId == null)
-            {
-                throw new ArgumentNullException(nameof(documentId));
-            }
-
-/*
-
-            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
-            if (project == null)
-            {
-                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
-            }
-
-            var document = project.GetDocumentOrAdditionalDocument(documentId);
-            if (document == null)
-            {
-                throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
-            }
-
-            if (project.ProjectCodeModel != null)
-            {
-                return project.ProjectCodeModel.GetOrCreateFileCodeModel(document.FilePath);
-            }
-
-    */
-
-            return null;
         }
 
         internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)
@@ -137,14 +107,14 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            if (!TryResolveSymbol(symbol, project, cancellationToken, 
+            if (!TryResolveSymbol(symbol, project, cancellationToken,
                     out var searchSymbol, out var searchProject))
             {
                 return false;
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, 
+                searchSymbol, searchProject,
                 _streamingPresenters, cancellationToken);
         }
 

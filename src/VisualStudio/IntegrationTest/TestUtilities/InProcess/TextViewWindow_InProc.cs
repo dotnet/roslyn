@@ -132,6 +132,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 }
             });
 
+        public int GetVisibleColumnCount()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                return (int)Math.Ceiling(view.ViewportWidth / Math.Max(view.FormattedLineSource.ColumnWidth, 1));
+            });
+        }
+
         public void PlaceCaret(
             string marker,
             int charsOffset,
@@ -210,6 +218,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var bufferPosition = view.Caret.Position.BufferPosition;
                 return bufferPosition.Position;
             });
+
+        public int GetCaretColumn()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var startOfLine = view.Caret.ContainingTextViewLine.Start.Position;
+                var caretVirtualPosition = view.Caret.Position.VirtualBufferPosition;
+                return caretVirtualPosition.Position - startOfLine + caretVirtualPosition.VirtualSpaces;
+            });
+        }
 
         protected T ExecuteOnActiveView<T>(Func<IWpfTextView, T> action)
             => InvokeOnUIThread(() =>
@@ -453,7 +471,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return null;
         }
 
-        public void DismissLightBulbSession()   
+        public void DismissLightBulbSession()
             => ExecuteOnActiveView(view =>
             {
                 var broker = GetComponentModel().GetService<ILightBulbBroker>();

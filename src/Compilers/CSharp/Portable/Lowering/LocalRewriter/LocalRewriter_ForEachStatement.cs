@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -101,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement RewriteEnumeratorForEachStatement(BoundForEachStatement node)
         {
             var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
+            bool isAsync = node.AwaitOpt != null;
 
             ForEachEnumeratorInfo enumeratorInfo = node.EnumeratorInfoOpt;
             Debug.Assert(enumeratorInfo != null);
@@ -109,8 +109,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
-            TypeSymbol enumeratorType = enumeratorInfo.GetEnumeratorMethod.ReturnType.TypeSymbol;
-            TypeSymbol elementType = enumeratorInfo.ElementType.TypeSymbol;
+            MethodSymbol getEnumeratorMethod = enumeratorInfo.GetEnumeratorMethod;
+            TypeSymbol enumeratorType = getEnumeratorMethod.ReturnType;
+            TypeSymbol elementType = enumeratorInfo.ElementType;
 
             // E e
             LocalSymbol enumeratorVar = _factory.SynthesizedLocal(enumeratorType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachEnumerator);
@@ -118,8 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Reference to e.
             BoundLocal boundEnumeratorVar = MakeBoundLocal(forEachSyntax, enumeratorVar, enumeratorType);
 
-            // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants
-            BoundExpression enumeratorVarInitValue = SynthesizeCall(forEachSyntax, rewrittenExpression, enumeratorInfo.GetEnumeratorMethod, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType);
+            // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants (which fill-in arguments for optional parameters)
+            BoundExpression enumeratorVarInitValue = SynthesizeCall(
+                forEachSyntax,
+                ConvertReceiverForInvocation(forEachSyntax, rewrittenExpression, getEnumeratorMethod, enumeratorInfo.CollectionConversion, enumeratorInfo.CollectionType),
+                getEnumeratorMethod,
+                allowExtensionAndOptionalParameters: isAsync);
 
             // E e = ((C)(x)).GetEnumerator();
             BoundStatement enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
@@ -156,14 +161,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // }
 
             var rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
-
-            BoundExpression rewrittenCondition = BoundCall.Synthesized(
+            BoundExpression rewrittenCondition = SynthesizeCall(
                     syntax: forEachSyntax,
-                    receiverOpt: boundEnumeratorVar,
-                    method: enumeratorInfo.MoveNextMethod);
-            if (node.AwaitOpt != null)
+                    receiver: boundEnumeratorVar,
+                    method: enumeratorInfo.MoveNextMethod,
+                    allowExtensionAndOptionalParameters: isAsync);
+            if (isAsync)
             {
-                rewrittenCondition = new BoundAwaitExpression(forEachSyntax, rewrittenCondition, node.AwaitOpt, node.AwaitOpt.GetResult.ReturnType.TypeSymbol).MakeCompilerGenerated();
+                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, node.AwaitOpt, node.AwaitOpt.GetResult.ReturnType, used: true);
             }
 
             BoundStatement whileLoop = RewriteWhileStatement(
@@ -176,9 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement result;
 
-            if (enumeratorInfo.NeedsDisposeMethod && TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out MethodSymbol disposeMethod))
+            if (enumeratorInfo.NeedsDisposal)
             {
-                BoundStatement tryFinally = WrapWithTryFinallyDispose(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, whileLoop, disposeMethod);
+                BoundStatement tryFinally = WrapWithTryFinallyDispose(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, whileLoop);
 
                 // E e = ((C)(x)).GetEnumerator();
                 // try {
@@ -217,9 +222,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.TryGetSpecialTypeMember(_compilation, SpecialMember.System_IDisposable__Dispose, forEachSyntax, _diagnostics, out disposeMethod);
         }
 
-        private BoundStatement WrapWithTryFinallyDispose(CommonForEachStatementSyntax forEachSyntax, ForEachEnumeratorInfo enumeratorInfo, 
-            TypeSymbol enumeratorType, BoundLocal boundEnumeratorVar, BoundStatement rewrittenBody, MethodSymbol disposeMethod)
+        /// <summary>
+        /// There are three possible cases where we need disposal:
+        /// - pattern-based disposal (we have a Dispose/DisposeAsync method)
+        /// - interface-based disposal (the enumerator type converts to IDisposable/IAsyncDisposable)
+        /// - we need to do a runtime check for IDisposable
+        /// </summary>
+        private BoundStatement WrapWithTryFinallyDispose(CommonForEachStatementSyntax forEachSyntax, ForEachEnumeratorInfo enumeratorInfo,
+            TypeSymbol enumeratorType, BoundLocal boundEnumeratorVar, BoundStatement rewrittenBody)
         {
+            Debug.Assert(enumeratorInfo.NeedsDisposal);
+
+            NamedTypeSymbol idisposableTypeSymbol = null;
+            bool isImplicit = false;
+            MethodSymbol disposeMethod = enumeratorInfo.DisposeMethod; // pattern-based
+
+            if (disposeMethod is null)
+            {
+                TryGetDisposeMethod(forEachSyntax, enumeratorInfo, out disposeMethod); // interface-based
+
+                idisposableTypeSymbol = disposeMethod.ContainingType;
+                var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
+
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
+                _diagnostics.Add(forEachSyntax, useSiteDiagnostics);
+            }
+
             Binder.ReportDiagnosticsIfObsolete(_diagnostics, disposeMethod, forEachSyntax,
                                                hasBaseReceiver: false,
                                                containingMember: _factory.CurrentFunction,
@@ -227,33 +256,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                location: enumeratorInfo.Location);
 
             BoundBlock finallyBlockOpt;
-            var idisposableTypeSymbol = disposeMethod.ContainingType;
-            var conversions = new TypeConversions(_factory.CurrentFunction.ContainingAssembly.CorLibrary);
-            var disposeAwaitableInfoOpt = enumeratorInfo.DisposeAwaitableInfo;
-
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteDiagnostics).IsImplicit;
-            _diagnostics.Add(forEachSyntax, useSiteDiagnostics);
-
-            if (isImplicit)
+            if (isImplicit || !(enumeratorInfo.DisposeMethod is null))
             {
-                Debug.Assert(enumeratorInfo.NeedsDisposeMethod);
-
                 Conversion receiverConversion = enumeratorType.IsStructType() ?
                     Conversion.Boxing :
                     Conversion.ImplicitReference;
 
+                BoundExpression receiver = enumeratorInfo.DisposeMethod is null ?
+                    ConvertReceiverForInvocation(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol) :
+                    boundEnumeratorVar;
+
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
-                BoundExpression disposeCall = SynthesizeCall(forEachSyntax, boundEnumeratorVar, disposeMethod, receiverConversion, idisposableTypeSymbol);
+                BoundExpression disposeCall = MakeCallWithNoExplicitArgument(
+                    forEachSyntax,
+                    receiver,
+                    disposeMethod);
+
+                BoundStatement disposeCallStatement;
+                var disposeAwaitableInfoOpt = enumeratorInfo.DisposeAwaitableInfo;
                 if (disposeAwaitableInfoOpt != null)
                 {
                     // await /* disposeCall */
-                    disposeCall = WrapWithAwait(forEachSyntax, disposeCall, disposeAwaitableInfoOpt);
+                    disposeCallStatement = WrapWithAwait(forEachSyntax, disposeCall, disposeAwaitableInfoOpt);
                     _sawAwaitInExceptionHandler = true;
                 }
-
-                // ((IDisposable)e).Dispose(); or e.Dispose(); or async variants
-                BoundStatement disposeCallStatement = new BoundExpressionStatement(forEachSyntax, disposeCall);
+                else
+                {
+                    // ((IDisposable)e).Dispose(); or e.Dispose();
+                    disposeCallStatement = new BoundExpressionStatement(forEachSyntax, disposeCall);
+                }
 
                 BoundStatement alwaysOrMaybeDisposeStmt;
                 if (enumeratorType.IsValueType)
@@ -296,7 +327,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                // If we couldn't find either pattern-based or interface-based disposal, and the enumerator type isn't sealed,
+                // and the loop isn't async, then we include a runtime check.
                 Debug.Assert(!enumeratorType.IsSealed);
+                Debug.Assert(!enumeratorInfo.IsAsync);
 
                 // IDisposable d
                 LocalSymbol disposableVar = _factory.SynthesizedLocal(idisposableTypeSymbol);
@@ -318,14 +352,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // IDisposable d = e as IDisposable;
                 BoundStatement disposableVarDecl = MakeLocalDeclaration(forEachSyntax, disposableVar, disposableVarInitValue);
 
-                // d.Dispose() or async variant
+                // d.Dispose()
                 BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, method: disposeMethod);
-                if (disposeAwaitableInfoOpt != null)
-                {
-                    // await d.DisposeAsync()
-                    disposeCall = WrapWithAwait(forEachSyntax, disposeCall, disposeAwaitableInfoOpt);
-                    _sawAwaitInExceptionHandler = true;
-                }
+                BoundStatement disposeCallStatement = new BoundExpressionStatement(forEachSyntax, expression: disposeCall);
 
                 // if (d != null) d.Dispose();
                 BoundStatement ifStmt = RewriteIfStatement(
@@ -338,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         methodOpt: null,
                         resultKind: LookupResultKind.Viable,
                         type: _compilation.GetSpecialType(SpecialType.System_Boolean)),
-                    rewrittenConsequence: new BoundExpressionStatement(forEachSyntax, expression: disposeCall),
+                    rewrittenConsequence: disposeCallStatement,
                     rewrittenAlternativeOpt: null,
                     hasErrors: false);
 
@@ -369,20 +398,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Produce:
-        /// await /* disposeCall */
+        /// await /* disposeCall */;
         /// </summary>
-        private BoundExpression WrapWithAwait(CommonForEachStatementSyntax forEachSyntax, BoundExpression disposeCall, AwaitableInfo disposeAwaitableInfoOpt)
+        private BoundStatement WrapWithAwait(CommonForEachStatementSyntax forEachSyntax, BoundExpression disposeCall, AwaitableInfo disposeAwaitableInfoOpt)
         {
-            TypeSymbol awaitExpressionType = disposeAwaitableInfoOpt.GetResult?.ReturnType.TypeSymbol ?? _compilation.DynamicType;
-            BoundAwaitExpression awaitExpr = new BoundAwaitExpression(forEachSyntax, disposeCall, disposeAwaitableInfoOpt, awaitExpressionType) { WasCompilerGenerated = true };
-            return (BoundExpression)VisitAwaitExpression(awaitExpr);
+            TypeSymbol awaitExpressionType = disposeAwaitableInfoOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
+            var awaitExpr = RewriteAwaitExpression(forEachSyntax, disposeCall, disposeAwaitableInfoOpt, awaitExpressionType, used: false);
+            return new BoundExpressionStatement(forEachSyntax, awaitExpr);
         }
 
         /// <summary>
-        /// Synthesize a no-argument call to a given method, possibly applying a conversion to the receiver.
-        /// 
-        /// If the receiver is of struct type and the method is an interface method, then skip the conversion
-        /// and just call the interface method directly - the code generator will detect this and generate a 
+        /// Optionally apply a conversion to the receiver.
+        ///
+        /// If the receiver is of struct type and the method is an interface method, then skip the conversion.
+        /// When we call the interface method directly - the code generator will detect it and generate a
         /// constrained virtual call.
         /// </summary>
         /// <param name="syntax">A syntax node to attach to the synthesized bound node.</param>
@@ -390,14 +419,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="method">Method to invoke.</param>
         /// <param name="receiverConversion">Conversion to be applied to the receiver if not calling an interface method on a struct.</param>
         /// <param name="convertedReceiverType">Type of the receiver after applying the conversion.</param>
-        /// <returns>A BoundExpression representing the call.</returns>
-        private BoundExpression SynthesizeCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType)
+        private BoundExpression ConvertReceiverForInvocation(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, Conversion receiverConversion, TypeSymbol convertedReceiverType)
         {
+            Debug.Assert(!method.IsExtensionMethod);
             if (!receiver.Type.IsReferenceType && method.ContainingType.IsInterface)
             {
                 Debug.Assert(receiverConversion.IsImplicit && !receiverConversion.IsUserDefined);
 
-                // NOTE: The spec says that disposing of a struct enumerator won't cause any 
+                // NOTE: The spec says that disposing of a struct enumerator won't cause any
                 // unnecessary boxing to occur.  However, Dev10 extends this improvement to the
                 // GetEnumerator call as well.
 
@@ -416,23 +445,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // explicit implementation).  The code generator knows how to handle it though.
 
                 // receiver.InterfaceMethod()
-                return BoundCall.Synthesized(syntax, receiver, method);
             }
             else
             {
                 // ((Interface)receiver).InterfaceMethod()
                 Debug.Assert(!receiverConversion.IsNumeric);
 
-                return BoundCall.Synthesized(
+                receiver = MakeConversionNode(
                     syntax: syntax,
-                    receiverOpt: MakeConversionNode(
-                        syntax: syntax,
-                        rewrittenOperand: receiver,
-                        conversion: receiverConversion,
-                        @checked: false,
-                        rewrittenType: convertedReceiverType),
-                    method: method);
+                    rewrittenOperand: receiver,
+                    conversion: receiverConversion,
+                    @checked: false,
+                    rewrittenType: convertedReceiverType);
             }
+
+            return receiver;
+        }
+
+        private BoundExpression SynthesizeCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method, bool allowExtensionAndOptionalParameters)
+        {
+            Debug.Assert(!method.IsExtensionMethod);
+            if (allowExtensionAndOptionalParameters)
+            {
+                // Generate a call with zero explicit arguments, but with implicit arguments for optional and params parameters.
+                return MakeCallWithNoExplicitArgument(syntax, receiver, method);
+            }
+
+            // Generate a call with literally zero arguments
+            return BoundCall.Synthesized(syntax, receiver, method, arguments: ImmutableArray<BoundExpression>.Empty);
         }
 
         /// <summary>
@@ -700,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create<BoundExpression>(boundPositionVar),
-                    type: arrayType.ElementType.TypeSymbol),
+                    type: arrayType.ElementType),
                 conversion: node.ElementConversion,
                 rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);
@@ -854,7 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenOperand: new BoundArrayAccess(forEachSyntax,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create((BoundExpression[])boundPositionVar),
-                    type: arrayType.ElementType.TypeSymbol),
+                    type: arrayType.ElementType),
                 conversion: node.ElementConversion,
                 rewrittenType: node.IterationVariableType.Type,
                 @checked: node.Checked);

@@ -114,7 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 methodOwner.TypeParameters :
                 default(ImmutableArray<TypeParameterSymbol>);
 
-            binder.ValidateParameterNameConflicts(typeParameters, parameters, diagnostics);
+            Debug.Assert(methodOwner?.MethodKind != MethodKind.LambdaMethod);
+            bool allowShadowingNames = binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureNameShadowingInNestedFunctions) &&
+                methodOwner?.MethodKind == MethodKind.LocalFunction;
+
+            binder.ValidateParameterNameConflicts(typeParameters, parameters, allowShadowingNames, diagnostics);
             return parameters;
         }
 
@@ -135,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameter in parameters)
             {
-                if (parameter.Type.ContainsNullableReferenceTypes())
+                if (parameter.TypeWithAnnotations.NeedsNullableAttribute())
                 {
                     // These parameters might not come from a compilation (example: lambdas evaluated in EE).
                     // During rewriting, lowering will take care of flagging the appropriate PEModuleBuilder instead.
@@ -254,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SyntaxKind.InKeyword:
-                        if(seenIn)
+                        if (seenIn)
                         {
                             diagnostics.Add(ErrorCode.ERR_DupParamMod, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword));
                         }
@@ -262,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
                         }
-                        else if(seenRef)
+                        else if (seenRef)
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
                         }
@@ -307,15 +311,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS1670: params is not valid in this context
                 diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
-            else if (parameter.IsParams && !parameter.Type.IsSZArray())
+            else if (parameter.IsParams && !parameter.TypeWithAnnotations.IsSZArray())
             {
                 // error CS0225: The params parameter must be a single dimensional array
                 diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
             }
-            else if (parameter.Type.IsStatic && !parameter.ContainingSymbol.ContainingType.IsInterfaceType())
+            else if (parameter.TypeWithAnnotations.IsStatic && !parameter.ContainingSymbol.ContainingType.IsInterfaceType())
             {
                 // error CS0721: '{0}': static types cannot be used as parameters
-                diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, owner.Locations[0], parameter.Type.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, owner.Locations[0], parameter.Type);
             }
             else if (firstDefault != -1 && parameterIndex > firstDefault && !isDefault && !parameter.IsParams)
             {
@@ -323,11 +327,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Location loc = parameterSyntax.Identifier.GetNextToken(includeZeroWidth: true).GetLocation(); //could be missing
                 diagnostics.Add(ErrorCode.ERR_DefaultValueBeforeRequiredValue, loc);
             }
-            else if (parameter.RefKind != RefKind.None && 
-                parameter.Type.IsRestrictedType(ignoreSpanLikeTypes: true))
+            else if (parameter.RefKind != RefKind.None &&
+                parameter.TypeWithAnnotations.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // CS1601: Cannot make reference to variable of type 'System.TypedReference'
-                diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_MethodArgCantBeRefAny, parameterSyntax.Location, parameter.Type);
             }
         }
 
@@ -358,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // stick it in the parameter because we want to be able to analyze it for
             // IntelliSense purposes.
 
-            TypeSymbol parameterType = parameter.Type.TypeSymbol;
+            TypeSymbol parameterType = parameter.Type;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteDiagnostics);
             diagnostics.Add(defaultExpression.Syntax, useSiteDiagnostics);
@@ -504,9 +508,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
                     case BoundKind.ObjectCreationExpression:
                         return IsValidDefaultValue((BoundObjectCreationExpression)expression);
-                    case BoundKind.SuppressNullableWarningExpression:
-                        expression = ((BoundSuppressNullableWarningExpression)expression).Expression;
-                        break;
                     default:
                         return false;
                 }

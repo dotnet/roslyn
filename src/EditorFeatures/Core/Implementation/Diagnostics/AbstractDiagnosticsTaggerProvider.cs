@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         /// diagnostics, we don't know how to map the span of the diagnostic to the current snapshot
         /// we're tagging.
         /// </summary>
-        private static readonly ConditionalWeakTable<object, ITextSnapshot> _diagnosticIdToTextSnapshot = 
+        private static readonly ConditionalWeakTable<object, ITextSnapshot> _diagnosticIdToTextSnapshot =
             new ConditionalWeakTable<object, ITextSnapshot>();
 
         protected AbstractDiagnosticsTaggerProvider(
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             foreach (var updateArg in eventArgs)
             {
                 ProduceTags(
-                    context, spanToTag, workspace, document, 
+                    context, spanToTag, workspace, document,
                     suppressedDiagnosticsSpans, updateArg, cancellationToken);
             }
         }
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         private void ProduceTags(
             TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag,
             Workspace workspace, Document document,
-            NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans, 
+            NormalizedSnapshotSpanCollection suppressedDiagnosticsSpans,
             UpdatedEventArgs updateArgs, CancellationToken cancellationToken)
         {
             try

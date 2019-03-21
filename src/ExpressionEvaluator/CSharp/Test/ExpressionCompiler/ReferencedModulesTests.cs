@@ -1151,7 +1151,7 @@ IL_0005:  ret
         /// Intrinsic methods assembly should not be dropped.
         /// </summary>
         [WorkItem(4140, "https://github.com/dotnet/roslyn/issues/4140")]
-        [Fact]
+        [ConditionalFact(typeof(IsRelease), Reason = "https://github.com/dotnet/roslyn/issues/25702")]
         public void IntrinsicMethods()
         {
             var sourceA =
@@ -1315,8 +1315,7 @@ namespace System
     {
     }
 }";
-                // https://github.com/dotnet/roslyn/issues/30030: C#8 projects require System.Attribute.
-                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
+                var comp = CreateEmptyCompilation(source, options: TestOptions.DebugDll, references: new[] { refLib, AssemblyMetadata.Create(module).GetReference() });
                 comp.VerifyDiagnostics();
 
                 using (var runtime = RuntimeInstance.Create(new[] { comp.ToModuleInstance(), moduleInstance }))
@@ -1368,8 +1367,9 @@ namespace System
 
         // References to missing assembly from PDB custom debug info.
         [WorkItem(13275, "https://github.com/dotnet/roslyn/issues/13275")]
-        [Fact]
-        public void CorLibWithAssemblyReferences_Pdb()
+        [Theory]
+        [MemberData(nameof(NonNullTypesTrueAndFalseReleaseDll))]
+        public void CorLibWithAssemblyReferences_Pdb(CSharpCompilationOptions options)
         {
             string sourceLib =
 @"namespace Namespace
@@ -1398,7 +1398,7 @@ namespace System
 }";
             // Create a custom corlib with a reference to compilation
             // above and a reference to the actual mscorlib.
-            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib });
+            var compCorLib = CreateEmptyCompilation(sourceCorLib, assemblyName: CorLibAssemblyName, references: new[] { MscorlibRef, refLib }, options: options);
             compCorLib.VerifyDiagnostics();
             var objectType = compCorLib.SourceAssembly.GlobalNamespace.GetMember<NamedTypeSymbol>("System.Object");
             Assert.NotNull(objectType.BaseType());
@@ -1554,17 +1554,10 @@ namespace System
             {
             }
 
-            protected override void EnsureNonNullTypesAttributeExists()
-                => throw ExceptionUtilities.Unreachable;
-
-            protected override void EnsureEmbeddedAttributeExists()
-                => throw ExceptionUtilities.Unreachable;
-
-            protected override bool InjectedSymbolsAreFrozen
-                => true;
-
-            protected override ImmutableArray<NamedTypeSymbol> GetInjectedTypes(DiagnosticBag diagnostics)
-                => ImmutableArray<NamedTypeSymbol>.Empty;
+            internal override SynthesizedAttributeData SynthesizeEmbeddedAttribute()
+            {
+                throw new NotImplementedException();
+            }
 
             AssemblyIdentity IAssemblyReference.Identity => ((IAssemblyReference)_builder).Identity;
 

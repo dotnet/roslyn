@@ -266,7 +266,7 @@ namespace NA
             Assert.Equal(SymbolKind.NamedType, comp.GlobalNamespace.GetMembers()[0].Kind);
         }
 
-        [NoIOperationValidationFact]
+        [ConditionalFact(typeof(NoIOperationValidation))]
         public void OnlyOneParse()
         {
             var underlyingTree = SyntaxFactory.ParseSyntaxTree(@"
@@ -306,7 +306,7 @@ public class B
             Assert.Equal(1, countedTree.AccessCount);
 
             // Once we have the method, we shouldn't need to go back to syntax again.
-            var returnType = method.ReturnType;
+            var returnType = method.ReturnTypeWithAnnotations;
             Assert.Equal(1, countedTree.AccessCount);
 
             var parameterType = method.Parameters.Single();

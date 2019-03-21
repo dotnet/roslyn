@@ -63,12 +63,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 var declarations = ArrayBuilder<Entry>.GetInstance();
                 foreach (var declarationLocation in definition.SourceSpans)
                 {
-                    var definitionEntry = await CreateDocumentSpanEntryAsync(
+                    var definitionEntry = await TryCreateDocumentSpanEntryAsync(
                         definitionBucket, declarationLocation, HighlightSpanKind.Definition, customColumnsDataOpt: null).ConfigureAwait(false);
-                    if (definitionEntry != null)
-                    {
-                        declarations.Add(definitionEntry);
-                    }
+                    declarations.AddIfNotNull(definitionEntry);
                 }
 
                 var changed = false;
@@ -108,8 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // Normal references go into both sets of entries.
                 return OnEntryFoundAsync(
                     reference.Definition,
-                    bucket => CreateDocumentSpanEntryAsync(
-                        bucket, reference.SourceSpan, 
+                    bucket => TryCreateDocumentSpanEntryAsync(
+                        bucket, reference.SourceSpan,
                         reference.IsWrittenTo ? HighlightSpanKind.WrittenReference : HighlightSpanKind.Reference,
                         reference.ReferenceInfo),
                     addToEntriesWhenGroupingByDefinition: true,
@@ -135,6 +132,10 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 // First find the bucket corresponding to our definition.
                 var definitionBucket = GetOrCreateDefinitionBucket(definition);
                 var entry = await createEntryAsync(definitionBucket).ConfigureAwait(false);
+                if (entry == null)
+                {
+                    return;
+                }
 
                 lock (Gate)
                 {

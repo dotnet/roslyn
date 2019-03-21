@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         internal void SetContentType(bool install)
         {
-            var contentType = install ? _contentType :_originalContentType;
+            var contentType = install ? _contentType : _originalContentType;
             _textView.TextBuffer.ChangeContentType(contentType, null);
         }
 
@@ -309,7 +309,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         {
             // Unsubscribe from events
             _textView.TextBuffer.PostChanged -= TextBuffer_PostChanged;
-            _debuggerTextView.DisconnectFromIntellisenseControllers();
+            _debuggerTextView.Cleanup();
 
             // The buffer graph subscribes to events of its source buffers, we're no longer interested
             _projectionBuffer.DeleteSpans(0, _projectionBuffer.CurrentSnapshot.SpanCount);

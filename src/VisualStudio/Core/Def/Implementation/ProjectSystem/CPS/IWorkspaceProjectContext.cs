@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
@@ -25,6 +23,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         // Options.
         void SetOptions(string commandLineForOptions);
 
+        // Other project properties.
+        void SetProperty(string name, string value);
+
         // References.
         void AddMetadataReference(string referencePath, MetadataReferenceProperties properties);
         void RemoveMetadataReference(string referencePath);
@@ -39,10 +40,23 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void AddAdditionalFile(string filePath, bool isInCurrentContext = true);
         void RemoveAdditionalFile(string filePath);
         void AddDynamicFile(string filePath, IEnumerable<string> folderNames = null);
-        void RemoveDynamicFile(string fullPath);
+        void RemoveDynamicFile(string filePath);
+
+        /// <summary>
+        /// Adds a file (like a .editorconfig) used to configure analyzers.
+        /// </summary>
+        void AddAnalyzerConfigFile(string filePath);
+
+        /// <summary>
+        /// Removes a file (like a .editorconfig) used to configure analyzers.
+        /// </summary>
+        void RemoveAnalyzerConfigFile(string filePath);
+
         void SetRuleSetFile(string filePath);
 
         void StartBatch();
         void EndBatch();
+
+        void ReorderSourceFiles(IEnumerable<string> filePaths);
     }
 }

@@ -1195,7 +1195,7 @@ public class B
                 Assert.Equal("public int field5, field6 = 1;", diagnostics(3).Message)
             End Using
         End Sub
-        
+
         <WpfFact, WorkItem(27703, "https://github.com/dotnet/roslyn/issues/27703")>
         Public Sub TestDiagnosticsForSpanWorksWithEmptySpan()
             Dim test = <Workspace>

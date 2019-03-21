@@ -244,7 +244,7 @@ class Program
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/12603")]
         public void FromBytes_EncodingFallbackCase()
         {
             var source = EncodedStringText.Create(new MemoryStream(new byte[] { 0xA9, 0x0D, 0x0A }), canBeEmbedded: true);

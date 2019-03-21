@@ -135,18 +135,45 @@ namespace Roslyn.Test.Utilities
 
     public static class ExecutionConditionUtil
     {
+        public static ExecutionArchitecture Architecture => (IntPtr.Size) switch
+        {
+            4 => ExecutionArchitecture.x86,
+            8 => ExecutionArchitecture.x64,
+            _ => throw new InvalidOperationException($"Unrecognized pointer size {IntPtr.Size}")
+        };
+        public static ExecutionConfiguration Configuration =>
+#if DEBUG
+            ExecutionConfiguration.Debug;
+#elif RELEASE
+            ExecutionConfiguration.Release;
+#else
+#error Unsupported Configuration
+#endif
+
         public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
         public static bool IsUnix => !IsWindows;
-        public static bool IsDesktop => CoreClrShim.AssemblyLoadContext.Type == null;
+        public static bool IsDesktop => RuntimeUtilities.IsDesktopRuntime;
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
         public static bool IsCoreClr => !IsDesktop;
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
     }
 
+    public enum ExecutionArchitecture
+    {
+        x86,
+        x64,
+    }
+
+    public enum ExecutionConfiguration
+    {
+        Debug,
+        Release,
+    }
+
     public class x86 : ExecutionCondition
     {
-        public override bool ShouldSkip => IntPtr.Size != 4;
+        public override bool ShouldSkip => ExecutionConditionUtil.Architecture != ExecutionArchitecture.x86;
 
         public override string SkipReason => "Target platform is not x86";
     }
@@ -160,7 +187,23 @@ namespace Roslyn.Test.Utilities
 
     public class HasEnglishDefaultEncoding : ExecutionCondition
     {
-        public override bool ShouldSkip => Encoding.GetEncoding(0)?.CodePage != 1252;
+        public override bool ShouldSkip
+        {
+            get
+            {
+                try
+                {
+                    return Encoding.GetEncoding(0)?.CodePage != 1252;
+                }
+                catch (EntryPointNotFoundException)
+                {
+                    // Mono is throwing this exception on recent runs. Need to just assume false in this case while the
+                    // bug is tracked down. 
+                    // https://github.com/mono/mono/issues/12603
+                    return false;
+                }
+            }
+        }
 
         public override string SkipReason => "OS default codepage is not Windows-1252.";
     }
@@ -209,6 +252,12 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "Test not supported on Mono";
     }
 
+    public class CoreClrOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => !ExecutionConditionUtil.IsCoreClr;
+        public override string SkipReason => "Test only supported on CoreClr";
+    }
+
     public class DesktopOnly : ExecutionCondition
     {
         public override bool ShouldSkip => !ExecutionConditionUtil.IsDesktop;
@@ -223,7 +272,7 @@ namespace Roslyn.Test.Utilities
 
     public class NoIOperationValidation : ExecutionCondition
     {
-        public override bool ShouldSkip => !CompilationExtensions.EnableVerifyIOperation;
+        public override bool ShouldSkip => CompilationExtensions.EnableVerifyIOperation;
         public override string SkipReason => "Test not supported in TEST_IOPERATION_INTERFACE";
     }
 

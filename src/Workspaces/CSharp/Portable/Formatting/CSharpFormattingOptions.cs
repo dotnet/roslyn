@@ -5,6 +5,11 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
+using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
+#endif
+
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
     public static partial class CSharpFormattingOptions

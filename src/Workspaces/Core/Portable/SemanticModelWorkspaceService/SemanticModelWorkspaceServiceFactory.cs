@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         if (documentId == null)
                         {
                             Debug.Assert(newProject.Solution.Workspace.Kind == WorkspaceKind.Interactive || newProject.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
-                            continue;                                
+                            continue;
                         }
 
                         map = map.SetItem(documentId, newTree);

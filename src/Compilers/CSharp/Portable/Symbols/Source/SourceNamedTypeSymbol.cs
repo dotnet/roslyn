@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (BaseTypeSyntax baseTypeSyntax in inheritedTypeDecls)
                 {
                     TypeSyntax t = baseTypeSyntax.Type;
-                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics).TypeSymbol;
+                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics).Type;
 
-                    if (bt == @base)
+                    if (TypeSymbol.Equals(bt, @base, TypeCompareKind.ConsiderEverything2))
                     {
                         unusedDiagnostics.Free();
                         return t.GetLocation();
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingType);
                             }
                         }
-                    next:;
+next:;
                     }
                     else if (!typeParameterMismatchReported)
                     {
@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var comparer = TypeSymbolWithAnnotations.EqualsComparer.Instance;
+            var comparer = TypeWithAnnotations.EqualsComparer.Instance;
             var constraintTypes1 = clause1.ConstraintTypes.ToImmutableHashSet(comparer);
             var constraintTypes2 = clause2.ConstraintTypes.ToImmutableHashSet(comparer);
 
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
@@ -748,11 +748,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                // NonNullTypesAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
             else
             {
                 var compilation = this.DeclaringCompilation;
@@ -921,14 +916,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
-            }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return GetNonNullTypesFromSyntax() ?? ContainingModule?.NonNullTypes;
             }
         }
 
@@ -1174,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
             }
 
-            if (this.IsByRefLikeType)
+            if (this.IsRefLikeType)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
 
@@ -1186,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //     we will not emit Obsolete even if Deprecated or Experimental was used.
                 //     we do not want to get into a scenario where different kinds of deprecation are combined together.
                 //
-                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes:true))
+                if (obsoleteData == null && !this.IsRestrictedType(ignoreSpanLikeTypes: true))
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
                         ImmutableArray.Create(
@@ -1224,17 +1211,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.SynthesizeTupleNamesAttribute(baseType));
                 }
 
-                if (baseType.ContainsNullableReferenceTypes())
+                if (baseType.NeedsNullableAttribute())
                 {
-                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeSymbolWithAnnotations.Create(baseType)));
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeWithAnnotations.Create(baseType)));
                 }
-            }
-
-            bool? nonNullTypes = NonNullTypes;
-            if (nonNullTypes.HasValue && nonNullTypes != ((Symbol)ContainingType ?? ContainingModule).NonNullTypes)
-            {
-                AddSynthesizedAttribute(ref attributes,
-                                        compilation.TrySynthesizeNonNullTypesAttribute(nonNullTypes.GetValueOrDefault()));
             }
         }
 

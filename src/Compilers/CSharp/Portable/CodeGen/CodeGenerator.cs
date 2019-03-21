@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     if (_ilEmitStyle == ILEmitStyle.Debug && bodySyntax != null)
                     {
                         int syntaxOffset = _method.CalculateLocalSyntaxOffset(bodySyntax.SpanStart, bodySyntax.SyntaxTree);
-                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnType, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
+                        var localSymbol = new SynthesizedLocal(_method, _method.ReturnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
-                            type: _module.Translate(localSymbol.Type.TypeSymbol, bodySyntax, _diagnostics),
+                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics),
                             symbol: localSymbol,
                             name: null,
                             kind: localSymbol.SynthesizedKind,
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                     else
                     {
-                        result = AllocateTemp(_method.ReturnType.TypeSymbol, _boundBody.Syntax, slotConstraints);
+                        result = AllocateTemp(_method.ReturnType, _boundBody.Syntax, slotConstraints);
                     }
 
                     _returnTemp = result;
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (_expressionTemps?.Count > 0)
             {
                 // release in reverse order to keep same temps on top of the temp stack if possible
-                for(int i = _expressionTemps.Count - 1; i >= 0; i--)
+                for (int i = _expressionTemps.Count - 1; i >= 0; i--)
                 {
                     var temp = _expressionTemps[i];
                     FreeTemp(temp);

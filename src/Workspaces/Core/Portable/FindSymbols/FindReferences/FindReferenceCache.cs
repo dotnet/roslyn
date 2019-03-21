@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return GetIdentifierOrGlobalNamespaceTokensWithText(syntaxFacts, document, version, root, sourceText, normalized, cancellationToken);
             }
 
-            return entry.IdentifierCache.GetOrAdd(normalized, 
+            return entry.IdentifierCache.GetOrAdd(normalized,
                 key => GetIdentifierOrGlobalNamespaceTokensWithText(
                     syntaxFacts, document, version, root, sourceText, key, cancellationToken));
         }

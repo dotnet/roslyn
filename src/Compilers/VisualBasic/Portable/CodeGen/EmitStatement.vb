@@ -657,7 +657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 EmitCondBranchCore(condition, lazyDest, sense)
                 Debug.Assert(_recursionDepth = 1)
 
-            Catch ex As Exception When StackGuard.IsInsufficientExecutionStackException(ex)
+            Catch ex As InsufficientExecutionStackException
                 _diagnostics.Add(ERRID.ERR_TooLongOrComplexExpression,
                                  BoundTreeVisitor.CancelledByStackGuardException.GetTooLongOrComplexExpressionErrorLocation(condition))
                 Throw New EmitCancelledException()

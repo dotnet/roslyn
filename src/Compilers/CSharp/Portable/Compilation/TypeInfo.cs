@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool Equals(CSharpTypeInfo other)
         {
             return this.ImplicitConversion.Equals(other.ImplicitConversion)
-                && this.Type == other.Type
-                && this.ConvertedType == other.ConvertedType;
+                && TypeSymbol.Equals(this.Type, other.Type, TypeCompareKind.ConsiderEverything2)
+                && TypeSymbol.Equals(this.ConvertedType, other.ConvertedType, TypeCompareKind.ConsiderEverything2);
         }
 
         public override int GetHashCode()

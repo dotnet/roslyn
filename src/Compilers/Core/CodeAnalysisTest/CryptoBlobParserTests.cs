@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var expectedModulus = key.Skip(HEADER_LEN).Take(MOD_LEN).ToArray();
             Array.Reverse(expectedModulus);
             AssertEx.Equal(expectedModulus, privKey.Modulus);
-            
+
             var expectedP = key.Skip(HEADER_LEN + MOD_LEN).Take(HALF_LEN).ToArray();
             Array.Reverse(expectedP);
             AssertEx.Equal(expectedP, privKey.P);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var expectedModulus = key.Skip(HEADER_LEN).Take(MOD_LEN).ToArray();
             Array.Reverse(expectedModulus);
             AssertEx.Equal(expectedModulus, privKey.Modulus);
-            
+
             var expectedP = key.Skip(HEADER_LEN + MOD_LEN).Take(HALF_LEN).ToArray();
             Array.Reverse(expectedP);
             AssertEx.Equal(expectedP, privKey.P);

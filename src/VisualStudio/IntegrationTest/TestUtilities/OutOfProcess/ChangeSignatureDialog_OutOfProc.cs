@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     {
         private const string ChangeSignatureDialogAutomationId = "ChangeSignatureDialog";
 
-        public ChangeSignatureDialog_OutOfProc(VisualStudioInstance visualStudioInstance) 
+        public ChangeSignatureDialog_OutOfProc(VisualStudioInstance visualStudioInstance)
             : base(visualStudioInstance)
         {
         }
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             // Wait for application idle to ensure the dialog is fully initialized
             VisualStudioInstance.WaitForApplicationIdle(CancellationToken.None);
         }
-  
+
         public void VerifyClosed()
         {
             // FindDialog will wait until the dialog is closed, so the return value is unused.

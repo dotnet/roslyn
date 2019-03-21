@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LangaugeServices.Telemetry
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
     /// <summary>
     /// Creates an <see cref="IIncrementalAnalyzer"/> that collects basic information on <see cref="Project"/> inputs

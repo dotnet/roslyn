@@ -233,11 +233,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                // NonNullTypesAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
         }
 
         /// <summary>
@@ -341,14 +336,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override bool? NonNullTypes
-        {
-            get
-            {
-                return GetNonNullTypesFromSyntax() ?? (AssociatedSymbol ?? ContainingModule)?.NonNullTypes;
-            }
-        }
-
         internal sealed override bool IsNotSerialized
         {
             get
@@ -380,23 +367,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            var type = this.Type;
+            var type = this.TypeWithAnnotations;
 
-            if (type.TypeSymbol.ContainsDynamic())
+            if (type.Type.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(type.TypeSymbol, Type.CustomModifiers.Length));
+                    DeclaringCompilation.SynthesizeDynamicAttribute(type.Type, TypeWithAnnotations.CustomModifiers.Length));
             }
 
-            if (type.TypeSymbol.ContainsTupleNames())
+            if (type.Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
-            AddSynthesizedNonNullTypesAttributeForMember(ref attributes);
-
-            if (type.ContainsNullableReferenceTypes())
+            if (type.NeedsNullableAttribute())
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, type));
             }

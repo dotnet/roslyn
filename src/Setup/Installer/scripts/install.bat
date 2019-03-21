@@ -1,2 +1,2 @@
 @echo off
-powershell -noprofile -executionPolicy Unrestricted -file "%~dp0\tools\install.ps1"
+powershell -noprofile -executionPolicy Unrestricted -command "& """%~dp0tools\install.ps1""" %*"

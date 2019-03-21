@@ -23,10 +23,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         new IEnumerator GetEnumerator();
 
         [DispId(1)]
-        EnvDTE.DTE DTE {[return: MarshalAs(UnmanagedType.Interface)] get; }
+        EnvDTE.DTE DTE { [return: MarshalAs(UnmanagedType.Interface)] get; }
 
         [DispId(2)]
-        object Parent {[return: MarshalAs(UnmanagedType.IDispatch)] get; }
+        object Parent { [return: MarshalAs(UnmanagedType.IDispatch)] get; }
 
         [DispId(0)]
         [PreserveSig]

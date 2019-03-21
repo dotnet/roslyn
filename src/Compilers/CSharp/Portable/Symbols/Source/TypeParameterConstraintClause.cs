@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Constructor = 0x04,
         Unmanaged = 0x08,
         NullableReferenceType = ReferenceType | 0x10,
+        NotNullableReferenceType = ReferenceType | 0x20,
     }
 
     /// <summary>
@@ -28,13 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static readonly TypeParameterConstraintClause Empty = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.None,
-            ImmutableArray<TypeSymbolWithAnnotations>.Empty,
+            ImmutableArray<TypeWithAnnotations>.Empty,
             typeConstraintsSyntax: default,
             otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
 
         internal static TypeParameterConstraintClause Create(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
+            ImmutableArray<TypeWithAnnotations> constraintTypes,
             ImmutableArray<TypeConstraintSyntax> typeConstraintsSyntax = default)
         {
             Debug.Assert(!constraintTypes.IsDefault);
@@ -48,10 +50,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private TypeParameterConstraintClause(
             TypeParameterConstraintKind constraints,
-            ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
+            ImmutableArray<TypeWithAnnotations> constraintTypes,
             ImmutableArray<TypeConstraintSyntax> typeConstraintsSyntax,
             ImmutableArray<TypeParameterConstraintClause> otherPartialDeclarations)
         {
+#if DEBUG
+            switch (constraints & (TypeParameterConstraintKind.NullableReferenceType | TypeParameterConstraintKind.NotNullableReferenceType))
+            {
+                case TypeParameterConstraintKind.None:
+                case TypeParameterConstraintKind.ReferenceType:
+                case TypeParameterConstraintKind.NullableReferenceType:
+                case TypeParameterConstraintKind.NotNullableReferenceType:
+                    break;
+                default:
+                    ExceptionUtilities.UnexpectedValue(constraints); // This call asserts.
+                    break;
+            }
+#endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
             this.TypeConstraintsSyntax = typeConstraintsSyntax;
@@ -59,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public readonly TypeParameterConstraintKind Constraints;
-        public readonly ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypes;
+        public readonly ImmutableArray<TypeWithAnnotations> ConstraintTypes;
 
         /// <summary>
         /// Syntax for the constraint types. Populated from early constraint checking step only.

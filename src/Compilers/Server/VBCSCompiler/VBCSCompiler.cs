@@ -7,13 +7,17 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal static class VBCSCompiler 
+    internal static class VBCSCompiler
     {
         public static int Main(string[] args)
         {
             NameValueCollection appSettings;
             try
             {
+#if BOOTSTRAP
+                ExitingTraceListener.Install();
+#endif
+
 #if NET472
                 appSettings = System.Configuration.ConfigurationManager.AppSettings;
 #else

@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     internal T F3 = default;
     internal T F4 = default(T);
 }";
-            // https://github.com/dotnet/roslyn/issues/29849 Missing warnings for possible null-assignment to F3 and F4
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (1,16): warning CS8618: Non-nullable field 'F1' is uninitialized.
@@ -42,8 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(1, 16),
                 // (3,16): warning CS0649: Field 'C<T>.F1' is never assigned to, and will always have its default value 
                 //     internal T F1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("C<T>.F1", "").WithLocation(3, 16)
-                );
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("C<T>.F1", "").WithLocation(3, 16),
+                // (5,21): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                //     internal T F3 = default;
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(5, 21),
+                // (6,21): warning CS8653: A default expression introduces a null value when 'T' is a non-nullable reference type.
+                //     internal T F4 = default(T);
+                Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default(T)").WithArguments("T").WithLocation(6, 21));
         }
 
         [Fact]
@@ -203,12 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-                //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
-                ////     static C()
-                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
-                //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                ////     static C()
-                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
+            //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
+            ////     static C()
+            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
+            //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
+            ////     static C()
+            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
         }
 
         // https://github.com/dotnet/roslyn/issues/30020: Report warnings for static fields.
@@ -232,12 +236,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
-                //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
-                ////     static C()
-                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
-                //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                ////     static C()
-                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
+            //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
+            ////     static C()
+            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
+            //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
+            ////     static C()
+            //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
         }
 
         // Each constructor is handled in isolation.
@@ -537,29 +541,13 @@ class C<T> where T : struct
             // [NonNullTypes(false)]
             comp = CreateCompilation(new[] { source }, options: WithNonNullTypesFalse(), parseOptions: TestOptions.Regular8);
 
-            // https://github.com/dotnet/roslyn/issues/30021: It feels like the following warning is confusing 
-            // (11,5): warning CS8618: Non-nullable field 'F3' is uninitialized.
-            //     B() { }
-            //
-            // We might want to understand why the following error causes it
-            // (10,8): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-            //     T? F3;
             comp.VerifyDiagnostics(
                 // (10,6): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 //     T? F3;
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(10, 6),
                 // (10,5): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
                 //     T? F3;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(10, 5),
-                // (5,5): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                //     A() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F1").WithLocation(5, 5),
-                // (11,5): warning CS8618: Non-nullable field 'F3' is uninitialized.
-                //     B() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "B").WithArguments("field", "F3").WithLocation(11, 5),
-                // (11,5): warning CS8618: Non-nullable field 'F2' is uninitialized.
-                //     B() { }
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "B").WithArguments("field", "F2").WithLocation(11, 5)
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(10, 5)
             );
 
             // [NonNullTypes] missing

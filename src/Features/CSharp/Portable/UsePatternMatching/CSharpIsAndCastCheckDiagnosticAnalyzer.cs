@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var isExpression = (BinaryExpressionSyntax)syntaxContext.Node;
 
             if (!TryGetPatternPieces(isExpression,
-                    out var ifStatement, out var localDeclarationStatement, 
+                    out var ifStatement, out var localDeclarationStatement,
                     out var declarator, out var castExpression))
             {
                 return;

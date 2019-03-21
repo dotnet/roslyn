@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
 
         // Create one diagnostic for each unnecessary span that will be classified as Unnecessary
         private IEnumerable<Diagnostic> CreateClassificationDiagnostics(
-            IEnumerable<TextSpan> contiguousSpans, SyntaxTree tree, 
+            IEnumerable<TextSpan> contiguousSpans, SyntaxTree tree,
             DiagnosticDescriptor descriptor, CancellationToken cancellationToken)
         {
             foreach (var span in contiguousSpans)

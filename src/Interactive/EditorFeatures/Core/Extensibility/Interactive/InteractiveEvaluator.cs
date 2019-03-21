@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
                 _currentWindow = value;
                 _workspace.Window = value;
 
-                _interactiveHost.SetOutput( _currentWindow.OutputWriter);
+                _interactiveHost.SetOutput(_currentWindow.OutputWriter);
                 _interactiveHost.SetErrorOutput(_currentWindow.ErrorOutputWriter);
 
                 _currentWindow.SubmissionBufferAdded += SubmissionBufferAdded;

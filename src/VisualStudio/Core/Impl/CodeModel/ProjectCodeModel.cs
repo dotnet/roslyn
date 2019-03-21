@@ -112,11 +112,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _codeModelCache?.OnSourceFileRenaming(filePath, newFilePath);
         }
 
-        EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath)
-        {
-            return this.GetOrCreateFileCodeModel(filePath).Handle;
-        }
-
         EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath, object parent)
         {
             return this.GetOrCreateFileCodeModel(filePath, parent).Handle;

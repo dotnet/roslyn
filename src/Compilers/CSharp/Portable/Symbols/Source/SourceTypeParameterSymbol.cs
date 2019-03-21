@@ -84,10 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
             var bounds = this.GetBounds(inProgress, early);
-            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)
@@ -266,11 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var constraintType in constraintTypes)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                constraintType.TypeSymbol.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                constraintType.Type.AddUseSiteDiagnostics(ref useSiteDiagnostics);
 
                 if (!diagnostics.Add(location, useSiteDiagnostics))
                 {
-                    constraintType.CheckAllConstraints(conversions, location, diagnostics);
+                    constraintType.Type.CheckAllConstraints(DeclaringCompilation, conversions, location, diagnostics);
                 }
             }
         }
@@ -305,8 +305,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void CheckNullableAnnotationsInConstraints(DiagnosticBag diagnostics)
         {
-            if (this.ReferenceTypeConstraintIsNullable == true ||
-                this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.ContainsNullableReferenceTypes()))
+            if ((this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null) ||
+                this.ConstraintTypesNoUseSiteDiagnostics.Any(c => c.NeedsNullableAttribute()))
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, this.GetNonNullSyntaxNode().Location, ModifyCompilationForAttributeEmbedding());
             }
@@ -361,11 +361,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsUnmanagedAttribute(this));
             }
 
-            if (this.ReferenceTypeConstraintIsNullable == true)
+            if (this.HasReferenceTypeConstraint && this.ReferenceTypeConstraintIsNullable != null)
             {
+                NamedTypeSymbol byteType = DeclaringCompilation.GetSpecialType(SpecialType.System_Byte);
+                Debug.Assert((object)byteType != null);
+
                 AddSynthesizedAttribute(
                     ref attributes,
-                    moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctor, ImmutableArray<TypedConstant>.Empty));
+                    moduleBuilder.SynthesizeNullableAttribute(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorByte,
+                                                              ImmutableArray.Create(new TypedConstant(byteType, TypedConstantKind.Primitive,
+                                                                                                      (byte)(this.ReferenceTypeConstraintIsNullable == true ?
+                                                                                                                 NullableAnnotation.Annotated :
+                                                                                                                 NullableAnnotation.NotAnnotated)))));
             }
         }
 
@@ -393,14 +400,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if ((constraints & TypeParameterConstraintKind.NullableReferenceType) == TypeParameterConstraintKind.NullableReferenceType)
+            switch (constraints & (TypeParameterConstraintKind.NullableReferenceType | TypeParameterConstraintKind.NotNullableReferenceType))
             {
-                return true;
-            }
-
-            if (NonNullTypes == true)
-            {
-                return false;
+                case TypeParameterConstraintKind.NullableReferenceType:
+                    return true;
+                case TypeParameterConstraintKind.NotNullableReferenceType:
+                    return false;
             }
 
             return null;

@@ -103,6 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public const string RoslynOptionPagePerformanceLoggersIdString = "236AC96F-A60D-4BD6-A480-D315151EDC2B";
         public const string RoslynOptionPageInternalDiagnosticsIdString = "48993C4C-C619-42AD-B1C8-79378AD8BEF2";
         public const string RoslynOptionPageInternalSolutionCrawlerIdString = "9702D3BD-F06C-4A6A-974B-7D0C2BC89A72";
+        public const string RoslynOptionPageExperimentationIdString = "D5AA7ED7-85E2-42A0-9BF6-22AEF1C1ED8C";
 
         public static readonly Guid RoslynPackageId = new Guid(RoslynPackageIdString);
         public static readonly Guid RoslynCommandSetId = new Guid(RoslynCommandSetIdString);

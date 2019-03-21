@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveDocCommentNode), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-    internal class CSharpRemoveDocCommentNodeCodeFixProvider : 
+    internal class CSharpRemoveDocCommentNodeCodeFixProvider :
         AbstractRemoveDocCommentNodeCodeFixProvider<XmlElementSyntax, XmlTextSyntax>
     {
         /// <summary>

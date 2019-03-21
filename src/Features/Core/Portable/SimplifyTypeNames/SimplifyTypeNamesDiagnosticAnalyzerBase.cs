@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 
         internal abstract bool IsCandidate(SyntaxNode node);
         internal abstract bool CanSimplifyTypeNameExpression(
-            SemanticModel model, SyntaxNode node, OptionSet optionSet, 
+            SemanticModel model, SyntaxNode node, OptionSet optionSet,
             out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
             CancellationToken cancellationToken);
 
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                     break;
 
                 case IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId:
-                    option = inDeclaration 
+                    option = inDeclaration
                         ? CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration
                         : CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
                     descriptor = s_descriptorPreferBuiltinOrFrameworkType;

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(associatedEvent.containingType,
                    declaratorSyntax,
                    (associatedEvent.Modifiers & (~DeclarationModifiers.AccessibilityMask)) | DeclarationModifiers.Private,
-                   modifierErrors: true, 
+                   modifierErrors: true,
                    diagnostics: discardedDiagnostics)
         {
             _associatedEvent = associatedEvent;

@@ -416,7 +416,9 @@ internal class C1
 {
     public struct S
     {
+#nullable disable
         public string data;
+#nullable enable
     }
 }
 public struct Struct

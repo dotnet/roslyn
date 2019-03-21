@@ -6,7 +6,7 @@ using System.ComponentModel.Composition;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
 using Xunit.Sdk;
@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     // Starting with 15.3 the editor took a dependency on JoinableTaskContext
     // in Text.Logic and IntelliSense layers as an editor host provided service.
     [Export]
-    internal class TestExportJoinableTaskContext
+    internal partial class TestExportJoinableTaskContext
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -26,13 +26,37 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             try
             {
                 SynchronizationContext.SetSynchronizationContext(GetEffectiveSynchronizationContext());
-                (JoinableTaskContext, SynchronizationContext) = ThreadingContext.CreateJoinableTaskContext();
+                (JoinableTaskContext, SynchronizationContext) = CreateJoinableTaskContext();
                 ResetThreadAffinity(JoinableTaskContext.Factory);
             }
             finally
             {
                 SynchronizationContext.SetSynchronizationContext(synchronizationContext);
             }
+        }
+
+        private static (JoinableTaskContext joinableTaskContext, SynchronizationContext synchronizationContext) CreateJoinableTaskContext()
+        {
+            Thread mainThread;
+            SynchronizationContext synchronizationContext;
+            if (SynchronizationContext.Current is DispatcherSynchronizationContext)
+            {
+                // The current thread is the main thread, and provides a suitable synchronization context
+                mainThread = Thread.CurrentThread;
+                synchronizationContext = SynchronizationContext.Current;
+            }
+            else
+            {
+                // The current thread is not known to be the main thread; we have no way to know if the
+                // synchronization context of the current thread will behave in a manner consistent with main thread
+                // synchronization contexts, so we use DenyExecutionSynchronizationContext to track any attempted
+                // use of it.
+                var denyExecutionSynchronizationContext = new DenyExecutionSynchronizationContext(SynchronizationContext.Current);
+                mainThread = denyExecutionSynchronizationContext.MainThread;
+                synchronizationContext = denyExecutionSynchronizationContext;
+            }
+
+            return (new JoinableTaskContext(mainThread, synchronizationContext), synchronizationContext);
         }
 
         [Export]

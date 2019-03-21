@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InvertLogical
 {
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertLogical), Shared]
-    internal class CSharpInvertLogicalCodeRefactoringProvider : 
+    internal class CSharpInvertLogicalCodeRefactoringProvider :
         AbstractInvertLogicalCodeRefactoringProvider<SyntaxKind, ExpressionSyntax, BinaryExpressionSyntax>
     {
         protected override SyntaxKind GetKind(int rawKind)

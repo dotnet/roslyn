@@ -137,6 +137,22 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
+                // System_Double__IsNaN
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_Double,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double,
+
+                // System_Single__IsNaN
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_Single,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Single,
+
                 // System_Delegate__Combine
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)SpecialType.System_Delegate,                                                                          // DeclaringTypeId
@@ -983,6 +999,8 @@ namespace Microsoft.CodeAnalysis
                 "get_Length",                               // System_String__Length
                 "get_Chars",                                // System_String__Chars
                 "Format",                                   // System_String__Format
+                "IsNaN",                                    // System_Double__IsNaN
+                "IsNaN",                                    // System_Single__IsNaN
                 "Combine",                                  // System_Delegate__Combine
                 "Remove",                                   // System_Delegate__Remove
                 "op_Equality",                              // System_Delegate__op_Equality

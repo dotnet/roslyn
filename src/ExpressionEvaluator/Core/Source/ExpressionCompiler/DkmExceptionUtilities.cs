@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Debugging
 
         internal static bool IsBadOrMissingMetadataException(Exception e)
         {
-            return e is ObjectDisposedException || 
-                   e.HResult == COR_E_BADIMAGEFORMAT || 
+            return e is ObjectDisposedException ||
+                   e.HResult == COR_E_BADIMAGEFORMAT ||
                    e.HResult == CORDBG_E_MISSING_METADATA;
         }
     }

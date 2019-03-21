@@ -287,6 +287,42 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SolutionCrawler
         }
 
         [Fact]
+        public async Task Project_OutputFilePath_Change()
+        {
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+                workspace.OnSolutionAdded(solutionInfo);
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                var projectId = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").Id;
+                var newSolution = workspace.CurrentSolution.WithProjectOutputFilePath(projectId, "/newPath");
+                var worker = await ExecuteOperation(workspace, w => w.ChangeProject(projectId, newSolution));
+
+                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(5, worker.DocumentIds.Count);
+            }
+        }
+
+        [Fact]
+        public async Task Project_OutputRefFilePath_Change()
+        {
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                var solutionInfo = GetInitialSolutionInfo_2Projects_10Documents(workspace);
+                workspace.OnSolutionAdded(solutionInfo);
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                var projectId = workspace.CurrentSolution.Projects.First(p => p.Name == "P1").Id;
+                var newSolution = workspace.CurrentSolution.WithProjectOutputRefFilePath(projectId, "/newPath");
+                var worker = await ExecuteOperation(workspace, w => w.ChangeProject(projectId, newSolution));
+
+                Assert.Equal(5, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(5, worker.DocumentIds.Count);
+            }
+        }
+
+        [Fact]
         public async Task Test_NeedsReanalysisOnOptionChanged()
         {
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))

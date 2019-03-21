@@ -22,7 +22,7 @@ namespace Microsoft.DiaSymReader
         {
         }
 
-        public SymUnmanagedWriterException(string message, Exception innerException) 
+        public SymUnmanagedWriterException(string message, Exception innerException)
             : base(message, innerException)
         {
         }

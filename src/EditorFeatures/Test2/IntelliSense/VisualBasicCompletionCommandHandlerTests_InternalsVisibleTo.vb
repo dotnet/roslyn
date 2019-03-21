@@ -174,9 +174,7 @@ End Namespace
                         Await state.AssertNoCompletionSession()
                         state.SendInvokeCompletionList()
                         Await state.WaitForAsynchronousOperationsAsync()
-                        Assert.True(
-                            state.CurrentCompletionPresenterSession Is Nothing OrElse
-                            Not state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                        Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                     End Function
                 Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
                 state.SendTypeChars("("c)
@@ -205,9 +203,7 @@ Imports System.Reflection
                     Await state.AssertCompletionSession()
                     Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
                 Else
-                    If Not state.CurrentCompletionPresenterSession Is Nothing Then
-                        Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
-                    End If
+                    Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                 End If
             End Using
         End Function
@@ -352,7 +348,7 @@ Imports IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
                             CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
-                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>/>
                     </Project>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
                         <Document><![CDATA[
@@ -375,7 +371,7 @@ Imports IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
-                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>/>
                         <Document>
                             &lt;Assembly: System.Reflection.AssemblyKeyFile("<%= SigningTestHelpers.PublicKeyFile %>")&gt;
                         </Document>
@@ -402,7 +398,7 @@ Imports IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
                             CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
-                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>/>
                             DelaySign="True"
                         />
                     </Project>

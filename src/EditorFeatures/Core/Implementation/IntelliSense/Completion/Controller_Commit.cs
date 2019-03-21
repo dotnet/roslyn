@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
@@ -112,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     var mappedSpan = triggerSnapshotSpan.TranslateTo(
                         this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                    var adjustedNewText = AdjustForVirtualSpace(textChange);
+                    var adjustedNewText = AdjustForVirtualSpace(textChange, this.TextView, _editorOperationsFactoryService);
                     var editOptions = GetEditOptions(mappedSpan, adjustedNewText);
 
                     // The immediate window is always marked read-only and the language service is
@@ -194,6 +196,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             this.MakeMostRecentItem(item.DisplayText);
         }
 
+        private static string AdjustForVirtualSpace(TextChange textChange, ITextView textView, IEditorOperationsFactoryService editorOperationsFactoryService)
+        {
+            var newText = textChange.NewText;
+
+            var caretPoint = textView.Caret.Position.BufferPosition;
+            var virtualCaretPoint = textView.Caret.Position.VirtualBufferPosition;
+
+            if (textChange.Span.IsEmpty &&
+                textChange.Span.Start == caretPoint &&
+                virtualCaretPoint.IsInVirtualSpace)
+            {
+                // They're in virtual space and the text change is specified against the cursor
+                // position that isn't in virtual space.  In this case, add the virtual spaces to the
+                // thing we're adding.
+                var editorOperations = editorOperationsFactoryService.GetEditorOperations(textView);
+                var whitespace = editorOperations.GetWhitespaceForVirtualSpace(virtualCaretPoint);
+                return whitespace + newText;
+            }
+
+            return newText;
+        }
+
         private void SetCaretPosition(int desiredCaretPosition)
         {
             // Now, move the caret to the right location.
@@ -249,28 +273,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 yield return version;
                 version = version.Next;
             }
-        }
-
-        private string AdjustForVirtualSpace(TextChange textChange)
-        {
-            var newText = textChange.NewText;
-
-            var caretPoint = this.TextView.Caret.Position.BufferPosition;
-            var virtualCaretPoint = this.TextView.Caret.Position.VirtualBufferPosition;
-
-            if (textChange.Span.IsEmpty &&
-                textChange.Span.Start == caretPoint &&
-                virtualCaretPoint.IsInVirtualSpace)
-            {
-                // They're in virtual space and the text change is specified against the cursor
-                // position that isn't in virtual space.  In this case, add the virtual spaces to the
-                // thing we're adding.
-                var editorOperations = _editorOperationsFactoryService.GetEditorOperations(this.TextView);
-                var whitespace = editorOperations.GetWhitespaceForVirtualSpace(virtualCaretPoint);
-                return whitespace + newText;
-            }
-
-            return newText;
         }
     }
 }

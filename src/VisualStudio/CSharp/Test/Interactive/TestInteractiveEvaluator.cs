@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
         {
         }
 
-        public Task<ExecutionResult> InitializeAsync() 
+        public Task<ExecutionResult> InitializeAsync()
             => Task.FromResult(ExecutionResult.Success);
 
-        public Task<ExecutionResult> ResetAsync(bool initialize = true) 
+        public Task<ExecutionResult> ResetAsync(bool initialize = true)
             => Task.FromResult(ExecutionResult.Success);
 
         public bool CanExecuteCode(string text)

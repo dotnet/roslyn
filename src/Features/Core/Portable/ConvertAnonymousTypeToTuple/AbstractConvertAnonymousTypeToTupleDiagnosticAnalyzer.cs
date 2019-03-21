@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
 {
     internal abstract class AbstractConvertAnonymousTypeToTupleDiagnosticAnalyzer<
         TSyntaxKind,
-        TAnonymousObjectCreationExpressionSyntax> 
+        TAnonymousObjectCreationExpressionSyntax>
         : AbstractBuiltInCodeStyleDiagnosticAnalyzer
         where TSyntaxKind : struct
         where TAnonymousObjectCreationExpressionSyntax : SyntaxNode
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.ConvertAnonymousTypeToTuple
         protected abstract int GetInitializerCount(TAnonymousObjectCreationExpressionSyntax anonymousType);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         public override bool OpenFileOnly(Workspace workspace)
             => false;

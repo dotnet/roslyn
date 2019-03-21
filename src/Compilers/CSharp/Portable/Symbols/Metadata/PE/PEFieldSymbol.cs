@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
-        private TypeSymbolWithAnnotations.Builder _lazyType;
+        private TypeWithAnnotations.Builder _lazyType;
         private int _lazyFixedSize;
         private NamedTypeSymbol _lazyFixedImplementationType;
         private PEEventSymbol _associatedEventOpt;
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal void SetAssociatedEvent(PEEventSymbol eventSymbol)
         {
             Debug.Assert((object)eventSymbol != null);
-            Debug.Assert(eventSymbol.ContainingType == _containingType);
+            Debug.Assert(TypeSymbol.Equals(eventSymbol.ContainingType, _containingType, TypeCompareKind.ConsiderEverything2));
 
             // This should always be true in valid metadata - there should only
             // be one event with a given name in a given type.
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void EnsureSignatureIsLoaded()
         {
-            if (_lazyType.IsNull)
+            if (_lazyType.IsDefault)
             {
                 var moduleSymbol = _containingType.ContainingPEModule;
                 bool isVolatile;
@@ -214,11 +214,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
 
                 // We start without annotations
-                var type = TypeSymbolWithAnnotations.Create(nonNullTypesContext: this, typeSymbol, customModifiers: customModifiersArray);
+                var type = TypeWithAnnotations.Create(typeSymbol, customModifiers: customModifiersArray);
 
                 // Decode nullable before tuple types to avoid converting between
                 // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
-                type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol, nonNullTypesContext: this);
+                type = NullableTypeDecoder.TransformType(type, _handle, moduleSymbol);
                 type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
 
                 _lazyIsVolatile = isVolatile;
@@ -228,8 +228,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (customModifiersArray.IsEmpty && IsFixedBuffer(out fixedSize, out fixedElementType))
                 {
                     _lazyFixedSize = fixedSize;
-                    _lazyFixedImplementationType = type.TypeSymbol as NamedTypeSymbol;
-                    type = TypeSymbolWithAnnotations.Create(new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(fixedElementType)));
+                    _lazyFixedImplementationType = type.Type as NamedTypeSymbol;
+                    type = TypeWithAnnotations.Create(new PointerTypeSymbol(TypeWithAnnotations.Create(fixedElementType)));
                 }
 
                 _lazyType.InterlockedInitialize(type);
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             EnsureSignatureIsLoaded();
             return _lazyType.ToType();
@@ -505,17 +505,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                var moduleSymbol = _containingType.ContainingPEModule;
-                bool optOut;
-
-                return moduleSymbol.Module.HasNonNullTypesAttribute(_handle, out optOut) ? optOut : base.NonNullTypes;
-            }
         }
     }
 }

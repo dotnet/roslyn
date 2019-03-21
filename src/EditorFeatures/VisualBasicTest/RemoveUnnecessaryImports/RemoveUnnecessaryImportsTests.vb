@@ -78,6 +78,64 @@ Module Program
 End Module")
         End Function
 
+        <WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        Public Async Function TestReferencesWithCopyrightAndGroupings() As Task
+            Await TestInRegularAndScriptAsync(
+"[|' Copyright (c) Somebody.
+
+Imports System.Collections.Generic
+
+Imports System.Linq
+
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Dim a As Action
+    End Sub
+End Module|]",
+"' Copyright (c) Somebody.
+
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Dim a As Action
+    End Sub
+End Module")
+        End Function
+
+        <WorkItem(27006, "https://github.com/dotnet/roslyn/issues/27006")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
+        Public Async Function TestReferencesWithCopyrightAndPreservableTrivia() As Task
+            Await TestInRegularAndScriptAsync(
+"[|' Copyright (c) Somebody.
+
+Imports System.Collections.Generic
+
+Imports System
+' This is important
+Imports System.Linq
+
+Module Program
+    Sub Main(args As String())
+        Dim a As Action
+    End Sub
+End Module|]",
+"' Copyright (c) Somebody.
+
+Imports System
+' This is important
+
+Module Program
+    Sub Main(args As String())
+        Dim a As Action
+    End Sub
+End Module")
+        End Function
+
+
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)>
         Public Async Function TestSimpleTypeName() As Task
             Await TestInRegularAndScriptAsync(

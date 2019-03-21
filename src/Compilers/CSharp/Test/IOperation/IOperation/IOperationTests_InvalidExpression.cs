@@ -302,11 +302,11 @@ class Program
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x + (y * args.Length)')
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'x + (y * args.Length)')
   Left: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program) (Syntax: 'x')
   Right: 
-    IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
+    IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'y * args.Length')
       Left: 
         IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'y')
           Children(0)

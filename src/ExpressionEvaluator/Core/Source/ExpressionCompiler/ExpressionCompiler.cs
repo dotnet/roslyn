@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         IDkmClrExpressionCompilerCallback,
         IDkmModuleModifiedNotification,
         IDkmModuleInstanceUnloadNotification,
-        IDkmLanguageFrameDecoder, 
+        IDkmLanguageFrameDecoder,
         IDkmLanguageInstructionDecoder
     {
         // Need to support IDkmLanguageFrameDecoder and IDkmLanguageInstructionDecoder

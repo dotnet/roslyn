@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             fieldInit.Field,
                             constantValueOpt: null),
                         fieldInit.Value,
-                        fieldInit.Field.Type.TypeSymbol)
+                        fieldInit.Field.Type)
                     { WasCompilerGenerated = true })
                 { WasCompilerGenerated = !fieldInit.Locals.IsEmpty || fieldInit.WasCompilerGenerated };
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatement = new BoundBlock(syntax, fieldInit.Locals, ImmutableArray.Create(boundStatement)) { WasCompilerGenerated = fieldInit.WasCompilerGenerated };
             }
 
-            Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(boundStatement)); 
+            Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(boundStatement));
             return boundStatement;
         }
 

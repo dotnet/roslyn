@@ -32,11 +32,13 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return true;
         }
 
+        public static bool IsReservedOrContextualKeyword(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
+            => syntaxFacts.IsReservedKeyword(token) || syntaxFacts.IsContextualKeyword(token);
+
         public static bool IsWord(this ISyntaxFactsService syntaxFacts, SyntaxToken token)
         {
             return syntaxFacts.IsIdentifier(token)
-                || syntaxFacts.IsKeyword(token)
-                || syntaxFacts.IsContextualKeyword(token)
+                || syntaxFacts.IsReservedOrContextualKeyword(token)
                 || syntaxFacts.IsPreprocessorKeyword(token);
         }
 
@@ -56,8 +58,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             return node.GetLeadingTrivia().Skip(leadingBlankLines.Length).ToImmutableArray();
         }
 
-        public static void GetPartsOfAssignmentStatement( 
-            this ISyntaxFactsService syntaxFacts, SyntaxNode statement, 
+        public static void GetPartsOfAssignmentStatement(
+            this ISyntaxFactsService syntaxFacts, SyntaxNode statement,
             out SyntaxNode left, out SyntaxNode right)
         {
             syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out _, out right);

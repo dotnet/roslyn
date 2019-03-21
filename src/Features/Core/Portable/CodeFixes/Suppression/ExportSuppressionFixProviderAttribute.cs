@@ -31,12 +31,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             {
                 throw new ArgumentNullException(nameof(languages));
             }
-            
+
             if (languages.Length == 0)
             {
                 throw new ArgumentException(nameof(languages));
             }
-            
+
             this.Languages = languages;
             this.Name = name ?? throw new ArgumentNullException(nameof(name));
         }

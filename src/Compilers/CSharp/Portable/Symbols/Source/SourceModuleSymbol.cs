@@ -511,19 +511,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.GetOrCreateData<CommonModuleWellKnownAttributeData>().DefaultCharacterSet = charSet;
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                // NonNullTypesAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return _assemblySymbol.DeclaringCompilation.Options.Nullable;
-            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
@@ -539,13 +526,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Security_UnverifiableCodeAttribute__ctor));
                 }
-            }
-
-            bool? nonNullTypes = NonNullTypes;
-            if (nonNullTypes != null)
-            {
-                AddSynthesizedAttribute(ref attributes,
-                                        compilation.TrySynthesizeNonNullTypesAttribute(nonNullTypes.GetValueOrDefault()));
             }
         }
 

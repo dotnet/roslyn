@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.flags |= NodeFlags.IsNotMissing;  //note: cleared by subclasses representing missing tokens
         }
 
-        internal override bool ShouldReuseInSerialization => base.ShouldReuseInSerialization && 
+        internal override bool ShouldReuseInSerialization => base.ShouldReuseInSerialization &&
                                                              FullWidth < Lexer.MaxCachedTokenSize;
 
         //====================

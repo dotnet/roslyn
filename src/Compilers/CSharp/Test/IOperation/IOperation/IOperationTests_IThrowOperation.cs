@@ -249,7 +249,7 @@ Block[B0] - Entry
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 
         Next (Throw) Block[null]
-            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'ex + x')
+            IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'ex + x')
               Left: 
                 IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception, IsInvalid) (Syntax: 'ex')
               Right: 
@@ -334,7 +334,7 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (NoConversion)
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: '(throw ex) + x')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: '(throw ex) + x')
                           Left: 
                             IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'throw ex')
                               Children(1):
@@ -409,7 +409,7 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (NoConversion)
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x + throw ex')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'x + throw ex')
                           Left: 
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
                           Right: 
@@ -484,7 +484,7 @@ Block[B0] - Entry
                       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         (NoConversion)
                       Operand: 
-                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x + (throw ex)')
+                        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'x + (throw ex)')
                           Left: 
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
                           Right: 
@@ -962,7 +962,7 @@ label1:
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            
+
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -1017,7 +1017,7 @@ label1:
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            
+
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -1081,7 +1081,7 @@ label1:
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            
+
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -1130,7 +1130,7 @@ label1:
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            
+
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
@@ -1494,7 +1494,7 @@ label2:
             var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            
+
             string expectedGraph = @"
 Block[B0] - Entry
     Statements (0)
