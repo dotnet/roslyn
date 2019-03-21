@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveToNamespace), Shared]
+    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.SyncNamespace)]
     internal class MoveToNamespaceCodeActionProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)

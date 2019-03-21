@@ -10,7 +10,7 @@
              xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d"
-             MinWidth="400" MinHeight="100"
+             MinWidth="400" MinHeight="166"
              Width="400" Height="166"
              Title="{Binding ElementName=dialog, Path=MoveToNamespaceDialogTitle}"
              ResizeMode="CanResizeWithGrip"
@@ -21,40 +21,47 @@
     <Window.Resources>
         <Thickness x:Key="verticalLabelMargin">0, 0, 0, 5</Thickness>
         <Thickness x:Key="messageMargin">0, 9, 0, 0</Thickness>
-        <Thickness x:Key="submitButtonsGroupMargin">0, 18, 0, 0</Thickness>
         <Thickness x:Key="submitButtonSpacingMargin">6, 0, 0, 0</Thickness>
         <system:Double x:Key="buttonWidth">75</system:Double>
         <system:Double x:Key="buttonHeight">23</system:Double>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Window.Resources>
 
-    <StackPanel Orientation="Vertical" Margin="8, 0, 8, 0" x:Name="Root">
-        <Label x:Uid="NamespaceLabel" 
-                   x:Name="NamespaceLabel"
-                   Margin="{StaticResource verticalLabelMargin}"
-                   Content="{Binding ElementName=dialog, Path=NamespaceLabelText}"
-                   Target="{Binding ElementName=NamespaceTextBox}" />
-        <Border BorderThickness="1">
-            <Border.Style>
-                <Style TargetType="{x:Type Border}">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Path=CanSubmit}" Value="False">
-                            <Setter Property="BorderBrush" Value="Red" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
-            <ComboBox x:Uid="NamespaceBox"
-                      Name="NamespaceBox"
-                      IsEditable="True"
-                      IsReadOnly="False"
-                      AutomationProperties.LabeledBy="{Binding ElementName=NamespaceLabel}"
-                      Text="{Binding NamespaceName, Mode=TwoWay}"
-                      ItemsSource="{Binding AvailableNamespaces, Mode=OneTime}"
-                      BorderThickness="0" />
-        </Border>
-        
-        <StackPanel Height="25">
+    <Grid Margin="8, 0, 8, 12" x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="25" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Vertical" Grid.Row="0">
+            <Label x:Uid="NamespaceLabel" 
+                       x:Name="NamespaceLabel"
+                       Margin="{StaticResource verticalLabelMargin}"
+                       Content="{Binding ElementName=dialog, Path=NamespaceLabelText}"
+                       Target="{Binding ElementName=NamespaceTextBox}" />
+            <Border BorderThickness="1">
+                <Border.Style>
+                    <Style TargetType="{x:Type Border}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=CanSubmit}" Value="False">
+                                <Setter Property="BorderBrush" Value="Red" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <ComboBox x:Uid="NamespaceBox"
+                          Name="NamespaceBox"
+                          IsEditable="True"
+                          IsReadOnly="False"
+                          AutomationProperties.LabeledBy="{Binding ElementName=NamespaceLabel}"
+                          Text="{Binding NamespaceName, Mode=TwoWay}"
+                          ItemsSource="{Binding AvailableNamespaces, Mode=OneTime}"
+                          BorderThickness="0" 
+                          MaxDropDownHeight="200" />
+            </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1">
             <StackPanel Orientation="Horizontal"  
                         Visibility="{Binding ShowMessage, Converter={StaticResource BooleanToVisibilityConverter}}"
                         Margin="{StaticResource messageMargin}">
@@ -69,8 +76,9 @@
             </StackPanel>
         </StackPanel>
 
-        <StackPanel HorizontalAlignment="Right" 
-                    Margin="{StaticResource submitButtonsGroupMargin}"
+        <StackPanel Grid.Row="2"
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Bottom"
                     Orientation="Horizontal">
             <Button x:Uid="OkButton" 
                     Content="{Binding ElementName=dialog, Path=OK}" 
@@ -87,5 +95,5 @@
                     MinWidth="{StaticResource ResourceKey=buttonWidth}"
                     MinHeight="{StaticResource ResourceKey=buttonHeight}" />
         </StackPanel>
-    </StackPanel>
+    </Grid>
 </vs:DialogWindow>

@@ -432,11 +432,6 @@
         <target state="translated">No es un valor válido</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_is_an_invalid_namespace">
-        <source>'{0}' is an invalid namespace</source>
-        <target state="new">'{0}' is an invalid namespace</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
         <source>'{0}' will be changed to abstract.</source>
         <target state="translated">"{0}" se cambiará a abstracto.</target>
@@ -452,9 +447,9 @@
         <target state="translated">"{0}" se cambiará a público.</target>
         <note />
       </trans-unit>
-      <trans-unit id="_0_will_be_created_as_a_new_namespace">
-        <source>'{0}' will be created as a new namespace</source>
-        <target state="new">'{0}' will be created as a new namespace</target>
+      <trans-unit id="a_new_namespace_will_be_created">
+        <source>A new namespace will be created</source>
+        <target state="new">A new namespace will be created</target>
         <note />
       </trans-unit>
       <trans-unit id="given_workspace_doesn_t_support_undo">
@@ -1506,6 +1501,11 @@ Información adicional: {1}</target>
       <trans-unit id="When_inserting_properties_events_and_methods_place_them">
         <source>When inserting properties, events and methods, place them:</source>
         <target state="translated">Al insertar propiedades, eventos y métodos, colóquelos:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="this_is_an_invalid_namespace">
+        <source>This is an invalid namespace</source>
+        <target state="new">This is an invalid namespace</target>
         <note />
       </trans-unit>
       <trans-unit id="with_other_members_of_the_same_kind">

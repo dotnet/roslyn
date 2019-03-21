@@ -1210,10 +1210,10 @@ I agree to all of the foregoing:</value>
   <data name="Target_Namespace_colon" xml:space="preserve">
     <value>Target Namespace:</value>
   </data>
-  <data name="_0_is_an_invalid_namespace" xml:space="preserve">
-    <value>'{0}' is an invalid namespace</value>
+  <data name="this_is_an_invalid_namespace" xml:space="preserve">
+    <value>This is an invalid namespace</value>
   </data>
-  <data name="_0_will_be_created_as_a_new_namespace" xml:space="preserve">
-    <value>'{0}' will be created as a new namespace</value>
+  <data name="a_new_namespace_will_be_created" xml:space="preserve">
+    <value>A new namespace will be created</value>
   </data>
 </root>

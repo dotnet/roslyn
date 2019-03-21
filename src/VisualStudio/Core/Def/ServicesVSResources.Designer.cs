@@ -70,15 +70,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; is an invalid namespace.
-        /// </summary>
-        internal static string _0_is_an_invalid_namespace {
-            get {
-                return ResourceManager.GetString("_0_is_an_invalid_namespace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to {0} references.
         /// </summary>
         internal static string _0_references {
@@ -126,20 +117,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; will be created as a new namespace.
-        /// </summary>
-        internal static string _0_will_be_created_as_a_new_namespace {
-            get {
-                return ResourceManager.GetString("_0_will_be_created_as_a_new_namespace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to 1 reference.
         /// </summary>
         internal static string _1_reference {
             get {
                 return ResourceManager.GetString("_1_reference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A new namespace will be created.
+        /// </summary>
+        internal static string a_new_namespace_will_be_created {
+            get {
+                return ResourceManager.GetString("a_new_namespace_will_be_created", resourceCulture);
             }
         }
         
@@ -2888,6 +2879,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace {
             get {
                 return ResourceManager.GetString("The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is an invalid namespace.
+        /// </summary>
+        internal static string this_is_an_invalid_namespace {
+            get {
+                return ResourceManager.GetString("this_is_an_invalid_namespace", resourceCulture);
             }
         }
         

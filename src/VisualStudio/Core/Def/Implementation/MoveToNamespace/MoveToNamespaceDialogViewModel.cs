@@ -5,7 +5,6 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Imaging;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {
@@ -39,14 +38,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             if (isNewNamespace && isValidName)
             {
                 Icon = KnownMonikers.StatusInformation;
-                Message = string.Format(ServicesVSResources._0_will_be_created_as_a_new_namespace, NamespaceName);
+                Message = ServicesVSResources.a_new_namespace_will_be_created;
                 ShowMessage = true;
                 CanSubmit = true;
             }
             else if (!isValidName)
             {
                 Icon = KnownMonikers.StatusInvalid;
-                Message = string.Format(ServicesVSResources._0_is_an_invalid_namespace, NamespaceName);
+                Message = ServicesVSResources.this_is_an_invalid_namespace;
                 ShowMessage = true;
                 CanSubmit = false;
             }
