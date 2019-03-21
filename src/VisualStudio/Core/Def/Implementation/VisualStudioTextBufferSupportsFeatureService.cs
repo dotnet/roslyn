@@ -28,10 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
         public bool SupportsRename(ITextBuffer textBuffer)
         {
             var sourceTextContainer = textBuffer.CurrentSnapshot.AsText().Container;
-            if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace)
-                && workspace is VisualStudioWorkspaceImpl vsWorkspace)
+            if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
             {
-                return vsWorkspace.GetRelatedDocumentIds(sourceTextContainer)
+                return workspace.GetRelatedDocumentIds(sourceTextContainer)
                     .Select(id => ContainedDocument.TryGetContainedDocument(id))
                     .All(cd => cd == null || cd.SupportsRename);
             }
