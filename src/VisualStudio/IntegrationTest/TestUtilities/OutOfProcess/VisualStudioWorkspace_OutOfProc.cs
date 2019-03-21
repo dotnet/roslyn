@@ -81,5 +81,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             => _inProc.SetFeatureOption(feature, optionName, language, valueString);
 
         public string GetWorkingFolder() => _inProc.GetWorkingFolder();
+
+        /// <summary>
+        /// Waits for a WorkspaceChange event that happens after the code <paramref name="action"/> has ran. This should
+        /// only be needed if there is asynchrony that is untracked by Roslyn waiters; for example, modifying files and waiting
+        /// for file watchers or doing some action that triggers an asynchronous project system update.
+        /// </summary>
+        /// <param name="changeKind">The type of WorkspaceChange to look for.</param>
+        /// <param name="action">The action to run.</param>
+        public void WaitForWorkspaceChangeFromAction(WorkspaceChangeKind changeKind, int numberOfChanges, Action action)
+        {
+            _inProc.BeginWaitForWorkspaceChange(changeKind, numberOfChanges);
+            action();
+            _inProc.EndWaitForWorkspaceChange(Helper.HangMitigatingTimeout);
+
+            // We observed the workspace change event, but it's possible that other subscriber are still processing.
+            // Now wait until the workspace waiter is fully complete.
+            _inProc.WaitForAsyncOperations(FeatureAttribute.Workspace);
+        }
     }
 }

@@ -178,5 +178,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var service = _visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageLocationService>();
             return service.TryGetStorageLocation(_visualStudioWorkspace.CurrentSolution.Id);
         }
+
+        private VisualStudioWorkspaceChangeWaiter_InProc _workspaceChangeWaiter;
+
+        public void BeginWaitForWorkspaceChange(WorkspaceChangeKind changeKind, int numberOfChanges)
+        {
+            // If we leaked a waiter from a previous run, dispose it
+            _workspaceChangeWaiter?.Dispose();
+
+            // Wait for all existing WorkspaceChanged notifications to fully processed before we subscribe
+            GetWaitingService().WaitForAsyncOperations(FeatureAttribute.Workspace);
+            _workspaceChangeWaiter = new VisualStudioWorkspaceChangeWaiter_InProc(_visualStudioWorkspace, changeKind, numberOfChanges);
+        }
+
+        public void EndWaitForWorkspaceChange(TimeSpan timeout)
+        {
+            _workspaceChangeWaiter.WaitForChange(timeout);
+            _workspaceChangeWaiter.Dispose();
+            _workspaceChangeWaiter = null;
+        }
     }
 }
