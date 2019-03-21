@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
             }
 
             var workspace = document.Project.Solution.Workspace;
-            var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
+            var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+            if (!supportsFeatureService.SupportsRefactorings(args.SubjectBuffer))
             {
                 return false;
             }
@@ -133,8 +133,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
+            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+            if (!supportsFeatureService.SupportsRefactorings(args.SubjectBuffer))
             {
                 return VSCommanding.CommandState.Unspecified;
             }

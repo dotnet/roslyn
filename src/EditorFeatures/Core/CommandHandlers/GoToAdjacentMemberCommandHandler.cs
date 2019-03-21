@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            return IsAvailable(document, caretPoint) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+            return IsAvailable(document, caretPoint, args.SubjectBuffer) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
         }
 
-        private static bool IsAvailable(Document document, SnapshotPoint? caretPoint)
+        private static bool IsAvailable(Document document, SnapshotPoint? caretPoint, ITextBuffer subjectBuffer)
         {
             if (document?.SupportsSyntaxTree != true)
             {
@@ -77,15 +77,15 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return false;
             }
 
-            var documentSupportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            return documentSupportsFeatureService?.SupportsNavigationToAnyPosition(document) == true;
+            var documentSupportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+            return documentSupportsFeatureService?.SupportsNavigationToAnyPosition(subjectBuffer) == true;
         }
 
         private bool ExecuteCommandImpl(EditorCommandArgs args, bool gotoNextMember, CommandExecutionContext context)
         {
             var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (!IsAvailable(document, caretPoint))
+            if (!IsAvailable(document, caretPoint, args.SubjectBuffer))
             {
                 return false;
             }

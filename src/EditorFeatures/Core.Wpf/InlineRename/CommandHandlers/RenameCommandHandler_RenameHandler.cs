@@ -35,9 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var documents = textContainer.GetRelatedDocuments();
-            var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!documents.All(d => supportsFeatureService.SupportsRename(d)))
+            var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+            if (!supportsFeatureService.SupportsRename(args.SubjectBuffer))
             {
                 return VSCommanding.CommandState.Unspecified;
             }

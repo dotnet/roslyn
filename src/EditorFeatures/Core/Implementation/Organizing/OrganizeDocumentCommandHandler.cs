@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                 return false;
             }
 
-            return workspace.Services.GetService<IDocumentSupportsFeatureService>().SupportsRefactorings(document);
+            return workspace.Services.GetService<ITextBufferSupportsFeatureService>().SupportsRefactorings(args.SubjectBuffer);
         }
 
         public bool ExecuteCommand(SortAndRemoveUnnecessaryImportsCommandArgs args, CommandExecutionContext context)

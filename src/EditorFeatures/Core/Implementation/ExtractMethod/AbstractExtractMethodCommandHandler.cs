@@ -61,8 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
+            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+            if (!supportsFeatureService.SupportsRefactorings(args.SubjectBuffer))
             {
                 return VSCommanding.CommandState.Unspecified;
             }
@@ -78,8 +78,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return false;
             }
 
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
+            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+            if (!supportsFeatureService.SupportsRefactorings(args.SubjectBuffer))
             {
                 return false;
             }

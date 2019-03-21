@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
+            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+            if (!supportsFeatureService.SupportsRefactorings(subjectBuffer))
             {
                 return VSCommanding.CommandState.Unspecified;
             }
@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
                     return false;
                 }
 
-                var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-                if (!supportsFeatureService.SupportsRefactorings(document))
+                var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
+                if (!supportsFeatureService.SupportsRefactorings(subjectBuffer))
                 {
                     return false;
                 }

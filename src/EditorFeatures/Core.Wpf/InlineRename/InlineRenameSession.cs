@@ -245,9 +245,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var documentSupportsFeatureService = _workspace.Services.GetService<IDocumentSupportsFeatureService>();
+            var documentSupportsFeatureService = _workspace.Services.GetService<ITextBufferSupportsFeatureService>();
 
-            if (!_openTextBuffers.ContainsKey(buffer) && documents.All(d => documentSupportsFeatureService.SupportsRename(d)))
+            if (!_openTextBuffers.ContainsKey(buffer) && documentSupportsFeatureService.SupportsRename(buffer))
             {
                 _openTextBuffers[buffer] = new OpenTextBufferManager(this, buffer, _workspace, documents, _textBufferFactoryService);
                 return true;
