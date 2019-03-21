@@ -265,7 +265,17 @@ Class Test
 End Class
 "
 
-            Await TestMissingInRegularAndScriptAsync(initial)
+            Dim expected = "
+Class Test
+    Sub Method()
+        Dim {|Rename:array|} = New Integer() {1, 2, 3}
+        For {|Rename:i|} = 0 To array.Length - 1
+        Next
+    End Sub
+End Class
+"
+
+            Await TestInRegularAndScriptAsync(initial, expected)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)>
