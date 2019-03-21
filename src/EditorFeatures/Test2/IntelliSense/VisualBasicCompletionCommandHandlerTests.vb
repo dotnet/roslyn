@@ -1582,7 +1582,7 @@ End Class
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("String")
-                state.CompletionItemsContainsAll({"Integer", "G"})
+                state.AssertCompletionItemsContainAll({"Integer", "G"})
             End Using
         End Function
 
@@ -1600,7 +1600,7 @@ End Class
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("String")
-                state.CompletionItemsContainsAll({"Integer", "G"})
+                state.AssertCompletionItemsContainAll({"Integer", "G"})
             End Using
         End Function
 
@@ -1637,7 +1637,7 @@ End Class
                 state.SendBackspace()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("String")
-                state.CompletionItemsContainsAll({"Integer", "G"})
+                state.AssertCompletionItemsContainAll({"Integer", "G"})
             End Using
         End Function
 

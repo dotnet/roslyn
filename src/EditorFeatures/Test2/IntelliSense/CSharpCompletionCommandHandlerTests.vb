@@ -2432,7 +2432,7 @@ class C
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("string")
-                state.CompletionItemsContainsAll({"integer", "Method"})
+                state.AssertCompletionItemsContainAll({"int", "Method"})
             End Using
         End Function
 
@@ -2453,7 +2453,7 @@ class C
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("AccessViolationException")
-                state.CompletionItemsContainsAll({"integer", "Method"})
+                state.AssertCompletionItemsContainAll({"int", "Method"})
             End Using
         End Function
 
@@ -2474,7 +2474,7 @@ class C
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("string")
-                state.CompletionItemsContainsAll({"integer", "Method"})
+                state.AssertCompletionItemsContainAll({"int", "Method"})
             End Using
         End Function
 
@@ -4052,7 +4052,7 @@ class C
 
                 state.SendInvokeCompletionList()
                 Await state.AssertSelectedCompletionItem("Red")
-                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
+                state.AssertCompletionItemsContainAll({"Red", "Green", "Blue", "Equals"})
 
                 Dim filters = state.GetCompletionItemFilters()
                 Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
@@ -4065,7 +4065,7 @@ class C
                 Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
                 state.RaiseFiltersChanged(args)
                 Await state.AssertSelectedCompletionItem("Red")
-                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue"})
+                state.AssertCompletionItemsContainAll(displayText:={"Red", "Green", "Blue"})
                 state.AssertCompletionItemsDoNotContainAny({"Equals"})
 
                 For Each f In filters
@@ -4075,7 +4075,7 @@ class C
                 args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
                 state.RaiseFiltersChanged(args)
                 Await state.AssertSelectedCompletionItem("Red")
-                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
+                state.AssertCompletionItemsContainAll({"Red", "Green", "Blue", "Equals"})
 
             End Using
         End Function
@@ -4621,7 +4621,7 @@ class C
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                state.CompletionItemsContainsAll(displayText:={"ToString", "GetHashCode"})
+                state.AssertCompletionItemsContainAll(displayText:={"ToString", "GetHashCode"})
             End Using
         End Function
 

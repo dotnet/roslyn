@@ -211,8 +211,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Overloads Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
 
-        Public MustOverride Overloads Function CompletionItemsContainsAll(displayText As String()) As Boolean
-
         Public Sub AssertCompletionItemsContainAll(displayText As String())
             AssertNoAsynchronousOperationsRunning()
             Dim items = GetCompletionItems()

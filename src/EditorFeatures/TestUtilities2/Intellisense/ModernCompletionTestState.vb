@@ -192,12 +192,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Await AssertCompletionSession()
         End Function
 
-        Public Overrides Function CompletionItemsContainsAll(displayText As String()) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Dim items = GetCompletionItems()
-            Return displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v))
-        End Function
-
         Public Overrides Sub AssertItemsInOrder(expectedOrder As String())
             AssertNoAsynchronousOperationsRunning()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
