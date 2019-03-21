@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 this.AssertIsForeground();
 
                 if (_owner._codeFixService != null &&
-                    _subjectBuffer.SupportsCodeFixes(workspace) &&
+                    supportsFeatureService.SupportsCodeFixes(_subjectBuffer) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
                     // We only include suppressions if light bulb is asking for everything.
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     _owner._codeRefactoringService != null &&
-                    _subjectBuffer.SupportsRefactorings(workspace) &&
+                    supportsFeatureService.SupportsRefactorings(_subjectBuffer) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
                     // It may seem strange that we kick off a task, but then immediately 'Wait' on 
