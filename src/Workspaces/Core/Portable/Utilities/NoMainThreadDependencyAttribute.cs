@@ -11,5 +11,11 @@ namespace Microsoft.CodeAnalysis.Utilities
         /// Gets or sets a value indicating whether the task is always completed.
         /// </summary>
         public bool AlwaysCompleted { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the dependency claim has been verified against the signatures and
+        /// contracts of referenced code.
+        /// </summary>
+        public bool Verified { get; set; } = true;
     }
 }
