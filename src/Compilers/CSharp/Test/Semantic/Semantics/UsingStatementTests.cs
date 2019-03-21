@@ -1317,9 +1317,14 @@ class C
 
             Assert.Equal("System.IO.StreamWriter a", firstDeclaredSymbol.ToTestDisplayString());
 
+            var secondDeclaredSymbol = model.GetDeclaredSymbol(usingStatement.Declaration.Variables.Last());
+
+            Assert.Equal("System.IO.StreamReader b", secondDeclaredSymbol.ToTestDisplayString());
+
             var typeInfo = model.GetSymbolInfo(usingStatement.Declaration.Type);
-            // lowest/last bound node with associated syntax is being picked up. Fine for now.
-            Assert.Equal(((LocalSymbol)model.GetDeclaredSymbol(usingStatement.Declaration.Variables.Last())).Type, typeInfo.Symbol);
+
+            // the type info uses the type inferred for the first declared local
+            Assert.Equal(((LocalSymbol)model.GetDeclaredSymbol(usingStatement.Declaration.Variables.First())).Type, typeInfo.Symbol);
         }
 
         [Fact]
