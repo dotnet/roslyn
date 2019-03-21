@@ -6,6 +6,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
 {
     using System;
+    using Microsoft.CodeAnalysis.Shared.Extensions;
     using static Helpers;
 
     internal partial class CSharpUseIndexOperatorDiagnosticAnalyzer
@@ -36,12 +37,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
                 // Always allow using System.Index indexers with System.String.  The compiler has
                 // hard-coded knowledge on how to use this type, even if there is no this[Index]
                 // indexer declared on it directly.
+                //
+                // Ensure that we can actually get the 'string' type. We may fail if there is no
+                // proper mscorlib reference (for example, while a project is loading).
                 var stringType = compilation.GetSpecialType(SpecialType.System_String);
-                var indexer = GetIndexer(stringType,
-                    compilation.GetSpecialType(SpecialType.System_Int32),
-                    compilation.GetSpecialType(SpecialType.System_Char));
+                if (!stringType.IsErrorType())
+                {
+                    var indexer = GetIndexer(stringType,
+                        compilation.GetSpecialType(SpecialType.System_Int32),
+                        compilation.GetSpecialType(SpecialType.System_Char));
 
-                _methodToMemberInfo[indexer.GetMethod] = ComputeMemberInfo(indexer.GetMethod, requireIndexMember: false);
+                    _methodToMemberInfo[indexer.GetMethod] = ComputeMemberInfo(indexer.GetMethod, requireIndexMember: false);
+                }
             }
 
             public bool TryGetMemberInfo(IMethodSymbol methodSymbol, out MemberInfo memberInfo)

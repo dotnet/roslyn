@@ -180,9 +180,7 @@ namespace A
                         Await state.AssertNoCompletionSession()
                         state.SendInvokeCompletionList()
                         Await state.WaitForAsynchronousOperationsAsync()
-                        Assert.True(
-                            state.CurrentCompletionPresenterSession Is Nothing OrElse
-                            Not state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                        Await state.AssertSessionIsNothingOrNoCompletionItemLike("ClassLibrary1")
                     End Function
                 Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
                 state.SendTypeChars("["c)
@@ -374,7 +372,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
                             CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
-                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>/>
                     </Project>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
                         <Document>
@@ -397,7 +395,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
-                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>/>
+                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>/>
                         <Document>
                             [assembly: System.Reflection.AssemblyKeyFile("<%= SigningTestHelpers.PublicKeyFile.Replace("\", "\\") %>")]
                         </Document>
@@ -424,7 +422,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                     <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
                         <CompilationOptions
                             CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
-                            StrongNameProvider=<%= SigningTestHelpers.s_defaultDesktopProvider.GetType().AssemblyQualifiedName %>
+                            StrongNameProvider=<%= SigningTestHelpers.DefaultDesktopStrongNameProvider.GetType().AssemblyQualifiedName %>
                             DelaySign="True"/>
                     </Project>
                     <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">

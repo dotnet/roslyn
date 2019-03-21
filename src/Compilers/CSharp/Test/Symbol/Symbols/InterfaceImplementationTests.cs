@@ -825,22 +825,22 @@ class DeclaringClass2 : NonDeclaringClass2, Interface
             var interfaceMethod = @interface.GetMembers("Method").Single();
 
             var nonDeclaring1 = (NamedTypeSymbol)global.GetMembers("NonDeclaringClass1").Single();
-            Assert.False(nonDeclaring1.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface));
+            Assert.False(nonDeclaring1.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(@interface));
 
             var nonDeclaring1Method = nonDeclaring1.GetMembers("Method").Single();
 
             var declaring1 = (NamedTypeSymbol)global.GetMembers("DeclaringClass1").Single();
-            Assert.True(declaring1.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface));
+            Assert.True(declaring1.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(@interface));
             Assert.Equal(nonDeclaring1, declaring1.BaseType());
 
             var nonDeclaring2 = (NamedTypeSymbol)global.GetMembers("NonDeclaringClass2").Single();
-            Assert.False(nonDeclaring2.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface));
+            Assert.False(nonDeclaring2.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(@interface));
             Assert.Equal(declaring1, nonDeclaring2.BaseType());
 
             var nonDeclaring2Method = nonDeclaring2.GetMembers("Method").Single();
 
             var declaring2 = (NamedTypeSymbol)global.GetMembers("DeclaringClass2").Single();
-            Assert.True(declaring2.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface));
+            Assert.True(declaring2.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(@interface));
             Assert.Equal(nonDeclaring2, declaring2.BaseType());
 
             Assert.Null(nonDeclaring1.FindImplementationForInterfaceMember(interfaceMethod));
@@ -873,7 +873,7 @@ class DeclaringClass2 : NonDeclaringClass2, Interface
             Assert.Null(baseClass.FindImplementationForInterfaceMember(interfaceMethod));
 
             var derivedClass = (NamedTypeSymbol)global.GetMembers("DerivedExplicitlyImplementsInterface").Single();
-            Assert.False(derivedClass.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(@interface));
+            Assert.False(derivedClass.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.ContainsKey(@interface));
             Assert.True(derivedClass.AllInterfaces().Contains(@interface));
 
             var derivedClassMethod = derivedClass.GetMembers("I1.Method1").Single();
@@ -1857,7 +1857,7 @@ class Base
             var derived = global.GetMember<NamedTypeSymbol>("Derived");
 
             // Force completion of destructor symbol.  Calls IsMetadataVirtual on Base.Finalize.
-            var returnType = derived.GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName).ReturnType;
+            var returnType = derived.GetMember<MethodSymbol>(WellKnownMemberNames.DestructorName).ReturnTypeWithAnnotations;
             Assert.Equal(SpecialType.System_Void, returnType.SpecialType);
 
             // Force completion of entire symbol.  Calls EnsureMetadataVirtual on Base.Finalize.
@@ -2094,14 +2094,11 @@ class Derived2 : Base2, Interface
 ";
 
             // Base1 is in metadata, so we just trust it when it claims to implement Interface.
-            // Base2 is identical, but in source.  We produce errors for both Base2 and Derived2.
+            // Base2 is identical, but in source.  We produce error for Base2.
             CreateCompilation(source, new[] { ilRef }).VerifyDiagnostics(
                 // (6,7): error CS0535: 'Base2' does not implement interface member 'Interface.M()'
                 // class Base2 : Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base2", "Interface.M()"),
-                // (10,7): error CS0535: 'Derived2' does not implement interface member 'Interface.M()'
-                // class Derived2 : Base2, Interface
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Derived2", "Interface.M()"));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "Interface").WithArguments("Base2", "Interface.M()"));
         }
 
         [WorkItem(718115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718115")]

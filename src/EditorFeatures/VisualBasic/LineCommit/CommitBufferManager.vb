@@ -2,6 +2,7 @@
 
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
@@ -10,10 +11,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     ''' This class watches for buffer-based events, tracks the dirty regions, and invokes the formatter as appropriate
     ''' </summary>
     Partial Friend Class CommitBufferManager
+        Inherits ForegroundThreadAffinitizedObject
+
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
+
         Private _referencingViews As Integer
+
+        ''' <summary>
+        ''' An object to use as a sync lock for <see cref="_referencingViews"/>.
+        ''' </summary>
+        Private ReadOnly _referencingViewsLock As Object = New Object()
 
         ''' <summary>
         ''' The tracking span which is the currently "dirty" region in the buffer. May be null if there is no dirty region.
@@ -30,7 +39,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Public Sub New(
             buffer As ITextBuffer,
             commitFormatter As ICommitFormatter,
-            inlineRenameService As IInlineRenameService)
+            inlineRenameService As IInlineRenameService,
+            threadingContext As IThreadingContext)
+            MyBase.New(threadingContext, assertIsForeground:=False)
 
             Contract.ThrowIfNull(buffer)
             Contract.ThrowIfNull(commitFormatter)
@@ -41,34 +52,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             _inlineRenameService = inlineRenameService
         End Sub
 
-        Private Sub Connect()
-            AddHandler _buffer.Changing, AddressOf OnTextBufferChanging
-            AddHandler _buffer.Changed, AddressOf OnTextBufferChanged
-        End Sub
-
-        Private Sub Disconnect()
-            RemoveHandler _buffer.Changed, AddressOf OnTextBufferChanged
-            RemoveHandler _buffer.Changing, AddressOf OnTextBufferChanging
-        End Sub
-
         Public Sub AddReferencingView()
-            _referencingViews += 1
+            ThisCanBeCalledOnAnyThread()
 
-            If _referencingViews = 1 Then
-                Connect()
-            End If
+            SyncLock _referencingViewsLock
+                _referencingViews += 1
+
+                If _referencingViews = 1 Then
+                    AddHandler _buffer.Changing, AddressOf OnTextBufferChanging
+                    AddHandler _buffer.Changed, AddressOf OnTextBufferChanged
+                End If
+            End SyncLock
         End Sub
 
         Public Sub RemoveReferencingView()
-            ' If someone enables line commit with a file already open, we might end up decrementing
-            ' the ref count too many times, so only do work if we are still above 0.
-            If _referencingViews > 0 Then
-                _referencingViews -= 1
+            ThisCanBeCalledOnAnyThread()
 
-                If _referencingViews = 0 Then
-                    Disconnect()
+            SyncLock _referencingViewsLock
+                ' If someone enables line commit with a file already open, we might end up decrementing
+                ' the ref count too many times, so only do work if we are still above 0.
+                If _referencingViews > 0 Then
+                    _referencingViews -= 1
+
+                    If _referencingViews = 0 Then
+                        RemoveHandler _buffer.Changed, AddressOf OnTextBufferChanged
+                        RemoveHandler _buffer.Changing, AddressOf OnTextBufferChanging
+                    End If
                 End If
-            End If
+            End SyncLock
         End Sub
 
         Public ReadOnly Property HasDirtyRegion As Boolean
@@ -123,12 +134,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         ' at 14000 lines. We expect Windows Forms designer formatting operations to run in under ~15
                         ' seconds on average current hardware when nearing the threshold.
                         Dim startLineNumber = 0
-                        Dim startColumnIndex = 0
+                        Dim startCharIndex = 0
                         Dim endLineNumber = 0
-                        Dim endColumnIndex = 0
-                        info.SpanToFormat.GetLinesAndColumns(startLineNumber, startColumnIndex, endLineNumber, endColumnIndex)
+                        Dim endCharIndex = 0
+                        info.SpanToFormat.GetLinesAndCharacters(startLineNumber, startCharIndex, endLineNumber, endCharIndex)
                         If endLineNumber - startLineNumber > 7000 Then
-                            useSemantics = false
+                            useSemantics = False
                         End If
                     End If
 

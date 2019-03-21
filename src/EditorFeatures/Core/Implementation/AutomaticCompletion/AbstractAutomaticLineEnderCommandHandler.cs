@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
@@ -15,20 +17,23 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 {
-    internal abstract class AbstractAutomaticLineEnderCommandHandler : 
+    internal abstract class AbstractAutomaticLineEnderCommandHandler :
         IChainedCommandHandler<AutomaticLineEnderCommandArgs>
     {
         private readonly ITextUndoHistoryRegistry _undoRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
+        private readonly IAsyncCompletionBroker _asyncCompletionBroker;
 
         public string DisplayName => EditorFeaturesResources.Automatic_Line_Ender;
 
         public AbstractAutomaticLineEnderCommandHandler(
             ITextUndoHistoryRegistry undoRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            IAsyncCompletionBroker asyncCompletionBroker)
         {
             _undoRegistry = undoRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
+            _asyncCompletionBroker = asyncCompletionBroker;
         }
 
         /// <summary>
@@ -58,6 +63,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
 
         public void ExecuteCommand(AutomaticLineEnderCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
+            // Completion will only be active here if this command wasn't handled by the completion controller itself.
+            if (_asyncCompletionBroker.IsCompletionActive(args.TextView))
+            {
+                var session = _asyncCompletionBroker.GetSession(args.TextView);
+                var computedItems = session.GetComputedItems(context.OperationContext.UserCancellationToken);
+                var softSelection = computedItems.SuggestionItemSelected || computedItems.UsesSoftSelection;
+                var behavior = session.Commit('\n', context.OperationContext.UserCancellationToken);
+                session.Dismiss();
+
+                if (behavior != CommitBehavior.CancelCommit && !softSelection)
+                {
+                    // Skip the automatic line handling in this case for behavior parity with legacy completion.
+                    return;
+                }
+            }
+
             // get editor operation
             var operations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
             if (operations == null)

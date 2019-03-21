@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddMetadataDeclarationsWithNormalQueryAsync(
-            Project project, IAssemblySymbol assembly, PortableExecutableReference referenceOpt, 
-            SearchQuery query, SymbolFilter filter, ArrayBuilder<SymbolAndProjectId> list, 
+            Project project, IAssemblySymbol assembly, PortableExecutableReference referenceOpt,
+            SearchQuery query, SymbolFilter filter, ArrayBuilder<SymbolAndProjectId> list,
             CancellationToken cancellationToken)
         {
             // All entrypoints to this function are Find functions that are only searching

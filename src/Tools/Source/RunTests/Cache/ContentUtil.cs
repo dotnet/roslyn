@@ -215,7 +215,7 @@ namespace RunTests.Cache
         private string GetFileChecksum(string filePath)
         {
             var ext = Path.GetExtension(filePath).ToLower();
-            return (ext == ".dll" || ext == ".exe") 
+            return (ext == ".dll" || ext == ".exe")
                 ? GetAssemblyChecksum(filePath)
                 : GetFileChecksumCore(filePath);
         }

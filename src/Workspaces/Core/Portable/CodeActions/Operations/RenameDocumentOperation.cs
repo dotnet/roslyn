@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
         internal override bool ApplyDuringTests => true;
 
         public RenameDocumentOperation(
-            DocumentId oldDocumentId, 
-            DocumentId newDocumentId, 
+            DocumentId oldDocumentId,
+            DocumentId newDocumentId,
             string newFileName,
             SourceText text)
         {

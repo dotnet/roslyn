@@ -13495,7 +13495,7 @@ End Module
 }]]>)
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_01()
             Dim source =
@@ -13547,7 +13547,7 @@ End Class
             Return builder.ToString()
         End Function
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_02()
             Dim source =
@@ -13572,7 +13572,7 @@ End Class
             CompileAndVerify(compilation, expectedOutput:="11461640193")
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_03()
@@ -13629,7 +13629,7 @@ End Class
             Return builder.ToString()
         End Function
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_04()
             Dim size = 8192
@@ -13657,7 +13657,7 @@ End Class
                 )
         End Sub
 
-        <NoIOperationValidationFact>
+        <ConditionalFact(GetType(NoIOperationValidation))>
         <WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")>
         Public Sub EmitSequenceOfBinaryExpressions_05()
             Dim count As Integer = 50

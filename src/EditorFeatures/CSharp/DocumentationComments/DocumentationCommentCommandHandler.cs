@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -22,6 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
     [Name(PredefinedCommandHandlerNames.DocumentationComments)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
+    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class DocumentationCommentCommandHandler
         : AbstractDocumentationCommentCommandHandler<DocumentationCommentTriviaSyntax, MemberDeclarationSyntax>
     {
@@ -29,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         public DocumentationCommentCommandHandler(
             IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService) 
+            IEditorOperationsFactoryService editorOperationsFactoryService)
             : base(waitIndicator, undoHistoryRegistry, editorOperationsFactoryService)
         {
         }

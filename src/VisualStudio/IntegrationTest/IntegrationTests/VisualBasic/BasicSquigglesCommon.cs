@@ -2,13 +2,14 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     public abstract class BasicSquigglesCommon : AbstractEditorTest
     {
-        public BasicSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
-            :base(instanceFactory, nameof(BasicSquigglesCommon), projectTemplate)
+        public BasicSquigglesCommon(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string projectTemplate)
+            : base(instanceFactory, testOutputHelper, nameof(BasicSquigglesCommon), projectTemplate)
         {
         }
 
@@ -28,6 +29,7 @@ End Class");
         {
             VisualStudio.Editor.SetText(@"Class A
       Sub S(b as Bar)
+        Console.WriteLine(b)
       End Sub
 End Class");
             VisualStudio.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[26-29]");

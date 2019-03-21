@@ -270,6 +270,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         private const DkmEvaluationResultCategory UnspecifiedCategory = (DkmEvaluationResultCategory)(-1);
         private const DkmEvaluationResultAccessType UnspecifiedAccessType = (DkmEvaluationResultAccessType)(-1);
+        public const string UnspecifiedValue = "<<unspecified value>>";
 
         internal static DkmEvaluationResult EvalResult(
             string name,
@@ -482,7 +483,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (expectedSuccess != null)
             {
                 var actualSuccess = (DkmSuccessEvaluationResult)actual;
-                Assert.Equal(expectedSuccess.Value, actualSuccess.Value);
+
+                Assert.NotEqual(UnspecifiedValue, actualSuccess.Value);
+                if (expectedSuccess.Value != UnspecifiedValue)
+                {
+                    Assert.Equal(expectedSuccess.Value, actualSuccess.Value);
+                }
+
                 Assert.Equal(expectedSuccess.Type, actualSuccess.Type);
                 Assert.Equal(expectedSuccess.Flags, actualSuccess.Flags);
                 if (expectedSuccess.Category != UnspecifiedCategory)
@@ -493,6 +500,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     Assert.Equal(expectedSuccess.Access, actualSuccess.Access);
                 }
+
                 Assert.Equal(expectedSuccess.EditableValue, actualSuccess.EditableValue);
                 Assert.True(
                     (expectedSuccess.CustomUIVisualizers == actualSuccess.CustomUIVisualizers) ||

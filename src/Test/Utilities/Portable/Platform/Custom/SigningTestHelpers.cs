@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if !NETSTANDARD2_0
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -13,11 +13,8 @@ namespace Roslyn.Test.Utilities
 {
     internal static class SigningTestHelpers
     {
-        public static readonly StrongNameProvider s_defaultDesktopProvider =
-            new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedStrongNameFileSystem());
-
-        public static readonly StrongNameProvider s_defaultPortableProvider =
-            new PortableStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem());
+        public static readonly StrongNameProvider DefaultDesktopStrongNameProvider =
+            new DesktopStrongNameProvider(ImmutableArray<string>.Empty, new VirtualizedStrongNameFileSystem());
 
         // these are virtual paths that don't exist on disk
         internal static readonly string KeyFileDirectory = ExecutionConditionUtil.IsWindows
@@ -38,15 +35,20 @@ namespace Roslyn.Test.Utilities
 
         internal static object s_keyInstalledLock = new object();
 
-        // Modifies machine wide state.
+        /// <summary>
+        /// Installs the keys used for testing into the machine cache on Windows.
+        /// </summary>
         internal unsafe static void InstallKey()
         {
-            lock (s_keyInstalledLock)
+            if (ExecutionConditionUtil.IsWindows)
             {
-                if (!s_keyInstalled)
+                lock (s_keyInstalledLock)
                 {
-                    InstallKey(TestResources.General.snKey, TestContainerName);
-                    s_keyInstalled = true;
+                    if (!s_keyInstalled)
+                    {
+                        InstallKey(TestResources.General.snKey, TestContainerName);
+                        s_keyInstalled = true;
+                    }
                 }
             }
         }
@@ -72,6 +74,10 @@ namespace Roslyn.Test.Utilities
 
         internal sealed class VirtualizedStrongNameFileSystem : StrongNameFileSystem
         {
+            internal VirtualizedStrongNameFileSystem(string tempPath = null) : base(tempPath)
+            {
+
+            }
             private static bool PathEquals(string left, string right)
             {
                 return string.Equals(
@@ -113,5 +119,3 @@ namespace Roslyn.Test.Utilities
         }
     }
 }
-
-#endif

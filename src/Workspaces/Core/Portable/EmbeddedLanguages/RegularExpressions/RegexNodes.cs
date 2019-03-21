@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
     /// <summary>
     /// ```-[f-m]``` in a pattern like ```[a-z-[f-m]]```.  A subtraction must come last in a 
-    /// character class, and removes some range of chars from the claracter class built up
+    /// character class, and removes some range of chars from the character class built up
     /// so far.
     /// </summary>
     internal sealed class RegexCharacterClassSubtractionNode : RegexPrimaryExpressionNode
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     }
 
     /// <summary>
-    /// Represents a ```[:...:]``` node in a character class.  Note: the .net regex parser
+    /// Represents a ```[:...:]``` node in a character class.  Note: the .NET regex parser
     /// simply treats this as the character ```[``` and ignores the rest of the ```:...:]```.
     /// They latter part has no impact on the actual match engine that is produced.
     /// </summary>

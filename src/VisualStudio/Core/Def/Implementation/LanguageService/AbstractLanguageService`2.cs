@@ -397,7 +397,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             IVsHierarchy hierarchy, uint itemid)
         {
             return new ContainedLanguage<TPackage, TLanguageService>(
-                bufferCoordinator, this.Package.ComponentModel, project, hierarchy, itemid,
+                bufferCoordinator, this.Package.ComponentModel, project, hierarchy, itemid, projectTrackerOpt: null, project.Id,
                 (TLanguageService)this);
         }
     }

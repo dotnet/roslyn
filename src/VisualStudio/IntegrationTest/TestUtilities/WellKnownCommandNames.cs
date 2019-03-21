@@ -8,6 +8,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Build_SolutionConfigurations = "Build.SolutionConfigurations";
 
         public const string Edit_GoToAll = "Edit.GoToAll";
+        public const string Edit_GoToDefinition = "Edit.GoToDefinition";
+        public const string Edit_GoToImplementation = "Edit.GoToImplementation";
         public const string Edit_ListMembers = "Edit.ListMembers";
         public const string Edit_ParameterInfo = "Edit.ParameterInfo";
         public const string Edit_QuickInfo = "Edit.QuickInfo";
@@ -35,11 +37,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string InteractiveConsole_ExecuteInInteractive = "InteractiveConsole.ExecuteInInteractive";
 
         public const string ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages = "ProjectandSolutionContextMenus.Solution.RestoreNuGetPackages";
-        public const string ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject 
+        public const string ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject
             = "ProjectandSolutionContextMenus.Project.ResetC#InteractiveFromProject";
 
         public const string Refactor_Rename = "Refactor.Rename";
-        public const string Refactor_ExtractMethod= "Refactor.ExtractMethod";
+        public const string Refactor_ExtractMethod = "Refactor.ExtractMethod";
         public const string Refactor_ExtractInterface = "Refactor.ExtractInterface";
         public const string Refactor_EncapsulateField = "Refactor.EncapsulateField";
         public const string Refactor_RemoveParameters = "Refactor.RemoveParameters";

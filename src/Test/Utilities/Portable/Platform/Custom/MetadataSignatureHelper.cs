@@ -574,7 +574,7 @@ namespace Roslyn.Test.Utilities
             sb.Append(" ");
             sb.Append(@event.Name);
         }
-#endregion
+        #endregion
 
         static public IEnumerable<string> GetMemberSignatures(System.Reflection.Assembly assembly, string fullyQualifiedTypeName)
         {

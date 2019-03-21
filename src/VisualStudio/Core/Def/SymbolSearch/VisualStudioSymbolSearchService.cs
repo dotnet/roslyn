@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             var result = ArrayBuilder<TPackageResult>.GetInstance();
 
-            // We always returm types from packages that we've use elsewhere in the project.
+            // We always return types from packages that we've use elsewhere in the project.
             result.AddRange(packagesUsedInOtherProjects);
 
             // For all other hits include as long as the popularity is high enough.  

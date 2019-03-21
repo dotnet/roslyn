@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
     [ExportCodeFixProvider(LanguageNames.CSharp), Shared]
     internal partial class CSharpIsAndCastCheckWithoutNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
-        public CSharpIsAndCastCheckWithoutNameCodeFixProvider() 
+        public CSharpIsAndCastCheckWithoutNameCodeFixProvider()
             : base(supportsFixAll: false)
         {
         }

@@ -5,24 +5,19 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -73,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             get { return _backgroundCompiler != null; }
         }
 
-        public TestHostDocument DocumentWithCursor 
+        public TestHostDocument DocumentWithCursor
             => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
 
         protected override void OnDocumentTextChanged(Document document)
@@ -186,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             base.OnDocumentOpened(documentId, textContainer, isCurrentContext);
         }
-        
+
         public new void OnParseOptionsChanged(ProjectId projectId, ParseOptions parseOptions)
         {
             base.OnParseOptionsChanged(projectId, parseOptions);
@@ -275,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var hostProject = this.GetTestProject(info.Id.ProjectId);
             var hostDocument = new TestHostDocument(
-                text.ToString(), info.Name, info.SourceCodeKind, 
+                text.ToString(), info.Name, info.SourceCodeKind,
                 info.Id, folders: info.Folders);
             hostProject.AddDocument(hostDocument);
             this.OnDocumentAdded(hostDocument.ToDocumentInfo());
@@ -367,7 +362,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         /// <param name="baseDocuments">The set of documents from which the projection buffer 
         /// document will be composed.</param>
         /// <returns></returns>
-        public TestHostDocument CreateProjectionBufferDocument(string markup, IList<TestHostDocument> baseDocuments, string languageName, string path = "projectionbufferdocumentpath", ProjectionBufferOptions options = ProjectionBufferOptions.None, IProjectionEditResolver editResolver = null)
+        public TestHostDocument CreateProjectionBufferDocument(
+            string markup,
+            IList<TestHostDocument> baseDocuments,
+            string languageName,
+            string path = "projectionbufferdocumentpath",
+            ProjectionBufferOptions options = ProjectionBufferOptions.None,
+            IProjectionEditResolver editResolver = null)
         {
             GetSpansAndCaretFromSurfaceBufferMarkup(markup, baseDocuments,
                 out var projectionBufferSpans, out Dictionary<string, ImmutableArray<TextSpan>> mappedSpans, out var mappedCaretLocation);
@@ -378,8 +379,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // Add in mapped spans from each of the base documents
             foreach (var document in baseDocuments)
             {
-                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty) 
-                    ? mappedSpans[string.Empty] 
+                mappedSpans[string.Empty] = mappedSpans.ContainsKey(string.Empty)
+                    ? mappedSpans[string.Empty]
                     : ImmutableArray<TextSpan>.Empty;
                 foreach (var span in document.SelectedSpans)
                 {
@@ -395,14 +396,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 foreach (var kvp in document.AnnotatedSpans)
                 {
                     mappedSpans[kvp.Key] = mappedSpans.ContainsKey(kvp.Key)
-                        ? mappedSpans[kvp.Key] 
+                        ? mappedSpans[kvp.Key]
                         : ImmutableArray<TextSpan>.Empty;
 
                     foreach (var span in kvp.Value)
                     {
                         var snapshotSpan = span.ToSnapshotSpan(document.TextBuffer.CurrentSnapshot);
-                        var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Single();
-                        mappedSpans[kvp.Key] = mappedSpans[kvp.Key].Add(mappedSpan.ToTextSpan());
+                        var mappedSpan = projectionBuffer.CurrentSnapshot.MapFromSourceSnapshot(snapshotSpan).Cast<Span?>().SingleOrDefault();
+                        if (mappedSpan == null)
+                        {
+                            // not all span on subject buffer needs to exist on surface buffer
+                            continue;
+                        }
+
+                        // but if they do, it must be only 1
+                        mappedSpans[kvp.Key] = mappedSpans[kvp.Key].Add(mappedSpan.Value.ToTextSpan());
                     }
                 }
             }
@@ -422,7 +430,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         }
 
         private void GetSpansAndCaretFromSurfaceBufferMarkup(
-            string markup, IList<TestHostDocument> baseDocuments, 
+            string markup, IList<TestHostDocument> baseDocuments,
             out IList<object> projectionBufferSpans,
             out Dictionary<string, ImmutableArray<TextSpan>> mappedMarkupSpans, out int? mappedCaretLocation)
         {
@@ -435,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             var namedSpans = markupSpans.Where(kvp => kvp.Key != string.Empty);
             var sortedAndNamedSpans = namedSpans.OrderBy(kvp => kvp.Value.Single().Start)
-                                                .ThenBy(kvp => markup.IndexOf("{|" + kvp.Key + ":|}", StringComparison.Ordinal));
+                                                .ThenBy(kvp => markup.IndexOf("{|" + kvp.Key + ":", StringComparison.Ordinal));
 
             var currentPositionInInertText = 0;
             var currentPositionInProjectionBuffer = 0;
@@ -539,9 +547,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                     foreach (var projectionSpan in projectionBufferSpans)
                     {
-
                         if (projectionSpan is string text)
                         {
+                            // this currently has a bug where it can't distinguish a markup of {|ProjectionMarkup:|}{|Markup1:|} and {|Markup1:{|ProjectionMarkup:|}|}
+                            // it always map markup1 span as the later one.
+                            // tracking issue - {|ProjectionMarkup:|}{|Markup1:|} and {|Markup1:{|ProjectionMarkup:|}|}
                             if (spanStartLocation == null && positionInMarkup <= markupSpanStart && markupSpanStart <= positionInMarkup + text.Length)
                             {
                                 var offsetInText = markupSpanStart - positionInMarkup;

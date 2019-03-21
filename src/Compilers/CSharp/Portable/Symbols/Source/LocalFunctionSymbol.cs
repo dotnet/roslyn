@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool _lazyIsVarArg;
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<TypeParameterConstraintClause> _lazyTypeParameterConstraints;
-        private TypeSymbolWithAnnotations _lazyReturnType;
-        private TypeSymbol _iteratorElementType;
+        private TypeWithAnnotations _lazyReturnType;
+        private TypeWithAnnotations.Builder _lazyIteratorElementType;
 
         // Lock for initializing lazy fields and registering their diagnostics
         // Acquire this lock when initializing lazy objects to guarantee their declaration
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
@@ -205,17 +205,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override RefKind RefKind => _refKind;
-        
+
         internal void ComputeReturnType()
         {
-            if (!_lazyReturnType.IsNull)
+            if (!_lazyReturnType.IsDefault)
             {
                 return;
             }
 
             var diagnostics = DiagnosticBag.GetInstance();
             TypeSyntax returnTypeSyntax = _syntax.ReturnType;
-            TypeSymbolWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
+            TypeWithAnnotations returnType = _binder.BindType(returnTypeSyntax.SkipRef(), diagnostics);
 
             if (this.IsAsync)
             {
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     ReportBadRefToken(returnTypeSyntax, diagnostics);
                 }
-                else if (returnType.TypeSymbol.IsBadAsyncReturn(this.DeclaringCompilation))
+                else if (returnType.Type.IsBadAsyncReturn(this.DeclaringCompilation))
                 {
                     diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, this.Locations[0]);
                 }
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: false);
             }
 
-            if (returnType.ContainsNullableReferenceTypes())
+            if (returnType.NeedsNullableAttribute())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: false);
                 // Note: we don't need to warn on annotations used without NonNullTypes context for local functions, as this is handled in binding already
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (returnType.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 // Method or delegate cannot return type '{0}'
-                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, returnTypeSyntax.Location, returnType.Type);
             }
 
             Debug.Assert(_refKind == RefKind.None
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             lock (_declarationDiagnostics)
             {
-                if (!_lazyReturnType.IsNull)
+                if (!_lazyReturnType.IsDefault)
                 {
                     diagnostics.Free();
                     return;
@@ -269,9 +269,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override int Arity => TypeParameters.Length;
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => GetTypeParametersAsTypeArguments();
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => GetTypeParametersAsTypeArguments();
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters 
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters
             => _typeParameters.Cast<SourceMethodTypeParameterSymbol, TypeParameterSymbol>();
 
         public override bool IsExtensionMethod
@@ -286,16 +286,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override TypeSymbol IteratorElementType
+        // Replace with IsStatic after fixing https://github.com/dotnet/roslyn/issues/27719.
+        internal bool IsStaticLocalFunction => _syntax.Modifiers.Any(SyntaxKind.StaticKeyword);
+
+        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
         {
             get
             {
-                return _iteratorElementType;
+                return _lazyIteratorElementType.ToType();
             }
             set
             {
-                Debug.Assert((object)_iteratorElementType == null || _iteratorElementType == value);
-                Interlocked.CompareExchange(ref _iteratorElementType, value, null);
+                Debug.Assert(_lazyIteratorElementType.IsDefault || TypeSymbol.Equals(_lazyIteratorElementType.ToType().Type, value.Type, TypeCompareKind.ConsiderEverything2));
+                _lazyIteratorElementType.InterlockedInitialize(value);
             }
         }
 

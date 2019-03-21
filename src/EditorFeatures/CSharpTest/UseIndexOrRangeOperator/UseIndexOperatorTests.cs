@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseIndexOrRangeOperator
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpUseIndexOperatorDiagnosticAnalyzer(), new CSharpUseIndexOperatorCodeFixProvider());
 
-        private static readonly CSharpParseOptions s_parseOptions = 
+        private static readonly CSharpParseOptions s_parseOptions =
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp8);
 
         private static readonly TestParameters s_testParameters =
@@ -35,6 +35,27 @@ class C
     }
 }", parameters: new TestParameters(
     parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseRangeOperator)]
+        public async Task TestWithMissingReference()
+        {
+            // We are explicitly *not* passing: CommonReferences="true" here.  We want to 
+            // validate we don't crash with missing references.
+            await TestMissingAsync(
+@"<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"">
+        <Document>
+class C
+{
+    void Goo(string s)
+    {
+        var v = s[[||]s.Length - 1];
+    }
+}
+        </Document>
+    </Project>
+</Workspace>");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIndexOperator)]

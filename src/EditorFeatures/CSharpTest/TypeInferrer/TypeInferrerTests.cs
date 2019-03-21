@@ -1060,20 +1060,61 @@ class C
         }
 
         [WorkItem(827897, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/827897")]
-        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
-        public async Task TestYieldReturnInMethod()
+        [Theory, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [InlineData("IEnumerable")]
+        [InlineData("IEnumerator")]
+        [InlineData("InvalidGenericType")]
+        public async Task TestYieldReturnInMethod(string returnTypeName)
         {
             var markup =
-@"using System.Collections.Generic;
+$@"using System.Collections.Generic;
 
-class Program
-{
-    IEnumerable<int> M()
-    {
+class C
+{{
+    {returnTypeName}<int> M()
+    {{
         yield return [|abc|]
-    }
-}";
+    }}
+}}";
             await TestAsync(markup, "global::System.Int32");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [InlineData("IAsyncEnumerable")]
+        [InlineData("IAsyncEnumerator")]
+        [InlineData("InvalidGenericType")]
+        public async Task TestYieldReturnInAsyncMethod(string returnTypeName)
+        {
+            var markup =
+$@"namespace System.Collections.Generic
+{{
+    interface {returnTypeName}<T> {{ }}
+    class C
+    {{
+        async {returnTypeName}<int> M()
+        {{
+            yield return [|abc|]
+        }}
+    }}
+}}";
+            await TestAsync(markup, "global::System.Int32");
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [InlineData("int[]")]
+        [InlineData("InvalidNonGenericType")]
+        [InlineData("InvalidGenericType<int, int>")]
+        public async Task TestYieldReturnInvalidTypeInMethod(string returnType)
+        {
+            var markup =
+$@"class C
+{{
+    {returnType} M()
+    {{
+        yield return [|abc|]
+    }}
+}}";
+            await TestAsync(markup, "global::System.Object");
         }
 
         [WorkItem(30235, "https://github.com/dotnet/roslyn/issues/30235")]
@@ -1083,7 +1124,7 @@ class Program
             var markup =
 @"using System.Collections.Generic;
 
-class Program
+class C
 {
     void M()
     {
@@ -1094,6 +1135,44 @@ class Program
     }
 }";
             await TestAsync(markup, "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestYieldReturnInPropertyGetter()
+        {
+            var markup =
+@"using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> P
+    {
+        get
+        {
+            yield return [|abc|]
+        }
+    }
+}";
+            await TestAsync(markup, "global::System.Int32");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestYieldReturnInPropertySetter()
+        {
+            var markup =
+@"using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<int> P
+    {
+        set
+        {
+            yield return [|abc|]
+        }
+    }
+}";
+            await TestAsync(markup, "global::System.Object");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]

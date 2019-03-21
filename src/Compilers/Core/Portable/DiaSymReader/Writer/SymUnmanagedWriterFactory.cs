@@ -26,7 +26,7 @@ namespace Microsoft.DiaSymReader
         /// <exception cref="DllNotFoundException">The SymWriter implementation is not available or failed to load.</exception>
         /// <exception cref="SymUnmanagedWriterException">Error creating the PDB writer. See inner exception for root cause.</exception>
         public static SymUnmanagedWriter CreateWriter(
-            ISymWriterMetadataProvider metadataProvider, 
+            ISymWriterMetadataProvider metadataProvider,
             SymUnmanagedWriterCreationOptions options = SymUnmanagedWriterCreationOptions.Default)
         {
             if (metadataProvider == null)

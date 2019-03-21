@@ -85,6 +85,51 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
             }
         }
 
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void RemoveProjectConvertsProjectReferencesBack()
+        {
+            using (var environment = new TestEnvironment())
+            {
+                var project1 = CreateCSharpCPSProject(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
+                var project2 = CreateCSharpCPSProject(environment, "project2");
+
+                // Add project reference as metadata reference: since this is known to be the output path of project1, the metadata reference is converted to a project reference
+                project2.AddMetadataReference(@"c:\project1.dll", new MetadataReferenceProperties());
+                Assert.Single(environment.Workspace.CurrentSolution.GetProject(project2.Id).AllProjectReferences);
+
+                // Remove project1. project2's reference should have been converted back
+                project1.Dispose();
+                Assert.Empty(environment.Workspace.CurrentSolution.GetProject(project2.Id).AllProjectReferences);
+                Assert.Single(environment.Workspace.CurrentSolution.GetProject(project2.Id).MetadataReferences);
+
+                project2.Dispose();
+            }
+        }
+
+        [WpfFact]
+        [WorkItem(461967, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/461967")]
+        [WorkItem(727173, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/727173")]
+        [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
+        public void AddingMetadataReferenceToProjectThatCannotCompileInTheIdeKeepsMetadataReference()
+        {
+            using (var environment = new TestEnvironment())
+            {
+                var project1 = CreateCSharpCPSProject(environment, "project1", commandLineArguments: @"/out:c:\project1.dll");
+                var project2 = CreateNonCompilableProject(environment, "project2", @"C:\project2.fsproj");
+                project2.BinOutputPath = "c:\\project2.dll";
+
+                project1.AddMetadataReference(project2.BinOutputPath, MetadataReferenceProperties.Assembly);
+
+                // We should not have converted that to a project reference, because we would have no way to produce the compilation
+                Assert.Empty(environment.Workspace.CurrentSolution.GetProject(project1.Id).AllProjectReferences);
+
+                project2.Dispose();
+                project1.Dispose();
+            }
+        }
+
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddRemoveAnalyzerReference_CPS()

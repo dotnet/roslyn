@@ -77,13 +77,8 @@ namespace A { namespace N { } }
 ";
             var compilation = GetCompilation(source, LanguageNames.CSharp);
             var symbols = GetDeclaredSymbols(compilation);
-            Assert.Equal(14, symbols.Count());
-            Assert.Equal(new[] { "N", "A", "A.B", "A.B.C", "A.N",
-                "Microsoft", "Microsoft.CodeAnalysis", "Microsoft.CodeAnalysis.EmbeddedAttribute",
-                "Microsoft.CodeAnalysis.EmbeddedAttribute.EmbeddedAttribute()",
-                "System", "System.Runtime", "System.Runtime.CompilerServices",
-                "System.Runtime.CompilerServices.NonNullTypesAttribute",
-                "System.Runtime.CompilerServices.NonNullTypesAttribute.NonNullTypesAttribute(bool)" },
+            Assert.Equal(5, symbols.Count());
+            Assert.Equal(new[] { "N", "A", "A.B", "A.B.C", "A.N" },
                 symbols.Select(s => s.ToDisplayString()));
             TestRoundTrip(symbols, compilation);
         }

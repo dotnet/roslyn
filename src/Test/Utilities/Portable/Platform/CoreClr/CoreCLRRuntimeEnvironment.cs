@@ -96,7 +96,7 @@ namespace Roslyn.Test.Utilities.CoreClr
 
         public ImmutableArray<byte> GetMainPdb() => GetEmitData().MainModulePdb;
 
-        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName) => 
+        public SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName) =>
             GetEmitData().GetMemberSignaturesFromMetadata(fullyQualifiedTypeName, memberName);
 
         public void Verify(Verification verification)

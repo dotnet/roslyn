@@ -42,10 +42,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
             SetCurrentSolution(_workspace.CurrentSolution)
         End Sub
 
-        Public Overrides Function GetFilePath(documentId As DocumentId) As String
-            Return _workspace.CurrentSolution.GetDocument(documentId).FilePath
-        End Function
-
         Public Overrides Function GetHierarchy(projectId As ProjectId) As Microsoft.VisualStudio.Shell.Interop.IVsHierarchy
             Return Nothing
         End Function
@@ -84,6 +80,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.Mocks
 
         Friend Function GetFileCodeModelComHandle(id As DocumentId) As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)
             Return _fileCodeModels(id)
+        End Function
+
+        Friend Overrides Function TryGetRuleSetPathForProject(projectId As ProjectId) As String
+            Throw New NotImplementedException()
         End Function
     End Class
 

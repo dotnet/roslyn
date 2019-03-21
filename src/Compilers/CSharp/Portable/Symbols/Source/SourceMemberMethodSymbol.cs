@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly NamedTypeSymbol _containingType;
         private ParameterSymbol _lazyThisParameter;
-        private TypeSymbol _iteratorElementType;
+        private TypeWithAnnotations.Builder _lazyIteratorElementType;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
@@ -179,14 +179,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal ImmutableArray<Diagnostic> Diagnostics
         {
             get { return _cachedDiagnostics; }
-        }
-
-        public override bool? NonNullTypes
-        {
-            get
-            {
-                return GetNonNullTypesFromSyntax() ?? (AssociatedSymbol ?? ContainingModule)?.NonNullTypes;
-            }
         }
 
         internal ImmutableArray<Diagnostic> SetDiagnostics(ImmutableArray<Diagnostic> newSet, out bool diagsWritten)
@@ -211,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.locations = locations;
         }
 
-        protected void CheckEffectiveAccessibility(TypeSymbolWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
         {
             if (this.DeclaredAccessibility <= Accessibility.Private)
             {
@@ -226,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
-                diagnostics.Add(code, Locations[0], this, returnType.TypeSymbol);
+                diagnostics.Add(code, Locations[0], this, returnType.Type);
             }
 
             code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
@@ -235,10 +227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameter in parameters)
             {
-                if (!parameter.Type.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
+                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, Locations[0], this, parameter.Type.TypeSymbol);
+                    diagnostics.Add(code, Locations[0], this, parameter.Type);
                 }
             }
 
@@ -685,7 +677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
@@ -714,16 +706,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol IteratorElementType
+        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
         {
             get
             {
-                return _iteratorElementType;
+                return _lazyIteratorElementType.ToType();
             }
             set
             {
-                Debug.Assert((object)_iteratorElementType == null || _iteratorElementType == value);
-                Interlocked.CompareExchange(ref _iteratorElementType, value, null);
+                Debug.Assert(_lazyIteratorElementType.IsDefault || TypeSymbol.Equals(_lazyIteratorElementType.ToType().Type, value.Type, TypeCompareKind.ConsiderEverything2));
+                _lazyIteratorElementType.InterlockedInitialize(value);
             }
         }
 
@@ -777,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.Type:
-                        var unusedType = this.ReturnType;
+                        var unusedType = this.ReturnTypeWithAnnotations;
                         state.NotePartComplete(CompletionPart.Type);
                         break;
 
@@ -821,9 +813,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state.SpinWaitComplete(incompletePart, cancellationToken);
             }
 
-        done:
-            // Don't return until we've seen all of the CompletionParts. This ensures all
-            // diagnostics have been reported (not necessarily on this thread).
+done:
+// Don't return until we've seen all of the CompletionParts. This ensures all
+// diagnostics have been reported (not necessarily on this thread).
             CompletionPart allParts = CompletionPart.MethodSymbolAll;
             state.SpinWaitComplete(allParts, cancellationToken);
         }
@@ -1205,11 +1197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                // NonNullTypesAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNonNullTypesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
             else
             {
@@ -1617,13 +1604,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#endregion
+        #endregion
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
-
-            AddSynthesizedNonNullTypesAttributeForMember(ref attributes);
 
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;
@@ -1643,13 +1628,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type),
                     TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
 
-                if (isAsync)
+                if (isAsync && isIterator)
+                {
+                    AddSynthesizedAttribute(ref attributes,
+                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
+                            ImmutableArray.Create(arg)));
+                }
+                else if (isAsync)
                 {
                     AddSynthesizedAttribute(ref attributes,
                         compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor,
                             ImmutableArray.Create(arg)));
                 }
-                if (isIterator)
+                else if (isIterator)
                 {
                     AddSynthesizedAttribute(ref attributes,
                         compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor,

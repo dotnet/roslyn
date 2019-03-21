@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         private Func<object[], Task<T>> Build<T>(
             Compilation compilation,
-            DiagnosticBag diagnostics, 
+            DiagnosticBag diagnostics,
             bool emitDebugInformation,
             CancellationToken cancellationToken)
         {
@@ -169,8 +169,8 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         // internal for testing
         internal static EmitResult Emit(
-            Stream peStream, 
-            Stream pdbStreamOpt, 
+            Stream peStream,
+            Stream pdbStreamOpt,
             Compilation compilation,
             EmitOptions options,
             CancellationToken cancellationToken)

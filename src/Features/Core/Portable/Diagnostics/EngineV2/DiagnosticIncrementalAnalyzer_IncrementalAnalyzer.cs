@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
-            return document.IsOpen();
+            return document.IsOpen() && document.SupportsDiagnostics();
         }
 
         private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)

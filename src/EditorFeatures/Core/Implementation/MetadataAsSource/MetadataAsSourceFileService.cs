@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             Location navigateLocation = null;
             var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
             var symbolId = SymbolKey.Create(symbol, cancellationToken);
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                             var decompiledSourceService = temporaryDocument.GetLanguageService<IDecompiledSourceService>();
                             if (decompiledSourceService != null)
                             {
-                                temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                                temporaryDocument = await decompiledSourceService.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);
                             }
                             else
                             {
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     if (!useDecompiler)
                     {
                         var sourceFromMetadataService = temporaryDocument.Project.LanguageServices.GetService<IMetadataAsSourceService>();
-                        temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
+                        temporaryDocument = await sourceFromMetadataService.AddSourceToAsync(temporaryDocument, compilation, symbol, cancellationToken).ConfigureAwait(false);
                     }
 
                     // We have the content, so write it out to disk

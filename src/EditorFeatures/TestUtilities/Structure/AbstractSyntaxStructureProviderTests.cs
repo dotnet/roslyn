@@ -93,11 +93,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
             var hintSpan = spans[hintSpanName][0];
 
             return new BlockSpan(isCollapsible: true,
-                textSpan: textSpan, 
+                textSpan: textSpan,
                 hintSpan: hintSpan,
                 type: BlockTypes.Nonstructural,
                 bannerText: bannerText,
-                autoCollapse: autoCollapse, 
+                autoCollapse: autoCollapse,
                 isDefaultCollapsed: isDefaultCollapsed);
         }
 

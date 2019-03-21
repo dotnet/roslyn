@@ -386,7 +386,7 @@ Block[B1] - Block
                   Instance Receiver: 
                     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'P1')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'C.P2 + c[i]')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'C.P2 + c[i]')
                   Left: 
                     IPropertyReferenceOperation: System.Int32 C.P2 { get; set; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'C.P2')
                       Instance Receiver: 
@@ -409,7 +409,7 @@ Block[B1] - Block
                   Instance Receiver: 
                     null
               Right: 
-                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'this.P1 + c.P1')
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'this.P1 + c.P1')
                   Left: 
                     IPropertyReferenceOperation: System.Int32 C.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'this.P1')
                       Instance Receiver: 

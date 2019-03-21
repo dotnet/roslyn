@@ -25,7 +25,7 @@ class Application
     }}
 }}";
             await TestInRegularAndScriptAsync(
-                string.Format(template, initialMethodBody), 
+                string.Format(template, initialMethodBody),
                 string.Format(template, expectedMethodBody)).ConfigureAwait(false);
         }
 

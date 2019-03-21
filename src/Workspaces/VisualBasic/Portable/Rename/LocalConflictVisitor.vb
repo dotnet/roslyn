@@ -145,8 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 tokens.Add(DirectCast(controlVariable, VariableDeclaratorSyntax).Names.First().Identifier)
             Else
                 Dim semanticModel = _newSolution.GetDocument(controlVariable.SyntaxTree).GetSemanticModelAsync(_cancellationToken).WaitAndGetResult_CanCallOnBackground(_cancellationToken)
-                Dim identifierToken = DirectCast(controlVariable, IdentifierNameSyntax).Identifier
-                Dim symbol = semanticModel.GetSymbolInfo(identifierToken).Symbol
+                Dim symbol = semanticModel.GetSymbolInfo(controlVariable).Symbol
 
                 ' if it is a field we don't care
                 If symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.Local) Then
@@ -155,7 +154,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     ' is this local declared in the for or for each loop?
                     ' if not it was already added to the tracker before.
                     If local.IsFor OrElse local.IsForEach Then
-                        tokens.Add(identifierToken)
+                        If controlVariable.Kind = SyntaxKind.IdentifierName Then
+                            tokens.Add(DirectCast(controlVariable, IdentifierNameSyntax).Identifier)
+                        Else
+                            Debug.Fail($"Unexpected control variable kind '{controlVariable.Kind}'")
+                        End If
                     End If
                 End If
             End If

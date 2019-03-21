@@ -8,6 +8,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -62,7 +63,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             => GetDTE().Commands.Item(commandName).IsAvailable;
 
         protected static void ExecuteCommand(string commandName, string args = "")
-            => GetDTE().ExecuteCommand(commandName, args);
+        {
+            var task = Task.Run(() => GetDTE().ExecuteCommand(commandName, args));
+            task.Wait(Helper.HangMitigatingTimeout);
+        }
 
         /// <summary>
         /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).

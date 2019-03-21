@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             IEditorOperationsFactoryService editorOperationsFactoryService);
 
         protected abstract TestWorkspace CreateTestWorkspace(string initialMarkup);
-        
+
         protected abstract (TCommandArgs, string insertionText) CreateCommandArgs(ITextView textView, ITextBuffer textBuffer);
 
         protected void Verify(string initialMarkup, string expectedMarkup, Action<TestWorkspace> initializeWorkspace = null)
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             }
         }
 
-        protected void VerifyTabs(string initialMarkup, string expectedMarkup) 
+        protected void VerifyTabs(string initialMarkup, string expectedMarkup)
             => Verify(ReplaceTabTags(initialMarkup), ReplaceTabTags(expectedMarkup));
 
         private string ReplaceTabTags(string markup) => markup.Replace("<tab>", "\t");

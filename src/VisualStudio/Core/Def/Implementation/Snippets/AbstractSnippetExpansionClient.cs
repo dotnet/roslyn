@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
             var endPositionTrackingSpan = isFullSnippetFormat ? InsertEmptyCommentAndGetEndPositionTrackingSpan() : null;
 
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(SubjectBuffer.CurrentSnapshot, snippetTrackingSpan.GetSpan(SubjectBuffer.CurrentSnapshot));
-            
+
             SubjectBuffer.CurrentSnapshot.FormatAndApplyToBuffer(formattingSpan, CancellationToken.None);
 
             if (isFullSnippetFormat)
@@ -141,13 +141,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                     return;
                 }
 
-                TextView.TextSnapshot.GetLineAndColumn(endSpanInSurfaceBuffer.Start.Position, out var endLine, out var endColumn);
+                TextView.TextSnapshot.GetLineAndCharacter(endSpanInSurfaceBuffer.Start.Position, out var endLine, out var endChar);
                 ExpansionSession.SetEndSpan(new VsTextSpan
                 {
                     iStartLine = endLine,
-                    iStartIndex = endColumn,
+                    iStartIndex = endChar,
                     iEndLine = endLine,
-                    iEndIndex = endColumn
+                    iEndIndex = endChar
                 });
             }
         }

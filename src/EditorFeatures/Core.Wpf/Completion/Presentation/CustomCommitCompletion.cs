@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
-    internal sealed class CustomCommitCompletion : Completion3, ICustomCommit
+    internal sealed class CustomCommitCompletion : Completion4, ICustomCommit
     {
         private const string s_glyphCompletionWarning = "GlyphCompletionWarning";
         private readonly CompletionPresenterSession _completionPresenterSession;
@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public CustomCommitCompletion(
             CompletionPresenterSession completionPresenterSession,
             CompletionItem completionItem)
+            : base(displayText: null, insertionText: null, description: null,
+                   iconMoniker: default, suffix: completionItem.InlineDescription)
         {
             // PERF: Note that the base class contains a constructor taking the displayText string
             // but we're intentionally NOT using that here because it allocates a private CompletionState

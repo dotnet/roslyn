@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis
             _state = state;
         }
 
-        internal Solution(Workspace workspace, SolutionInfo info)
-            : this(new SolutionState(workspace, info))
+        internal Solution(Workspace workspace, SolutionInfo.SolutionAttributes solutionAttributes)
+            : this(new SolutionState(workspace, solutionAttributes))
         {
         }
 
@@ -461,6 +461,21 @@ namespace Microsoft.CodeAnalysis
         public Solution WithProjectReferences(ProjectId projectId, IEnumerable<ProjectReference> projectReferences)
         {
             var newState = _state.WithProjectReferences(projectId, projectReferences);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project documents in the order by the specified document ids.
+        /// The specified document ids must be the same as what is already in the project; no adding or removing is allowed.
+        /// </summary>
+        public Solution WithProjectDocumentsOrder(ProjectId projectId, ImmutableList<DocumentId> documentIds)
+        {
+            var newState = _state.WithProjectDocumentsOrder(projectId, documentIds);
             if (newState == _state)
             {
                 return this;

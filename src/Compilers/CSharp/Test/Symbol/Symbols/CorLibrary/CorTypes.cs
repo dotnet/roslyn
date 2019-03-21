@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             var p = noMsCorLibRef.GlobalNamespace.GetTypeMembers("I1").Single().
                 GetMembers("M1").OfType<MethodSymbol>().Single().
-                Parameters[0].Type;
+                Parameters[0].TypeWithAnnotations;
 
-            Assert.Equal(TypeKind.Error, p.TypeKind);
+            Assert.Equal(TypeKind.Error, p.Type.TypeKind);
             Assert.Equal(SpecialType.System_Int32, p.SpecialType);
         }
 
@@ -201,9 +201,9 @@ namespace System
 
             // Error elsewhere.
             CreateCompilation(source2).VerifyDiagnostics(
-                // (4,20): error CS0644: 'System.ArrayContract' cannot derive from special class 'System.Array'
+                // (4,36): error CS0644: 'System.ArrayContract' cannot derive from special class 'System.Array'
                 //     internal class ArrayContract : Array
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "ArrayContract").WithArguments("System.ArrayContract", "System.Array"));
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Array").WithArguments("System.ArrayContract", "System.Array"));
         }
     }
 }

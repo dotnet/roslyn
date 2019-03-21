@@ -39,7 +39,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a + b')
   Left: 
     IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
   Right: 
@@ -66,7 +66,7 @@ class P
             string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (a + b);')
   ReturnedValue: 
-    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a + b')
       Left: 
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
       Right: 
@@ -110,7 +110,7 @@ class P
             string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (((a + b)));')
   ReturnedValue: 
-    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a + b')
       Left: 
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
       Right: 
@@ -154,9 +154,9 @@ class P
             string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (((a + b) * c));')
   ReturnedValue: 
-    IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: '(a + b) * c')
+    IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.Binary, Type: System.Int32) (Syntax: '(a + b) * c')
       Left: 
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a + b')
           Left: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
@@ -202,7 +202,7 @@ class P
             string expectedOperationTree = @"
 IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (((a + b)));')
   ReturnedValue: 
-    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a + b')
       Left: 
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
       Right: 
@@ -283,7 +283,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (a + b);')
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, IsImplicit) (Syntax: 'a + b')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a + b')
           Left: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
@@ -330,7 +330,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (double)(a 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Double) (Syntax: '(double)(a + b)')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'a + b')
+        IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.Binary, Type: System.Int32) (Syntax: 'a + b')
           Left: 
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
           Right: 
@@ -441,7 +441,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return from ... el
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: '(-r)')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: '(-r)')
                               ReturnedValue: 
-                                IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: System.Int32) (Syntax: '-r')
+                                IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.Unary, Type: System.Int32) (Syntax: '-r')
                                   Operand: 
                                     IParameterReferenceOperation: r (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'r')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

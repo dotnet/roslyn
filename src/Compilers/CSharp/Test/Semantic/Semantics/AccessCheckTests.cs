@@ -740,16 +740,16 @@ class ADerived2: A
             FieldSymbol privField = classA.GetMembers("priv").Single() as FieldSymbol;
             FieldSymbol pubField = classA.GetMembers("pub").Single() as FieldSymbol;
             FieldSymbol protField = classA.GetMembers("prot").Single() as FieldSymbol;
-            TypeSymbol karrayType = (classA.GetMembers("karray").Single() as FieldSymbol).Type.TypeSymbol;
-            TypeSymbol aarrayType = (classA.GetMembers("aarray").Single() as FieldSymbol).Type.TypeSymbol;
-            TypeSymbol kptrType = (classA.GetMembers("kptr").Single() as FieldSymbol).Type.TypeSymbol;
-            TypeSymbol aptrType = (classA.GetMembers("aptr").Single() as FieldSymbol).Type.TypeSymbol;
-            TypeSymbol kenumType = (classA.GetMembers("kenum").Single() as FieldSymbol).Type.TypeSymbol;
-            TypeSymbol aenumType = (classA.GetMembers("aenum").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol karrayType = (classA.GetMembers("karray").Single() as FieldSymbol).Type;
+            TypeSymbol aarrayType = (classA.GetMembers("aarray").Single() as FieldSymbol).Type;
+            TypeSymbol kptrType = (classA.GetMembers("kptr").Single() as FieldSymbol).Type;
+            TypeSymbol aptrType = (classA.GetMembers("aptr").Single() as FieldSymbol).Type;
+            TypeSymbol kenumType = (classA.GetMembers("kenum").Single() as FieldSymbol).Type;
+            TypeSymbol aenumType = (classA.GetMembers("aenum").Single() as FieldSymbol).Type;
             var discards = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(i => i.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken).ToArray();
             DiscardSymbol kdiscard = (DiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
             DiscardSymbol adiscard = (DiscardSymbol)model.GetSymbolInfo(discards[1]).Symbol;
-            TypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as FieldSymbol).Type.TypeSymbol;
+            TypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as FieldSymbol).Type;
 
             ISymbol nullSymbol = null;
             Assert.Throws<ArgumentNullException>(() => { compilation.IsSymbolAccessibleWithin(classA, nullSymbol); });

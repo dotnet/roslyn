@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed class SourceFieldLikeEventSymbol : SourceEventSymbol
     {
         private readonly string _name;
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
         private readonly SourceEventFieldSymbol _associatedField;
         private readonly SynthesizedFieldLikeEventAccessorSymbol _addMethod;
         private readonly SynthesizedFieldLikeEventAccessorSymbol _removeMethod;
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 EventSymbol overriddenEvent = this.OverriddenEvent;
                 if ((object)overriddenEvent != null)
                 {
-                    CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly, nonNullTypesContext: this);
+                    CopyEventCustomModifiers(overriddenEvent, ref _type, ContainingAssembly);
                 }
             }
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _name; }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get { return _type; }
         }

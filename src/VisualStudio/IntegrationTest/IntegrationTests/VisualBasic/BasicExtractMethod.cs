@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
@@ -37,12 +38,13 @@ End Module";
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicExtractMethod(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicExtractMethod))
+        public BasicExtractMethod(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicExtractMethod))
         {
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void SimpleExtractMethod()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -76,7 +78,7 @@ End Module";
 
             MarkupTestFile.GetSpans(expectedMarkup, out var expectedText, out ImmutableArray<TextSpan> spans);
             VisualStudio.Editor.Verify.TextContains(expectedText);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
 
             VisualStudio.Editor.SendKeys("SayHello", VirtualKey.Enter);

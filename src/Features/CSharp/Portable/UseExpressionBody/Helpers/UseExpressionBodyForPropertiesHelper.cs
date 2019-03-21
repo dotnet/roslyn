@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected override bool CreateReturnStatementForExpression(SemanticModel semanticModel, PropertyDeclarationSyntax declaration) => true;
 
         protected override bool TryConvertToExpressionBody(
-            PropertyDeclarationSyntax declaration, ParseOptions options, 
-            ExpressionBodyPreference conversionPreference, 
-            out ArrowExpressionClauseSyntax arrowExpression, 
+            PropertyDeclarationSyntax declaration, ParseOptions options,
+            ExpressionBodyPreference conversionPreference,
+            out ArrowExpressionClauseSyntax arrowExpression,
             out SyntaxToken semicolonToken)
         {
             return this.TryConvertToExpressionBodyForBaseProperty(

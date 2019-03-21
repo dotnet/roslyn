@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
-                commitCharacterRules: s_commitRules, 
+                commitCharacterRules: s_commitRules,
                 filterCharacterRules: s_filterRules,
                 enterKeyRule: EnterKeyRule.Never);
 

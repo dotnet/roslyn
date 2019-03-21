@@ -2,25 +2,24 @@
 
 using System;
 using System.Collections.Generic;
-using System.Composition;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
-    [ExportFormattingRule(Name, LanguageNames.CSharp), Shared]
-    [ExtensionOrder(After = StructuredTriviaFormattingRule.Name)]
     internal class IndentBlockFormattingRule : BaseFormattingRule
     {
         internal const string Name = "CSharp IndentBlock Formatting Rule";
 
-        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, NextAction<IndentBlockOperation> nextOperation)
+        public override void AddIndentBlockOperations(List<IndentBlockOperation> list, SyntaxNode node, OptionSet optionSet, in NextIndentBlockOperationAction nextOperation)
         {
-            nextOperation.Invoke(list);
+            nextOperation.Invoke();
 
             AddAlignmentBlockOperation(list, node, optionSet);
 
@@ -153,6 +152,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 case ImplicitArrayCreationExpressionSyntax implicitArrayCreation when implicitArrayCreation.Initializer != null:
                     SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                     return;
+                case CSharpSyntaxNode syntaxNode when syntaxNode.IsKind(SyntaxKindEx.SwitchExpression):
+                    SetAlignmentBlockOperation(
+                        list,
+                        syntaxNode.GetFirstToken(),
+                        syntaxNode.ChildNodesAndTokens().First(child => child.IsKind(SyntaxKind.OpenBraceToken)).AsToken(),
+                        syntaxNode.ChildNodesAndTokens().Last(child => child.IsKind(SyntaxKind.CloseBraceToken)).AsToken(),
+                        IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
+                    return;
             }
         }
 
@@ -178,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // for lambda, set alignment around braces so that users can put brace wherever they want
-            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock())
+            if (node.IsLambdaBodyBlock() || node.IsAnonymousMethodBlock() || node.IsKind(SyntaxKindEx.PropertyPatternClause) || node.IsKind(SyntaxKindEx.SwitchExpression))
             {
                 AddAlignmentBlockOperationRelativeToFirstTokenOnBaseTokenLine(list, bracePair);
             }

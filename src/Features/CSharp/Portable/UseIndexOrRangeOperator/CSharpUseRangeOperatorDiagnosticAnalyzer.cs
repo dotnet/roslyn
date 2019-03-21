@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIndexOrRangeOperator
             }
 
             context.ReportDiagnostic(CreateDiagnostic(resultOpt.Value));
-       }
+        }
 
         public static Result? AnalyzeInvocation(
             IInvocationOperation invocation, InfoCache infoCache,

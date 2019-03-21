@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return text.AreOnSameLine(token1, token2);
             }
 
-            return CommonFormattingHelpers.GetTextBetween(token1, token2).ContainsLineBreak();
+            return !CommonFormattingHelpers.GetTextBetween(token1, token2).ContainsLineBreak();
         }
 
         private static SyntaxToken GetAppropriatePreviousToken(SyntaxToken startToken, bool canTokenBeFirstInABlock = false)

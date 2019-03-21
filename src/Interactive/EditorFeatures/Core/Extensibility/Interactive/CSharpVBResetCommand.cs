@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
 
                         is64bit = true;
                         break;
-                        
+
                     case NoConfigParameterName:
                         if (noConfigSpecified)
                         {

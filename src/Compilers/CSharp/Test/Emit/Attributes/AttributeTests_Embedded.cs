@@ -11,70 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class AttributeTests_Embedded : CSharpTestBase
     {
         [Fact]
-        public void EmbeddedAttributeNamespace()
-        {
-            var code = @"
-namespace Microsoft.CodeAnalysis.EmbeddedAttribute
-{
-    class C { }
-}
-namespace TestReference
-{
-    [Microsoft.CodeAnalysis.Embedded]
-    internal class TestType1 { }
-
-    [Microsoft.CodeAnalysis.EmbeddedAttribute]
-    internal class TestType2 { }
-
-    internal class TestType3 { }
-}";
-
-            CreateCompilation(code).VerifyEmitDiagnostics(
-                // (11,29): error CS0616: 'Microsoft.CodeAnalysis.EmbeddedAttribute' is not an attribute class
-                //     [Microsoft.CodeAnalysis.EmbeddedAttribute]
-                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "EmbeddedAttribute").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(11, 29),
-                // (8,29): error CS0616: 'Microsoft.CodeAnalysis.EmbeddedAttribute' is not an attribute class
-                //     [Microsoft.CodeAnalysis.Embedded]
-                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "Embedded").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(8, 29)
-                );
-        }
-
-        [Fact]
-        public void EmbeddedAttributeInMergedNamespaceSymbol()
-        {
-            var reference_cs = @"
-namespace Microsoft.CodeAnalysis
-{
-    internal class EmbeddedAttribute : System.Attribute { }
-}";
-            var reference = CreateCompilation(new[] { reference_cs });
-            reference.VerifyDiagnostics();
-
-            var comp_cs = @"
-namespace Microsoft.CodeAnalysis.EmbeddedAttribute
-{
-    class C { }
-}";
-            var comp = CreateCompilation(new[] { comp_cs }, options: WithNonNullTypesTrue(), references: new[] { reference.ToMetadataReference() });
-            comp.VerifyEmitDiagnostics(
-                // error CS0518: Predefined type 'Microsoft.CodeAnalysis.EmbeddedAttribute' is not defined or imported
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(1, 1)
-                );
-
-            var type = comp.GetWellKnownType(WellKnownType.Microsoft_CodeAnalysis_EmbeddedAttribute);
-            Assert.True(type.IsErrorType());
-
-            // https://github.com/dotnet/roslyn/issues/29683 CSharpCompilation.AbstractSymbolSearcher needs to inject namespaces and types too
-            //Assert.False(comp.ContainsSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
-            //Assert.Empty(comp.GetSymbolsWithName("NonNullTypesAttribute", SymbolFilter.Type));
-            //Assert.Empty(comp.GetSymbolsWithName(n => n == "NonNullTypesAttribute", SymbolFilter.Type));
-
-            //Assert.True(comp.ContainsSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type));
-            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName("EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-            //Assert.Equal("Microsoft.CodeAnalysis.EmbeddedAttribute", comp.GetSymbolsWithName(n => n == "EmbeddedAttribute", SymbolFilter.Type).Single().ToTestDisplayString());
-        }
-
-        [Fact]
         public void ReferencingEmbeddedAttributesFromTheSameAssemblySucceeds()
         {
             var code = @"
@@ -178,8 +114,6 @@ class Program
 }";
 
             CreateCompilation(code, references: new[] { reference }, assemblyName: "Source").VerifyDiagnostics(
-                // error CS0101: The namespace 'Microsoft.CodeAnalysis' already contains a definition for 'EmbeddedAttribute'
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("EmbeddedAttribute", "Microsoft.CodeAnalysis").WithLocation(1, 1),
                 // (6,38): error CS0234: The type or namespace name 'TestType1' does not exist in the namespace 'TestReference' (are you missing an assembly reference?)
                 //         var obj1 = new TestReference.TestType1();
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "TestType1").WithArguments("TestType1", "TestReference").WithLocation(6, 38),
@@ -298,8 +232,8 @@ class Test
 }";
 
             CreateCompilation(code, references: new[] { moduleRef }).VerifyEmitDiagnostics(
-                // error CS0101: The namespace 'Microsoft.CodeAnalysis' already contains a definition for 'EmbeddedAttribute'
-                Diagnostic(ErrorCode.ERR_DuplicateNameInNS).WithArguments("EmbeddedAttribute", "Microsoft.CodeAnalysis").WithLocation(1, 1));
+                // error CS8004: Type 'EmbeddedAttribute' exported from module 'testModule.netmodule' conflicts with type declared in primary module of this assembly.
+                Diagnostic(ErrorCode.ERR_ExportedTypeConflictsWithDeclaration).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute", "testModule.netmodule").WithLocation(1, 1));
         }
 
         [Fact]
@@ -322,12 +256,8 @@ class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyEmitDiagnostics(
-                // (2,99): warning CS0436: The type 'EmbeddedAttribute' in 'injected declaration' conflicts with the imported type 'EmbeddedAttribute' in 'reference, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in 'injected declaration'.
-                // [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(Microsoft.CodeAnalysis.EmbeddedAttribute))]
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "EmbeddedAttribute").WithArguments("injected declaration", "Microsoft.CodeAnalysis.EmbeddedAttribute", "reference, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(2, 99),
-                // (2,12): error CS0729: Type 'EmbeddedAttribute' is defined in this assembly, but a type forwarder is specified for it
-                // [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(Microsoft.CodeAnalysis.EmbeddedAttribute))]
-                Diagnostic(ErrorCode.ERR_ForwardedTypeInThisAssembly, "System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(Microsoft.CodeAnalysis.EmbeddedAttribute))").WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(2, 12));
+                // error CS8006: Forwarded type 'EmbeddedAttribute' conflicts with type declared in primary module of this assembly.
+                Diagnostic(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration).WithArguments("Microsoft.CodeAnalysis.EmbeddedAttribute").WithLocation(1, 1));
         }
 
         [Fact]
@@ -382,6 +312,8 @@ public class Test
 }";
 
             CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS0518: Predefined type 'System.Attribute' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Attribute' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Attribute").WithLocation(1, 1));
         }
@@ -449,6 +381,8 @@ public class Test
                 // public class Test
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Test").WithArguments("System.Void").WithLocation(7, 14),
                 // error CS0518: Predefined type 'System.Void' is not defined or imported
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Void' is not defined or imported
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void").WithLocation(1, 1));
         }
 
@@ -471,6 +405,8 @@ public class Test
 }";
 
             CreateEmptyCompilation(code).VerifyEmitDiagnostics(CodeAnalysis.Emit.EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"),
+                // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1),
                 // error CS1729: 'Attribute' does not contain a constructor that takes 0 arguments
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount).WithArguments("System.Attribute", "0").WithLocation(1, 1));
         }

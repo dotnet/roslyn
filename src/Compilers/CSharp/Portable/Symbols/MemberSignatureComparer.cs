@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ArrayBuilder<TypeParameterSymbol> builder = ArrayBuilder<TypeParameterSymbol>.GetInstance(arity);
                 var typeParameters2 = member2.GetMemberTypeParameters();
 
-                for (int i = arity -1; i >= 0; i--)
+                for (int i = arity - 1; i >= 0; i--)
                 {
                     builder.Add(IndexedTypeParameterSymbolForOverriding.GetTypeParameter(i, typeParameters2[i].IsValueType));
                 }
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2, 
+            if (member1.GetParameterCount() > 0 && !HaveSameParameterTypes(member1.GetParameters(), typeMap1, member2.GetParameters(), typeMap2,
                                                                            _considerRefKindDifferences, _typeComparison))
             {
                 return false;
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // CONSIDER: could use interface type, but that might be quite expensive
                 }
 
-                if (_considerReturnType && member.GetMemberArity() == 0 && 
+                if (_considerReturnType && member.GetMemberArity() == 0 &&
                     (_typeComparison & TypeCompareKind.AllIgnoreOptions) == 0) // If it is generic, then type argument might be in return type.
                 {
                     hash = Hash.Combine(member.GetTypeOrReturnType().GetHashCode(), hash);
@@ -535,12 +535,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static bool HaveSameReturnTypes(Symbol member1, TypeMap typeMap1, Symbol member2, TypeMap typeMap2, TypeCompareKind typeComparison)
         {
             RefKind refKind1;
-            TypeSymbolWithAnnotations unsubstitutedReturnType1;
+            TypeWithAnnotations unsubstitutedReturnType1;
             ImmutableArray<CustomModifier> refCustomModifiers1;
             member1.GetTypeOrReturnType(out refKind1, out unsubstitutedReturnType1, out refCustomModifiers1);
 
             RefKind refKind2;
-            TypeSymbolWithAnnotations unsubstitutedReturnType2;
+            TypeWithAnnotations unsubstitutedReturnType2;
             ImmutableArray<CustomModifier> refCustomModifiers2;
             member2.GetTypeOrReturnType(out refKind2, out unsubstitutedReturnType2, out refCustomModifiers2);
 
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isVoid1)
             {
-                if ((typeComparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0 || 
+                if ((typeComparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0 ||
                     (unsubstitutedReturnType1.CustomModifiers.IsEmpty && unsubstitutedReturnType2.CustomModifiers.IsEmpty))
                 {
                     return true;
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 bool? isNotNullableIfReferenceType1 = typeParameter1.IsNotNullableIfReferenceType;
                 bool? isNotNullableIfReferenceType2 = typeParameter2.IsNotNullableIfReferenceType;
-                if (isNotNullableIfReferenceType1.HasValue && isNotNullableIfReferenceType2.HasValue && 
+                if (isNotNullableIfReferenceType1.HasValue && isNotNullableIfReferenceType2.HasValue &&
                     isNotNullableIfReferenceType1.GetValueOrDefault() != isNotNullableIfReferenceType2.GetValueOrDefault())
                 {
                     return false;
@@ -718,11 +718,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static void SubstituteConstraintTypes(ImmutableArray<TypeSymbolWithAnnotations> types, TypeMap typeMap, HashSet<TypeSymbol> result)
+        private static void SubstituteConstraintTypes(ImmutableArray<TypeWithAnnotations> types, TypeMap typeMap, HashSet<TypeSymbol> result)
         {
             foreach (var type in types)
             {
-                result.Add(typeMap.SubstituteType(type).TypeSymbol);
+                result.Add(typeMap.SubstituteType(type).Type);
             }
         }
 
@@ -738,8 +738,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var param1 = params1[i];
                 var param2 = params2[i];
 
-                var type1 = SubstituteType(typeMap1, param1.Type);
-                var type2 = SubstituteType(typeMap2, param2.Type);
+                var type1 = SubstituteType(typeMap1, param1.TypeWithAnnotations);
+                var type2 = SubstituteType(typeMap2, param2.TypeWithAnnotations);
 
                 if (!type1.Equals(type2, typeComparison))
                 {
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        private static TypeSymbolWithAnnotations SubstituteType(TypeMap typeMap, TypeSymbolWithAnnotations typeSymbol)
+        private static TypeWithAnnotations SubstituteType(TypeMap typeMap, TypeWithAnnotations typeSymbol)
         {
             return typeMap == null ? typeSymbol : typeSymbol.SubstituteType(typeMap);
         }

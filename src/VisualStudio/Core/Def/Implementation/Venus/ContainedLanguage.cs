@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly TLanguageService _languageService;
 
-        protected readonly VisualStudioWorkspace Workspace;
+        protected readonly Workspace Workspace;
         protected readonly IComponentModel ComponentModel;
 
         public VisualStudioProject Project { get; }
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         // flickering.
         private ITagAggregator<ITag> _bufferTagAggregator;
 
-        [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
+        [Obsolete("This is a compatibility shim for TypeScript and Live Share; please do not use it.")]
         public ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
@@ -85,9 +85,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                    project.VisualStudioProject,
                    hierarchy,
                    itemid,
+                   project.ProjectTracker,
+                   project.Id,
                    languageService,
-                   vbHelperFormattingRule)
+                   vbHelperFormattingRule: null)
         {
+            Contract.ThrowIfTrue(vbHelperFormattingRule != null);
         }
 
         [Obsolete("This is a compatibility shim for TypeScript; please do not use it.")]
@@ -105,26 +108,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                    project.VisualStudioProject,
                    hierarchy,
                    itemid,
+                   projectTrackerOpt: null,
+                   project.VisualStudioProject.Id,
                    languageService,
-                   vbHelperFormattingRule)
+                   vbHelperFormattingRule: null)
         {
+            Contract.ThrowIfTrue(vbHelperFormattingRule != null);
         }
 
-        public ContainedLanguage(
+        internal ContainedLanguage(
             IVsTextBufferCoordinator bufferCoordinator,
             IComponentModel componentModel,
             VisualStudioProject project,
             IVsHierarchy hierarchy,
             uint itemid,
+            VisualStudioProjectTracker projectTrackerOpt,
+            ProjectId projectId,
             TLanguageService languageService,
-            IFormattingRule vbHelperFormattingRule = null)
+            AbstractFormattingRule vbHelperFormattingRule = null)
         {
             this.BufferCoordinator = bufferCoordinator;
             this.ComponentModel = componentModel;
             this.Project = project;
             _languageService = languageService;
 
-            this.Workspace = componentModel.GetService<VisualStudioWorkspace>();
+            this.Workspace = projectTrackerOpt?.Workspace ?? componentModel.GetService<VisualStudioWorkspace>();
 
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();
@@ -137,7 +145,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // Get the ITextBuffer for the primary buffer
             Marshal.ThrowExceptionForHR(bufferCoordinator.GetPrimaryBuffer(out var primaryTextLines));
             DataBuffer = _editorAdaptersFactoryService.GetDataBuffer((IVsTextBuffer)primaryTextLines);
-            
+
             // Create our tagger
             var bufferTagAggregatorFactory = ComponentModel.GetService<IBufferTagAggregatorFactoryService>();
             _bufferTagAggregator = bufferTagAggregatorFactory.CreateTagAggregator<ITag>(SubjectBuffer);
@@ -153,7 +161,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 }
             }
 
-            var documentId = this.Project.AddSourceTextContainer(SubjectBuffer.AsTextContainer(), filePath);
+            DocumentId documentId;
+
+            if (this.Project != null)
+            {
+                documentId = this.Project.AddSourceTextContainer(
+                    SubjectBuffer.AsTextContainer(), filePath,
+                    sourceCodeKind: SourceCodeKind.Regular, folders: default,
+                    documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer));
+            }
+            else
+            {
+                documentId = DocumentId.CreateNewId(projectId, $"{nameof(ContainedDocument)}: {filePath}");
+
+                // We must jam a document into an existing workspace, which we'll assume is safe to do with OnDocumentAdded
+                Workspace.OnDocumentAdded(DocumentInfo.Create(documentId, filePath, filePath: filePath));
+                Workspace.OnDocumentOpened(documentId, SubjectBuffer.AsTextContainer());
+            }
 
             this.ContainedDocument = new ContainedDocument(
                 componentModel.GetService<IThreadingContext>(),
@@ -175,9 +199,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private void OnDisconnect()
         {
             this.DataBuffer.Changed -= OnDataBufferChanged;
-            this.Project.RemoveSourceTextContainer(SubjectBuffer.AsTextContainer());
+
+            if (this.Project != null)
+            {
+                this.Project.RemoveSourceTextContainer(SubjectBuffer.AsTextContainer());
+            }
+            else
+            {
+                // It's possible the host of the workspace might have already removed the entire project
+                if (Workspace.CurrentSolution.ContainsDocument(ContainedDocument.Id))
+                {
+                    Workspace.OnDocumentRemoved(ContainedDocument.Id);
+                }
+            }
 
             this.ContainedDocument.Dispose();
+
+            if (_bufferTagAggregator != null)
+            {
+                _bufferTagAggregator.Dispose();
+                _bufferTagAggregator = null;
+            }
         }
 
         private void OnDataBufferChanged(object sender, TextContentChangedEventArgs e)
@@ -185,15 +227,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             // we don't actually care what has changed in primary buffer. we just want to re-analyze secondary buffer
             // when primary buffer has changed to update diagnostic positions.
             _diagnosticAnalyzerService.Reanalyze(this.Workspace, documentIds: SpecializedCollections.SingletonEnumerable(this.ContainedDocument.Id));
-        }
-
-        public void Dispose()
-        {
-            if (_bufferTagAggregator != null)
-            {
-                _bufferTagAggregator.Dispose();
-                _bufferTagAggregator = null;
-            }
         }
     }
 }

@@ -140,7 +140,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'x = Nothing')
       Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'x = Nothing')
+        IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'x = Nothing')
           Left: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: Program, IsInvalid) (Syntax: 'x')
           Right: 
@@ -491,7 +491,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'ElseIf args.Length = 0')
   Children(1):
-      IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: 'args.Length = 0')
+      IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: System.Boolean, IsInvalid) (Syntax: 'args.Length = 0')
         Left: 
           IPropertyReferenceOperation: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'args.Length')
             Instance Receiver: 
@@ -548,7 +548,7 @@ Block[B0] - Entry
                     IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String()) (Syntax: 'args')
 
         Jump if False (Regular) to Block[B3]
-            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean, IsImplicit) (Syntax: '1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'args.Length')
               Right: 

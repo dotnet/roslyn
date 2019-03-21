@@ -86,11 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
         }
 
-        public VisualStudioMetadataReference CreateMetadataReference(string filePath, MetadataReferenceProperties properties)
-        {
-            return new VisualStudioMetadataReference(this, filePath, properties);
-        }
-
         public void ClearCache()
         {
             _metadataCache.ClearCache();

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SyntaxAnalysis;
+            => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis;
 
         public override bool OpenFileOnly(Workspace workspace)
             => false;
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var workspace = workspaceAnalyzerOptions.Services.Workspace;
-            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, Descriptor, workspace, options);
+            FormattingAnalyzerHelper.AnalyzeSyntaxTree(context, workspace, Descriptor, options);
         }
     }
 }

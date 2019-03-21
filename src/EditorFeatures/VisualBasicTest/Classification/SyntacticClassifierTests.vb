@@ -2009,7 +2009,7 @@ Dim z6 = New List(Of Integer) With {.Capacity = 2}"
                 Keyword("With"),
                 Punctuation.OpenCurly,
                 Keyword("Key"),
-                Keyword("If"),
+                ControlKeyword("If"),
                 Punctuation.OpenParen,
                 Identifier("k"),
                 Operators.GreaterThan,
@@ -2049,7 +2049,7 @@ Dim z6 = New List(Of Integer) With {.Capacity = 2}"
                 Keyword("With"),
                 Punctuation.OpenCurly,
                 Keyword("Key"),
-                Keyword("If"),
+                ControlKeyword("If"),
                 Punctuation.OpenParen,
                 Keyword("True"),
                 Punctuation.Comma,
@@ -2084,7 +2084,7 @@ Dim z6 = New List(Of Integer) With {.Capacity = 2}"
                 Local("Key"),
                 Keyword("As"),
                 Keyword("Integer"),
-                Keyword("If"),
+                ControlKeyword("If"),
                 Identifier("Key"),
                 Keyword("Or"),
                 Keyword("True"),
@@ -2092,7 +2092,7 @@ Dim z6 = New List(Of Integer) With {.Capacity = 2}"
                 Identifier("Key"),
                 Operators.Equals,
                 Number("1"),
-                Keyword("Then"),
+                ControlKeyword("Then"),
                 Identifier("Console"),
                 Operators.Dot,
                 Identifier("WriteLine"),
@@ -2162,6 +2162,21 @@ Dim z6 = New List(Of Integer) With {.Capacity = 2}"
                 Operators.Equals,
                 Number("2"),
                 Punctuation.CloseCurly)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestNamespaceDeclaration() As Task
+            Dim code =
+"Namespace N1.N2
+End Namespace"
+
+            Await TestAsync(code,
+                Keyword("Namespace"),
+                [Namespace]("N1"),
+                Operators.Dot,
+                [Namespace]("N2"),
+                Keyword("End"),
+                Keyword("Namespace"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
@@ -2329,6 +2344,40 @@ End Enum"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestTernaryConditionalExpression() As Task
+            Dim code = "Dim i = If(True, 1, 2)"
+
+            Await TestInMethodAsync(code,
+                Keyword("Dim"),
+                Local("i"),
+                Operators.Equals,
+                ControlKeyword("If"),
+                Punctuation.OpenParen,
+                Keyword("True"),
+                Punctuation.Comma,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestForStatement() As Task
+            Dim code =
+"For i = 0 To 10
+Exit For"
+            Await TestInMethodAsync(code,
+                ControlKeyword("For"),
+                Identifier("i"),
+                Operators.Equals,
+                Number("0"),
+                ControlKeyword("To"),
+                Number("10"),
+                ControlKeyword("Exit"),
+                ControlKeyword("For"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
         Public Async Function TestFloatLiteral() As Task
             Await TestInExpressionAsync("1.0",
                 Number("1.0"))
@@ -2362,8 +2411,8 @@ End Enum"
         Public Async Function TestRegression_DoUntil1() As Task
             Dim code = "Do Until True"
             Await TestInMethodAsync(code,
-                Keyword("Do"),
-                Keyword("Until"),
+                ControlKeyword("Do"),
+                ControlKeyword("Until"),
                 Keyword("True"))
         End Function
 
@@ -4308,24 +4357,24 @@ End Class"
                 Method("TestSub"),
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
-                Keyword("Do"),
-                Keyword("Loop"),
-                Keyword("Until"),
+                ControlKeyword("Do"),
+                ControlKeyword("Loop"),
+                ControlKeyword("Until"),
                 Keyword("True"),
-                Keyword("Do"),
-                Keyword("Loop"),
+                ControlKeyword("Do"),
+                ControlKeyword("Loop"),
                 LineContinuation,
-                Keyword("Until"),
+                ControlKeyword("Until"),
                 Keyword("True"),
-                Keyword("Do"),
-                Keyword("Until"),
+                ControlKeyword("Do"),
+                ControlKeyword("Until"),
                 Keyword("True"),
-                Keyword("Loop"),
-                Keyword("Do"),
+                ControlKeyword("Loop"),
+                ControlKeyword("Do"),
                 LineContinuation,
-                Keyword("Until"),
+                ControlKeyword("Until"),
                 Keyword("True"),
-                Keyword("Loop"),
+                ControlKeyword("Loop"),
                 Keyword("End"),
                 Keyword("Sub"))
         End Function
@@ -4928,6 +4977,7 @@ end interface"
             Await TestInClassAsync(code,
                 Keyword("Const"),
                 Constant("Number"),
+                [Static]("Number"),
                 Operators.Equals,
                 Number("42"))
         End Function
@@ -4968,6 +5018,7 @@ Dim y$ = x$"
             Await TestInClassAsync(code,
                 Keyword("Const"),
                 Constant("x$"),
+                [Static]("x$"),
                 Operators.Equals,
                 [String]("""23"""),
                 Keyword("Dim"),
@@ -5123,7 +5174,7 @@ End Operator"
                 Punctuation.CloseParen,
                 Keyword("As"),
                 Identifier("Test"),
-                Keyword("Return"),
+                ControlKeyword("Return"),
                 Keyword("New"),
                 Identifier("Test"),
                 Punctuation.OpenParen,
@@ -5145,10 +5196,29 @@ End Operator"
                 Punctuation.CloseParen,
                 Keyword("As"),
                 Keyword("Integer"),
-                Keyword("Return"),
+                ControlKeyword("Return"),
                 Number("1"),
                 Keyword("End"),
                 Keyword("Operator"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Classification)>
+        Public Async Function TestLabelName() As Task
+            Dim code =
+"Sub Main
+E:
+    GoTo E
+End Sub"
+
+            Await TestAsync(code,
+                Keyword("Sub"),
+                Method("Main"),
+                Label("E"),
+                Punctuation.Colon,
+                ControlKeyword("GoTo"),
+                Identifier("E"),
+                Keyword("End"),
+                Keyword("Sub"))
         End Function
 
     End Class

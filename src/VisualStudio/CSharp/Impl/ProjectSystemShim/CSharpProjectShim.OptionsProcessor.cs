@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             {
                 _visualStudioProject = visualStudioProject;
             }
-            
+
             public object this[CompilerOptions compilerOption]
             {
                 get
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                 // Get options from the ruleset file, if any, first. That way project-specific
                 // options can override them.
                 ReportDiagnostic? ruleSetGeneralDiagnosticOption = null;
-                
+
                 // TODO: merge this core logic back down to the base of OptionsProcessor, since this should be the same for all languages. The CompilationOptions
                 // would then already contain the right information, and could be updated accordingly by the language-specific logic.
                 if (ruleSetFileOpt != null)

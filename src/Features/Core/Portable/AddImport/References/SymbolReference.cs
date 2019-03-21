@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 => Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
 
             private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
-                Document document, SyntaxNode contextNode, 
+                Document document, SyntaxNode contextNode,
                 bool placeSystemNamespaceFirst, bool hasExistingImport,
                 CancellationToken cancellationToken)
             {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     contextNode, document, cancellationToken).ConfigureAwait(false);
 
                 var updatedDocument = await provider.AddImportAsync(
-                    newContextNode, this.SymbolResult.Symbol, newDocument, 
+                    newContextNode, this.SymbolResult.Symbol, newDocument,
                     placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             protected abstract AddImportFixData GetFixData(
-                Document document, ImmutableArray<TextChange> textChanges, 
+                Document document, ImmutableArray<TextChange> textChanges,
                 string description, ImmutableArray<string> tags, CodeActionPriority priority);
 
             protected abstract CodeActionPriority GetPriority(Document document);

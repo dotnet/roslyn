@@ -312,7 +312,7 @@ IObjectCreationOperation (Constructor: Sub C2..ctor()) (OperationKind.ObjectCrea
               IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .Field = 23')
                 Children(0)
             Right: 
-              IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
+              IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.Binary, Type: ?, IsInvalid) (Syntax: 'Key .Field = 23')
                 Left: 
                   IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Key .Field')
                     Children(1):

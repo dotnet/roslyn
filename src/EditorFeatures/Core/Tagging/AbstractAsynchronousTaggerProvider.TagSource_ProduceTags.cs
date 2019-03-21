@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                 var newTagTrees = ConvertToTagTrees(oldTagTrees, buffersToTag, newTagsByBuffer, context._spansTagged);
                 ProcessNewTagTrees(
-                    context.SpansToTag, oldTagTrees, newTagTrees, 
+                    context.SpansToTag, oldTagTrees, newTagTrees,
                     context.State, initialTags, context.CancellationToken);
             }
 

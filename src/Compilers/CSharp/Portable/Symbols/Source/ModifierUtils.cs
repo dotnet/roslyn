@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var result = DeclarationModifiers.None;
             bool seenNoDuplicates = true;
             bool seenNoAccessibilityDuplicates = true;
- 
+
             foreach (var modifier in modifiers)
             {
                 DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());

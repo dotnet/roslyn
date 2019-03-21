@@ -250,7 +250,7 @@ Hello
                   <param name=""goo"">{multiLineText}</param>
                   <typeparam name=""T"">{multiLineText}</typeparam>
                   <remarks>{multiLineText}</remarks>";
-                                 
+
 
             string expected = @"Hello
 World     .
