@@ -219,6 +219,9 @@
   <data name="IDS_FeatureUnmanagedConstructedTypes" xml:space="preserve">
     <value>unmanaged constructed types</value>
   </data>
+  <data name="IDS_FeatureReadOnlyMembers" xml:space="preserve">
+    <value>readonly members</value>
+  </data>
   <data name="IDS_FeatureDefaultLiteral" xml:space="preserve">
     <value>default literal</value>
   </data>
