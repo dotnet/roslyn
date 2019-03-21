@@ -5,6 +5,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -18,19 +19,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
     internal sealed class VisualStudioWaitIndicator : IWaitIndicator
     {
         private readonly SVsServiceProvider _serviceProvider;
-        private readonly bool _isUpdate1;
 
         private static readonly Func<string, string, string> s_messageGetter = (t, m) => string.Format("{0} : {1}", t, m);
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public VisualStudioWaitIndicator(SVsServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-
-            var shell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-            shell.GetProperty((int)__VSSPROPID5.VSSPROPID_ReleaseVersion, out var property);
-
-            _isUpdate1 = Equals(property, "14.0.24720.0 D14REL");
         }
 
         public WaitIndicatorResult Wait(
@@ -59,13 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
         private VisualStudioWaitContext StartWait(
             string title, string message, bool allowCancel, bool showProgress)
         {
-            // Update1 has a bug where trying to update hte progress bar will cause a hang.
-            // Check if we're on update1 and turn off 'showProgress' in that case.
-            if (_isUpdate1)
-            {
-                showProgress = false;
-            }
-
             var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             Contract.ThrowIfNull(workspace);

@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             // Go to Definition/Go to Implementation are synchronous so we don't need to wait for them
             // (and currently can't, anyway); if they are made asynchronous we will need to wait for
             // them here as well.
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.FindReferences);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.FindReferences);
 
             return _inProc.GetContents(windowCaption);
         }

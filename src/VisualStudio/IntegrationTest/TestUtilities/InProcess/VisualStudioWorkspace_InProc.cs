@@ -108,8 +108,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         private static TestingOnly_WaitingService GetWaitingService()
             => GetComponentModel().DefaultExportProvider.GetExport<TestingOnly_WaitingService>().Value;
 
-        public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
-            => GetWaitingService().WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
+        public void WaitForAsyncOperations(TimeSpan timeout, string featuresToWaitFor, bool waitForWorkspaceFirst = true)
+            => GetWaitingService().WaitForAsyncOperations(timeout, featuresToWaitFor, waitForWorkspaceFirst);
 
         public void WaitForAllAsyncOperations(TimeSpan timeout, params string[] featureNames)
             => GetWaitingService().WaitForAllAsyncOperations(timeout, featureNames);

@@ -1608,7 +1608,7 @@ interface ITest4<T, U>
                 );
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [Fact]
         public void TypeUnification_03()
         {
             var ilSource = @"
@@ -1756,7 +1756,7 @@ interface ITest4<T, U>
             compilation.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void DynamicEncodingDecoding_01()
@@ -2038,7 +2038,7 @@ class Test11 : Test1
 Overridden");
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_01()
@@ -2335,7 +2335,7 @@ class CL3 : I1
 CL3.Test");
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(5993, "https://github.com/dotnet/roslyn/issues/5993")]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_05()
@@ -2392,7 +2392,7 @@ Implemented B",
                 });
         }
 
-        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_06()
         {

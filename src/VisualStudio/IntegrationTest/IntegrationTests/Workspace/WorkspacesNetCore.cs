@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
@@ -28,6 +27,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Workspace)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
+        [WorkItem(34264, "https://github.com/dotnet/roslyn/issues/34264")]
         public override void MetadataReference()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -39,7 +39,9 @@ namespace Roslyn.VisualStudio.IntegrationTests.Workspace
 </Project>");
             VisualStudio.SolutionExplorer.SaveAll();
             VisualStudio.SolutionExplorer.RestoreNuGetPackages(project);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            // 🐛 This should only need WaitForAsyncOperations for FeatureAttribute.Workspace
+            // https://github.com/dotnet/roslyn/issues/34264
+            VisualStudio.Workspace.WaitForAllAsyncOperations(Helper.HangMitigatingTimeout);
             VisualStudio.SolutionExplorer.OpenFile(project, "Class1.cs");
             base.MetadataReference();
         }

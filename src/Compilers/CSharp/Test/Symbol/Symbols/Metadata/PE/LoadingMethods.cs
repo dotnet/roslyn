@@ -1310,7 +1310,7 @@ class P
         }
 
         [WorkItem(666162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/666162")]
-        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        [Fact]
         public void Repro666162()
         {
             var il = @"
