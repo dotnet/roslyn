@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // The modifiers for the accessor are the same as the modifiers for the property,
             // minus the indexer and readonly bit
-            var declarationModifiers = propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
+            var declarationModifiers = GetAccessorModifiers(propertyModifiers);
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
@@ -210,14 +210,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax, location, diagnostics, out modifierErrors);
 
-            // Include some modifiers from the containing property.
-            propertyModifiers &= ~(DeclarationModifiers.AccessibilityMask | DeclarationModifiers.ReadOnly);
+            // Include some modifiers from the containing property, but not the accessibility modifiers.
+            declarationModifiers |= GetAccessorModifiers(propertyModifiers) & ~DeclarationModifiers.AccessibilityMask;
             if ((declarationModifiers & DeclarationModifiers.Private) != 0)
             {
                 // Private accessors cannot be virtual.
-                propertyModifiers &= ~DeclarationModifiers.Virtual;
+                declarationModifiers &= ~DeclarationModifiers.Virtual;
             }
-            declarationModifiers |= propertyModifiers & ~DeclarationModifiers.Indexer;
 
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
@@ -255,6 +254,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckForBlockAndExpressionBody(
                 syntax.Body, syntax.ExpressionBody, syntax, diagnostics);
         }
+
+        private static DeclarationModifiers GetAccessorModifiers(DeclarationModifiers propertyModifiers) =>
+            propertyModifiers & ~(DeclarationModifiers.Indexer | DeclarationModifiers.ReadOnly);
 
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
@@ -468,23 +470,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }
-            else if (LocalDeclaredReadOnly)
+            else if (LocalDeclaredReadOnly && _property.HasReadOnlyModifier)
             {
-                if (_property.HasReadOnlyModifier)
-                {
-                    // Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessors.
-                    diagnostics.Add(ErrorCode.ERR_InvalidPropertyReadOnlyMods, location, _property);
-                }
-                if (IsStatic)
-                {
-                    // Static member '{0}' cannot be 'readonly'.
-                    diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
-                }
-                else if (_isAutoPropertyAccessor)
-                {
-                    // Auto-implemented property or accessor '{0}' cannot be marked 'readonly'.
-                    diagnostics.Add(ErrorCode.ERR_AutoPropertyCantBeReadOnly, location, this);
-                }
+                // Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessors.
+                diagnostics.Add(ErrorCode.ERR_InvalidPropertyReadOnlyMods, location, _property);
+            }
+            else if (LocalDeclaredReadOnly && IsStatic)
+            {
+                // Static member '{0}' cannot be 'readonly'.
+                diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
+            }
+            else if (LocalDeclaredReadOnly && _isAutoPropertyAccessor)
+            {
+                // Auto-implemented property or accessor '{0}' cannot be marked 'readonly'.
+                diagnostics.Add(ErrorCode.ERR_AutoPropertyCantBeReadOnly, location, this);
             }
         }
 

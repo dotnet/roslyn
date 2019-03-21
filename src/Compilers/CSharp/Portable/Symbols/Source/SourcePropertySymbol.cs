@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else if (HasReadOnlyModifier)
                     {
-                        diagnostics.Add(ErrorCode.ERR_AutoPropertyCantBeReadOnly, location, Name);
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyCantBeReadOnly, location, this);
                     }
                 }
 
