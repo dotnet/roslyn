@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                     isInlinable: false));
             }
 
-            return result.AsImmutableOrNull();
+            return result.ToImmutableAndFree();
 
             // local functions
             static bool CanHaveRequiredParameters(ImmutableArray<IParameterSymbol> parameters)
