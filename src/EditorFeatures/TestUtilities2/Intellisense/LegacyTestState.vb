@@ -110,9 +110,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return CurrentCompletionPresenterSession.SelectedItem
         End Function
 
-        Public Overrides Function GetSelectedItemOpt() As CompletionItem
-            Return CurrentCompletionPresenterSession?.SelectedItem
-        End Function
+        Public Overrides Sub CalculateItemsIfSessionExists()
+            Throw ExceptionUtilities.Unreachable
+        End Sub
 
         Public Overrides Function GetCompletionItems() As IList(Of CompletionItem)
             Return CurrentCompletionPresenterSession.CompletionItems

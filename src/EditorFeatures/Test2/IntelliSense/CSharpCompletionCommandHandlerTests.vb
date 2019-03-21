@@ -1870,7 +1870,7 @@ class Goo
                 Await state.AssertSelectedCompletionItem(displayText:="Numeros", isHardSelected:=True)
                 state.SendTypeChars(c.ToString())
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.NotEqual("Numberos", state.GetSelectedItemOpt()?.DisplayText)
+                Await state.AssertSessionIsNothingOrNoCompletionItemLike("Numberos")
                 Assert.Contains(String.Format("Numeros num = Nu{0}", c), state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
@@ -3678,7 +3678,7 @@ class C
                             Sub()
                                 task2.Start()
                                 ' 2. Hang here as well: getting items is waiting provider to respond.
-                                Dim completionItem = state.GetSelectedItemOpt()
+                                state.CalculateItemsIfSessionExists()
                             End Sub)
 
 
@@ -3761,6 +3761,7 @@ class C
                                         Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
                                         ' Need the Finally to avoid hangs if any of Asserts failed, the task will never complete and Task.WhenAll will wait forever.
                                     Finally
+
                                         ' 4. Unblock the first task and the main thread.
                                         tcs.SetResult(True)
                                     End Try
@@ -3770,7 +3771,7 @@ class C
                             Sub()
                                 task2.Start()
                                 ' 2. Hang here as well: getting items is waiting provider to respond.
-                                Dim completionItem = state.GetSelectedItemOpt()
+                                state.CalculateItemsIfSessionExists()
                             End Sub)
                         End Sub
 

@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function GetSelectedItem() As CompletionItem
 
-        Public MustOverride Function GetSelectedItemOpt() As CompletionItem
+        Public MustOverride Sub CalculateItemsIfSessionExists()
 
         Public MustOverride Function GetCompletionItems() As IList(Of CompletionItem)
 
