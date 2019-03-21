@@ -4623,7 +4623,7 @@ class C
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                state.CompletionItemsContainsAll(displayText:={"ToString()", "GetHashCode"})
+                state.CompletionItemsContainsAll(displayText:={"ToString", "GetHashCode"})
             End Using
         End Function
 
