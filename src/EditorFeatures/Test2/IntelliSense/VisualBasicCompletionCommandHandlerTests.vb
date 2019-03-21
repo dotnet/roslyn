@@ -1208,7 +1208,7 @@ End Class
                 state.SendTypeChars("(")
                 Await state.AssertSignatureHelpSession()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.SignatureHelpItemsContainsAll({"Object.Finalize()"}))
+                state.AssertSignatureHelpItemsContainAll({"Object.Finalize()"})
             End Using
         End Function
 

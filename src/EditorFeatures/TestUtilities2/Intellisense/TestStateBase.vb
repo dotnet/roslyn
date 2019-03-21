@@ -281,11 +281,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return CurrentSignatureHelpPresenterSession.SignatureHelpItems
         End Function
 
-        Public Function SignatureHelpItemsContainsAll(displayText As String()) As Boolean
+        Public Sub AssertSignatureHelpItemsContainAll(displayText As String())
             AssertNoAsynchronousOperationsRunning()
-            Return displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
-                                       Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v))
-        End Function
+            Assert.True(displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
+                                            Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v)))
+        End Sub
 
         Public Async Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
                                Optional documentation As String = Nothing,
