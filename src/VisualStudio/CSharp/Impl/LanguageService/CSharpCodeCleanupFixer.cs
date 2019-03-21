@@ -364,7 +364,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             // Local function
             async Task<Solution> ApplyFixAsync(ProgressTracker progressTracker, CancellationToken innerCancellationToken)
             {
-                var newProject = await FixProjectAsync(project, context.EnabledFixIds, progressTracker, cancellationToken).ConfigureAwait(true);
+                var newProject = await FixProjectAsync(project, context.EnabledFixIds, progressTracker, addProgressItemsForDocuments: true, cancellationToken).ConfigureAwait(true);
                 return newProject.Solution;
             }
         }
@@ -412,27 +412,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private async Task<Solution> FixSolutionAsync(Solution solution, FixIdContainer enabledFixIds, ProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            // FixProjectAsync reports progress for documents within a project, so we use that information to update
-            // the solution progress.
-            var projectProgressTracker = new ProgressTracker((description, completedItems, totalItems) =>
-            {
-                progressTracker.Description = description;
-
-                // The project progress tracker will report a TotalItems only up to the number of projects processed so
-                // far, but the total number of completed items will be correct. Assert these conditions in debug
-                // builds, but use bounds checks to ensure we don't throw exceptions at runtime.
-                Debug.Assert(completedItems <= progressTracker.TotalItems);
-                completedItems = Math.Min(progressTracker.CompletedItems, completedItems);
-
-                Debug.Assert(completedItems - progressTracker.CompletedItems >= 0);
-                var newCompletedItems = Math.Max(0, completedItems - progressTracker.CompletedItems);
-
-                for (var i = 0; i < newCompletedItems; i++)
-                {
-                    progressTracker.ItemCompleted();
-                }
-            });
-
             // Prepopulate the solution progress tracker with the total number of documents to process
             foreach (var projectId in solution.ProjectIds)
             {
@@ -450,21 +429,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var project = solution.GetProject(projectId);
-                var newProject = await FixProjectAsync(project, enabledFixIds, projectProgressTracker, cancellationToken).ConfigureAwait(false);
+                var newProject = await FixProjectAsync(project, enabledFixIds, progressTracker, addProgressItemsForDocuments: false, cancellationToken).ConfigureAwait(false);
                 solution = newProject.Solution;
             }
 
             return solution;
         }
 
-        private async Task<Project> FixProjectAsync(Project project, FixIdContainer enabledFixIds, ProgressTracker progressTracker, CancellationToken cancellationToken)
+        private async Task<Project> FixProjectAsync(Project project, FixIdContainer enabledFixIds, ProgressTracker progressTracker, bool addProgressItemsForDocuments, CancellationToken cancellationToken)
         {
             if (project.LanguageServices.GetService<ICodeCleanupService>() == null)
             {
                 return project;
             }
 
-            progressTracker.AddItems(project.DocumentIds.Count);
+            if (addProgressItemsForDocuments)
+            {
+                progressTracker.AddItems(project.DocumentIds.Count);
+            }
+
             foreach (var documentId in project.DocumentIds)
             {
                 cancellationToken.ThrowIfCancellationRequested();
