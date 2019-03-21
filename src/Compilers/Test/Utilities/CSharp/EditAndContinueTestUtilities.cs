@@ -16,13 +16,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             => debugInfo.MethodOrdinal;
 
         public static IEnumerable<string> InspectLocalSlots(this EditAndContinueMethodDebugInformation debugInfo)
-            => debugInfo.LocalSlots.IsDefault ? null : debugInfo.LocalSlots.Select(s => $"Offset={s.Id.SyntaxOffset} Ordinal={s.Id.Ordinal} Kind={s.SynthesizedKind}");
+            => debugInfo.LocalSlots.IsDefault ? null :
+               debugInfo.LocalSlots.Select(s => $"Offset={s.Id.SyntaxOffset} Ordinal={s.Id.Ordinal} Kind={s.SynthesizedKind}");
 
         public static IEnumerable<string> InspectLambdas(this EditAndContinueMethodDebugInformation debugInfo)
-            => debugInfo.Lambdas.IsDefault ? null : debugInfo.Lambdas.Select(l => $"Offset={l.SyntaxOffset} Id={l.LambdaId.Generation}#{l.LambdaId.Ordinal} Closure={l.ClosureOrdinal}");
+            => debugInfo.Lambdas.IsDefault ? null :
+               debugInfo.Lambdas.Select(l => $"Offset={l.SyntaxOffset} Id={l.LambdaId.Generation}#{l.LambdaId.Ordinal} Closure={l.ClosureOrdinal}");
 
         public static IEnumerable<string> InspectClosures(this EditAndContinueMethodDebugInformation debugInfo)
-            => debugInfo.Closures.IsDefault ? null : debugInfo.Closures.Select(c => $"Offset={c.SyntaxOffset} Id={c.ClosureId.Generation}#{c.ClosureId.Ordinal}");
+            => debugInfo.Closures.IsDefault ? null :
+               debugInfo.Closures.Select(c => $"Offset={c.SyntaxOffset} Id={c.ClosureId.Generation}#{c.ClosureId.Ordinal}");
 
         #endregion
     }
