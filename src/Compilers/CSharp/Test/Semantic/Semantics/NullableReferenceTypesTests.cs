@@ -86538,5 +86538,64 @@ class B : A { }
             comp.VerifyDiagnostics();
             comp.VerifyTypes();
         }
+
+        [WorkItem(30987, "https://github.com/dotnet/roslyn/issues/30987")]
+        [Fact]
+        public void TypeInference_LowerBounds_TopLevelNullability_04()
+        {
+            var source =
+@"class D
+{
+    static T F<T>(T x, T y, T z) => x;
+    static void G1(A x, B? y, C z)
+    {
+        F(x, y, z)/*T:A?*/;
+        F(y, z, x)/*T:A?*/;
+        F(z, x, y)/*T:A?*/;
+        F(x, z, y)/*T:A?*/;
+        F(z, y, x)/*T:A?*/;
+        F(y, x, z)/*T:A?*/;
+    }
+}
+class A { }
+class B : A { }
+class C : A { }
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [WorkItem(30987, "https://github.com/dotnet/roslyn/issues/30987")]
+        [Fact]
+        public void TypeInference_LowerBounds_TopLevelNullability_05()
+        {
+            var source =
+@"class D
+{
+#nullable disable
+    static T F<T>(T x, T y, T z) => x;
+    static void G1(A x, B? y, C z)
+#nullable enable
+    {
+        F(x, y, z)/*T:A?*/;
+        F(y, z, x)/*T:A?*/;
+        F(z, x, y)/*T:A?*/;
+        F(x, z, y)/*T:A?*/;
+        F(z, y, x)/*T:A?*/;
+        F(y, x, z)/*T:A?*/;
+    }
+}
+class A { }
+class B : A { }
+class C : A { }
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     static void G1(A x, B? y, C z)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 26));
+            comp.VerifyTypes();
+        }
     }
 }
