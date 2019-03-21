@@ -161,6 +161,7 @@ function InstallDotNetSdk {
     arch_arg="--architecture $3"
   fi
 
+  echo "Running bash '$install_script' --version $versin --install-dir '$root' $arch_arg"
   bash "$install_script" --version $version --install-dir "$root" $arch_arg || {
     local exit_code=$?
     echo "Failed to install dotnet SDK (exit code '$exit_code')." >&2
@@ -176,7 +177,7 @@ function GetDotNetInstallScript {
   if [[ ! -a "$install_script" ]]; then
     mkdir -p "$root"
 
-    echo "Downloading '$install_script_url'"
+    echo "Downloading '$install_script_url' to '$install_script'"
 
     # Use curl if available, otherwise use wget
     if command -v curl > /dev/null; then
