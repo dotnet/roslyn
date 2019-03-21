@@ -356,7 +356,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     isReducedExtensionMethod = true;
                 }
 
-                var newArguments = PermuteArgumentList(document, declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutation, isReducedExtensionMethod);
+
+                SignatureChange signaturePermutationWithoutAddedParameters = signaturePermutation.WithoutAddedParameters();
+
+                var newArguments = PermuteArgumentList(document, declarationSymbol, invocation.ArgumentList.Arguments, signaturePermutationWithoutAddedParameters, isReducedExtensionMethod);
+                newArguments = AddNewArgumentsToList(document, declarationSymbol, newArguments, signaturePermutation, isReducedExtensionMethod);
                 return invocation.WithArgumentList(invocation.ArgumentList.WithArguments(newArguments).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
@@ -409,6 +413,39 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
             Debug.Assert(false, "Unknown reference location");
             return null;
+        }
+
+        private SeparatedSyntaxList<ArgumentSyntax> AddNewArgumentsToList(Document document, ISymbol declarationSymbol, SeparatedSyntaxList<ArgumentSyntax> newArguments, SignatureChange signaturePermutation, bool isReducedExtensionMethod)
+        {
+            List<ArgumentSyntax> fullList = new List<ArgumentSyntax>();
+
+            var updatedParameters = signaturePermutation.UpdatedConfiguration.ToListOfParameters();
+
+            int indexInExistingList = 0;
+
+            bool seenNameEquals = false;
+
+            for (int i = 0; i < updatedParameters.Count; i++)
+            {
+                if (updatedParameters[i] is AddedParameter addedParameter)
+                {
+                    fullList.Add(SyntaxFactory.Argument(
+                        seenNameEquals ? SyntaxFactory.NameColon(addedParameter.Name) : default,
+                        refKindKeyword: default,
+                        expression: SyntaxFactory.ParseExpression(addedParameter.CallsiteValue)));
+                }
+                else
+                {
+                    if (newArguments[indexInExistingList].NameColon != default)
+                    {
+                        seenNameEquals = true;
+                    }
+
+                    fullList.Add(newArguments[indexInExistingList++]);
+                }
+            }
+
+            return SyntaxFactory.SeparatedList(fullList);
         }
 
         private SeparatedSyntaxList<T> PermuteDeclaration<T>(SeparatedSyntaxList<T> list, SignatureChange updatedSignature) where T : SyntaxNode
@@ -469,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return newArgument;
         }
 
-        private static SeparatedSyntaxList<AttributeArgumentSyntax> PermuteAttributeArgumentList(
+        private SeparatedSyntaxList<AttributeArgumentSyntax> PermuteAttributeArgumentList(
             Document document,
             ISymbol declarationSymbol,
             SeparatedSyntaxList<AttributeArgumentSyntax> arguments,
@@ -485,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             return SyntaxFactory.SeparatedList(newArgumentsWithTrivia, GetSeparators(arguments, numSeparatorsToSkip));
         }
 
-        private static SeparatedSyntaxList<ArgumentSyntax> PermuteArgumentList(
+        private SeparatedSyntaxList<ArgumentSyntax> PermuteArgumentList(
             Document document,
             ISymbol declarationSymbol,
             SeparatedSyntaxList<ArgumentSyntax> arguments,
@@ -704,6 +741,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
         {
             return new[] { new ChangeSignatureFormattingRule() }.Concat(Formatter.GetDefaultFormattingRules(document));
+        }
+
+        protected override IUnifiedArgumentSyntax CreateRegularArgumentSyntax(string callsiteValue)
+        {
+            return UnifiedArgumentSyntax.Create(SyntaxFactory.Argument(SyntaxFactory.ParseExpression(callsiteValue)));
         }
     }
 }
