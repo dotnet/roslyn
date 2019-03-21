@@ -835,15 +835,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Auto-implemented property or accessor cannot be marked &apos;readonly&apos;..
-        /// </summary>
-        internal static string ERR_AutoPropertyCantBeReadOnly_Title {
-            get {
-                return ResourceManager.GetString("ERR_AutoPropertyCantBeReadOnly_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Auto-implemented properties inside interfaces cannot have initializers..
         /// </summary>
         internal static string ERR_AutoPropertyInitializerInInterface {
@@ -3940,15 +3931,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify &apos;readonly&apos; modifiers on both accessors of property or indexer..
-        /// </summary>
-        internal static string ERR_DuplicatePropertyReadOnlyMods_Title {
-            get {
-                return ResourceManager.GetString("ERR_DuplicatePropertyReadOnlyMods_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; duplicate TypeForwardedToAttribute.
         /// </summary>
         internal static string ERR_DuplicateTypeForwarder {
@@ -4980,15 +4962,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_FieldLikeEventCantBeReadOnly {
             get {
                 return ResourceManager.GetString("ERR_FieldLikeEventCantBeReadOnly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Field-like event cannot be &apos;readonly&apos;..
-        /// </summary>
-        internal static string ERR_FieldLikeEventCantBeReadOnly_Title {
-            get {
-                return ResourceManager.GetString("ERR_FieldLikeEventCantBeReadOnly_Title", resourceCulture);
             }
         }
         
@@ -6294,15 +6267,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidPropertyReadOnlyMods {
             get {
                 return ResourceManager.GetString("ERR_InvalidPropertyReadOnlyMods", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot specify &apos;readonly&apos; modifiers on both property or indexer and its accessors..
-        /// </summary>
-        internal static string ERR_InvalidPropertyReadOnlyMods_Title {
-            get {
-                return ResourceManager.GetString("ERR_InvalidPropertyReadOnlyMods_Title", resourceCulture);
             }
         }
         
@@ -9687,15 +9651,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_StaticMemberCantBeReadOnly {
             get {
                 return ResourceManager.GetString("ERR_StaticMemberCantBeReadOnly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Static member cannot be &apos;readonly&apos;..
-        /// </summary>
-        internal static string ERR_StaticMemberCantBeReadOnly_Title {
-            get {
-                return ResourceManager.GetString("ERR_StaticMemberCantBeReadOnly_Title", resourceCulture);
             }
         }
         

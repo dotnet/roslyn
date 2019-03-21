@@ -5430,32 +5430,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_StaticMemberCantBeReadOnly" xml:space="preserve">
     <value>Static member '{0}' cannot be 'readonly'.</value>
   </data>
-  <data name="ERR_StaticMemberCantBeReadOnly_Title" xml:space="preserve">
-    <value>Static member cannot be 'readonly'.</value>
-  </data>
   <data name="ERR_AutoPropertyCantBeReadOnly" xml:space="preserve">
     <value>Auto-implemented property or accessor '{0}' cannot be marked 'readonly'.</value>
-  </data>
-  <data name="ERR_AutoPropertyCantBeReadOnly_Title" xml:space="preserve">
-    <value>Auto-implemented property or accessor cannot be marked 'readonly'.</value>
   </data>
   <data name="ERR_InvalidPropertyReadOnlyMods" xml:space="preserve">
     <value>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessors.</value>
   </data>
-  <data name="ERR_InvalidPropertyReadOnlyMods_Title" xml:space="preserve">
-    <value>Cannot specify 'readonly' modifiers on both property or indexer and its accessors.</value>
-  </data>
   <data name="ERR_DuplicatePropertyReadOnlyMods" xml:space="preserve">
     <value>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'.</value>
   </data>
-  <data name="ERR_DuplicatePropertyReadOnlyMods_Title" xml:space="preserve">
-    <value>Cannot specify 'readonly' modifiers on both accessors of property or indexer.</value>
-  </data>
   <data name="ERR_FieldLikeEventCantBeReadOnly" xml:space="preserve">
     <value>Field-like event '{0}' cannot be 'readonly'.</value>
-  </data>
-  <data name="ERR_FieldLikeEventCantBeReadOnly_Title" xml:space="preserve">
-    <value>Field-like event cannot be 'readonly'.</value>
   </data>
   <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
     <value>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</value>
