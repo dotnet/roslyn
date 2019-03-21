@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public void GetDescription(out string pBstr)
             {
-                pBstr = $"Rename '{_fromName}' to '{_toName}'";
+                pBstr = string.Format(ServicesVSResources.Rename_0_to_1, _fromName, _toName);
             }
 
             public void GetUnitType(out Guid pClsid, out int plID)
