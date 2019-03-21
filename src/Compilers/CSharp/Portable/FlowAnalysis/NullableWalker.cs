@@ -3608,7 +3608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AssignmentKind.Assignment,
                 reportTopLevelWarnings: fromExplicitCast,
                 reportRemainingWarnings: true,
-                trackNullability: true);
+                trackMembers: true);
             return null;
         }
 
@@ -3644,7 +3644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assignmentKind,
                 reportTopLevelWarnings: true,
                 reportRemainingWarnings: reportNestedWarnings,
-                trackNullability: trackNullability);
+                trackMembers: trackNullability);
         }
 
         private static bool AreNullableAndUnderlyingTypes(TypeSymbol nullableTypeOpt, TypeSymbol underlyingTypeOpt, out TypeWithAnnotations underlyingTypeWithAnnotations)
@@ -3952,8 +3952,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If `checkConversion` is set, the incoming conversion is assumed to be from binding and will be
         /// re-calculated, this time considering nullability. (Note that the conversion calculation considers
         /// nested nullability only. The caller is responsible for checking the top-level nullability of
-        /// the type returned by this method.) `canConvertNestedNullability` is set if the conversion
-        /// considering nested nullability succeeded. `node` is used only for the location of diagnostics.
+        /// the type returned by this method.) `trackMembers` should be set if the nullability of any
+        /// members of the operand should be copied to the converted result when possible.
         /// </summary>
         private TypeWithState ApplyConversion(
             BoundExpression node,
@@ -3969,10 +3969,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportTopLevelWarnings = true,
             bool reportRemainingWarnings = true,
             bool extensionMethodThisArgument = false,
-            bool trackNullability = false,
-            Optional<LocalState> stateForLambda = default)
+            Optional<LocalState> stateForLambda = default,
+            bool trackMembers = false)
         {
-            Debug.Assert(!trackNullability || !IsConditionalState);
+            Debug.Assert(!trackMembers || !IsConditionalState);
             Debug.Assert(node != null);
             Debug.Assert(operandOpt != null || !operandType.HasNullType);
             Debug.Assert(targetTypeWithNullability.HasType);
@@ -4156,7 +4156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.ImplicitNullable:
-                    if (trackNullability && node.Kind == BoundKind.Conversion)
+                    if (trackMembers && node.Kind == BoundKind.Conversion)
                     {
                         // https://github.com/dotnet/roslyn/issues/34302: Should visit each BoundConversion so node matches conversion.
                         var conv = (BoundConversion)node;
@@ -4204,7 +4204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
-                    if (trackNullability && node.Kind == BoundKind.Conversion)
+                    if (trackMembers && node.Kind == BoundKind.Conversion)
                     {
                         // https://github.com/dotnet/roslyn/issues/34302: Should visit each BoundConversion so node matches conversion.
                         var conv = (BoundConversion)node;
@@ -4598,7 +4598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignmentKind.Assignment,
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,
-                                trackNullability: false);
+                                trackMembers: false);
                             valueSlot = -1;
                         }
 
