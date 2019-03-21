@@ -30,10 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// <summary>
         /// Gets the default text based document data provider for block comments.
         /// </summary>
-        protected override async Task<IToggleBlockCommentDocumentDataProvider> GetBlockCommentDocumentDataProvider(Document document, ITextSnapshot snapshot,
+        protected override Task<IToggleBlockCommentDocumentDataProvider> GetBlockCommentDocumentDataProvider(Document document, ITextSnapshot snapshot,
             CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
-            return new ToggleBlockCommentDocumentDataProvider(snapshot, commentInfo);
+            IToggleBlockCommentDocumentDataProvider provider = new ToggleBlockCommentDocumentDataProvider(snapshot, commentInfo);
+            return Task.FromResult(provider);
         }
     }
 }
