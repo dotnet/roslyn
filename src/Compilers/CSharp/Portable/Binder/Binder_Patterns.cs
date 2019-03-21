@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations declType = BindType(typeSyntax, diagnostics, out AliasSymbol aliasOpt);
             Debug.Assert(declType.HasType);
             Debug.Assert(typeSyntax.Kind() != SyntaxKind.NullableType); // the syntax does not permit nullable annotations
-            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: false, type: declType);
+            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, typeWithAnnotations: declType);
             hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
             return boundDeclType;
         }
@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BindPatternDesignation(
                             designation: node, declType: declType, inputValEscape: inputValEscape, typeSyntax: null, diagnostics: diagnostics, hasErrors: ref hasErrors,
                             variableSymbol: out Symbol variableSymbol, variableAccess: out BoundExpression variableAccess);
-                        var boundOperandType = new BoundTypeExpression(syntax: node, aliasOpt: null, type: declType); // fake a type expression for the variable's type
+                        var boundOperandType = new BoundTypeExpression(syntax: node, aliasOpt: null, typeWithAnnotations: declType); // fake a type expression for the variable's type
                         // We continue to use a BoundDeclarationPattern for the var pattern, as they have more in common.
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax

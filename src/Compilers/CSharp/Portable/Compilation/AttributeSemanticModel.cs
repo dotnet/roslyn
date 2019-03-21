@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (SyntaxFacts.IsAttributeName(node))
             {
-                return new BoundTypeExpression((NameSyntax)node, _aliasOpt, inferredType: false, type: AttributeType);
+                return new BoundTypeExpression((NameSyntax)node, _aliasOpt, type: AttributeType);
             }
             else
             {

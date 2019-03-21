@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
+                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, typeWithAnnotations: iterationVariableType).MakeCompilerGenerated();
                         break;
                     }
                 default:

@@ -1634,7 +1634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case SymbolKind.NamedType:
                             case SymbolKind.ErrorType:
-                                return new BoundTypeExpression(node, alias, false, (NamedTypeSymbol)symbol, hasErrors: isError);
+                                return new BoundTypeExpression(node, alias, (NamedTypeSymbol)symbol, hasErrors: isError);
                             case SymbolKind.Namespace:
                                 return new BoundNamespaceExpression(node, (NamespaceSymbol)symbol, alias, hasErrors: isError);
                             default:
@@ -1825,7 +1825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = symbol as TypeSymbol;
             if ((object)type != null)
             {
-                return new BoundTypeExpression(node, alias, false, type);
+                return new BoundTypeExpression(node, alias, type);
             }
 
             var namespaceSymbol = symbol as NamespaceSymbol;
@@ -2834,7 +2834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // SPEC ends
 
-            var type = (ArrayTypeSymbol)BindArrayType(node.Type, diagnostics, permitDimensions: true, basesBeingResolved: null).Type;
+            var type = (ArrayTypeSymbol)BindArrayType(node.Type, diagnostics, permitDimensions: true, basesBeingResolved: null, disallowRestrictedTypes: true).Type;
 
             // CONSIDER: 
             //
@@ -2854,20 +2854,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = false;
             foreach (var arg in firstRankSpecifier.Sizes)
             {
-                // These make the parse tree nicer, but they shouldn't actually appear in the bound tree.
-                if (arg.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                var size = BindArrayDimension(arg, diagnostics, ref hasErrors);
+                if (size != null)
                 {
-                    var size = BindValue(arg, diagnostics, BindValueKind.RValue);
-                    if (!size.HasAnyErrors)
-                    {
-                        size = ConvertToArrayIndex(size, node, diagnostics, allowIndexAndRange: false);
-                        if (IsNegativeConstantForArraySize(size))
-                        {
-                            Error(diagnostics, ErrorCode.ERR_NegativeArraySize, arg);
-                            hasErrors = true;
-                        }
-                    }
-
                     sizes.Add(size);
                 }
                 else if (node.Initializer is null && arg == firstRankSpecifier.Sizes[0])
@@ -2900,6 +2889,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Initializer == null
                 ? new BoundArrayCreation(node, arraySizes, null, type, hasErrors)
                 : BindArrayCreationWithInitializer(diagnostics, node, node.Initializer, type, arraySizes, hasErrors: hasErrors);
+        }
+
+        private BoundExpression BindArrayDimension(ExpressionSyntax dimension, DiagnosticBag diagnostics, ref bool hasErrors)
+        {
+            // These make the parse tree nicer, but they shouldn't actually appear in the bound tree.
+            if (dimension.Kind() != SyntaxKind.OmittedArraySizeExpression)
+            {
+                var size = BindValue(dimension, diagnostics, BindValueKind.RValue);
+                if (!size.HasAnyErrors)
+                {
+                    size = ConvertToArrayIndex(size, dimension, diagnostics, allowIndexAndRange: false);
+                    if (IsNegativeConstantForArraySize(size))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_NegativeArraySize, dimension);
+                        hasErrors = true;
+                    }
+                }
+
+                return size;
+            }
+            return null;
         }
 
         private BoundExpression BindImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node, DiagnosticBag diagnostics)
@@ -3297,7 +3307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayTypeSyntax arrayTypeSyntax = (ArrayTypeSyntax)typeSyntax;
             var elementTypeSyntax = arrayTypeSyntax.ElementType;
-            var arrayType = (ArrayTypeSymbol)BindArrayType(arrayTypeSyntax, diagnostics, permitDimensions: true, basesBeingResolved: null).Type;
+            var arrayType = (ArrayTypeSymbol)BindArrayType(arrayTypeSyntax, diagnostics, permitDimensions: true, basesBeingResolved: null, disallowRestrictedTypes: false).Type;
             var elementType = arrayType.ElementTypeWithAnnotations;
 
             TypeSymbol type = GetStackAllocType(node, elementType, diagnostics, out bool hasErrors);
@@ -6201,9 +6211,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = new BoundTypeExpression(
                             syntax: node,
                             aliasOpt: null,
-                            inferredType: false,
                             boundContainingTypeOpt: left as BoundTypeExpression,
-                            type: type);
+                            boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
+                            typeWithAnnotations: TypeWithAnnotations.Create(type));
                         break;
 
                     case SymbolKind.Property:
