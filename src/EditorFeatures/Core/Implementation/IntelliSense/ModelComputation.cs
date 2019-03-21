@@ -2,11 +2,11 @@
 
 using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
         // *last* compute task, then we will want to stop everything.  However, if it is not the
         // last compute task, then we just want to ignore that result and allow the actual
         // latest compute task to proceed.
+        [NoMainThreadDependency(Verified = false)]
         private Task<TModel> _lastTask;
         private Task _notifyControllerTask;
 
@@ -80,7 +81,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
                 // We should never be called if we were stopped.
                 Contract.ThrowIfTrue(_stopCancellationToken.IsCancellationRequested);
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
                 return _lastTask;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
             }
         }
 
