@@ -4034,11 +4034,11 @@ class AAttribute: Attribute
             Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
                 <Document><![CDATA[
 
-enum Color
+static class Color
 {
-    Red,
-    Green,
-    Blue
+    public const uint Red = 1;
+    public const uint Green = 2;
+    public const uint Blue = 3;
 }
 
 class C
@@ -4060,10 +4060,11 @@ class C
                     dict(f) = False
                 Next
 
-                dict(CompletionItemFilter.EnumFilter) = True
+                dict(CompletionItemFilter.ConstantFilter) = True
 
                 Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
                 state.RaiseFiltersChanged(args)
+                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("Red")
                 state.AssertCompletionItemsContainAll(displayText:={"Red", "Green", "Blue"})
                 state.AssertCompletionItemsDoNotContainAny({"Equals"})
@@ -4074,6 +4075,7 @@ class C
 
                 args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
                 state.RaiseFiltersChanged(args)
+                Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("Red")
                 state.AssertCompletionItemsContainAll({"Red", "Green", "Blue", "Equals"})
 
