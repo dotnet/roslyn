@@ -29,11 +29,6 @@ echo "Launching build in Docker Container"
 echo "Running command: $BUILD_COMMAND"
 echo "Using code from: $DOCKER_HOST_SHARE_DIR"
 
-echo "chcosta - what's here?"
-ls $DOCKER_HOST_SHARE_DIR
-echo "chcosta - what's in .dotnet"
-ls "$DOCKER_HOST_SHARE_DIR/.dotnet"
-
 # Note: passwords/keys should not be passed in the environment
 docker run -t --rm --sig-proxy=true \
     --name $CONTAINER_NAME \
