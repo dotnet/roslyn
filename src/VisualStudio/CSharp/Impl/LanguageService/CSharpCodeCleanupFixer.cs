@@ -416,7 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             foreach (var projectId in solution.ProjectIds)
             {
                 var project = solution.GetProject(projectId);
-                if (project.LanguageServices.GetService<ICodeCleanupService>() == null)
+                if (!CanCleanupProject(project))
                 {
                     continue;
                 }
@@ -438,7 +438,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private async Task<Project> FixProjectAsync(Project project, FixIdContainer enabledFixIds, ProgressTracker progressTracker, bool addProgressItemsForDocuments, CancellationToken cancellationToken)
         {
-            if (project.LanguageServices.GetService<ICodeCleanupService>() == null)
+            if (!CanCleanupProject(project))
             {
                 return project;
             }
@@ -466,6 +466,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
             return project;
         }
+
+        private static bool CanCleanupProject(Project project)
+            => project.LanguageServices.GetService<ICodeCleanupService>() != null;
 
         private async Task<Document> FixDocumentAsync(Document document, FixIdContainer enabledFixIds, ProgressTracker progressTracker, CancellationToken cancellationToken)
         {
