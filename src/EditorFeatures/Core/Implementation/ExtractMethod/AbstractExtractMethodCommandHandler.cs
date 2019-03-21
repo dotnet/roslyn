@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            if (!args.SubjectBuffer.TryGetOwningWorkspace(out var workspace) ||
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
                 !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
                 !args.SubjectBuffer.SupportsRefactorings())
             {

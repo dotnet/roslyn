@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
 
         private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace)
-            => subjectBuffer.TryGetOwningWorkspace(out workspace) &&
-                workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
-                subjectBuffer.SupportsRefactorings();
+            => subjectBuffer.TryGetWorkspace(out workspace) &&
+               workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+               subjectBuffer.SupportsRefactorings();
 
         private bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
         {

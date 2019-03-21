@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             }
         }
 
-        internal static bool TryGetOwningWorkspace(this ITextBuffer buffer, out Workspace workspace)
+        internal static bool TryGetWorkspace(this ITextBuffer buffer, out Workspace workspace)
             => Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace);
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         private static bool TryGetSupportsFeatureService(ITextBuffer buffer, out ITextBufferSupportsFeatureService service)
         {
             service = null;
-            if (buffer.TryGetOwningWorkspace(out var workspace))
+            if (buffer.TryGetWorkspace(out var workspace))
             {
                 service = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
             }

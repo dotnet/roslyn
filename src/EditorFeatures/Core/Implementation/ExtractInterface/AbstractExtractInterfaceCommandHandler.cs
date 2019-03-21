@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
         }
 
         private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace)
-            => subjectBuffer.TryGetOwningWorkspace(out workspace) &&
-                    workspace.CanApplyChange(ApplyChangesKind.AddDocument) &&
-                    workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
-                    subjectBuffer.SupportsRefactorings();
+            => subjectBuffer.TryGetWorkspace(out workspace) &&
+               workspace.CanApplyChange(ApplyChangesKind.AddDocument) &&
+               workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+               subjectBuffer.SupportsRefactorings();
     }
 }

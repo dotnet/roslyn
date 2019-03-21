@@ -60,13 +60,14 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         private VSCommanding.CommandState GetCommandStateImpl(EditorCommandArgs args)
         {
-            var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (!IsAvailable(caretPoint, args.SubjectBuffer))
+            var subjectBuffer = args.SubjectBuffer;
+            var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
+            if (!caretPoint.HasValue || !subjectBuffer.SupportsNavigationToAnyPosition())
             {
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document?.SupportsSyntaxTree != true)
             {
                 return VSCommanding.CommandState.Unspecified;
@@ -75,19 +76,17 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             return VSCommanding.CommandState.Available;
         }
 
-        private static bool IsAvailable(SnapshotPoint? caretPoint, ITextBuffer subjectBuffer)
-            => caretPoint.HasValue && subjectBuffer.SupportsNavigationToAnyPosition();
-
         private bool ExecuteCommandImpl(EditorCommandArgs args, bool gotoNextMember, CommandExecutionContext context)
         {
-            var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (!IsAvailable(caretPoint, args.SubjectBuffer))
+            var subjectBuffer = args.SubjectBuffer;
+            var caretPoint = args.TextView.GetCaretPoint(subjectBuffer);
+            if (!caretPoint.HasValue || !subjectBuffer.SupportsNavigationToAnyPosition())
             {
                 return false;
             }
 
 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document?.SupportsSyntaxTree != true)
             {
                 return false;
@@ -103,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             if (targetPosition != null)
             {
-                args.TextView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(args.SubjectBuffer.CurrentSnapshot, targetPosition.Value), _outliningManagerService);
+                args.TextView.TryMoveCaretToAndEnsureVisible(new SnapshotPoint(subjectBuffer.CurrentSnapshot, targetPosition.Value), _outliningManagerService);
             }
 
             return true;

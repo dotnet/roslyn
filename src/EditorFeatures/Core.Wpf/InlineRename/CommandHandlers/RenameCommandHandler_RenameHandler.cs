@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            if (!args.SubjectBuffer.TryGetOwningWorkspace(out var workspace) ||
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
                 !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
                 !args.SubjectBuffer.SupportsRename())
             {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void ExecuteRenameWorker(RenameCommandArgs args, CommandExecutionContext context)
         {
-            if (!args.SubjectBuffer.TryGetOwningWorkspace(out var workspace))
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace))
             {
                 return;
             }

@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         private bool IsCommandSupported(EditorCommandArgs args, out Workspace workspace)
         {
             workspace = null;
-            if (args.SubjectBuffer.TryGetOwningWorkspace(out var retrievedWorkspace))
+            if (args.SubjectBuffer.TryGetWorkspace(out var retrievedWorkspace))
             {
                 workspace = retrievedWorkspace;
                 if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
