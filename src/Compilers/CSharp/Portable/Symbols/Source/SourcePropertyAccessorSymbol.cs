@@ -219,6 +219,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             declarationModifiers |= propertyModifiers & ~DeclarationModifiers.Indexer;
 
+            // auto-implemented struct getters are implicitly 'readonly'
+            if (containingType.IsStructType() && !property.IsStatic && isAutoPropertyAccessor && methodKind == MethodKind.PropertyGet)
+            {
+                declarationModifiers |= DeclarationModifiers.ReadOnly;
+            }
+
             // ReturnsVoid property is overridden in this class so
             // returnsVoid argument to MakeFlags is ignored.
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
@@ -563,6 +569,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return parameters.ToImmutableAndFree();
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            if (IsDeclaredReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, locations[0], modifyCompilation: true);
+            }
         }
 
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)

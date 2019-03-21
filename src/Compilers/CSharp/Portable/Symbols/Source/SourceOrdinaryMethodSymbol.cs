@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PartialMethodChecks(this, implementingPart, diagnostics);
             }
 
-            if (_refKind == RefKind.RefReadOnly)
+            if (_refKind == RefKind.RefReadOnly || IsDeclaredReadOnly)
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }
