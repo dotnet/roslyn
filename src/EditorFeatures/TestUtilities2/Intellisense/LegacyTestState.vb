@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Overrides Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task
             If Not CurrentCompletionPresenterSession Is Nothing Then
-                AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
+                AssertCompletionItemsDoNotContainAny({text})
             End If
 
             Return Task.CompletedTask
