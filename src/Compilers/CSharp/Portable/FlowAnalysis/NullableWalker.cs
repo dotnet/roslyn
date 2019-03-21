@@ -1375,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bool inferredType = node.DeclaredType.InferredType;
+                bool inferredType = node.InferredType;
                 valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, AssignmentKind.Assignment);
                 if (inferredType)
                 {
