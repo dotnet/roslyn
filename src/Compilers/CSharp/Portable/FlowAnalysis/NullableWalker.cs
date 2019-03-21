@@ -36,18 +36,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
             internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
             internal readonly ImmutableDictionary<Symbol, TypeWithAnnotations> VariableTypes;
-            internal readonly LocalState VariableStates;
+
+            // The nullable state of all variables captured at the point where the function or lambda appeared.
+            internal readonly LocalState VariableNullableStates;
 
             internal VariableState(
                 ImmutableDictionary<VariableIdentifier, int> variableSlot,
                 ImmutableArray<VariableIdentifier> variableBySlot,
                 ImmutableDictionary<Symbol, TypeWithAnnotations> variableTypes,
-                LocalState variableStates)
+                LocalState variableNullableStates)
             {
                 VariableSlot = variableSlot;
                 VariableBySlot = variableBySlot;
                 VariableTypes = variableTypes;
-                VariableStates = variableStates;
+                VariableNullableStates = variableNullableStates;
             }
         }
 
@@ -80,8 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
         private readonly struct VisitArgumentResult
         {
-            public readonly VisitResult VisitResult;
+            private readonly VisitResult VisitResult;
             public readonly Optional<LocalState> StateForLambda;
+            public TypeWithState RValueType => VisitResult.RValueType;
+            public TypeWithAnnotations LValueType => VisitResult.LValueType;
+
             public VisitArgumentResult(VisitResult visitResult, Optional<LocalState> stateForLambda)
             {
                 VisitResult = visitResult;
@@ -251,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _variableTypes.Add(pair.Key, pair.Value);
                 }
-                this.State = initialState.VariableStates.Clone();
+                this.State = initialState.VariableNullableStates.Clone();
             }
         }
 
@@ -358,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool badRegion = false;
-                Optional<LocalState> initialLocalState = initialState is null ? default : new Optional<LocalState>(initialState.VariableStates);
+                Optional<LocalState> initialLocalState = initialState is null ? default : new Optional<LocalState>(initialState.VariableNullableStates);
                 ImmutableArray<PendingBranch> returns = walker.Analyze(ref badRegion, initialLocalState);
                 diagnostics.AddRange(walker.Diagnostics);
                 Debug.Assert(!badRegion);
@@ -1502,7 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Kind == BoundKind.ObjectCreationExpression ||
                 node.Kind == BoundKind.DynamicObjectCreationExpression ||
                 node.Kind == BoundKind.NewT);
-            var argumentTypes = argumentResults.SelectAsArray(ar => ar.VisitResult.RValueType);
+            var argumentTypes = argumentResults.SelectAsArray(ar => ar.RValueType);
 
             int slot = -1;
             TypeSymbol type = node.Type;
@@ -3080,7 +3085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: we allow for some variance in `in` and `out` cases. Unlike in binding, we're not
             // limited by CLR constraints.
 
-            var resultType = result.VisitResult.RValueType;
+            var resultType = result.RValueType;
             bool reported = false;
             switch (refKind)
             {
@@ -3106,7 +3111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!argument.IsSuppressed)
                         {
-                            var lvalueResultType = result.VisitResult.LValueType;
+                            var lvalueResultType = result.LValueType;
                             if (IsNullabilityMismatch(lvalueResultType, parameterType))
                             {
                                 // declared types must match
@@ -3127,7 +3132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
-                        var lValueType = result.VisitResult.LValueType;
+                        var lValueType = result.LValueType;
                         TrackNullableStateForAssignment(parameterValue, lValueType, MakeSlot(argument), parameterWithState);
                     }
                     break;
@@ -3139,7 +3144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _variableTypes[local.LocalSymbol] = parameterType;
                         }
 
-                        var lValueType = result.VisitResult.LValueType;
+                        var lValueType = result.LValueType;
                         // Check assignment from a fictional value from the parameter to the argument.
                         var parameterValue = new BoundParameter(argument.Syntax, parameter);
 
@@ -3213,11 +3218,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
                 _variableTypes.ToImmutableDictionary(),
                 localState.HasValue ? localState.Value : this.State.Clone());
-        }
-
-        private UnboundLambda GetUnboundLambda(BoundLambda expr, VariableState variableState)
-        {
-            return expr.UnboundLambda.WithNullableState(_binder, variableState);
         }
 
         private static (ParameterSymbol Parameter, TypeWithAnnotations Type) GetCorrespondingParameter(
@@ -3345,11 +3345,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < n; i++)
             {
                 var visitArgumentResult = argumentResults[i];
-                var visitResult = visitArgumentResult.VisitResult;
                 var lambdaState = visitArgumentResult.StateForLambda;
-                var argumentResult = visitResult.LValueType;
+                var argumentResult = visitArgumentResult.LValueType;
                 if (!argumentResult.HasType)
-                    argumentResult = visitResult.RValueType.ToTypeWithAnnotations();
+                    argumentResult = visitArgumentResult.RValueType.ToTypeWithAnnotations();
                 builder.Add(getArgumentForMethodTypeInference(arguments[i], argumentResult, lambdaState));
             }
             return builder.ToImmutableAndFree();
@@ -3361,7 +3360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // MethodTypeInferrer must infer nullability for lambdas based on the nullability
                     // from flow analysis rather than the declared nullability. To allow that, we need
                     // to re-bind lambdas in MethodTypeInferrer.
-                    return GetUnboundLambda((BoundLambda)argument, GetVariableState(lambdaState));
+                    return getUnboundLambda((BoundLambda)argument, GetVariableState(lambdaState));
                 }
                 if (!argumentType.HasType)
                 {
@@ -3373,6 +3372,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Oblivious, type: null);
                 }
                 return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.NullableAnnotation, argumentType.Type);
+            }
+
+            UnboundLambda getUnboundLambda(BoundLambda expr, VariableState variableState)
+            {
+                return expr.UnboundLambda.WithNullableState(_binder, variableState);
             }
         }
 
