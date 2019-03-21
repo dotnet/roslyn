@@ -49,11 +49,6 @@ namespace Microsoft.CodeAnalysis.Recommendations
                 return ImmutableArray<ISymbol>.Empty;
             }
 
-            if (declarationSyntax == null)
-            {
-                throw new ArgumentNullException(nameof(declarationSyntax));
-            }
-
             var semanticModel = context.SemanticModel;
             var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
                 semanticModel.GetEnclosingNamespace(declarationSyntax.SpanStart, cancellationToken));
