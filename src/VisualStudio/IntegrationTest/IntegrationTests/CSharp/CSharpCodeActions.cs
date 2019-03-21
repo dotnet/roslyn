@@ -141,13 +141,15 @@ class C
             VisualStudio.Editor.Verify.TextContains("Second?.");
         }
 
-        [CriticalWpfFact]
+        [CriticalWpfTheory]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
         [WorkItem(19089, "https://github.com/dotnet/roslyn/issues/19089")]
-        public void ApplyEditorConfigAndFixAllOccurrences()
+        [IterationData(20)]
+        public void ApplyEditorConfigAndFixAllOccurrences(int iteration)
         {
+            _ = iteration;
             var markup = @"
 class C
 {

@@ -270,12 +270,14 @@ class Program
 }");
         }
 
-        [CriticalWpfFact]
+        [CriticalWpfTheory]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
-        public void ApplyEditorConfigAndFormatDocument()
+        [IterationData(20)]
+        public void ApplyEditorConfigAndFormatDocument(int iteration)
         {
+            _ = iteration;
             var markup = @"
 class C
 {
