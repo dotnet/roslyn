@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var pooledBuilder = PooledStringBuilder.GetInstance();
 
             StringBuilder builder = pooledBuilder.Builder;
-            Add(method.ReturnType.TypeSymbol, builder);
+            Add(method.ReturnType, builder);
             builder.Append(' ');
 
             Add(containingType, builder);
@@ -100,10 +100,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builder.Append(method.Name);
             builder.Append('(');
 
-            var parameterTypes = method.ParameterTypes;
+            var parameterTypes = method.ParameterTypesWithAnnotations;
             for (int i = 0; i < parameterTypes.Length; i++)
             {
-                Add(parameterTypes[i].TypeSymbol, builder);
+                Add(parameterTypes[i].Type, builder);
                 if (i < parameterTypes.Length - 1)
                 {
                     builder.Append(", ");

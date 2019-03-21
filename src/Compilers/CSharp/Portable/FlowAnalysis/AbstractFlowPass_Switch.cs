@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var label in section.SwitchLabels)
                 {
-                    if (reachableLabels.Contains(label.Label) || label.HasErrors)
+                    if (reachableLabels.Contains(label.Label) || label.HasErrors ||
+                        label == node.DefaultLabel && node.Expression.ConstantValue == null && IsTraditionalSwitch(node))
                     {
                         SetState(initialState.Clone());
                     }

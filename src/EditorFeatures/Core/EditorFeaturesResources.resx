@@ -830,6 +830,14 @@ Do you want to proceed?</value>
   <data name="Paste_Tracking" xml:space="preserve">
     <value>Paste Tracking</value>
   </data>
+  <data name="Filter_image_element" xml:space="preserve">
+    <value>Filter</value>
+    <comment>Caption/tooltip for "Filter" image element displayed in completion popup.</comment>
+  </data>
+  <data name="Warning_image_element" xml:space="preserve">
+    <value>Warning</value>
+    <comment>Caption/tooltip for "Warning" image element displayed in completion popup.</comment>
+  </data>
   <data name="Invalid_assembly_name" xml:space="preserve">
     <value>Invalid assembly name</value>
   </data>
@@ -877,5 +885,8 @@ Do you want to proceed?</value>
   </data>
   <data name="Operator_Overloaded" xml:space="preserve">
     <value>Operator - Overloaded</value>
+  </data>
+  <data name="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail" xml:space="preserve">
+    <value>Operation is not ready for "{0}" yet. See bottom left corner for more details.</value>
   </data>
 </root>

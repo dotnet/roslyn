@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeSymbolWithAnnotations _lazyReturnType;
+        private TypeWithAnnotations _lazyReturnType;
         private bool _lazyIsVararg;
 
         /// <summary>
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     // Method or delegate cannot return type '{0}'
-                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType.TypeSymbol);
+                    diagnostics.Add(ErrorCode.ERR_MethodReturnCantBeRefAny, syntax.ReturnType.Location, _lazyReturnType.Type);
                 }
             }
 
@@ -218,17 +218,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
-                var parameter0Type = this.Parameters[0].Type;
+                var parameter0Type = this.Parameters[0].TypeWithAnnotations;
                 var parameter0RefKind = this.Parameters[0].RefKind;
-                if (!parameter0Type.TypeSymbol.IsValidExtensionParameterType())
+                if (!parameter0Type.Type.IsValidExtensionParameterType())
                 {
                     // Duplicate Dev10 behavior by selecting the parameter type.
                     var parameterSyntax = syntax.ParameterList.Parameters[0];
                     Debug.Assert(parameterSyntax.Type != null);
                     var loc = parameterSyntax.Type.Location;
-                    diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type.TypeSymbol);
+                    diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type.Type);
                 }
-                else if (parameter0RefKind == RefKind.Ref && !parameter0Type.IsValueType)
+                else if (parameter0RefKind == RefKind.Ref && !parameter0Type.Type.IsValueType)
                 {
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
                 }
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (parameter.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type.TypeSymbol);
+                    diagnostics.Add(ErrorCode.ERR_BadSpecialByRefLocal, loc, parameter.Type);
                 }
             }
         }
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ReportBadRefToken(GetSyntax().ReturnType, diagnostics);
             }
-            else if (ReturnType.TypeSymbol.IsBadAsyncReturn(this.DeclaringCompilation))
+            else if (ReturnType.IsBadAsyncReturn(this.DeclaringCompilation))
             {
                 diagnostics.Add(ErrorCode.ERR_BadAsyncReturn, errorLocation);
             }
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
@@ -931,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (!ContainingType.IsInterfaceType() && _lazyReturnType.IsStatic)
             {
                 // '{0}': static types cannot be used as return types
-                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, location, _lazyReturnType.Type);
             }
             else if (IsAbstract && IsExtern)
             {
@@ -1066,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-            if (ReturnType.NeedsNullableAttribute())
+            if (ReturnTypeWithAnnotations.NeedsNullableAttribute())
             {
                 this.DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1109,11 +1109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
-            ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArguments).Parameters;
+            ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeArgumentsWithAnnotations).Parameters;
             for (int i = 0; i < implementationParameters.Length; i++)
             {
-                if (!implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions) &&
-                    implementationParameters[i].Type.Equals(definitionParameters[i].Type, TypeCompareKind.AllIgnoreOptions))
+                if (!implementationParameters[i].TypeWithAnnotations.Equals(definitionParameters[i].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.AllNullableIgnoreOptions) &&
+                    implementationParameters[i].TypeWithAnnotations.Equals(definitionParameters[i].TypeWithAnnotations, TypeCompareKind.AllIgnoreOptions))
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementation.Locations[0], new FormattedSymbol(implementationParameters[i], SymbolDisplayFormat.ShortFormat));
                 }

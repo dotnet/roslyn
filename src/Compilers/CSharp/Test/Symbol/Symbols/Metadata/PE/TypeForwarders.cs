@@ -1607,7 +1607,7 @@ public class CF1
             EntityHandle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.True(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            // Exported types in .Net module cause PEVerify to fail.
+            // Exported types in .NET module cause PEVerify to fail.
             CompileAndVerify(appCompilation, verify: Verification.Fails,
                 symbolValidator: m =>
                 {

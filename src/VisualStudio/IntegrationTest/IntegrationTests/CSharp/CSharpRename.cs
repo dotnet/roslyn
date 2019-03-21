@@ -463,7 +463,7 @@ class y
 }");
 
             VisualStudio.Editor.SendKeys(VirtualKey.Escape);
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Rename);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Rename);
 
             VisualStudio.Editor.Verify.TextContains(@"
 class Program

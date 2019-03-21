@@ -11322,8 +11322,12 @@ class C
 
         [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/32576")] // PROTOTYPE(DefaultInterfaceImplementation): https://github.com/dotnet/roslyn/issues/32576
         [WorkItem(32576, "https://github.com/dotnet/roslyn/issues/32576")]
+        [WorkItem(34198, "https://github.com/dotnet/roslyn/issues/34198")]
         public void DecimalBinaryOp_03()
         {
+            // Test temporarily disabled as it fails CI on Linux in master branch
+            // Tracked by https://github.com/dotnet/roslyn/issues/34198
+
             string source = @"
 class C
 {
