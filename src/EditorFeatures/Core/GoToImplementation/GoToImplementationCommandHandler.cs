@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
             {
                 var subjectBuffer = args.SubjectBuffer;
-                if (!Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
+                if (!subjectBuffer.TryGetOwningWorkspace(out var workspace))
                 {
                     return false;
                 }

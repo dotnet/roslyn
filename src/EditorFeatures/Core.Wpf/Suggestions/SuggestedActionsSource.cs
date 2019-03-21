@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 this.AssertIsForeground();
 
                 if (_owner._codeFixService != null &&
-                    supportsFeatureService.SupportsCodeFixes(_subjectBuffer) &&
+                    _subjectBuffer.SupportsCodeFixes(workspace) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.CodeFix))
                 {
                     // We only include suppressions if light bulb is asking for everything.
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 if (workspace.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     _owner._codeRefactoringService != null &&
-                    supportsFeatureService.SupportsRefactorings(_subjectBuffer) &&
+                    _subjectBuffer.SupportsRefactorings(workspace) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                 {
                     // It may seem strange that we kick off a task, but then immediately 'Wait' on 
@@ -791,10 +791,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 CancellationToken cancellationToken)
             {
                 var workspace = document.Project.Solution.Workspace;
-                var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
 
                 if (provider._codeFixService != null &&
-                    supportsFeatureService.SupportsCodeFixes(_subjectBuffer))
+                    _subjectBuffer.SupportsCodeFixes(workspace))
                 {
                     var result = await provider._codeFixService.GetMostSevereFixableDiagnosticAsync(
                             document, range.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
@@ -830,11 +829,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 }
 
                 var workspace = document.Project.Solution.Workspace;
-                var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
 
                 if (document.Project.Solution.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     provider._codeRefactoringService != null &&
-                    supportsFeatureService.SupportsRefactorings(_subjectBuffer))
+                    _subjectBuffer.SupportsRefactorings(workspace))
                 {
                     if (await provider._codeRefactoringService.HasRefactoringsAsync(
                             document, selection.Value, cancellationToken).ConfigureAwait(false))

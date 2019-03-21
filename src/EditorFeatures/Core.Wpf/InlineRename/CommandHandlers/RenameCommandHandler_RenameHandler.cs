@@ -24,19 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var textContainer = args.SubjectBuffer.AsTextContainer();
-            if (!Workspace.TryGetWorkspace(textContainer, out var workspace))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRename(args.SubjectBuffer))
+            if (!args.SubjectBuffer.TryGetOwningWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                !args.SubjectBuffer.SupportsRename(workspace))
             {
                 return VSCommanding.CommandState.Unspecified;
             }
@@ -56,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void ExecuteRenameWorker(RenameCommandArgs args, CommandExecutionContext context)
         {
-            var snapshot = args.SubjectBuffer.CurrentSnapshot;
-            if (!Workspace.TryGetWorkspace(snapshot.AsText().Container, out var workspace))
+            if (!args.SubjectBuffer.TryGetOwningWorkspace(out var workspace))
             {
                 return;
             }
@@ -87,7 +76,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var position = caretPoint.Value;
             var cancellationToken = context.OperationContext.UserCancellationToken;
             var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
                 context.OperationContext).WaitAndGetResult(cancellationToken);

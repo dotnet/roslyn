@@ -30,20 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
 
         private static VSCommanding.CommandState GetCommandState(ITextBuffer subjectBuffer)
         {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null ||
-                !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(subjectBuffer))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            return VSCommanding.CommandState.Available;
+            return IsAvailable(subjectBuffer) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
         }
 
         public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
@@ -52,22 +39,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
 
+        private static bool IsAvailable(ITextBuffer subjectBuffer)
+        {
+            if (!subjectBuffer.TryGetOwningWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                !subjectBuffer.SupportsRefactorings(workspace))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         private bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
-                if (!Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
-                {
-                    return false;
-                }
-
-                if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-                {
-                    return false;
-                }
-
-                var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
-                if (!supportsFeatureService.SupportsRefactorings(subjectBuffer))
+                if (IsAvailable(subjectBuffer))
                 {
                     return false;
                 }

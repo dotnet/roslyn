@@ -77,26 +77,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
         private bool IsCommandSupported(EditorCommandArgs args, out Workspace workspace)
         {
             workspace = null;
-            var document = args.SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-
-            if (document == null)
+            if (args.SubjectBuffer.TryGetOwningWorkspace(out var retrievedWorkspace))
             {
-                return false;
+                workspace = retrievedWorkspace;
+                if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
+                {
+                    return false;
+                }
+
+                if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
+                {
+                    return false;
+                }
+
+                return args.SubjectBuffer.SupportsRefactorings(workspace);
             }
 
-            workspace = document.Project.Solution.Workspace;
-
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return false;
-            }
-
-            if (workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
-                return false;
-            }
-
-            return workspace.Services.GetService<ITextBufferSupportsFeatureService>().SupportsRefactorings(args.SubjectBuffer);
+            return false;
         }
 
         public bool ExecuteCommand(SortAndRemoveUnnecessaryImportsCommandArgs args, CommandExecutionContext context)

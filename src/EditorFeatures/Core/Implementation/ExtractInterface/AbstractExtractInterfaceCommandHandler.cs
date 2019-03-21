@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -29,21 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
         public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null ||
-                !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
-                !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(args.SubjectBuffer))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            return VSCommanding.CommandState.Available;
+            return IsAvailable(args.SubjectBuffer, out var _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
         }
 
         public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
@@ -51,19 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Extract_Interface))
             {
                 var subjectBuffer = args.SubjectBuffer;
-                if (!Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
-                {
-                    return false;
-                }
-
-                if (!workspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
-                    !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-                {
-                    return false;
-                }
-
-                var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
-                if (!supportsFeatureService.SupportsRefactorings(subjectBuffer))
+                if (!IsAvailable(subjectBuffer, out var workspace))
                 {
                     return false;
                 }
@@ -109,6 +84,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
                 return true;
             }
+        }
+
+        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace)
+        {
+            if (!subjectBuffer.TryGetOwningWorkspace(out var retrievedWorkspace) ||
+                    !retrievedWorkspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
+                    !retrievedWorkspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                    !subjectBuffer.SupportsRefactorings(retrievedWorkspace))
+            {
+                workspace = retrievedWorkspace;
+                return false;
+            }
+
+            workspace = retrievedWorkspace;
+            return true;
         }
     }
 }

@@ -50,19 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            if (!document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(args.SubjectBuffer))
+            if (!args.SubjectBuffer.TryGetOwningWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                !args.SubjectBuffer.SupportsRefactorings(workspace))
             {
                 return VSCommanding.CommandState.Unspecified;
             }
@@ -79,20 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 _renameService.ActiveSession.Commit();
             }
 
-            var subjectBuffer = args.SubjectBuffer;
-            if (!Workspace.TryGetWorkspace(subjectBuffer.AsTextContainer(), out var workspace))
-            {
-                return false;
-            }
-
-            var supportsFeatureService = workspace.Services.GetService<ITextBufferSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(subjectBuffer))
-            {
-                return false;
-            }
-
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null)
+            if (!args.SubjectBuffer.SupportsRefactorings())
             {
                 return false;
             }

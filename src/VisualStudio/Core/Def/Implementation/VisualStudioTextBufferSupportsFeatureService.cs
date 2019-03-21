@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
 
         public bool SupportsRename(ITextBuffer textBuffer)
         {
-            var sourceTextContainer = textBuffer.CurrentSnapshot.AsText().Container;
+            var sourceTextContainer = textBuffer.AsTextContainer();
             if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace))
             {
                 return workspace.GetRelatedDocumentIds(sourceTextContainer)
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SuggestionServi
 
         private static ContainedDocument GetContainedDocument(ITextBuffer textBuffer)
         {
-            var sourceTextContainer = textBuffer.CurrentSnapshot.AsText().Container;
+            var sourceTextContainer = textBuffer.AsTextContainer();
             if (Workspace.TryGetWorkspace(sourceTextContainer, out var workspace)
                 && workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {

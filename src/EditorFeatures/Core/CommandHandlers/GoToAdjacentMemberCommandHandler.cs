@@ -60,32 +60,48 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         private VSCommanding.CommandState GetCommandStateImpl(EditorCommandArgs args)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            return IsAvailable(document, caretPoint, args.SubjectBuffer) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
-        }
-
-        private static bool IsAvailable(Document document, SnapshotPoint? caretPoint, ITextBuffer subjectBuffer)
-        {
-            if (document?.SupportsSyntaxTree != true)
+            if (!IsAvailable(caretPoint, args.SubjectBuffer))
             {
-                return false;
+                return VSCommanding.CommandState.Unspecified;
             }
 
+            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document?.SupportsSyntaxTree != true)
+            {
+                return VSCommanding.CommandState.Unspecified;
+            }
+
+            return VSCommanding.CommandState.Available;
+        }
+
+        private static bool IsAvailable(SnapshotPoint? caretPoint, ITextBuffer subjectBuffer)
+        {
             if (!caretPoint.HasValue)
             {
                 return false;
             }
 
-            var documentSupportsFeatureService = document.Project.Solution.Workspace.Services.GetService<ITextBufferSupportsFeatureService>();
-            return documentSupportsFeatureService?.SupportsNavigationToAnyPosition(subjectBuffer) == true;
+            if (!subjectBuffer.TryGetOwningWorkspace(out var workspace) ||
+                !subjectBuffer.SupportsNavigationToAnyPosition(workspace))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private bool ExecuteCommandImpl(EditorCommandArgs args, bool gotoNextMember, CommandExecutionContext context)
         {
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-            if (!IsAvailable(document, caretPoint, args.SubjectBuffer))
+            if (!IsAvailable(caretPoint, args.SubjectBuffer))
+            {
+                return false;
+            }
+
+
+            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document?.SupportsSyntaxTree != true)
             {
                 return false;
             }
