@@ -162,7 +162,7 @@ class c { $$
                 Await state.AssertCompletionSession()
 
                 Assert.True(state.CompletionItemsContainsAll(displayText:={"OperatingSystem", "System", "SystemException"}))
-                Assert.False(state.CompletionItemsContainsAny(displayText:={"Exception", "Activator"}))
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"Exception", "Activator"})
             End Using
         End Function
 
@@ -345,7 +345,7 @@ class C
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List<int>", isHardSelected:=True)
                 Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList", "List"}))
-                Assert.False(state.CompletionItemsContainsAny(displayText:={"System"}))
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"System"})
                 state.SendTypeChars("n")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="LinkedList", displayTextSuffix:="<>", isHardSelected:=True)
@@ -1729,8 +1729,7 @@ class Goo
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
                 Assert.True(state.GetCompletionItems().Any(Function(i) i.DisplayText = "num" AndAlso i.DisplayTextSuffix = ":"))
-                Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "System"))
-                Assert.False(state.GetCompletionItems().Any(Function(c) c.DisplayText = "int"))
+                state.AssertCompletionItemsDoNotContainAny({"System", "int"})
             End Using
         End Function
 
@@ -2286,7 +2285,7 @@ class A
             ]]></Document>)
                 state.SendTypeChars("X")
                 Await state.AssertCompletionSession()
-                Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "X"))
+                state.AssertCompletionItemsDoNotContainAny({"X"})
             End Using
         End Function
 
@@ -4068,7 +4067,7 @@ class C
                 state.RaiseFiltersChanged(args)
                 Await state.AssertSelectedCompletionItem("Red")
                 state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue"})
-                Assert.False(state.GetCompletionItems().Any(Function(i) i.DisplayText = "Equals"))
+                state.AssertCompletionItemsDoNotContainAny({"Equals"})
 
                 For Each f In filters
                     dict(f) = False

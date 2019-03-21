@@ -653,7 +653,7 @@ End Class</document>)
                 state.SendTypeChars("Sy")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.True(state.CompletionItemsContainsAll(displayText:={"OperatingSystem", "System"}))
-                Assert.False(state.CompletionItemsContainsAny(displayText:={"Exception", "Activator"}))
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"Exception", "Activator"})
             End Using
         End Function
 
@@ -716,7 +716,7 @@ End Module]]></Document>)
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="List(Of Integer)", isHardSelected:=True)
                 Assert.True(state.CompletionItemsContainsAll(displayText:={"LinkedList", "List"}))
-                Assert.False(state.CompletionItemsContainsAny(displayText:={"System"}))
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"System"})
                 state.SendTypeChars("n")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="LinkedList", displayTextSuffix:="(Of " & ChrW(&H2026) & ")", isHardSelected:=True)

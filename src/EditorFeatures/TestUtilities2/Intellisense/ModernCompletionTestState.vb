@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If Not session Is Nothing Then
-                Assert.False(CompletionItemsContainsAny({text}))
+                AssertCompletionItemsDoNotContainAny({text})
             End If
         End Function
 
