@@ -31,6 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return tree.GetRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().Where(p => p.Parent.Kind() == SyntaxKind.DeclarationPattern || p.Parent.Kind() == SyntaxKind.VarPattern);
         }
 
+        protected IEnumerable<VariableDeclaratorSyntax> GetVariableDeclarations(SyntaxTree tree, string v)
+        {
+            return GetVariableDeclarations(tree).Where(d => d.Identifier.ValueText == v);
+        }
+
+        protected IEnumerable<VariableDeclaratorSyntax> GetVariableDeclarations(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+        }
+
         protected static IEnumerable<DiscardDesignationSyntax> GetDiscardDesignations(SyntaxTree tree)
         {
             return tree.GetRoot().DescendantNodes().OfType<DiscardDesignationSyntax>();
@@ -145,6 +155,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.True(parent is VarPatternSyntax);
                     break;
             }
+        }
+
+        protected static void VerifyModelForDuplicateVariableDeclarationInSameScope(SemanticModel model, VariableDeclaratorSyntax declarator)
+        {
+            var symbol = model.GetDeclaredSymbol(declarator);
+            Assert.Equal(declarator.Identifier.ValueText, symbol.Name);
+            Assert.Equal(declarator, symbol.DeclaringSyntaxReferences.Single().GetSyntax());
+            Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
+            Assert.Same(symbol, model.GetDeclaredSymbol((SyntaxNode)declarator));
+            Assert.NotEqual(symbol, model.LookupSymbols(declarator.SpanStart, name: declarator.Identifier.ValueText).Single());
+            Assert.True(model.LookupNames(declarator.SpanStart).Contains(declarator.Identifier.ValueText));
         }
 
         protected static void VerifyNotAPatternField(SemanticModel model, IdentifierNameSyntax reference)
