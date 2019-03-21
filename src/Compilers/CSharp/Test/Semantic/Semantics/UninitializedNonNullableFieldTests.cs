@@ -691,13 +691,7 @@ class C5<T, U> where T : A where U : T
                 Diagnostic(ErrorCode.ERR_UnassignedThisAutoProperty, "S").WithArguments("S.P").WithLocation(6, 14),
                 // (6,14): error CS0171: Field 'S.F' must be fully assigned before control is returned to the caller
                 //     internal S(string s)
-                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 14),
-                // (6,14): warning CS8618: Non-nullable property 'P' is uninitialized.
-                //     internal S(string s)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("property", "P").WithLocation(6, 14),
-                // (6,14): warning CS8618: Non-nullable field 'F' is uninitialized.
-                //     internal S(string s)
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "S").WithArguments("field", "F").WithLocation(6, 14));
+                Diagnostic(ErrorCode.ERR_UnassignedThis, "S").WithArguments("S.F").WithLocation(6, 14));
         }
 
         [Fact]
@@ -714,8 +708,7 @@ class C5<T, U> where T : A where U : T
             comp.VerifyDiagnostics();
         }
 
-        // https://github.com/dotnet/roslyn/issues/30022: Struct assign `this`.
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/30022")]
+        [Fact]
         [WorkItem(30022, "https://github.com/dotnet/roslyn/issues/30022")]
         public void StructAssignThis()
         {

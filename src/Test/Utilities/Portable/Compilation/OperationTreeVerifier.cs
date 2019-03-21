@@ -477,6 +477,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($"{nameof(IVariableDeclarationOperation)} ({variableCount} declarators)");
             LogCommonPropertiesAndNewLine(operation);
 
+            if (!operation.IgnoredDimensions.IsEmpty)
+            {
+                VisitArray(operation.IgnoredDimensions, "Ignored Dimensions", true);
+            }
             VisitArray(operation.Declarators, "Declarators", false);
             Visit(operation.Initializer, "Initializer");
         }
