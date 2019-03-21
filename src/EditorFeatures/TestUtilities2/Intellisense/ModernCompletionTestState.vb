@@ -198,12 +198,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v))
         End Function
 
-        Public Overrides Function CompletionItemsContainsAny(displayText As String()) As Boolean
-            AssertNoAsynchronousOperationsRunning()
-            Dim items = GetCompletionItems()
-            Return displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v))
-        End Function
-
         Public Overrides Sub AssertItemsInOrder(expectedOrder As String())
             AssertNoAsynchronousOperationsRunning()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
