@@ -4604,6 +4604,29 @@ class C
             End Using
         End Function
 
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestSuppressNullableWarningExpression(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void M()
+    {
+        var s = "";
+        s$$
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("!")
+                Await state.AssertNoCompletionSession()
+                state.SendTypeChars(".")
+                Await state.AssertCompletionSession()
+                state.CompletionItemsContainsAll(displayText:={"ToString", "GetHashCode"})
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 
