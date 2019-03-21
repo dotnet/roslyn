@@ -11336,10 +11336,11 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34198")]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/34198")]
         public void DecimalBinaryOp_03()
         {
-            // Test temporarily disabled as it fails CI on Linux in master branch
+            // Test temporarily disabled on Mono as it fails on nightlies due to System.Decimal changes
+            // We'll need to update / disable for CoreCLR 3.0 too as it has the same change
             // Tracked by https://github.com/dotnet/roslyn/issues/34198
 
             string source = @"

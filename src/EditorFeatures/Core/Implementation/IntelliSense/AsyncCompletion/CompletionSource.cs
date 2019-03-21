@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 source: this,
                 icon: new ImageElement(new ImageId(imageId.Guid, imageId.Id), roslynItem.DisplayText),
                 filters: filters,
-                suffix: string.Empty, // Do not use the suffix unless want it to be right-aligned in the selection popup
+                suffix: roslynItem.InlineDescription, // InlineDescription will be right-aligned in the selection popup
                 insertText: insertionText,
                 sortText: roslynItem.SortText,
                 filterText: roslynItem.FilterText,
