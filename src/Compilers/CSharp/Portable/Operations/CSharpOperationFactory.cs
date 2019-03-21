@@ -1974,7 +1974,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 _semanticModel,
                 boundIndex.Syntax,
                 boundIndex.Type,
-                constantValue: null,
+                constantValue: default,
                 isImplicit: boundIndex.WasCompilerGenerated);
         }
 
