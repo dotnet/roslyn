@@ -72,8 +72,6 @@
     <!-- PROTOTYPE(DefaultInterfaceImplementation): The MicrosoftNetCoreILAsmVersion was 2.0.0 -->
     <MicrosoftNetCoreILAsmVersion>3.0.0-preview4-27420-71</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.2</MicrosoftNETCorePlatformsVersion>
-    <!-- PROTOTYPE(DefaultInterfaceImplementation): The MicrosoftNETCoreRuntimeCoreCLRVersion was 2.0.0 -->
-    <MicrosoftNETCoreRuntimeCoreCLRVersion>3.0.0-preview4-27420-5</MicrosoftNETCoreRuntimeCoreCLRVersion>
     <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/1764 -->
     <MicrosoftNETTestSdkVersion>15.9.0-dev2</MicrosoftNETTestSdkVersion>
     <MicrosoftNETCoreTestHostVersion>1.1.0</MicrosoftNETCoreTestHostVersion>
@@ -319,12 +317,6 @@
       https://vside.myget.org/F/vs-impl/api/v3/index.json;
       https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
       https://dotnet.myget.org/F/system-commandline/api/v3/index.json;
-      
-      <!--
-      PROTOTYPE(DefaultInterfaceImplementation): added the https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json (Microsoft.NETCore.App) and 
-                                                 https://dotnetfeed.blob.core.windows.net/dotnet-coreclr/index.json (Microsoft.NETCore.ILAsm) sources below
-      -->
-      https://dotnetfeed.blob.core.windows.net/dotnet-core/index.json;
       https://dotnetfeed.blob.core.windows.net/dotnet-coreclr/index.json;
     </RestoreSources>
   </PropertyGroup>

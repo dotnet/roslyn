@@ -223,8 +223,6 @@ function BuildSolution() {
     # an arcade bug
     # https://github.com/dotnet/arcade/issues/2220
     $quietRestore = !($ci -or ($bootstrapDir -ne ""))
-
-    # PROTOTYPE(DefaultInterfaceImplementation): Added "netcoreapp3.0%3B", original value was "netcoreapp2.1"
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.0%3Bnetcoreapp2.1" } else { "" }
     
     $ibcSourceBranchName = GetIbcSourceBranchName
