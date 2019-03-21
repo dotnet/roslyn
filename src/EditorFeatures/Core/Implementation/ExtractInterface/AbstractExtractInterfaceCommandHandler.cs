@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
         public string DisplayName => EditorFeaturesResources.Extract_Interface;
 
-        public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args) =>
-            IsAvailable(args.SubjectBuffer, out var _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+        public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args)
+            => IsAvailable(args.SubjectBuffer, out _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
 
         public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
         {
@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
             }
         }
 
-        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace) =>
-            subjectBuffer.TryGetOwningWorkspace(out workspace) &&
+        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace)
+            => subjectBuffer.TryGetOwningWorkspace(out workspace) &&
                     workspace.CanApplyChange(ApplyChangesKind.AddDocument) &&
                     workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
                     subjectBuffer.SupportsRefactorings();

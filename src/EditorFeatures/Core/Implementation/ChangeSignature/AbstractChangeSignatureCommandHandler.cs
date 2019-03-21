@@ -28,8 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         public VSCommanding.CommandState GetCommandState(RemoveParametersCommandArgs args)
             => GetCommandState(args.SubjectBuffer);
 
-        private static VSCommanding.CommandState GetCommandState(ITextBuffer subjectBuffer) =>
-            IsAvailable(subjectBuffer, out _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+        private static VSCommanding.CommandState GetCommandState(ITextBuffer subjectBuffer)
+            => IsAvailable(subjectBuffer, out _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
 
         public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
 
-        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace) =>
-            subjectBuffer.TryGetOwningWorkspace(out workspace) &&
+        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace)
+            => subjectBuffer.TryGetOwningWorkspace(out workspace) &&
                 workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
                 subjectBuffer.SupportsRefactorings();
 

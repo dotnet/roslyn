@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
             }
         }
 
-        public VSCommanding.CommandState GetCommandState(EncapsulateFieldCommandArgs args) =>
-            args.SubjectBuffer.SupportsRefactorings() ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
+        public VSCommanding.CommandState GetCommandState(EncapsulateFieldCommandArgs args)
+            => args.SubjectBuffer.SupportsRefactorings() ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
     }
 }
