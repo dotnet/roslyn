@@ -121,6 +121,9 @@ function InitializeDotNetCli([bool]$install) {
   # otherwise install the dotnet CLI and SDK to repo local .dotnet directory to avoid potential permission issues.
   if (($env:DOTNET_INSTALL_DIR -ne $null) -and (Test-Path(Join-Path $env:DOTNET_INSTALL_DIR "sdk\$dotnetSdkVersion"))) {
     $dotnetRoot = $env:DOTNET_INSTALL_DIR
+
+    # Acquire the dotnet install script so the build can install additional runtimes for developer builds
+    GetDotNetInstallScript (Join-Path $RepoRoot ".dotnet") | Out-Null
   } else {
     $dotnetRoot = Join-Path $RepoRoot ".dotnet"
 
@@ -147,12 +150,11 @@ function InitializeDotNetCli([bool]$install) {
     Write-Host "##vso[task.setvariable variable=DOTNET_MULTILEVEL_LOOKUP]0"
     Write-Host "##vso[task.setvariable variable=DOTNET_SKIP_FIRST_TIME_EXPERIENCE]1"
   }
-
   return $global:_DotNetInstallDir = $dotnetRoot
 }
 
 function GetDotNetInstallScript([string] $dotnetRoot) {
-  $installScript = "$dotnetRoot\dotnet-install.ps1"
+  $installScript = Join-Path $dotnetRoot "dotnet-install.ps1"
   if (!(Test-Path $installScript)) {
     Create-Directory $dotnetRoot
     Invoke-WebRequest "https://dot.net/v1/dotnet-install.ps1" -OutFile $installScript
@@ -333,7 +335,6 @@ function InitializeBuildTool() {
   if (Get-Member -InputObject $GlobalJson.tools -Name "dotnet") {
     $dotnetRoot = InitializeDotNetCli -install:$restore
   }
-
   if ($msbuildEngine -eq "dotnet") {
     if (!$dotnetRoot) {
       Write-Host "/global.json must specify 'tools.dotnet'." -ForegroundColor Red
@@ -472,7 +473,6 @@ function MSBuild() {
       $cmdArgs += " `"$arg`""
     }
   }
-  
   $exitCode = Exec-Process $buildTool.Path $cmdArgs
 
   if ($exitCode -ne 0) {
