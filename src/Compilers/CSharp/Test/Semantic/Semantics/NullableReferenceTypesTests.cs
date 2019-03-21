@@ -23584,65 +23584,6 @@ class C
                 );
         }
 
-        [Fact, WorkItem(33982, "https://github.com/dotnet/roslyn/issues/33982")]
-        public void ConditionalOperator_AssignToRef()
-        {
-            var comp = CreateCompilation(@"
-interface I< T> { }
-interface IIn<in T> { }
-interface IOut<out T> { }
-class C
-{
-    static void F1(bool b, object? x, object y)
-    {
-        ref var xy = ref b ? ref x : ref y; // 1
-        ref var yx = ref b ? ref y : ref x; // 2
-    }
-    static void F2(bool b, I<object> x, I<object?> y)
-    {
-        ref var xy = ref b ? ref x : ref y; // 3
-        ref var yx = ref b ? ref y : ref x; // 4
-    }
-    static void F2(bool b, IOut<object> x, IOut<object?> y)
-    {
-        ref var xy = ref b ? ref x : ref y; // 5
-        ref var yx = ref b ? ref y : ref x; // 6
-    }
-    static void F2(bool b, IIn<object> x, IIn<object?> y)
-    {
-        ref var xy = ref b ? ref x : ref y; // 7
-        ref var yx = ref b ? ref y : ref x; // 8
-    }
-}", options: WithNonNullTypesTrue());
-
-            comp.VerifyDiagnostics(
-                // (9,26): warning CS8619: Nullability of reference types in value of type 'object?' doesn't match target type 'object'.
-                //         ref var xy = ref b ? ref x : ref y; // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref x : ref y").WithArguments("object?", "object").WithLocation(9, 26),
-                // (10,26): warning CS8619: Nullability of reference types in value of type 'object' doesn't match target type 'object?'.
-                //         ref var yx = ref b ? ref y : ref x; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref y : ref x").WithArguments("object", "object?").WithLocation(10, 26),
-                // (14,26): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
-                //         ref var xy = ref b ? ref x : ref y; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref x : ref y").WithArguments("I<object>", "I<object?>").WithLocation(14, 26),
-                // (15,26): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
-                //         ref var yx = ref b ? ref y : ref x; // 4
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref y : ref x").WithArguments("I<object?>", "I<object>").WithLocation(15, 26),
-                // (19,26): warning CS8619: Nullability of reference types in value of type 'IOut<object>' doesn't match target type 'IOut<object?>'.
-                //         ref var xy = ref b ? ref x : ref y; // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref x : ref y").WithArguments("IOut<object>", "IOut<object?>").WithLocation(19, 26),
-                // (20,26): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
-                //         ref var yx = ref b ? ref y : ref x; // 6
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref y : ref x").WithArguments("IOut<object?>", "IOut<object>").WithLocation(20, 26),
-                // (24,26): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
-                //         ref var xy = ref b ? ref x : ref y; // 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref x : ref y").WithArguments("IIn<object>", "IIn<object?>").WithLocation(24, 26),
-                // (25,26): warning CS8619: Nullability of reference types in value of type 'IIn<object?>' doesn't match target type 'IIn<object>'.
-                //         ref var yx = ref b ? ref y : ref x; // 8
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref y : ref x").WithArguments("IIn<object?>", "IIn<object>").WithLocation(25, 26)
-                );
-        }
-
         [Fact]
         public void IdentityConversion_ConditionalOperator()
         {
@@ -72349,7 +72290,6 @@ class Outer
     ref S M1<S>(S x) => throw null!;
 }
 ";
-            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         M1(z0).ToString();
@@ -72380,7 +72320,6 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         z0.ToString();
@@ -72409,7 +72348,6 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         M1(z0).ToString();
@@ -72439,7 +72377,6 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         z0.ToString();
@@ -72466,7 +72403,6 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         z0.ToString();
@@ -72578,7 +72514,6 @@ class Outer
     ref S M1<S>(S x) => throw null!;
 }
 ";
-            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         M1(z0).ToString();
@@ -72610,7 +72545,6 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         M1(z0).ToString();
@@ -72641,7 +72575,6 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         z0.ToString();
@@ -72668,7 +72601,6 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         z0.ToString();
@@ -72723,7 +72655,6 @@ class Outer<T>
     T M2() => throw null!;
 }
 ";
-            // Unexpected diagnostics due to https://github.com/dotnet/roslyn/issues/33924
             CreateCompilation(source, options: WithNonNullTypesTrue()).VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         z0.ToString();
