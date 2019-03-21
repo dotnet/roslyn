@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         /// Editor that takes a type in a scope and creates a scope beside it. For example, if the type is contained within a namespace 
         /// it will evaluate if the namespace scope needs to be closed and reopened to create a new scope. 
         /// </summary>
-        private class MoveTypeNamespaceScope : Editor
+        private class MoveTypeNamespaceScopeEditor : Editor
         {
-            public MoveTypeNamespaceScope(TService service, State state, string fileName, CancellationToken cancellationToken)
+            public MoveTypeNamespaceScopeEditor(TService service, State state, string fileName, CancellationToken cancellationToken)
                 : base(service, state, fileName, cancellationToken)
             {
             }
@@ -103,12 +103,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
                 if (leading && syntaxNode.HasLeadingTrivia)
                 {
-                    syntaxNode = syntaxNode.WithLeadingTrivia(syntaxNode.GetLeadingTrivia().Select(AsElasticTrivia));
+                    syntaxNode = syntaxNode.WithLeadingTrivia(syntaxNode.GetLeadingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
                 }
 
                 if (trailing && syntaxNode.HasTrailingTrivia)
                 {
-                    syntaxNode = syntaxNode.WithTrailingTrivia(syntaxNode.GetTrailingTrivia().Select(AsElasticTrivia));
+                    syntaxNode = syntaxNode.WithTrailingTrivia(syntaxNode.GetTrailingTrivia().Select(SyntaxTriviaExtensions.AsElastic));
                 }
 
                 return syntaxNode;
@@ -143,9 +143,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     }
                 }
             }
-
-            private static SyntaxTrivia AsElasticTrivia(SyntaxTrivia trivia)
-                => trivia.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation);
         }
     }
 }

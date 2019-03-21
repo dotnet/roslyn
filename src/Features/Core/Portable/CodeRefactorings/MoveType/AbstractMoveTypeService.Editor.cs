@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                     case MoveTypeOperationKind.RenameFile:
                         return new RenameFileEditor(service, state, fileName, cancellationToken);
                     case MoveTypeOperationKind.MoveTypeNamespaceScope:
-                        return new MoveTypeNamespaceScope(service, state, fileName, cancellationToken);
+                        return new MoveTypeNamespaceScopeEditor(service, state, fileName, cancellationToken);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(operationKind);
                 }

@@ -796,6 +796,113 @@ namespace N2
             return TestNamespaceMove(code, expected);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public Task MoveType_NamespaceScope_NestedNamespaces()
+        {
+            var code =
+@"namespace N1
+{
+    namespace N2
+    {
+        class [||]C1
+        {
+        }
+
+        class C2
+        {
+        }
+    }
+
+    class C3
+    {
+    }
+}";
+            var expected =
+@"namespace N1
+{
+    namespace N1.N2
+    {
+        class C1
+        {
+        }
+    }
+
+    namespace N2
+    {
+        class C2
+        {
+        }
+    }
+
+    class C3
+    {
+    }
+}";
+            return TestNamespaceMove(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public Task MoveType_NamespaceScope_NestedNamespaces2()
+        {
+            var code =
+@"namespace N1
+{
+    namespace N2
+    {
+        class C1
+        {
+        }
+
+        class C2
+        {
+        }
+    }
+
+    class [||]C3
+    {
+    }
+
+    namespace N3
+    {
+        class C4
+        {
+        }
+    }
+}";
+            var expected =
+@"namespace N1
+{
+    namespace N2
+    {
+        class C1
+        {
+        }
+
+        class C2
+        {
+        }
+    }
+}
+
+namespace N1
+{
+    class C3
+    {
+    }
+}
+
+namespace N1
+{
+    namespace N3
+    {
+        class C4
+        {
+        }
+    }
+}";
+            return TestNamespaceMove(code, expected);
+        }
+
         private async Task TestNamespaceMove(string originalCode, string expectedCode, bool expectOperation = true)
         {
             using (var workspace = CreateWorkspaceFromOptions(originalCode, default))
