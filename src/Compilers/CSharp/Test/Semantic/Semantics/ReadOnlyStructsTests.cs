@@ -75,9 +75,9 @@ public readonly struct A
                 // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this = default;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(16, 9),
-                // (18,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (18,9): error CS1604: Cannot assign to 'this.x' because it is read-only
                 //         this.x = 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this").WithLocation(18, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this.x").WithLocation(18, 9));
         }
 
         [Fact()]
@@ -149,12 +149,12 @@ interface I1
                 // (10,25): error CS8342: Field-like events are not allowed in readonly structs.
                 //     public event Action ei1;
                 Diagnostic(ErrorCode.ERR_FieldlikeEventsInRoStruct, "ei1").WithLocation(10, 25),
-                // (43,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (43,9): error CS1604: Cannot assign to 'e' because it is read-only
                 //         e = () => { };
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "e").WithArguments("this").WithLocation(43, 9),
-                // (46,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "e").WithArguments("e").WithLocation(43, 9),
+                // (46,16): error CS1605: Cannot use 'e' as a ref or out value because it is read-only
                 //         M1(ref e);
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "e").WithArguments("this").WithLocation(46, 16)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "e").WithArguments("e").WithLocation(46, 16)
             );
         }
 
@@ -187,10 +187,9 @@ public struct A
                 // (11,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this = default;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(11, 9),
-                // PROTOTYPE: The error message should state the specific thing being assigned and more specifically why it can't be assigned.
-                // (13,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (13,9): error CS1604: Cannot assign to 'this.x' because it is read-only
                 //         this.x = 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this.x").WithLocation(13, 9));
         }
 
         [Fact]
@@ -311,9 +310,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (21,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                // (21,16): error CS1605: Cannot use 'f2' as a ref or out value because it is read-only
                 //         M1(ref f2); // error
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "f2").WithArguments("this").WithLocation(21, 16));
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "f2").WithArguments("f2").WithLocation(21, 16));
         }
 
         [Fact]
@@ -425,15 +424,15 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,52): error CS1604: Cannot assign to 'this' because it is read-only
+                // (7,52): error CS1604: Cannot assign to 'i' because it is read-only
                 //     public readonly override string ToString() => (i++).ToString();
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(7, 52),
-                // (8,52): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(7, 52),
+                // (8,52): error CS1604: Cannot assign to 'i' because it is read-only
                 //     public readonly override int GetHashCode() => (i++).GetHashCode();
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(8, 52),
-                // (9,56): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(8, 52),
+                // (9,56): error CS1604: Cannot assign to 'i' because it is read-only
                 //     public readonly override bool Equals(object o) => (i++).Equals(o);
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(9, 56));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(9, 56));
         }
 
         [Fact]
@@ -500,9 +499,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (16,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i++;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(16, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(16, 9));
         }
 
         [Fact]
@@ -531,9 +530,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (16,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i++;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(16, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(16, 9));
         }
 
         [Fact]
@@ -660,9 +659,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (27,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (27,9): error CS1604: Cannot assign to 'P2' because it is read-only
                 //         P2 = 2; // error
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P2").WithArguments("this").WithLocation(27, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P2").WithArguments("P2").WithLocation(27, 9));
         }
 
         [Fact]
@@ -683,18 +682,18 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (7,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i++;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(7, 9),
-                // (8,9): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(7, 9),
+                // (8,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i--;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(8, 9),
-                // (9,11): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(8, 9),
+                // (9,11): error CS1604: Cannot assign to 'i' because it is read-only
                 //         ++i;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(9, 11),
-                // (10,11): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(9, 11),
+                // (10,11): error CS1604: Cannot assign to 'i' because it is read-only
                 //         --i;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(10, 11));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(10, 11));
         }
 
         [Fact]
@@ -713,12 +712,12 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (7,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i += 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(7, 9),
-                // (8,9): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(7, 9),
+                // (8,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i -= 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(8, 9));
         }
 
         [Fact]
@@ -744,9 +743,9 @@ public struct S
             // should warn about E += handler in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (11,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (11,9): error CS1604: Cannot assign to 'E' because it is read-only
                 //         E = handler;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "E").WithArguments("this").WithLocation(11, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "E").WithArguments("E").WithLocation(11, 9));
         }
 
         [Fact]
@@ -766,12 +765,12 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (8,15): error CS1604: Cannot assign to 'this' because it is read-only
+                // (8,15): error CS1604: Cannot assign to 'i' because it is read-only
                 //         add { i++; }
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(8, 15),
-                // (9,18): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(8, 15),
+                // (9,18): error CS1604: Cannot assign to 'i' because it is read-only
                 //         remove { i--; }
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(9, 18));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(9, 18));
         }
 
         [Fact]
