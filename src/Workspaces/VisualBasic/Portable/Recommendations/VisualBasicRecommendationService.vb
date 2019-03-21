@@ -14,8 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
     Friend Class VisualBasicRecommendationService
         Inherits AbstractRecommendationService(Of VisualBasicSyntaxContext)
 
-        Protected Overrides Async Function CreateContext(Workspace As Workspace, SemanticModel As SemanticModel, position As Integer, CancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
-            Return Await VisualBasicSyntaxContext.CreateContextAsync(Workspace, SemanticModel, position, CancellationToken).ConfigureAwait(False)
+        Protected Overrides Function CreateContext(Workspace As Workspace, SemanticModel As SemanticModel, position As Integer, CancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+            Return VisualBasicSyntaxContext.CreateContextAsync(Workspace, SemanticModel, position, CancellationToken)
         End Function
 
         Protected Overrides Function GetSymbolsWorker(
