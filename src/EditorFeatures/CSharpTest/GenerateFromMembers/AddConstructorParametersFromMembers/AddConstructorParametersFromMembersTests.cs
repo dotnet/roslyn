@@ -1018,7 +1018,8 @@ class C
 {
     int [|l|];
 
-    // index 0, and 2 as optional
+    // index 0 as required
+    // index 2 as optional
     public C(int i)
     {
     }
