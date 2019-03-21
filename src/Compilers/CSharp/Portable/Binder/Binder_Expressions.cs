@@ -1887,7 +1887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                baseType = this.BindType(node.TypeClause.BaseType, diagnostics, out AliasSymbol alias).TypeSymbol;
+                baseType = this.BindType(node.TypeClause.BaseType, diagnostics, out AliasSymbol alias).Type;
                 hasErrors = baseType.IsErrorType();
 
                 if (!hasErrors && !(this.ContainingType is null))
@@ -6492,16 +6492,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-<<<<<<< HEAD
             if (!IsBadBaseAccess(node, receiver, fieldSymbol, diagnostics))
             {
                 CheckRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
             }
 
-            TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).TypeSymbol;
-=======
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).Type;
->>>>>>> 063a86d
             BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
 
             // Spec 14.3: "Within an enum member initializer, values of other enum members are
