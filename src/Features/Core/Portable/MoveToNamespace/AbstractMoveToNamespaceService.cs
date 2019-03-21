@@ -62,12 +62,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
             var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken: cancellationToken);
             var symbol = symbolInfo.Symbol;
-            var @namespace = symbol?.Name;
+            string @namespace = null;
 
-            if (symbol is INamespaceSymbol namespaceSymbol)
+            if (symbol is INamespaceSymbol namespaceSymbol && !(node is TNamespaceDeclarationSyntax))
             {
                 node = node.FirstAncestorOrSelf<SyntaxNode>(a => a is TNamespaceDeclarationSyntax);
-                @namespace = GetQualifiedName(namespaceSymbol);
             }
 
             if (node is TNamespaceDeclarationSyntax declarationSyntax)
@@ -77,7 +76,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                     return new MoveToNamespaceAnalysisResult("Namespace container contains nested namespace declaration");
                 }
 
-                @namespace = @namespace ?? GetNamespaceName(declarationSyntax);
+                @namespace = GetNamespaceName(declarationSyntax);
                 return new MoveToNamespaceAnalysisResult(document, node, @namespace, MoveToNamespaceAnalysisResult.ContainerType.Namespace);
             }
 
