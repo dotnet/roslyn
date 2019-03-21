@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             if (!args.SubjectBuffer.TryGetOwningWorkspace(out var workspace) ||
                 !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                !args.SubjectBuffer.SupportsRename(workspace))
+                !args.SubjectBuffer.SupportsRename())
             {
                 return VSCommanding.CommandState.Unspecified;
             }

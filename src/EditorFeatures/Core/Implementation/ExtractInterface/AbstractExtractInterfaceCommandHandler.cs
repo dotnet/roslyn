@@ -28,10 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
 
         public string DisplayName => EditorFeaturesResources.Extract_Interface;
 
-        public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args)
-        {
-            return IsAvailable(args.SubjectBuffer, out var _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
-        }
+        public VSCommanding.CommandState GetCommandState(ExtractInterfaceCommandArgs args) =>
+            IsAvailable(args.SubjectBuffer, out var _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
 
         public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
         {
@@ -86,19 +84,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractInterface
             }
         }
 
-        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace)
-        {
-            if (!subjectBuffer.TryGetOwningWorkspace(out var retrievedWorkspace) ||
-                    !retrievedWorkspace.CanApplyChange(ApplyChangesKind.AddDocument) ||
-                    !retrievedWorkspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                    !subjectBuffer.SupportsRefactorings(retrievedWorkspace))
-            {
-                workspace = retrievedWorkspace;
-                return false;
-            }
-
-            workspace = retrievedWorkspace;
-            return true;
-        }
+        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace) =>
+            subjectBuffer.TryGetOwningWorkspace(out workspace) &&
+                    workspace.CanApplyChange(ApplyChangesKind.AddDocument) &&
+                    workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+                    subjectBuffer.SupportsRefactorings();
     }
 }

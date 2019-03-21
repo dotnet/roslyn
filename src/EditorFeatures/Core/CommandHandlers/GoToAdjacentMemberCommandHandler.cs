@@ -75,21 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             return VSCommanding.CommandState.Available;
         }
 
-        private static bool IsAvailable(SnapshotPoint? caretPoint, ITextBuffer subjectBuffer)
-        {
-            if (!caretPoint.HasValue)
-            {
-                return false;
-            }
-
-            if (!subjectBuffer.TryGetOwningWorkspace(out var workspace) ||
-                !subjectBuffer.SupportsNavigationToAnyPosition(workspace))
-            {
-                return false;
-            }
-
-            return true;
-        }
+        private static bool IsAvailable(SnapshotPoint? caretPoint, ITextBuffer subjectBuffer) =>
+            caretPoint.HasValue && subjectBuffer.SupportsNavigationToAnyPosition();
 
         private bool ExecuteCommandImpl(EditorCommandArgs args, bool gotoNextMember, CommandExecutionContext context)
         {

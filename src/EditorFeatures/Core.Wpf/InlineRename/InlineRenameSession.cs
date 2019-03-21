@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            if (!_openTextBuffers.ContainsKey(buffer) && buffer.SupportsRename(_workspace))
+            if (!_openTextBuffers.ContainsKey(buffer) && buffer.SupportsRename())
             {
                 _openTextBuffers[buffer] = new OpenTextBufferManager(this, buffer, _workspace, _textBufferFactoryService);
                 return true;

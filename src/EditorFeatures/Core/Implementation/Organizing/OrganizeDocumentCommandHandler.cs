@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing
                     return false;
                 }
 
-                return args.SubjectBuffer.SupportsRefactorings(workspace);
+                return args.SubjectBuffer.SupportsRefactorings();
             }
 
             return false;

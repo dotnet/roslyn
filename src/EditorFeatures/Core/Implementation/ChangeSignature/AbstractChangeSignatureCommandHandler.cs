@@ -28,10 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         public VSCommanding.CommandState GetCommandState(RemoveParametersCommandArgs args)
             => GetCommandState(args.SubjectBuffer);
 
-        private static VSCommanding.CommandState GetCommandState(ITextBuffer subjectBuffer)
-        {
-            return IsAvailable(subjectBuffer) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
-        }
+        private static VSCommanding.CommandState GetCommandState(ITextBuffer subjectBuffer) =>
+            IsAvailable(subjectBuffer, out _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
 
         public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
@@ -39,23 +37,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
 
-        private static bool IsAvailable(ITextBuffer subjectBuffer)
-        {
-            if (!subjectBuffer.TryGetOwningWorkspace(out var workspace) ||
-                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                !subjectBuffer.SupportsRefactorings(workspace))
-            {
-                return false;
-            }
-
-            return true;
-        }
+        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace) =>
+            subjectBuffer.TryGetOwningWorkspace(out workspace) &&
+                workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+                subjectBuffer.SupportsRefactorings();
 
         private bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
-                if (IsAvailable(subjectBuffer))
+                if (!IsAvailable(subjectBuffer, out var workspace))
                 {
                     return false;
                 }

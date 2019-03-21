@@ -790,10 +790,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
-                var workspace = document.Project.Solution.Workspace;
-
                 if (provider._codeFixService != null &&
-                    _subjectBuffer.SupportsCodeFixes(workspace))
+                    _subjectBuffer.SupportsCodeFixes())
                 {
                     var result = await provider._codeFixService.GetMostSevereFixableDiagnosticAsync(
                             document, range.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
@@ -828,11 +826,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     return null;
                 }
 
-                var workspace = document.Project.Solution.Workspace;
-
                 if (document.Project.Solution.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     provider._codeRefactoringService != null &&
-                    _subjectBuffer.SupportsRefactorings(workspace))
+                    _subjectBuffer.SupportsRefactorings())
                 {
                     if (await provider._codeRefactoringService.HasRefactoringsAsync(
                             document, selection.Value, cancellationToken).ConfigureAwait(false))

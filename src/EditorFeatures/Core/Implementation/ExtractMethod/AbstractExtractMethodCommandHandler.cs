@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
 
             if (!args.SubjectBuffer.TryGetOwningWorkspace(out var workspace) ||
                 !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
-                !args.SubjectBuffer.SupportsRefactorings(workspace))
+                !args.SubjectBuffer.SupportsRefactorings())
             {
                 return VSCommanding.CommandState.Unspecified;
             }
