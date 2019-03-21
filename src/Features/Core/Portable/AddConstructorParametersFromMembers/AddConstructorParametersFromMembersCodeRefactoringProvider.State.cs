@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             /// <summary>
             /// Try to find all constructors in <paramref name="containingType"/> whose parameters
-            /// are a subset of <paramref name="parametersForSelectedMembers"/> by comparing name.
+            /// are a subset of the selected members by comparing name.
             /// These constructors will not be considered as potential candidates:
             ///  - if the constructor's parameter list contains 'ref' or 'params'
             ///  - any constructor that has a params[] parameter
@@ -105,15 +105,17 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             }
 
             private static bool SelectedMembersAlreadyExistAsParameters(ImmutableArray<string> parameterNamesForSelectedMembers, ImmutableArray<IParameterSymbol> constructorParams)
-                => constructorParams.Length != 0 && !parameterNamesForSelectedMembers.Except(constructorParams.Select(p => p.Name)).Any();
+                => constructorParams.Length != 0 &&
+                !parameterNamesForSelectedMembers.Except(constructorParams.Select(p => p.Name)).Any();
 
             private static ConstructorCandidate CreateConstructorCandidate(ImmutableArray<IParameterSymbol> parametersForSelectedMembers, ImmutableArray<ISymbol> selectedMembers, IMethodSymbol constructor)
             {
                 var missingParametersBuilder = ArrayBuilder<IParameterSymbol>.GetInstance();
                 var missingMembersBuilder = ArrayBuilder<ISymbol>.GetInstance();
                 var constructorParamNames = constructor.Parameters.SelectAsArray(p => p.Name);
-                var zippedParametersAndSelectedMembers = 
+                var zippedParametersAndSelectedMembers =
                     parametersForSelectedMembers.Zip(selectedMembers, (parameter, selectedMember) => (parameter, selectedMember));
+
                 foreach (var (parameter, selectedMember) in zippedParametersAndSelectedMembers)
                 {
                     if (!constructorParamNames.Contains(parameter.Name))

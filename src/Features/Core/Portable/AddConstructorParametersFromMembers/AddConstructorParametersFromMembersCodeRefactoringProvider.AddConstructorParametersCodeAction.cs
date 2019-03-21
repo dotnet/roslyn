@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             {
                 var workspace = _document.Project.Solution.Workspace;
                 var declarationService = _document.GetLanguageService<ISymbolDeclarationService>();
-                var constructor = declarationService.GetDeclarations(_constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
+                var constructor = declarationService.GetDeclarations(
+                    _constructorCandidate.Constructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var newConstructor = constructor;
                 newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, _missingParameters, workspace);

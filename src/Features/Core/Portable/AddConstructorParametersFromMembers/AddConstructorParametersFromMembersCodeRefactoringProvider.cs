@@ -41,7 +41,12 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
             {
-                var info = await GetSelectedMemberInfoAsync(document, textSpan, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
+                var info = await GetSelectedMemberInfoAsync(
+                    document,
+                    textSpan,
+                    allowPartialSelection: true,
+                    cancellationToken).ConfigureAwait(false);
+
                 if (info != null)
                 {
                     var state = await State.GenerateAsync(this, info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
@@ -65,9 +70,18 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 var constructorCandidate = state.ConstructorCandidates[0];
                 if (CanHaveRequiredParameters(state.ConstructorCandidates[0].MissingParameters))
                 {
-                    result.Add(new AddConstructorParametersCodeAction(document, constructorCandidate, containingType, constructorCandidate.MissingParameters, useSubMenuName: false));
+                    result.Add(new AddConstructorParametersCodeAction(
+                        document,
+                        constructorCandidate,
+                        containingType,
+                        constructorCandidate.MissingParameters,
+                        useSubMenuName: false));
                 }
-                result.Add(GetOptionalContructorParametersCodeAction(document, constructorCandidate, containingType, useSubMenuName: false));
+                result.Add(GetOptionalContructorParametersCodeAction(
+                    document,
+                    constructorCandidate,
+                    containingType,
+                    useSubMenuName: false));
             }
             else
             {
@@ -78,17 +92,32 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
                 {
                     if (CanHaveRequiredParameters(constructorCandidate.Constructor.Parameters))
                     {
-                        requiredParameterCodeActions.Add(new AddConstructorParametersCodeAction(document, constructorCandidate, containingType, constructorCandidate.MissingParameters, useSubMenuName: true));
+                        requiredParameterCodeActions.Add(new AddConstructorParametersCodeAction(
+                            document,
+                            constructorCandidate,
+                            containingType,
+                            constructorCandidate.MissingParameters,
+                            useSubMenuName: true));
                     }
-                    optionalParameterCodeActions.Add(GetOptionalContructorParametersCodeAction(document, constructorCandidate, containingType, useSubMenuName: true));
+                    optionalParameterCodeActions.Add(GetOptionalContructorParametersCodeAction(
+                        document,
+                        constructorCandidate,
+                        containingType,
+                        useSubMenuName: true));
                 }
 
                 if (requiredParameterCodeActions.Count > 0)
                 {
-                    result.Add(new CodeAction.CodeActionWithNestedActions(FeaturesResources.Add_parameter_to_constructor, requiredParameterCodeActions.ToImmutableAndFree(), isInlinable: false));
+                    result.Add(new CodeAction.CodeActionWithNestedActions(
+                        FeaturesResources.Add_parameter_to_constructor,
+                        requiredParameterCodeActions.ToImmutableAndFree(),
+                        isInlinable: false));
                 }
 
-                result.Add(new CodeAction.CodeActionWithNestedActions(FeaturesResources.Add_optional_parameter_to_constructor, optionalParameterCodeActions.ToImmutableAndFree(), isInlinable: false));
+                result.Add(new CodeAction.CodeActionWithNestedActions(
+                    FeaturesResources.Add_optional_parameter_to_constructor,
+                    optionalParameterCodeActions.ToImmutableAndFree(),
+                    isInlinable: false));
             }
 
             return result.AsImmutableOrNull();
@@ -99,16 +128,18 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 
             static CodeAction GetOptionalContructorParametersCodeAction(Document document, ConstructorCandidate constructorCandidate, INamedTypeSymbol containingType, bool useSubMenuName)
             {
-                var missingOptionalParameters = constructorCandidate.MissingParameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(
-                      attributes: default,
-                      refKind: p.RefKind,
-                      isParams: p.IsParams,
-                      type: p.Type,
-                      name: p.Name,
-                      isOptional: true,
-                      hasDefaultValue: true));
+                var missingOptionalParameters = constructorCandidate.MissingParameters.SelectAsArray(
+                    p => CodeGenerationSymbolFactory.CreateParameterSymbol(
+                        attributes: default,
+                        refKind: p.RefKind,
+                        isParams: p.IsParams,
+                        type: p.Type,
+                        name: p.Name,
+                        isOptional: true,
+                        hasDefaultValue: true));
 
-                return new AddConstructorParametersCodeAction(document, constructorCandidate, containingType, missingOptionalParameters, useSubMenuName);
+                return new AddConstructorParametersCodeAction(
+                    document, constructorCandidate, containingType, missingOptionalParameters, useSubMenuName);
             }
         }
     }
