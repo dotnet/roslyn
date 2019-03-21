@@ -457,7 +457,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParsePragmaDirective(SyntaxToken hash, SyntaxToken pragma, bool isActive)
         {
-            pragma = CheckFeatureAvailability(pragma, MessageID.IDS_FeaturePragma);
+            if (isActive)
+            {
+                pragma = CheckFeatureAvailability(pragma, MessageID.IDS_FeaturePragma);
+            }
 
             bool hasError = false;
             if (this.CurrentToken.ContextualKind == SyntaxKind.WarningKeyword)
