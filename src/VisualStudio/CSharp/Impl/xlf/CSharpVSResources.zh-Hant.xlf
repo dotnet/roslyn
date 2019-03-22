@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Discard">
         <source>Discard</source>
-        <target state="new">Discard</target>
+        <target state="translated">捨棄</target>
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Generate_Event_Subscription">
         <source>Generate Event Subscription</source>
-        <target state="new">Generate Event Subscription</target>
+        <target state="translated">產生事件訂閱</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
@@ -379,7 +379,7 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">未使用的區域函式</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_var_when_generating_locals">
@@ -544,7 +544,7 @@
       </trans-unit>
       <trans-unit id="When_on_multiple_lines">
         <source>When on multiple lines</source>
-        <target state="new">When on multiple lines</target>
+        <target state="translated">在多行上時</target>
         <note />
       </trans-unit>
       <trans-unit id="When_variable_type_is_apparent">

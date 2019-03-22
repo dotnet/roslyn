@@ -19,5 +19,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return trivia.HasAnnotation(SyntaxAnnotation.ElasticAnnotation);
         }
+
+        public static SyntaxTrivia AsElastic(this SyntaxTrivia trivia)
+            => trivia.WithAdditionalAnnotations(SyntaxAnnotation.ElasticAnnotation);
     }
 }

@@ -37,6 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance(declarationSyntax.Variables.Count);
+
+                // gather expression-declared variables from invalid array dimensions. eg. using(int[x is var y] z = new int[0])
+                declarationSyntax.Type.VisitRankSpecifiers((rankSpecifier, args) =>
+                {
+                    foreach (var size in rankSpecifier.Sizes)
+                    {
+                        if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                        {
+                            ExpressionVariableFinder.FindExpressionVariables(args.binder, args.locals, size);
+                        }
+                    }
+                }, (binder: this, locals: locals));
+
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
                     locals.Add(MakeLocal(declarationSyntax, declarator, LocalDeclarationKind.UsingVariable));
@@ -104,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(!declarationsOpt.IsEmpty);
                 multipleDeclarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarationsOpt);
-                declarationTypeOpt = declarationsOpt[0].DeclaredType.Type;
+                declarationTypeOpt = declarationsOpt[0].DeclaredTypeOpt.Type;
 
                 if (declarationTypeOpt.IsDynamic())
                 {
@@ -187,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (hasAwait)
                         {
-                            awaitableTypeOpt = disposeMethodOpt.ReturnType.TypeSymbol;
+                            awaitableTypeOpt = disposeMethodOpt.ReturnType;
                         }
                         return true;
                     }

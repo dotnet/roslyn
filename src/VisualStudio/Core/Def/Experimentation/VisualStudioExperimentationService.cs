@@ -57,10 +57,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
             {
                 try
                 {
-                    var enabled = _featureFlags.IsFeatureEnabled(experimentName, defaultValue: false);
-                    if (enabled)
+                    // check whether "." exist in the experimentName since it is requirement for featureflag service.
+                    // we do this since RPS complains about resource file being loaded for invalid name exception
+                    // we are not testing all rules but just simple "." check
+                    if (experimentName.IndexOf(".") > 0)
                     {
-                        return enabled;
+                        var enabled = _featureFlags.IsFeatureEnabled(experimentName, defaultValue: false);
+                        if (enabled)
+                        {
+                            return enabled;
+                        }
                     }
                 }
                 catch

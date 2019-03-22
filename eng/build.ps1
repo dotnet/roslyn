@@ -34,6 +34,7 @@ param (
     [switch]$bootstrap,
     [string]$bootstrapConfiguration = "Release",
     [switch][Alias('bl')]$binaryLog,
+    [switch]$buildServerLog,
     [switch]$ci,
     [switch]$procdump,
     [switch]$skipAnalyzers,
@@ -57,12 +58,18 @@ param (
     [switch][Alias('test')]$testDesktop,
     [switch]$testCoreClr,
     [switch]$testIOperation,
+    [switch]$testLegacyCompletion,
 
     [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
 if ($PSVersionTable.PSVersion.Major -lt "5") {
     Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
     exit 1
+}
+
+$regKeyProperty = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
+if (($null -eq $regKeyProperty) -or ($regKeyProperty.LongPathsEnabled -ne 1)) {
+    Write-Warning "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with ``reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1``"
 }
 
 Set-StrictMode -version 2.0
@@ -74,6 +81,7 @@ function Print-Usage() {
     Write-Host "  -verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]"
     Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
     Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
+    Write-Host "  -buildServerLog           Create Roslyn build server log"
     Write-Host ""
     Write-Host "Actions:"
     Write-Host "  -restore                  Restore packages (short: -r)"
@@ -92,6 +100,7 @@ function Print-Usage() {
     Write-Host "  -testCoreClr              Run CoreClr unit tests"
     Write-Host "  -testVsi                  Run all integration tests"
     Write-Host "  -testIOperation           Run extra checks to validate IOperations"
+    Write-Host "  -testLegacyCompletion     Run integration tests with legacy completion"
     Write-Host ""
     Write-Host "Advanced settings:"
     Write-Host "  -ci                       Set when running on CI server"
@@ -161,6 +170,9 @@ function Process-Arguments() {
 
     if ($ci) {
         $script:binaryLog = $true
+        if ($bootstrap) {
+            $script:buildServerLog = $true
+        }
     }
 
     if ($test32 -and $test64) {
@@ -203,10 +215,19 @@ function BuildSolution() {
     Write-Host "$($solution):"
 
     $bl = if ($binaryLog) { "/bl:" + (Join-Path $LogDir "Build.binlog") } else { "" }
+
+    if ($buildServerLog) {
+        ${env:ROSLYNCOMMANDLINELOGFILE} = Join-Path $LogDir "Build.Server.log"
+    }
+
     $projects = Join-Path $RepoRoot $solution
     $enableAnalyzers = !$skipAnalyzers
     $toolsetBuildProj = InitializeToolset
-    $quietRestore = !$ci
+
+    # Have to disable quiet restore during bootstrap builds to work around 
+    # an arcade bug
+    # https://github.com/dotnet/arcade/issues/2220
+    $quietRestore = !($ci -or ($bootstrapDir -ne ""))
     $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
     $ibcSourceBranchName = GetIbcSourceBranchName
     $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
@@ -217,36 +238,41 @@ function BuildSolution() {
     # Workaround for some machines in the AzDO pool not allowing long paths (%5c is msbuild escaped backslash)
     $ibcDir = Join-Path $RepoRoot ".o%5c"
 
-    # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
-    # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
-    # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
-    # Warnings reported from other msbuild tasks are not treated as errors for now.
-    MSBuild $toolsetBuildProj `
-        $bl `
-        /p:Configuration=$configuration `
-        /p:Projects=$projects `
-        /p:RepoRoot=$RepoRoot `
-        /p:Restore=$restore `
-        /p:Build=$build `
-        /p:Test=$testCoreClr `
-        /p:Rebuild=$rebuild `
-        /p:Pack=$pack `
-        /p:Sign=$sign `
-        /p:Publish=$publish `
-        /p:ContinuousIntegrationBuild=$ci `
-        /p:OfficialBuildId=$officialBuildId `
-        /p:UseRoslynAnalyzers=$enableAnalyzers `
-        /p:BootstrapBuildPath=$bootstrapDir `
-        /p:QuietRestore=$quietRestore `
-        /p:QuietRestoreBinaryLog=$binaryLog `
-        /p:TestTargetFrameworks=$testTargetFrameworks `
-        /p:TreatWarningsAsErrors=true `
-        /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
-        /p:VisualStudioIbcDropId=$ibcDropId `
-        /p:EnablePartialNgenOptimization=$applyOptimizationData `
-        /p:IbcOptimizationDataDir=$ibcDir `
-        $suppressExtensionDeployment `
-        @properties
+    try {
+        # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
+        # We don't pass /warnaserror to msbuild ($warnAsError is set to $false by default above), but set 
+        # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
+        # Warnings reported from other msbuild tasks are not treated as errors for now.
+        MSBuild $toolsetBuildProj `
+            $bl `
+            /p:Configuration=$configuration `
+            /p:Projects=$projects `
+            /p:RepoRoot=$RepoRoot `
+            /p:Restore=$restore `
+            /p:Build=$build `
+            /p:Test=$testCoreClr `
+            /p:Rebuild=$rebuild `
+            /p:Pack=$pack `
+            /p:Sign=$sign `
+            /p:Publish=$publish `
+            /p:ContinuousIntegrationBuild=$ci `
+            /p:OfficialBuildId=$officialBuildId `
+            /p:UseRoslynAnalyzers=$enableAnalyzers `
+            /p:BootstrapBuildPath=$bootstrapDir `
+            /p:QuietRestore=$quietRestore `
+            /p:QuietRestoreBinaryLog=$binaryLog `
+            /p:TestTargetFrameworks=$testTargetFrameworks `
+            /p:TreatWarningsAsErrors=true `
+            /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
+            /p:VisualStudioIbcDropId=$ibcDropId `
+            /p:EnablePartialNgenOptimization=$applyOptimizationData `
+            /p:IbcOptimizationDataDir=$ibcDir `
+            $suppressExtensionDeployment `
+            @properties
+    }
+    finally {
+        ${env:ROSLYNCOMMANDLINELOGFILE} = $null
+    }
 }
 
 
@@ -330,6 +356,10 @@ function TestUsingOptimizedRunner() {
         $env:ROSLYN_TEST_IOPERATION = "true"
     }
 
+    if ($testLegacyCompletion) {
+        $env:ROSLYN_TEST_LEGACY_COMPLETION = "true"
+    }
+
     $testResultsDir = Join-Path $ArtifactsDir "TestResults\$configuration"
     $binDir = Join-Path $ArtifactsDir "bin" 
     $runTests = GetProjectOutputBinary "RunTests.exe"
@@ -375,7 +405,7 @@ function TestUsingOptimizedRunner() {
     if ($ci) {
         $args += " -xml"
         if ($testVsi) {
-            $args += " -timeout:120"
+            $args += " -timeout:110"
         } else {
             $args += " -timeout:65"
         }
@@ -401,6 +431,9 @@ function TestUsingOptimizedRunner() {
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
         if ($testIOperation) {
             Remove-Item env:\ROSLYN_TEST_IOPERATION
+        }
+        if ($testLegacyCompletion) {
+            Remove-Item env:\ROSLYN_TEST_LEGACY_COMPLETION
         }
     }
 }
@@ -510,6 +543,56 @@ try {
     if ($ci) {
         List-Processes
         Prepare-TempDir
+
+        if ($testVsi) {
+            $screenshotPath = (Join-Path $LogDir "StartingBuild.png")
+            try {
+                Capture-Screenshot $screenshotPath
+            }
+            catch {
+                Write-Host "Screenshot failed; attempting to connect to the console"
+
+                # Keep the session open so we have a UI to interact with
+                $quserItems = ((quser $env:USERNAME | select -Skip 1) -split '\s+')
+                $sessionid = $quserItems[2]
+                if ($sessionid -eq 'Disc') {
+                    # When the session isn't connected, the third value is 'Disc' instead of the ID
+                    $sessionid = $quserItems[1]
+                }
+
+                if ($quserItems[1] -eq 'console') {
+                    Write-Host "Disconnecting from console before attempting reconnection"
+                    try {
+                        tsdiscon
+                    } catch {
+                        # ignore
+                    }
+
+                    # Disconnection is asynchronous, so wait a few seconds for it to complete
+                    Start-Sleep -Seconds 3
+                    query user
+                }
+
+                Write-Host "tscon $sessionid /dest:console"
+                tscon $sessionid /dest:console
+
+                # Connection is asynchronous, so wait a few seconds for it to complete
+                Start-Sleep 3
+                query user
+
+                # Make sure we can capture a screenshot. An exception at this point will fail-fast the build.
+                Capture-Screenshot $screenshotPath
+            }
+        }
+    }
+
+    if ($ci) {
+        $global:_DotNetInstallDir = Join-Path $RepoRoot ".dotnet"
+        InstallDotNetSdk $global:_DotNetInstallDir $GlobalJson.tools.dotnet
+
+        # Make sure a 2.1 runtime is installed so we can run our tests. Most of them still 
+        # target netcoreapp2.1.
+        InstallDotNetSdk $global:_DotNetInstallDir "2.1.503"
     }
 
     if ($bootstrap) {

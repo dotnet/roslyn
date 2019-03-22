@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private new void Analyze(ref bool badRegion)
+        private void Analyze(ref bool badRegion)
         {
             // only one pass is needed.
             Scan(ref badRegion);

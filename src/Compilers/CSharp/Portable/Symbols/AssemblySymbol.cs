@@ -612,7 +612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 int rank = typeInfo.GetArrayRank();
 
-                return ArrayTypeSymbol.CreateCSharpArray(this, TypeSymbolWithAnnotations.Create(symbol), rank);
+                return ArrayTypeSymbol.CreateCSharpArray(this, TypeWithAnnotations.Create(symbol), rank);
             }
             else if (typeInfo.IsPointer)
             {
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(symbol));
+                return new PointerTypeSymbol(TypeWithAnnotations.Create(symbol));
             }
             else if (typeInfo.DeclaringType != null)
             {
@@ -712,8 +712,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return symbol;
             }
 
-            var length = symbol.TypeArgumentsNoUseSiteDiagnostics.Length;
-            var typeArgumentSymbols = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(length);
+            var length = symbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.Length;
+            var typeArgumentSymbols = ArrayBuilder<TypeWithAnnotations>.GetInstance(length);
             for (int i = 0; i < length; i++)
             {
                 var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++], includeReferences);
@@ -721,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return null;
                 }
-                typeArgumentSymbols.Add(TypeSymbolWithAnnotations.Create(argSymbol));
+                typeArgumentSymbols.Add(TypeWithAnnotations.Create(argSymbol));
             }
 
             return symbol.ConstructIfGeneric(typeArgumentSymbols.ToImmutableAndFree());
