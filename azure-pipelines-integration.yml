@@ -27,15 +27,19 @@ jobs:
       debug:
         _configuration: Debug
         _useLegacyCompletion: false
+        _completionName: Async
       release:
         _configuration: Release
         _useLegacyCompletion: false
+        _completionName: Async
       debug_legacy:
         _configuration: Debug
         _useLegacyCompletion: true
+        _completionName: Legacy
       release_legacy:
         _configuration: Release
         _useLegacyCompletion: true
+        _completionName: Legacy
   timeoutInMinutes: 135
 
   steps:
@@ -55,7 +59,7 @@ jobs:
       displayName: Publish Logs
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\$(_configuration)'
-        ArtifactName: 'Windows Visual Studio Integration $(_configuration)_$(_useLegacyCompletion)'
+        ArtifactName: 'Logs $(_configuration) $(_completionName) $(Build.BuildNumber)'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())
@@ -64,7 +68,7 @@ jobs:
       displayName: Publish Screenshots
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\$(_configuration)\net472\xUnitResults'
-        ArtifactName: 'Screenshots $(_configuration)_$(_useLegacyCompletion)' 
+        ArtifactName: 'Screenshots $(_configuration) $(_completionName) $(Build.BuildNumber)'
         publishLocation: Container
       continueOnError: true
       condition: not(succeeded())
