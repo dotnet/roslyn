@@ -13,31 +13,43 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Recommendations
 {
-    internal abstract class AbstractRecommendationService : IRecommendationService
+    internal abstract class AbstractRecommendationService<TSyntaxContext> : IRecommendationService
+        where TSyntaxContext : SyntaxContext
     {
-        protected abstract Task<Tuple<ImmutableArray<ISymbol>, SyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken);
+        protected abstract ImmutableArray<ISymbol> GetSymbolsWorker(
+            TSyntaxContext context,
+            bool filterOutOfScopeLocals,
+            CancellationToken cancellationToken);
+
+        protected abstract Task<TSyntaxContext> CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
         {
-            var result = await GetRecommendedSymbolsAtPositionWorkerAsync(workspace, semanticModel, position, options, cancellationToken).ConfigureAwait(false);
+            var context = await CreateContext(workspace, semanticModel, position, cancellationToken).ConfigureAwait(false);
+            var filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language);
+            var symbols = GetSymbolsWorker(context, filterOutOfScopeLocals, cancellationToken);
 
-            var symbols = result.Item1;
-            var context = new ShouldIncludeSymbolContext(result.Item2, cancellationToken);
+            var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language);
+            symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation);
 
-            symbols = symbols.WhereAsArray(context.ShouldIncludeSymbol);
+            var shouldIncludeSymbolContext = new ShouldIncludeSymbolContext(context, cancellationToken);
+            symbols = symbols.WhereAsArray(shouldIncludeSymbolContext.ShouldIncludeSymbol);
             return symbols;
         }
 
-        protected static ImmutableArray<ISymbol> GetRecommendedNamespaceNameSymbols(
-            SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
+        protected static ImmutableArray<ISymbol> GetSymbolsForNamespaceDeclarationNameContext<TNamespaceDeclarationSyntax>(
+            TSyntaxContext context, CancellationToken cancellationToken)
+            where TNamespaceDeclarationSyntax : SyntaxNode
         {
+            var declarationSyntax = context.TargetToken.GetAncestor<TNamespaceDeclarationSyntax>();
+
             if (declarationSyntax == null)
             {
-                throw new ArgumentNullException(nameof(declarationSyntax));
+                return ImmutableArray<ISymbol>.Empty;
             }
 
+            var semanticModel = context.SemanticModel;
             var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
                 semanticModel.GetEnclosingNamespace(declarationSyntax.SpanStart, cancellationToken));
 
