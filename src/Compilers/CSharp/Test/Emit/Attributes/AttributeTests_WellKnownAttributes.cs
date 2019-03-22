@@ -6202,6 +6202,69 @@ class F6 : F5
         }
 
         [Fact]
+        public void TestConsumptionOfObsoleteAttributeOnOverriddenAccessors()
+        {
+            var source = @"
+using System;
+
+class Base
+{
+    public virtual int Foo { [Obsolete] get; set;}
+    public virtual int Goo { get; set; }
+    public virtual int Hoo { [Obsolete(""Base.Hoo is Obsolete"", true)] get; set; }
+    public virtual int Joo { [Obsolete(""Base.Joo is Obsolete"", false)] get; set; }
+    [Obsolete(""Base.Koo is Obsolete"")] public virtual int Koo {  get; set; }
+}
+class Derived : Base
+{
+    public override int Foo { get; set; }
+    public override int Goo { [Obsolete] get; set; }
+    public override int Hoo { [Obsolete(""Derived.Hoo is Obsolete"", false)] get; set; }
+    public override int Joo { [Obsolete(""Derived.Joo is Obsolete"", true)] get; set; }
+    public override int Koo { [Obsolete(""Derived.Koo is Obsolete"")] get; set; }
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var derived = new Derived();
+		_ = derived.Foo;
+        _ = derived.Goo;
+        _ = derived.Hoo;
+        _ = derived.Joo;
+        _ = derived.Koo;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (14,31): warning CS0672: Member 'Derived.Foo.get' overrides obsolete member 'Base.Foo.get'. Add the Obsolete attribute to 'Derived.Foo.get'.
+                //     public override int Foo { get; set; }
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "get").WithArguments("Derived.Foo.get", "Base.Foo.get").WithLocation(14, 31),
+                // (15,42): warning CS0809: Obsolete member 'Derived.Goo.get' overrides non-obsolete member 'Base.Goo.get'
+                //     public override int Goo { [Obsolete] get; set; }
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("Derived.Goo.get", "Base.Goo.get").WithLocation(15, 42),
+                // (18,25): warning CS0672: Member 'Derived.Koo' overrides obsolete member 'Base.Koo'. Add the Obsolete attribute to 'Derived.Koo'.
+                //     public override int Koo { [Obsolete("Derived.Koo is Obsolete")] get; set; }
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "Koo").WithArguments("Derived.Koo", "Base.Koo").WithLocation(18, 25),
+                // (18,69): warning CS0809: Obsolete member 'Derived.Koo.get' overrides non-obsolete member 'Base.Koo.get'
+                //     public override int Koo { [Obsolete("Derived.Koo is Obsolete")] get; set; }
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("Derived.Koo.get", "Base.Koo.get").WithLocation(18, 69),
+                // (26,7): warning CS0612: 'Base.Foo.get' is obsolete
+                // 		_ = derived.Foo;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "derived.Foo").WithArguments("Base.Foo.get").WithLocation(26, 7),
+                // (28,13): error CS0619: 'Base.Hoo.get' is obsolete: 'Base.Hoo is Obsolete'
+                //         _ = derived.Hoo;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "derived.Hoo").WithArguments("Base.Hoo.get", "Base.Hoo is Obsolete").WithLocation(28, 13),
+                // (29,13): warning CS0618: 'Base.Joo.get' is obsolete: 'Base.Joo is Obsolete'
+                //         _ = derived.Joo;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "derived.Joo").WithArguments("Base.Joo.get", "Base.Joo is Obsolete").WithLocation(29, 13),
+                // (30,13): warning CS0618: 'Base.Koo' is obsolete: 'Base.Koo is Obsolete'
+                //         _ = derived.Koo;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "derived.Koo").WithArguments("Base.Koo", "Base.Koo is Obsolete").WithLocation(30, 13));
+        }
+
+        [Fact]
         public void TestObsoleteAttributeCycles()
         {
             var source = @"
@@ -6556,7 +6619,7 @@ public class Att : Attribute
     [Obsolete(""Property"", true)]
     public int Prop2
     {
-        get ; [Obsolete] set;
+        get ; set;
     }
     [Obsolete(""Field"", true)]
     public int Field;
@@ -8091,6 +8154,8 @@ class Class5
         x5 = x4;
         x5 = x6.P1;
         x6.P1 = 1;
+        x5 = x6.P2;
+        x6.P2 = 1;
         x6.E1 += null;
         x6.E1 -= null;
     }
@@ -8105,6 +8170,16 @@ class Class6
         {
             return 1;
         }
+        set {}
+    }
+
+    public int P2
+    {
+        get
+        {
+            return 1;
+        }
+        [Deprecated(""P1.get is deprecated."", DeprecationType.Remove, 1)]
         set {}
     }
 
@@ -8138,9 +8213,12 @@ class Class6
                 // (19,14): error CS0619: 'Class6.P1.get' is obsolete: 'P1.get is deprecated.'
                 //         x5 = x6.P1;
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x6.P1").WithArguments("Class6.P1.get", "P1.get is deprecated.").WithLocation(19, 14),
-                // (40,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                // (22,9): error CS0619: 'Class6.P2.set' is obsolete: 'P1.get is deprecated.'
+                //         x6.P2 = 1;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "x6.P2").WithArguments("Class6.P2.set", "P1.get is deprecated.").WithLocation(22, 9),
+                // (52,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
                 //         [Deprecated("E1.add is deprecated.", DeprecationType.Remove, 1)]
-                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(40, 10)
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(52, 10)
                                  };
 
             compilation2.VerifyDiagnostics(expected);
@@ -9112,12 +9190,26 @@ class C
 using System;
 class C
 {
+    public void M() => Prop = Prop;
+
     [Obsolete]
     public int Prop { [Obsolete] get; [Obsolete] set; }
 }
 ";
 
-            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics();
+            CreateCompilation(code).VerifyDiagnostics(
+                // (5,24): warning CS0612: 'C.Prop' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop").WithLocation(5, 24),
+                // (5,24): warning CS0612: 'C.Prop.set' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop.set").WithLocation(5, 24),
+                // (5,31): warning CS0612: 'C.Prop' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop").WithLocation(5, 31),
+                // (5,31): warning CS0612: 'C.Prop.get' is obsolete
+                //     public void M() => Prop = Prop;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "Prop").WithArguments("C.Prop.get").WithLocation(5, 31));
         }
 
         [Fact]
@@ -9152,6 +9244,58 @@ class C
                 // (5,24): error CS8652: The feature 'obsolete on property accessor' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public int Prop { [Deprecated("don't use this", DeprecationType.Remove, 50331648u)] get; set; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, @"Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)").WithArguments("obsolete on property accessor").WithLocation(5, 24));
+        }
+
+        [Fact]
+        public void TestObsoleteOnEventAccessorCSharp7()
+        {
+            var code = @"
+using System;
+class C
+{
+        public event System.Action E
+    {
+        [Obsolete]
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+}
+";
+
+            CreateCompilation(code, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (7,10): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Obsolete]
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 10));
+        }
+
+        [Fact]
+        public void TestDeprecatedOnEventAccessorCSharp7()
+        {
+            var code = @"
+using Windows.Foundation.Metadata;
+class C
+{
+    public event System.Action E
+    {
+        [Deprecated(""don't use this"", DeprecationType.Remove, 50331648u)]
+        add
+        {
+        }
+        remove
+        {
+        }
+    }
+}
+";
+
+            CreateEmptyCompilation(code, references: WinRtRefs, parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7_3)).VerifyDiagnostics(
+                // (7,10): error CS8423: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
+                //         [Deprecated("don't use this", DeprecationType.Remove, 50331648u)]
+                Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(7, 10));
         }
     }
 }
