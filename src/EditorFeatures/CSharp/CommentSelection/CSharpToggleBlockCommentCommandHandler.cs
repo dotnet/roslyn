@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
     internal class CSharpToggleBlockCommentCommandHandler :
         ToggleBlockCommentCommandHandler
     {
-        private ITextStructureNavigatorSelectorService _navigator;
-
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         internal CSharpToggleBlockCommentCommandHandler(

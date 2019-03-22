@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
             var allText = snapshot.AsText();
-            var commentedSpans = new List<TextSpan>();
+            var commentedSpans = ArrayBuilder<TextSpan>.GetInstance();
 
             var openIdx = 0;
             while ((openIdx = allText.IndexOf(commentInfo.BlockCommentStartString, openIdx, caseSensitive: true)) >= 0)
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 openIdx = closeIdx;
             }
 
-            return Task.FromResult(commentedSpans.ToImmutableArray());
+            return Task.FromResult(commentedSpans.ToImmutableAndFree());
         }
     }
 }
