@@ -23561,26 +23561,57 @@ public interface IOut<out T> { }
         [Fact, WorkItem(33664, "https://github.com/dotnet/roslyn/issues/33664")]
         public void ConditionalOperator_AssigningToRefConditional()
         {
+            var source0 =
+@"public class A
+{
+    public static string F;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
             var comp = CreateCompilation(@"
 class C
 {
     void M(bool c, ref string x, ref string? y)
     {
-        (c ? ref x : ref y) = null; // 1
+        (c ? ref x : ref y) = null; // 1, 2
     }
     void M2(bool c, ref string x, ref string? y)
     {
-        (c ? ref y : ref x) = null; // 2
+        (c ? ref y : ref x) = null; // 3, 4
     }
-}", options: WithNonNullTypesTrue());
+    void M3(bool c, ref string x, ref string? y)
+    {
+        (c ? ref x : ref A.F) = null; // 5
+        (c ? ref y : ref A.F) = null;
+    }
+    void M4(bool c, ref string x, ref string? y)
+    {
+        (c ? ref A.F : ref x) = null; // 6
+        (c ? ref A.F : ref y) = null;
+    }
+}", options: WithNonNullTypesTrue(), references: new[] { ref0 });
 
             comp.VerifyDiagnostics(
                 // (6,10): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
-                //         (c ? ref x : ref y) = null; // 1
+                //         (c ? ref x : ref y) = null; // 1, 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c ? ref x : ref y").WithArguments("string", "string?").WithLocation(6, 10),
+                // (6,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (c ? ref x : ref y) = null; // 1, 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 31),
                 // (10,10): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
-                //         (c ? ref y : ref x) = null; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c ? ref y : ref x").WithArguments("string?", "string").WithLocation(10, 10)
+                //         (c ? ref y : ref x) = null; // 3, 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c ? ref y : ref x").WithArguments("string?", "string").WithLocation(10, 10),
+                // (10,31): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (c ? ref y : ref x) = null; // 3, 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 31),
+                // (14,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (c ? ref x : ref A.F) = null; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 33),
+                // (19,33): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (c ? ref A.F : ref x) = null; // 6
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(19, 33)
                 );
         }
 

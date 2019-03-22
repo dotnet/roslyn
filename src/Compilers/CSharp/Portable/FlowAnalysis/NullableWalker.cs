@@ -2432,7 +2432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportNullabilityMismatchInAssignment(node.Syntax, consequenceLValue, alternativeLValue);
                     }
 
-                    lValueResult = TypeWithAnnotations.Create(resultType, consequenceLValue.NullableAnnotation.Join(alternativeLValue.NullableAnnotation));
+                    lValueResult = TypeWithAnnotations.Create(resultType, consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation));
                     rValueResult = new TypeWithState(resultType, consequenceRValue.State.Join(alternativeRValue.State));
                 }
                 else
