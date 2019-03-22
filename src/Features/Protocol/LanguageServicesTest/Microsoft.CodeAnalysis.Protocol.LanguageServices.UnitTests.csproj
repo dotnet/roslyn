@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\..\EditorFeatures\TestUtilities\Roslyn.Services.Test.Utilities.csproj" />
     <ProjectReference Include="..\LanguageServices\Microsoft.CodeAnalysis.Protocol.LanguageServices.csproj" />
   </ItemGroup>
   <ItemGroup>
