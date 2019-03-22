@@ -20,8 +20,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 listener.Increment_NoLock();
             }
 
-            public CancellationToken BlockedOnCompletion => _listener?.BlockedOnCompletion ?? default;
-
             public void Dispose()
             {
                 using (_listener._gate.DisposableWait(CancellationToken.None))

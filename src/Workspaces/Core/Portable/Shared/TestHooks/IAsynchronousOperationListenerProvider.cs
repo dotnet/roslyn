@@ -231,13 +231,14 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         private class NullOperationListener : IAsynchronousOperationListener
         {
-            public CancellationToken BlockedOnCompletion => default;
-
             public IAsyncToken BeginAsyncOperation(
                 string name,
                 object tag = null,
                 [CallerFilePath] string filePath = "",
                 [CallerLineNumber] int lineNumber = 0) => EmptyAsyncToken.Instance;
+
+            public Task Delay(TimeSpan delay, CancellationToken cancellationToken)
+                => Task.Delay(delay, cancellationToken);
         }
 
         private class NullListenerProvider : IAsynchronousOperationListenerProvider

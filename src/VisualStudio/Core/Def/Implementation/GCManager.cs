@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 // Restore the LatencyMode a short duration after the
                 // last request to UseLowLatencyModeForProcessingUserInput.
-                currentDelay = new ResettableDelay(s_delayMilliseconds, EmptyAsyncToken.Instance);
+                currentDelay = new ResettableDelay(s_delayMilliseconds, AsynchronousOperationListenerProvider.NullListener);
                 currentDelay.Task.SafeContinueWith(_ => RestoreGCLatencyMode(currentMode), TaskScheduler.Default);
                 s_delay = currentDelay;
             }

@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         private readonly string _featureName;
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
         private CancellationTokenSource _blockedOnCompletionTokenSource;
-        private CancellationToken _blockedOnCompletionToken;
 
         private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
         private int _counter;
@@ -33,11 +32,24 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         {
             _featureName = featureName;
             _blockedOnCompletionTokenSource = new CancellationTokenSource();
-            _blockedOnCompletionToken = _blockedOnCompletionTokenSource.Token;
             TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
         }
 
-        public CancellationToken BlockedOnCompletion => _blockedOnCompletionToken;
+        public async Task Delay(TimeSpan delay, CancellationToken cancellationToken)
+        {
+            var blockedOnCompletionToken = _blockedOnCompletionTokenSource.Token;
+            using (var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, blockedOnCompletionToken))
+            {
+                try
+                {
+                    await Task.Delay(delay, cancellationTokenSource.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (blockedOnCompletionToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+                {
+                    // The cancellation only occurred due to a request to expedite the operation
+                }
+            }
+        }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
         {
@@ -79,7 +91,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
                 _pendingTasks.Clear();
                 _blockedOnCompletionTokenSource = new CancellationTokenSource();
-                _blockedOnCompletionToken = _blockedOnCompletionTokenSource.Token;
             }
 
             if (_trackActiveTokens)
@@ -117,7 +128,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                     if (_blockedOnCompletionTokenSource.IsCancellationRequested)
                     {
                         _blockedOnCompletionTokenSource = new CancellationTokenSource();
-                        _blockedOnCompletionToken = _blockedOnCompletionTokenSource.Token;
                     }
 
                     return Task.CompletedTask;
