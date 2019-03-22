@@ -3931,7 +3931,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify &apos;readonly&apos; modifiers on both accessors of property or indexer &apos;{0}&apos;..
+        ///   Looks up a localized string similar to Cannot specify &apos;readonly&apos; modifiers on both accessors of property or indexer &apos;{0}&apos;. Instead, put a &apos;readonly&apos; modifier on the property itself..
         /// </summary>
         internal static string ERR_DuplicatePropertyReadOnlyMods {
             get {
@@ -6271,7 +6271,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot specify &apos;readonly&apos; modifiers on both property or indexer &apos;{0}&apos; and its accessors..
+        ///   Looks up a localized string similar to Cannot specify &apos;readonly&apos; modifiers on both property or indexer &apos;{0}&apos; and its accessor. Remove one of them..
         /// </summary>
         internal static string ERR_InvalidPropertyReadOnlyMods {
             get {
@@ -9655,7 +9655,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Static member &apos;{0}&apos; cannot be &apos;readonly&apos;..
+        ///   Looks up a localized string similar to Static member &apos;{0}&apos; cannot be marked &apos;readonly&apos; because readonly members cannot modify &apos;this&apos; and static members do not have a &apos;this&apos; parameter..
         /// </summary>
         internal static string ERR_StaticMemberCantBeReadOnly {
             get {

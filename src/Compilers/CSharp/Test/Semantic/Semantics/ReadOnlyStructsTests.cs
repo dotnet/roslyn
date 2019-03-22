@@ -1086,7 +1086,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (5,32): error CS8657: Static member 'S.M()' cannot be 'readonly'.
+                // (5,32): error CS8656: Static member 'S.M()' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //     public static readonly int M()
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "M").WithArguments("S.M()").WithLocation(5, 32));
 
@@ -1133,7 +1133,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,18): error CS8657: Static member 'S.P.get' cannot be 'readonly'.
+                // (7,18): error CS8656: Static member 'S.P.get' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //         readonly get
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P.get").WithLocation(7, 18));
         }
@@ -1150,7 +1150,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (5,32): error CS8657: Static member 'S.P' cannot be 'readonly'.
+                // (5,32): error CS8656: Static member 'S.P' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //     public static readonly int P => i;
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P").WithArguments("S.P").WithLocation(5, 32));
         }
@@ -1201,7 +1201,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,16): error CS8660: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.P4'.
+                // (7,16): error CS8660: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.P4'. Instead, put a 'readonly' modifier on the property itself.
                 //     public int P4 { readonly get; readonly set; }
                 Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "P4").WithArguments("S.P4").WithLocation(7, 16),
                 // (7,44): error CS8657: Auto-implemented 'set' accessor 'S.P4.set' cannot be marked 'readonly'.
@@ -1210,7 +1210,7 @@ public struct S
                 // (8,25): error CS8658: Auto-implemented property 'S.P5' cannot be marked 'readonly' because it has a 'set' accessor.
                 //     public readonly int P5 { get; set; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P5").WithArguments("S.P5").WithLocation(8, 25),
-                // (9,39): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P6' and its accessors.
+                // (9,39): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P6' and its accessor. Remove one of them.
                 //     public readonly int P6 { readonly get; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S.P6").WithLocation(9, 39),
                 // (10,35): error CS8657: Auto-implemented 'set' accessor 'S.P7.set' cannot be marked 'readonly'.
@@ -1219,7 +1219,7 @@ public struct S
                 // (11,25): error CS8658: Auto-implemented property 'S.P8' cannot be marked 'readonly' because it has a 'set' accessor.
                 //     public readonly int P8 { get; readonly set; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P8").WithArguments("S.P8").WithLocation(11, 25),
-                // (11,44): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P8' and its accessors.
+                // (11,44): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P8' and its accessor. Remove one of them.
                 //     public readonly int P8 { get; readonly set; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "set").WithArguments("S.P8").WithLocation(11, 44));
         }
@@ -1235,7 +1235,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (4,38): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P' and its accessors.
+                // (4,38): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P' and its accessor. Remove one of them.
                 //     public readonly int P { readonly get => 42; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S.P").WithLocation(4, 38));
         }
@@ -1252,10 +1252,10 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (4,32): error CS8657: Static member 'S.P1' cannot be 'readonly'.
+                // (4,32): error CS8656: Static member 'S.P1' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //     public static readonly int P1 { get; set; }
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P1").WithArguments("S.P1").WithLocation(4, 32),
-                // (5,37): error CS8657: Static member 'S.P2.get' cannot be 'readonly'.
+                // (5,37): error CS8656: Static member 'S.P2.get' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //     public static int P2 { readonly get; }
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P2.get").WithLocation(5, 37));
         }
@@ -1685,14 +1685,14 @@ public struct S5
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (21,16): error CS8659: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S3.this[int]'.
+                // (21,16): error CS8660: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S3.this[int]'. Instead, put a 'readonly' modifier on the property itself.
                 //     public int this[int i]
                 Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "this").WithArguments("S3.this[int]").WithLocation(21, 16),
-                // (33,18): error CS8658: Cannot specify 'readonly' modifiers on both property or indexer 'S4.this[int]' and its accessors.
-                //         readonly get => 42;
+                // (33,18): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S4.this[int]' and its accessor. Remove one of them.
+                //         readonly get { return i; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S4.this[int]").WithLocation(33, 18),
                 // (40,32): error CS0106: The modifier 'static' is not valid for this item
-                //     public static readonly int this[int i]
+                //     public static readonly int this[int i] => i;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(40, 32));
         }
 
@@ -1751,7 +1751,7 @@ public struct S1
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,52): error CS8657: Static member 'S1.E' cannot be 'readonly'.
+                // (6,52): error CS8656: Static member 'S1.E' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //     public static readonly event Action<EventArgs> E
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "E").WithArguments("S1.E").WithLocation(6, 52));
         }
