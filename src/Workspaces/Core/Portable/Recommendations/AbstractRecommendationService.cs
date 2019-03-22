@@ -16,9 +16,11 @@ namespace Microsoft.CodeAnalysis.Recommendations
     internal abstract class AbstractRecommendationService<TSyntaxContext> : IRecommendationService
         where TSyntaxContext : SyntaxContext
     {
-        protected abstract Task<TSyntaxContext> CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
+        protected abstract Task<TSyntaxContext> CreateContext(
+            Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
 
-        protected abstract AbstractRecommendationServiceRunner<TSyntaxContext> CreateRunner(TSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken);
+        protected abstract AbstractRecommendationServiceRunner<TSyntaxContext> CreateRunner(
+            TSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<ISymbol>> GetRecommendedSymbolsAtPositionAsync(
             Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)

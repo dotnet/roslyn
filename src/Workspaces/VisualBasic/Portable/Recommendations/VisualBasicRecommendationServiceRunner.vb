@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         Inherits AbstractRecommendationServiceRunner(Of VisualBasicSyntaxContext)
 
         Public Sub New(context As VisualBasicSyntaxContext, filterOutOfScopeLocals As Boolean, cancellationToken As CancellationToken)
+
             MyBase.New(context, filterOutOfScopeLocals, cancellationToken)
         End Sub
 
@@ -53,6 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function IsWritableFieldOrLocal(symbol As ISymbol) As Boolean
+
             If symbol.Kind() = SymbolKind.Field Then
                 Dim field = DirectCast(symbol, IFieldSymbol)
                 Return Not field.IsReadOnly AndAlso Not field.IsConst
@@ -67,10 +69,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function GetSymbolsForGlobalStatementContext() As ImmutableArray(Of ISymbol)
+
             Return _context.SemanticModel.LookupSymbols(_context.TargetToken.Span.End)
         End Function
 
         Private Function GetUnqualifiedSymbolsForQueryIntoContext() As ImmutableArray(Of ISymbol)
+
             Dim symbols = _context.SemanticModel _
                 .LookupSymbols(_context.TargetToken.SpanStart, includeReducedExtensionMethods:=True)
 

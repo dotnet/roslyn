@@ -15,7 +15,10 @@ namespace Microsoft.CodeAnalysis.Recommendations
         protected readonly bool _filterOutOfScopeLocals;
         protected readonly CancellationToken _cancellationToken;
 
-        public AbstractRecommendationServiceRunner(TSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
+        public AbstractRecommendationServiceRunner(
+            TSyntaxContext context, 
+            bool filterOutOfScopeLocals, 
+            CancellationToken cancellationToken)
         {
             _context = context;
             _filterOutOfScopeLocals = filterOutOfScopeLocals;
@@ -44,8 +47,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return symbols;
         }
 
-        protected static bool IsNonIntersectingNamespace(
-            ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
+        protected static bool IsNonIntersectingNamespace(ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
         {
             //
             // Apart from filtering out non-namespace symbols, this also filters out the symbol
@@ -70,18 +72,25 @@ namespace Microsoft.CodeAnalysis.Recommendations
                                               declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
         }
 
-        protected ImmutableArray<ISymbol> GetSymbols(INamespaceOrTypeSymbol container, int position, bool excludeInstance, bool useBaseReferenceAccessibility)
+        protected ImmutableArray<ISymbol> GetSymbols(
+            INamespaceOrTypeSymbol container,
+            int position,
+            bool excludeInstance,
+            bool useBaseReferenceAccessibility)
         {
             return useBaseReferenceAccessibility
                 ? _context.SemanticModel.LookupBaseMembers(position)
                 : LookupSymbolsInContainer(container, position, excludeInstance);
         }
 
-        protected ImmutableArray<ISymbol> LookupSymbolsInContainer(INamespaceOrTypeSymbol container, int position, bool excludeInstance)
+        protected ImmutableArray<ISymbol> LookupSymbolsInContainer(
+            INamespaceOrTypeSymbol container, int position, bool excludeInstance)
         {
             return excludeInstance
                 ? _context.SemanticModel.LookupStaticMembers(position, container)
-                : SuppressDefaultTupleElements(container, _context.SemanticModel.LookupSymbols(position, container, includeReducedExtensionMethods: true));
+                : SuppressDefaultTupleElements(
+                    container,
+                    _context.SemanticModel.LookupSymbols(position, container, includeReducedExtensionMethods: true));
         }
 
         /// <summary>

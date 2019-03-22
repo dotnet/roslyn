@@ -11,11 +11,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
     Friend Class VisualBasicRecommendationService
         Inherits AbstractRecommendationService(Of VisualBasicSyntaxContext)
 
-        Protected Overrides Function CreateContext(workspace As Workspace, semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+        Protected Overrides Function CreateContext(
+                                                  workspace As Workspace,
+                                                  semanticModel As SemanticModel,
+                                                  position As Integer,
+                                                  cancellationToken As CancellationToken) As Task(Of VisualBasicSyntaxContext)
             Return VisualBasicSyntaxContext.CreateContextAsync(workspace, semanticModel, position, cancellationToken)
         End Function
 
-        Protected Overrides Function CreateRunner(context As VisualBasicSyntaxContext, filterOutOfScopeLocals As Boolean, cancellationToken As CancellationToken) As AbstractRecommendationServiceRunner(Of VisualBasicSyntaxContext)
+        Protected Overrides Function CreateRunner(
+                                                 context As VisualBasicSyntaxContext,
+                                                 filterOutOfScopeLocals As Boolean,
+                                                 cancellationToken As CancellationToken) As AbstractRecommendationServiceRunner(Of VisualBasicSyntaxContext)
             Return New VisualBasicRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken)
         End Function
     End Class

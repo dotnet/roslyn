@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 {
     internal class CSharpRecommendationServiceRunner : AbstractRecommendationServiceRunner<CSharpSyntaxContext>
     {
-        public CSharpRecommendationServiceRunner(CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
+        public CSharpRecommendationServiceRunner(
+            CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
             : base(context, filterOutOfScopeLocals, cancellationToken)
         {
         }
