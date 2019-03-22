@@ -75,6 +75,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     // The delay terminated early to accommodate a blocking operation. Make sure to delay long
                     // enough that low priority (on idle) operations get a chance to be triggered.
+                    //
+                    // 📝 At the time this was discovered, it was not clear exactly why the delay was needed in order
+                    // to avoid live-lock scenarios.
                     await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
                     return;
                 }
