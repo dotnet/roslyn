@@ -6697,6 +6697,42 @@ public class Test
         }
 
         [Fact]
+        public void TestObsoleteAttributeOnIndexerAccessors()
+        {
+            var source = @"
+using System;
+
+class C1
+{
+    public int this[int index] { [Obsolete] get => 1; set {} }
+}
+
+class C2
+{
+    public int this[int index] { get => 1; [Obsolete] set {} }
+}
+
+public class Program
+{
+    public void Main()
+    {
+        var c1 = new C1();
+        c1[0] = c1[0];
+        var c2 = new C2();
+        c2[0] = c2[0];
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (19,17): warning CS0612: 'C1.this[int].get' is obsolete
+                //         c1[0] = c1[0];
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c1[0]").WithArguments("C1.this[int].get").WithLocation(19, 17),
+                // (21,9): warning CS0612: 'C2.this[int].set' is obsolete
+                //         c2[0] = c2[0];
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c2[0]").WithArguments("C2.this[int].set").WithLocation(21, 9));
+        }
+
+        [Fact]
         public void TestObsoleteAttributeOnMembers2()
         {
             var source = @"
