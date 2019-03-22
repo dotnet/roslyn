@@ -2631,7 +2631,6 @@ class Program : [|IFoo|]
 class Program : [|IFoo|]
 {
 }",
-// PROTOTYPE(DefaultInterfaceImplementation): We shouldn't end up with "public int Foo(string s)" in Program. 
 @"interface IFoo
 {
     string Name { set; get; }
@@ -2653,11 +2652,6 @@ class Program : IFoo
             throw new System.NotImplementedException();
         }
     }
-
-    public int Foo(string s)
-    {
-        throw new System.NotImplementedException();
-    }
 }");
         }
 
@@ -2675,7 +2669,6 @@ class Program : IFoo
 class Program : [|IGoo|]
 {
 }",
-// PROTOTYPE(DefaultInterfaceImplementation): We shouldn't end up with "public string Name" in Program. 
 @"interface IGoo
 {
     static string Name { set; get; }
@@ -2685,19 +2678,6 @@ class Program : [|IGoo|]
 
 class Program : IGoo
 {
-    public string Name
-    {
-        get
-        {
-            throw new System.NotImplementedException();
-        }
-
-        set
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-
     public int Goo(string s)
     {
         throw new System.NotImplementedException();
@@ -7067,6 +7047,828 @@ public class Test : ITest
         throw new System.NotImplementedException();
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestSealedMember_01()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    sealed void M1() {}
+    sealed int P1 => 1;
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    sealed void M1() {}
+    sealed int P1 => 1;
+}
+
+class Class : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestSealedMember_02()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    sealed void M1() {}
+    sealed int P1 => 1;
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    sealed void M1() {}
+    sealed int P1 => 1;
+}
+
+class Class : IInterface
+{
+    void IInterface.Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestSealedMember_03()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    sealed void M1() {}
+    sealed int P1 => 1;
+}
+
+abstract class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    sealed void M1() {}
+    sealed int P1 => 1;
+}
+
+abstract class Class : IInterface
+{
+    public abstract void Method1();
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNonPublicMember_01()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    protected void M1();
+    protected int P1 {get;}
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    protected void M1();
+    protected int P1 {get;}
+}
+
+class Class : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNonPublicMember_02()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    protected void M1();
+    protected int P1 {get;}
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    protected void M1();
+    protected int P1 {get;}
+}
+
+class Class : IInterface
+{
+    int IInterface.P1
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+    void IInterface.M1()
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNonPublicMember_03()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    protected void M1();
+    protected int P1 {get;}
+}
+
+abstract class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    protected void M1();
+    protected int P1 {get;}
+}
+
+abstract class Class : IInterface
+{
+    public abstract void Method1();
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNonPublicAccessor_01()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    int P1 {get; protected set;}
+    int P2 {protected get; set;}
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    int P1 {get; protected set;}
+    int P2 {protected get; set;}
+}
+
+class Class : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNonPublicAccessor_02()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    int P1 {get; protected set;}
+    int P2 {protected get; set;}
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    int P1 {get; protected set;}
+    int P2 {protected get; set;}
+}
+
+class Class : IInterface
+{
+    int IInterface.P1
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+
+    int IInterface.P2
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestNonPublicAccessor_03()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    int P1 {get; protected set;}
+    int P2 {protected get; set;}
+}
+
+abstract class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    int P1 {get; protected set;}
+    int P2 {protected get; set;}
+}
+
+abstract class Class : IInterface
+{
+    public abstract void Method1();
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestPrivateAccessor_01()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    int P1 {get => 0; private set {}}
+    int P2 {private get => 0; set {}}
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    int P1 {get => 0; private set {}}
+    int P2 {private get => 0; set {}}
+}
+
+class Class : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestPrivateAccessor_02()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    int P1 {get => 0; private set {}}
+    int P2 {private get => 0; set {}}
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    int P1 {get => 0; private set {}}
+    int P2 {private get => 0; set {}}
+}
+
+class Class : IInterface
+{
+    void IInterface.Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestPrivateAccessor_03()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    int P1 {get => 0; private set {}}
+    int P2 {private get => 0; set {}}
+}
+
+abstract class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    int P1 {get => 0; private set {}}
+    int P2 {private get => 0; set {}}
+}
+
+abstract class Class : IInterface
+{
+    public abstract void Method1();
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestInaccessibleMember_01()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public interface IInterface
+{
+    void Method1();
+
+    internal void M1();
+    internal int P1 {get;}
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+class Class : [|IInterface|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+class Class : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+        ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestInaccessibleMember_02()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public interface IInterface
+{
+    void Method1();
+
+    internal void M1();
+    internal int P1 {get;}
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+class Class : [|IInterface|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+class Class : IInterface
+{
+    void IInterface.Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+        ",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestInaccessibleMember_03()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public interface IInterface
+{
+    void Method1();
+
+    internal void M1();
+    internal int P1 {get;}
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+abstract class Class : [|IInterface|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+abstract class Class : IInterface
+{
+    public abstract void Method1();
+}
+        ",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestInaccessibleAccessor_01()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public interface IInterface
+{
+    void Method1();
+
+    int P1 {get; internal set;}
+    int P2 {internal get; set;}
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+class Class : [|IInterface|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+class Class : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+        ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestInaccessibleAccessor_02()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public interface IInterface
+{
+    void Method1();
+
+    int P1 {get; internal set;}
+    int P2 {internal get; set;}
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+class Class : [|IInterface|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+class Class : IInterface
+{
+    void IInterface.Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}
+        ",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestInaccessibleAccessor_03()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document>
+public interface IInterface
+{
+    void Method1();
+
+    int P1 {get; internal set;}
+    int P2 {internal get; set;}
+}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <ProjectReference>Assembly1</ProjectReference>
+        <Document>
+abstract class Class : [|IInterface|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+abstract class Class : IInterface
+{
+    public abstract void Method1();
+}
+        ",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestVirtualMember_01()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    virtual void M1() {}
+    virtual int P1 => 1;
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    virtual void M1() {}
+    virtual int P1 => 1;
+}
+
+class Class : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestVirtualMember_02()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    virtual void M1() {}
+    virtual int P1 => 1;
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    virtual void M1() {}
+    virtual int P1 => 1;
+}
+
+class Class : IInterface
+{
+    void IInterface.Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestVirtualMember_03()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    virtual void M1() {}
+    virtual int P1 => 1;
+}
+
+abstract class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    virtual void M1() {}
+    virtual int P1 => 1;
+}
+
+abstract class Class : IInterface
+{
+    public abstract void Method1();
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticMember_01()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    static void M1() {}
+    static int P1 => 1;
+    static int F1;
+    public abstract class C {}
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    static void M1() {}
+    static int P1 => 1;
+    static int F1;
+    public abstract class C {}
+}
+
+class Class : IInterface
+{
+    public void Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticMember_02()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    static void M1() {}
+    static int P1 => 1;
+    static int F1;
+    public abstract class C {}
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    static void M1() {}
+    static int P1 => 1;
+    static int F1;
+    public abstract class C {}
+}
+
+class Class : IInterface
+{
+    void IInterface.Method1()
+    {
+        throw new System.NotImplementedException();
+    }
+}",
+index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestStaticMember_03()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IInterface
+{
+    void Method1();
+
+    static void M1() {}
+    static int P1 => 1;
+    static int F1;
+    public abstract class C {}
+}
+
+abstract class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    void Method1();
+
+    static void M1() {}
+    static int P1 => 1;
+    static int F1;
+    public abstract class C {}
+}
+
+abstract class Class : IInterface
+{
+    public abstract void Method1();
+}",
+index: 1);
         }
     }
 }
