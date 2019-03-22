@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ChangeNamespace;
+using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,6 +25,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
     internal abstract class AbstractMoveToNamespaceService<TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
         : IMoveToNamespaceService
+        where TNamespaceDeclarationSyntax : SyntaxNode
+        where TNamedTypeDeclarationSyntax : SyntaxNode
+
     {
         private IMoveToNamespaceOptionsService _moveToNamespaceOptionsService;
 
@@ -54,7 +60,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             int position,
             CancellationToken cancellationToken)
         {
-#if DEBUG // TODO: remove once the feature is done
             var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -72,7 +77,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
             if (node is TNamespaceDeclarationSyntax declarationSyntax)
             {
-                if (ContainsNamespaceDeclaration(node))
+                if (ContainsNamespaceDeclaration(node) || ContainsMultipleNamespaceInSpine(node))
                 {
                     return MoveToNamespaceAnalysisResult.Invalid;
                 }
@@ -90,28 +95,110 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
             if (node is TNamedTypeDeclarationSyntax namedTypeDeclarationSyntax)
             {
+                if (ContainsMultipleNamespaceInSpine(node))
+                {
+                    return new MoveToNamespaceAnalysisResult("Multiple namespace declarations in spine");
+                }
+
                 @namespace = @namespace ?? GetNamespaceName(namedTypeDeclarationSyntax);
                 var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
                 return new MoveToNamespaceAnalysisResult(document, node, @namespace, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.NamedType);
             }
 
             return MoveToNamespaceAnalysisResult.Invalid;
-#else
-
-            return await Task.FromResult(MoveToNamespaceAnalysisResult.Invalid).ConfigureAwait(false);
-#endif
         }
 
         private bool ContainsNamespaceDeclaration(SyntaxNode node)
             => node.DescendantNodes().OfType<TNamespaceDeclarationSyntax>().Any();
 
-        public Task<MoveToNamespaceResult> MoveToNamespaceAsync(
+        private static bool ContainsNamespaceDeclaration(SyntaxNode node)
+            => node.DescendantNodes(IsNamespaceOrCompilationSyntax)
+                        .OfType<TNamespaceDeclarationSyntax>().Any();
+
+        private static bool ContainsMultipleNamespaceInSpine(SyntaxNode node)
+            => node.AncestorsAndSelf().Where(IsNamespaceOrCompilationSyntax)
+                .OfType<TNamespaceDeclarationSyntax>().Count() > 1;
+
+        private static bool IsNamespaceOrCompilationSyntax(SyntaxNode node)
+            => node is TCompilationSyntax || node is TNamespaceDeclarationSyntax;
+
+        public override Task<MoveToNamespaceResult> MoveToNamespaceAsync(
             MoveToNamespaceAnalysisResult analysisResult,
             string targetNamespace,
             CancellationToken cancellationToken)
         {
-            // TODO: Implementation will be in a separate PR
-            return Task.FromResult(MoveToNamespaceResult.Failed);
+            if (!analysisResult.CanPerform)
+            {
+                return Task.FromResult(MoveToNamespaceResult.Failed);
+            }
+
+            switch (analysisResult.Type)
+            {
+                case MoveToNamespaceAnalysisResult.ContainerType.Namespace:
+                    return MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.Container, targetNamespace, cancellationToken);
+                case MoveToNamespaceAnalysisResult.ContainerType.NamedType:
+                    return MoveTypeToNamespace(analysisResult.Document, analysisResult.Container, targetNamespace, cancellationToken);
+                default:
+                    throw new InvalidOperationException();
+            }
+        }
+
+        private static async Task<MoveToNamespaceResult> MoveItemsInNamespaceAsync(
+            Document document,
+            SyntaxNode container,
+            string targetNamespace,
+            CancellationToken cancellationToken)
+        {
+            var changeNamespaceService = document.GetLanguageService<IChangeNamespaceService>();
+            if (changeNamespaceService == null)
+            {
+                return MoveToNamespaceResult.Failed;
+            }
+
+            var changedSolution = await changeNamespaceService.ChangeNamespaceAsync(
+                document,
+                container,
+                targetNamespace,
+                cancellationToken).ConfigureAwait(false);
+
+            return new MoveToNamespaceResult(changedSolution, document.Id);
+        }
+
+        private static async Task<MoveToNamespaceResult> MoveTypeToNamespace(
+            Document document,
+            SyntaxNode container,
+            string targetNamespace,
+            CancellationToken cancellationToken)
+        {
+            var moveTypeService = document.GetLanguageService<IMoveTypeService>();
+            if (moveTypeService == null)
+            {
+                return MoveToNamespaceResult.Failed;
+            }
+
+            // The move service expects a single position, not a full selection
+            var moveSpan = new TextSpan(container.FullSpan.Start, 0);
+
+            var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(
+                document,
+                moveSpan,
+                MoveTypeOperationKind.MoveTypeNamespaceScope,
+                cancellationToken).ConfigureAwait(false);
+
+            var modifiedDocument = modifiedSolution.GetDocument(document.Id);
+            var syntaxRoot = await modifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).FirstOrDefault();
+            if (syntaxNode == null)
+            {
+                syntaxNode = container.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
+            }
+
+            return await MoveItemsInNamespaceAsync(
+                modifiedDocument,
+                syntaxNode,
+                targetNamespace,
+                cancellationToken).ConfigureAwait(false);
         }
 
         private static SymbolDisplayFormat QualifiedNamespaceFormat = new SymbolDisplayFormat(

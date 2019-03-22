@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddImports;
 using Microsoft.CodeAnalysis.CSharp.ChangeNamespace;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.CSharp.MoveToNamespace;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
@@ -31,7 +32,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                     .WithPart(typeof(CSharpChangeNamespaceService))
                     .WithPart(typeof(Experiments.DefaultExperimentationService))
                     .WithPart(typeof(CSharpAddImportsService))
-                    .WithPart(typeof(CSharpRemoveUnnecessaryImportsService)));
+                    .WithPart(typeof(CSharpRemoveUnnecessaryImportsService))
+                    .WithPart(typeof(CSharpMoveTypeService)));
 
         public static Task TestMoveToNamespaceCommandCSharpAsync(
             string markup,
@@ -74,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             var parameters = new TestParameters();
             using (var workspace = CreateWorkspace(markup, languageName, compilationOptions, parameters))
             {
-                var testDocument = workspace.Documents.Single(d => d.CursorPosition.HasValue);
+                var testDocument = workspace.Documents.Single();
                 var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
                 var result = await MoveViaCommandAsync(testDocument, document, expectedNamespace);
@@ -134,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 
             var analysisResult = await moveToNamespaceService.AnalyzeTypeAtPositionAsync(
                 document,
-                testDocument.CursorPosition.Value,
+                testDocument.SelectedSpans[0].Start,
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return await moveToNamespaceService.MoveToNamespaceAsync(

@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public async Task MoveToNamespace_CaretOnNamespaceName()
+        public Task MoveToNamespace_MoveItems_CaretOnNamespaceName()
         {
-            var markup = @"
-using System;
+            var markup =
+@"using System;
 
-namespace A$$ 
+namespace A[||] 
 {
     class MyClass
     {
@@ -24,8 +24,8 @@ namespace A$$
     }
 }";
 
-            var expectedMarkup = @"
-using System;
+            var expectedMarkup =
+@"using System;
 
 namespace B
 {
@@ -34,7 +34,7 @@ namespace B
         void Method() { }
     }
 }";
-            await TestMoveToNamespaceCommandCSharpAsync(
+            return TestMoveToNamespaceCommandCSharpAsync(
                 markup,
                 expectedSuccess: true,
                 expectedNamespace: "B",
@@ -42,12 +42,12 @@ namespace B
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public async Task MoveToNamespace_CaretOnNamespaceKeyword()
+        public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword()
         {
-            var markup = @"
-using System;
+            var markup =
+@"using System;
 
-namespace$$ A
+namespace[||] A
 {
     class MyClass
     {
@@ -55,8 +55,8 @@ namespace$$ A
     }
 }";
 
-            var expectedMarkup = @"
-using System;
+            var expectedMarkup =
+@"using System;
 
 namespace B
 {
@@ -65,7 +65,7 @@ namespace B
         void Method() { }
     }
 }";
-            await TestMoveToNamespaceCommandCSharpAsync(
+            return TestMoveToNamespaceCommandCSharpAsync(
                 markup,
                 expectedSuccess: true,
                 expectedNamespace: "B",
@@ -73,12 +73,12 @@ namespace B
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public async Task MoveToNamespace_CaretOnNamespaceNameMultipleDeclarations()
+        public Task MoveToNamespace_MoveItems_MultipleDeclarations()
         {
-            var markup = @"
-using System;
+            var markup =
+@"using System;
 
-namespace A$$ 
+namespace A[||] 
 {
     class MyClass
     {
@@ -91,8 +91,8 @@ namespace A$$
     }
 }";
 
-            var expectedMarkup = @"
-using System;
+            var expectedMarkup =
+@"using System;
 
 namespace B
 {
@@ -106,7 +106,7 @@ namespace B
         void Method() { }
     }
 }";
-            await TestMoveToNamespaceCommandCSharpAsync(
+            return TestMoveToNamespaceCommandCSharpAsync(
                 markup,
                 expectedSuccess: true,
                 expectedNamespace: "B",
@@ -114,29 +114,12 @@ namespace B
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public async Task MoveToNamespace_CaretOnTypeDeclaration()
+        public Task MoveToNamespace_MoveItems_WithVariousSymbols()
         {
-            var markup = @"
-using System;
-namespace A 
-{
-    class MyClass$$ 
-    {
-        void Method() {}
-    }
-}";
-            await TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: false);
-        }
+            var markup =
+@"using System;
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public async Task MoveToNamespace_WithVariousSymbols()
-        {
-            var markup = @"
-using System;
-
-namespace A$$ 
+namespace A[||] 
 {
     public delegate void MyDelegate();
 
@@ -164,8 +147,8 @@ namespace A$$
     }
 }";
 
-            var expectedMarkup = @"
-using System;
+            var expectedMarkup =
+@"using System;
 
 namespace B
 {
@@ -194,7 +177,7 @@ namespace B
         void Method() { }
     }
 }";
-            await TestMoveToNamespaceCommandCSharpAsync(
+            return TestMoveToNamespaceCommandCSharpAsync(
                 markup,
                 expectedSuccess: true,
                 expectedNamespace: "B",
@@ -202,12 +185,12 @@ namespace B
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
-        public async Task MoveToNamespace_NestedNamespace()
+        public Task MoveToNamespace_MoveItems_NestedNamespace()
         {
-            var markup = @"
-using System;
+            var markup =
+@"using System;
 
-namespace A$$
+namespace A[||]
 {
     namespace C 
     {
@@ -217,7 +200,384 @@ namespace A$$
         }
     }
 }";
-            await TestMoveToNamespaceCommandCSharpAsync(
+            return TestMoveToNamespaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveItems_NestedNamespace2()
+        {
+            var markup =
+@"using System;
+
+namespace A
+{
+    namespace C[||]
+    {
+        class MyClass
+        {
+            void Method() { }
+        }
+    }
+}";
+            return TestMoveToNamespaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: false);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_Single()
+        {
+            var markup =
+@"namespace A
+{
+    class MyClass[||]
+    {
+    }
+}";
+
+            var expected =
+@"namespace B
+{
+    class MyClass
+    {
+    }
+}";
+
+            return TestMoveToNamespaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedNamespace: "B",
+                expectedMarkup: expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_SingleTop()
+        {
+            var markup =
+@"namespace A
+{
+    class MyClass[||]
+    {
+    }
+
+    class MyClass2
+    {
+    }
+}";
+
+            var expected =
+@"namespace B
+{
+    class MyClass
+    {
+    }
+}
+
+namespace A
+{
+    class MyClass2
+    {
+    }
+}";
+
+            return TestMoveToNamespaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedNamespace: "B",
+                expectedMarkup: expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_TopWithReference()
+        {
+            var markup =
+@"namespace A
+{
+    class MyClass[||] : IMyClass
+    {
+    }
+
+    interface IMyClass
+    {
+    }
+}";
+
+            var expected =
+@"using A;
+
+namespace B
+{
+    class MyClass : IMyClass
+    {
+    }
+}
+
+namespace A
+{
+    interface IMyClass
+    {
+    }
+}";
+
+            return TestMoveToNamespaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedNamespace: "B",
+                expectedMarkup: expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_Bottom()
+        {
+            var markup =
+@"namespace A
+{
+    class MyClass
+    {
+    }
+
+    class MyClass2[||]
+    {
+    }
+}";
+
+            var expected =
+@"namespace A
+{
+    class MyClass
+    {
+    }
+}
+
+namespace B
+{
+    class MyClass2
+    {
+    }
+}";
+
+            return TestMoveToNamespaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedNamespace: "B",
+                expectedMarkup: expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_BottomReference()
+        {
+            var markup =
+@"namespace A
+{
+    class MyClass : IMyClass
+    {
+    }
+
+    interface IMyClass[||]
+    {
+    }
+}";
+
+            var expected =
+@"namespace A
+{
+    class MyClass : IMyClass
+    {
+    }
+}
+
+namespace B
+{
+    interface IMyClass
+    {
+    }
+}";
+
+            return TestMoveToNamespaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedNamespace: "B",
+                expectedMarkup: expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_Middle()
+        {
+            var markup =
+@"namespace A
+{
+    class MyClass
+    {
+    }
+
+    class MyClass2[||]
+    {
+    }
+
+    class MyClass3
+    {
+    }
+}";
+
+            var expected =
+@"namespace A
+{
+    class MyClass
+    {
+    }
+}
+
+namespace B
+{
+    class MyClass2
+    {
+    }
+}
+
+namespace A
+{
+    class MyClass3
+    {
+    }
+}";
+
+            return TestMoveToNamespaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedNamespace: "B",
+                expectedMarkup: expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_MiddleReference()
+        {
+            var markup =
+@"namespace A
+{
+    class MyClass : IMyClass
+    {
+    }
+
+    interface IMyClass[||]
+    {
+    }
+
+    class MyClass3 : IMyClass
+    {
+    }
+}";
+
+            var expected =
+@"namespace A
+{
+    class MyClass : IMyClass
+    {
+    }
+}
+
+namespace B
+{
+    interface IMyClass
+    {
+    }
+}
+
+namespace A
+{
+    class MyClass3 : IMyClass
+    {
+    }
+}";
+
+            return TestMoveToNamespaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedNamespace: "B",
+                expectedMarkup: expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_MiddleReference2()
+        {
+            var markup =
+@"namespace A
+{
+    class MyClass : IMyClass
+    {
+    }
+
+    interface IMyClass
+    {
+    }
+
+    class [||]MyClass3 : IMyClass
+    {
+    }
+
+    class MyClass4
+    {
+    }
+}";
+
+            var expected =
+@"using A;
+
+namespace A
+{
+    class MyClass : IMyClass
+    {
+    }
+
+    interface IMyClass
+    {
+    }
+}
+
+namespace B
+{
+    class MyClass3 : IMyClass
+    {
+    }
+}
+
+namespace A
+{
+    class MyClass4
+    {
+    }
+}";
+
+            return TestMoveToNamespaceCommandCSharpAsync(
+                markup,
+                expectedSuccess: true,
+                expectedNamespace: "B",
+                expectedMarkup: expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_NestedInNamespace()
+        {
+            var markup =
+@"namespace A
+{
+    class MyClass
+    {
+    }
+
+    namespace B
+    {
+        interface [||]IMyClass
+        {
+        }
+    }
+
+    class MyClass2 : B.IMyClass
+    {
+    }
+}";
+            return TestMoveToNamespaceCommandCSharpAsync(
                 markup,
                 expectedSuccess: false);
         }

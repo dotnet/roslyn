@@ -16,20 +16,31 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 {
+    internal abstract class AbstractMoveTypeService : IMoveTypeService
+    {
+        /// <summary>
+        /// Annotation to mark the namespace encapsulating the type that has been moved
+        /// </summary>
+        public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new SyntaxAnnotation(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
+
+        public abstract Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+    }
+
     internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax> :
-        IMoveTypeService
+        AbstractMoveTypeService
         where TService : AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax>
         where TTypeDeclarationSyntax : SyntaxNode
         where TNamespaceDeclarationSyntax : SyntaxNode
         where TMemberDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode
     {
-        public async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(
+        public override async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
-            if (state == null)
+            if (state == null || !state.IsSelectionOnTypeHeader)
             {
                 return ImmutableArray<CodeAction>.Empty;
             }
@@ -40,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             return actions;
         }
 
-        public async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
+        public override async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
         {
             var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
@@ -78,13 +89,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start))
-            {
-                return null;
-            }
+            var isOnTypeHeader = syntaxFacts.IsOnTypeHeader(root, textSpan.Start);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            return State.Generate(semanticDocument, textSpan, nodeToAnalyze, cancellationToken);
+            return State.Generate(semanticDocument, textSpan, nodeToAnalyze, isOnTypeHeader, cancellationToken);
         }
 
         private ImmutableArray<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
