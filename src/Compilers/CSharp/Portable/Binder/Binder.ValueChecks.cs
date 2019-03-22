@@ -931,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // change from Dev10 which reports this error for struct types only,
                     // not for type parameters constrained to "struct".
 
-                    Debug.Assert(propertySymbol.Type.HasType);
+                    Debug.Assert(propertySymbol.TypeWithAnnotations.HasType);
                     Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, expr.Syntax, propertySymbol);
                 }
                 else
@@ -1458,7 +1458,7 @@ moreArguments:
 
                         if (parameter.RefKind == RefKind.In &&
                             inParametersMatchedWithArgs?[i] != true &&
-                            parameter.Type.TypeSymbol.IsRefLikeType == false)
+                            parameter.Type.IsRefLikeType == false)
                         {
                             return parameter;
                         }
@@ -1642,7 +1642,7 @@ moreArguments:
         {
             Debug.Assert((object)field != null);
             Debug.Assert(RequiresAssignableVariable(kind));
-            Debug.Assert(field.Type.HasType);
+            Debug.Assert(field.Type != (object)null);
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
             // (even though the latter message gives more explanation of why).

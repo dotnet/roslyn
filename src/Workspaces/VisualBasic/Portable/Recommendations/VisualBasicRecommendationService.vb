@@ -4,9 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Recommendations
-Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -14,28 +12,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
     <ExportLanguageService(GetType(IRecommendationService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicRecommendationService
-        Inherits AbstractRecommendationService
+        Inherits AbstractRecommendationService(Of VisualBasicSyntaxContext)
 
-        Protected Overrides Async Function GetRecommendedSymbolsAtPositionWorkerAsync(
-            workspace As Workspace,
-            semanticModel As SemanticModel,
-            position As Integer,
-            options As OptionSet,
-            cancellationToken As CancellationToken
-        ) As Tasks.Task(Of Tuple(Of ImmutableArray(Of ISymbol), SyntaxContext))
-
-            Dim context = Await VisualBasicSyntaxContext.CreateContextAsync(workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
-
-            Dim filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language)
-            Dim symbols = GetSymbolsWorker(context, filterOutOfScopeLocals, cancellationToken)
-
-            Dim hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language)
-            symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation)
-
-            Return Tuple.Create(Of ImmutableArray(Of ISymbol), SyntaxContext)(symbols, context)
+        Protected Overrides Function CreateContext(Workspace As Workspace, SemanticModel As SemanticModel, position As Integer, CancellationToken As CancellationToken) As Tasks.Task(Of VisualBasicSyntaxContext)
+            Return VisualBasicSyntaxContext.CreateContextAsync(Workspace, SemanticModel, position, CancellationToken)
         End Function
 
-        Private Function GetSymbolsWorker(
+        Protected Overrides Function GetSymbolsWorker(
             context As VisualBasicSyntaxContext,
             filterOutOfScopeLocals As Boolean,
             cancellationToken As CancellationToken
@@ -72,22 +55,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     .WhereAsArray(AddressOf IsWritableFieldOrLocal)
                 Return symbols
             ElseIf context.IsNamespaceDeclarationNameContext Then
-                Return GetUnqualifiedSymbolsForNamespaceDeclarationNameContext(context, cancellationToken)
+                Return GetSymbolsForNamespaceDeclarationNameContext(Of NamespaceBlockSyntax)(context, cancellationToken)
             End If
 
             Return ImmutableArray(Of ISymbol).Empty
-        End Function
-
-        Private Function GetUnqualifiedSymbolsForNamespaceDeclarationNameContext(
-                context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
-
-            Dim declarationSyntax = context.TargetToken.GetAncestor(Of NamespaceBlockSyntax)
-
-            If declarationSyntax Is Nothing Then
-                Return ImmutableArray(Of ISymbol).Empty
-            End If
-
-            Return GetRecommendedNamespaceNameSymbols(context.SemanticModel, declarationSyntax, cancellationToken)
         End Function
 
         Private Function IsWritableFieldOrLocal(symbol As ISymbol) As Boolean

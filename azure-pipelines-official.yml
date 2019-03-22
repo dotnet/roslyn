@@ -2,12 +2,14 @@ resources:
 - repo: self
   clean: true
 
-variables:
-  SignType: real
-  SkipTests: false
-  SkipApplyOptimizationData: false
-  IbcSourceBranchName: 'default'
-  IbcDropId: 'default'
+# Variables defined in yml cannot be overridden at queue time instead overrideable variables must be defined in the web gui.
+# Commenting out until AzDO supports something like the runtime parameters outlined here: https://github.com/Microsoft/azure-pipelines-yaml/pull/129
+#variables:
+#  SignType: real
+#  SkipTests: false
+#  SkipApplyOptimizationData: false
+#  IbcSourceBranchName: 'default'
+#  IbcDropId: 'default'
 
 jobs:
 - job: OfficialBuild
@@ -91,6 +93,15 @@ jobs:
       toLowerCase: false
       usePat: false
     displayName: 'OptProf - Publish to Artifact Services - ProfilingInputs'
+    condition: succeeded()
+
+  # Publish OptProf generated JSON files as a build artifact. This allows for easy inspection from
+  # a build execution.
+  - task: PublishBuildArtifacts@1
+    displayName: Publish OptProf Data Files
+    inputs:
+      PathtoPublish: '$(Build.SourcesDirectory)\artifacts\OptProf\$(BuildConfiguration)\Data'
+      ArtifactName: 'OptProf Data Files'
     condition: succeeded()
 
   # Build VS bootstrapper

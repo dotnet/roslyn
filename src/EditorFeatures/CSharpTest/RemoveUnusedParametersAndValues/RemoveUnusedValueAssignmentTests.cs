@@ -6662,5 +6662,206 @@ class C
     }
 }", PreferUnusedLocal);
         }
+
+        [WorkItem(33949, "https://github.com/dotnet/roslyn/issues/33949")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UsedInArgumentAfterAnArgumentWithControlFlow(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class A
+{
+    public static void M(int? x)
+    {
+        A [|a|] = new A();
+        a = M2(x ?? 1, a);
+    }
+
+    private static A M2(int? x, A a)
+    {
+        return a;
+    }
+}", optionName);
+        }
+
+        [WorkItem(33949, "https://github.com/dotnet/roslyn/issues/33949")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task ConpoundAssignmentWithControlFlowInValue(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class A
+{
+    public static void M(int? x)
+    {
+        int [|a|] = 1;
+        a += M2(x ?? 1);
+    }
+
+    private static int M2(int? x) => 0;
+}", optionName);
+        }
+
+        [WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UsedValueWithUsingStatementAndLocalFunction(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    private class Disposable : IDisposable { public void Dispose() { } }
+    public int M()
+    {
+        var result = 0;
+        void append() => [|result|] += 1; // IDE0059 for 'result'
+        using (var a = new Disposable())
+            append();
+        return result;
+    }
+}", optionName);
+        }
+
+        [WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UsedValueWithUsingStatementAndLambda(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    private class Disposable : IDisposable { public void Dispose() { } }
+    public int M()
+    {
+        var result = 0;
+        Action append = () => [|result|] += 1; // IDE0059 for 'result'
+        using (var a = new Disposable())
+            append();
+        return result;
+    }
+}", optionName);
+        }
+
+        [WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UsedValueWithUsingStatementAndLambda_02(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    private class Disposable : IDisposable { public void Dispose() { } }
+    public int M()
+    {
+        var result = 0;
+        Action appendLambda = () => [|result|] += 1;
+        void appendLocalFunction() => appendLambda();
+        Action appendDelegate = appendLocalFunction;
+        using (var a = new Disposable())
+            appendDelegate();
+        return result;
+    }
+}", optionName);
+        }
+
+        [WorkItem(33843, "https://github.com/dotnet/roslyn/issues/33843")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task UsedValueWithUsingStatementAndLambda_03(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    private class Disposable : IDisposable { public void Dispose() { } }
+    public int M()
+    {
+        var result = 0;
+        void appendLocalFunction() => [|result|] += 1;
+        Action appendLambda = () => appendLocalFunction();
+        Action appendDelegate = appendLambda;
+        using (var a = new Disposable())
+            appendDelegate();
+        return result;
+    }
+}", optionName);
+        }
+
+        [WorkItem(33937, "https://github.com/dotnet/roslyn/issues/33937")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task AssignedInCatchUsedInFinally_ThrowInCatch(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+public static class Program
+{
+    public static void Test()
+    {
+        var exceptionThrown = false;
+        try
+        {
+            throw new Exception();
+        }
+        catch
+        {
+            // The `exceptionThrown` token is incorrectly greyed out in the IDE
+            // IDE0059 Value assigned to 'exceptionThrown' is never used
+            [|exceptionThrown|] = true;
+            throw;
+        }
+        finally
+        {
+            // Breakpoint on this line is hit and 'true' is printed
+            Console.WriteLine(exceptionThrown);
+        }
+    }
+}", optionName);
+        }
+
+        [WorkItem(33937, "https://github.com/dotnet/roslyn/issues/33937")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedValues)]
+        [InlineData(nameof(PreferDiscard))]
+        [InlineData(nameof(PreferUnusedLocal))]
+        public async Task AssignedInCatchUsedInFinally_NoThrowInCatch(string optionName)
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+public static class Program
+{
+    public static void Test()
+    {
+        var exceptionThrown = false;
+        try
+        {
+            throw new Exception();
+        }
+        catch
+        {
+            [|exceptionThrown|] = true;
+        }
+        finally
+        {
+            Console.WriteLine(exceptionThrown);
+        }
+    }
+}", optionName);
+        }
     }
 }
