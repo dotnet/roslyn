@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         // Internal as tests currently rely on this method.
         internal abstract Task<CommentSelectionResult> CollectEdits(
-            Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans,
+            Document document, ICommentSelectionService service, ITextBuffer textBuffer, NormalizedSnapshotSpanCollection selectedSpans,
             TCommand command, CancellationToken cancellationToken);
 
         protected static VSCommanding.CommandState GetCommandState(ITextBuffer buffer)
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     return true;
                 }
 
-                var edits = CollectEdits(document, service, selectedSpans, command, cancellationToken).WaitAndGetResult(cancellationToken);
+                var edits = CollectEdits(document, service, subjectBuffer, selectedSpans, command, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 ApplyEdits(document, textView, subjectBuffer, service, title, edits);
             }

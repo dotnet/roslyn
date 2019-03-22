@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// Internal so that it can be called by unit tests.
         /// </summary>
         internal override Task<CommentSelectionResult> CollectEdits(
-            Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans,
+            Document document, ICommentSelectionService service, ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans,
             Operation operation, CancellationToken cancellationToken)
         {
             var spanTrackingList = ArrayBuilder<CommentTrackingSpan>.GetInstance();

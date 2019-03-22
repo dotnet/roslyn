@@ -27,20 +27,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         AbstractCommentSelectionBase<ValueTuple>,
         VSCommanding.ICommandHandler<CommentSelectionCommandArgs>
     {
-        private static readonly CommentSelectionResult s_EmptyCommentSelectionResult =
+        private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
             new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
+
+        private readonly ITextStructureNavigatorSelectorService _navigatorSelectorService;
 
         internal AbstractToggleBlockCommentBase(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService)
+            IEditorOperationsFactoryService editorOperationsFactoryService,
+            ITextStructureNavigatorSelectorService navigatorSelectorService)
             : base(undoHistoryRegistry, editorOperationsFactoryService)
         {
+            _navigatorSelectorService = navigatorSelectorService;
         }
 
         /// <summary>
         /// Retrieves data about the commented selection that can be optionally overriden by subclasses.
         /// </summary>
-        protected abstract Task<IToggleBlockCommentDocumentDataProvider> GetBlockCommentDocumentDataProvider(Document document, ITextSnapshot snapshot,
+        protected abstract Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
             CommentSelectionInfo commentInfo, CancellationToken cancellationToken);
 
         // TODO - Change to toggle handler.
@@ -62,29 +66,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         protected override string GetMessage(ValueTuple command) => EditorFeaturesResources.Toggling_block_comment;
 
         internal async override Task<CommentSelectionResult> CollectEdits(Document document, ICommentSelectionService service,
-            NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
+            ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
         {
             var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
             if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynToggleBlockComment))
             {
-                return s_EmptyCommentSelectionResult;
+                return s_emptyCommentSelectionResult;
             }
+
+            var navigator = _navigatorSelectorService.GetTextStructureNavigator(subjectBuffer);
 
             var commentInfo = await service.GetInfoAsync(document, selectedSpans.First().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
             if (commentInfo.SupportsBlockComment)
             {
-                return await ToggleBlockComments(document, commentInfo, selectedSpans, cancellationToken).ConfigureAwait(false);
+                return await ToggleBlockComments(document, commentInfo, navigator, selectedSpans, cancellationToken).ConfigureAwait(false);
             }
 
-            return s_EmptyCommentSelectionResult;
+            return s_emptyCommentSelectionResult;
         }
 
         private async Task<CommentSelectionResult> ToggleBlockComments(Document document, CommentSelectionInfo commentInfo,
-            NormalizedSnapshotSpanCollection selectedSpans, CancellationToken cancellationToken)
+            ITextStructureNavigator navigator, NormalizedSnapshotSpanCollection selectedSpans, CancellationToken cancellationToken)
         {
-            var blockCommentDataProvider = await GetBlockCommentDocumentDataProvider(document, selectedSpans.First().Snapshot, commentInfo, cancellationToken).ConfigureAwait(false);
+            var blockCommentedSpans = await GetBlockCommentsInDocument(
+                document, selectedSpans.First().Snapshot, commentInfo, cancellationToken).ConfigureAwait(false);
 
-            var blockCommentedSpans = blockCommentDataProvider.GetBlockCommentsInDocument();
             var blockCommentSelections = selectedSpans.SelectAsArray(span => new BlockCommentSelectionHelper(blockCommentedSpans, span));
 
             var returnOperation = Operation.Uncomment;
@@ -108,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 trackingSpans.Clear();
                 foreach (var blockCommentSelection in blockCommentSelections)
                 {
-                    BlockCommentSpan(blockCommentSelection, blockCommentDataProvider, textChanges, trackingSpans, commentInfo);
+                    BlockCommentSpan(blockCommentSelection, navigator, textChanges, trackingSpans, commentInfo);
                 }
             }
 
@@ -145,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             }
         }
 
-        private static void BlockCommentSpan(BlockCommentSelectionHelper blockCommentSelection, IToggleBlockCommentDocumentDataProvider blockCommentDataProvider,
+        private static void BlockCommentSpan(BlockCommentSelectionHelper blockCommentSelection, ITextStructureNavigator navigator,
             ArrayBuilder<TextChange> textChanges, ArrayBuilder<CommentTrackingSpan> trackingSpans, CommentSelectionInfo commentInfo)
         {
             // Add sequential block comments if the selection contains any intersecting comments.
@@ -159,14 +165,40 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 var spanToAdd = blockCommentSelection.SelectedSpan;
                 if (spanToAdd.IsEmpty)
                 {
-                    // The location for the comment should be the caret or the location after the end of the token the caret is inside of.
-                    var locationAfterToken = blockCommentDataProvider.GetEmptyCommentStartLocation(spanToAdd.Start);
-                    spanToAdd = TextSpan.FromBounds(locationAfterToken, locationAfterToken);
+                    var caretLocation = GetCaretLocationAfterToken(navigator, blockCommentSelection);
+                    spanToAdd = TextSpan.FromBounds(caretLocation, caretLocation);
                 }
 
                 trackingSpans.Add(new CommentTrackingSpan(spanToAdd));
                 AddBlockComment(commentInfo, spanToAdd, textChanges);
             }
+        }
+
+        /// <summary>
+        /// Returns a caret location of itself or the location after the token the caret is inside of.
+        /// </summary>
+        private static int GetCaretLocationAfterToken(ITextStructureNavigator navigator, BlockCommentSelectionHelper blockCommentSelection)
+        {
+            var snapshotSpan = blockCommentSelection.SnapshotSpan;
+            if (navigator == null)
+            {
+                return snapshotSpan.Start;
+            }
+
+            var extent = navigator.GetExtentOfWord(snapshotSpan.Start);
+            int locationAfterToken = extent.Span.End;
+            // Don't move to the end if it's already before the token.
+            if (snapshotSpan.Start == extent.Span.Start)
+            {
+                locationAfterToken = extent.Span.Start;
+            }
+            // If the 'word' is just whitespace, use the selected location.
+            if (blockCommentSelection.IsSpanWhitespace(TextSpan.FromBounds(extent.Span.Start, extent.Span.End)))
+            {
+                locationAfterToken = snapshotSpan.Start;
+            }
+
+            return locationAfterToken;
         }
 
         /// <summary>
@@ -235,7 +267,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             /// Trimmed text of the selection.
             /// </summary>
             private readonly string _trimmedText;
-            private readonly ITextSnapshot _snapshot;
+
+            public SnapshotSpan SnapshotSpan { get; }
 
             public TextSpan SelectedSpan { get; }
 
@@ -246,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             public BlockCommentSelectionHelper(ImmutableArray<TextSpan> allBlockComments, SnapshotSpan selectedSnapshotSpan)
             {
                 _trimmedText = selectedSnapshotSpan.GetText().Trim();
-                _snapshot = selectedSnapshotSpan.Snapshot;
+                SnapshotSpan = selectedSnapshotSpan;
 
                 SelectedSpan = TextSpan.FromBounds(selectedSnapshotSpan.Start, selectedSnapshotSpan.End);
                 IntersectingBlockComments = GetIntersectingBlockComments(allBlockComments, SelectedSpan);
@@ -260,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             {
                 for (var i = span.Start; i < span.End; i++)
                 {
-                    if (!char.IsWhiteSpace(_snapshot[i]))
+                    if (!char.IsWhiteSpace(SnapshotSpan.Snapshot[i]))
                     {
                         return false;
                     }
@@ -315,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
             public string GetSubstringFromText(int position, int length)
             {
-                return _snapshot.GetText().Substring(position, length);
+                return SnapshotSpan.Snapshot.GetText().Substring(position, length);
             }
 
             /// <summary>
@@ -325,14 +358,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             /// </summary>
             public bool TryGetBlockCommentOnSameLine(ImmutableArray<TextSpan> allBlockComments, out TextSpan commentedSpanOnSameLine)
             {
-                var selectedLine = _snapshot.GetLineFromPosition(SelectedSpan.Start);
+                var snapshot = SnapshotSpan.Snapshot;
+                var selectedLine = snapshot.GetLineFromPosition(SelectedSpan.Start);
                 var lineStartToCaretIsWhitespace = IsSpanWhitespace(TextSpan.FromBounds(selectedLine.Start, SelectedSpan.Start));
                 var caretToLineEndIsWhitespace = IsSpanWhitespace(TextSpan.FromBounds(SelectedSpan.Start, selectedLine.End));
                 foreach (var blockComment in allBlockComments)
                 {
                     if (lineStartToCaretIsWhitespace
                         && SelectedSpan.Start < blockComment.Start
-                        && _snapshot.AreOnSameLine(SelectedSpan.Start, blockComment.Start))
+                        && snapshot.AreOnSameLine(SelectedSpan.Start, blockComment.Start))
                     {
                         if (IsSpanWhitespace(TextSpan.FromBounds(SelectedSpan.Start, blockComment.Start)))
                         {
@@ -342,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     }
                     else if (caretToLineEndIsWhitespace
                              && SelectedSpan.Start > blockComment.End
-                             && _snapshot.AreOnSameLine(SelectedSpan.Start, blockComment.End))
+                             && snapshot.AreOnSameLine(SelectedSpan.Start, blockComment.End))
                     {
                         if (IsSpanWhitespace(TextSpan.FromBounds(blockComment.End, SelectedSpan.Start)))
                         {

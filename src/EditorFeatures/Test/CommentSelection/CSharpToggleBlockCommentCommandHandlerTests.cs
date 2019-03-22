@@ -14,56 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
     [UseExportProvider]
     public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleBlockCommentTestBase
     {
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CaretInsideToken()
-        {
-            var markup =
-@"
-class C
-{
-    void M()
-    {
-        va$$r i = 1;
-    }
-}";
-            var expected =
-@"
-class C
-{
-    void M()
-    {
-        var[|/**/|] i = 1;
-    }
-}";
-
-            ToggleBlockComment(markup, expected);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
-        public void AddComment_CaretInsideOperatorToken()
-        {
-            var markup = @"
-class C
-{
-    void M()
-    {
-        Func<int, bool> myFunc = x =$$> x == 5;
-    }
-}";
-            var expected =
-@"
-class C
-{
-    void M()
-    {
-        Func<int, bool> myFunc = x =>[|/**/|] x == 5;
-    }
-}";
-
-            ToggleBlockComment(markup, expected);
-        }
-
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
         public void AddComment_CommentMarkerStringBeforeSelection()
         {

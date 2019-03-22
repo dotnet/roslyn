@@ -149,7 +149,7 @@ class C
 {
     void M()
     {
-        va[|/**/|]r i = 1;
+        var[|/**/|] i = 1;
     }
 }";
 
@@ -173,7 +173,32 @@ class C
 {
     void M()
     {
-        Func<int, bool> myFunc = x =[|/**/|]> x == 5;
+        Func<int, bool> myFunc = x =>[|/**/|] x == 5;
+    }
+}";
+
+            ToggleBlockComment(markup, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
+        public void AddComment_CaretInsideNewline()
+        {
+            var markup =
+@"
+class C
+{
+    void M()
+    {
+        var i = 1;$$
+    }
+}";
+            var expected =
+@"
+class C
+{
+    void M()
+    {
+        var i = 1;[|/**/|]
     }
 }";
 
