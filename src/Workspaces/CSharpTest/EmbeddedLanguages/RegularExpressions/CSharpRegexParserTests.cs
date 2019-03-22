@@ -146,25 +146,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
             }
             catch (IndexOutOfRangeException) when (allowIndexOutOfRange)
             {
-                // bug with .net regex parser.  Can happen with patterns like: (?<-0
+                // bug with .NET regex parser.  Can happen with patterns like: (?<-0
                 Assert.NotEmpty(tree.Diagnostics);
                 return treeAndText;
             }
             catch (NullReferenceException) when (allowNullReference)
             {
-                // bug with .net regex parser.  can happen with patterns like: (?(?S))
+                // bug with .NET regex parser.  can happen with patterns like: (?(?S))
                 return treeAndText;
             }
             catch (OutOfMemoryException) when (allowOutOfMemeory)
             {
-                // bug with .net regex parser.  can happen with patterns like: a{2147483647,}
+                // bug with .NET regex parser.  can happen with patterns like: a{2147483647,}
                 return treeAndText;
             }
             catch (ArgumentException ex)
             {
                 Assert.NotEmpty(tree.Diagnostics);
 
-                // Ensure the diagnostic we emit is the same as the .Net one.  Note: we can only
+                // Ensure the diagnostic we emit is the same as the .NET one. Note: we can only
                 // do this in en-US as that's the only culture where we control the text exactly
                 // and can ensure it exactly matches Regex.  We depend on localization to do a 
                 // good enough job here for other languages.
