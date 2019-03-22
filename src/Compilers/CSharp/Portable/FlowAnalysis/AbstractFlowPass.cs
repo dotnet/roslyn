@@ -376,14 +376,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected ImmutableArray<PendingBranch> Analyze(ref bool badRegion)
+        protected ImmutableArray<PendingBranch> Analyze(ref bool badRegion, Optional<TLocalState> initialState = default)
         {
             ImmutableArray<PendingBranch> returns;
             do
             {
                 // the entry point of a method is assumed reachable
                 regionPlace = RegionPlace.Before;
-                this.State = TopState();
+                this.State = initialState.HasValue ? initialState.Value : TopState();
                 PendingBranches.Clear();
                 this.stateChangedAfterUse = false;
                 this.Diagnostics.Clear();
