@@ -1102,7 +1102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 if (projectItemForDocument == null)
                 {
                     // TODO(https://github.com/dotnet/roslyn/issues/34276):
-                    // The document might actually belong to a Shared Project.
+                    Debug.Assert(false, "Attempting to change the name of a file in a Shared Project");
                     return;
                 }
 
