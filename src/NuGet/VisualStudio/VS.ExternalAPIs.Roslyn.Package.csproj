@@ -47,6 +47,8 @@
     <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\TypeScript\Microsoft.CodeAnalysis.ExternalAccess.TypeScript.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Tools\ExternalAccess\UnitTesting\Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Tools\ExternalAccess\Xamarin\Microsoft.CodeAnalysis.ExternalAccess.Xamarin.csproj" PrivateAssets="all" />
+    <ProjectReference Include="..\..\Tools\ExternalAccess\Xamarin.Remote\Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" PrivateAssets="all" />
@@ -97,6 +99,8 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Razor\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Razor.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.TypeScript\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.TypeScript.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.UnitTesting\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Xamarin\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Xamarin.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Features\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Features.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.InteractiveHost\$(Configuration)\net472\Microsoft.CodeAnalysis.InteractiveHost.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Remote.Razor.ServiceHub\$(Configuration)\net472\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll" TargetDir="" />

@@ -43,6 +43,7 @@ using Roslyn.VisualStudio.Setup;
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.TypeScript.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.dll")]
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote.dll")]
+[assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.ExternalAccess.Xamarin.dll")]
 
 [assembly: ProvideRoslynBindingRedirection("Microsoft.CodeAnalysis.Elfie.dll")]
 
