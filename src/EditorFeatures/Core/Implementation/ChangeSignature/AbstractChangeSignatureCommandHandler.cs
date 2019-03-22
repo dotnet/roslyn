@@ -29,22 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
             => GetCommandState(args.SubjectBuffer);
 
         private static VSCommanding.CommandState GetCommandState(ITextBuffer subjectBuffer)
-        {
-            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document == null ||
-                !document.Project.Solution.Workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!supportsFeatureService.SupportsRefactorings(document))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            return VSCommanding.CommandState.Available;
-        }
+            => IsAvailable(subjectBuffer, out _) ? VSCommanding.CommandState.Available : VSCommanding.CommandState.Unspecified;
 
         public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
@@ -52,32 +37,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ChangeSignature
         public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
             => ExecuteCommand(args.TextView, args.SubjectBuffer, context);
 
+        private static bool IsAvailable(ITextBuffer subjectBuffer, out Workspace workspace)
+            => subjectBuffer.TryGetWorkspace(out workspace) &&
+               workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+               subjectBuffer.SupportsRefactorings();
+
         private bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: true, FeaturesResources.Change_signature))
             {
-                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-                if (document == null)
-                {
-                    return false;
-                }
-
-                // TODO: reuse GetCommandState instead
-                var workspace = document.Project.Solution.Workspace;
-                if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-                {
-                    return false;
-                }
-
-                var supportsFeatureService = document.Project.Solution.Workspace.Services.GetService<IDocumentSupportsFeatureService>();
-                if (!supportsFeatureService.SupportsRefactorings(document))
+                if (!IsAvailable(subjectBuffer, out var workspace))
                 {
                     return false;
                 }
 
                 var caretPoint = textView.GetCaretPoint(subjectBuffer);
                 if (!caretPoint.HasValue)
+                {
+                    return false;
+                }
+
+                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                if (document == null)
                 {
                     return false;
                 }
