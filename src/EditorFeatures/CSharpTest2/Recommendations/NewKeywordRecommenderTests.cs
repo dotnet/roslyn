@@ -118,6 +118,13 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterNullCoalescingAssignment()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"q ??= $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInParenthesizedExpression()
         {
             await VerifyKeywordAsync(AddInsideMethod(
