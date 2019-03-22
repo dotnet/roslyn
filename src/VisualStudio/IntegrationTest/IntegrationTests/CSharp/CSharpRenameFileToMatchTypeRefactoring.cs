@@ -67,9 +67,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.Verify.CurrentLineText("public class MismatchedClassName { }");
             VisualStudio.SolutionExplorer.Verify.FileContents(project, "MismatchedClassName.cs", @"public class MismatchedClassName { }");
 
-            // Undo just undoes text changes. The file rename is not undone, and the changes are not saved after the undo
+            // The first undo is for the file rename.
+            VisualStudio.Editor.Undo();
+            VisualStudio.Editor.Verify.CurrentLineText("public class MismatchedClassName { }");
+            VisualStudio.SolutionExplorer.Verify.FileContents(project, "Class1.cs", @"public class MismatchedClassName { }");
+
+            // The second undo is for the text changes.
             VisualStudio.Editor.Undo();
             VisualStudio.Editor.Verify.CurrentLineText("class MismatchedClassName { }");
+
+            // Redo the text changes
+            VisualStudio.Editor.Redo();
+            VisualStudio.Editor.Verify.CurrentLineText("public class MismatchedClassName { }");
+
+            // Redo the file rename
+            VisualStudio.Editor.Redo();
             VisualStudio.SolutionExplorer.Verify.FileContents(project, "MismatchedClassName.cs", @"public class MismatchedClassName { }");
         }
     }
