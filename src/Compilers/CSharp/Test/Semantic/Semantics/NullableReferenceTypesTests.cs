@@ -86641,5 +86641,175 @@ class C
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 40)
                 );
         }
+
+        [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
+        public void NullableIgnored_InDisabledCode()
+        {
+            var source =
+@"
+#if UNDEF
+#nullable disable
+#endif
+
+#define DEF
+
+#if DEF
+#nullable disable // 1
+#endif
+
+#if UNDEF
+#nullable enable 
+#endif
+
+public class C
+{
+    public void F(object o)
+    {
+        F(null); // no warning. '#nullable enable' in a disabled code region
+    }
+}
+";
+            CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (9,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // #nullable disable // 1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(9, 2)
+                );
+
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue())
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
+        public void PragmaIgnored_InDisabledCode()
+        {
+            var source =
+@"
+#pragma warning disable nullable 
+
+#if UNDEF
+#pragma warning restore nullable
+#endif
+
+public class C
+{
+    public void F(object o)
+    {
+        F(null); // no warning. '#pragma warning restore nullable' in a disabled code region
+    }
+}
+";
+            CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics();
+
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue())
+                .VerifyDiagnostics();
+        }
+
+        [WorkItem(30987, "https://github.com/dotnet/roslyn/issues/30987")]
+        [Fact]
+        public void TypeInference_LowerBounds_TopLevelNullability_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static T F<T>(T x, T y) => x;
+    static void G1(A x, B? y)
+    {
+        F(x, x)/*T:A!*/;
+        F(x, y)/*T:A?*/;
+        F(y, x)/*T:A?*/;
+        F(y, y)/*T:B?*/;
+    }
+    static void G2(A x, B? y)
+    {
+        _ = new [] { x, x }[0]/*T:A!*/;
+        _ = new [] { x, y }[0]/*T:A?*/;
+        _ = new [] { y, x }[0]/*T:A?*/;
+        _ = new [] { y, y }[0]/*T:B?*/;
+    }
+    static T M<T>(Func<T> func) => func();
+    static void G3(bool b, A x, B? y)
+    {
+        M(() => { if (b) return x; return x; })/*T:A!*/;
+        M(() => { if (b) return x; return y; })/*T:A?*/;
+        M(() => { if (b) return y; return x; })/*T:A?*/;
+        M(() => { if (b) return y; return y; })/*T:B?*/;
+    }
+    static void G4(bool b, A x, B? y)
+    {
+        _ = (b ? x : x)/*T:A!*/;
+        _ = (b ? x : y)/*T:A?*/;
+        _ = (b ? y : x)/*T:A?*/;
+        _ = (b ? y : y)/*T:B?*/;
+    }
+}
+class A { }
+class B : A { }
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [WorkItem(30987, "https://github.com/dotnet/roslyn/issues/30987")]
+        [Fact]
+        public void TypeInference_LowerBounds_TopLevelNullability_04()
+        {
+            var source =
+@"class D
+{
+    static T F<T>(T x, T y, T z) => x;
+    static void G1(A x, B? y, C z)
+    {
+        F(x, y, z)/*T:A?*/;
+        F(y, z, x)/*T:A?*/;
+        F(z, x, y)/*T:A?*/;
+        F(x, z, y)/*T:A?*/;
+        F(z, y, x)/*T:A?*/;
+        F(y, x, z)/*T:A?*/;
+    }
+}
+class A { }
+class B : A { }
+class C : A { }
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [WorkItem(30987, "https://github.com/dotnet/roslyn/issues/30987")]
+        [Fact]
+        public void TypeInference_LowerBounds_TopLevelNullability_05()
+        {
+            var source =
+@"class D
+{
+#nullable disable
+    static T F<T>(T x, T y, T z) => x;
+    static void G1(A x, B? y, C z)
+#nullable enable
+    {
+        F(x, y, z)/*T:A?*/;
+        F(y, z, x)/*T:A?*/;
+        F(z, x, y)/*T:A?*/;
+        F(x, z, y)/*T:A?*/;
+        F(z, y, x)/*T:A?*/;
+        F(y, x, z)/*T:A?*/;
+    }
+}
+class A { }
+class B : A { }
+class C : A { }
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     static void G1(A x, B? y, C z)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 26));
+            comp.VerifyTypes();
+        }
     }
 }

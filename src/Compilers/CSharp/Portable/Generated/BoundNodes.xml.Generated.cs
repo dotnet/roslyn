@@ -728,30 +728,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypeExpression : BoundExpression
     {
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, bool inferredType, BoundTypeExpression boundContainingTypeOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.TypeExpression, syntax, type, hasErrors || boundContainingTypeOpt.HasErrors())
+        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, BoundTypeExpression boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TypeExpression, syntax, type, hasErrors || boundContainingTypeOpt.HasErrors() || boundDimensionsOpt.HasErrors())
         {
 
             Debug.Assert((object)type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.AliasOpt = aliasOpt;
-            this.InferredType = inferredType;
             this.BoundContainingTypeOpt = boundContainingTypeOpt;
+            this.BoundDimensionsOpt = boundDimensionsOpt;
         }
 
 
         public AliasSymbol AliasOpt { get; }
 
-        public bool InferredType { get; }
-
         public BoundTypeExpression BoundContainingTypeOpt { get; }
+
+        public ImmutableArray<BoundExpression> BoundDimensionsOpt { get; }
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitTypeExpression(this);
 
-        public BoundTypeExpression Update(AliasSymbol aliasOpt, bool inferredType, BoundTypeExpression boundContainingTypeOpt, TypeSymbol type)
+        public BoundTypeExpression Update(AliasSymbol aliasOpt, BoundTypeExpression boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeSymbol type)
         {
-            if (aliasOpt != this.AliasOpt || inferredType != this.InferredType || boundContainingTypeOpt != this.BoundContainingTypeOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (aliasOpt != this.AliasOpt || boundContainingTypeOpt != this.BoundContainingTypeOpt || boundDimensionsOpt != this.BoundDimensionsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTypeExpression(this.Syntax, aliasOpt, inferredType, boundContainingTypeOpt, type, this.HasErrors);
+                var result = new BoundTypeExpression(this.Syntax, aliasOpt, boundContainingTypeOpt, boundDimensionsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override BoundExpression ShallowClone()
         {
-            var result = new BoundTypeExpression(this.Syntax, this.AliasOpt, this.InferredType, this.BoundContainingTypeOpt, this.Type, this.HasErrors);
+            var result = new BoundTypeExpression(this.Syntax, this.AliasOpt, this.BoundContainingTypeOpt, this.BoundDimensionsOpt, this.Type, this.HasErrors);
             result.CopyAttributes(this);
             return result;
         }
@@ -2707,34 +2707,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocalDeclaration : BoundStatement
     {
-        public BoundLocalDeclaration(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredType, BoundExpression initializerOpt, ImmutableArray<BoundExpression> argumentsOpt, bool hasErrors = false)
-            : base(BoundKind.LocalDeclaration, syntax, hasErrors || declaredType.HasErrors() || initializerOpt.HasErrors() || argumentsOpt.HasErrors())
+        public BoundLocalDeclaration(SyntaxNode syntax, LocalSymbol localSymbol, BoundTypeExpression declaredTypeOpt, BoundExpression initializerOpt, ImmutableArray<BoundExpression> argumentsOpt, bool inferredType, bool hasErrors = false)
+            : base(BoundKind.LocalDeclaration, syntax, hasErrors || declaredTypeOpt.HasErrors() || initializerOpt.HasErrors() || argumentsOpt.HasErrors())
         {
 
             Debug.Assert((object)localSymbol != null, "Field 'localSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-            Debug.Assert((object)declaredType != null, "Field 'declaredType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.LocalSymbol = localSymbol;
-            this.DeclaredType = declaredType;
+            this.DeclaredTypeOpt = declaredTypeOpt;
             this.InitializerOpt = initializerOpt;
             this.ArgumentsOpt = argumentsOpt;
+            this.InferredType = inferredType;
         }
 
 
         public LocalSymbol LocalSymbol { get; }
 
-        public BoundTypeExpression DeclaredType { get; }
+        public BoundTypeExpression DeclaredTypeOpt { get; }
 
         public BoundExpression InitializerOpt { get; }
 
         public ImmutableArray<BoundExpression> ArgumentsOpt { get; }
+
+        public bool InferredType { get; }
         public override BoundNode Accept(BoundTreeVisitor visitor) => visitor.VisitLocalDeclaration(this);
 
-        public BoundLocalDeclaration Update(LocalSymbol localSymbol, BoundTypeExpression declaredType, BoundExpression initializerOpt, ImmutableArray<BoundExpression> argumentsOpt)
+        public BoundLocalDeclaration Update(LocalSymbol localSymbol, BoundTypeExpression declaredTypeOpt, BoundExpression initializerOpt, ImmutableArray<BoundExpression> argumentsOpt, bool inferredType)
         {
-            if (localSymbol != this.LocalSymbol || declaredType != this.DeclaredType || initializerOpt != this.InitializerOpt || argumentsOpt != this.ArgumentsOpt)
+            if (localSymbol != this.LocalSymbol || declaredTypeOpt != this.DeclaredTypeOpt || initializerOpt != this.InitializerOpt || argumentsOpt != this.ArgumentsOpt || inferredType != this.InferredType)
             {
-                var result = new BoundLocalDeclaration(this.Syntax, localSymbol, declaredType, initializerOpt, argumentsOpt, this.HasErrors);
+                var result = new BoundLocalDeclaration(this.Syntax, localSymbol, declaredTypeOpt, initializerOpt, argumentsOpt, inferredType, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8327,6 +8329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTypeExpression(BoundTypeExpression node)
         {
             this.Visit(node.BoundContainingTypeOpt);
+            this.VisitList(node.BoundDimensionsOpt);
             return null;
         }
         public override BoundNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node) => null;
@@ -8528,7 +8531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
-            this.Visit(node.DeclaredType);
+            this.Visit(node.DeclaredTypeOpt);
             this.Visit(node.InitializerOpt);
             this.VisitList(node.ArgumentsOpt);
             return null;
@@ -9171,8 +9174,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTypeExpression(BoundTypeExpression node)
         {
             BoundTypeExpression boundContainingTypeOpt = (BoundTypeExpression)this.Visit(node.BoundContainingTypeOpt);
+            ImmutableArray<BoundExpression> boundDimensionsOpt = (ImmutableArray<BoundExpression>)this.VisitList(node.BoundDimensionsOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.AliasOpt, node.InferredType, boundContainingTypeOpt, type);
+            return node.Update(node.AliasOpt, boundContainingTypeOpt, boundDimensionsOpt, type);
         }
         public override BoundNode VisitTypeOrValueExpression(BoundTypeOrValueExpression node)
         {
@@ -9453,10 +9457,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
-            BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
+            BoundTypeExpression declaredTypeOpt = (BoundTypeExpression)this.Visit(node.DeclaredTypeOpt);
             BoundExpression initializerOpt = (BoundExpression)this.Visit(node.InitializerOpt);
             ImmutableArray<BoundExpression> argumentsOpt = (ImmutableArray<BoundExpression>)this.VisitList(node.ArgumentsOpt);
-            return node.Update(node.LocalSymbol, declaredType, initializerOpt, argumentsOpt);
+            return node.Update(node.LocalSymbol, declaredTypeOpt, initializerOpt, argumentsOpt, node.InferredType);
         }
         public override BoundNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node)
         {
@@ -10253,8 +10257,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitTypeExpression(BoundTypeExpression node, object arg) => new TreeDumperNode("typeExpression", null, new TreeDumperNode[]
         {
             new TreeDumperNode("aliasOpt", node.AliasOpt, null),
-            new TreeDumperNode("inferredType", node.InferredType, null),
             new TreeDumperNode("boundContainingTypeOpt", null, new TreeDumperNode[] { Visit(node.BoundContainingTypeOpt, null) }),
+            new TreeDumperNode("boundDimensionsOpt", null, node.BoundDimensionsOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.BoundDimensionsOpt select Visit(x, null)),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null)
         }
@@ -10646,9 +10650,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitLocalDeclaration(BoundLocalDeclaration node, object arg) => new TreeDumperNode("localDeclaration", null, new TreeDumperNode[]
         {
             new TreeDumperNode("localSymbol", node.LocalSymbol, null),
-            new TreeDumperNode("declaredType", null, new TreeDumperNode[] { Visit(node.DeclaredType, null) }),
+            new TreeDumperNode("declaredTypeOpt", null, new TreeDumperNode[] { Visit(node.DeclaredTypeOpt, null) }),
             new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
-            new TreeDumperNode("argumentsOpt", null, node.ArgumentsOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.ArgumentsOpt select Visit(x, null))
+            new TreeDumperNode("argumentsOpt", null, node.ArgumentsOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.ArgumentsOpt select Visit(x, null)),
+            new TreeDumperNode("inferredType", node.InferredType, null)
         }
         );
         public override TreeDumperNode VisitMultipleLocalDeclarations(BoundMultipleLocalDeclarations node, object arg) => new TreeDumperNode("multipleLocalDeclarations", null, new TreeDumperNode[]
