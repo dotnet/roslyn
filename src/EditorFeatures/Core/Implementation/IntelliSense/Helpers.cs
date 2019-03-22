@@ -2,8 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 
@@ -11,13 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
     internal static class Helpers
     {
-        internal static ClassifiedTextElement BuildClassifiedTextElement(ImmutableArray<TaggedText> taggedTexts)
-        {
-            return new ClassifiedTextElement(taggedTexts.Select(
-                    part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)) ?? Enumerable.Empty<ClassifiedTextRun>());
-        }
-
-        internal static IEnumerable<object> BuildClassifiedTextElements(QuickInfoSection section)
+        internal static IEnumerable<object> BuildClassifiedTextElements(ImmutableArray<TaggedText> taggedTexts)
         {
             // This method produces a sequence of zero or more paragraphs
             var paragraphs = new List<object>();
@@ -28,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             // Each line is constructed from one or more inline elements
             var currentRuns = new List<ClassifiedTextRun>();
 
-            foreach (var part in section.TaggedParts)
+            foreach (var part in taggedTexts)
             {
                 if (part.Tag == TextTags.LineBreak)
                 {

@@ -250,28 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeWithAnnotations MergeNullability(TypeWithAnnotations other, VarianceKind variance)
         {
             TypeSymbol typeSymbol = other.Type;
-            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(this.NullableAnnotation, other.NullableAnnotation, variance);
+            NullableAnnotation nullableAnnotation = this.NullableAnnotation.MergeNullableAnnotation(other.NullableAnnotation, variance);
             TypeSymbol type = Type.MergeNullability(typeSymbol, variance);
             Debug.Assert((object)type != null);
             return Create(type, nullableAnnotation, CustomModifiers);
-        }
-
-        /// <summary>
-        /// Merges nullability.
-        /// </summary>
-        private static NullableAnnotation MergeNullableAnnotation(NullableAnnotation a, NullableAnnotation b, VarianceKind variance)
-        {
-            switch (variance)
-            {
-                case VarianceKind.In:
-                    return a.Meet(b);
-                case VarianceKind.Out:
-                    return a.Join(b);
-                case VarianceKind.None:
-                    return a.EnsureCompatible(b);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(variance);
-            }
         }
 
         public TypeWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) =>
