@@ -25,8 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public void Do(IOleUndoManager pUndoManager)
             {
-                // FirstOrDefault is okay because that's how the rename would have been
-                // done in the forward direction as well.
+                // Using FirstOrDefault because we only need to rename one document, as that will get
+                // applied to linked files.
                 var documentId = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(_filePath).FirstOrDefault();
                 if (documentId != null)
                 {
