@@ -13,6 +13,9 @@ parameters:
 
   # Optional: Enable publishing to the build asset registry
   enablePublishBuildAssets: false
+
+  # Optional: Enable publishing using release pipelines
+  enablePublishUsingPipelines: false
   
   graphFileGeneration:
     # Optional: Enable generating the graph files at the end of the build
@@ -73,6 +76,7 @@ jobs:
       pool:
         vmImage: vs2017-win2016
       runAsPublic: ${{ parameters.runAsPublic }}
+      publishUsingPipelines: ${{ parameters.enablePublishUsingPipelines }}
       enablePublishBuildArtifacts: ${{ parameters.enablePublishBuildArtifacts }}
       
 - ${{ if and(eq(parameters.graphFileGeneration.enabled, true), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:

@@ -271,6 +271,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Dim itemDescription = Await service.GetDescriptionAsync(document, roslynItem)
                 Assert.Equal(description, itemDescription.Text)
             End If
+
+            If inlineDescription IsNot Nothing Then
+                Assert.Equal(inlineDescription, items.SelectedItem.Suffix)
+            End If
+
         End Function
 
         Public Overrides Async Function AssertSessionIsNothingOrNoCompletionItemLike(text As String) As Task

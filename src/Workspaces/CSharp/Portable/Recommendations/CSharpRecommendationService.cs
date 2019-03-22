@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
@@ -13,32 +12,19 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 {
     [ExportLanguageService(typeof(IRecommendationService), LanguageNames.CSharp), Shared]
-    internal class CSharpRecommendationService : AbstractRecommendationService
+    internal class CSharpRecommendationService : AbstractRecommendationService<CSharpSyntaxContext>
     {
-        protected override Task<Tuple<ImmutableArray<ISymbol>, SyntaxContext>> GetRecommendedSymbolsAtPositionWorkerAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, OptionSet options, CancellationToken cancellationToken)
-        {
-            var context = CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
+        protected override Task<CSharpSyntaxContext> CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+            => Task.FromResult(CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken));
 
-            var filterOutOfScopeLocals = options.GetOption(RecommendationOptions.FilterOutOfScopeLocals, semanticModel.Language);
-            var symbols = GetSymbolsWorker(context, filterOutOfScopeLocals, cancellationToken);
-
-            var hideAdvancedMembers = options.GetOption(RecommendationOptions.HideAdvancedMembers, semanticModel.Language);
-            symbols = symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, semanticModel.Compilation);
-
-            return Task.FromResult(Tuple.Create<ImmutableArray<ISymbol>, SyntaxContext>(symbols, context));
-        }
-
-        private static ImmutableArray<ISymbol> GetSymbolsWorker(
+        protected override ImmutableArray<ISymbol> GetSymbolsWorker(
             CSharpSyntaxContext context,
             bool filterOutOfScopeLocals,
             CancellationToken cancellationToken)
@@ -92,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (context.IsNamespaceDeclarationNameContext)
             {
-                return GetSymbolsForNamespaceDeclarationNameContext(context, cancellationToken);
+                return GetSymbolsForNamespaceDeclarationNameContext<NamespaceDeclarationSyntax>(context, cancellationToken);
             }
 
             return ImmutableArray<ISymbol>.Empty;
@@ -232,18 +218,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             return symbols;
-        }
-
-        private static ImmutableArray<ISymbol> GetSymbolsForNamespaceDeclarationNameContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var declarationSyntax = context.TargetToken.GetAncestor<NamespaceDeclarationSyntax>();
-
-            if (declarationSyntax == null)
-            {
-                return ImmutableArray<ISymbol>.Empty;
-            }
-
-            return GetRecommendedNamespaceNameSymbols(context.SemanticModel, declarationSyntax, cancellationToken);
         }
 
         private static ImmutableArray<ISymbol> GetSymbolsForExpressionOrStatementContext(
