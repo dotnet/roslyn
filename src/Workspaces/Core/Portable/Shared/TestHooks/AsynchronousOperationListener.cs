@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
         }
 
-        public async Task Delay(TimeSpan delay, CancellationToken cancellationToken)
+        public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
         {
             var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
             using (var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken))
@@ -43,10 +43,12 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 try
                 {
                     await Task.Delay(delay, cancellationTokenSource.Token).ConfigureAwait(false);
+                    return true;
                 }
                 catch (OperationCanceledException) when (expeditedDelayCancellationToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
                 {
                     // The cancellation only occurred due to a request to expedite the operation
+                    return false;
                 }
             }
         }

@@ -65,20 +65,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return;
                 }
 
-                try
-                {
-                    // TODO: will safestart/unwarp capture cancellation exception?
-                    var timeLeft = BackOffTimeSpanInMS - diffInMS;
-                    await expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(Math.Max(MinimumDelayInMS, timeLeft)), CancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) when (!CancellationToken.IsCancellationRequested)
+                // TODO: will safestart/unwarp capture cancellation exception?
+                var timeLeft = BackOffTimeSpanInMS - diffInMS;
+                if (!await expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(Math.Max(MinimumDelayInMS, timeLeft)), CancellationToken).ConfigureAwait(false))
                 {
                     // The delay terminated early to accommodate a blocking operation. Make sure to delay long
                     // enough that low priority (on idle) operations get a chance to be triggered.
                     //
                     // 📝 At the time this was discovered, it was not clear exactly why the delay was needed in order
                     // to avoid live-lock scenarios.
-                    await Task.Delay(TimeSpan.FromMilliseconds(10)).ConfigureAwait(false);
+                    await Task.Delay(TimeSpan.FromMilliseconds(10), CancellationToken).ConfigureAwait(false);
                     return;
                 }
             }

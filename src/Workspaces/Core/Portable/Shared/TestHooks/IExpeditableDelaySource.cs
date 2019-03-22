@@ -14,16 +14,13 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         /// </summary>
         /// <param name="delay">The time to wait before completing the returned task, or <c>TimeSpan.FromMilliseconds(-1)</c> to wait indefinitely.</param>
         /// <param name="cancellationToken">A cancellation token to observe while waiting for the task to complete.</param>
-        /// <returns>A <see cref="Task"/> representing the asynchronous delay.</returns>
+        /// <returns><see langword="true"/> if the delay compeleted normally; otherwise, <see langword="false"/> if the delay completed due to a request to expedite the delay.</returns>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <para><paramref name="delay"/> represents a negative time interval other than <c>TimeSpan.FromMilliseconds(-1)</c>.</para>
         /// <para>-or-</para>
         /// <para>The <paramref name="delay"/> argument's <see cref="TimeSpan.TotalMilliseconds"/> property is greater than <see cref="int.MaxValue"/>.</para>
         /// </exception>
-        /// <exception cref="OperationCanceledException">The delay has been canceled, either in response to a
-        /// cancellation request from <paramref name="cancellationToken"/> or in response to a request to expedite an
-        /// operation. Callers may distinguish between the two by checking the state of
-        /// <paramref name="cancellationToken"/> in the exception handler.</exception>
-        Task Delay(TimeSpan delay, CancellationToken cancellationToken);
+        /// <exception cref="OperationCanceledException">The delay has been canceled.</exception>
+        Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken);
     }
 }

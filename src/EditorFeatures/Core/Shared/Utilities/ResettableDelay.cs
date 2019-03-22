@@ -55,12 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         {
             do
             {
-                try
-                {
-                    // Keep delaying until at least delayInMilliseconds has elapsed since lastSetTime
-                    await _expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(_delayInMilliseconds), CancellationToken.None).ConfigureAwait(continueOnCapturedContext);
-                }
-                catch (OperationCanceledException)
+                // Keep delaying until at least delayInMilliseconds has elapsed since lastSetTime
+                if (!await _expeditableDelaySource.Delay(TimeSpan.FromMilliseconds(_delayInMilliseconds), CancellationToken.None).ConfigureAwait(continueOnCapturedContext))
                 {
                     // The operation is being expedited.
                     break;

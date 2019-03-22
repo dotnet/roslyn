@@ -237,8 +237,11 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 [CallerFilePath] string filePath = "",
                 [CallerLineNumber] int lineNumber = 0) => EmptyAsyncToken.Instance;
 
-            public Task Delay(TimeSpan delay, CancellationToken cancellationToken)
-                => Task.Delay(delay, cancellationToken);
+            public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
+            {
+                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
         }
 
         private class NullListenerProvider : IAsynchronousOperationListenerProvider
