@@ -118,6 +118,7 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        [WorkItem(34324, "https://github.com/dotnet/roslyn/issues/34324")]
         public async Task TestAfterNullCoalescingAssignment()
         {
             await VerifyKeywordAsync(AddInsideMethod(
