@@ -2122,7 +2122,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
         [Fact]
         public void BrokenPattern_06()
         {
-            UsingStatement(@"switch (e) { case (: ; }", TestOptions.RegularWithoutRecursivePatterns, 
+            UsingStatement(@"switch (e) { case (: ; }", TestOptions.RegularWithoutRecursivePatterns,
                 // (1,19): error CS8652: The feature 'recursive patterns' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // switch (e) { case (: ; }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "(: ").WithArguments("recursive patterns").WithLocation(1, 19),
@@ -7561,6 +7561,43 @@ switch (e)
                 }
                 N(SyntaxKind.CommaToken);
                 M(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(33675, "https://github.com/dotnet/roslyn/issues/33675")]
+        public void ParenthesizedNamedConstantPatternInSwitchExpression()
+        {
+            UsingExpression("e switch { (X) => 1 }");
+            N(SyntaxKind.SwitchExpression);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "e");
+                }
+                N(SyntaxKind.SwitchKeyword);
+                N(SyntaxKind.OpenBraceToken);
+                N(SyntaxKind.SwitchExpressionArm);
+                {
+                    N(SyntaxKind.ConstantPattern);
+                    {
+                        N(SyntaxKind.ParenthesizedExpression);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "X");
+                            }
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                    }
+                    N(SyntaxKind.EqualsGreaterThanToken);
+                    N(SyntaxKind.NumericLiteralExpression);
+                    {
+                        N(SyntaxKind.NumericLiteralToken, "1");
+                    }
+                }
+                N(SyntaxKind.CloseBraceToken);
             }
             EOF();
         }

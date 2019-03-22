@@ -636,9 +636,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnonymousTypeDescriptor typeDescriptor = new AnonymousTypeDescriptor(
                                                             ImmutableArray.Create<AnonymousTypeField>(
                                                                 new AnonymousTypeField(field1Name, field1Value.Syntax.Location,
-                                                                                       TypeSymbolWithAnnotations.Create(TypeOrError(field1Value))),
+                                                                                       TypeWithAnnotations.Create(TypeOrError(field1Value))),
                                                                 new AnonymousTypeField(field2Name, field2Value.Syntax.Location,
-                                                                                        TypeSymbolWithAnnotations.Create(TypeOrError(field2Value)))
+                                                                                        TypeWithAnnotations.Create(TypeOrError(field2Value)))
                                                             ),
                                                             node.Location
                                                      );
@@ -669,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }));
         }
 
-        private UnboundLambda MakeQueryUnboundLambdaWithCast(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, TypeSyntax castTypeSyntax, TypeSymbolWithAnnotations castType)
+        private UnboundLambda MakeQueryUnboundLambdaWithCast(RangeVariableMap qvm, RangeVariableSymbol parameter, ExpressionSyntax expression, TypeSyntax castTypeSyntax, TypeWithAnnotations castType)
         {
             return MakeQueryUnboundLambda(expression, new QueryUnboundLambdaState(this, qvm, ImmutableArray.Create(parameter), (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
             {
@@ -699,20 +699,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, string methodName, BoundExpression arg, DiagnosticBag diagnostics)
         {
-            return MakeQueryInvocation(node, receiver, methodName, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbolWithAnnotations>), ImmutableArray.Create(arg), diagnostics);
+            return MakeQueryInvocation(node, receiver, methodName, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), ImmutableArray.Create(arg), diagnostics);
         }
 
         protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, string methodName, ImmutableArray<BoundExpression> args, DiagnosticBag diagnostics)
         {
-            return MakeQueryInvocation(node, receiver, methodName, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbolWithAnnotations>), args, diagnostics);
+            return MakeQueryInvocation(node, receiver, methodName, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), args, diagnostics);
         }
 
-        protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, string methodName, TypeSyntax typeArgSyntax, TypeSymbolWithAnnotations typeArg, DiagnosticBag diagnostics)
+        protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, string methodName, TypeSyntax typeArgSyntax, TypeWithAnnotations typeArg, DiagnosticBag diagnostics)
         {
             return MakeQueryInvocation(node, receiver, methodName, new SeparatedSyntaxList<TypeSyntax>(new SyntaxNodeOrTokenList(typeArgSyntax, 0)), ImmutableArray.Create(typeArg), ImmutableArray<BoundExpression>.Empty, diagnostics);
         }
 
-        protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, string methodName, SeparatedSyntaxList<TypeSyntax> typeArgsSyntax, ImmutableArray<TypeSymbolWithAnnotations> typeArgs, ImmutableArray<BoundExpression> args, DiagnosticBag diagnostics)
+        protected BoundCall MakeQueryInvocation(CSharpSyntaxNode node, BoundExpression receiver, string methodName, SeparatedSyntaxList<TypeSyntax> typeArgsSyntax, ImmutableArray<TypeWithAnnotations> typeArgs, ImmutableArray<BoundExpression> args, DiagnosticBag diagnostics)
         {
             // clean up the receiver
             var ultimateReceiver = receiver;

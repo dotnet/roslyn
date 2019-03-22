@@ -640,7 +640,7 @@ End Class
             Dim codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon
             Dim expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon
             Dim nothingPreferencesGroupTitle = BasicVSResources.nothing_checking_colon
-            Dim fieldPreferencesGroupTitle = ServicesVSResources.Field_preferences_colon
+            Dim fieldPreferencesGroupTitle = ServicesVSResources.Modifier_preferences_colon
             Dim parameterPreferencesGroupTitle = ServicesVSResources.Parameter_preferences_colon
 
             ' qualify with Me. group
@@ -676,7 +676,7 @@ End Class
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, BasicVSResources.Prefer_Is_Nothing_for_reference_equality_checks, s_preferIsNothingCheckOverReferenceEquals, s_preferIsNothingCheckOverReferenceEquals, Me, optionStore, nothingPreferencesGroupTitle))
 
             ' Field preferences
-            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, Me, optionStore, fieldPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, s_preferReadonly, s_preferReadonly, Me, optionStore, fieldPreferencesGroupTitle))
 
             ' Parameter preferences
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle)

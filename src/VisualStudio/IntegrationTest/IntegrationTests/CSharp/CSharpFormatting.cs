@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -19,8 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     {
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public CSharpFormatting(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(CSharpFormatting))
+        public CSharpFormatting(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(CSharpFormatting))
         {
         }
 
@@ -256,7 +257,7 @@ class Program
         return M$$
     }
 }");
-            VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            VisualStudio.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.Workspace);
             VisualStudio.Editor.SendKeys("(ba", new KeyPress(VirtualKey.Enter, ShiftState.Shift), "// comment");
             VisualStudio.Editor.Verify.TextContains(@"
 class Program

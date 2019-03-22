@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool containsAwait = AwaitDetector.ContainsAwait(bodyWithAwaitLifted);
                 diagnostics.Add(containsAwait ? ErrorCode.ERR_PossibleAsyncIteratorWithoutYield : ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait,
-                    method.Locations[0], method.ReturnType);
+                    method.Locations[0], method.ReturnTypeWithAnnotations);
 
                 stateMachineType = null;
                 return bodyWithAwaitLifted;

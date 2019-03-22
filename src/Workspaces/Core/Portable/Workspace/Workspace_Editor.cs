@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Workspace
     {
         // open documents
-        private readonly Dictionary<ProjectId, ISet<DocumentId>> _projectToOpenDocumentsMap = new Dictionary<ProjectId, ISet<DocumentId>>();
+        private readonly Dictionary<ProjectId, HashSet<DocumentId>> _projectToOpenDocumentsMap = new Dictionary<ProjectId, HashSet<DocumentId>>();
 
         // text buffer maps
         /// <summary>
@@ -43,17 +43,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal virtual bool CanChangeActiveContextDocument => false;
 
-        private static void RemoveIfEmpty<TKey, TValue>(IDictionary<TKey, ISet<TValue>> dictionary, TKey key)
-        {
-            if (dictionary.TryGetValue(key, out var values))
-            {
-                if (values.Count == 0)
-                {
-                    dictionary.Remove(key);
-                }
-            }
-        }
-
         private void ClearOpenDocuments()
         {
             List<DocumentId> docIds;
@@ -70,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
         private void ClearOpenDocuments(ProjectId projectId)
         {
-            ISet<DocumentId> openDocs;
+            HashSet<DocumentId> openDocs;
             using (_stateLock.DisposableWait())
             {
                 _projectToOpenDocumentsMap.TryGetValue(projectId, out openDocs);
@@ -91,12 +80,7 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
-                if (_projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocIds) && openDocIds != null)
-                {
-                    openDocIds.Remove(documentId);
-                }
-
-                RemoveIfEmpty(_projectToOpenDocumentsMap, documentId.ProjectId);
+                _projectToOpenDocumentsMap.MultiRemove(documentId.ProjectId, documentId);
 
                 // Stop tracking the buffer or update the documentId associated with the buffer.
                 if (_textTrackers.TryGetValue(documentId, out var tracker))
@@ -183,8 +167,8 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
-                var openDocuments = this.GetProjectOpenDocuments_NoLock(documentId.ProjectId);
-                return openDocuments != null && openDocuments.Contains(documentId);
+                return _projectToOpenDocumentsMap.TryGetValue(documentId.ProjectId, out var openDocuments) &&
+                       openDocuments.Contains(documentId);
             }
         }
 
@@ -362,22 +346,15 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ISet<DocumentId> GetProjectOpenDocuments_NoLock(ProjectId project)
-        {
-            _stateLock.AssertHasLock();
-            _projectToOpenDocumentsMap.TryGetValue(project, out var openDocs);
-            return openDocs;
-        }
-
         protected internal void OnDocumentOpened(
             DocumentId documentId, SourceTextContainer textContainer,
             bool isCurrentContext = true)
         {
-            CheckDocumentIsInCurrentSolution(documentId);
-            CheckDocumentIsClosed(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                CheckDocumentIsInCurrentSolution(documentId);
+                CheckDocumentIsClosed(documentId);
+
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetDocument(documentId);
                 var oldDocumentState = oldDocument.State;
@@ -474,25 +451,17 @@ namespace Microsoft.CodeAnalysis
         {
             using (_stateLock.DisposableWait())
             {
-                var openDocuments = GetProjectOpenDocuments_NoLock(documentId.ProjectId);
-                if (openDocuments != null)
-                {
-                    openDocuments.Add(documentId);
-                }
-                else
-                {
-                    _projectToOpenDocumentsMap.Add(documentId.ProjectId, new HashSet<DocumentId> { documentId });
-                }
+                _projectToOpenDocumentsMap.MultiAdd(documentId.ProjectId, documentId);
             }
         }
 
         protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
-            CheckAdditionalDocumentIsInCurrentSolution(documentId);
-            CheckDocumentIsClosed(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                CheckDocumentIsClosed(documentId);
+
                 var oldSolution = this.CurrentSolution;
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
                 var oldText = oldDocument.GetTextSynchronously(CancellationToken.None);
@@ -528,9 +497,6 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnDocumentClosed(DocumentId documentId, TextLoader reloader, bool updateActiveContext = false)
         {
-            this.CheckDocumentIsInCurrentSolution(documentId);
-            this.CheckDocumentIsOpen(documentId);
-
             // The try/catch here is to find additional telemetry for https://devdiv.visualstudio.com/DevDiv/_queries/query/71ee8553-7220-4b2a-98cf-20edab701fd1/,
             // where we have one theory that OnDocumentClosed is running but failing somewhere in the middle and thus failing to get to the RaiseDocumentClosedEventAsync() line. 
             // We are choosing ReportWithoutCrashAndPropagate because this is a public API that has callers outside VS and also non-VisualStudioWorkspace callers inside VS, and
@@ -539,6 +505,9 @@ namespace Microsoft.CodeAnalysis
             {
                 using (_serializationLock.DisposableWait())
                 {
+                    this.CheckDocumentIsInCurrentSolution(documentId);
+                    this.CheckDocumentIsOpen(documentId);
+
                     // forget any open document info
                     ClearOpenDocument(documentId);
 
@@ -565,10 +534,11 @@ namespace Microsoft.CodeAnalysis
 
         protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader)
         {
-            this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
-
             using (_serializationLock.DisposableWait())
             {
+                this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
+                this.CheckDocumentIsOpen(documentId);
+
                 // forget any open document info
                 ClearOpenDocument(documentId);
 

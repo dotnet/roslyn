@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal class GlobalExpressionVariable : SourceMemberFieldSymbol
     {
-        private TypeSymbolWithAnnotations.Builder _lazyType;
+        private TypeWithAnnotations.Builder _lazyType;
 
         /// <summary>
         /// The type syntax, if any, from source. Optional for patterns that can omit an explicit type.
@@ -62,11 +62,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool earlyDecodingWellKnownAttributes,
             DiagnosticBag diagnostics) => null;
 
-        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             Debug.Assert(fieldsBeingBound != null);
 
-            if (!_lazyType.IsNull)
+            if (!_lazyType.IsDefault)
             {
                 return _lazyType.ToType();
             }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
 
             var diagnostics = DiagnosticBag.GetInstance();
-            TypeSymbolWithAnnotations type;
+            TypeWithAnnotations type;
             bool isVar;
 
             var binderFactory = compilation.GetBinderFactory(SyntaxTree);
@@ -93,19 +93,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 type = default;
             }
 
-            Debug.Assert(!type.IsNull || isVar);
+            Debug.Assert(type.HasType || isVar);
 
             if (isVar && !fieldsBeingBound.ContainsReference(this))
             {
                 InferFieldType(fieldsBeingBound, binder);
-                Debug.Assert(!_lazyType.IsNull);
+                Debug.Assert(!_lazyType.IsDefault);
             }
             else
             {
                 if (isVar)
                 {
                     diagnostics.Add(ErrorCode.ERR_RecursivelyTypedVariable, this.ErrorLocation, this);
-                    type = TypeSymbolWithAnnotations.Create(binder.CreateErrorType("var"));
+                    type = TypeWithAnnotations.Create(binder.CreateErrorType("var"));
                 }
 
                 SetType(compilation, diagnostics, type);
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Can add some diagnostics into <paramref name="diagnostics"/>. 
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        private TypeSymbolWithAnnotations SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeSymbolWithAnnotations type)
+        private TypeWithAnnotations SetType(CSharpCompilation compilation, DiagnosticBag diagnostics, TypeWithAnnotations type)
         {
             var originalType = _lazyType.DefaultType;
 
@@ -128,11 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert((object)originalType == null ||
                 originalType.IsErrorType() ||
-                TypeSymbol.Equals(originalType, type.TypeSymbol, TypeCompareKind.ConsiderEverything2));
+                TypeSymbol.Equals(originalType, type.Type, TypeCompareKind.ConsiderEverything2));
 
             if (_lazyType.InterlockedInitialize(type))
             {
-                TypeChecks(type.TypeSymbol, diagnostics);
+                TypeChecks(type.Type, diagnostics);
 
                 compilation.DeclarationDiagnostics.AddRange(diagnostics);
                 state.NotePartComplete(CompletionPart.Type);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Can add some diagnostics into <paramref name="diagnostics"/>.
         /// Returns the type that it actually locks onto (it's possible that it had already locked onto ErrorType).
         /// </summary>
-        internal TypeSymbolWithAnnotations SetType(TypeSymbolWithAnnotations type, DiagnosticBag diagnostics)
+        internal TypeWithAnnotations SetTypeWithAnnotations(TypeWithAnnotations type, DiagnosticBag diagnostics)
         {
             return SetType(DeclaringCompilation, diagnostics, type);
         }

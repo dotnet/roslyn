@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Element types.
         /// </summary>
-        private readonly ImmutableArray<TypeSymbolWithAnnotations> _elementTypes;
+        private readonly ImmutableArray<TypeWithAnnotations> _elementTypes;
 
         private ImmutableArray<Symbol> _lazyMembers;
         private ImmutableArray<FieldSymbol> _lazyDefaultElementFields;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string RestFieldName = "Rest";
 
         private TupleTypeSymbol(ImmutableArray<Location> locations, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations,
-            ImmutableArray<string> elementNames, ImmutableArray<TypeSymbolWithAnnotations> elementTypes, ImmutableArray<bool> errorPositions)
+            ImmutableArray<string> elementNames, ImmutableArray<TypeWithAnnotations> elementTypes, ImmutableArray<bool> errorPositions)
             : base(underlyingType)
         {
             Debug.Assert(elementLocations.IsDefault || elementLocations.Length == elementTypes.Length);
@@ -76,26 +76,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static NamedTypeSymbol Create(
             Location locationOpt,
-            ImmutableArray<TypeSymbolWithAnnotations> elementTypes,
+            ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations,
             ImmutableArray<Location> elementLocations,
             ImmutableArray<string> elementNames,
             CSharpCompilation compilation,
             bool shouldCheckConstraints,
+            bool includeNullability,
             ImmutableArray<bool> errorPositions,
             CSharpSyntaxNode syntax = null,
             DiagnosticBag diagnostics = null)
         {
             Debug.Assert(!shouldCheckConstraints || (object)syntax != null);
-            Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
+            Debug.Assert(elementNames.IsDefault || elementTypesWithAnnotations.Length == elementNames.Length);
+            Debug.Assert(!includeNullability || shouldCheckConstraints);
 
-            int numElements = elementTypes.Length;
+            int numElements = elementTypesWithAnnotations.Length;
 
             if (numElements <= 1)
             {
                 throw ExceptionUtilities.Unreachable;
             }
 
-            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics);
+            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypesWithAnnotations, syntax, compilation, diagnostics);
 
             if (diagnostics != null && ((SourceModuleSymbol)compilation.SourceModule).AnyReferencedAssembliesAreLinked)
             {
@@ -106,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
             if (shouldCheckConstraints && diagnostics != null)
             {
-                constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnostics);
+                constructedType.CheckConstraints(compilation.Conversions, includeNullability, syntax, elementLocations, compilation, diagnostics, diagnostics);
             }
 
             return constructedType;
@@ -130,22 +132,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(tupleCompatibleType.IsTupleCompatible());
 
-            ImmutableArray<TypeSymbolWithAnnotations> elementTypes;
+            ImmutableArray<TypeWithAnnotations> elementTypes;
 
             if (tupleCompatibleType.Arity == RestPosition)
             {
                 // Ensure all Rest extensions are tuples
                 tupleCompatibleType = EnsureRestExtensionsAreTuples(tupleCompatibleType);
 
-                var extensionTupleElementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol.TupleElementTypes;
-                var typesBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(RestPosition - 1 + extensionTupleElementTypes.Length);
-                typesBuilder.AddRange(tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics, RestPosition - 1);
+                var extensionTupleElementTypes = tupleCompatibleType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[RestPosition - 1].Type.TupleElementTypesWithAnnotations;
+                var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(RestPosition - 1 + extensionTupleElementTypes.Length);
+                typesBuilder.AddRange(tupleCompatibleType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, RestPosition - 1);
                 typesBuilder.AddRange(extensionTupleElementTypes);
                 elementTypes = typesBuilder.ToImmutableAndFree();
             }
             else
             {
-                elementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
+                elementTypes = tupleCompatibleType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             }
 
             return new TupleTypeSymbol(locations, tupleCompatibleType, elementLocations, elementNames, elementTypes, errorPositions);
@@ -157,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static NamedTypeSymbol EnsureRestExtensionsAreTuples(NamedTypeSymbol tupleCompatibleType)
         {
-            if (!tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol.IsTupleType)
+            if (!tupleCompatibleType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[RestPosition - 1].Type.IsTupleType)
             {
                 var nonTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
@@ -165,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 do
                 {
                     nonTupleTypeChain.Add(currentType);
-                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol;
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[RestPosition - 1].Type;
                 }
                 while (currentType.Arity == RestPosition);
 
@@ -194,10 +196,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static NamedTypeSymbol ReplaceRestExtensionType(NamedTypeSymbol tupleCompatibleType, TupleTypeSymbol extensionTuple)
         {
-            var typeArgumentsBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(RestPosition);
-            var arguments = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
+            var typeArgumentsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(RestPosition);
+            var arguments = tupleCompatibleType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             typeArgumentsBuilder.AddRange(arguments, RestPosition - 1);
-            typeArgumentsBuilder.Add(TypeSymbolWithAnnotations.Create(extensionTuple, customModifiers: arguments[RestPosition - 1].CustomModifiers));
+            typeArgumentsBuilder.Add(TypeWithAnnotations.Create(extensionTuple, customModifiers: arguments[RestPosition - 1].CustomModifiers));
 
             tupleCompatibleType = tupleCompatibleType.ConstructedFrom.Construct(typeArgumentsBuilder.ToImmutableAndFree(), unbound: false);
             return tupleCompatibleType;
@@ -216,10 +218,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Copy this tuple, but modify it to use the new element types.
         /// </summary>
-        internal TupleTypeSymbol WithElementTypes(ImmutableArray<TypeSymbolWithAnnotations> newElementTypes)
+        internal TupleTypeSymbol WithElementTypes(ImmutableArray<TypeWithAnnotations> newElementTypes)
         {
             Debug.Assert(_elementTypes.Length == newElementTypes.Length);
-            Debug.Assert(newElementTypes.All(t => !t.IsNull));
+            Debug.Assert(newElementTypes.All(t => t.HasType));
 
             NamedTypeSymbol firstTupleType;
             NamedTypeSymbol chainedTupleType;
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var underlyingType = _underlyingType;
                 do
                 {
-                    underlyingType = ((TupleTypeSymbol)underlyingType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestIndex].TypeSymbol).UnderlyingNamedType;
+                    underlyingType = ((TupleTypeSymbol)underlyingType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[TupleTypeSymbol.RestIndex].Type).UnderlyingNamedType;
                 } while (underlyingType.Arity >= TupleTypeSymbol.RestPosition);
                 firstTupleType = underlyingType.OriginalDefinition;
             }
@@ -272,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 underlyingTupleTypeChain.Add(currentType);
                 if (currentType.Arity == TupleTypeSymbol.RestPosition)
                 {
-                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TypeSymbol.TupleUnderlyingType;
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].Type.TupleUnderlyingType;
                 }
                 else
                 {
@@ -285,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets flattened type arguments of the underlying type
         /// which correspond to the types of the tuple elements left-to-right
         /// </summary>
-        internal static void AddElementTypes(NamedTypeSymbol underlyingTupleType, ArrayBuilder<TypeSymbolWithAnnotations> tupleElementTypes)
+        internal static void AddElementTypes(NamedTypeSymbol underlyingTupleType, ArrayBuilder<TypeWithAnnotations> tupleElementTypes)
         {
             NamedTypeSymbol currentType = underlyingTupleType;
 
@@ -293,16 +295,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (currentType.IsTupleType)
                 {
-                    tupleElementTypes.AddRange(currentType.TupleElementTypes);
+                    tupleElementTypes.AddRange(currentType.TupleElementTypesWithAnnotations);
                     break;
                 }
 
                 var regularElements = Math.Min(currentType.Arity, TupleTypeSymbol.RestPosition - 1);
-                tupleElementTypes.AddRange(currentType.TypeArgumentsNoUseSiteDiagnostics, regularElements);
+                tupleElementTypes.AddRange(currentType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics, regularElements);
 
                 if (currentType.Arity == TupleTypeSymbol.RestPosition)
                 {
-                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TypeSymbol;
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].Type;
                 }
                 else
                 {
@@ -322,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol found = topLevelUnderlyingType;
             for (int i = 0; i < depth; i++)
             {
-                found = (NamedTypeSymbol)found.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol.TupleUnderlyingType;
+                found = (NamedTypeSymbol)found.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[RestPosition - 1].Type.TupleUnderlyingType;
             }
 
             return found;
@@ -343,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///
         /// Pass a null diagnostic bag and syntax node if you don't care about diagnostics.
         /// </summary>
-        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeSymbolWithAnnotations> elementTypes, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeWithAnnotations> elementTypes, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             int numElements = elementTypes.Length;
             int remainder;
@@ -368,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ConstructTupleUnderlyingType(firstTupleType, chainedTupleType, elementTypes);
         }
 
-        internal static NamedTypeSymbol ConstructTupleUnderlyingType(NamedTypeSymbol firstTupleType, NamedTypeSymbol chainedTupleTypeOpt, ImmutableArray<TypeSymbolWithAnnotations> elementTypes)
+        internal static NamedTypeSymbol ConstructTupleUnderlyingType(NamedTypeSymbol firstTupleType, NamedTypeSymbol chainedTupleTypeOpt, ImmutableArray<TypeWithAnnotations> elementTypes)
         {
             Debug.Assert(chainedTupleTypeOpt is null == elementTypes.Length < RestPosition);
 
@@ -380,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int loop = chainLength - 1;
             while (loop > 0)
             {
-                var chainedTypes = ImmutableArray.Create(elementTypes, (loop - 1) * (RestPosition - 1), RestPosition - 1).Add(TypeSymbolWithAnnotations.Create(currentSymbol));
+                var chainedTypes = ImmutableArray.Create(elementTypes, (loop - 1) * (RestPosition - 1), RestPosition - 1).Add(TypeWithAnnotations.Create(currentSymbol));
                 currentSymbol = chainedTupleTypeOpt.Construct(chainedTypes);
                 loop--;
             }
@@ -686,13 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
 
-        internal sealed override bool IsManagedType
-        {
-            get
-            {
-                return _underlyingType.IsManagedType;
-            }
-        }
+        internal sealed override ManagedKind ManagedKind => _underlyingType.ManagedKind;
 
         public override bool IsTupleType
         {
@@ -710,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TupleElementTypes
+        public override ImmutableArray<TypeWithAnnotations> TupleElementTypesWithAnnotations
         {
             get
             {
@@ -929,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var oldUnderlying = currentUnderlying;
-                currentUnderlying = oldUnderlying.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TypeSymbol.TupleUnderlyingType;
+                currentUnderlying = oldUnderlying.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[RestPosition - 1].Type.TupleUnderlyingType;
                 currentNestingLevel++;
 
                 if (currentUnderlying.Arity != RestPosition)
@@ -1292,11 +1288,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
-                return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+                return ImmutableArray<TypeWithAnnotations>.Empty;
             }
         }
 
@@ -1446,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeSymbolWithAnnotations, TypeSymbolWithAnnotations> transform)
+        internal override TypeSymbol SetNullabilityForReferenceTypes(Func<TypeWithAnnotations, TypeWithAnnotations> transform)
         {
             var underlyingType = (NamedTypeSymbol)_underlyingType.SetNullabilityForReferenceTypes(transform);
             if ((object)underlyingType == _underlyingType)
@@ -1485,16 +1481,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeDefinition = typeA.OriginalDefinition;
             var typeParameters = typeDefinition.TypeParameters;
             int n = typeParameters.Length;
-            var allTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(n);
+            var allTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(n);
 
-            var typeArgumentsA = typeA.TypeArgumentsNoUseSiteDiagnostics;
-            var typeArgumentsB = typeB.TypeArgumentsNoUseSiteDiagnostics;
+            var typeArgumentsA = typeA.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
+            var typeArgumentsB = typeB.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             bool haveChanges = false;
             for (int i = 0; i < n; i++)
             {
-                TypeSymbolWithAnnotations typeArgumentA = typeArgumentsA[i];
-                TypeSymbolWithAnnotations typeArgumentB = typeArgumentsB[i];
-                TypeSymbolWithAnnotations merged = mergeNullability(typeArgumentA, typeArgumentB);
+                TypeWithAnnotations typeArgumentA = typeArgumentsA[i];
+                TypeWithAnnotations typeArgumentB = typeArgumentsB[i];
+                TypeWithAnnotations merged = typeArgumentA.MergeNullability(typeArgumentB, variance);
                 allTypeArguments.Add(merged);
                 if (!typeArgumentA.IsSameAs(merged))
                 {
@@ -1510,31 +1506,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             allTypeArguments.Free();
             return haveChanges;
-
-            // We use special rules for merging tuples, allowing nested types to remain unspeakable
-            TypeSymbolWithAnnotations mergeNullability(TypeSymbolWithAnnotations one, TypeSymbolWithAnnotations other)
-            {
-                TypeSymbol typeSymbol = other.TypeSymbol;
-                NullableAnnotation nullableAnnotation = mergeNullableAnnotation(typeSymbol, one.NullableAnnotation, other.NullableAnnotation);
-                TypeSymbol type = one.TypeSymbol.MergeNullability(typeSymbol, variance);
-                Debug.Assert((object)type != null);
-                return TypeSymbolWithAnnotations.Create(type, nullableAnnotation, one.CustomModifiers);
-            }
-
-            NullableAnnotation mergeNullableAnnotation(TypeSymbol type, NullableAnnotation a, NullableAnnotation b)
-            {
-                switch (variance)
-                {
-                    case VarianceKind.In:
-                        return a.MeetForFlowAnalysisFinally(b);
-                    case VarianceKind.Out:
-                        return a.JoinForFlowAnalysisBranches(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
-                    case VarianceKind.None:
-                        return a.EnsureCompatibleForTuples(b, type, _IsPossiblyNullableReferenceTypeTypeParameterDelegate);
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(variance);
-                }
-            }
         }
 
         private readonly static Func<TypeSymbol, bool> _IsPossiblyNullableReferenceTypeTypeParameterDelegate = type => type.IsPossiblyNullableReferenceTypeTypeParameter();

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private readonly GenericParameterAttributes _flags;
         private ThreeState _lazyHasIsUnmanagedConstraint;
         private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
-        private ImmutableArray<TypeSymbolWithAnnotations> _lazyDeclaredConstraintTypes;
+        private ImmutableArray<TypeWithAnnotations> _lazyDeclaredConstraintTypes;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
         internal PETypeParameterSymbol(
@@ -137,11 +137,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private ImmutableArray<TypeSymbolWithAnnotations> GetDeclaredConstraintTypes()
+        private ImmutableArray<TypeWithAnnotations> GetDeclaredConstraintTypes()
         {
             if (_lazyDeclaredConstraintTypes.IsDefault)
             {
-                ImmutableArray<TypeSymbolWithAnnotations> declaredConstraintTypes;
+                ImmutableArray<TypeWithAnnotations> declaredConstraintTypes;
 
                 PEMethodSymbol containingMethod = null;
                 PENamedTypeSymbol containingType;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (constraints.Count > 0)
                 {
-                    var symbolsBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+                    var symbolsBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                     MetadataDecoder tokenDecoder;
 
                     if ((object)containingMethod != null)
@@ -206,11 +206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             }
                         }
 
-                        var type = TypeSymbolWithAnnotations.Create(typeSymbol);
+                        var type = TypeWithAnnotations.Create(typeSymbol);
                         type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
 
                         // Drop 'System.Object?' constraint type.
-                        if (type.SpecialType == SpecialType.System_Object && type.NullableAnnotation.IsAnyNullable())
+                        if (type.SpecialType == SpecialType.System_Object && type.NullableAnnotation.IsAnnotated())
                         {
                             continue;
                         }
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 else
                 {
-                    declaredConstraintTypes = ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+                    declaredConstraintTypes = ImmutableArray<TypeWithAnnotations>.Empty;
                 }
 
                 // - presence of unmanaged pattern has to be matched with `valuetype`
@@ -337,10 +337,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
+        internal override ImmutableArray<TypeWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
             var bounds = this.GetBounds(inProgress, early);
-            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+            return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeWithAnnotations>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfaces(ConsList<TypeParameterSymbol> inProgress)

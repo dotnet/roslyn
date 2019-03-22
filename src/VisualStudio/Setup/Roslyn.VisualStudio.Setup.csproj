@@ -39,11 +39,6 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\MonoDevelop\Microsoft.CodeAnalysis.ExternalAccess.MonoDevelop.csproj">
-      <Name>Microsoft.CodeAnalysis.ExternalAccess.MonoDevelop</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-    </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>

@@ -153,7 +153,12 @@ function InstallDotNetSdk {
   GetDotNetInstallScript "$root"
   local install_script=$_GetDotNetInstallScript
 
-  bash "$install_script" --version $version --install-dir "$root" || {
+  local arch_arg=""
+  if [[ $# == 3 ]]; then
+    arch_arg="--architecture $3"
+  fi
+
+  bash "$install_script" --version $version --install-dir "$root" $arch_arg || {
     local exit_code=$?
     echo "Failed to install dotnet SDK (exit code '$exit_code')." >&2
     ExitWithExitCode $exit_code
@@ -233,11 +238,15 @@ function InitializeToolset {
     ExitWithExitCode 2
   fi
 
-  local toolset_restore_log="$log_dir/ToolsetRestore.binlog"
   local proj="$toolset_dir/restore.proj"
 
+  local bl=""
+  if [[ "$binary_log" == true ]]; then
+    bl="/bl:$log_dir/ToolsetRestore.binlog"
+  fi
+  
   echo '<Project Sdk="Microsoft.DotNet.Arcade.Sdk"/>' > "$proj"
-  MSBuild "$proj" /t:__WriteToolsetLocation /noconsolelogger /bl:"$toolset_restore_log" /p:__ToolsetLocationOutputFile="$toolset_location_file"
+  MSBuild "$proj" $bl /t:__WriteToolsetLocation /clp:ErrorsOnly\;NoSummary /p:__ToolsetLocationOutputFile="$toolset_location_file"
 
   local toolset_build_proj=`cat "$toolset_location_file"`
 
@@ -284,7 +293,7 @@ function MSBuild {
     warnaserror_switch="/warnaserror"
   fi
 
-  "$_InitializeBuildTool" "$_InitializeBuildToolCommand" /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch /p:TreatWarningsAsErrors=$warn_as_error "$@" || {
+  "$_InitializeBuildTool" "$_InitializeBuildToolCommand" /m /nologo /clp:Summary /v:$verbosity /nr:$node_reuse $warnaserror_switch /p:TreatWarningsAsErrors=$warn_as_error /p:ContinuousIntegrationBuild=$ci "$@" || {
     local exit_code=$?
     echo "Build failed (exit code '$exit_code')." >&2
     ExitWithExitCode $exit_code

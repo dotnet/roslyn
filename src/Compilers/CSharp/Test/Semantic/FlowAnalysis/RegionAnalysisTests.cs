@@ -2777,8 +2777,8 @@ class C {
             Assert.Equal("a, a", GetSymbolNamesJoined(analysis.VariablesDeclared));
             var intsym = analysis.VariablesDeclared.First() as LocalSymbol;
             var longsym = analysis.VariablesDeclared.Last() as LocalSymbol;
-            Assert.Equal("Int32", intsym.Type.Name);
-            Assert.Equal("Int64", longsym.Type.Name);
+            Assert.Equal("Int32", intsym.TypeWithAnnotations.Type.Name);
+            Assert.Equal("Int64", longsym.TypeWithAnnotations.Type.Name);
         }
 
         [WorkItem(539229, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539229")]

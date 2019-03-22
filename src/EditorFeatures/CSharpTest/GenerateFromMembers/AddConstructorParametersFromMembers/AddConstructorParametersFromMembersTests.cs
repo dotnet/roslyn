@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
@@ -638,6 +638,133 @@ class C
     public C(int i, int hello)
     {
         Hello = hello;
+    }
+}"
+            );
+        }
+
+        [WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestConstructorWithNoParameters()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    [|int i;
+    int Hello { get; set; }|]
+    public C()
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int Hello { get; set; }
+    public C(int i, int hello)
+    {
+        this.i = i;
+        Hello = hello;
+    }
+}"
+            );
+        }
+
+        [WorkItem(33602, "https://github.com/dotnet/roslyn/issues/33602")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestDefaultConstructor()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    [|int i;|]
+    int Hello { get; set; }
+}");
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialSelected()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    int [|j|];
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    public C(int i, int j)
+    {
+        this.j = j;
+    }
+}"
+            );
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialMultipleSelected()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    int [|j;
+    int k|];
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    int k;
+    public C(int i, int j, int k)
+    {
+        this.j = j;
+        this.k = k;
+    }
+}"
+            );
+        }
+
+        [WorkItem(33601, "https://github.com/dotnet/roslyn/issues/33601")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddConstructorParametersFromMembers)]
+        public async Task TestPartialMultipleSelected2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    int i;
+    int [|j;
+    int |]k;
+    public C(int i)
+    {
+    }
+}",
+@"
+class C
+{
+    int i;
+    int j;
+    int k;
+    public C(int i, int j)
+    {
+        this.j = j;
     }
 }"
             );

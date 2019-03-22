@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive
                     typeof(TestWaitIndicator).Assembly,
                     typeof(TestInteractiveEvaluator).Assembly,
                     typeof(IInteractiveWindow).Assembly
-                }
-                .Concat(TestExportProvider.GetCSharpAndVisualBasicAssemblies())
-                .Concat(MinimalTestExportProvider.GetEditorAssemblies())));
+                })
+                .WithParts(TestExportProvider.GetCSharpAndVisualBasicAssemblyCatalog())
+                .WithParts(MinimalTestExportProvider.GetEditorAssemblyCatalog()));
 
         internal InteractiveWindowTestHost(ExportProvider exportProvider)
         {
