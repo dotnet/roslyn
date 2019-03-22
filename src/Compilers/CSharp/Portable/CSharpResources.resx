@@ -5430,8 +5430,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_StaticMemberCantBeReadOnly" xml:space="preserve">
     <value>Static member '{0}' cannot be 'readonly'.</value>
   </data>
-  <data name="ERR_AutoPropertyCantBeReadOnly" xml:space="preserve">
-    <value>Auto-implemented property or accessor '{0}' cannot be marked 'readonly'.</value>
+  <data name="ERR_AutoSetterCantBeReadOnly" xml:space="preserve">
+    <value>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</value>
+  </data>
+  <data name="ERR_AutoPropertyWithSetterCantBeReadOnly" xml:space="preserve">
+    <value>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</value>
   </data>
   <data name="ERR_InvalidPropertyReadOnlyMods" xml:space="preserve">
     <value>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessors.</value>

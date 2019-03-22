@@ -32,9 +32,14 @@
         <target state="translated">É ilegal usar o tipo de referência anulável '{0}?' em uma expressão as; use o tipo subjacente '{0}' em seu lugar.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_AutoPropertyCantBeReadOnly">
-        <source>Auto-implemented property or accessor '{0}' cannot be marked 'readonly'.</source>
-        <target state="new">Auto-implemented property or accessor '{0}' cannot be marked 'readonly'.</target>
+      <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
+        <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
+        <target state="new">Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AutoSetterCantBeReadOnly">
+        <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
+        <target state="new">Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">

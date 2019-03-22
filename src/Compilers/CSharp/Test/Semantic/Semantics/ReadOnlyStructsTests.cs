@@ -1201,40 +1201,25 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (4,30): error CS8657: Auto-implemented property or accessor 'S.P1.get' cannot be marked 'readonly'.
-                //     public int P1 { readonly get; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCantBeReadOnly, "get").WithArguments("S.P1.get").WithLocation(4, 30),
-                // (5,25): error CS8657: Auto-implemented property or accessor 'S.P2' cannot be marked 'readonly'.
-                //     public readonly int P2 { get; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCantBeReadOnly, "P2").WithArguments("S.P2").WithLocation(5, 25),
-                // (6,30): error CS8657: Auto-implemented property or accessor 'S.P3.get' cannot be marked 'readonly'.
-                //     public int P3 { readonly get; set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCantBeReadOnly, "get").WithArguments("S.P3.get").WithLocation(6, 30),
-                // (7,16): error CS8659: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.P4'.
+                // (7,16): error CS8660: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.P4'.
                 //     public int P4 { readonly get; readonly set; }
                 Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "P4").WithArguments("S.P4").WithLocation(7, 16),
-                // (7,30): error CS8657: Auto-implemented property or accessor 'S.P4.get' cannot be marked 'readonly'.
+                // (7,44): error CS8657: Auto-implemented 'set' accessor 'S.P4.set' cannot be marked 'readonly'.
                 //     public int P4 { readonly get; readonly set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCantBeReadOnly, "get").WithArguments("S.P4.get").WithLocation(7, 30),
-                // (7,44): error CS8657: Auto-implemented property or accessor 'S.P4.set' cannot be marked 'readonly'.
-                //     public int P4 { readonly get; readonly set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCantBeReadOnly, "set").WithArguments("S.P4.set").WithLocation(7, 44),
-                // (8,25): error CS8657: Auto-implemented property or accessor 'S.P5' cannot be marked 'readonly'.
+                Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P4.set").WithLocation(7, 44),
+                // (8,25): error CS8658: Auto-implemented property 'S.P5' cannot be marked 'readonly' because it has a 'set' accessor.
                 //     public readonly int P5 { get; set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCantBeReadOnly, "P5").WithArguments("S.P5").WithLocation(8, 25),
-                // (9,25): error CS8657: Auto-implemented property or accessor 'S.P6' cannot be marked 'readonly'.
-                //     public readonly int P6 { readonly get; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCantBeReadOnly, "P6").WithArguments("S.P6").WithLocation(9, 25),
-                // (9,39): error CS8658: Cannot specify 'readonly' modifiers on both property or indexer 'S.P6' and its accessors.
+                Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P5").WithArguments("S.P5").WithLocation(8, 25),
+                // (9,39): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P6' and its accessors.
                 //     public readonly int P6 { readonly get; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S.P6").WithLocation(9, 39),
-                // (10,35): error CS8657: Auto-implemented property or accessor 'S.P7.set' cannot be marked 'readonly'.
+                // (10,35): error CS8657: Auto-implemented 'set' accessor 'S.P7.set' cannot be marked 'readonly'.
                 //     public int P7 { get; readonly set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCantBeReadOnly, "set").WithArguments("S.P7.set").WithLocation(10, 35),
-                // (11,25): error CS8657: Auto-implemented property or accessor 'S.P8' cannot be marked 'readonly'.
+                Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P7.set").WithLocation(10, 35),
+                // (11,25): error CS8658: Auto-implemented property 'S.P8' cannot be marked 'readonly' because it has a 'set' accessor.
                 //     public readonly int P8 { get; readonly set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyCantBeReadOnly, "P8").WithArguments("S.P8").WithLocation(11, 25),
-                // (11,44): error CS8658: Cannot specify 'readonly' modifiers on both property or indexer 'S.P8' and its accessors.
+                Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P8").WithArguments("S.P8").WithLocation(11, 25),
+                // (11,44): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P8' and its accessors.
                 //     public readonly int P8 { get; readonly set; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "set").WithArguments("S.P8").WithLocation(11, 44));
         }

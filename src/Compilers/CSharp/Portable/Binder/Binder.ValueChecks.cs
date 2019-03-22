@@ -459,7 +459,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var isValueType = ((BoundThisReference)expr).Type.IsValueType;
                     if (!isValueType || (RequiresAssignableVariable(valueKind) && (this.ContainingMemberOrLambda as MethodSymbol)?.IsEffectivelyReadOnly == true))
                     {
-                        // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                         Error(diagnostics, GetThisLvalueError(valueKind, isValueType), node, node);
                         return false;
                     }

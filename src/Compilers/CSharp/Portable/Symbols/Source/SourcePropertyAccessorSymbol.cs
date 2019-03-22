@@ -480,10 +480,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Static member '{0}' cannot be 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
             }
-            else if (LocalDeclaredReadOnly && _isAutoPropertyAccessor)
+            else if (LocalDeclaredReadOnly && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertySet)
             {
-                // Auto-implemented property or accessor '{0}' cannot be marked 'readonly'.
-                diagnostics.Add(ErrorCode.ERR_AutoPropertyCantBeReadOnly, location, this);
+                // Auto-implemented accessor '{0}' cannot be marked 'readonly'.
+                diagnostics.Add(ErrorCode.ERR_AutoSetterCantBeReadOnly, location, this);
             }
         }
 

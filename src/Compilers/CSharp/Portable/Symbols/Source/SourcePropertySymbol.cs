@@ -179,15 +179,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _isAutoProperty = notRegularProperty && hasGetSyntax;
                 bool isGetterOnly = hasGetSyntax && setSyntax == null;
 
-                if (_isAutoProperty && !IsStatic)
+                if (_isAutoProperty && !IsStatic && !isGetterOnly)
                 {
-                    if (!isGetterOnly && ContainingType.IsReadOnly)
+                    if (ContainingType.IsReadOnly)
                     {
                         diagnostics.Add(ErrorCode.ERR_AutoPropsInRoStruct, location);
                     }
                     else if (HasReadOnlyModifier)
                     {
-                        diagnostics.Add(ErrorCode.ERR_AutoPropertyCantBeReadOnly, location, this);
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, location, this);
                     }
                 }
 

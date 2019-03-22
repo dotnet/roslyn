@@ -826,15 +826,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Auto-implemented property or accessor &apos;{0}&apos; cannot be marked &apos;readonly&apos;..
-        /// </summary>
-        internal static string ERR_AutoPropertyCantBeReadOnly {
-            get {
-                return ResourceManager.GetString("ERR_AutoPropertyCantBeReadOnly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Auto-implemented properties inside interfaces cannot have initializers..
         /// </summary>
         internal static string ERR_AutoPropertyInitializerInInterface {
@@ -862,11 +853,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Auto-implemented property &apos;{0}&apos; cannot be marked &apos;readonly&apos; because it has a &apos;set&apos; accessor..
+        /// </summary>
+        internal static string ERR_AutoPropertyWithSetterCantBeReadOnly {
+            get {
+                return ResourceManager.GetString("ERR_AutoPropertyWithSetterCantBeReadOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Auto-implemented instance properties in readonly structs must be readonly..
         /// </summary>
         internal static string ERR_AutoPropsInRoStruct {
             get {
                 return ResourceManager.GetString("ERR_AutoPropsInRoStruct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Auto-implemented &apos;set&apos; accessor &apos;{0}&apos; cannot be marked &apos;readonly&apos;..
+        /// </summary>
+        internal static string ERR_AutoSetterCantBeReadOnly {
+            get {
+                return ResourceManager.GetString("ERR_AutoSetterCantBeReadOnly", resourceCulture);
             }
         }
         
