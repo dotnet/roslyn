@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
         private readonly RecentItemsManager _recentItemsManager;
 
-        private CompletionTriggerKind _initialRoslynTriggerKind;
-
         internal ItemManager(RecentItemsManager recentItemsManager)
         {
             // Let us make the completion Helper used for non-Roslyn items case-sensitive.
@@ -44,13 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             IAsyncCompletionSession session,
             AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken cancellationToken)
-        {
-            // The same ItemManager can be used multiple times in different completion sessions on the same TextView.
-            // We are guerantted that Editor always calls SortCompletionListAsync before UpdateCompletionListAsync.
-            // So, we use SortCompletionListAsync to store the trigger for use in the following UpdateCompletionListAsync.
-            _initialRoslynTriggerKind = Helpers.GetRoslynTriggerKind(data.Trigger);
-            return Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
-        }
+            => Task.FromResult(data.InitialList.OrderBy(i => i.SortText).ToImmutableArray());
 
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
             IAsyncCompletionSession session,
