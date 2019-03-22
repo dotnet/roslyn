@@ -168,8 +168,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                         transaction.AddDocument(fromDocument.Id);
                     }
 
-                    // ConfigureAwait(true) so we come back to the same thread as 
-                    // we do all application on the UI thread.
                     ProcessOperations(
                         workspace, operations, progressTracker,
                         cancellationToken);
