@@ -1,12 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Composition;
+using System.Linq;
 using Analyzer.Utilities;
+using Analyzer.Utilities.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers
 {
+    /// <summary>
+    /// MEF-exported types defined in test assemblies should be marked with <see cref="PartNotDiscoverableAttribute"/>
+    /// to avoid polluting the container(s) created for testing. These parts should be explicitly added to the container
+    /// when required for specific tests.
+    /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class TestExportsShouldNotBeDiscoverable : DiagnosticAnalyzer
     {
@@ -21,7 +29,7 @@ namespace Roslyn.Diagnostics.Analyzers
             s_localizableMessage,
             DiagnosticCategory.RoslyDiagnosticsReliability,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
+            isEnabledByDefault: false,
             description: s_localizableDescription,
             helpLinkUri: null,
             customTags: WellKnownDiagnosticTags.Telemetry);
@@ -32,6 +40,54 @@ namespace Roslyn.Diagnostics.Analyzers
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
+            context.RegisterCompilationStartAction(compilationContext =>
+            {
+                var exportAttributeV1 = compilationContext.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ExportAttribute");
+                var exportAttributeV2 = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ExportAttribute");
+
+                if (exportAttributeV1 is null && exportAttributeV2 is null)
+                {
+                    // We don't need to check assemblies unless they're referencing MEF, so we're done
+                    return;
+                }
+
+                compilationContext.RegisterSymbolAction(symbolContext =>
+                {
+                    var namedType = (INamedTypeSymbol)symbolContext.Symbol;
+                    var namedTypeAttributes = namedType.GetApplicableAttributes();
+
+                    if (exportAttributeV1 != null)
+                    {
+                        var exportAttributeV1Application = namedTypeAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttributeV1));
+                        if (exportAttributeV1Application != null)
+                        {
+                            if (!namedTypeAttributes.Any(ad =>
+                                ad.AttributeClass.Name == "PartNotDiscoverableAttribute"
+                                && ad.AttributeClass.ContainingNamespace.Equals(exportAttributeV1.ContainingNamespace)))
+                            {
+                                // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
+                                symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeV1Application.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                            }
+                        }
+                    }
+
+                    if (exportAttributeV2 != null)
+                    {
+                        var exportAttributeV2Application = namedTypeAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttributeV2));
+                        if (exportAttributeV2Application != null)
+                        {
+                            if (!namedTypeAttributes.Any(ad =>
+                                ad.AttributeClass.Name == nameof(System.Composition.PartNotDiscoverableAttribute)
+                                && ad.AttributeClass.ContainingNamespace.Equals(exportAttributeV2.ContainingNamespace)))
+                            {
+                                // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
+                                symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeV2Application.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+                            }
+                        }
+                    }
+                }, SymbolKind.NamedType);
+            });
         }
     }
 }

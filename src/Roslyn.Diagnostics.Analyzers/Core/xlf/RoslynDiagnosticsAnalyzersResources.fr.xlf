@@ -38,8 +38,8 @@
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
-        <source>Test exports should not be discoverable</source>
-        <target state="new">Test exports should not be discoverable</target>
+        <source>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</source>
+        <target state="new">'{0}' is exported for test purposes and should be marked PartNotDiscoverable</target>
         <note />
       </trans-unit>
       <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">

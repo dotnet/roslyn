@@ -220,7 +220,7 @@
     <value>Test exports should not be discoverable</value>
   </data>
   <data name="TestExportsShouldNotBeDiscoverableMessage" xml:space="preserve">
-    <value>Test exports should not be discoverable</value>
+    <value>'{0}' is exported for test purposes and should be marked PartNotDiscoverable</value>
   </data>
   <data name="TestExportsShouldNotBeDiscoverableTitle" xml:space="preserve">
     <value>Test exports should not be discoverable</value>
