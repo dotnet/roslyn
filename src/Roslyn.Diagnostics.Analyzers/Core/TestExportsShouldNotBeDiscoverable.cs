@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -57,37 +58,32 @@ namespace Roslyn.Diagnostics.Analyzers
                     var namedType = (INamedTypeSymbol)symbolContext.Symbol;
                     var namedTypeAttributes = namedType.GetApplicableAttributes();
 
-                    if (exportAttributeV1 != null)
-                    {
-                        var exportAttributeV1Application = namedTypeAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttributeV1));
-                        if (exportAttributeV1Application != null)
-                        {
-                            if (!namedTypeAttributes.Any(ad =>
-                                ad.AttributeClass.Name == "PartNotDiscoverableAttribute"
-                                && ad.AttributeClass.ContainingNamespace.Equals(exportAttributeV1.ContainingNamespace)))
-                            {
-                                // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
-                                symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeV1Application.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
-                            }
-                        }
-                    }
-
-                    if (exportAttributeV2 != null)
-                    {
-                        var exportAttributeV2Application = namedTypeAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttributeV2));
-                        if (exportAttributeV2Application != null)
-                        {
-                            if (!namedTypeAttributes.Any(ad =>
-                                ad.AttributeClass.Name == nameof(System.Composition.PartNotDiscoverableAttribute)
-                                && ad.AttributeClass.ContainingNamespace.Equals(exportAttributeV2.ContainingNamespace)))
-                            {
-                                // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
-                                symbolContext.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeV2Application.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
-                            }
-                        }
-                    }
+                    AnalyzeSymbolForAttribute(ref symbolContext, exportAttributeV1, namedType, namedTypeAttributes);
+                    AnalyzeSymbolForAttribute(ref symbolContext, exportAttributeV2, namedType, namedTypeAttributes);
                 }, SymbolKind.NamedType);
             });
+        }
+
+        private static void AnalyzeSymbolForAttribute(ref SymbolAnalysisContext context, INamedTypeSymbol exportAttributeOpt, INamedTypeSymbol namedType, IEnumerable<AttributeData> namedTypeAttributes)
+        {
+            if (exportAttributeOpt is null)
+            {
+                return;
+            }
+
+            var exportAttributeApplication = namedTypeAttributes.FirstOrDefault(ad => ad.AttributeClass.DerivesFrom(exportAttributeOpt));
+            if (exportAttributeApplication is null)
+            {
+                return;
+            }
+
+            if (!namedTypeAttributes.Any(ad =>
+                ad.AttributeClass.Name == nameof(PartNotDiscoverableAttribute)
+                && ad.AttributeClass.ContainingNamespace.Equals(exportAttributeOpt.ContainingNamespace)))
+            {
+                // '{0}' is exported for test purposes and should be marked PartNotDiscoverable
+                context.ReportDiagnostic(Diagnostic.Create(Rule, exportAttributeApplication.ApplicationSyntaxReference.GetSyntax().GetLocation(), namedType.Name));
+            }
         }
     }
 }
