@@ -412,7 +412,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Net.Compilers.Too
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Protocol.LanguageServices", "src\Features\Protocol\LanguageServices\Microsoft.CodeAnalysis.Protocol.LanguageServices.csproj", "{686BF57E-A6FF-467B-AAB3-44DE916A9772}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests", "src\Features\Protocol\LanguageServicesTest\Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests.csproj", "{1DDE89EE-5819-441F-A060-2FF4A986F372}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests", "src\Features\Protocol\LanguageServicesTest\Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests.csproj", "{1DDE89EE-5819-441F-A060-2FF4A986F372}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
