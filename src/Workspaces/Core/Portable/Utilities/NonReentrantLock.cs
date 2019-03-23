@@ -3,10 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
-
-#if WORKSPACE
 using Microsoft.CodeAnalysis.Internal.Log;
-#endif
 
 namespace Roslyn.Utilities
 {
@@ -121,9 +118,8 @@ namespace Roslyn.Utilities
                     {
                         // If cancelled, we throw. Trying to wait could lead to deadlock.
                         cancellationToken.ThrowIfCancellationRequested();
-#if WORKSPACE
+
                         using (Logger.LogBlock(FunctionId.Misc_NonReentrantLock_BlockingWait, cancellationToken))
-#endif
                         {
                             // Another thread holds the lock. Wait until we get awoken either
                             // by some code calling "Release" or by cancellation.
