@@ -7,11 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.CodingConventions;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell;
@@ -21,6 +23,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 using NuGet.SolutionRestoreManager;
 using Roslyn.Hosting.Diagnostics.Waiters;
 using VSLangProj;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -1123,6 +1126,44 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
 
             return null;
+        }
+
+        private CodingConventionsChangedWatcher _codingConventionsChangedWatcher;
+
+        public void BeginWatchForCodingConventionsChange(string projectName, string relativeFilePath)
+        {
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+            _codingConventionsChangedWatcher = new CodingConventionsChangedWatcher(filePath);
+        }
+
+        public void EndWaitForCodingConventionsChange(TimeSpan timeout)
+        {
+            var watcher = Interlocked.Exchange(ref _codingConventionsChangedWatcher, null);
+            if (watcher is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            watcher.Changed.Wait(timeout);
+        }
+
+        private class CodingConventionsChangedWatcher
+        {
+            private readonly TaskCompletionSource<object> _taskCompletionSource = new TaskCompletionSource<object>();
+            private readonly ICodingConventionContext _codingConventionContext;
+
+            public CodingConventionsChangedWatcher(string filePath)
+            {
+                var codingConventionsManager = GetComponentModelService<ICodingConventionsManager>();
+                _codingConventionContext = codingConventionsManager.GetConventionContextAsync(filePath, CancellationToken.None).Result;
+                _codingConventionContext.CodingConventionsChangedAsync += (sender, e) =>
+                {
+                    _taskCompletionSource.SetResult(null);
+                    return Task.CompletedTask;
+                };
+            }
+
+            public Task Changed => _taskCompletionSource.Task;
         }
     }
 }
