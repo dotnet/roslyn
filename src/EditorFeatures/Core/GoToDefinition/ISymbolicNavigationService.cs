@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal interface ISymbolicNavigationService
+    internal interface IExternalNavigationService
     {
         /// <summary>
         /// Is this a symbol of your language? If it is, tell us and you can take over the navigation however you would like.

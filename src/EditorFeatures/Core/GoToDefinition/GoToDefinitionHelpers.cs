@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             ISymbol symbol,
             Project project,
             IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            IEnumerable<Lazy<ISymbolicNavigationService>> symbolicNavigationServices,
+            IEnumerable<Lazy<IExternalNavigationService>> symbolicNavigationServices,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true,
             bool throwOnHiddenDefinition = false)

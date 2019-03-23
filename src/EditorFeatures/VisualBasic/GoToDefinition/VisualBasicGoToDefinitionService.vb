@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
 
         <ImportingConstructor>
         Public Sub New(<ImportMany> streamingPresenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)),
-                       <ImportMany> symbolicNavigationServices As IEnumerable(Of Lazy(Of ISymbolicNavigationService)))
+                       <ImportMany> symbolicNavigationServices As IEnumerable(Of Lazy(Of IExternalNavigationService)))
             MyBase.New(streamingPresenters, symbolicNavigationServices)
         End Sub
     End Class

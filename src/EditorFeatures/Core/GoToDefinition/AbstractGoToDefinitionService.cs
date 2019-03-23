@@ -17,11 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
-        private readonly IEnumerable<Lazy<ISymbolicNavigationService>> _symbolicNavigationServices;
+        private readonly IEnumerable<Lazy<IExternalNavigationService>> _symbolicNavigationServices;
 
         protected AbstractGoToDefinitionService(
             IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            IEnumerable<Lazy<ISymbolicNavigationService>> symbolicNavigationServices)
+            IEnumerable<Lazy<IExternalNavigationService>> symbolicNavigationServices)
         {
             _streamingPresenters = streamingPresenters;
             _symbolicNavigationServices = symbolicNavigationServices;

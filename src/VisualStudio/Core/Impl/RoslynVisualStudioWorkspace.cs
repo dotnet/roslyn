@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
-        private readonly IEnumerable<Lazy<ISymbolicNavigationService>> _symbolicNavigationServices;
+        private readonly IEnumerable<Lazy<IExternalNavigationService>> _symbolicNavigationServices;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider,
-            [ImportMany] IEnumerable<Lazy<ISymbolicNavigationService>> symbolicNavigationServices)
+            [ImportMany] IEnumerable<Lazy<IExternalNavigationService>> symbolicNavigationServices)
             : base(exportProvider, asyncServiceProvider)
         {
             _streamingPresenters = streamingPresenters;

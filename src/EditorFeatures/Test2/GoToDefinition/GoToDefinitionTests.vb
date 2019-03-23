@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTests
         Friend Sub Test(workspaceDefinition As XElement,
                                         expectedResult As Boolean,
-                                        executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)), IEnumerable(Of Lazy(Of ISymbolicNavigationService)), Boolean))
+                                        executeOnDocument As Func(Of Document, Integer, IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)), IEnumerable(Of Lazy(Of IExternalNavigationService)), Boolean))
             Using workspace = TestWorkspace.Create(
                     workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProviderFactory.CreateExportProvider())
                 Dim solution = workspace.CurrentSolution
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Test(workspaceDefinition, expectedResult,
                 Function(document As Document, cursorPosition As Integer,
                          presenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)),
-                         symbolicNavigationServices As IEnumerable(Of Lazy(Of ISymbolicNavigationService)))
+                         symbolicNavigationServices As IEnumerable(Of Lazy(Of IExternalNavigationService)))
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
                         DirectCast(New CSharpGoToDefinitionService(presenters, symbolicNavigationServices), IGoToDefinitionService),
                         New VisualBasicGoToDefinitionService(presenters, symbolicNavigationServices))
