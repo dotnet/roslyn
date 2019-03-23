@@ -39,23 +39,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var declaratorLocations = new HashSet<Location>();
-            var firstStatementTracker = new FirstStatementTracker(unused:false);
+            var statementParentScopes = new HashSet<SyntaxNode>();
+            void RemoveStatement(StatementSyntax statement)
+            {
+                editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                if (statement.Parent is BlockSyntax || statement.Parent is SwitchSectionSyntax)
+                {
+                    statementParentScopes.Add(statement.Parent);
+                }
+            }
+
             foreach (var diagnostic in diagnostics)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 if (declaratorLocations.Add(diagnostic.AdditionalLocations[0]))
                 {
-                    AddEdits(editor, diagnostic, firstStatementTracker, cancellationToken);
+                    AddEdits(editor, diagnostic, RemoveStatement, cancellationToken);
                 }
             }
 
-            foreach (var firstStatement in firstStatementTracker.FirstStatements)
+            foreach (var parentScope in statementParentScopes)
             {
-                // each statement that is now at the top of its block or switch section
-                // should have no blank lines preceding it
-                editor.ReplaceNode(firstStatement, (fs, gen) =>
-                    fs.WithLeadingTrivia(fs.GetLeadingTrivia().WithoutLeadingBlankLines()));
+                editor.ReplaceNode(parentScope, (newParentScope, syntaxGenerator) =>
+                {
+                    var firstStatement = newParentScope is BlockSyntax
+                        ? ((BlockSyntax)newParentScope).Statements.First()
+                        : ((SwitchSectionSyntax)newParentScope).Statements.First();
+                    return syntaxGenerator.ReplaceNode(newParentScope, firstStatement, firstStatement.WithoutLeadingBlankLinesInTrivia());
+                });
             }
 
             return Task.CompletedTask;
@@ -64,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
         private static void AddEdits(
             SyntaxEditor editor,
             Diagnostic diagnostic,
-            FirstStatementTracker firstStatementTracker,
+            Action<StatementSyntax> removeStatement,
             CancellationToken cancellationToken)
         {
             var declaratorLocation = diagnostic.AdditionalLocations[0];
@@ -101,8 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                     localDeclaration.GetNextStatement(),
                     (s, g) => s.WithPrependedNonIndentationTriviaFrom(localDeclaration));
 
-                editor.RemoveNode(localDeclaration, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-                firstStatementTracker.RemoveStatement(localDeclaration);
+                removeStatement(localDeclaration);
             }
             else
             {
@@ -117,63 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(FeaturesResources.Use_pattern_matching, createChangedDocument)
             {
-            }
-        }
-
-        private readonly struct FirstStatementTracker
-        {
-            private readonly HashSet<StatementSyntax> _removed;
-            public readonly HashSet<StatementSyntax> FirstStatements;
-
-            public FirstStatementTracker(bool unused)
-            {
-                _removed = new HashSet<StatementSyntax>();
-                FirstStatements = new HashSet<StatementSyntax>();
-            }
-
-            private bool WasFirst(StatementSyntax statementToRemove)
-            {
-                if (statementToRemove.IsFirstStatementInEnclosingBlock() || statementToRemove.IsFirstStatementInSwitchSection())
-                {
-                    return true;
-                }
-
-                bool wasMadeFirstByRemovalOfPredecessor = FirstStatements.Remove(statementToRemove);
-                if (wasMadeFirstByRemovalOfPredecessor)
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            private bool TryFindFirstUnremovedSuccessor(StatementSyntax statement, out StatementSyntax result)
-            {
-                result = statement;
-                do
-                {
-                    result = result.GetNextStatement();
-                } while (_removed.Contains(result));
-
-                return result != null;
-            }
-
-            private void MakeFirstUnremovedSuccessorFirst(StatementSyntax statement)
-            {
-                if (TryFindFirstUnremovedSuccessor(statement, out var firstUnremovedSuccessor))
-                {
-                    FirstStatements.Add(firstUnremovedSuccessor);
-                }
-            }
-
-            public void RemoveStatement(StatementSyntax statement)
-            {
-                if (WasFirst(statement))
-                {
-                    MakeFirstUnremovedSuccessorFirst(statement);
-                }
-
-                _removed.Add(statement);
             }
         }
     }

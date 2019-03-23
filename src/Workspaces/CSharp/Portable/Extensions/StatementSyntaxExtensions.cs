@@ -13,11 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class StatementSyntaxExtensions
     {
-        public static bool IsFirstStatementInEnclosingBlock(this StatementSyntax statement)
-            => statement.Parent is BlockSyntax block && block.Statements.First() == statement;
-
-        public static bool IsFirstStatementInSwitchSection(this StatementSyntax statement)
-            => statement.Parent is SwitchSectionSyntax switchSection && switchSection.Statements.First() == statement;
+        public static StatementSyntax WithoutLeadingBlankLinesInTrivia(this StatementSyntax statement)
+            => statement.WithLeadingTrivia(statement.GetLeadingTrivia().WithoutLeadingBlankLines());
 
         public static StatementSyntax GetPreviousStatement(this StatementSyntax statement)
         {

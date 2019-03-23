@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
         }
 
-        private static ImmutableArray<ImmutableArray<SyntaxTrivia>> BreakIntoLines(this SyntaxTriviaList triviaList)
+        private static ImmutableArray<ImmutableArray<SyntaxTrivia>> GetLeadingBlankLines(SyntaxTriviaList triviaList)
         {
             var result = ArrayBuilder<ImmutableArray<SyntaxTrivia>>.GetInstance();
             var currentLine = ArrayBuilder<SyntaxTrivia>.GetInstance();
@@ -59,14 +59,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 currentLine.Add(trivia);
                 if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                 {
+                    bool currentLineIsBlank = currentLine.All(t =>
+                        t.Kind() == SyntaxKind.EndOfLineTrivia ||
+                        t.Kind() == SyntaxKind.WhitespaceTrivia);
+                    if (!currentLineIsBlank)
+                    {
+                        break;
+                    }
+
                     result.Add(currentLine.ToImmutableAndFree());
                     currentLine = ArrayBuilder<SyntaxTrivia>.GetInstance();
                 }
-            }
-
-            if (currentLine.Count > 0)
-            {
-                result.Add(currentLine.ToImmutableAndFree());
             }
 
             return result.ToImmutableAndFree();
@@ -74,11 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static SyntaxTriviaList WithoutLeadingBlankLines(this SyntaxTriviaList triviaList)
         {
-            return new SyntaxTriviaList(triviaList.BreakIntoLines()
-                .SkipWhile(l => l.All(t =>
-                    t.Kind() == SyntaxKind.EndOfLineTrivia ||
-                    t.Kind() == SyntaxKind.WhitespaceTrivia))
-                .SelectMany(l => l));
+            var triviaInLeadingBlankLines = GetLeadingBlankLines(triviaList).SelectMany(l => l);
+            return new SyntaxTriviaList(triviaList.Skip(triviaInLeadingBlankLines.Count()));
         }
 
         /// <summary>
