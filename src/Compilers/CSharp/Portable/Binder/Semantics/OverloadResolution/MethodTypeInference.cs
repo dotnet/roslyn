@@ -2811,10 +2811,6 @@ OuterBreak:
             }
         }
 
-        /// <summary>
-        /// Returns false if there was a conflict merging nullability.
-        /// In that case, a warning should be reported by the caller.
-        /// </summary>
         private static void MergeOrRemoveCandidates(
             Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates,
             HashSet<TypeWithAnnotations> bounds,
@@ -2850,6 +2846,17 @@ OuterBreak:
                     if (!ImplicitConversionExists(source, destination, ref useSiteDiagnostics, conversions.WithNullability(false)))
                     {
                         candidates.Remove(candidate);
+                        if (conversions.IncludeNullability && candidates.TryGetValue(bound, out var oldBound))
+                        {
+                            // merge the nullability from candidate into bound
+                            var oldAnnotation = oldBound.NullableAnnotation;
+                            var newAnnotation = oldAnnotation.MergeNullableAnnotation(candidate.NullableAnnotation, variance);
+                            if (oldAnnotation != newAnnotation)
+                            {
+                                var newBound = TypeWithAnnotations.Create(oldBound.Type, newAnnotation);
+                                candidates[bound] = newBound;
+                            }
+                        }
                     }
                     else if (bound.Equals(candidate, TypeCompareKind.IgnoreDynamicAndTupleNames | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
                     {
