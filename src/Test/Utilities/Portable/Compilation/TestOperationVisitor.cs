@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitVariableDeclaration(IVariableDeclarationOperation operation)
         {
             Assert.Equal(OperationKind.VariableDeclaration, operation.Kind);
-            IEnumerable<IOperation> children = operation.Declarators;
+            IEnumerable<IOperation> children = operation.IgnoredDimensions.Concat(operation.Declarators);
             var initializer = operation.Initializer;
 
             if (initializer != null)

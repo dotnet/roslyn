@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly HashSet<PrefixUnaryExpressionSyntax> _result = new HashSet<PrefixUnaryExpressionSyntax>();
 
-        private new HashSet<PrefixUnaryExpressionSyntax> Analyze(ref bool badRegion)
+        private HashSet<PrefixUnaryExpressionSyntax> Analyze(ref bool badRegion)
         {
             // It might seem necessary to clear this.result after each Scan performed by base.Analyze, however,
             // finding new execution paths (via new backwards branches) can only make variables "less" definitely

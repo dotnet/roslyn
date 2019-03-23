@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int variableCount = variableList.Count;
             if (variableCount == 1)
             {
-                return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, node);
+                return BindVariableDeclaration(kind, isVar, variableList[0], typeSyntax, declType, alias, diagnostics, includeBoundType: true, associatedSyntaxNode: node);
             }
             else
             {
@@ -661,7 +661,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int i = 0;
                 foreach (var variableDeclarationSyntax in variableList)
                 {
-                    boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclarationSyntax, typeSyntax, declType, alias, diagnostics);
+                    bool includeBoundType = i == 0; //To avoid duplicated expressions, only the first declaration should contain the bound type.
+                    boundDeclarations[i++] = BindVariableDeclaration(kind, isVar, variableDeclarationSyntax, typeSyntax, declType, alias, diagnostics, includeBoundType);
                 }
                 return new BoundMultipleLocalDeclarations(node, boundDeclarations.AsImmutableOrNull());
             }
@@ -889,6 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations declTypeOpt,
             AliasSymbol aliasOpt,
             DiagnosticBag diagnostics,
+            bool includeBoundType,
             CSharpSyntaxNode associatedSyntaxNode = null)
         {
             Debug.Assert(declarator != null);
@@ -901,6 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            declTypeOpt,
                                            aliasOpt,
                                            diagnostics,
+                                           includeBoundType,
                                            associatedSyntaxNode);
         }
 
@@ -913,6 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations declTypeOpt,
             AliasSymbol aliasOpt,
             DiagnosticBag diagnostics,
+            bool includeBoundType,
             CSharpSyntaxNode associatedSyntaxNode = null)
         {
             Debug.Assert(declarator != null);
@@ -1076,8 +1080,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             diagnostics.AddRangeAndFree(localDiagnostics);
-            var boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, inferredType: isVar, type: declTypeOpt.Type);
-            return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, hasErrors);
+
+            BoundTypeExpression boundDeclType = null;
+
+            if (includeBoundType)
+            {
+                var invalidDimensions = ArrayBuilder<BoundExpression>.GetInstance();
+
+                typeSyntax.VisitRankSpecifiers((rankSpecifier, args) =>
+                {
+                    bool _ = false;
+                    foreach (var expressionSyntax in rankSpecifier.Sizes)
+                    {
+                        var size = args.binder.BindArrayDimension(expressionSyntax, args.diagnostics, ref _);
+                        if (size != null)
+                        {
+                            args.invalidDimensions.Add(size);
+                        }
+                    }
+                }, (binder: this, invalidDimensions: invalidDimensions, diagnostics: diagnostics));
+
+                boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, dimensionsOpt: invalidDimensions.ToImmutableAndFree(), type: declTypeOpt.Type);
+            }
+
+            return new BoundLocalDeclaration(associatedSyntaxNode, localSymbol, boundDeclType, initializerOpt, arguments, inferredType: isVar, hasErrors: hasErrors);
         }
 
         internal ImmutableArray<BoundExpression> BindDeclaratorArguments(VariableDeclaratorSyntax declarator, DiagnosticBag diagnostics)
@@ -2365,7 +2391,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < count; i++)
             {
                 var variableDeclarator = variables[i];
-                var declaration = BindVariableDeclaration(localKind, isVar, variableDeclarator, typeSyntax, declType, alias, diagnostics);
+                bool includeBoundType = i == 0; //To avoid duplicated expressions, only the first declaration should contain the bound type.
+                var declaration = BindVariableDeclaration(localKind, isVar, variableDeclarator, typeSyntax, declType, alias, diagnostics, includeBoundType);
 
                 declarationArray[i] = declaration;
             }

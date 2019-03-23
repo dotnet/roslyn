@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
-using Roslyn.Utilities;
 
 using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
@@ -47,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (descSection != null)
             {
                 var isFirstElement = true;
-                foreach (var element in Helpers.BuildClassifiedTextElements(descSection))
+                foreach (var element in Helpers.BuildClassifiedTextElements(descSection.TaggedParts))
                 {
                     if (isFirstElement)
                     {
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (documentationCommentSection != null)
             {
                 var isFirstElement = true;
-                foreach (var element in Helpers.BuildClassifiedTextElements(documentationCommentSection))
+                foreach (var element in Helpers.BuildClassifiedTextElements(documentationCommentSection.TaggedParts))
                 {
                     if (isFirstElement)
                     {
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // Add the remaining sections as Stacked style
             elements.AddRange(
                 quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description && s.Kind != QuickInfoSectionKinds.DocumentationComments)
-                                      .SelectMany(Helpers.BuildClassifiedTextElements));
+                                      .SelectMany(s => Helpers.BuildClassifiedTextElements(s.TaggedParts)));
 
             // build text for RelatedSpan
             if (quickInfoItem.RelatedSpans.Any())

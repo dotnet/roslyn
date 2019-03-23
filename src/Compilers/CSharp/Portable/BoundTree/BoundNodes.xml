@@ -167,9 +167,6 @@
 
     <Field Name="AliasOpt" Type="AliasSymbol" Null="allow"/>
 
-    <!-- Was the type inferred via "var"? -->  
-    <Field Name="InferredType" Type="bool"/>
-
     <!-- 
     We're going to stash some extra information in the Color Color case
     so that the binding API can return the correct information.
@@ -206,6 +203,9 @@
     identify the scenarios in which this property is populated.
     -->
     <Field Name="BoundContainingTypeOpt" Type="BoundTypeExpression" Null="allow"/>
+
+    <!-- The provided dimensions in an array type expression where dimensions were provided in error. -->
+    <Field Name="BoundDimensionsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
   </Node>
 
   <!-- 
@@ -770,9 +770,15 @@
   -->
   <Node Name="BoundLocalDeclaration" Base="BoundStatement">
     <Field Name="LocalSymbol" Type="LocalSymbol"/>
-    <Field Name="DeclaredType" Type="BoundTypeExpression"/>
+
+    <!-- Only set for the first declaration in BoundMultipleLocalDeclarations
+    unless the type is inferred -->
+    <Field Name="DeclaredTypeOpt" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="InitializerOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="ArgumentsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
+
+    <!-- Was the type inferred via "var"? -->  
+    <Field Name="InferredType" Type="bool"/>
   </Node>
 
   <!--
