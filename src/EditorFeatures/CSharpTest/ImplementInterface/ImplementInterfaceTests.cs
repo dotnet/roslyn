@@ -8711,6 +8711,109 @@ class Class : IInterface<string?>
 }}");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestFlowAnalysisAttributeOnNonNullableReferenceTypeByRef()
+        {
+            await TestInRegularAndScript1Async(
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    ref T MethodMaybeNull([MaybeNull] ref T value);
+
+    [return: NotNull]
+    ref T MethodNotNull([NotNull] ref T value);
+}}
+
+class Class : [|IInterface<string>|]
+{{
+}}",
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    ref T MethodMaybeNull([MaybeNull] ref T value);
+
+    [return: NotNull]
+    ref T MethodNotNull([NotNull] ref T value);
+}}
+
+class Class : IInterface<string>
+{{
+    public ref string MethodMaybeNull(ref string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    public ref string MethodNotNull(ref string value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestFlowAnalysisAttributeOnNullableReferenceTypeByRef()
+        {
+            await TestInRegularAndScript1Async(
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    ref T MethodMaybeNull([MaybeNull] ref T value);
+
+    [return: NotNull]
+    ref T MethodNotNull([NotNull] ref T value);
+}}
+
+class Class : [|IInterface<string?>|]
+{{
+}}",
+$@"#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
+
+{NullableAttributesCode}
+
+interface IInterface<T>
+{{
+    [return: MaybeNull]
+    ref T MethodMaybeNull([MaybeNull] ref T value);
+
+    [return: NotNull]
+    ref T MethodNotNull([NotNull] ref T value);
+}}
+
+class Class : IInterface<string?>
+{{
+    public ref string? MethodMaybeNull(ref string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+
+    [return: NotNull]
+    public ref string? MethodNotNull([NotNull] ref string? value)
+    {{
+        throw new System.NotImplementedException();
+    }}
+}}");
+        }
+
         // class Class<T> : IInterface<T?> where T : class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
         public async Task TestFlowAnalysisAttributeOnNonNullableReferenceTypeConstraint()
