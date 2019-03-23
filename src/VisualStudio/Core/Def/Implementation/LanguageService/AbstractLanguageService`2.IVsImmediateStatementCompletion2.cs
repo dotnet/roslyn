@@ -92,14 +92,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                     return VSConstants.E_FAIL;
                 }
 
+                // Clean the old context in any case upfront: 
+                // even if we fail to initialize, the old context must be cleaned.
+                this.filters[textView].RemoveContext();
+
                 var context = CreateContext(view, textView, debuggerBuffer, contextBuffer, currentStatementSpan);
                 if (context.TryInitialize())
                 {
                     this.filters[textView].SetContext(context);
-                }
-                else
-                {
-                    this.filters[textView].RemoveContext();
                 }
             }
 

@@ -1049,6 +1049,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
             => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
+        public SyntaxList<SyntaxNode> GetMembersOfNamespaceDeclaration(SyntaxNode namespaceDeclaration)
+            => ((NamespaceDeclarationSyntax)namespaceDeclaration).Members;
+
         private void AppendMethodLevelMembers(SyntaxNode node, List<SyntaxNode> list)
         {
             foreach (var member in node.GetMembers())
@@ -1712,12 +1715,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool IsMultiLineCommentTrivia(SyntaxTrivia trivia)
             => trivia.IsMultiLineComment();
-
-        public override bool IsSingleLineDocCommentTrivia(SyntaxTrivia trivia)
-            => trivia.IsSingleLineDocComment();
-
-        public override bool IsMultiLineDocCommentTrivia(SyntaxTrivia trivia)
-            => trivia.IsMultiLineDocComment();
 
         public override bool IsShebangDirectiveTrivia(SyntaxTrivia trivia)
             => trivia.IsShebangDirective();

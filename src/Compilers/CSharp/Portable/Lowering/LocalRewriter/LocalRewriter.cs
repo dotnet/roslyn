@@ -261,8 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
                                     typeConstraint => typeConstraint.NeedsNullableAttribute()));
 
-            bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnType.NeedsNullableAttribute();
-            bool parametersNeedNullableAttribute = node.Symbol.ParameterTypes.Any(parameter => parameter.NeedsNullableAttribute());
+            bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnTypeWithAnnotations.NeedsNullableAttribute();
+            bool parametersNeedNullableAttribute = node.Symbol.ParameterTypesWithAnnotations.Any(parameter => parameter.NeedsNullableAttribute());
 
             if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
             {
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // array[Range] is compiled to:
                 // System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray(array, Range)
 
-                var elementType = ((ArrayTypeSymbol)node.Expression.Type).ElementType;
+                var elementType = ((ArrayTypeSymbol)node.Expression.Type).ElementTypeWithAnnotations;
 
                 resultExpr = F.Call(
                     receiver: null,

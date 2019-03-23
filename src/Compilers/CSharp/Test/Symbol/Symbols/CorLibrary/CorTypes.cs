@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.CorLibrary
 
             var p = noMsCorLibRef.GlobalNamespace.GetTypeMembers("I1").Single().
                 GetMembers("M1").OfType<MethodSymbol>().Single().
-                Parameters[0].Type;
+                Parameters[0].TypeWithAnnotations;
 
-            Assert.Equal(TypeKind.Error, p.TypeKind);
+            Assert.Equal(TypeKind.Error, p.Type.TypeKind);
             Assert.Equal(SpecialType.System_Int32, p.SpecialType);
         }
 

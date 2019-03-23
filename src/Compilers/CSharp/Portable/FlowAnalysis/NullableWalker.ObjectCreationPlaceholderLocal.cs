@@ -17,13 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class ObjectCreationPlaceholderLocal : LocalSymbol
         {
             private readonly Symbol _containingSymbol;
-            private readonly TypeSymbolWithAnnotations _type;
+            private readonly TypeWithAnnotations _type;
             private readonly BoundExpression _objectCreationExpression;
 
             public ObjectCreationPlaceholderLocal(Symbol containingSymbol, BoundExpression objectCreationExpression)
             {
                 _containingSymbol = containingSymbol;
-                _type = TypeSymbolWithAnnotations.Create(objectCreationExpression.Type, NullableAnnotation.NotAnnotated);
+                _type = TypeWithAnnotations.Create(objectCreationExpression.Type, NullableAnnotation.NotAnnotated);
                 _objectCreationExpression = objectCreationExpression;
             }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public override TypeSymbolWithAnnotations Type
+            public override TypeWithAnnotations TypeWithAnnotations
             {
                 get
                 {

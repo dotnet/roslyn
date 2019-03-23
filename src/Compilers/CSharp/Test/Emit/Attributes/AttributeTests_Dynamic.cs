@@ -531,7 +531,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                     }
                     else
                     {
-                        Assert.Equal("System.Boolean[]", dynamicAttribute.AttributeConstructor.Parameters.Single().Type.ToTestDisplayString());
+                        Assert.Equal("System.Boolean[]", dynamicAttribute.AttributeConstructor.Parameters.Single().TypeWithAnnotations.ToTestDisplayString());
 
                         TypedConstant argument = dynamicAttribute.CommonConstructorArguments.Single();
                         Assert.Equal(TypedConstantKind.Array, argument.Kind);

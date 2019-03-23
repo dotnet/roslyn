@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
-        private TypeSymbolWithAnnotations.Builder _lazyType;
+        private TypeWithAnnotations.Builder _lazyType;
 
         internal SubstitutedFieldSymbol(SubstitutedNamedTypeSymbol containingType, FieldSymbol substitutedFrom)
             : base((FieldSymbol)substitutedFrom.OriginalDefinition)
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
         }
 
-        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (_lazyType.IsDefault)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // containing a fixed-size buffer.  Given the rarity there would be little
             // benefit to "optimizing" the performance of this by caching the
             // translated implementation type.
-            return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(OriginalDefinition.FixedImplementationType(emitModule)).TypeSymbol;
+            return (NamedTypeSymbol)_containingType.TypeSubstitution.SubstituteType(OriginalDefinition.FixedImplementationType(emitModule)).Type;
         }
 
         public override bool Equals(object obj)

@@ -482,7 +482,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 // Check for those files being opened to start wire-up if necessary
-                _workspace.CheckForOpenDocuments(documentFileNamesAdded.ToImmutable());
+                _workspace.QueueCheckForFilesBeingOpen(documentFileNamesAdded.ToImmutable());
             }
         }
 
@@ -1078,7 +1078,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     else
                     {
                         _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-                        _project._workspace.CheckForOpenDocuments(ImmutableArray.Create(fullPath));
+                        _project._workspace.QueueCheckForFilesBeingOpen(ImmutableArray.Create(fullPath));
                     }
                 }
 

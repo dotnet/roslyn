@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var reducedFrom = reducedMethod.ReducedFrom;
             CheckReducedExtensionMethod(reducedMethod, reducedFrom);
-            Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type.TypeSymbol, reducedMethod.ReceiverType);
+            Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type, reducedMethod.ReceiverType);
 
             var constructedFrom = reducedMethod.ConstructedFrom;
             CheckConstructedMethod(reducedMethod, constructedFrom);
@@ -309,13 +309,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var method = (MethodSymbol)model.GetDeclaredSymbol(annotations.Key);
                 var diagnostics = DiagnosticBag.GetInstance();
                 var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
-                var dictionary = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
+                var dictionary = new Dictionary<SyntaxNode, TypeWithAnnotations>();
                 NullableWalker.Analyze(
                     compilation,
                     method,
                     block,
                     diagnostics,
-                    callbackOpt: (BoundExpression expr, TypeSymbolWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
+                    callbackOpt: (BoundExpression expr, TypeWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
                 diagnostics.Free();
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));
@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Assert.NotEqual(syntaxOpt.Kind(), SyntaxKind.SuppressNullableWarningExpression);
 
                     return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type) ?
-                        (!type.HasType ? "<null>" : type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat)) :
+                        (!type.HasType ? "<null>" : type.ToDisplayString(TypeWithAnnotations.TestDisplayFormat)) :
                         null;
                 }
             }

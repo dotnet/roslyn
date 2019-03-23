@@ -922,7 +922,12 @@ public class Cls
 
         private static void VerifyModelForOutVarWithoutDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
         {
-            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: false, verifyDataFlow: false, references: references);
+            VerifyModelForOutVarWithoutDataFlow(model, decl, isShadowed: false, references: references);
+        }
+
+        private static void VerifyModelForOutVarWithoutDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, bool isShadowed, params IdentifierNameSyntax[] references)
+        {
+            VerifyModelForOutVar(model, decl, isDelegateCreation: false, isExecutableCode: true, isShadowed: isShadowed, verifyDataFlow: false, references: references);
         }
 
         private static void VerifyModelForDeclarationVarWithoutDataFlow(SemanticModel model, DeclarationExpressionSyntax decl, params IdentifierNameSyntax[] references)
@@ -983,14 +988,14 @@ public class Cls
 
             var local = (SourceLocalSymbol)symbol;
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type.TypeSymbol);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: local.Type);
 
             foreach (var reference in references)
             {
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier().ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier().ValueText));
-                Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
+                Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
             }
 
             if (verifyDataFlow)
@@ -1037,7 +1042,7 @@ public class Cls
             Assert.True(SyntaxFacts.IsInNamespaceOrTypeContext(typeSyntax));
             Assert.True(SyntaxFacts.IsInTypeOnlyContext(typeSyntax));
 
-            TypeSymbol expected = expectedSymbol?.GetTypeOrReturnType().TypeSymbol;
+            TypeSymbol expected = expectedSymbol?.GetTypeOrReturnType().Type;
 
             if (expected?.IsErrorType() != false)
             {
@@ -1142,7 +1147,7 @@ public class Cls
 
             var local = (SourceLocalSymbol)symbol;
 
-            AssertInfoForDeclarationExpressionSyntax(model, decl, local, local.Type.TypeSymbol);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, local, local.Type);
         }
 
         private static void VerifyNotInScope(SemanticModel model, IdentifierNameSyntax reference)
@@ -5714,7 +5719,7 @@ public class X
             Assert.Equal(2, x1Ref.Length);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]
@@ -12848,7 +12853,7 @@ public class X
                 var yRef = GetReferences(tree, id).Single();
                 VerifyModelForOutVar(model, yDecl, yRef);
 
-                Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(yDecl))).Type.ToTestDisplayString());
+                Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(yDecl))).TypeWithAnnotations.ToTestDisplayString());
             }
         }
 
@@ -18015,7 +18020,7 @@ public class Cls
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
-            Assert.Equal("Cls.var", ((LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
+            Assert.Equal("Cls.var", ((LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]
@@ -18415,7 +18420,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
 
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (25,26): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
@@ -18479,7 +18484,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
 
             CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (29,26): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
@@ -18528,7 +18533,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]
@@ -18573,7 +18578,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ((LocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(GetVariableDesignation(x1Decl))).TypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]
@@ -20193,7 +20198,7 @@ public class Cls
             var x1Decl = GetOutVarDeclaration(tree, "x1");
             var x1Ref = GetReference(tree, "x1");
             var x1 = (LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
-            Assert.True(x1.Type.TypeSymbol.IsErrorType());
+            Assert.True(x1.Type.IsErrorType());
             VerifyModelForOutVar(compilation.GetSemanticModel(tree), x1Decl, x1Ref);
 
             compilation.VerifyDiagnostics(
@@ -20222,7 +20227,7 @@ public class Cls
             var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
             var x1 = (LocalSymbol)model.GetDeclaredSymbol(GetVariableDesignation(x1Decl));
-            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
             compilation.VerifyDiagnostics();
         }
 
@@ -20668,6 +20673,12 @@ public class Cls
                 // (6,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[out var x1]").WithLocation(6, 12),
+                // (6,17): error CS0103: The name 'var' does not exist in the current context
+                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 17),
+                // (6,21): error CS0103: The name 'x1' does not exist in the current context
+                //         int[out var x1] a = null; // fatal syntax error - 'out' is skipped
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(6, 21),
                 // (7,13): error CS8112: 'b(out var)' is a local function and must therefore always have a body.
                 //         int b(out var x2) = null; // parsed as a local function with syntax error
                 Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "b").WithArguments("b(out var)").WithLocation(7, 13),
@@ -21267,7 +21278,7 @@ var y, y1(Dummy(TakeOutParam(true, out var x1), x1));
 
             var y1 = model.LookupSymbols(x1Ref[0].SpanStart, name: "y1").Single();
             Assert.Equal("var y1", y1.ToTestDisplayString());
-            Assert.True(((LocalSymbol)y1).Type.TypeSymbol.IsErrorType());
+            Assert.True(((LocalSymbol)y1).Type.IsErrorType());
         }
 
         [Fact]
@@ -21327,7 +21338,7 @@ public class X
             var e = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(id => id.Identifier.ValueText == "e").Single();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(e);
             Assert.Equal("var e", symbol.ToTestDisplayString());
-            Assert.True(symbol.Type.TypeSymbol.IsErrorType());
+            Assert.True(symbol.Type.IsErrorType());
         }
 
         [Fact]
@@ -25709,7 +25720,7 @@ class H
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
-                Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).Type.ToTestDisplayString());
+                Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).TypeWithAnnotations.ToTestDisplayString());
 
                 var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
@@ -26245,7 +26256,7 @@ class H
                 var x1Ref = GetReferences(tree, "x1").ToArray();
                 Assert.Equal(2, x1Ref.Length);
                 VerifyModelForOutField(model, x1Decl, x1Ref);
-                Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).Type.ToTestDisplayString());
+                Assert.Equal("System.Int32", ((FieldSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl.VariableDesignation())).TypeWithAnnotations.ToTestDisplayString());
 
                 var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
                 var x2Ref = GetReferences(tree, "x2").Single();
@@ -31075,8 +31086,8 @@ class H
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.TypeSymbol.IsErrorType());
+            Assert.Equal("var", x1.TypeWithAnnotations.ToTestDisplayString());
+            Assert.True(x1.Type.IsErrorType());
         }
 
         [Fact]
@@ -31105,7 +31116,7 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
-            Assert.True(b.Type.TypeSymbol.IsErrorType());
+            Assert.True(b.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31116,7 +31127,7 @@ class H
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]
@@ -31145,7 +31156,7 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var b = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single());
-            Assert.True(b.Type.TypeSymbol.IsErrorType());
+            Assert.True(b.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31156,7 +31167,7 @@ class H
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
         }
 
         [Fact]
@@ -31185,7 +31196,7 @@ class H
             var model = compilation.GetSemanticModel(tree);
 
             var a = (FieldSymbol)model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "a").Single());
-            Assert.True(a.Type.TypeSymbol.IsErrorType());
+            Assert.True(a.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (3,5): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31196,7 +31207,7 @@ class H
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
 
             compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script, skipUsesIsNullable: true);
             tree = compilation.SyntaxTrees.Single();
@@ -31204,8 +31215,8 @@ class H
             x1Decl = GetOutVarDeclarations(tree, "x1").Single();
 
             x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.TypeSymbol.IsErrorType());
+            Assert.Equal("var", x1.TypeWithAnnotations.ToTestDisplayString());
+            Assert.True(x1.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31242,8 +31253,8 @@ class H
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.TypeSymbol.IsErrorType());
+            Assert.Equal("var", x1.TypeWithAnnotations.ToTestDisplayString());
+            Assert.True(x1.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (3,32): error CS7019: Type of 'x1' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31259,11 +31270,11 @@ class H
 
             var bDecl = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "b").Single();
             var b = (FieldSymbol)model.GetDeclaredSymbol(bDecl);
-            Assert.True(b.Type.TypeSymbol.IsErrorType());
+            Assert.True(b.Type.IsErrorType());
 
             x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("System.Int32", x1.Type.ToTestDisplayString());
-            Assert.False(x1.Type.TypeSymbol.IsErrorType());
+            Assert.Equal("System.Int32", x1.TypeWithAnnotations.ToTestDisplayString());
+            Assert.False(x1.Type.IsErrorType());
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS7019: Type of 'b' cannot be inferred since its initializer directly or indirectly refers to the definition.
@@ -31311,8 +31322,8 @@ class H
             var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
             VerifyModelForOutField(model, x1Decl);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.TypeSymbol.IsErrorType());
+            Assert.Equal("var", x1.TypeWithAnnotations.ToTestDisplayString());
+            Assert.True(x1.Type.IsErrorType());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17377")]
@@ -31361,8 +31372,8 @@ class H
             Assert.Equal(1, x1Ref.Length);
             VerifyModelForOutField(model, x1Decl, x1Ref);
             var x1 = (FieldSymbol)model.GetDeclaredSymbol(x1Decl.VariableDesignation());
-            Assert.Equal("var", x1.Type.ToTestDisplayString());
-            Assert.True(x1.Type.TypeSymbol.IsErrorType());
+            Assert.Equal("var", x1.TypeWithAnnotations.ToTestDisplayString());
+            Assert.True(x1.Type.IsErrorType());
         }
 
         [Fact, WorkItem(17321, "https://github.com/dotnet/roslyn/issues/17321")]
@@ -31637,7 +31648,7 @@ class Program
 
             // We're not able to get type information at such location (out var argument in global code) at this point
             // See https://github.com/dotnet/roslyn/issues/13569
-            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: inFieldDeclaratorArgumentlist ? null : local.Type.TypeSymbol);
+            AssertInfoForDeclarationExpressionSyntax(model, decl, expectedSymbol: local, expectedType: inFieldDeclaratorArgumentlist ? null : local.Type);
 
             foreach (var reference in references)
             {
@@ -31655,7 +31666,7 @@ class Program
                 {
                     Assert.Same(symbol, referenceInfo.Symbol);
                     Assert.Same(symbol, symbols.Single());
-                    Assert.Equal(local.Type.TypeSymbol, model.GetTypeInfo(reference).Type);
+                    Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
                 }
 
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier().ValueText));
@@ -33075,6 +33086,524 @@ class Test : System.Attribute
             Assert.Equal(2, x2Ref.Length);
             VerifyModelForOutVar(model, x2Decl[0], x2Ref[1]);
             VerifyModelForOutVarInNotExecutableCode(model, x2Decl[1], x2Ref[0]);
+        }
+
+
+        [Fact]
+        public void Scope_InvalidArrayDimensions01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        int x1 = 0;
+        int[Test1(out int x1), x1] _1;
+        int[Test1(out int x2), x2] x2;
+    }
+
+    static int Test1(out int x)
+    {
+        x = 1;
+        return 1;
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (7,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[Test1(out int x1), x1] _1;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[Test1(out int x1), x1]").WithLocation(7, 12),
+                // (7,27): error CS0128: A local variable or function named 'x1' is already defined in this scope
+                //         int[Test1(out int x1), x1] _1;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x1").WithArguments("x1").WithLocation(7, 27),
+                // (8,12): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         int[Test1(out int x2), x2] x2;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[Test1(out int x2), x2]").WithLocation(8, 12),
+                // (8,36): error CS0128: A local variable or function named 'x2' is already defined in this scope
+                //         int[Test1(out int x2), x2] x2;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(8, 36),
+                // (6,13): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         int x1 = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(6, 13),
+                // (7,27): warning CS0168: The variable 'x1' is declared but never used
+                //         int[Test1(out int x1), x1] _1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x1").WithArguments("x1").WithLocation(7, 27),
+                // (7,36): warning CS0168: The variable '_1' is declared but never used
+                //         int[Test1(out int x1), x1] _1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "_1").WithArguments("_1").WithLocation(7, 36),
+                // (8,27): warning CS0168: The variable 'x2' is declared but never used
+                //         int[Test1(out int x2), x2] x2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x2").WithArguments("x2").WithLocation(8, 27),
+                // (8,36): warning CS0168: The variable 'x2' is declared but never used
+                //         int[Test1(out int x2), x2] x2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x2").WithArguments("x2").WithLocation(8, 36)
+            );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyNotAnOutLocal(model, x1Ref);
+            VerifyModelForOutVarDuplicateInSameScope(model, x1Decl);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").Single();
+            VerifyModelForOutVarInNotExecutableCode(model, x2Decl, x2Ref);
+        }
+
+        [Fact]
+        public void Scope_InvalidArrayDimensions_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    System.IDisposable Dummy(object x) {return null;}
+
+    void Test1()
+    {
+        using (int[] d = null)
+        {
+            Dummy(x1);
+        }
+    }
+
+    void Test2()
+    {
+        using (int[] d = null)
+            Dummy(x2);
+    }
+
+    void Test3()
+    {
+        var x3 = 11;
+        Dummy(x3);
+
+        using (int[] d = null)
+            Dummy(x3);
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            // replace 'int[]'  with 'int[TakeOutParam(true, out var x1), x1]'
+            var syntaxTree = Parse(source, filename: "file.cs");
+            for (int i = 0; i < 3; i++)
+            {
+                var method = syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ElementAt(i + 2);
+                var rankSpecifierOld = method.DescendantNodes().OfType<ArrayRankSpecifierSyntax>().Single();
+                {
+                    var rankSpecifierNew = rankSpecifierOld
+                        .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(
+                            SyntaxFactory.NodeOrTokenList(
+                                SyntaxFactory.ParseExpression($"TakeOutParam(true, out var x{i + 1})"),
+                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                SyntaxFactory.ParseExpression($"x{i + 1}")
+                                )));
+                    syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
+                }
+            }
+
+            var compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseExe);
+
+            compilation.VerifyDiagnostics(
+                // file.cs(12,16): error CS1674: 'int[*,*]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //         using (int[TakeOutParam(true, out var x1),x1] d = null)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[TakeOutParam(true, out var x1),x1] d = null").WithArguments("int[*,*]").WithLocation(12, 16),
+                // file.cs(12,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         using (int[TakeOutParam(true, out var x1),x1] d = null)
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x1),x1]").WithLocation(12, 19),
+                // file.cs(12,20): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         using (int[TakeOutParam(true, out var x1),x1] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "TakeOutParam(true, out var x1)").WithArguments("bool", "int").WithLocation(12, 20),
+                // file.cs(12,51): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         using (int[TakeOutParam(true, out var x1),x1] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x1").WithArguments("bool", "int").WithLocation(12, 51),
+                // file.cs(14,19): error CS0165: Use of unassigned local variable 'x1'
+                //             Dummy(x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(14, 19),
+                // file.cs(20,16): error CS1674: 'int[*,*]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //         using (int[TakeOutParam(true, out var x2),x2] d = null)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[TakeOutParam(true, out var x2),x2] d = null").WithArguments("int[*,*]").WithLocation(20, 16),
+                // file.cs(20,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         using (int[TakeOutParam(true, out var x2),x2] d = null)
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x2),x2]").WithLocation(20, 19),
+                // file.cs(20,20): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         using (int[TakeOutParam(true, out var x2),x2] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "TakeOutParam(true, out var x2)").WithArguments("bool", "int").WithLocation(20, 20),
+                // file.cs(20,51): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         using (int[TakeOutParam(true, out var x2),x2] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2").WithArguments("bool", "int").WithLocation(20, 51),
+                // file.cs(21,19): error CS0165: Use of unassigned local variable 'x2'
+                //             Dummy(x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(21, 19),
+                // file.cs(29,16): error CS1674: 'int[*,*]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //         using (int[TakeOutParam(true, out var x3),x3] d = null)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int[TakeOutParam(true, out var x3),x3] d = null").WithArguments("int[*,*]").WithLocation(29, 16),
+                // file.cs(29,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         using (int[TakeOutParam(true, out var x3),x3] d = null)
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x3),x3]").WithLocation(29, 19),
+                // file.cs(29,20): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         using (int[TakeOutParam(true, out var x3),x3] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "TakeOutParam(true, out var x3)").WithArguments("bool", "int").WithLocation(29, 20),
+                // file.cs(29,47): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         using (int[TakeOutParam(true, out var x3),x3] d = null)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(29, 47),
+                // file.cs(29,51): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         using (int[TakeOutParam(true, out var x3),x3] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x3").WithArguments("bool", "int").WithLocation(29, 51),
+                // file.cs(30,19): error CS0165: Use of unassigned local variable 'x3'
+                //             Dummy(x3);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(30, 19)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+
+            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            var x3Ref = GetReferences(tree, "x3").ToArray();
+            Assert.Equal(3, x3Ref.Length);
+            VerifyNotAnOutLocal(model, x3Ref[0]);
+            VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref[1], x3Ref[2]);
+        }
+
+        [Fact]
+        public void Scope_InvalidArrayDimensions_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    System.IDisposable Dummy(object x) {return null;}
+
+    void Test1()
+    {
+        using int[TakeOutParam(true, out var x1), x1] d = null;
+        Dummy(x1);
+    }
+
+    void Test2()
+    {
+        var x2 = 11;
+        Dummy(x2);
+
+        using int[TakeOutParam(true, out var x2), x2] d = null;
+        Dummy(x2);
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (12,9): error CS1674: 'int[*,*]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //         using int[TakeOutParam(true, out var x1), x1] d = null;
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using int[TakeOutParam(true, out var x1), x1] d = null;").WithArguments("int[*,*]").WithLocation(12, 9),
+                // (12,18): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         using int[TakeOutParam(true, out var x1), x1] d = null;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x1), x1]").WithLocation(12, 18),
+                // (12,19): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         using int[TakeOutParam(true, out var x1), x1] d = null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "TakeOutParam(true, out var x1)").WithArguments("bool", "int").WithLocation(12, 19),
+                // (12,51): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         using int[TakeOutParam(true, out var x1), x1] d = null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x1").WithArguments("bool", "int").WithLocation(12, 51),
+                // (13,15): error CS0165: Use of unassigned local variable 'x1'
+                //         Dummy(x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 15),
+                // (21,9): error CS1674: 'int[*,*]': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                //         using int[TakeOutParam(true, out var x2), x2] d = null;
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using int[TakeOutParam(true, out var x2), x2] d = null;").WithArguments("int[*,*]").WithLocation(21, 9),
+                // (21,18): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         using int[TakeOutParam(true, out var x2), x2] d = null;
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x2), x2]").WithLocation(21, 18),
+                // (21,19): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         using int[TakeOutParam(true, out var x2), x2] d = null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "TakeOutParam(true, out var x2)").WithArguments("bool", "int").WithLocation(21, 19),
+                // (21,46): error CS0128: A local variable or function named 'x2' is already defined in this scope
+                //         using int[TakeOutParam(true, out var x2), x2] d = null;
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "x2").WithArguments("x2").WithLocation(21, 46),
+                // (21,46): warning CS0168: The variable 'x2' is declared but never used
+                //         using int[TakeOutParam(true, out var x2), x2] d = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x2").WithArguments("x2").WithLocation(21, 46)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(3, x2Ref.Length);
+            VerifyNotAnOutLocal(model, x2Ref[0]);
+            VerifyNotAnOutLocal(model, x2Ref[1]);
+            VerifyNotAnOutLocal(model, x2Ref[2]);
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, isShadowed: true);
+        }
+
+        [Fact]
+        public void Scope_InvalidArrayDimensions_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(object x) {return true;}
+
+    void Test1()
+    {
+        for (int[] a = null;;)
+            Dummy(x1);
+    }
+
+    void Test2()
+    {
+        var x2 = 11;
+        Dummy(x2);
+
+        for (int[] a = null;;)
+            Dummy(x2);
+    }
+
+    static bool TakeOutParam(object y, out bool x) 
+    {
+        x = true;
+        return true;
+    }
+}
+";
+            // replace 'int[]'  with 'int[TakeOutParam(true, out var x1), x1]'
+            var syntaxTree = Parse(source, filename: "file.cs");
+            for (int i = 0; i < 2; i++)
+            {
+                var method = syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ElementAt(i + 2);
+                var rankSpecifierOld = method.DescendantNodes().OfType<ArrayRankSpecifierSyntax>().Single();
+                {
+                    var rankSpecifierNew = rankSpecifierOld
+                        .WithSizes(SyntaxFactory.SeparatedList<ExpressionSyntax>(
+                            SyntaxFactory.NodeOrTokenList(
+                                SyntaxFactory.ParseExpression($"TakeOutParam(true, out var x{i + 1})"),
+                                SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                SyntaxFactory.ParseExpression($"x{i + 1}")
+                            )));
+                    syntaxTree = syntaxTree.GetCompilationUnitRoot().ReplaceNode(rankSpecifierOld, rankSpecifierNew).SyntaxTree;
+                }
+            }
+
+            var compilation = CreateCompilation(syntaxTree, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // file.cs(12,17): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         for (int[TakeOutParam(true, out var x1),x1] a = null;;)
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x1),x1]").WithLocation(12, 17),
+                // file.cs(12,18): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         for (int[TakeOutParam(true, out var x1),x1] a = null;;)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "TakeOutParam(true, out var x1)").WithArguments("bool", "int").WithLocation(12, 18),
+                // file.cs(12,49): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         for (int[TakeOutParam(true, out var x1),x1] a = null;;)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x1").WithArguments("bool", "int").WithLocation(12, 49),
+                // file.cs(13,19): error CS0165: Use of unassigned local variable 'x1'
+                //             Dummy(x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 19),
+                // file.cs(12,53): warning CS0219: The variable 'a' is assigned but its value is never used
+                //         for (int[TakeOutParam(true, out var x1),x1] a = null;;)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(12, 53),
+                // file.cs(21,17): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         for (int[TakeOutParam(true, out var x2),x2] a = null;;)
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x2),x2]").WithLocation(21, 17),
+                // file.cs(21,45): error CS0136: A local or parameter named 'x2' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         for (int[TakeOutParam(true, out var x2),x2] a = null;;)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x2").WithArguments("x2").WithLocation(21, 45),
+                // file.cs(21,18): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         for (int[TakeOutParam(true, out var x2),x2] a = null;;)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "TakeOutParam(true, out var x2)").WithArguments("bool", "int").WithLocation(21, 18),
+                // file.cs(21,49): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         for (int[TakeOutParam(true, out var x2),x2] a = null;;)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2").WithArguments("bool", "int").WithLocation(21, 49),
+                // file.cs(22,19): error CS0165: Use of unassigned local variable 'x2'
+                //             Dummy(x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(22, 19),
+                // file.cs(21,53): warning CS0219: The variable 'a' is assigned but its value is never used
+                //         for (int[TakeOutParam(true, out var x2),x2] a = null;;)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "a").WithArguments("a").WithLocation(21, 53)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVarInNotExecutableCode(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(3, x2Ref.Length);
+            VerifyNotAnOutLocal(model, x2Ref[0]);
+            VerifyModelForOutVarInNotExecutableCode(model, x2Decl, x2Ref[1], x2Ref[2]);
+        }
+
+        [Fact]
+        public void Scope_InvalidArrayDimensions_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    System.IDisposable Dummy(object x) {return null;}
+
+    unsafe void Test1()
+    {
+        fixed (int[TakeOutParam(true, out var x1), x1] d = null)
+        {
+            Dummy(x1);
+        }
+    }
+
+    unsafe void Test2()
+    {
+        fixed (int[TakeOutParam(true, out var x2), x2] d = null)
+            Dummy(x2);
+    }
+
+    unsafe void Test3()
+    {
+        var x3 = 11;
+        Dummy(x3);
+
+        fixed (int[TakeOutParam(true, out var x3), x3] d = null)
+            Dummy(x3);
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (10,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe void Test1()
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test1").WithLocation(10, 17),
+                // (12,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         fixed (int[TakeOutParam(true, out var x1), x1] d = null)
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x1), x1]").WithLocation(12, 19),
+                // (12,20): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         fixed (int[TakeOutParam(true, out var x1), x1] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "TakeOutParam(true, out var x1)").WithArguments("bool", "int").WithLocation(12, 20),
+                // (12,52): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         fixed (int[TakeOutParam(true, out var x1), x1] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x1").WithArguments("bool", "int").WithLocation(12, 52),
+                // (12,56): error CS0209: The type of a local declared in a fixed statement must be a pointer type
+                //         fixed (int[TakeOutParam(true, out var x1), x1] d = null)
+                Diagnostic(ErrorCode.ERR_BadFixedInitType, "d = null").WithLocation(12, 56),
+                // (14,19): error CS0165: Use of unassigned local variable 'x1'
+                //             Dummy(x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(14, 19),
+                // (18,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe void Test2()
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test2").WithLocation(18, 17),
+                // (20,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         fixed (int[TakeOutParam(true, out var x2), x2] d = null)
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x2), x2]").WithLocation(20, 19),
+                // (20,20): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         fixed (int[TakeOutParam(true, out var x2), x2] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "TakeOutParam(true, out var x2)").WithArguments("bool", "int").WithLocation(20, 20),
+                // (20,52): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         fixed (int[TakeOutParam(true, out var x2), x2] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x2").WithArguments("bool", "int").WithLocation(20, 52),
+                // (20,56): error CS0209: The type of a local declared in a fixed statement must be a pointer type
+                //         fixed (int[TakeOutParam(true, out var x2), x2] d = null)
+                Diagnostic(ErrorCode.ERR_BadFixedInitType, "d = null").WithLocation(20, 56),
+                // (21,19): error CS0165: Use of unassigned local variable 'x2'
+                //             Dummy(x2);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(21, 19),
+                // (24,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                //     unsafe void Test3()
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test3").WithLocation(24, 17),
+                // (29,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
+                //         fixed (int[TakeOutParam(true, out var x3), x3] d = null)
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x3), x3]").WithLocation(29, 19),
+                // (29,20): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         fixed (int[TakeOutParam(true, out var x3), x3] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "TakeOutParam(true, out var x3)").WithArguments("bool", "int").WithLocation(29, 20),
+                // (29,47): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         fixed (int[TakeOutParam(true, out var x3), x3] d = null)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(29, 47),
+                // (29,52): error CS0029: Cannot implicitly convert type 'bool' to 'int'
+                //         fixed (int[TakeOutParam(true, out var x3), x3] d = null)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x3").WithArguments("bool", "int").WithLocation(29, 52),
+                // (29,56): error CS0209: The type of a local declared in a fixed statement must be a pointer type
+                //         fixed (int[TakeOutParam(true, out var x3), x3] d = null)
+                Diagnostic(ErrorCode.ERR_BadFixedInitType, "d = null").WithLocation(29, 56),
+                // (30,19): error CS0165: Use of unassigned local variable 'x3'
+                //             Dummy(x3);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(30, 19)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVarWithoutDataFlow(model, x1Decl, x1Ref);
+
+            var x2Decl = GetOutVarDeclarations(tree, "x2").Single();
+            var x2Ref = GetReferences(tree, "x2").ToArray();
+            Assert.Equal(2, x2Ref.Length);
+            VerifyModelForOutVarWithoutDataFlow(model, x2Decl, x2Ref);
+
+            var x3Decl = GetOutVarDeclarations(tree, "x3").Single();
+            var x3Ref = GetReferences(tree, "x3").ToArray();
+            Assert.Equal(3, x3Ref.Length);
+            VerifyNotAnOutLocal(model, x3Ref[0]);
+            VerifyModelForOutVarWithoutDataFlow(model, x3Decl, x3Ref[1], x3Ref[2]);
         }
 
         [Fact]
@@ -34634,7 +35163,6 @@ public class C : System.Collections.Generic.List<int>
 ";
             CompileAndVerify(source, expectedOutput: @"1");
         }
-
     }
 
     internal static class OutVarTestsExtensions

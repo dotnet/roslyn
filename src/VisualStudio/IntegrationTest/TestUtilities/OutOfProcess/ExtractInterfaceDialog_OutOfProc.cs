@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickOK()
         {
             DialogHelpers.PressButton(GetMainWindowHWnd(), ExtractInterfaceDialogID, "OkButton");
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickCancel()
         {
             DialogHelpers.PressButton(GetMainWindowHWnd(), ExtractInterfaceDialogID, "CancelButton");
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
 
         /// <summary>
