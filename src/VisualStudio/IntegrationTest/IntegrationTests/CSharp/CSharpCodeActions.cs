@@ -197,6 +197,12 @@ class C
             MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
             SetUpEditor(markup);
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                Helper.HangMitigatingTimeout,
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.Verify.CodeActionsNotShowing();
 
             var editorConfig = @"root = true
@@ -205,7 +211,15 @@ class C
 csharp_style_expression_bodied_properties = true:warning
 ";
 
-            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
+            VisualStudio.SolutionExplorer.BeginWatchForCodingConventionsChange(new ProjectUtils.Project(ProjectName), "Class1.cs");
+            try
+            {
+                VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
+            }
+            finally
+            {
+                VisualStudio.SolutionExplorer.EndWaitForCodingConventionsChange(Helper.HangMitigatingTimeout);
+            }
 
             // Wait for CodingConventions library events to propagate to the workspace
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
@@ -213,7 +227,8 @@ csharp_style_expression_bodied_properties = true:warning
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService);
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction(
                 "Use expression body for properties",
@@ -229,7 +244,15 @@ csharp_style_expression_bodied_properties = true:warning
              * outcome for the modified .editorconfig style.
              */
 
-            VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
+            VisualStudio.SolutionExplorer.BeginWatchForCodingConventionsChange(new ProjectUtils.Project(ProjectName), "Class1.cs");
+            try
+            {
+                VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
+            }
+            finally
+            {
+                VisualStudio.SolutionExplorer.EndWaitForCodingConventionsChange(Helper.HangMitigatingTimeout);
+            }
 
             // Wait for CodingConventions library events to propagate to the workspace
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
@@ -237,7 +260,8 @@ csharp_style_expression_bodied_properties = true:warning
                 Helper.HangMitigatingTimeout,
                 FeatureAttribute.Workspace,
                 FeatureAttribute.SolutionCrawler,
-                FeatureAttribute.DiagnosticService);
+                FeatureAttribute.DiagnosticService,
+                FeatureAttribute.ErrorSquiggles);
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction(
                 "Use block body for properties",
