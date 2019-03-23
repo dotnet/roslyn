@@ -6209,7 +6209,7 @@ using System;
 
 class Base
 {
-    public virtual int Foo { [Obsolete] get; set;}
+    public virtual int Boo { [Obsolete] get; set;}
     public virtual int Goo { get; set; }
     public virtual int Hoo { [Obsolete(""Base.Hoo is Obsolete"", true)] get; set; }
     public virtual int Joo { [Obsolete(""Base.Joo is Obsolete"", false)] get; set; }
@@ -6217,7 +6217,7 @@ class Base
 }
 class Derived : Base
 {
-    public override int Foo { get; set; }
+    public override int Boo { get; set; }
     public override int Goo { [Obsolete] get; set; }
     public override int Hoo { [Obsolete(""Derived.Hoo is Obsolete"", false)] get; set; }
     public override int Joo { [Obsolete(""Derived.Joo is Obsolete"", true)] get; set; }
@@ -6229,7 +6229,7 @@ public class Program
     public void Main()
     {
         var derived = new Derived();
-		_ = derived.Foo;
+		_ = derived.Boo;
         _ = derived.Goo;
         _ = derived.Hoo;
         _ = derived.Joo;
@@ -6238,9 +6238,9 @@ public class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (14,31): warning CS0672: Member 'Derived.Foo.get' overrides obsolete member 'Base.Foo.get'. Add the Obsolete attribute to 'Derived.Foo.get'.
-                //     public override int Foo { get; set; }
-                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "get").WithArguments("Derived.Foo.get", "Base.Foo.get").WithLocation(14, 31),
+                // (14,31): warning CS0672: Member 'Derived.Boo.get' overrides obsolete member 'Base.Boo.get'. Add the Obsolete attribute to 'Derived.Boo.get'.
+                //     public override int Boo { get; set; }
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "get").WithArguments("Derived.Boo.get", "Base.Boo.get").WithLocation(14, 31),
                 // (15,42): warning CS0809: Obsolete member 'Derived.Goo.get' overrides non-obsolete member 'Base.Goo.get'
                 //     public override int Goo { [Obsolete] get; set; }
                 Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("Derived.Goo.get", "Base.Goo.get").WithLocation(15, 42),
@@ -6250,9 +6250,9 @@ public class Program
                 // (18,69): warning CS0809: Obsolete member 'Derived.Koo.get' overrides non-obsolete member 'Base.Koo.get'
                 //     public override int Koo { [Obsolete("Derived.Koo is Obsolete")] get; set; }
                 Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "get").WithArguments("Derived.Koo.get", "Base.Koo.get").WithLocation(18, 69),
-                // (26,7): warning CS0612: 'Base.Foo.get' is obsolete
-                // 		_ = derived.Foo;
-                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "derived.Foo").WithArguments("Base.Foo.get").WithLocation(26, 7),
+                // (26,7): warning CS0612: 'Base.Boo.get' is obsolete
+                // 		_ = derived.Boo;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "derived.Boo").WithArguments("Base.Boo.get").WithLocation(26, 7),
                 // (28,13): error CS0619: 'Base.Hoo.get' is obsolete: 'Base.Hoo is Obsolete'
                 //         _ = derived.Hoo;
                 Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "derived.Hoo").WithArguments("Base.Hoo.get", "Base.Hoo is Obsolete").WithLocation(28, 13),
