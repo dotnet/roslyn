@@ -2,6 +2,51 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../RoslynDiagnosticsAnalyzersResources.resx">
     <body>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorDescription">
+        <source>Exported parts should have [ImportingConstructor]</source>
+        <target state="new">Exported parts should have [ImportingConstructor]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
+        <source>Exported parts should have [ImportingConstructor]</source>
+        <target state="new">Exported parts should have [ImportingConstructor]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
+        <source>Exported parts should have [ImportingConstructor]</source>
+        <target state="new">Exported parts should have [ImportingConstructor]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteDescription">
+        <source>Importing constructor should be [Obsolete]</source>
+        <target state="new">Importing constructor should be [Obsolete]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteMessage">
+        <source>Importing constructor should be [Obsolete]</source>
+        <target state="new">Importing constructor should be [Obsolete]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImportingConstructorShouldBeObsoleteTitle">
+        <source>Importing constructor should be [Obsolete]</source>
+        <target state="new">Importing constructor should be [Obsolete]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableDescription">
+        <source>Test exports should not be discoverable</source>
+        <target state="new">Test exports should not be discoverable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableMessage">
+        <source>Test exports should not be discoverable</source>
+        <target state="new">Test exports should not be discoverable</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TestExportsShouldNotBeDiscoverableTitle">
+        <source>Test exports should not be discoverable</source>
+        <target state="new">Test exports should not be discoverable</target>
+        <note />
+      </trans-unit>
       <trans-unit id="UseSpecializedCollectionsEmptyEnumerableTitle">
         <source>Use SpecializedCollections.EmptyEnumerable()</source>
         <target state="translated">使用 SpecializedCollections.EmptyEnumerable()</target>
