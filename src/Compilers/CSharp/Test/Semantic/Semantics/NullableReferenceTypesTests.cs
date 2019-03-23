@@ -29268,6 +29268,7 @@ class C
         /// is converted to a delegate.
         /// </summary>
         [Fact]
+        [WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
         public void Lambda_19()
         {
             var source =
@@ -29300,14 +29301,12 @@ class C
         if (x3 == null) return;
         Action f = () =>
         {
-            z3 = x3; // warning
+            z3 = x3;
         };
         f();
         z3.ToString();
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
-            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (9,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
@@ -29318,10 +29317,7 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2").WithLocation(16, 21),
                 // (22,9): warning CS8602: Possible dereference of a null reference.
                 //         z2.ToString(); // warning
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(22, 9),
-                // (30,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //             z3 = x3; // warning
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(30, 18));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(22, 9));
         }
 
         [Fact]
@@ -29414,7 +29410,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => { if (b) return x; return y; })").WithLocation(14, 9));
         }
 
-        [Fact]
+        [Fact, WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
         public void LambdaReturnValue_04()
         {
             var source =
@@ -29427,28 +29423,20 @@ class C
     }
     static void G(object? o)
     {
-        F(() => o).ToString();
+        F(() => o).ToString(); // 1
         if (o != null) F(() => o).ToString();
-        F(() => { return o; }).ToString();
+        F(() => { return o; }).ToString(); // 2
         if (o != null) F(() => { return o; }).ToString();
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
-            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         F(() => o).ToString();
+                //         F(() => o).ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => o)").WithLocation(10, 9),
-                // (11,24): warning CS8602: Possible dereference of a null reference.
-                //         if (o != null) F(() => o).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => o)").WithLocation(11, 24),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         F(() => { return o; }).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => { return o; })").WithLocation(12, 9),
-                // (13,24): warning CS8602: Possible dereference of a null reference.
-                //         if (o != null) F(() => { return o; }).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => { return o; })").WithLocation(13, 24));
+                //         F(() => { return o; }).ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => { return o; })").WithLocation(12, 9));
         }
 
         [Fact]
@@ -29858,6 +29846,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
         public void IdentityConversion_LambdaReturnType()
         {
             var source =
@@ -29868,7 +29857,7 @@ class C
     static void F(object x, object? y)
     {
         D<object?> a = () => x;
-        D<object> b = () => y;
+        D<object> b = () => y; // 1
         if (y == null) return;
         a = () => y;
         b = () => y;
@@ -29877,28 +29866,20 @@ class C
     }
     static void F(I<object> x, I<object?> y)
     {
-        D<I<object?>> a = () => x;
-        D<I<object>> b = () => y;
+        D<I<object?>> a = () => x; // 2
+        D<I<object>> b = () => y; // 3
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
-            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
                 // (8,29): warning CS8603: Possible null reference return.
-                //         D<object> b = () => y;
+                //         D<object> b = () => y; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y").WithLocation(8, 29),
-                // (11,19): warning CS8603: Possible null reference return.
-                //         b = () => y;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y").WithLocation(11, 19),
-                // (13,31): warning CS8603: Possible null reference return.
-                //         b = (D<object>)(() => y);
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y").WithLocation(13, 31),
                 // (17,33): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
-                //         D<I<object?>> a = () => x;
+                //         D<I<object?>> a = () => x; // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("I<object>", "I<object?>").WithLocation(17, 33),
                 // (18,32): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
-                //         D<I<object>> b = () => y;
+                //         D<I<object>> b = () => y; // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(18, 32));
         }
 
@@ -29935,6 +29916,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
         public void ReturnTypeInference_01()
         {
             var source =
@@ -29947,22 +29929,17 @@ class C
     static void G(string x, string? y)
     {
         F(() => x).ToString();
-        F(() => y).ToString();
+        F(() => y).ToString(); // 1
         if (y != null) F(() => y).ToString();
     }
 }";
-            // https://github.com/dotnet/roslyn/issues/29617: For captured variables, the lambda should be
-            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(
                 new[] { source }, options: WithNonNullTypesTrue(),
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         F(() => y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => y)").WithLocation(10, 9),
-                // (11,24): warning CS8602: Possible dereference of a null reference.
-                //         if (y != null) F(() => y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => y)").WithLocation(11, 24));
+                //         F(() => y).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => y)").WithLocation(10, 9));
         }
 
         // Multiple returns, one of which is null.
@@ -86640,6 +86617,349 @@ class C
                 //         G(string.Empty, new object[] { null }); // 3
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 40)
                 );
+        }
+
+        [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
+        public void NullableIgnored_InDisabledCode()
+        {
+            var source =
+@"
+#if UNDEF
+#nullable disable
+#endif
+
+#define DEF
+
+#if DEF
+#nullable disable // 1
+#endif
+
+#if UNDEF
+#nullable enable 
+#endif
+
+public class C
+{
+    public void F(object o)
+    {
+        F(null); // no warning. '#nullable enable' in a disabled code region
+    }
+}
+";
+            CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics(
+                // (9,2): error CS8652: The feature 'nullable reference types' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // #nullable disable // 1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "nullable").WithArguments("nullable reference types").WithLocation(9, 2)
+                );
+
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue())
+                .VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
+        public void PragmaIgnored_InDisabledCode()
+        {
+            var source =
+@"
+#pragma warning disable nullable 
+
+#if UNDEF
+#pragma warning restore nullable
+#endif
+
+public class C
+{
+    public void F(object o)
+    {
+        F(null); // no warning. '#pragma warning restore nullable' in a disabled code region
+    }
+}
+";
+            CreateCompilation(new[] { source }, parseOptions: TestOptions.Regular7_3)
+                .VerifyDiagnostics();
+
+            CreateCompilation(new[] { source }, options: WithNonNullTypesTrue())
+                .VerifyDiagnostics();
+        }
+
+        [WorkItem(30987, "https://github.com/dotnet/roslyn/issues/30987")]
+        [Fact]
+        public void TypeInference_LowerBounds_TopLevelNullability_03()
+        {
+            var source =
+@"using System;
+class C
+{
+    static T F<T>(T x, T y) => x;
+    static void G1(A x, B? y)
+    {
+        F(x, x)/*T:A!*/;
+        F(x, y)/*T:A?*/;
+        F(y, x)/*T:A?*/;
+        F(y, y)/*T:B?*/;
+    }
+    static void G2(A x, B? y)
+    {
+        _ = new [] { x, x }[0]/*T:A!*/;
+        _ = new [] { x, y }[0]/*T:A?*/;
+        _ = new [] { y, x }[0]/*T:A?*/;
+        _ = new [] { y, y }[0]/*T:B?*/;
+    }
+    static T M<T>(Func<T> func) => func();
+    static void G3(bool b, A x, B? y)
+    {
+        M(() => { if (b) return x; return x; })/*T:A!*/;
+        M(() => { if (b) return x; return y; })/*T:A?*/;
+        M(() => { if (b) return y; return x; })/*T:A?*/;
+        M(() => { if (b) return y; return y; })/*T:B?*/;
+    }
+    static void G4(bool b, A x, B? y)
+    {
+        _ = (b ? x : x)/*T:A!*/;
+        _ = (b ? x : y)/*T:A?*/;
+        _ = (b ? y : x)/*T:A?*/;
+        _ = (b ? y : y)/*T:B?*/;
+    }
+}
+class A { }
+class B : A { }
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [WorkItem(30987, "https://github.com/dotnet/roslyn/issues/30987")]
+        [Fact]
+        public void TypeInference_LowerBounds_TopLevelNullability_04()
+        {
+            var source =
+@"class D
+{
+    static T F<T>(T x, T y, T z) => x;
+    static void G1(A x, B? y, C z)
+    {
+        F(x, y, z)/*T:A?*/;
+        F(y, z, x)/*T:A?*/;
+        F(z, x, y)/*T:A?*/;
+        F(x, z, y)/*T:A?*/;
+        F(z, y, x)/*T:A?*/;
+        F(y, x, z)/*T:A?*/;
+    }
+}
+class A { }
+class B : A { }
+class C : A { }
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+            comp.VerifyTypes();
+        }
+
+        [WorkItem(30987, "https://github.com/dotnet/roslyn/issues/30987")]
+        [Fact]
+        public void TypeInference_LowerBounds_TopLevelNullability_05()
+        {
+            var source =
+@"class D
+{
+#nullable disable
+    static T F<T>(T x, T y, T z) => x;
+    static void G1(A x, B? y, C z)
+#nullable enable
+    {
+        F(x, y, z)/*T:A?*/;
+        F(y, z, x)/*T:A?*/;
+        F(z, x, y)/*T:A?*/;
+        F(x, z, y)/*T:A?*/;
+        F(z, y, x)/*T:A?*/;
+        F(y, x, z)/*T:A?*/;
+    }
+}
+class A { }
+class B : A { }
+class C : A { }
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,26): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                //     static void G1(A x, B? y, C z)
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(5, 26));
+            comp.VerifyTypes();
+        }
+
+        [Fact, WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
+        public void CaptureVariablesWhereLambdaAppears_01()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static T F<T>(Func<T> f) => throw null!;
+    static void G(object? o)
+    {
+        F(() => o).ToString(); // warning: maybe null
+        if (o == null) return;
+        F(() => o).ToString(); // no warning
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         F(() => o).ToString(); // warning: maybe null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => o)").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
+        public void CaptureVariablesWhereLambdaAppears_02()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static bool M(object? o) => throw null!;
+    static T F<T>(Func<T> f, bool ignored) => throw null!;
+    static void G(object? o)
+    {
+        F(() => o, M(1)).ToString(); // warning: maybe null
+        if (o == null) return;
+        F(() => o, M(o = null)).ToString(); // no warning
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         F(() => o, M(1)).ToString(); // warning: maybe null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => o, M(1))").WithLocation(9, 9));
+        }
+
+        [Fact, WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
+        public void CaptureVariablesWhereLambdaAppears_03()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static bool M(object? o) => throw null!;
+    static Func<T> F<T>(Func<T> f, bool ignored = false) => throw null!;
+    static void G(object? o)
+    {
+        var fa1 = new[] { F(() => o), F(() => o, M(o = null)) };
+        fa1[0]().ToString(); // warning
+
+        if (o == null) return;
+        var fa2 = new[] { F(() => o), F(() => o, M(o = null)) };
+        fa2[0]().ToString();
+
+        if (o == null) return;
+        var fa3 = new[] { F(() => o, M(o = null)), F(() => o) };
+        fa3[0]().ToString(); // warning
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         fa1[0]().ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "fa1[0]()").WithLocation(10, 9),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         fa3[0]().ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "fa3[0]()").WithLocation(18, 9));
+        }
+
+        [Fact, WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
+        public void CaptureVariablesWhereLambdaAppears_04()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static T F<T>(Func<T> f) => throw null!;
+    static void G(object? o)
+    {
+        F((Func<object>)(() => o)).ToString(); // 1
+        if (o == null) return;
+        F((Func<object>)(() => o)).ToString();
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (8,32): warning CS8603: Possible null reference return.
+                //         F((Func<object>)(() => o)).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(8, 32));
+        }
+
+        [Fact, WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
+        public void CaptureVariablesWhereLambdaAppears_05()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static T F<T>(Func<T> f) => throw null!;
+    static void G(Action a) => throw null!;
+    static void M(object? o)
+    {
+        F(() => o).ToString(); // 1
+        if (o == null) return;
+        F(() => o).ToString();
+        G(() => o = null); // does not affect state in caller
+        F(() => o).ToString();
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         F(() => o).ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => o)").WithLocation(9, 9));
+        }
+
+        [Fact, WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
+        public void CaptureVariablesWhereLambdaAppears_06()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static T F<T>(object? o, params Func<T>[] a) => throw null!;
+    static void M(string? x)
+    {
+        F(x = """", () => x = null, () => x.ToString());
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(29617, "https://github.com/dotnet/roslyn/issues/29617")]
+        public void CaptureVariablesWhereLambdaAppears_07()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static T F<T>([System.Runtime.CompilerServices.EnsuresNotNull] object? o, params Func<T>[] a) => throw null!;
+    static void M(string? x)
+    {
+        F(x = """", () => x = null, () => x.ToString());
+    }
+}
+";
+            var comp = CreateCompilation(new[] { source, EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
     }
 }
