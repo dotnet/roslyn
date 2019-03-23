@@ -2299,6 +2299,25 @@ class C
                 );
         }
 
+        [Fact, WorkItem(31584, "https://github.com/dotnet/roslyn/issues/31584")]
+        public void Verify31584()
+        {
+            var comp = CreateCompilation(@"
+using System;
+using System.Linq;
+class C
+{
+    void M<T>(Func<T, bool>? predicate)
+    {
+        var items = Enumerable.Empty<T>();
+        if (predicate != null)
+            items = items.Where(x => predicate(x));
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(32701, "https://github.com/dotnet/roslyn/issues/32701")]
         public void Verify32701()
         {
