@@ -14,13 +14,5 @@ namespace Microsoft.CodeAnalysis.Scripting
                 list.Add(item);
             }
         }
-
-        public static void AddRange<T>(this IList<T> list, T[] items)
-        {
-            foreach (var item in items)
-            {
-                list.Add(item);
-            }
-        }
     }
 }
