@@ -8,8 +8,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorMessage">
-        <source>Exported parts should have [ImportingConstructor]</source>
-        <target state="new">Exported parts should have [ImportingConstructor]</target>
+        <source>'{0}' is MEF-exported and should have a single importing constructor of the correct form</source>
+        <target state="new">'{0}' is MEF-exported and should have a single importing constructor of the correct form</target>
         <note />
       </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorTitle">
