@@ -478,10 +478,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // A static member '{0}' cannot be marked as override, virtual, or abstract
                 diagnostics.Add(ErrorCode.ERR_StaticNotVirtual, location, this);
             }
-            else if (IsReadOnly && (IsStatic || HasAssociatedField))
+            else if (IsReadOnly && IsStatic)
             {
-                // The modifier '{0}' is not valid for this item
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                // Static member '{0}' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
+            }
+            else if (IsReadOnly && HasAssociatedField)
+            {
+                // Field-like event '{0}' cannot be 'readonly'.
+                diagnostics.Add(ErrorCode.ERR_FieldLikeEventCantBeReadOnly, location, this);
             }
             else if (IsOverride && (IsNew || IsVirtual))
             {

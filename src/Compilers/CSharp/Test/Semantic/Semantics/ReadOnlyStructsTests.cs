@@ -75,9 +75,9 @@ public readonly struct A
                 // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this = default;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(16, 9),
-                // (18,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (18,9): error CS1604: Cannot assign to 'this.x' because it is read-only
                 //         this.x = 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this").WithLocation(18, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this.x").WithLocation(18, 9));
         }
 
         [Fact()]
@@ -149,12 +149,12 @@ interface I1
                 // (10,25): error CS8342: Field-like events are not allowed in readonly structs.
                 //     public event Action ei1;
                 Diagnostic(ErrorCode.ERR_FieldlikeEventsInRoStruct, "ei1").WithLocation(10, 25),
-                // (43,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (43,9): error CS1604: Cannot assign to 'e' because it is read-only
                 //         e = () => { };
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "e").WithArguments("this").WithLocation(43, 9),
-                // (46,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "e").WithArguments("e").WithLocation(43, 9),
+                // (46,16): error CS1605: Cannot use 'e' as a ref or out value because it is read-only
                 //         M1(ref e);
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "e").WithArguments("this").WithLocation(46, 16)
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "e").WithArguments("e").WithLocation(46, 16)
             );
         }
 
@@ -187,10 +187,9 @@ public struct A
                 // (11,9): error CS1604: Cannot assign to 'this' because it is read-only
                 //         this = default;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(11, 9),
-                // PROTOTYPE: The error message should state the specific thing being assigned and more specifically why it can't be assigned.
-                // (13,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (13,9): error CS1604: Cannot assign to 'this.x' because it is read-only
                 //         this.x = 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this.x").WithArguments("this.x").WithLocation(13, 9));
         }
 
         [Fact]
@@ -311,9 +310,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (21,16): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                // (21,16): error CS1605: Cannot use 'f2' as a ref or out value because it is read-only
                 //         M1(ref f2); // error
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "f2").WithArguments("this").WithLocation(21, 16));
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "f2").WithArguments("f2").WithLocation(21, 16));
         }
 
         [Fact]
@@ -425,15 +424,15 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,52): error CS1604: Cannot assign to 'this' because it is read-only
+                // (7,52): error CS1604: Cannot assign to 'i' because it is read-only
                 //     public readonly override string ToString() => (i++).ToString();
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(7, 52),
-                // (8,52): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(7, 52),
+                // (8,52): error CS1604: Cannot assign to 'i' because it is read-only
                 //     public readonly override int GetHashCode() => (i++).GetHashCode();
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(8, 52),
-                // (9,56): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(8, 52),
+                // (9,56): error CS1604: Cannot assign to 'i' because it is read-only
                 //     public readonly override bool Equals(object o) => (i++).Equals(o);
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(9, 56));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(9, 56));
         }
 
         [Fact]
@@ -500,9 +499,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (16,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i++;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(16, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(16, 9));
         }
 
         [Fact]
@@ -531,9 +530,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (16,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (16,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i++;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(16, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(16, 9));
         }
 
         [Fact]
@@ -660,9 +659,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (27,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (27,9): error CS1604: Cannot assign to 'P2' because it is read-only
                 //         P2 = 2; // error
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P2").WithArguments("this").WithLocation(27, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P2").WithArguments("P2").WithLocation(27, 9));
         }
 
         [Fact]
@@ -683,18 +682,18 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (7,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i++;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(7, 9),
-                // (8,9): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(7, 9),
+                // (8,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i--;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(8, 9),
-                // (9,11): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(8, 9),
+                // (9,11): error CS1604: Cannot assign to 'i' because it is read-only
                 //         ++i;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(9, 11),
-                // (10,11): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(9, 11),
+                // (10,11): error CS1604: Cannot assign to 'i' because it is read-only
                 //         --i;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(10, 11));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(10, 11));
         }
 
         [Fact]
@@ -713,12 +712,12 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (7,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i += 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(7, 9),
-                // (8,9): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(7, 9),
+                // (8,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i -= 1;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(8, 9));
         }
 
         [Fact]
@@ -744,9 +743,9 @@ public struct S
             // should warn about E += handler in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (11,9): error CS1604: Cannot assign to 'this' because it is read-only
+                // (11,9): error CS1604: Cannot assign to 'E' because it is read-only
                 //         E = handler;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "E").WithArguments("this").WithLocation(11, 9));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "E").WithArguments("E").WithLocation(11, 9));
         }
 
         [Fact]
@@ -766,12 +765,12 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (8,15): error CS1604: Cannot assign to 'this' because it is read-only
+                // (8,15): error CS1604: Cannot assign to 'i' because it is read-only
                 //         add { i++; }
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(8, 15),
-                // (9,18): error CS1604: Cannot assign to 'this' because it is read-only
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(8, 15),
+                // (9,18): error CS1604: Cannot assign to 'i' because it is read-only
                 //         remove { i--; }
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("this").WithLocation(9, 18));
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(9, 18));
         }
 
         [Fact]
@@ -1087,9 +1086,13 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (5,32): error CS0106: The modifier 'readonly' is not valid for this item
+                // (5,32): error CS8656: Static member 'S.M()' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //     public static readonly int M()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(5, 32));
+                Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "M").WithArguments("S.M()").WithLocation(5, 32));
+
+            var method = comp.GetMember<NamedTypeSymbol>("S").GetMethod("M");
+            Assert.True(method.IsDeclaredReadOnly);
+            Assert.False(method.IsEffectivelyReadOnly);
         }
 
         [Fact]
@@ -1130,9 +1133,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,18): error CS0106: The modifier 'readonly' is not valid for this item
+                // (7,18): error CS8656: Static member 'S.P.get' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //         readonly get
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(7, 18));
+                Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P.get").WithLocation(7, 18));
         }
 
         [Fact]
@@ -1147,9 +1150,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (5,32): error CS0106: The modifier 'readonly' is not valid for this item
+                // (5,32): error CS8656: Static member 'S.P' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //     public static readonly int P => i;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P").WithArguments("readonly").WithLocation(5, 32));
+                Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P").WithArguments("S.P").WithLocation(5, 32));
         }
 
         [Fact]
@@ -1189,12 +1192,36 @@ public struct S
     public int P1 { readonly get; }
     public readonly int P2 { get; }
     public int P3 { readonly get; set; }
-    public int P4 { readonly get; readonly set; } // PROTOTYPE: readonly set on an auto-property should give an error
-    public readonly int P5 { get; set; } // PROTOTYPE: readonly set on an auto-property should give an error
+    public int P4 { readonly get; readonly set; }
+    public readonly int P5 { get; set; }
+    public readonly int P6 { readonly get; }
+    public int P7 { get; readonly set; }
+    public readonly int P8 { get; readonly set; }
 }
 ";
             var comp = CreateCompilation(csharp);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,16): error CS8660: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.P4'. Instead, put a 'readonly' modifier on the property itself.
+                //     public int P4 { readonly get; readonly set; }
+                Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "P4").WithArguments("S.P4").WithLocation(7, 16),
+                // (7,44): error CS8657: Auto-implemented 'set' accessor 'S.P4.set' cannot be marked 'readonly'.
+                //     public int P4 { readonly get; readonly set; }
+                Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P4.set").WithLocation(7, 44),
+                // (8,25): error CS8658: Auto-implemented property 'S.P5' cannot be marked 'readonly' because it has a 'set' accessor.
+                //     public readonly int P5 { get; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P5").WithArguments("S.P5").WithLocation(8, 25),
+                // (9,39): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P6' and its accessor. Remove one of them.
+                //     public readonly int P6 { readonly get; }
+                Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S.P6").WithLocation(9, 39),
+                // (10,35): error CS8657: Auto-implemented 'set' accessor 'S.P7.set' cannot be marked 'readonly'.
+                //     public int P7 { get; readonly set; }
+                Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P7.set").WithLocation(10, 35),
+                // (11,25): error CS8658: Auto-implemented property 'S.P8' cannot be marked 'readonly' because it has a 'set' accessor.
+                //     public readonly int P8 { get; readonly set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P8").WithArguments("S.P8").WithLocation(11, 25),
+                // (11,44): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P8' and its accessor. Remove one of them.
+                //     public readonly int P8 { get; readonly set; }
+                Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "set").WithArguments("S.P8").WithLocation(11, 44));
         }
 
         [Fact]
@@ -1203,14 +1230,14 @@ public struct S
             var csharp = @"
 public struct S
 {
-    public readonly int P { readonly get; }
+    public readonly int P { readonly get => 42; }
 }
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (4,38): error CS0106: The modifier 'readonly' is not valid for this item
-                //     public readonly int P { readonly get; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(4, 38));
+                // (4,38): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P' and its accessor. Remove one of them.
+                //     public readonly int P { readonly get => 42; }
+                Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S.P").WithLocation(4, 38));
         }
 
         [Fact]
@@ -1225,12 +1252,12 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (4,32): error CS0106: The modifier 'readonly' is not valid for this item
+                // (4,32): error CS8656: Static member 'S.P1' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //     public static readonly int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P1").WithArguments("readonly").WithLocation(4, 32),
-                // (5,37): error CS0106: The modifier 'readonly' is not valid for this item
+                Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P1").WithArguments("S.P1").WithLocation(4, 32),
+                // (5,37): error CS8656: Static member 'S.P2.get' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //     public static int P2 { readonly get; }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("readonly").WithLocation(5, 37));
+                Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P2.get").WithLocation(5, 37));
         }
 
         [Fact]
@@ -1617,45 +1644,56 @@ public struct S
             var csharp = @"
 public struct S1
 {
-    public readonly int this[int i]
+    // ok
+    public readonly int this[int i] => i;
+}
+
+public struct S2
+{
+    // ok
+    public int this[int i]
     {
-        get => 42;
+        readonly get => i;
         set {}
     }
 }
-";
-            var comp = CreateCompilation(csharp);
-            comp.VerifyDiagnostics();
-        }
 
-        [Fact]
-        public void ReadOnlyExpressionIndexer()
-        {
-            var csharp = @"
-public struct S1
+public struct S3
 {
-    public readonly int this[int i] => 42;
-}
-";
-            var comp = CreateCompilation(csharp);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void ReadOnlyGetExpressionIndexer()
-        {
-            var csharp = @"
-public struct S1
-{
+    // error
     public int this[int i]
     {
-        readonly get => 42;
+        readonly get { return i; }
         readonly set {}
     }
 }
+
+public struct S4
+{
+    // error
+    public readonly int this[int i]
+    {
+        readonly get { return i; }
+    }
+}
+
+public struct S5
+{
+    // error
+    public static readonly int this[int i] => i;
+}
 ";
             var comp = CreateCompilation(csharp);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (21,16): error CS8660: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S3.this[int]'. Instead, put a 'readonly' modifier on the property itself.
+                //     public int this[int i]
+                Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "this").WithArguments("S3.this[int]").WithLocation(21, 16),
+                // (33,18): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S4.this[int]' and its accessor. Remove one of them.
+                //         readonly get { return i; }
+                Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S4.this[int]").WithLocation(33, 18),
+                // (40,32): error CS0106: The modifier 'static' is not valid for this item
+                //     public static readonly int this[int i] => i;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(40, 32));
         }
 
         [Fact]
@@ -1672,9 +1710,9 @@ public struct S1
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,45): error CS0106: The modifier 'readonly' is not valid for this item
+                // (6,45): error CS8661: Field-like event 'S1.E' cannot be 'readonly'.
                 //     public readonly event Action<EventArgs> E;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("readonly").WithLocation(6, 45));
+                Diagnostic(ErrorCode.ERR_FieldLikeEventCantBeReadOnly, "E").WithArguments("S1.E").WithLocation(6, 45));
         }
 
         [Fact]
@@ -1713,9 +1751,9 @@ public struct S1
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,52): error CS0106: The modifier 'readonly' is not valid for this item
+                // (6,52): error CS8656: Static member 'S1.E' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
                 //     public static readonly event Action<EventArgs> E
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("readonly").WithLocation(6, 52));
+                Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "E").WithArguments("S1.E").WithLocation(6, 52));
         }
 
         [Fact]

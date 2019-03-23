@@ -177,11 +177,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var hasGetSyntax = getSyntax != null;
                 _isAutoProperty = notRegularProperty && hasGetSyntax;
-                bool isReadOnly = hasGetSyntax && setSyntax == null;
+                bool isGetterOnly = hasGetSyntax && setSyntax == null;
 
-                if (_isAutoProperty && !isReadOnly && !IsStatic && ContainingType.IsReadOnly)
+                if (_isAutoProperty && !IsStatic && !isGetterOnly)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AutoPropsInRoStruct, location);
+                    if (ContainingType.IsReadOnly)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AutoPropsInRoStruct, location);
+                    }
+                    else if (HasReadOnlyModifier)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, location, this);
+                    }
                 }
 
                 if (_isAutoProperty || hasInitializer)
@@ -201,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     string fieldName = GeneratedNames.MakeBackingFieldName(_sourceName);
                     _backingField = new SynthesizedBackingFieldSymbol(this,
                                                                           fieldName,
-                                                                          isReadOnly,
+                                                                          isGetterOnly,
                                                                           this.IsStatic,
                                                                           hasInitializer);
                 }
@@ -210,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Binder.CheckFeatureAvailability(
                         syntax,
-                        isReadOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : MessageID.IDS_FeatureAutoImplementedProperties,
+                        isGetterOnly ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : MessageID.IDS_FeatureAutoImplementedProperties,
                         diagnostics,
                         location);
                 }
@@ -354,6 +361,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // Check accessibility is set on at most one accessor.
                         diagnostics.Add(ErrorCode.ERR_DuplicatePropertyAccessMods, location, this);
+                    }
+                    else if (_getMethod.LocalDeclaredReadOnly && _setMethod.LocalDeclaredReadOnly)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, location, this);
                     }
                     else if (this.IsAbstract)
                     {
@@ -899,8 +910,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsStatic && HasReadOnlyModifier)
             {
-                // The modifier '{0}' is not valid for this item
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                // Static member '{0}' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
             }
             else if (IsOverride && (IsNew || IsVirtual))
             {

@@ -5427,6 +5427,24 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_ImplicitCopyInReadOnlyMember_Title" xml:space="preserve">
     <value>Call to non-readonly member from a 'readonly' member results in an implicit copy.</value>
   </data>
+  <data name="ERR_StaticMemberCantBeReadOnly" xml:space="preserve">
+    <value>Static member '{0}' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.</value>
+  </data>
+  <data name="ERR_AutoSetterCantBeReadOnly" xml:space="preserve">
+    <value>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</value>
+  </data>
+  <data name="ERR_AutoPropertyWithSetterCantBeReadOnly" xml:space="preserve">
+    <value>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</value>
+  </data>
+  <data name="ERR_InvalidPropertyReadOnlyMods" xml:space="preserve">
+    <value>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</value>
+  </data>
+  <data name="ERR_DuplicatePropertyReadOnlyMods" xml:space="preserve">
+    <value>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</value>
+  </data>
+  <data name="ERR_FieldLikeEventCantBeReadOnly" xml:space="preserve">
+    <value>Field-like event '{0}' cannot be 'readonly'.</value>
+  </data>
   <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
     <value>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</value>
   </data>

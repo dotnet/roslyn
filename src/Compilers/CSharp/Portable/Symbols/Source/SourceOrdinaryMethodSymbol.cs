@@ -940,8 +940,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsStatic && IsDeclaredReadOnly)
             {
-                // The modifier '{0}' is not valid for this item
-                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword));
+                // Static member '{0}' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
             }
             else if (IsAbstract && !ContainingType.IsAbstract && (ContainingType.TypeKind == TypeKind.Class || ContainingType.TypeKind == TypeKind.Submission))
             {

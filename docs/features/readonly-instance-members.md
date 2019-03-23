@@ -129,7 +129,18 @@ public int Prop
 ```
 
 ### Auto-properties
-Readonly cannot be applied to auto-implemented properties or their accessors. The compiler will treat all auto-implemented getters as readonly.
+Readonly can be applied to auto-implemented properties or `get` accessors. However, the compiler will treat all auto-implemented getters as readonly regardless of whether a `readonly` modifier is present.
+
+```csharp
+// Allowed
+public readonly int Prop1 { get; }
+public int Prop2 { readonly get; }
+public int Prop3 { readonly get; set; }
+
+// Not allowed
+public readonly int Prop4 { get; set; }
+public int Prop5 { get; readonly set; }
+```
 
 ### Events
 Readonly can be applied to manually-implemented events, but not field-like events. Readonly cannot be applied to individual event accessors (add/remove).
