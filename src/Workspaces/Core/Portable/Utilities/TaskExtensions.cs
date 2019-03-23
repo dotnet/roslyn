@@ -8,6 +8,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using System.Diagnostics;
 
 #if DEBUG
 using System.Linq.Expressions;
@@ -47,6 +48,12 @@ namespace Roslyn.Utilities
             return s_isThreadPoolThread.Value(thread);
         }
 #endif
+
+        public static T CompletedResult<T>(this Task<T> task)
+        {
+            Debug.Assert(task.IsCompleted);
+            return task.WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+        }
 
         public static T WaitAndGetResult<T>(this Task<T> task, CancellationToken cancellationToken)
         {
@@ -108,6 +115,7 @@ namespace Roslyn.Utilities
         // simply changing the default underlying behavior, but rejected that idea because there was
         // a good chance that existing users had already drawn a dependency on the current behavior.
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task SafeContinueWith(
             this Task task,
             Action<Task> continuationAction,
@@ -126,6 +134,7 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, cancellationToken, continuationOptions, scheduler);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task<TResult> SafeContinueWith<TInput, TResult>(
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
@@ -136,6 +145,7 @@ namespace Roslyn.Utilities
                 task, continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task<TResult> SafeContinueWith<TInput, TResult>(
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
@@ -149,6 +159,7 @@ namespace Roslyn.Utilities
                 (Task antecedent) => continuationFunction((Task<TInput>)antecedent), cancellationToken, continuationOptions, scheduler);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task SafeContinueWith<TInput>(
             this Task<TInput> task,
             Action<Task<TInput>> continuationAction,
@@ -205,6 +216,7 @@ namespace Roslyn.Utilities
             return task.ContinueWith(outerFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task<TResult> SafeContinueWith<TResult>(
             this Task task,
             Func<Task, TResult> continuationFunction,
@@ -214,6 +226,7 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, cancellationToken, TaskContinuationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task SafeContinueWith(
             this Task task,
             Action<Task> continuationAction,
@@ -222,6 +235,7 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationAction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task SafeContinueWith<TInput>(
             this Task<TInput> task,
             Action<Task<TInput>> continuationFunction,
@@ -230,6 +244,7 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task<TResult> SafeContinueWith<TInput, TResult>(
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
@@ -238,6 +253,7 @@ namespace Roslyn.Utilities
             return task.SafeContinueWith(continuationFunction, CancellationToken.None, TaskContinuationOptions.None, scheduler);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task SafeContinueWith(
             this Task task,
             Action<Task> continuationAction,
@@ -248,6 +264,7 @@ namespace Roslyn.Utilities
         }
 
         // Code provided by Stephen Toub.
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task<TResult> ContinueWithAfterDelay<TInput, TResult>(
             this Task<TInput> task,
             Func<Task<TInput>, TResult> continuationFunction,
@@ -264,6 +281,7 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task<TNResult> ContinueWithAfterDelay<TNResult>(
             this Task task,
             Func<Task, TNResult> continuationFunction,
@@ -280,6 +298,7 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task ContinueWithAfterDelay(
             this Task task,
             Action continuationAction,
@@ -296,6 +315,7 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task<TResult> SafeContinueWithFromAsync<TInput, TResult>(
             this Task<TInput> task,
             Func<Task<TInput>, Task<TResult>> continuationFunction,
@@ -344,6 +364,7 @@ namespace Roslyn.Utilities
             return nextTask;
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task SafeContinueWithFromAsync(
            this Task task,
            Func<Task, Task> continuationFunction,
@@ -383,6 +404,7 @@ namespace Roslyn.Utilities
             return nextTask;
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task SafeContinueWithFromAsync<TInput>(
            this Task<TInput> task,
            Func<Task<TInput>, Task> continuationFunction,
@@ -422,6 +444,7 @@ namespace Roslyn.Utilities
             return nextTask;
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task<TNResult> ContinueWithAfterDelayFromAsync<TNResult>(
             this Task task,
             Func<Task, Task<TNResult>> continuationFunction,
@@ -438,6 +461,7 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task ContinueWithAfterDelayFromAsync(
             this Task task,
             Func<Task, Task> continuationFunction,

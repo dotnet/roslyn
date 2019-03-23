@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Editor.Interactive;
@@ -67,7 +68,10 @@ namespace Microsoft.CodeAnalysis.Editor.Interactive
             if (!TryParseArguments(arguments, out bool initialize, out bool? is64bit))
             {
                 ReportInvalidArguments(window);
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                Debug.Assert(ExecutionResult.Failed.IsCompleted);
                 return ExecutionResult.Failed;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
             }
 
             var evaluator = (InteractiveEvaluator)window.Evaluator;

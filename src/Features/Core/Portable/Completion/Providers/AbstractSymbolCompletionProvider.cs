@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -244,7 +245,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected virtual Task<bool> IsSemanticTriggerCharacterAsync(Document document, int characterPosition, CancellationToken cancellationToken)
         {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+            Debug.Assert(SpecializedTasks.True.IsCompleted);
             return SpecializedTasks.True;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
         }
 
         private Task<ImmutableArray<ISymbol>> GetSymbolsWorker(int position, bool preselect, SyntaxContext context, OptionSet options, CancellationToken cancellationToken)

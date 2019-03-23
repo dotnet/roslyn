@@ -151,19 +151,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var getDiagnosticsTask = State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken);
-            return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds).ConfigureAwait(false);
+            var getDiagnosticsTask = State.DiagnosticProvider.GetDocumentDiagnosticsAsync(document, this.CancellationToken) ?? SpecializedTasks.Default<IEnumerable<Diagnostic>>();
+            return GetFilteredDiagnostics(await getDiagnosticsTask.ConfigureAwait(false), this.DiagnosticIds);
         }
 
-        private static async Task<ImmutableArray<Diagnostic>> GetFilteredDiagnosticsAsync(Task<IEnumerable<Diagnostic>> getDiagnosticsTask, ImmutableHashSet<string> diagnosticIds)
+        private static ImmutableArray<Diagnostic> GetFilteredDiagnostics(IEnumerable<Diagnostic> diagnostics, ImmutableHashSet<string> diagnosticIds)
         {
-            if (getDiagnosticsTask != null)
+            if (diagnostics != null)
             {
-                var diagnostics = await getDiagnosticsTask.ConfigureAwait(false);
-                if (diagnostics != null)
-                {
-                    return diagnostics.Where(d => d != null && diagnosticIds.Contains(d.Id)).ToImmutableArray();
-                }
+                return diagnostics.Where(d => d != null && diagnosticIds.Contains(d.Id)).ToImmutableArray();
             }
 
             return ImmutableArray<Diagnostic>.Empty;
@@ -213,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var getDiagnosticsTask = includeAllDocumentDiagnostics
                 ? State.DiagnosticProvider.GetAllDiagnosticsAsync(project, CancellationToken)
                 : State.DiagnosticProvider.GetProjectDiagnosticsAsync(project, CancellationToken);
-            return await GetFilteredDiagnosticsAsync(getDiagnosticsTask, this.DiagnosticIds).ConfigureAwait(false);
+            return GetFilteredDiagnostics(await getDiagnosticsTask.ConfigureAwait(false), this.DiagnosticIds);
         }
 
         /// <summary>

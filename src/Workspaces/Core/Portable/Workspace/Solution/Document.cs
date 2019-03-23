@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis
     public partial class Document : TextDocument
     {
         private WeakReference<SemanticModel> _model;
+
+        [NoMainThreadDependency(AlwaysCompleted = true)]
         private Task<SyntaxTree> _syntaxTreeResultTask;
 
         internal Document(Project project, DocumentState state) :
@@ -154,7 +157,10 @@ namespace Microsoft.CodeAnalysis
             // if we have a cached result task use it
             if (_syntaxTreeResultTask != null)
             {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                Debug.Assert(_syntaxTreeResultTask.IsCompleted);
                 return _syntaxTreeResultTask;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
             }
             // check to see if we already have the tree before actually going async
             if (TryGetSyntaxTree(out var tree))
@@ -163,7 +169,11 @@ namespace Microsoft.CodeAnalysis
                 // don't use the actual async task because it depends on a specific cancellation token
                 // its okay to cache the task and hold onto the SyntaxTree, because the DocumentState already keeps the SyntaxTree alive.
                 Interlocked.CompareExchange(ref _syntaxTreeResultTask, Task.FromResult(tree), null);
+
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                Debug.Assert(_syntaxTreeResultTask.IsCompleted);
                 return _syntaxTreeResultTask;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
             }
 
             // do it async for real.

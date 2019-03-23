@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -230,6 +231,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Note: The early cancellation behavior is intentional.
         /// </summary>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "This implementation matches the behavior of ThreadingTools.WithCancellation.")]
         private static Task<T> WithCancellation<T>(Task<T> task, CancellationToken cancellationToken)
         {
             if (task.IsCompleted || !cancellationToken.CanBeCanceled)
@@ -239,10 +241,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (cancellationToken.IsCancellationRequested)
             {
-                return new Task<T>(() => default(T), cancellationToken);
+                return Task.FromCanceled<T>(cancellationToken);
             }
 
-            return task.ContinueWith(t => t, cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap();
+            return withCancellationSlow(task, cancellationToken);
+
+            static async Task<T> withCancellationSlow(Task<T> task, CancellationToken cancellationToken)
+            {
+                Debug.Assert(task != null);
+                Debug.Assert(cancellationToken.CanBeCanceled);
+
+                var tcs = new TaskCompletionSource<bool>();
+                using (cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+                {
+                    if (task != await Task.WhenAny(task, tcs.Task).ConfigureAwait(false))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+                }
+
+                // Rethrow any fault/cancellation exception, even if we awaited above.
+                // But if we skipped the above if branch, this will actually yield
+                // on an incompleted task.
+                return await task.ConfigureAwait(false);
+            }
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]

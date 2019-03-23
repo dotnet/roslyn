@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -9,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
     internal static class TaskExtensions
     {
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task CompletesAsyncOperation(this Task task, IAsyncToken asyncToken)
         {
             if (asyncToken is AsynchronousOperationListener.DiagnosticAsyncToken diagnosticToken)
@@ -19,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             return task.CompletesTrackingOperation(asyncToken);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public static Task CompletesTrackingOperation(this Task task, IDisposable token)
         {
             if (token == null || token == EmptyAsyncToken.Instance)

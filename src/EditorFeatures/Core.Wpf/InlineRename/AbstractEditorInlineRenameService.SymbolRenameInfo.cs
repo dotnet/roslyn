@@ -6,12 +6,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -27,10 +29,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             private readonly object _gate = new object();
 
+            private readonly IThreadingContext _threadingContext;
             private readonly Document _document;
             private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
-            private Task<RenameLocations> _underlyingFindRenameLocationsTask;
+            private JoinableTask<RenameLocations> _underlyingFindRenameLocationsTask;
 
             /// <summary>
             /// Whether or not we shortened the trigger span (say because we were renaming an attribute,
@@ -49,6 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             public ISymbol RenameSymbol => RenameSymbolAndProjectId.Symbol;
 
             public SymbolInlineRenameInfo(
+                IThreadingContext threadingContext,
                 IEnumerable<IRefactorNotifyService> refactorNotifyServices,
                 Document document,
                 TextSpan triggerSpan,
@@ -58,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 this.CanRename = true;
 
+                _threadingContext = threadingContext;
                 _refactorNotifyServices = refactorNotifyServices;
                 _document = document;
                 this.RenameSymbolAndProjectId = renameSymbolAndProjectId;
@@ -209,15 +214,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
             public Task<IInlineRenameLocationSet> FindRenameLocationsAsync(OptionSet optionSet, CancellationToken cancellationToken)
             {
-                Task<RenameLocations> renameTask;
+                JoinableTask<RenameLocations> renameTask;
                 lock (_gate)
                 {
                     if (_underlyingFindRenameLocationsTask == null)
                     {
                         // If this is the first call, then just start finding the initial set of rename
                         // locations.
-                        _underlyingFindRenameLocationsTask = RenameLocations.FindAsync(
-                            this.RenameSymbolAndProjectId, _document.Project.Solution, optionSet, cancellationToken);
+                        _underlyingFindRenameLocationsTask = _threadingContext.JoinableTaskFactory.RunAsync(() =>
+                            RenameLocations.FindAsync(RenameSymbolAndProjectId, _document.Project.Solution, optionSet, cancellationToken));
                         renameTask = _underlyingFindRenameLocationsTask;
 
                         // null out the option set.  We don't need it anymore, and this will ensure
@@ -235,9 +240,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return GetLocationSet(renameTask, optionSet, cancellationToken);
             }
 
-            private async Task<IInlineRenameLocationSet> GetLocationSet(Task<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
+            private async Task<IInlineRenameLocationSet> GetLocationSet(JoinableTask<RenameLocations> renameTask, OptionSet optionSet, CancellationToken cancellationToken)
             {
-                var locationSet = await renameTask.ConfigureAwait(false);
+                var locationSet = await renameTask.JoinAsync().ConfigureAwait(false);
                 if (optionSet != null)
                 {
                     locationSet = await locationSet.FindWithUpdatedOptionsAsync(optionSet, cancellationToken).ConfigureAwait(false);

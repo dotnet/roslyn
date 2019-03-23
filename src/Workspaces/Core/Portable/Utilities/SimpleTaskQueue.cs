@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,6 +46,7 @@ namespace Roslyn.Utilities
             }
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public Task ScheduleTask(Action taskAction, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker<Task>(delay => _latestTask.ContinueWithAfterDelay(
@@ -52,6 +54,7 @@ namespace Roslyn.Utilities
                 cancellationToken);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public Task<T> ScheduleTask<T>(Func<T> taskFunc, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker<Task<T>>(delay => _latestTask.ContinueWithAfterDelay(
@@ -59,6 +62,7 @@ namespace Roslyn.Utilities
                 cancellationToken);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public Task ScheduleTask(Func<Task> taskFuncAsync, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker<Task>(delay => _latestTask.ContinueWithAfterDelayFromAsync(
@@ -66,6 +70,7 @@ namespace Roslyn.Utilities
                 cancellationToken);
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         public Task<T> ScheduleTask<T>(Func<Task<T>> taskFuncAsync, CancellationToken cancellationToken = default)
         {
             return ScheduleTaskWorker<Task<T>>(delay => _latestTask.ContinueWithAfterDelayFromAsync(

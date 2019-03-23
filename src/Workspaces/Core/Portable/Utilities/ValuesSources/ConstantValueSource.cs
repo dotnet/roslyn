@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
@@ -11,6 +13,8 @@ namespace Roslyn.Utilities
     internal sealed class ConstantValueSource<T> : ValueSource<T>
     {
         private readonly T _value;
+
+        [NoMainThreadDependency(AlwaysCompleted = true)]
         private Task<T> _task;
 
         public ConstantValueSource(T value)
@@ -36,7 +40,10 @@ namespace Roslyn.Utilities
                 Interlocked.CompareExchange(ref _task, Task.FromResult(_value), null);
             }
 
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+            Debug.Assert(_task.IsCompleted);
             return _task;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
         }
     }
 }

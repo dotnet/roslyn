@@ -269,7 +269,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             {
                 if (!IsEmpty)
                 {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                    Debug.Assert(SpecializedTasks.True.IsCompleted);
                     return SpecializedTasks.True;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                 }
 
                 return WaitForNewItemsAsync();

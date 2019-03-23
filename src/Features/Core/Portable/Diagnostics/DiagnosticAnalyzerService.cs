@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -144,7 +145,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Task.Run(() => analyzer.TryAppendDiagnosticsForSpanAsync(document, range, diagnostics, includeSuppressedDiagnostics, cancellationToken), cancellationToken);
             }
 
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+            Debug.Assert(SpecializedTasks.False.IsCompleted);
             return SpecializedTasks.False;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
         }
 
         public Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, string diagnosticIdOpt = null, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default)

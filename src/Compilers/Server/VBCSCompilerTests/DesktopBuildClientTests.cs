@@ -187,7 +187,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.False(connection.IsCompleted);
                 cts.Cancel();
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
                     async () => await connection.ConfigureAwait(false)).ConfigureAwait(false);
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 
                 // Create server and try again
                 Assert.True(TryCreateServer(pipeName));

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
@@ -338,6 +339,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// will never fail.  It will always produce a <see cref="ConnectionData"/> value.  Connection errors
         /// will end up being represented as <see cref="CompletionReason.ClientDisconnect"/>
         /// </summary>
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         internal static async Task<ConnectionData> HandleClientConnection(Task<IClientConnection> clientConnectionTask, bool allowCompilationRequests = true, CancellationToken cancellationToken = default(CancellationToken))
         {
             IClientConnection clientConnection;

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -537,6 +538,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     workingDirectory: newWorkingDirectory);
             }
 
+            [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
             private static async Task<EvaluationState> ReportUnhandledExceptionIfAny(Task<EvaluationState> lastTask)
             {
                 try

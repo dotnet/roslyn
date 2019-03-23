@@ -2,10 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
@@ -44,6 +47,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// The Task that holds the cached result.
         /// </summary>
+        [NoMainThreadDependency(AlwaysCompleted = true)]
         private Task<T> _cachedResult;
 
         /// <summary>
@@ -321,7 +325,10 @@ namespace Roslyn.Utilities
                 // If cached, get immediately
                 if (_cachedResult != null)
                 {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
+                    Debug.Assert(_cachedResult.IsCompleted);
                     return _cachedResult;
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                 }
 
                 request = CreateNewRequest_NoLock();
@@ -472,6 +479,7 @@ namespace Roslyn.Utilities
             }
         }
 
+        [SuppressMessage("Usage", "VSTHRD003:Avoid awaiting foreign Tasks", Justification = "Needs review: https://github.com/dotnet/roslyn/issues/34287")]
         private Task<T> GetCachedValueAndCacheThisValueIfNoneCached_NoLock(Task<T> task)
         {
             if (_cachedResult != null)

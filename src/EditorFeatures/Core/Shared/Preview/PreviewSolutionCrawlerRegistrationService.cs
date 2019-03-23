@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 
             // since we now have one service for each one specific instance of workspace,
             // we can have states for this specific workspace.
+            [NoMainThreadDependency(Verified = false)]
             private Task _analyzeTask;
 
             public Service(PreviewSolutionCrawlerRegistrationServiceFactory owner, Workspace workspace)
@@ -111,8 +113,10 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
                 Contract.ThrowIfFalse(workspace == _workspace);
                 _source.Cancel();
 
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks
                 // wait for analyzer work to be finished
                 await _analyzeTask.ConfigureAwait(false);
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
 
                 // ask it to reset its stages for the given workspace
                 _owner._analyzerService.ShutdownAnalyzerFrom(_workspace);
