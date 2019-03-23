@@ -36,9 +36,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         private RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            [ImportMany] IEnumerable<Lazy<IExternalNavigationService>> symbolicNavigationServices,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
-            [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider,
-            [ImportMany] IEnumerable<Lazy<IExternalNavigationService>> symbolicNavigationServices)
+            [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
             : base(exportProvider, asyncServiceProvider)
         {
             _streamingPresenters = streamingPresenters;
