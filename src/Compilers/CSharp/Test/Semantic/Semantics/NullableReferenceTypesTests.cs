@@ -2365,6 +2365,23 @@ class C
                 );
         }
 
+        [Fact, WorkItem(26696, "https://github.com/dotnet/roslyn/issues/26696")]
+        public void Verify26696()
+        {
+            var source = @"
+interface I
+{
+    object this[int i] { get; }
+}
+class C<T> : I
+{
+    T this[int i] => throw null!;
+    object I.this[int i] => this[i]!;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(31297, "https://github.com/dotnet/roslyn/issues/31297")]
         public void RefReturn()
         {
