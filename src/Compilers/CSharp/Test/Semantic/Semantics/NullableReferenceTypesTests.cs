@@ -2318,6 +2318,27 @@ class C
             comp.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(32463, "https://github.com/dotnet/roslyn/issues/32463")]
+        public void Verify32463()
+        {
+            var comp = CreateCompilation(@"
+using System.Linq;
+class C
+{
+    public void F(string? param)
+    {
+        if (param != null)
+            _ = new[] { 0 }.Select(_ => param.Length);
+
+        string? local = """";
+        if (local != null)
+            _ = new[] { 0 }.Select(_ => local.Length);
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(32701, "https://github.com/dotnet/roslyn/issues/32701")]
         public void Verify32701()
         {
