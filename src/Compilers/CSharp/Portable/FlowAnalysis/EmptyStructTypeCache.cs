@@ -35,6 +35,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public static EmptyStructTypeCache CreateForDev12Compatibility(Compilation compilation)
+            => new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: true);
+
+        public static EmptyStructTypeCache CreatePrecise()
+            => new EmptyStructTypeCache(null, false);
+
+        public static EmptyStructTypeCache CreateNeverEmpty()
+            => new NeverEmptyStructTypeCache();
+
         /// <summary>
         /// Create a cache for computing whether or not a struct type is "empty".
         /// </summary>
@@ -47,6 +56,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(compilation != null || !dev12CompilerCompatibility);
             _dev12CompilerCompatibility = dev12CompilerCompatibility;
             _sourceAssembly = (SourceAssemblySymbol)compilation?.Assembly;
+        }
+
+
+        /// <summary>
+        /// Specialized EmptyStructTypeCache that reports all structs as not empty
+        /// </summary>
+        private sealed class NeverEmptyStructTypeCache : EmptyStructTypeCache
+        {
+            public NeverEmptyStructTypeCache()
+               : base(null, false)
+            {
+            }
+
+            public override bool IsEmptyStructType(TypeSymbol type)
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -243,22 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
-        }
-    }
-
-    /// <summary>
-    /// Specialized EmptyStructTypeCache that reports all structs as not empty
-    /// </summary>
-    internal sealed class NeverEmptyStructTypeCache : EmptyStructTypeCache
-    {
-        public NeverEmptyStructTypeCache()
-           : base(null, false)
-        {
-        }
-
-        public override bool IsEmptyStructType(TypeSymbol type)
-        {
-            return false;
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Learn from any constant null patterns appearing in the pattern.
         /// </summary>
-        /// <param name="inputType">Tye type of the input expression (before nullable analysis).
+        /// <param name="inputType">Type type of the input expression (before nullable analysis).
         /// Used to determine which types can contain null.</param>
         /// <returns>true if there is a top-level explicit null check</returns>
         private void LearnFromAnyNullPatterns(
@@ -132,15 +132,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithState expressionType,
             ref LocalState initialState)
         {
-            var tempMap = PooledDictionary<BoundDagTemp, (int slot, TypeSymbol type)>.GetInstance();
+            // We reuse the slot at the beginning of a switch (or is-pattern expression), pretending that we are
+            // not copying the input to evaluate the patterns.  In this way we infer non-nullability of the original
+            // variable's parts based on matched pattern parts.  Mutations in `when` clauses can show the inaccuracy
+            // of analysis based on this choice.
             var rootTemp = BoundDagTemp.ForOriginalInput(expression);
+            var s = decisionDag.Dump();
+            int originalInputSlot = MakeSlot(expression);
+            if (originalInputSlot <= 0)
+            {
+                originalInputSlot = makeDagTempSlot(expressionType.ToTypeWithAnnotations(), rootTemp);
+                initialState[originalInputSlot] = expressionType.State;
+            }
 
-            // We create a fresh slot to track the switch expression, as it is copied at the start of the switch.
-            // We use the syntax to identify the root slot to ensure we don't share the slots between possibly nested switches.
-            int originalInputSlot = makeDagTempSlot(expressionType.ToTypeWithAnnotations(), rootTemp);
+            var tempMap = PooledDictionary<BoundDagTemp, (int slot, TypeSymbol type)>.GetInstance();
             Debug.Assert(originalInputSlot > 0);
             tempMap.Add(rootTemp, (originalInputSlot, expressionType.Type));
-            initialState[originalInputSlot] = expressionType.State;
 
             var nodeStateMap = PooledDictionary<BoundDecisionDagNode, (LocalState state, bool believedReachable)>.GetInstance();
             nodeStateMap.Add(decisionDag.RootNode, (state: initialState.Clone(), believedReachable: true));
@@ -185,7 +192,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case BoundDagTypeEvaluation e:
                                     {
                                         var output = new BoundDagTemp(e.Syntax, e.Type, e);
-                                        int outputSlot = inputSlot;
+                                        HashSet<DiagnosticInfo> discardedDiagnostics = null;
+                                        int outputSlot;
+                                        switch (_conversions.WithNullability(false).ClassifyConversionFromType(inputType, e.Type, ref discardedDiagnostics).Kind)
+                                        {
+                                            case ConversionKind.Identity:
+                                            case ConversionKind.ImplicitReference:
+                                            case ConversionKind.NoConversion:
+                                            case ConversionKind.ExplicitReference:
+                                                outputSlot = inputSlot;
+                                                break;
+                                            case ConversionKind.ExplicitNullable when AreNullableAndUnderlyingTypes(inputType, e.Type, out _):
+                                                outputSlot = GetNullableOfTValueSlot(inputType, inputSlot, out _);
+                                                break;
+                                            default:
+                                                outputSlot = makeDagTempSlot(TypeWithAnnotations.Create(e.Type, NullableAnnotation.NotAnnotated), output);
+                                                break;
+                                        }
+                                        State[outputSlot] = NullableFlowState.NotNull;
                                         var outputType = new TypeWithState(e.Type, inputState);
                                         addToTempMap(output, outputSlot, outputType.Type);
                                         break;

@@ -731,9 +731,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundTypeExpression(SyntaxNode syntax, AliasSymbol aliasOpt, BoundTypeExpression boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.TypeExpression, syntax, type, hasErrors || boundContainingTypeOpt.HasErrors() || boundDimensionsOpt.HasErrors())
         {
-
-            Debug.Assert((object)typeWithAnnotations != null, "Field 'typeWithAnnotations' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
             this.AliasOpt = aliasOpt;
             this.BoundContainingTypeOpt = boundContainingTypeOpt;
             this.BoundDimensionsOpt = boundDimensionsOpt;

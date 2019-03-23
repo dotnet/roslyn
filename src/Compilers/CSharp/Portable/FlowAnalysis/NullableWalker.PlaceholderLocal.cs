@@ -35,9 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                var other = obj as PlaceholderLocal;
-
-                return (object)other != null && _identifier.Equals(other._identifier);
+                return obj is PlaceholderLocal other && _identifier.Equals(other._identifier);
             }
 
             public override int GetHashCode() => _identifier.GetHashCode();
