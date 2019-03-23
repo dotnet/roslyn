@@ -2362,12 +2362,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
-            bool isConstantTrue = IsConstantTrue(node.Condition);
-            bool isConstantFalse = IsConstantFalse(node.Condition);
-
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
+            bool consequenceReachable = this.StateWhenTrue.Reachable;
+            bool alternativeReachable = this.StateWhenFalse.Reachable;
 
             TypeWithState consequenceRValue;
             TypeWithState alternativeRValue;
@@ -2376,43 +2375,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeWithAnnotations consequenceLValue;
                 TypeWithAnnotations alternativeLValue;
+                (consequenceLValue, consequenceRValue) = visitConditionalRefOperand(consequenceState, node.Consequence);
+                consequenceState = this.State;
+                (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, node.Alternative);
+                Join(ref this.State, ref consequenceState);
 
-                if (isConstantTrue)
-                {
-                    (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, node.Alternative);
-                    (consequenceLValue, consequenceRValue) = visitConditionalRefOperand(consequenceState, node.Consequence);
-                }
-                else if (isConstantFalse)
-                {
-                    (consequenceLValue, consequenceRValue) = visitConditionalRefOperand(consequenceState, node.Consequence);
-                    (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, node.Alternative);
-                }
-                else
-                {
-                    (consequenceLValue, consequenceRValue) = visitConditionalRefOperand(consequenceState, node.Consequence);
-                    Unsplit();
-                    consequenceState = this.State;
-                    (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, node.Alternative);
-                    Unsplit();
-                    Join(ref this.State, ref consequenceState);
-                }
-
+                TypeSymbol refResultType = consequenceRValue.Type;
                 if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
                     // l-value types must match
                     ReportNullabilityMismatchInAssignment(node.Syntax, consequenceLValue, alternativeLValue);
-                }
-
-                TypeSymbol refResultType = consequenceRValue.Type;
-                if (node.HasErrors)
-                {
                     refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
                 }
 
-                var lValueResult = TypeWithAnnotations.Create(refResultType, consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation));
-                var rValueResult = new TypeWithState(refResultType, consequenceRValue.State.Join(alternativeRValue.State));
+                var lValueAnnotation = (consequenceReachable, alternativeReachable) switch
+                {
+                    (false, false) => NullableAnnotation.Oblivious,
+                    (false, _) => alternativeLValue.NullableAnnotation,
+                    (_, false) => consequenceLValue.NullableAnnotation,
+                    _ => consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation)
+                };
 
-                SetResult(rValueResult, lValueResult);
+                var rValueState = (consequenceReachable, alternativeReachable) switch
+                {
+                    (false, false) => NullableFlowState.NotNull,
+                    (false, _) => alternativeRValue.State,
+                    (_, false) => consequenceRValue.State,
+                    _ => consequenceRValue.State.Join(alternativeRValue.State)
+                };
+
+                SetResult(new TypeWithState(refResultType, rValueState), TypeWithAnnotations.Create(refResultType, lValueAnnotation));
                 return null;
             }
 
@@ -2421,12 +2413,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion consequenceConversion;
             Conversion alternativeConversion;
 
-            if (isConstantTrue)
+            if (!alternativeReachable)
             {
                 (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, node.Alternative);
                 (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, node.Consequence);
             }
-            else if (isConstantFalse)
+            else if (!consequenceReachable)
             {
                 (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, node.Consequence);
                 (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, node.Alternative);
@@ -2462,14 +2454,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref useSiteDiagnostics);
             }
 
-            TypeWithState result;
-            if ((object)resultType != null)
+            NullableFlowState resultState;
+            if (resultType is null)
+            {
+                resultType = node.Type.SetUnknownNullabilityForReferenceTypes();
+                resultState = NullableFlowState.NotNull;
+            }
+            else
             {
                 var resultTypeWithAnnotations = TypeWithAnnotations.Create(resultType);
                 TypeWithState convertedConsequenceResult = default;
                 TypeWithState convertedAlternativeResult = default;
 
-                if (!isConstantFalse)
+                if (consequenceReachable)
                 {
                     convertedConsequenceResult = convertResult(
                         node.Consequence,
@@ -2479,7 +2476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         consequenceRValue);
                 }
 
-                if (!isConstantTrue)
+                if (alternativeReachable)
                 {
                     convertedAlternativeResult = convertResult(
                         node.Alternative,
@@ -2489,50 +2486,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         alternativeRValue);
                 }
 
-                if (convertedAlternativeResult.HasNullType)
+                resultState = (consequenceReachable, alternativeReachable) switch
                 {
-                    Debug.Assert(!convertedConsequenceResult.HasNullType);
-                    result = convertedConsequenceResult;
-                }
-                else if (convertedConsequenceResult.HasNullType)
-                {
-                    Debug.Assert(!convertedAlternativeResult.HasNullType);
-                    result = convertedAlternativeResult;
-                }
-                else
-                {
-                    result = new TypeWithState(resultType, convertedConsequenceResult.State.Join(convertedAlternativeResult.State));
-                }
-            }
-            else
-            {
-                NullableFlowState resultNullableState = (isConstantTrue, isConstantFalse) switch
-                {
-                    (true, _) => getNullableState(consequence, consequenceRValue),
-                    (_, true) => getNullableState(alternative, alternativeRValue),
-                    _ => getNullableState(consequence, consequenceRValue).Join(getNullableState(alternative, alternativeRValue))
+                    (false, false) => NullableFlowState.NotNull,
+                    (false, _) => convertedAlternativeResult.State,
+                    (_, false) => convertedConsequenceResult.State,
+                    _ => convertedConsequenceResult.State.Join(convertedAlternativeResult.State)
                 };
-
-                result = new TypeWithState(node.Type.SetUnknownNullabilityForReferenceTypes(), resultNullableState);
             }
 
-            ResultType = result;
+            ResultType = new TypeWithState(resultType, resultState);
             return null;
 
-            NullableFlowState getNullableState(BoundExpression expr, TypeWithState type)
-            {
-                if (!type.HasNullType)
-                {
-                    return type.State;
-                }
-                if (expr.IsLiteralNullOrDefault())
-                {
-                    return NullableFlowState.MaybeNull;
-                }
-                return NullableFlowState.NotNull;
-            }
-
-            (BoundExpression, Conversion, TypeWithState RValueType) visitConditionalOperand(LocalState state, BoundExpression operand)
+            (BoundExpression, Conversion, TypeWithState) visitConditionalOperand(LocalState state, BoundExpression operand)
             {
                 Conversion conversion;
                 SetState(state);
