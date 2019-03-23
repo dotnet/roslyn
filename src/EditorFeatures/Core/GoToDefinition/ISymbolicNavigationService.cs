@@ -18,6 +18,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// <summary>
         /// Is this a metadata name of your language? If it is, tell us and you can take over the navigation however you would like.
         /// </summary>
-        Task<bool> TryNavigateToSymbol(string metaDataName, CancellationToken cancellationToken);
+        Task<bool> TryNavigateToSymbol(string metadataName, CancellationToken cancellationToken);
     }
 }
