@@ -23064,6 +23064,94 @@ class C
 
         [Fact]
         [WorkItem(33664, "https://github.com/dotnet/roslyn/issues/33664")]
+        public void ConditionalOperator_WithReachableBranchThatThrows()
+        {
+            var source = @"
+class C
+{
+    static void F1(bool b)
+    {
+        (b ? M1(false ? 1 : throw new System.Exception()) : M2(2))/*T:string!*/.ToString();
+        (b ? M1(1) : M2(false ? 2 : throw new System.Exception()))/*T:string?*/.ToString(); // 1
+    }
+    static string? M1(int i) => throw null!;
+    static string M2(int i) => throw null!;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (7,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? M1(1) : M2(false ? 2 : throw new System.Exception()))/*T:string?*/.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? M1(1) : M2(false ? 2 : throw new System.Exception())").WithLocation(7, 10)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33664, "https://github.com/dotnet/roslyn/issues/33664")]
+        public void ConditionalOperator_EndNotReachable()
+        {
+            var source = @"
+class C
+{
+    static void F1(bool b)
+    {
+        (true ? M1(false ? 1 : throw new System.Exception()) : M2(2)) /*T:string!*/.ToString();
+        (false ? M1(1) : M2(false ? 2 : throw new System.Exception())) /*T:string!*/.ToString();
+    }
+    static string? M1(int i) => throw null!;
+    static string M2(int i) => throw null!;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(33664, "https://github.com/dotnet/roslyn/issues/33664")]
+        public void ConditionalOperator_Ref_WithReachableBranchThatThrows()
+        {
+            var source = @"
+class C
+{
+    static void F1(bool b)
+    {
+        (b ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)) /*T:string!*/ = null; // 1
+        (b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())) /*T:string?*/ = null;
+    }
+    static ref string? M1(int i) => throw null!;
+    static ref string M2(int i) => throw null!;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (6,92): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (b ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)) /*T:string!*/ = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 92)
+                );
+        }
+
+        [Fact]
+        [WorkItem(33664, "https://github.com/dotnet/roslyn/issues/33664")]
+        public void ConditionalOperator_Ref_EndNotReachable()
+        {
+            var source = @"
+class C
+{
+    static void F1(bool b)
+    {
+        (true ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)) /*T:string!*/ = null;
+        (false ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())) /*T:string!*/ = null;
+    }
+    static ref string? M1(int i) => throw null!;
+    static ref string M2(int i) => throw null!;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(33664, "https://github.com/dotnet/roslyn/issues/33664")]
         public void ConditionalOperator_Ref_WithUnreachable()
         {
             var source = @"
@@ -23072,42 +23160,30 @@ class C
     static void F1(bool b, ref string? x1, ref string y1)
     {
         ((b && false) ? ref x1 : ref x1)/*T:string?*/ = null;
-        ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1, 2
-        ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null; // 3
-        ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 4
+        ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1
+        ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null;
+        ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 2
 
         ((b || true) ? ref x1 : ref x1)/*T:string?*/ = null;
-        ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null; // 5
-        ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 6, 7
-        ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 8
+        ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null;
+        ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 3
+        ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 4
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (7,10): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
-                //         ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1, 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b && false) ? ref x1 : ref y1").WithArguments("string?", "string").WithLocation(7, 10),
                 // (7,57): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1, 2
+                //         ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 57),
-                // (8,10): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
-                //         ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b && false) ? ref y1 : ref x1").WithArguments("string", "string?").WithLocation(8, 10),
                 // (9,57): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 4
+                //         ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 57),
-                // (12,10): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
-                //         ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null; // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b || true) ? ref x1 : ref y1").WithArguments("string?", "string").WithLocation(12, 10),
-                // (13,10): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
-                //         ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 6, 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b || true) ? ref y1 : ref x1").WithArguments("string", "string?").WithLocation(13, 10),
                 // (13,56): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 6, 7
+                //         ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 3
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 56),
                 // (14,56): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 8
+                //         ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 4
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 56)
                 );
         }

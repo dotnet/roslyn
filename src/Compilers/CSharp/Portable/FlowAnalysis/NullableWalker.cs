@@ -2365,9 +2365,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
-            bool consequenceReachable = this.StateWhenTrue.Reachable;
-            bool alternativeReachable = this.StateWhenFalse.Reachable;
 
+            bool consequenceEndReachable;
+            bool alternativeEndReachable;
             TypeWithState consequenceRValue;
             TypeWithState alternativeRValue;
 
@@ -2375,20 +2375,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 TypeWithAnnotations consequenceLValue;
                 TypeWithAnnotations alternativeLValue;
+
                 (consequenceLValue, consequenceRValue) = visitConditionalRefOperand(consequenceState, node.Consequence);
                 consequenceState = this.State;
+                consequenceEndReachable = this.State.Reachable;
                 (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, node.Alternative);
+                alternativeEndReachable = this.State.Reachable;
                 Join(ref this.State, ref consequenceState);
 
-                TypeSymbol refResultType = consequenceRValue.Type;
-                if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
+                TypeSymbol refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
+                if (consequenceEndReachable && alternativeEndReachable && IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
                     // l-value types must match
                     ReportNullabilityMismatchInAssignment(node.Syntax, consequenceLValue, alternativeLValue);
-                    refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
+                }
+                else if (!node.HasErrors)
+                {
+                    refResultType = consequenceRValue.Type;
                 }
 
-                var lValueAnnotation = (consequenceReachable, alternativeReachable) switch
+                var lValueAnnotation = (consequenceEndReachable, alternativeEndReachable) switch
                 {
                     (false, false) => NullableAnnotation.Oblivious,
                     (false, _) => alternativeLValue.NullableAnnotation,
@@ -2396,7 +2402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation)
                 };
 
-                var rValueState = (consequenceReachable, alternativeReachable) switch
+                var rValueState = (consequenceEndReachable, alternativeEndReachable) switch
                 {
                     (false, false) => NullableFlowState.NotNull,
                     (false, _) => alternativeRValue.State,
@@ -2413,23 +2419,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion consequenceConversion;
             Conversion alternativeConversion;
 
-            if (!alternativeReachable)
+            // In cases where one branch is unreachable, we don't need to Unsplit the state
+            if (!alternativeState.Reachable)
             {
                 (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, node.Alternative);
                 (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, node.Consequence);
+                alternativeEndReachable = false;
+                consequenceEndReachable = isReachable();
             }
-            else if (!consequenceReachable)
+            else if (!consequenceState.Reachable)
             {
                 (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, node.Consequence);
                 (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, node.Alternative);
+                consequenceEndReachable = false;
+                alternativeEndReachable = isReachable();
             }
             else
             {
                 (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, node.Consequence);
                 Unsplit();
                 consequenceState = this.State;
+                consequenceEndReachable = consequenceState.Reachable;
+
                 (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, node.Alternative);
                 Unsplit();
+                alternativeEndReachable = this.State.Reachable;
                 Join(ref this.State, ref consequenceState);
             }
 
@@ -2466,7 +2480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithState convertedConsequenceResult = default;
                 TypeWithState convertedAlternativeResult = default;
 
-                if (consequenceReachable)
+                if (consequenceEndReachable)
                 {
                     convertedConsequenceResult = convertResult(
                         node.Consequence,
@@ -2476,7 +2490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         consequenceRValue);
                 }
 
-                if (alternativeReachable)
+                if (alternativeEndReachable)
                 {
                     convertedAlternativeResult = convertResult(
                         node.Alternative,
@@ -2486,7 +2500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         alternativeRValue);
                 }
 
-                resultState = (consequenceReachable, alternativeReachable) switch
+                resultState = (consequenceEndReachable, alternativeEndReachable) switch
                 {
                     (false, false) => NullableFlowState.NotNull,
                     (false, _) => convertedAlternativeResult.State,
@@ -2497,6 +2511,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ResultType = new TypeWithState(resultType, resultState);
             return null;
+
+            bool isReachable()
+                => this.IsConditionalState ? (this.StateWhenTrue.Reachable || this.StateWhenFalse.Reachable) : this.State.Reachable;
 
             (BoundExpression, Conversion, TypeWithState) visitConditionalOperand(LocalState state, BoundExpression operand)
             {
