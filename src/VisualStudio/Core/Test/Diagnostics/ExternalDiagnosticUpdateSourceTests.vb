@@ -49,11 +49,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.AddNewErrors(project.DocumentIds.First(), diagnostic)
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
 
                 expected = 0
                 source.ClearErrors(project.Id)
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -109,7 +109,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -134,10 +134,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         SpecializedCollections.SingletonEnumerable(GetDiagnosticData(workspace, project.Id))))
 
                 source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -187,7 +187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -216,7 +216,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -245,7 +245,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -277,7 +277,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
 
                 ' error is considered live error, so event shouldn't be raised
                 Assert.False(called)
@@ -298,7 +298,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
 
                 source.AddNewErrors(projectId1, GetDiagnosticData(workspace, projectId1))
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
 
                 AddHandler source.BuildProgressChanged, Sub(o, progress)
                                                             If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Updated Then
@@ -309,10 +309,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                                                         End Sub
 
                 source.AddNewErrors(projectId2, GetDiagnosticData(workspace, projectId2))
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 

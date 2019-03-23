@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function GetSelectedItem() As CompletionItem
 
-        Public MustOverride Function GetSelectedItemOpt() As CompletionItem
+        Public MustOverride Sub CalculateItemsIfSessionExists()
 
         Public MustOverride Function GetCompletionItems() As IList(Of CompletionItem)
 
@@ -211,9 +211,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Overloads Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
 
-        Public MustOverride Overloads Function CompletionItemsContainsAll(displayText As String()) As Boolean
+        Public Sub AssertCompletionItemsContainAll(displayText As String())
+            AssertNoAsynchronousOperationsRunning()
+            Dim items = GetCompletionItems()
+            Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
+        End Sub
 
-        Public MustOverride Overloads Function CompletionItemsContainsAny(displayText As String()) As Boolean
+        Public Sub AssertCompletionItemsDoNotContainAny(displayText As String())
+            AssertNoAsynchronousOperationsRunning()
+            Dim items = GetCompletionItems()
+            Assert.False(displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v)))
+        End Sub
 
         Public MustOverride Overloads Sub AssertItemsInOrder(expectedOrder As String())
 
@@ -273,11 +281,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return CurrentSignatureHelpPresenterSession.SignatureHelpItems
         End Function
 
-        Public Function SignatureHelpItemsContainsAll(displayText As String()) As Boolean
+        Public Sub AssertSignatureHelpItemsContainAll(displayText As String())
             AssertNoAsynchronousOperationsRunning()
-            Return displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
-                                       Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v))
-        End Function
+            Assert.True(displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
+                                            Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v)))
+        End Sub
 
         Public Async Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
                                Optional documentation As String = Nothing,
