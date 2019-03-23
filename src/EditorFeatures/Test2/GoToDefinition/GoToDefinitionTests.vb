@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
                 Dim presenterCalled As Boolean = False
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
                 Dim presenters = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)}
-                Dim actualResult = executeOnDocument(document, cursorPosition, presenters, Nothing)
+                Dim actualResult = executeOnDocument(document, cursorPosition, presenters, {})
 
                 Assert.Equal(expectedResult, actualResult)
 
