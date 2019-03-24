@@ -1397,7 +1397,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            bool wasReachable = this.State.Reachable;
             ResultType = _invalidType;
             _ = base.VisitExpressionWithoutStackGuard(node);
             TypeWithState resultType = ResultType;
@@ -1407,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)resultType.Type != _invalidType.Type);
             Debug.Assert(AreCloseEnough(resultType.Type, node.Type));
 #endif
-            if (node.IsSuppressed || node.HasAnyErrors || !wasReachable)
+            if (node.IsSuppressed || node.HasAnyErrors || !IsReachable())
             {
                 resultType = resultType.WithNotNullState();
                 SetResult(resultType, LvalueResultType);
@@ -2384,14 +2383,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref this.State, ref consequenceState);
 
                 TypeSymbol refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
-                if (consequenceEndReachable && alternativeEndReachable && IsNullabilityMismatch(consequenceLValue, alternativeLValue))
+                if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
                     // l-value types must match
                     ReportNullabilityMismatchInAssignment(node.Syntax, consequenceLValue, alternativeLValue);
                 }
                 else if (!node.HasErrors)
                 {
-                    refResultType = consequenceRValue.Type;
+                    refResultType = consequenceRValue.Type.MergeNullability(alternativeRValue.Type, VarianceKind.None);
                 }
 
                 var lValueAnnotation = (consequenceEndReachable, alternativeEndReachable) switch
@@ -2402,13 +2401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation)
                 };
 
-                var rValueState = (consequenceEndReachable, alternativeEndReachable) switch
-                {
-                    (false, false) => NullableFlowState.NotNull,
-                    (false, _) => alternativeRValue.State,
-                    (_, false) => consequenceRValue.State,
-                    _ => consequenceRValue.State.Join(alternativeRValue.State)
-                };
+                var rValueState = consequenceRValue.State.Join(alternativeRValue.State);
 
                 SetResult(new TypeWithState(refResultType, rValueState), TypeWithAnnotations.Create(refResultType, lValueAnnotation));
                 return null;
@@ -2425,14 +2418,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, node.Alternative);
                 (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, node.Consequence);
                 alternativeEndReachable = false;
-                consequenceEndReachable = isReachable();
+                consequenceEndReachable = IsReachable();
             }
             else if (!consequenceState.Reachable)
             {
                 (consequence, consequenceConversion, consequenceRValue) = visitConditionalOperand(consequenceState, node.Consequence);
                 (alternative, alternativeConversion, alternativeRValue) = visitConditionalOperand(alternativeState, node.Alternative);
                 consequenceEndReachable = false;
-                alternativeEndReachable = isReachable();
+                alternativeEndReachable = IsReachable();
             }
             else
             {
@@ -2500,20 +2493,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         alternativeRValue);
                 }
 
-                resultState = (consequenceEndReachable, alternativeEndReachable) switch
-                {
-                    (false, false) => NullableFlowState.NotNull,
-                    (false, _) => convertedAlternativeResult.State,
-                    (_, false) => convertedConsequenceResult.State,
-                    _ => convertedConsequenceResult.State.Join(convertedAlternativeResult.State)
-                };
+                resultState = convertedConsequenceResult.State.Join(convertedAlternativeResult.State);
             }
 
             ResultType = new TypeWithState(resultType, resultState);
             return null;
-
-            bool isReachable()
-                => this.IsConditionalState ? (this.StateWhenTrue.Reachable || this.StateWhenFalse.Reachable) : this.State.Reachable;
 
             (BoundExpression, Conversion, TypeWithState) visitConditionalOperand(LocalState state, BoundExpression operand)
             {
@@ -2523,11 +2507,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 (operand, conversion) = RemoveConversion(operand, includeExplicitConversions: false);
                 Visit(operand);
-                if (node.HasErrors)
-                {
-                    ResultType = ResultType.WithNotNullState();
-                }
-
                 return (operand, conversion, ResultType);
             }
 
@@ -2536,12 +2515,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SetState(state);
                 Debug.Assert(node.IsRef);
                 TypeWithAnnotations lValueType = VisitLvalueWithAnnotations(operand);
-
-                if (node.HasErrors)
-                {
-                    ResultType = ResultType.WithNotNullState();
-                }
-
                 return (lValueType, ResultType);
             }
 
@@ -2565,6 +2538,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     reportTopLevelWarnings: false);
             }
         }
+
+        bool IsReachable()
+            => this.IsConditionalState ? (this.StateWhenTrue.Reachable || this.StateWhenFalse.Reachable) : this.State.Reachable;
 
         /// <summary>
         /// Placeholders are bound expressions with type and state.
