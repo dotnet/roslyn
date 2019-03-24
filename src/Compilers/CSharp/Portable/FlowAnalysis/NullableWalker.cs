@@ -1409,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.IsSuppressed || node.HasAnyErrors || !IsReachable())
             {
                 resultType = resultType.WithNotNullState();
-                SetResult(resultType, LvalueResultType);
+                SetResult(resultType, TypeWithAnnotations.Create(LvalueResultType.Type));
             }
 
             _callbackOpt?.Invoke(node, resultType.ToTypeWithAnnotations());
@@ -2393,14 +2393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refResultType = consequenceRValue.Type.MergeNullability(alternativeRValue.Type, VarianceKind.None);
                 }
 
-                var lValueAnnotation = (consequenceEndReachable, alternativeEndReachable) switch
-                {
-                    (false, false) => NullableAnnotation.Oblivious,
-                    (false, _) => alternativeLValue.NullableAnnotation,
-                    (_, false) => consequenceLValue.NullableAnnotation,
-                    _ => consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation)
-                };
-
+                var lValueAnnotation = consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation);
                 var rValueState = consequenceRValue.State.Join(alternativeRValue.State);
 
                 SetResult(new TypeWithState(refResultType, rValueState), TypeWithAnnotations.Create(refResultType, lValueAnnotation));
@@ -5632,16 +5625,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsNullabilityMismatch(TypeWithAnnotations type1, TypeWithAnnotations type2)
         {
-            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch.
-            // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
+            // Note, when we are paying attention to nullability, we ignore oblivious mismatch.
+            // See TypeCompareKind.UnknownNullableModifierMatchesAny
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
         }
 
         private static bool IsNullabilityMismatch(TypeSymbol type1, TypeSymbol type2)
         {
-            // Note, when we are paying attention to nullability, we ignore insignificant differences and oblivious mismatch.
-            // See TypeCompareKind.UnknownNullableModifierMatchesAny and TypeCompareKind.IgnoreInsignificantNullableModifiersDifference
+            // Note, when we are paying attention to nullability, we ignore oblivious mismatch.
+            // See TypeCompareKind.UnknownNullableModifierMatchesAny
             return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions) &&
                 !type1.Equals(type2, TypeCompareKind.AllIgnoreOptions & ~TypeCompareKind.IgnoreNullableModifiersForReferenceTypes);
         }

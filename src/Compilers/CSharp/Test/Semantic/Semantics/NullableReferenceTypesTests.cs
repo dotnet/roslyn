@@ -921,10 +921,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y2").WithArguments("y2").WithLocation(7, 16),
                 // (8,9): error CS8598: The suppression operator is not allowed in this context
                 //         y2! = null;
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "y2").WithLocation(8, 9),
-                // (8,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         y2! = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 15)
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "y2").WithLocation(8, 9)
                 );
         }
 
@@ -1832,10 +1829,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "P! = null").WithLocation(7, 23),
                 // (7,23): error CS8598: The suppression operator is not allowed in this context
                 //         _ = new C() { P! = null };
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "P").WithLocation(7, 23),
-                // (7,28): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //         _ = new C() { P! = null };
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 28)
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "P").WithLocation(7, 23)
                 );
         }
 
@@ -4055,10 +4049,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 16),
                 // (7,9): error CS8598: The suppression operator is not allowed in this context
                 //         x! = null;
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "x").WithLocation(7, 9),
-                // (7,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         x! = null;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 14)
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "x").WithLocation(7, 9)
                 );
         }
 
@@ -6721,13 +6712,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("string?", "string").WithLocation(7, 29),
                 // (8,10): error CS8598: The suppression operator is not allowed in this context
                 //         (y2! = ref y) = ref y;
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "y2").WithLocation(8, 10),
-                // (8,20): warning CS8601: Possible null reference assignment.
-                //         (y2! = ref y) = ref y;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(8, 20),
-                // (8,29): warning CS8601: Possible null reference assignment.
-                //         (y2! = ref y) = ref y;
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(8, 29)
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "y2").WithLocation(8, 10)
                 );
         }
 
@@ -23007,16 +22992,16 @@ class C
 
     void M(bool b, string? s)
     {
-        _ = (b ? ref D2(s) : ref D2(s!)) /*T:C.MyDelegate<string>!*/; // 9, unexpected type
-        _ = (b ? ref D2(s!) : ref D2(s)) /*T:C.MyDelegate<string>!*/; // 10, unexpected type
-        _ = (true ? ref D2(s) : ref D2(s!)) /*T:C.MyDelegate<string>!*/; // 11, unexpected type
+        _ = (b ? ref D2(s) : ref D2(s!)) /*T:C.MyDelegate<string>!*/; // 9
+        _ = (b ? ref D2(s!) : ref D2(s)) /*T:C.MyDelegate<string>!*/; // 10
+        _ = (true ? ref D2(s) : ref D2(s!)) /*T:C.MyDelegate<string>!*/; // 11
         _ = (true ? ref D2(s!) : ref D2(s)) /*T:C.MyDelegate<string!>!*/;
         _ = (false ? ref D2(s) : ref D2(s!)) /*T:C.MyDelegate<string!>!*/;
-        _ = (false ? ref D2(s!) : ref D2(s)) /*T:C.MyDelegate<string>!*/; // unexpected type
+        _ = (false ? ref D2(s!) : ref D2(s)) /*T:C.MyDelegate<string>!*/; // 12
     }
 }";
 
-            // See TODO2
+            // See https://github.com/dotnet/roslyn/issues/34392
             // Best type inference involving lambda conversion should agree with method type inference
             // Missing diagnostics
 
@@ -23024,13 +23009,13 @@ class C
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (36,14): warning CS8619: Nullability of reference types in value of type 'C.MyDelegate<string?>' doesn't match target type 'C.MyDelegate<string>'.
-                //         _ = (b ? ref D2(s) : ref D2(s!)) /*T:C.MyDelegate<string>!*/; // 9, unexpected type
+                //         _ = (b ? ref D2(s) : ref D2(s!)) /*T:C.MyDelegate<string>!*/; // 9
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref D2(s) : ref D2(s!)").WithArguments("C.MyDelegate<string?>", "C.MyDelegate<string>").WithLocation(36, 14),
                 // (37,14): warning CS8619: Nullability of reference types in value of type 'C.MyDelegate<string>' doesn't match target type 'C.MyDelegate<string?>'.
-                //         _ = (b ? ref D2(s!) : ref D2(s)) /*T:C.MyDelegate<string>!*/; // 10, unexpected type
+                //         _ = (b ? ref D2(s!) : ref D2(s)) /*T:C.MyDelegate<string>!*/; // 10
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref D2(s!) : ref D2(s)").WithArguments("C.MyDelegate<string>", "C.MyDelegate<string?>").WithLocation(37, 14),
                 // (38,14): warning CS8619: Nullability of reference types in value of type 'C.MyDelegate<string?>' doesn't match target type 'C.MyDelegate<string>'.
-                //         _ = (true ? ref D2(s) : ref D2(s!)) /*T:C.MyDelegate<string>!*/; // 11, unexpected type
+                //         _ = (true ? ref D2(s) : ref D2(s!)) /*T:C.MyDelegate<string>!*/; // 11
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "true ? ref D2(s) : ref D2(s!)").WithArguments("C.MyDelegate<string?>", "C.MyDelegate<string>").WithLocation(38, 14),
                 // (41,14): warning CS8619: Nullability of reference types in value of type 'C.MyDelegate<string>' doesn't match target type 'C.MyDelegate<string?>'.
                 //         _ = (false ? ref D2(s!) : ref D2(s)) /*T:C.MyDelegate<string>!*/; // unexpected type
@@ -23279,8 +23264,8 @@ class C
 {
     static void F1(bool b)
     {
-        (b ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)) /*T:string!*/ = null; // 1, 2
-        (b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())) /*T:string?*/ = null; // 3
+        (b ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)) /*T:string!*/ = null; // 1
+        (b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())) /*T:string?*/ = null;
     }
     static ref string? M1(int i) => throw null!;
     static ref string M2(int i) => throw null!;
@@ -23288,15 +23273,9 @@ class C
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (6,10): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
-                //         (b ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)) /*T:string!*/ = null; // 1, 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)").WithArguments("string?", "string").WithLocation(6, 10),
                 // (6,92): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         (b ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)) /*T:string!*/ = null; // 1, 2
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 92),
-                // (7,10): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
-                //         (b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())) /*T:string?*/ = null; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())").WithArguments("string?", "string").WithLocation(7, 10)
+                //         (b ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)) /*T:string!*/ = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 92)
                 );
         }
 
@@ -23330,42 +23309,30 @@ class C
     static void F1(bool b, ref string? x1, ref string y1)
     {
         ((b && false) ? ref x1 : ref x1)/*T:string?*/ = null;
-        ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1, 2
-        ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null; // 3
-        ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 4
+        ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1
+        ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null;
+        ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 2
 
         ((b || true) ? ref x1 : ref x1)/*T:string?*/ = null;
-        ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null; // 5
-        ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 6, 7
-        ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 8
+        ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null;
+        ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 3
+        ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 4
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (7,10): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
-                //         ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1, 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b && false) ? ref x1 : ref y1").WithArguments("string?", "string").WithLocation(7, 10),
                 // (7,57): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1, 2
+                //         ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 57),
-                // (8,10): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
-                //         ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b && false) ? ref y1 : ref x1").WithArguments("string", "string?").WithLocation(8, 10),
                 // (9,57): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 4
+                //         ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 57),
-                // (12,10): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
-                //         ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null; // 5
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b || true) ? ref x1 : ref y1").WithArguments("string?", "string").WithLocation(12, 10),
-                // (13,10): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
-                //         ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 6, 7
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b || true) ? ref y1 : ref x1").WithArguments("string", "string?").WithLocation(13, 10),
                 // (13,56): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 6, 7
+                //         ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 3
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 56),
                 // (14,56): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 8
+                //         ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 4
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 56)
                 );
         }
@@ -30820,7 +30787,7 @@ class C
     }
     T M2<T>(T x, T y) => throw null!;
 }";
-            // See TODO2
+            // See https://github.com/dotnet/roslyn/issues/34392
             // Best type inference involving lambda conversion should agree with method type inference
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyTypes();
@@ -41814,18 +41781,12 @@ class C
                 // (7,9): error CS8598: The suppression operator is not allowed in this context
                 //         t! = s;
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "t").WithLocation(7, 9),
-                // (7,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         t! = s;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "s").WithLocation(7, 14),
                 // (8,9): error CS8598: The suppression operator is not allowed in this context
                 //         t! += s;
                 Diagnostic(ErrorCode.ERR_IllegalSuppression, "t").WithLocation(8, 9),
                 // (9,10): error CS8598: The suppression operator is not allowed in this context
                 //         (t!) = s;
-                Diagnostic(ErrorCode.ERR_IllegalSuppression, "t").WithLocation(9, 10),
-                // (9,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         (t!) = s;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "s").WithLocation(9, 16)
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "t").WithLocation(9, 10)
                 );
         }
 
