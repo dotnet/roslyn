@@ -74,7 +74,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CSharp.LanguageServices.CSharpSymbolDisplayServiceFactory),
                 typeof(CSharp.Interactive.CSharpInteractiveEvaluator),
                 typeof(VisualBasic.LanguageServices.VisualBasicSymbolDisplayServiceFactory),
-                typeof(VisualBasic.Interactive.VisualBasicInteractiveEvaluator),
                 typeof(CodeAnalysis.CSharp.Simplification.CSharpSimplificationService),
                 typeof(CodeAnalysis.VisualBasic.Simplification.VisualBasicSimplificationService),
                 typeof(CodeAnalysis.CSharp.Rename.CSharpRenameConflictLanguageService),
