@@ -84,6 +84,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
+
+
             // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
             if (instanceOperation.Kind != OperationKind.InstanceReference)
             {
@@ -103,6 +105,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             {
                 return;
             }
+
+           
 
             // if we can't find a member then we can't do anything.  Also, we shouldn't qualify
             // accesses to static members.  
