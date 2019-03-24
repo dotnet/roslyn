@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binder.Flags.Includes(BinderFlags.CrefParameterOrReturnType))
             {
                 var unusedDiagnostics = DiagnosticBag.GetInstance();
-                crefSymbols = ImmutableArray.Create<Symbol>(binder.BindType(expression, unusedDiagnostics).TypeSymbol);
+                crefSymbols = ImmutableArray.Create<Symbol>(binder.BindType(expression, unusedDiagnostics).Type);
                 unusedDiagnostics.Free();
                 return null;
             }
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt; // not needed.
-            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).TypeSymbol;
+            NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).Type;
             var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, diagnostics);
             diagnostics.Free();
 
@@ -1948,7 +1948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // from the local at this point.
                                 if (type is ExtendedErrorTypeSymbol extended && extended.VariableUsedBeforeDeclaration)
                                 {
-                                    type = ((BoundLocal)boundExpr).LocalSymbol.Type.TypeSymbol;
+                                    type = ((BoundLocal)boundExpr).LocalSymbol.Type;
                                 }
                                 break;
                             }
@@ -2499,7 +2499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt;
-            var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).TypeSymbol;
+            var attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt).Type;
             diagnostics.Free();
             speculativeModel = AttributeSemanticModel.CreateSpeculative((SyntaxTreeSemanticModel)this, attribute, attributeType, aliasOpt, binder, position);
             return true;
@@ -4322,7 +4322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> methods,
             ArrayBuilder<MethodSymbol> filteredMethods,
             MethodSymbol method,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArguments,
             TypeSymbol receiverType)
         {
             MethodSymbol constructedMethod;
@@ -4360,7 +4360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> methods,
             ArrayBuilder<MethodSymbol> filteredMethods,
             SingleLookupResult singleResult,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArguments,
+            ImmutableArray<TypeWithAnnotations> typeArguments,
             TypeSymbol receiverType,
             ref LookupResultKind resultKind)
         {
@@ -4424,7 +4424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var filteredMethodBuilder = ArrayBuilder<MethodSymbol>.GetInstance();
             foreach (var method in FilterOverriddenOrHiddenMethods(methods))
             {
-                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeSymbolWithAnnotations>), extensionThisType);
+                AddReducedAndFilteredMethodGroupSymbol(methodBuilder, filteredMethodBuilder, method, default(ImmutableArray<TypeWithAnnotations>), extensionThisType);
             }
             methodBuilder.Free();
             return filteredMethodBuilder.ToImmutableAndFree();

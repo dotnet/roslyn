@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode declarationSyntax = localDeclaration.Syntax;
 
             LocalSymbol localSymbol = localDeclaration.LocalSymbol;
-            TypeSymbol localType = localSymbol.Type.TypeSymbol;
+            TypeSymbol localType = localSymbol.Type;
             Debug.Assert((object)localType != null); //otherwise, there wouldn't be a conversion to IDisposable
 
             BoundLocal boundLocal = new BoundLocal(declarationSyntax, localSymbol, localDeclaration.InitializerOpt.ConstantValue, localType);
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // await local.DisposeAsync()
                     _sawAwaitInExceptionHandler = true;
 
-                    TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType.TypeSymbol ?? _compilation.DynamicType;
+                    TypeSymbol awaitExpressionType = awaitOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
                     disposeCall = RewriteAwaitExpression(syntax, disposeCall, awaitOpt, awaitExpressionType, false);
                 }
             }
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 invokedAsExtensionMethod: method.IsExtensionMethod,
                 argsToParamsOpt: default,
                 resultKind: LookupResultKind.Viable,
-                type: method.ReturnType.TypeSymbol);
+                type: method.ReturnType);
 
             return disposeCall;
         }

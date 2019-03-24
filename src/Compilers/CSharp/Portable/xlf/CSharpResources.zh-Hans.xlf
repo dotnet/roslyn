@@ -357,36 +357,6 @@
         <target state="translated">文件名“{0}”为空、包含无效字符、未使用绝对路径指定驱动器或太长</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull">
-        <source>Expression is probably never null.</source>
-        <target state="translated">表达式可能不为 null。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_ExpressionIsProbablyNeverNull_Title">
-        <source>Expression is probably never null.</source>
-        <target state="translated">表达式可能不为 null。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">比较结果可能始终为错误。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysFalse_Title">
-        <source>Result of the comparison is possibly always false.</source>
-        <target state="translated">比较结果可能始终为错误。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">比较结果可能始终为正确。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_NullCheckIsProbablyAlwaysTrue_Title">
-        <source>Result of the comparison is possibly always true.</source>
-        <target state="translated">比较结果可能始终为正确。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_CSCHelp">
         <source>
                              Visual C# Compiler Options
@@ -428,7 +398,7 @@
                               generation but may be used by analyzers for producing
                               errors or warnings.
 -embed                        Embed all source files in the PDB.
--embed:&lt;file list&gt;            Embed specific files in the PDB
+-embed:&lt;file list&gt;            Embed specific files in the PDB.
 
                        - RESOURCES -
 -win32res:&lt;file&gt;              Specify a Win32 resource file (.res)
@@ -534,7 +504,7 @@
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Visual C# 编译器选项
 
                         - 输出文件 -
@@ -796,6 +766,11 @@
       <trans-unit id="IDS_FeatureUnconstrainedTypeParameterInNullCoalescingOperator">
         <source>unconstrained type parameters in null coalescing operator</source>
         <target state="translated">合并运算符中的无约束类型参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedConstructedTypes">
+        <source>unmanaged constructed types</source>
+        <target state="new">unmanaged constructed types</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
@@ -1188,6 +1163,16 @@
         <target state="translated">编译中不包含 SyntaxTree，因此无法将其删除</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull">
+        <source>The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">The 'as' operator may produce a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AsOperatorMayReturnNull_Title">
+        <source>The 'as' operator may produce a null value for a type parameter.</source>
+        <target state="new">The 'as' operator may produce a null value for a type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CaseConstantNamedUnderscore">
         <source>The name '_' refers to the constant, not the discard pattern. Use 'var _' to discard the value, or '@_' to refer to a constant by that name.</source>
         <target state="translated">名称 "_" 引用常量，而不引用放弃模式。请使用 "var _" 放弃该值，或使用 "@_" 来引用该名称的常量。</target>
@@ -1198,6 +1183,16 @@
         <target state="translated">不要对大小写常量使用 "_"。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull">
+        <source>Conditional access may produce a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">Conditional access may produce a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConditionalAccessMayReturnNull_Title">
+        <source>Conditional access may produce a null value for a type parameter.</source>
+        <target state="new">Conditional access may produce a null value for a type parameter.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ConvertingNullableToNonNullable">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">将 null 文本或可能的 null 值转换为非 null 类型。</target>
@@ -1206,6 +1201,16 @@
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="translated">将 null 文本或可能的 null 值转换为非 null 类型。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT">
+        <source>A default expression introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A default expression introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DefaultExpressionMayIntroduceNullT_Title">
+        <source>A default expression introduces a null value for a type parameter.</source>
+        <target state="new">A default expression introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DefaultLiteralConvertedToNullIsNotIntended">
@@ -1279,13 +1284,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
-        <source>Cannot convert null literal to non-nullable reference or unconstrained type parameter.</source>
-        <target state="translated">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
+        <source>Cannot convert null literal to non-nullable reference type.</source>
+        <target state="needs-review-translation">无法将 null 文本转换为非 null 引用或无约束类型参数。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT">
+        <source>A null literal introduces a null value when '{0}' is a non-nullable reference type.</source>
+        <target state="new">A null literal introduces a null value when '{0}' is a non-nullable reference type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullLiteralMayIntroduceNullT_Title">
+        <source>A null literal introduces a null value for a type parameter.</source>
+        <target state="new">A null literal introduces a null value for a type parameter.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceArgument">
@@ -1329,13 +1344,23 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument">
-        <source>Nullability of reference types in argument of type '{0}' doesn't match target type '{1}' for parameter '{2}' in '{3}'.</source>
-        <target state="translated">类型“{0}”的实参中引用类型的为 Null 性与“{3}”中形参“{2}”的目标类型“{1}”不匹配。</target>
+        <source>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">类型“{0}”的实参中引用类型的为 Null 性与“{3}”中形参“{2}”的目标类型“{1}”不匹配。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput">
+        <source>Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</source>
+        <target state="new">Argument of type '{0}' cannot be used as an output of type '{1}' for parameter '{2}' in '{3}' due to differences in the nullability of reference types.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInArgumentForOutput_Title">
+        <source>Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</source>
+        <target state="new">Argument cannot be used as an output for parameter due to differences in the nullability of reference types.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInArgument_Title">
-        <source>Nullability of reference types in argument doesn't match target type.</source>
-        <target state="translated">参数中的引用类型的为 Null 性与目标类型不匹配。</target>
+        <source>Argument cannot be used for parameter due to differences in the nullability of reference types.</source>
+        <target state="needs-review-translation">参数中的引用类型的为 Null 性与目标类型不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInAssignment">
@@ -1526,6 +1551,16 @@
       <trans-unit id="WRN_NullableValueTypeMayBeNull_Title">
         <source>Nullable value type may be null.</source>
         <target state="translated">可为 null 的值类型可为 null。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PossibleNull_Title">
+        <source>Possible null value.</source>
+        <target state="new">Possible null value.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_SwitchExpressionNotExhaustive">
@@ -1891,6 +1926,11 @@
       <trans-unit id="ERR_EventPropertyInInterface">
         <source>An event in an interface cannot have add or remove accessors</source>
         <target state="translated">接口中的事件不能具有 add 或 remove 访问器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SizeofUnsafe">
+        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context</source>
+        <target state="needs-review-translation">'“{0}”没有预定义的大小，因此 sizeof 只能在不安全的上下文中使用(请考虑使用 System.Runtime.InteropServices.Marshal.SizeOf)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -2626,11 +2666,6 @@
       <trans-unit id="ERR_ParamsLast">
         <source>A params parameter must be the last parameter in a formal parameter list</source>
         <target state="translated">params 参数必须是形参表中的最后一个参数</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_SizeofUnsafe">
-        <source>'{0}' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)</source>
-        <target state="translated">'“{0}”没有预定义的大小，因此 sizeof 只能在不安全的上下文中使用(请考虑使用 System.Runtime.InteropServices.Marshal.SizeOf)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DottedTypeNameNotFoundInNS">
@@ -7867,7 +7902,7 @@ You should consider suppressing the warning only if you're sure that you don't w
 To embed interop type information for both assemblies, use /link for references to each assembly (set the Embed Interop Types property to True).
 
 To remove the warning, you can use /reference instead (set the Embed Interop Types property to False). In this case, a primary interop assembly (PIA) provides interop type information.</source>
-        <target state="translated">使用 /link 添加了对程序集的引用(“嵌入互操作类型”属性设置为 True)。这指示编译器嵌入来自该程序集的互操作类型信息。但是，编译器无法嵌入来自该程序集的互操作类型信息，因为已引用的另一个程序集也使用 /reference 引用该程序集(“嵌入互操作类型”属性设置为 False)。
+        <target state="needs-review-translation">使用 /link 添加了对程序集的引用(“嵌入互操作类型”属性设置为 True)。这指示编译器嵌入来自该程序集的互操作类型信息。但是，编译器无法嵌入来自该程序集的互操作类型信息，因为已引用的另一个程序集也使用 /reference 引用该程序集(“嵌入互操作类型”属性设置为 False)。
 
 要嵌入两个程序集的互操作类型信息，请对每个程序集的引用使用 /link (将“嵌入互操作类型”属性设置为 True)。
 
@@ -9365,8 +9400,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of an 'in' extension method '{0}' must be a value type.</source>
-        <target state="translated">"in" 扩展方法“{0}”的第一个参数必须是值类型。</target>
+        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="needs-review-translation">"in" 扩展方法“{0}”的第一个参数必须是值类型。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

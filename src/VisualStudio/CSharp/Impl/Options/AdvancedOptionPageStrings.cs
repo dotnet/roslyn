@@ -15,9 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Enable_full_solution_analysis
             => ServicesVSResources.Enable_full_solution_analysis;
 
-        public static string Option_Perform_editor_feature_analysis_in_external_process
-            => ServicesVSResources.Perform_editor_feature_analysis_in_external_process;
-
         public static string Option_Enable_navigation_to_decompiled_sources
             => ServicesVSResources.Enable_navigation_to_decompiled_sources;
 
@@ -180,6 +177,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Highlight_related_components_under_cursor =>
             ServicesVSResources.Highlight_related_components_under_cursor;
+
+        public static string Option_Show_completion_list =>
+            ServicesVSResources.Show_completion_list;
 
         public static string Option_Classifications =>
             ServicesVSResources.Classifications;

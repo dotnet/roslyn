@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             NamedTypeSymbol classLocalType1 = localConsumer1.SourceModule.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var localField = classLocalType1.GetMembers("field").OfType<FieldSymbol>().Single();
 
-            Assert.Equal(SymbolKind.ErrorType, localField.Type.TypeSymbol.BaseType().Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localField.Type.TypeSymbol.BaseType());
+            Assert.Equal(SymbolKind.ErrorType, localField.Type.BaseType().Kind);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localField.Type.BaseType());
         }
 
         [Fact]
@@ -47,10 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var localField = classLocalType.GetMembers("nested").OfType<FieldSymbol>().Single();
-            var importedField = localField.Type.TypeSymbol.GetMembers("field2").OfType<FieldSymbol>().Single();
+            var importedField = localField.Type.GetMembers("field2").OfType<FieldSymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedField.Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedField.Type.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedField.Type);
         }
 
         [Fact]
@@ -67,10 +67,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var localField = classLocalType.GetMembers("nested").OfType<FieldSymbol>().Single();
-            var importedField = localField.Type.TypeSymbol.GetMembers("field3").OfType<FieldSymbol>().Single();
+            var importedField = localField.Type.GetMembers("field3").OfType<FieldSymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedField.Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedField.Type.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedField.Type);
         }
 
         [Fact]
@@ -86,11 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var localField = classLocalType.GetMembers("nested").OfType<FieldSymbol>().Single();
-            var importedField = localField.Type.TypeSymbol.GetMembers("field5").OfType<FieldSymbol>().Single();
+            var importedField = localField.Type.GetMembers("field5").OfType<FieldSymbol>().Single();
 
             Assert.Equal(SymbolKind.NamedType, importedField.Type.Kind);
 
-            var outer = ((NamedTypeSymbol)importedField.Type.TypeSymbol).TypeArguments().Single();
+            var outer = ((NamedTypeSymbol)importedField.Type).TypeArguments().Single();
             Assert.Equal(SymbolKind.NamedType, outer.Kind);
 
             var inner = ((NamedTypeSymbol)outer).TypeArguments().Single();
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var var1 = classLocalType1.GetMembers("i1").OfType<FieldSymbol>().Single();
 
             Assert.Equal(SymbolKind.NamedType, var1.Type.Kind);
-            Assert.IsAssignableFrom<PENamedTypeSymbol>(var1.Type.TypeSymbol);
+            Assert.IsAssignableFrom<PENamedTypeSymbol>(var1.Type);
         }
 
         [Fact]
@@ -129,17 +129,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var localField = classLocalType.GetMembers("inheritsMethods").OfType<FieldSymbol>().Single();
 
-            foreach (MethodSymbol m in localField.Type.TypeSymbol.GetMembers("Method1").OfType<MethodSymbol>())
+            foreach (MethodSymbol m in localField.Type.GetMembers("Method1").OfType<MethodSymbol>())
             {
                 if (m.Parameters.Length > 0)
                 {
-                    Assert.Equal(SymbolKind.ErrorType, m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Type.TypeSymbol.BaseType().Kind);
-                    Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Type.TypeSymbol.BaseType());
+                    Assert.Equal(SymbolKind.ErrorType, m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Type.BaseType().Kind);
+                    Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Type.BaseType());
                 }
                 if (m.ReturnType.TypeKind != TypeKind.Struct)
                 {
-                    Assert.Equal(SymbolKind.ErrorType, m.ReturnType.TypeSymbol.BaseType().Kind);
-                    Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(m.ReturnType.TypeSymbol.BaseType());
+                    Assert.Equal(SymbolKind.ErrorType, m.ReturnType.BaseType().Kind);
+                    Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(m.ReturnType.BaseType());
                 }
             }
         }
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var var1 = classLocalType.GetMembers("i1").OfType<FieldSymbol>().Single();
 
             Assert.Equal(SymbolKind.NamedType, var1.Type.Kind);
-            Assert.IsAssignableFrom<PENamedTypeSymbol>(var1.Type.TypeSymbol);
+            Assert.IsAssignableFrom<PENamedTypeSymbol>(var1.Type);
         }
 
         [Fact]
@@ -175,10 +175,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType1 = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var local = classLocalType1.GetMembers("typeRef").OfType<FieldSymbol>().Single();
-            var importedProperty = local.Type.TypeSymbol.GetMembers("Property1").OfType<PropertySymbol>().Single();
+            var importedProperty = local.Type.GetMembers("Property1").OfType<PropertySymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedProperty.Parameters.Single(arg => arg.Name == "x").Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedProperty.Parameters.Single(arg => arg.Name == "x").Type.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedProperty.Parameters.Single(arg => arg.Name == "x").Type);
         }
 
         [Fact]
@@ -195,10 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType1 = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var local = classLocalType1.GetMembers("typeRef").OfType<FieldSymbol>().Single();
-            var importedProperty = local.Type.TypeSymbol.GetMembers("Property2").OfType<PropertySymbol>().Single();
+            var importedProperty = local.Type.GetMembers("Property2").OfType<PropertySymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedProperty.Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedProperty.Type.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedProperty.Type);
         }
 
 
@@ -215,10 +215,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType1 = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var local = classLocalType1.GetMembers("typeRef").OfType<FieldSymbol>().Single();
-            var importedMethod = local.Type.TypeSymbol.GetMembers("Method1").OfType<MethodSymbol>().Single();
+            var importedMethod = local.Type.GetMembers("Method1").OfType<MethodSymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type);
         }
 
         [Fact]
@@ -234,10 +234,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType1 = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var local = classLocalType1.GetMembers("typeRef").OfType<FieldSymbol>().Single();
-            var importedMethod = local.Type.TypeSymbol.GetMembers("Method2").OfType<MethodSymbol>().Single();
+            var importedMethod = local.Type.GetMembers("Method2").OfType<MethodSymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type);
         }
 
         [Fact]
@@ -253,10 +253,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var local = classLocalType.GetMembers("i2").OfType<FieldSymbol>().Single();
-            var importedMethod = local.Type.TypeSymbol.GetMembers("Method3").OfType<MethodSymbol>().Single();
+            var importedMethod = local.Type.GetMembers("Method3").OfType<MethodSymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type);
         }
 
         [Fact]
@@ -272,10 +272,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var local = classLocalType.GetMembers("typeRef").OfType<FieldSymbol>().Single();
-            var importedMethod = local.Type.TypeSymbol.GetMembers("Method4").OfType<MethodSymbol>().Single();
+            var importedMethod = local.Type.GetMembers("Method4").OfType<MethodSymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedMethod.ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.ReturnType.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.ReturnType);
         }
 
         [Fact]
@@ -291,10 +291,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var local = classLocalType.GetMembers("tr2a").OfType<FieldSymbol>().Single();
-            var importedMethod = local.Type.TypeSymbol.GetMembers(".ctor").OfType<MethodSymbol>().Single();
+            var importedMethod = local.Type.GetMembers(".ctor").OfType<MethodSymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Where(arg => arg.Name == "x").Select(arg => arg).Single().Type);
         }
 
         [Fact]
@@ -310,10 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var local = classLocalType.GetMembers("tr2a").OfType<FieldSymbol>().Single();
-            var importedMethod = local.Type.TypeSymbol.GetMembers("op_Implicit").OfType<MethodSymbol>().Single();
+            var importedMethod = local.Type.GetMembers("op_Implicit").OfType<MethodSymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedMethod.Parameters.Single(arg => arg.Name == "x").Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Single(arg => arg.Name == "x").Type.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedMethod.Parameters.Single(arg => arg.Name == "x").Type);
         }
 
         [Fact]
@@ -329,10 +329,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var local = classLocalType.GetMembers("tr2b").OfType<FieldSymbol>().Single();
-            var importedField = local.Type.TypeSymbol.GetMembers("Event1").OfType<EventSymbol>().Single();
+            var importedField = local.Type.GetMembers("Event1").OfType<EventSymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, importedField.Type.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedField.Type.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(importedField.Type);
         }
 
         [Fact]
@@ -386,8 +386,8 @@ public class NoPIAGenerics
             NamedTypeSymbol classLocalType = localConsumer.GlobalNamespace.GetTypeMembers("NoPIAGenerics").Single();
             var localField = classLocalType.GetMembers("myclass").OfType<FieldSymbol>().Single();
 
-            Assert.Equal(SymbolKind.ErrorType, localField.Type.TypeSymbol.BaseType().Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localField.Type.TypeSymbol.BaseType());
+            Assert.Equal(SymbolKind.ErrorType, localField.Type.BaseType().Kind);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localField.Type.BaseType());
         }
 
         [Fact]
@@ -408,7 +408,7 @@ public class NoPIAGenerics
             var localField = classLocalType.GetMembers("mygeneric").OfType<FieldSymbol>().Single();
 
             Assert.Equal(SymbolKind.NamedType, localField.Type.Kind);
-            Assert.IsType<ConstructedNamedTypeSymbol>(localField.Type.TypeSymbol);
+            Assert.IsType<ConstructedNamedTypeSymbol>(localField.Type);
         }
 
         [Fact]
@@ -441,12 +441,12 @@ public class DrivedClass
                 if (m.Parameters.Length > 0)
                 {
                     Assert.Equal(SymbolKind.Parameter, m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Kind);
-                    Assert.True(m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Type.TypeSymbol.IsFromCompilation(localConsumer));
+                    Assert.True(m.Parameters.Where(arg => arg.Name == "c1").Select(arg => arg).Single().Type.IsFromCompilation(localConsumer));
                 }
                 if (m.ReturnType.TypeKind != TypeKind.Struct)
                 {
                     Assert.Equal(SymbolKind.NamedType, m.ReturnType.Kind);
-                    Assert.True(m.ReturnType.TypeSymbol.IsFromCompilation(localConsumer));
+                    Assert.True(m.ReturnType.IsFromCompilation(localConsumer));
                 }
             }
         }
@@ -485,7 +485,7 @@ public class DrivedClass
             var localField = nestedType.GetMembers("field1").OfType<FieldSymbol>().Single();
 
             Assert.Equal(SymbolKind.ArrayType, localField.Type.Kind);
-            Assert.Equal(SymbolKind.ErrorType, ((ArrayTypeSymbol)localField.Type.TypeSymbol).ElementType.Kind);
+            Assert.Equal(SymbolKind.ErrorType, ((ArrayTypeSymbol)localField.Type).ElementType.Kind);
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -501,7 +501,7 @@ public class DrivedClass
             var localField = nestedType.GetMembers("field1").OfType<FieldSymbol>().Single();
 
             Assert.Equal(SymbolKind.ArrayType, localField.Type.Kind);
-            Assert.True(localField.Type.TypeSymbol is ArrayTypeSymbol);
+            Assert.True(localField.Type is ArrayTypeSymbol);
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -517,7 +517,7 @@ public class DrivedClass
             var localMethod = nestedType.GetMembers("Method4").OfType<MethodSymbol>().Single();
 
             Assert.Equal(SymbolKind.ErrorType, localMethod.ReturnType.Kind);
-            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localMethod.ReturnType.TypeSymbol);
+            Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(localMethod.ReturnType);
         }
 
         [Fact]
@@ -567,7 +567,7 @@ public class TypeRefs1
             foreach (MethodSymbol m in methodSymbol)
             {
                 Assert.Equal(SymbolKind.ErrorType, m.ReturnType.Kind);
-                Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(m.ReturnType.TypeSymbol);
+                Assert.IsType<NoPiaIllegalGenericInstantiationSymbol>(m.ReturnType);
             }
         }
 

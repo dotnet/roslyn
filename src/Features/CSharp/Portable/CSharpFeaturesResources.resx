@@ -168,6 +168,9 @@
   <data name="Declare_as_nullable" xml:space="preserve">
     <value>Declare as nullable</value>
   </data>
+  <data name="Fix_return_type" xml:space="preserve">
+    <value>Fix return type</value>
+  </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>
   </data>
@@ -533,6 +536,9 @@
   <data name="if_statement_can_be_simplified" xml:space="preserve">
     <value>'if' statement can be simplified</value>
   </data>
+  <data name="Allow_unsafe_code_in_this_project" xml:space="preserve">
+    <value>Allow unsafe code in this project</value>
+  </data>
   <data name="Add_Obsolete" xml:space="preserve">
     <value>Add [Obsolete]</value>
   </data>
@@ -585,5 +591,12 @@
   <data name="Introduce_using_statement" xml:space="preserve">
     <value>Introduce 'using' statement</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Unseal_class_0" xml:space="preserve">
+    <value>Unseal class '{0}'</value>
+  </data>
+  <data name="Make_ref_struct" xml:space="preserve">
+    <value>Make 'ref struct'</value>
+    <comment>{Locked="ref"}{Locked="struct"} "ref" and "struct" are C# keywords and should not be localized.</comment>
   </data>
 </root>

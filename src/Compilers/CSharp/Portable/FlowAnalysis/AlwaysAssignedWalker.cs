@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private new List<Symbol> Analyze(ref bool badRegion)
+        private List<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
             List<Symbol> result = new List<Symbol>();

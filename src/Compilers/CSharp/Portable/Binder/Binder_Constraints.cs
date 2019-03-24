@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name, TypeParameterConstraintClauseSyntax constraintClauseSyntax, DiagnosticBag diagnostics)
         {
             var constraints = TypeParameterConstraintKind.None;
-            var constraintTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var constraintTypes = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             var syntaxBuilder = ArrayBuilder<TypeConstraintSyntax>.GetInstance();
             SeparatedSyntaxList<TypeParameterConstraintSyntax> constraintsSyntax = constraintClauseSyntax.Constraints;
             Debug.Assert(!InExecutableBinder); // Cannot eagerly report diagnostics handled by LazyMissingNonNullTypesContextDiagnosticInfo 
@@ -217,9 +217,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsValidConstraint(
             string typeParameterName,
             TypeConstraintSyntax syntax,
-            TypeSymbolWithAnnotations type,
+            TypeWithAnnotations type,
             TypeParameterConstraintKind constraints,
-            ArrayBuilder<TypeSymbolWithAnnotations> constraintTypes,
+            ArrayBuilder<TypeWithAnnotations> constraintTypes,
             DiagnosticBag diagnostics)
         {
             if (!IsValidConstraintType(syntax, type, diagnostics))
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (constraintTypes.Contains(c => type.Equals(c, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes)))
             {
                 // "Duplicate constraint '{0}' for type parameter '{1}'"
-                Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type.TypeSymbol.SetUnknownNullabilityForReferenceTypes(), typeParameterName);
+                Error(diagnostics, ErrorCode.ERR_DuplicateBound, syntax, type.Type.SetUnknownNullabilityForReferenceTypes(), typeParameterName);
                 return false;
             }
 
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (constraintTypes.Count > 0)
                 {
                     // "The class type constraint '{0}' must come before any other constraints"
-                    Error(diagnostics, ErrorCode.ERR_ClassBoundNotFirst, syntax, type.TypeSymbol);
+                    Error(diagnostics, ErrorCode.ERR_ClassBoundNotFirst, syntax, type.Type);
                     return false;
                 }
 
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         default:
                             // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
-                            Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type.TypeSymbol);
+                            Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type.Type);
                             return false;
                     }
                 }
@@ -268,13 +268,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if ((constraints & TypeParameterConstraintKind.ValueType) != 0)
                     {
                         // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
-                        Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type.TypeSymbol);
+                        Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type.Type);
                         return false;
                     }
                     else if ((constraints & TypeParameterConstraintKind.Unmanaged) != 0)
                     {
                         // "'{0}': cannot specify both a constraint class and the 'unmanaged' constraint"
-                        Error(diagnostics, ErrorCode.ERR_UnmanagedBoundWithClass, syntax, type.TypeSymbol);
+                        Error(diagnostics, ErrorCode.ERR_UnmanagedBoundWithClass, syntax, type.Type);
                         return false;
                     }
                 }
@@ -287,9 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if the type is a valid constraint type.
         /// Otherwise returns false and generates a diagnostic.
         /// </summary>
-        private static bool IsValidConstraintType(TypeConstraintSyntax syntax, TypeSymbolWithAnnotations typeWithAnnotations, DiagnosticBag diagnostics)
+        private static bool IsValidConstraintType(TypeConstraintSyntax syntax, TypeWithAnnotations typeWithAnnotations, DiagnosticBag diagnostics)
         {
-            TypeSymbol type = typeWithAnnotations.TypeSymbol;
+            TypeSymbol type = typeWithAnnotations.Type;
 
             switch (type.SpecialType)
             {
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SpecialType.System_Object:
-                    if (typeWithAnnotations.NullableAnnotation == NullableAnnotation.Annotated)
+                    if (typeWithAnnotations.NullableAnnotation.IsAnnotated())
                     {
                         // "Constraint cannot be special class '{0}'"
                         Error(diagnostics, ErrorCode.ERR_SpecialTypeAsBound, syntax, typeWithAnnotations);

@@ -755,6 +755,35 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_preferSimpleUsingStatement = $@"
+using System;
+
+class Customer1
+{{
+//[
+    // {ServicesVSResources.Prefer_colon}
+    void Method()
+    {{
+        using var resource = GetResource();
+        ProcessResource(resource);
+    }}
+//]
+}}
+class Customer2
+{{
+//[
+    // {ServicesVSResources.Over_colon}
+    void Method()
+    {{
+        using (var resource = GetResource())
+        {{
+            ProcessResource(resource);
+        }}
+    }}
+//]
+}}
+";
+
         private static readonly string s_preferLocalFunctionOverAnonymousFunction = $@"
 using System;
 
@@ -1135,6 +1164,35 @@ class Customer2
 }}
 ";
 
+        private static readonly string s_preferStaticLocalFunction = $@"
+class Customer1
+{{
+//[
+    void Method()
+    {{
+        // {ServicesVSResources.Prefer_colon}
+        static int fibonacci(int n)
+        {{
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }}
+    }}
+//]
+}}
+class Customer2
+{{
+//[
+    void Method()
+    {{
+        // {ServicesVSResources.Over_colon}
+        int fibonacci(int n)
+        {{
+            return n <= 1 ? n : fibonacci(n - 1) + fibonacci(n - 2);
+        }}
+    }}
+//]
+}}
+";
+
         #endregion
 
         #region arithmetic binary parentheses
@@ -1452,7 +1510,7 @@ class C2
             var predefinedTypesGroupTitle = CSharpVSResources.predefined_type_preferences_colon;
             var varGroupTitle = CSharpVSResources.var_preferences_colon;
             var nullCheckingGroupTitle = CSharpVSResources.null_checking_colon;
-            var fieldGroupTitle = ServicesVSResources.Field_preferences_colon;
+            var modifierGroupTitle = ServicesVSResources.Modifier_preferences_colon;
             var codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon;
             var expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon;
             var variablePreferencesGroupTitle = ServicesVSResources.Variable_preferences_colon;
@@ -1485,13 +1543,14 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, ServicesVSResources.For_member_access_expressions, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionStore, predefinedTypesGroupTitle, predefinedTypesPreferences));
 
             // Use var
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CSharpVSResources.For_built_in_types, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionStore, varGroupTitle, typeStylePreferences));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.When_variable_type_is_apparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionStore, varGroupTitle, typeStylePreferences));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionStore, varGroupTitle, typeStylePreferences));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.VarForBuiltInTypes, CSharpVSResources.For_built_in_types, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionStore, varGroupTitle, typeStylePreferences));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.VarWhenTypeIsApparent, CSharpVSResources.When_variable_type_is_apparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionStore, varGroupTitle, typeStylePreferences));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.VarElsewhere, CSharpVSResources.Elsewhere, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionStore, varGroupTitle, typeStylePreferences));
 
             // Code block
             AddBracesOptions(optionStore, codeBlockPreferencesGroupTitle);
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionStore, codeBlockPreferencesGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferSimpleUsingStatement, ServicesVSResources.Prefer_simple_using_statement, s_preferSimpleUsingStatement, s_preferSimpleUsingStatement, this, optionStore, codeBlockPreferencesGroupTitle));
 
             AddParenthesesOptions(OptionStore);
 
@@ -1526,8 +1585,9 @@ class C2
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionStore, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionStore, nullCheckingGroupTitle));
 
-            // Field preferences.
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionStore, fieldGroupTitle));
+            // Modifier preferences.
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly_fields, s_preferReadonly, s_preferReadonly, this, optionStore, modifierGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferStaticLocalFunction, ServicesVSResources.Prefer_static_local_functions, s_preferStaticLocalFunction, s_preferStaticLocalFunction, this, optionStore, modifierGroupTitle));
 
             // Parameter preferences
             AddParameterOptions(optionStore, parameterPreferencesGroupTitle);

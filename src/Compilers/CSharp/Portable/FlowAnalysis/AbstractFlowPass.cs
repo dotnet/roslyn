@@ -376,14 +376,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected ImmutableArray<PendingBranch> Analyze(ref bool badRegion)
+        protected ImmutableArray<PendingBranch> Analyze(ref bool badRegion, Optional<TLocalState> initialState = default)
         {
             ImmutableArray<PendingBranch> returns;
             do
             {
                 // the entry point of a method is assumed reachable
                 regionPlace = RegionPlace.Before;
-                this.State = TopState();
+                this.State = initialState.HasValue ? initialState.Value : TopState();
                 PendingBranches.Clear();
                 this.stateChangedAfterUse = false;
                 this.Diagnostics.Clear();
@@ -423,8 +423,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var method = _symbol as MethodSymbol;
-                return (object)method == null ? null : method.ThisParameter;
+                ParameterSymbol thisParameter = null;
+                (_symbol as MethodSymbol)?.TryGetThisParameter(out thisParameter);
+                return thisParameter;
             }
         }
 
@@ -597,11 +598,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// AssignedWhenFalse.
         /// </summary>
         /// <param name="node"></param>
-        protected BoundNode VisitRvalue(BoundExpression node)
+        protected virtual void VisitRvalue(BoundExpression node)
         {
-            var result = Visit(node);
+            Visit(node);
             Unsplit();
-            return result;
         }
 
         /// <summary>
@@ -1590,7 +1590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
-            var result = VisitRvalue(node.ExpressionOpt);
+            VisitRvalue(node.ExpressionOpt);
 
             // byref return is also a potential write
             if (node.RefKind != RefKind.None)
@@ -1598,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WriteArgument(node.ExpressionOpt, node.RefKind, method: null);
             }
 
-            return result;
+            return null;
         }
 
         private void AdjustStateAfterReturnStatement(BoundReturnStatement node)
@@ -2100,14 +2100,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitRangeExpression(BoundRangeExpression node)
         {
-            if (node.LeftOperand != null)
+            if (node.LeftOperandOpt != null)
             {
-                VisitRvalue(node.LeftOperand);
+                VisitRvalue(node.LeftOperandOpt);
             }
 
-            if (node.RightOperand != null)
+            if (node.RightOperandOpt != null)
             {
-                VisitRvalue(node.RightOperand);
+                VisitRvalue(node.RightOperandOpt);
             }
 
             return null;

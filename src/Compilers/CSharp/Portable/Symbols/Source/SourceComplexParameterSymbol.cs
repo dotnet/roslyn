@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceComplexParameterSymbol(
             Symbol owner,
             int ordinal,
-            TypeSymbolWithAnnotations parameterType,
+            TypeWithAnnotations parameterType,
             RefKind refKind,
             string name,
             ImmutableArray<Location> locations,
@@ -227,15 +227,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (convertedExpression.ConstantValue == null && convertedExpression.Kind == BoundKind.Conversion &&
                 !(valueBeforeConversion.Kind == BoundKind.DefaultExpression && (object)valueBeforeConversion.Type == null))
             {
-                if (parameterType.TypeSymbol.IsNullableType())
+                if (parameterType.Type.IsNullableType())
                 {
-                    convertedExpression = binder.GenerateConversionForAssignment(parameterType.TypeSymbol.GetNullableUnderlyingType(),
+                    convertedExpression = binder.GenerateConversionForAssignment(parameterType.Type.GetNullableUnderlyingType(),
                         valueBeforeConversion, diagnostics, isDefaultParameter: true);
                 }
             }
 
-            if (parameterType.IsReferenceType &&
-                parameterType.NullableAnnotation.IsAnyNotNullable() &&
+            if (parameterType.Type.IsReferenceType &&
+                parameterType.NullableAnnotation.IsNotAnnotated() &&
                 convertedExpression.ConstantValue?.IsNull == true &&
                 !suppressNullableWarning(convertedExpression) &&
                 DeclaringCompilation.LanguageVersion >= MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return ConstantValue.Bad;
                 }
             }
-            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.Type, this.Type.TypeSymbol, ref useSiteDiagnostics).Kind.IsImplicitConversion())
+            else if (!compilation.Conversions.ClassifyConversionFromType((TypeSymbol)arg.Type, this.Type, ref useSiteDiagnostics).Kind.IsImplicitConversion())
             {
                 // error CS1908: The type of the argument to the DefaultParameterValue attribute must match the parameter type
                 if (diagnose)
@@ -832,11 +832,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (!compilation.Conversions.HasCallerLineNumberConversion(Type.TypeSymbol, ref useSiteDiagnostics))
+            else if (!compilation.Conversions.HasCallerLineNumberConversion(TypeWithAnnotations.Type, ref useSiteDiagnostics))
             {
                 // CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol intType = compilation.GetSpecialType(SpecialType.System_Int32);
-                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerLineNumberParam, node.Name.Location, intType, Type.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerLineNumberParam, node.Name.Location, intType, TypeWithAnnotations.Type);
             }
             else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
             {
@@ -860,11 +860,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type.TypeSymbol, ref useSiteDiagnostics))
+            else if (!compilation.Conversions.HasCallerInfoStringConversion(TypeWithAnnotations.Type, ref useSiteDiagnostics))
             {
                 // CS4018: CallerFilePathAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
-                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerFilePathParam, node.Name.Location, stringType, Type.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerFilePathParam, node.Name.Location, stringType, TypeWithAnnotations.Type);
             }
             else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
             {
@@ -893,11 +893,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //         member that is used in contexts that do not allow optional arguments
                 diagnostics.Add(ErrorCode.WRN_CallerMemberNameParamForUnconsumedLocation, node.Name.Location, CSharpSyntaxNode.Identifier.ValueText);
             }
-            else if (!compilation.Conversions.HasCallerInfoStringConversion(Type.TypeSymbol, ref useSiteDiagnostics))
+            else if (!compilation.Conversions.HasCallerInfoStringConversion(TypeWithAnnotations.Type, ref useSiteDiagnostics))
             {
                 // CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type '{0}' to type '{1}'
                 TypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
-                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerMemberNameParam, node.Name.Location, stringType, Type.TypeSymbol);
+                diagnostics.Add(ErrorCode.ERR_NoConversionForCallerMemberNameParam, node.Name.Location, stringType, TypeWithAnnotations.Type);
             }
             else if (!HasExplicitDefaultValue && !ContainingSymbol.IsPartialImplementation()) // attribute applied to parameter without default
             {
@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SourceComplexParameterSymbolWithCustomModifiersPrecedingByRef(
             Symbol owner,
             int ordinal,
-            TypeSymbolWithAnnotations parameterType,
+            TypeWithAnnotations parameterType,
             RefKind refKind,
             ImmutableArray<CustomModifier> refCustomModifiers,
             string name,

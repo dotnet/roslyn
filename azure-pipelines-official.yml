@@ -2,12 +2,14 @@ resources:
 - repo: self
   clean: true
 
-variables:
-  SignType: real
-  SkipTests: false
-  SkipApplyOptimizationData: false
-  IbcSourceBranchName: 'default'
-  IbcDropId: 'default'
+# Variables defined in yml cannot be overridden at queue time instead overrideable variables must be defined in the web gui.
+# Commenting out until AzDO supports something like the runtime parameters outlined here: https://github.com/Microsoft/azure-pipelines-yaml/pull/129
+#variables:
+#  SignType: real
+#  SkipTests: false
+#  SkipApplyOptimizationData: false
+#  IbcSourceBranchName: 'default'
+#  IbcDropId: 'default'
 
 jobs:
 - job: OfficialBuild
@@ -142,7 +144,7 @@ jobs:
     continueOnError: true
     condition: succeededOrFailed()
 
-  - task: PublishTestResults@1
+  - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
     inputs:
       testRunner: XUnit

@@ -1341,8 +1341,8 @@ class C : G<C[,][]>
             var garg = c.BaseType().TypeArguments()[0];
             Assert.Equal(SymbolKind.ArrayType, garg.Kind);
             var carr1 = garg as ArrayTypeSymbol;
-            var carr2 = carr1.ElementType.TypeSymbol as ArrayTypeSymbol;
-            Assert.Equal(c, carr2.ElementType.TypeSymbol);
+            var carr2 = carr1.ElementType as ArrayTypeSymbol;
+            Assert.Equal(c, carr2.ElementType);
             Assert.Equal(2, carr1.Rank);
             Assert.Equal(1, carr2.Rank);
             Assert.True(carr2.IsSZArray);

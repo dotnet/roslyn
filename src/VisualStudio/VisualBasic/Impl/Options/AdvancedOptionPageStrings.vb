@@ -21,9 +21,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Enable_full_solution_analysis As String =
             ServicesVSResources.Enable_full_solution_analysis
 
-        Public ReadOnly Property Option_Perform_editor_feature_analysis_in_external_process As String =
-            ServicesVSResources.Perform_editor_feature_analysis_in_external_process
-
         Public ReadOnly Property Option_DisplayLineSeparators As String
             Get
                 Return BasicVSResources.Show_procedure_line_separators
@@ -217,6 +214,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Highlight_related_components_under_cursor As String =
             ServicesVSResources.Highlight_related_components_under_cursor
+
+        Public ReadOnly Property Option_Show_completion_list As String =
+            ServicesVSResources.Show_completion_list
 
         Public ReadOnly Property Option_Classifications As String =
             ServicesVSResources.Classifications

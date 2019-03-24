@@ -1464,7 +1464,7 @@ class C
             Assert.Equal(1, call.Arguments.Length);
             Assert.Equal(1, call.Constructor.Parameters.Length);
             Assert.Equal("a", call.Constructor.Parameters[0].Name);
-            Assert.Equal("Int32", call.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("Int32", call.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
 
         [Fact]
@@ -1499,7 +1499,7 @@ class C
             Assert.Equal(1, call.Arguments.Length);
             Assert.Equal(1, call.Constructor.Parameters.Length);
             Assert.Equal("a", call.Constructor.Parameters[0].Name);
-            Assert.Equal("String", call.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("String", call.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
 
         [Fact]
@@ -1534,7 +1534,7 @@ class C
             Assert.Equal(1, newExpr.Arguments.Length);
             Assert.Equal(1, newExpr.Constructor.Parameters.Length);
             Assert.Equal("a", newExpr.Constructor.Parameters[0].Name);
-            Assert.Equal("Int32", newExpr.Constructor.Parameters[0].Type.Name);
+            Assert.Equal("Int32", newExpr.Constructor.Parameters[0].TypeWithAnnotations.Type.Name);
         }
     }
 }

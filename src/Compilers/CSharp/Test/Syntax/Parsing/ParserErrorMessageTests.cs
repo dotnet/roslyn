@@ -6334,6 +6334,20 @@ class C { }
         }
 
         [Fact]
+        public void PragmaBeforeCSharp2_InDisabledCode()
+        {
+            var text = @"
+#if UNDEF
+#pragma warning disable 1584
+#pragma checksum ""file.txt"" ""{00000000-0000-0000-0000-000000000000}"" ""2453""
+#endif
+class C { }
+";
+            SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp2)).GetDiagnostics().Verify();
+            SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.RegularWithDocumentationComments.WithLanguageVersion(LanguageVersion.CSharp1)).GetDiagnostics().Verify();
+        }
+
+        [Fact]
         public void AwaitAsIdentifierInAsyncContext()
         {
             var text = @"

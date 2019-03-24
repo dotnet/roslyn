@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // This should only be called in the context of syntactically incorrect programs.  In other
         // contexts statements are surrounded by some enclosing method or lambda.
-        internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
+        internal override TypeWithAnnotations GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             // There's supposed to be an enclosing method or lambda.
             throw ExceptionUtilities.Unreachable;
