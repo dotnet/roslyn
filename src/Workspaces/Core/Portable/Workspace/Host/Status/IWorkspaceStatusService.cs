@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Host
     /// 
     /// it can completely removed at the end or new APIs can added and removed as prototype going on
     /// no one except one in the prototype group should use this interface.
+    /// 
+    /// tracking issue - https://github.com/dotnet/roslyn/issues/34415
     /// </summary>
     internal interface IWorkspaceStatusService : IWorkspaceService
     {
