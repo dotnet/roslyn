@@ -1822,6 +1822,9 @@ public struct S
                 // (15,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public readonly event Action<EventArgs> E { add {} remove {} }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(15, 12));
+
+            comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
         }
     }
 }
