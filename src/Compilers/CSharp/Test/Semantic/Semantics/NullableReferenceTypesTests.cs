@@ -54004,13 +54004,7 @@ class Program
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             // https://github.com/dotnet/roslyn/issues/32599: Track state across tuple element conversions.
-            comp.VerifyDiagnostics(
-                // (20,9): warning CS8602: Possible dereference of a null reference.
-                //         u1.y.Item2.Value.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1.y.Item2.Value.F").WithLocation(20, 9),
-                // (27,9): warning CS8602: Possible dereference of a null reference.
-                //         u2.y.Item2.Value.F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.y.Item2.Value.F").WithLocation(27, 9));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

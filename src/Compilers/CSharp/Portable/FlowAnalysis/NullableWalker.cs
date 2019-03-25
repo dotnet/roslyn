@@ -3785,14 +3785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.ConversionKind == ConversionKind.ImplicitTuple || node.ConversionKind == ConversionKind.ExplicitTuple);
 
-            var operand = node.Operand;
-            var valueTuple = operand.Type as TupleTypeSymbol;
-            if (valueTuple is null)
-            {
-                return;
-            }
-
-            int valueSlot = MakeSlot(operand);
+            int valueSlot = MakeSlot(node.Operand);
             if (valueSlot < 0)
             {
                 return;
@@ -3804,8 +3797,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var conversions = node.Conversion.UnderlyingConversions;
-            var targetElements = ((TupleTypeSymbol)node.Type).TupleElements;
+            TrackNullableStateOfTupleConversion(node.Conversion, node.Type, node.Operand.Type, slot, valueSlot);
+        }
+
+        private void TrackNullableStateOfTupleConversion(Conversion conversion, TypeSymbol targetType, TypeSymbol operandType, int slot, int valueSlot)
+        {
+            Debug.Assert(conversion.Kind == ConversionKind.ImplicitTuple || conversion.Kind == ConversionKind.ExplicitTuple);
+            Debug.Assert(slot > 0);
+            Debug.Assert(valueSlot > 0);
+
+            var valueTuple = operandType as TupleTypeSymbol;
+            if (valueTuple is null)
+            {
+                return;
+            }
+
+            var conversions = conversion.UnderlyingConversions;
+            var targetElements = ((TupleTypeSymbol)targetType).TupleElements;
             var valueElements = valueTuple.TupleElements;
             int n = valueElements.Length;
             for (int i = 0; i < n; i++)
@@ -3829,7 +3837,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.ExplicitTupleLiteral:
                     case ConversionKind.ImplicitTuple:
                     case ConversionKind.ExplicitTuple:
-                        // https://github.com/dotnet/roslyn/issues/32599: Track state across conversions of nested tuples.
+                        {
+                            int targetFieldSlot = GetOrCreateSlot(targetField, slot);
+                            int valueFieldSlot = GetOrCreateSlot(valueField, valueSlot);
+                            Debug.Assert(targetFieldSlot > 0);
+                            Debug.Assert(valueFieldSlot > 0);
+                            this.State[targetFieldSlot] = NullableFlowState.NotNull;
+                            TrackNullableStateOfTupleConversion(conversion, targetField.Type, valueField.Type, targetFieldSlot, valueFieldSlot);
+                        }
                         break;
                     case ConversionKind.ImplicitNullable:
                     case ConversionKind.ExplicitNullable:
