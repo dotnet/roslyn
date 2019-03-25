@@ -730,6 +730,25 @@ End Class
 CodeStyleOptions.QualifyFieldAccess)
         End Function
 
+        <WorkItem(32093, "https://github.com/dotnet/roslyn/issues/32093")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfInBaseConstructor() As Task
+            Await TestMissingAsyncWithOption("
+Public Class Base
+    Public ReadOnly Property Foo As String
+    Public Sub New(ByVal foo As String)
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+    Public Sub New()
+        MyBase.New(NameOf([|Foo|]))
+    End Sub
+End Class",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
         <WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function DoNotReportToQualify_InObjectInitializer1() As Task
