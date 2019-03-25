@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeSymbolWithAnnotations.Builder _lazyType;
+        private TypeWithAnnotations.Builder _lazyType;
 
         /// <summary>
         /// Set in constructor, might be changed while decoding <see cref="IndexerNameAttribute"/>.
@@ -266,15 +266,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     _refCustomModifiers = _refKind != RefKind.None ? overriddenOrImplementedProperty.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty;
 
-                    TypeSymbolWithAnnotations overriddenPropertyType = overriddenOrImplementedProperty.Type;
+                    TypeWithAnnotations overriddenPropertyType = overriddenOrImplementedProperty.TypeWithAnnotations;
 
                     // We do an extra check before copying the type to handle the case where the overriding
                     // property (incorrectly) has a different type than the overridden property.  In such cases,
                     // we want to retain the original (incorrect) type to avoid hiding the type given in source.
-                    if (type.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
+                    if (type.Type.Equals(overriddenPropertyType.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamic))
                     {
                         type = type.WithTypeAndModifiers(
-                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, type.TypeSymbol, this.ContainingAssembly),
+                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.Type, type.Type, this.ContainingAssembly),
                             overriddenPropertyType.CustomModifiers);
                         _lazyType = default;
                         _lazyType.InterlockedInitialize(type);
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilation: true);
 
-            if (this.Type.NeedsNullableAttribute())
+            if (this.TypeWithAnnotations.NeedsNullableAttribute())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }
@@ -1164,18 +1164,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            var type = this.Type;
+            var type = this.TypeWithAnnotations;
 
-            if (type.TypeSymbol.ContainsDynamic())
+            if (type.Type.ContainsDynamic())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeDynamicAttribute(type.TypeSymbol, type.CustomModifiers.Length + RefCustomModifiers.Length, _refKind));
+                    DeclaringCompilation.SynthesizeDynamicAttribute(type.Type, type.CustomModifiers.Length + RefCustomModifiers.Length, _refKind));
             }
 
-            if (type.TypeSymbol.ContainsTupleNames())
+            if (type.Type.ContainsTupleNames())
             {
                 AddSynthesizedAttribute(ref attributes,
-                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.TypeSymbol));
+                    DeclaringCompilation.SynthesizeTupleNamesAttribute(type.Type));
             }
 
             if (type.NeedsNullableAttribute())
@@ -1410,7 +1410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
                                 this.Type.CheckAllConstraints(DeclaringCompilation, conversions, _location, diagnostics);
 
-                                var type = this.Type.TypeSymbol;
+                                var type = this.Type;
                                 if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, type);
@@ -1448,7 +1448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        private TypeSymbolWithAnnotations ComputeType(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
+        private TypeWithAnnotations ComputeType(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
             RefKind refKind;
             var typeSyntax = syntax.Type.SkipRef(out refKind);
@@ -1459,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
-                diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), _location, this, type.TypeSymbol);
+                diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), _location, this, type.Type);
             }
 
             diagnostics.Add(_location, useSiteDiagnostics);
@@ -1481,9 +1481,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (ParameterSymbol param in parameters)
             {
-                if (!this.IsNoMoreVisibleThan(param.Type, ref useSiteDiagnostics))
+                if (!this.IsNoMoreVisibleThan(param.TypeWithAnnotations, ref useSiteDiagnostics))
                 {
-                    diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, _location, this, param.Type.TypeSymbol);
+                    diagnostics.Add(ErrorCode.ERR_BadVisIndexerParam, _location, this, param.Type);
                 }
                 else if ((object)_setMethod != null && param.Name == ParameterSymbol.ValueParameterName)
                 {

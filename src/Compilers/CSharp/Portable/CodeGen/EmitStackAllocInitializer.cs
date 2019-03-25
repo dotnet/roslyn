@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(type is PointerTypeSymbol || type is NamedTypeSymbol);
 
             var elementType = (type.TypeKind == TypeKind.Pointer
-                ? ((PointerTypeSymbol)type).PointedAtType
-                : ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0]).TypeSymbol;
+                ? ((PointerTypeSymbol)type).PointedAtTypeWithAnnotations
+                : ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]).Type;
 
             var initExprs = inits.Initializers;
 
