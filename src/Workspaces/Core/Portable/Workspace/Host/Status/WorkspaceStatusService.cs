@@ -14,14 +14,11 @@ namespace Microsoft.CodeAnalysis.Host
     {
         public readonly static WorkspaceStatusService Default = new WorkspaceStatusService();
 
-#pragma warning disable 0067
-        public event EventHandler<bool> StatusChanged
+        event EventHandler<bool> IWorkspaceStatusService.StatusChanged
         {
-            // it never used
             add { }
             remove { }
         }
-#pragma warning restore 0067
 
         public Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
         {
@@ -33,6 +30,16 @@ namespace Microsoft.CodeAnalysis.Host
         {
             // by the default, we are always fully loaded
             return SpecializedTasks.True;
+        }
+
+        Task IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<bool> IWorkspaceStatusService.IsFullyLoadedAsync(CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -917,7 +917,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 _workspace.DocumentActiveContextChanged += OnActiveContextChanged;
                 _workspaceStatusService = workspace.Services.GetService<IWorkspaceStatusService>();
-                _workspaceStatusService.StatusChanged += OnWorkspaceStatusChanged;
+                if (_workspaceStatusService != null)
+                {
+                    _workspaceStatusService.StatusChanged += OnWorkspaceStatusChanged;
+                }
             }
 
             private void OnActiveContextChanged(object sender, DocumentActiveContextChangedEventArgs e)

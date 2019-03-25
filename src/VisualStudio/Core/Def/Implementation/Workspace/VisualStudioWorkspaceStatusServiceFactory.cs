@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
@@ -84,14 +85,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 if (_workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_ForceDelay))
                 {
-                    // for testing. 
+                    // this is for prototype/mock for people/teams trying partial solution load prototyping
+                    // it shouldn't concern anyone outside of that group. 
+                    //
+                    // "experimentationService.IsExperimentEnabled(WellKnownExperimentNames.PartialLoadMode)" check above
+                    // make sure this part of code "Service : IWorkspaceStatusService" is not exposed anyone outside of
+                    // the partial solution load group.
+                    //
+                    // for ones that is in the group, one can try lightbulb behavior through internal option page
+                    // such as moving around caret on lines where LB should show up.
+                    //
+                    // it works as below
                     // 1. when this is first called, we return false and start timer to change its status in delayInMS
                     // 2. once delayInMs passed, we clear the delay and return true.
                     // 3. if it is called before the timeout, we reset the timer and return false
                     if (_lastTimeCalled == null)
                     {
                         var delay = _workspace.Options.GetOption(ExperimentationOptions.SolutionStatusService_DelayInMS);
-                        _lastTimeCalled = new ResettableDelay(delayInMilliseconds: delay);
+                        _lastTimeCalled = new ResettableDelay(delayInMilliseconds: delay, AsynchronousOperationListenerProvider.NullListener);
                         _ = _lastTimeCalled.Task.SafeContinueWith(_ => StatusChanged?.Invoke(this, true), TaskScheduler.Default);
 
                         return SpecializedTasks.False;
