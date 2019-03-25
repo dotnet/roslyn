@@ -1409,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.IsSuppressed || node.HasAnyErrors || !IsReachable())
             {
                 resultType = resultType.WithNotNullState();
-                SetResult(resultType, TypeWithAnnotations.Create(LvalueResultType.Type));
+                SetResult(resultType, LvalueResultType);
             }
 
             _callbackOpt?.Invoke(node, resultType.ToTypeWithAnnotations());
@@ -2393,7 +2393,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refResultType = consequenceRValue.Type.MergeNullability(alternativeRValue.Type, VarianceKind.None);
                 }
 
-                var lValueAnnotation = consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation);
+                var lValueAnnotation = (consequenceEndReachable, alternativeEndReachable) switch
+                {
+                    (false, false) => NullableAnnotation.Oblivious,
+                    (false, _) => alternativeLValue.NullableAnnotation,
+                    (_, false) => consequenceLValue.NullableAnnotation,
+                    _ => consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation)
+                };
+
                 var rValueState = consequenceRValue.State.Join(alternativeRValue.State);
 
                 SetResult(new TypeWithState(refResultType, rValueState), TypeWithAnnotations.Create(refResultType, lValueAnnotation));
@@ -2441,7 +2448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // Determine nested nullability using BestTypeInferrer.
-                // For constant conditions, we could use the nested nullability of the particular
+                // If a branch is unreachable, we could use the nested nullability of the other
                 // branch, but that requires using the nullability of the branch as it applies to the
                 // target type. For instance, the result of the conditional in the following should
                 // be `IEnumerable<object>` not `object[]`:

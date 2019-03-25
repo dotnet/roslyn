@@ -93,9 +93,6 @@ Invocation of methods annotated with the following attributes will also affect f
 - `[EnsuresNotNull]` (e.g. `ThrowIfNull`)
 - `[AssertsTrue]` (e.g. `Debug.Assert`) and `[AssertsFalse]`
 
-## Unreachable code
-Expressions that produce an unreachable state produce a not-null r-value and an oblivious l-value.
-
 ## `default`
 If `T` is a reference type, `default(T)` is `T?`.
 ```c#
