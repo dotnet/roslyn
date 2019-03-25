@@ -128,9 +128,9 @@ namespace Microsoft.VisualStudio.LanguageServices {
         /// <summary>
         ///   Looks up a localized string similar to A new namespace will be created.
         /// </summary>
-        internal static string a_new_namespace_will_be_created {
+        internal static string A_new_namespace_will_be_created {
             get {
-                return ResourceManager.GetString("a_new_namespace_will_be_created", resourceCulture);
+                return ResourceManager.GetString("A_new_namespace_will_be_created", resourceCulture);
             }
         }
         
@@ -2885,9 +2885,9 @@ namespace Microsoft.VisualStudio.LanguageServices {
         /// <summary>
         ///   Looks up a localized string similar to This is an invalid namespace.
         /// </summary>
-        internal static string this_is_an_invalid_namespace {
+        internal static string This_is_an_invalid_namespace {
             get {
-                return ResourceManager.GetString("this_is_an_invalid_namespace", resourceCulture);
+                return ResourceManager.GetString("This_is_an_invalid_namespace", resourceCulture);
             }
         }
         

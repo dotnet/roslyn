@@ -43,14 +43,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             if (isNewNamespace && isValidName)
             {
                 Icon = KnownMonikers.StatusInformation;
-                Message = ServicesVSResources.a_new_namespace_will_be_created;
+                Message = ServicesVSResources.A_new_namespace_will_be_created;
                 ShowMessage = true;
                 CanSubmit = true;
             }
             else if (!isValidName)
             {
                 Icon = KnownMonikers.StatusInvalid;
-                Message = ServicesVSResources.this_is_an_invalid_namespace;
+                Message = ServicesVSResources.This_is_an_invalid_namespace;
                 ShowMessage = true;
                 CanSubmit = false;
             }
