@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
-        private readonly IEnumerable<Lazy<IExternalNavigationService>> _symbolicNavigationServices;
+        private readonly IEnumerable<Lazy<IExternalNavigationService>> _externalNavigationServices;
 
         protected AbstractGoToDefinitionService(
             IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            IEnumerable<Lazy<IExternalNavigationService>> symbolicNavigationServices)
+            IEnumerable<Lazy<IExternalNavigationService>> externalNavigationServices)
         {
             _streamingPresenters = streamingPresenters;
-            _symbolicNavigationServices = symbolicNavigationServices;
+            _externalNavigationServices = externalNavigationServices;
         }
 
         public async Task<IEnumerable<INavigableItem>> FindDefinitionsAsync(
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 _streamingPresenters,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,
                 throwOnHiddenDefinition: true,
-                symbolicNavigationServices: _symbolicNavigationServices,
+                externalNavigationServices: _externalNavigationServices,
                 cancellationToken: cancellationToken);
         }
 

@@ -97,23 +97,23 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             ISymbol symbol,
             Project project,
             IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            IEnumerable<Lazy<IExternalNavigationService>> symbolicNavigationServices,
+            IEnumerable<Lazy<IExternalNavigationService>> externalNavigationServices,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true,
             bool throwOnHiddenDefinition = false)
         {
-            if (thirdPartyNavigationAllowed && symbolicNavigationServices?.Count() > 0)
+            if (thirdPartyNavigationAllowed && externalNavigationServices?.Count() > 0)
             {
-                foreach (var lazySymbolicNavigationService in symbolicNavigationServices)
+                foreach (var lazyExternalNavigationService in externalNavigationServices)
                 {
-                    var symbolicNavigationService = lazySymbolicNavigationService.Value;
+                    var externalNavigationService = lazyExternalNavigationService.Value;
 
-                    var foundSymbol = symbolicNavigationService.TryNavigateToSymbol(symbol, cancellationToken)
+                    var foundSymbol = externalNavigationService.TryNavigateToSymbol(symbol, cancellationToken)
                         .WaitAndGetResult(cancellationToken);
                     if (foundSymbol)
                         return true;
-
-                    var foundMetaData = symbolicNavigationService.TryNavigateToSymbol(symbol.MetadataName, cancellationToken)
+                    
+                    var foundMetaData = externalNavigationService.TryNavigateToSymbol(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), cancellationToken)
                         .WaitAndGetResult(cancellationToken);
                     if (foundMetaData)
                         return true;

@@ -30,19 +30,19 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
-        private readonly IEnumerable<Lazy<IExternalNavigationService>> _symbolicNavigationServices;
+        private readonly IEnumerable<Lazy<IExternalNavigationService>> _externalNavigationServices;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<Lazy<IExternalNavigationService>> symbolicNavigationServices,
+            [ImportMany] IEnumerable<Lazy<IExternalNavigationService>> externalNavigationServices,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
             : base(exportProvider, asyncServiceProvider)
         {
             _streamingPresenters = streamingPresenters;
-            _symbolicNavigationServices = symbolicNavigationServices;
+            _externalNavigationServices = externalNavigationServices;
 
             foreach (var providerFactory in documentOptionsProviderFactories)
             {
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return GoToDefinitionHelpers.TryGoToDefinition(
                 searchSymbol, searchProject,
-                _streamingPresenters, _symbolicNavigationServices,
+                _streamingPresenters, _externalNavigationServices,
                 cancellationToken);
         }
 

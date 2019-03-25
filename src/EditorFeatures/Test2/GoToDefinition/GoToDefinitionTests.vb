@@ -106,10 +106,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
             Test(workspaceDefinition, expectedResult,
                 Function(document As Document, cursorPosition As Integer,
                          presenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)),
-                         symbolicNavigationServices As IEnumerable(Of Lazy(Of IExternalNavigationService)))
+                         externalNavigationServices As IEnumerable(Of Lazy(Of IExternalNavigationService)))
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(presenters, symbolicNavigationServices), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(presenters, symbolicNavigationServices))
+                        DirectCast(New CSharpGoToDefinitionService(presenters, externalNavigationServices), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(presenters, externalNavigationServices))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)

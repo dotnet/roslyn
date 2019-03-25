@@ -45,7 +45,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                     symbolInfo.Symbol, document.Project,
                     {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)},
                     thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False,
-                    symbolicNavigationServices:=Nothing, cancellationToken:=CancellationToken.None)
+                    externalNavigationServices:=Nothing, cancellationToken:=CancellationToken.None)
 
                 Assert.Equal(expectSuccess, success)
             End Using
