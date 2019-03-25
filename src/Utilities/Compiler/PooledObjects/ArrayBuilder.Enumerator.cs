@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 #pragma warning disable CA1710 // Rename Microsoft.CodeAnalysis.ArrayBuilder<T> to end in 'Collection'.
 
-namespace Microsoft.CodeAnalysis
+namespace Analyzer.Utilities.PooledObjects
 {
     public partial class ArrayBuilder<T>
     {

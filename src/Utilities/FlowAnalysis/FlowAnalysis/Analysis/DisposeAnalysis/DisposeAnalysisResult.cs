@@ -17,6 +17,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis
             TrackedInstanceFieldPointsToMap = trackedInstanceFieldPointsToMap;
         }
 
-        internal ImmutableDictionary<IFieldSymbol, PointsToAnalysis.PointsToAbstractValue> TrackedInstanceFieldPointsToMap { get; }
+        public ImmutableDictionary<IFieldSymbol, PointsToAnalysis.PointsToAbstractValue> TrackedInstanceFieldPointsToMap { get; }
     }
 }

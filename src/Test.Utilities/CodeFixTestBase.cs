@@ -170,7 +170,7 @@ namespace Test.Utilities
                 var actualText = GetActualTextForNewDocument(document, documents[i].Name).ToString().Trim();
                 if (expectedText != actualText)
                 {
-                    Assert.False(false, $"Expected:\n{expectedText}\n\nActual:\n{actualText}\n");
+                    Assert.False(true, $"Expected:\n{expectedText}\n\nActual:\n{actualText}\n");
                 }
             }
         }

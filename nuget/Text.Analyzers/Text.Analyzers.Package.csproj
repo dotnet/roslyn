@@ -9,7 +9,9 @@
     <Summary>Text Analyzers</Summary>
     <ReleaseNotes>Text Analyzers</ReleaseNotes>
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
-    <ContainsPortedFxCopRules>true</ContainsPortedFxCopRules>
+    
+    <!-- 'ContainsPortedFxCopRules' should be switched to 'true' once we have ported FxCop rules in this package -->
+    <ContainsPortedFxCopRules>false</ContainsPortedFxCopRules>
   </PropertyGroup>
 
   <ItemGroup>
