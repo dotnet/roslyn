@@ -179,8 +179,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                TypeSymbol convertsFrom = op.ParameterTypes[0].TypeSymbol;
-                TypeSymbol convertsTo = op.ReturnType.TypeSymbol;
+                TypeSymbol convertsFrom = op.GetParameterType(0);
+                TypeSymbol convertsTo = op.ReturnType;
                 Conversion fromConversion = EncompassingExplicitConversion(sourceExpression, source, convertsFrom, ref useSiteDiagnostics);
                 Conversion toConversion = EncompassingExplicitConversion(null, convertsTo, target, ref useSiteDiagnostics);
 

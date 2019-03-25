@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return SymbolName; }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
-            get { return TypeSymbolWithAnnotations.Create(_containingType, NullableAnnotation.NotAnnotated); }
+            get { return TypeWithAnnotations.Create(_containingType, NullableAnnotation.NotAnnotated); }
         }
 
         public override RefKind RefKind

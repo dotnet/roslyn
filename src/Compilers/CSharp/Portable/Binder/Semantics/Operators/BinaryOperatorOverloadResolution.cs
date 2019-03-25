@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.LessThan:
                 case BinaryOperatorKind.GreaterThanOrEqual:
                 case BinaryOperatorKind.LessThanOrEqual:
-                    var voidPointerType = new PointerTypeSymbol(TypeSymbolWithAnnotations.Create(Compilation.GetSpecialType(SpecialType.System_Void)));
+                    var voidPointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(Compilation.GetSpecialType(SpecialType.System_Void)));
                     operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Pointer, voidPointerType, voidPointerType, Compilation.GetSpecialType(SpecialType.System_Boolean)));
                     break;
             }
@@ -712,9 +712,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                TypeSymbol leftOperandType = op.ParameterTypes[0].TypeSymbol;
-                TypeSymbol rightOperandType = op.ParameterTypes[1].TypeSymbol;
-                TypeSymbol resultType = op.ReturnType.TypeSymbol;
+                TypeSymbol leftOperandType = op.GetParameterType(0);
+                TypeSymbol rightOperandType = op.GetParameterType(1);
+                TypeSymbol resultType = op.ReturnType;
 
                 operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UserDefined | kind, leftOperandType, rightOperandType, resultType, op));
 
@@ -1052,8 +1052,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)op1.Method != null)
             {
                 var p = op1.Method.OriginalDefinition.GetParameters();
-                op1Left = p[0].Type.TypeSymbol;
-                op1Right = p[1].Type.TypeSymbol;
+                op1Left = p[0].Type;
+                op1Right = p[1].Type;
                 if (op1.Kind.IsLifted())
                 {
                     op1Left = MakeNullable(op1Left);
@@ -1069,8 +1069,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)op2.Method != null)
             {
                 var p = op2.Method.OriginalDefinition.GetParameters();
-                op2Left = p[0].Type.TypeSymbol;
-                op2Right = p[1].Type.TypeSymbol;
+                op2Left = p[0].Type;
+                op2Right = p[1].Type;
                 if (op2.Kind.IsLifted())
                 {
                     op2Left = MakeNullable(op2Left);
