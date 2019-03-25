@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         var b = baseTypeSyntax.Type;
                         var tmpDiag = DiagnosticBag.GetInstance();
-                        var curBaseSym = baseBinder.BindType(b, tmpDiag).TypeSymbol;
+                        var curBaseSym = baseBinder.BindType(b, tmpDiag).Type;
                         tmpDiag.Free();
 
                         if (baseSym.Equals(curBaseSym))
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (i == 0 && TypeKind == TypeKind.Class) // allow class in the first position
                 {
-                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).TypeSymbol;
+                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).Type;
 
                     SpecialType baseSpecialType = baseType.SpecialType;
                     if (IsRestrictedBaseType(baseSpecialType))
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).TypeSymbol;
+                    baseType = baseBinder.BindType(typeSyntax, diagnostics, newBasesBeingResolved).Type;
                 }
 
                 switch (baseType.TypeKind)

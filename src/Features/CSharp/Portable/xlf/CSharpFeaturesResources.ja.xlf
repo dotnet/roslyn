@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_method">
         <source>Convert to method</source>
-        <target state="translated">Convert to method</target>
+        <target state="translated">メソッドに変換</target>
         <note />
       </trans-unit>
       <trans-unit id="Declare_as_nullable">
@@ -744,17 +744,17 @@
       </trans-unit>
       <trans-unit id="Add_Obsolete">
         <source>Add [Obsolete]</source>
-        <target state="new">Add [Obsolete]</target>
+        <target state="translated">追加 [廃止]</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_0">
         <source>Use '{0}'</source>
-        <target state="new">Use '{0}'</target>
+        <target state="translated">'{0}' を使用します</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_using_statement">
         <source>Introduce 'using' statement</source>
-        <target state="new">Introduce 'using' statement</target>
+        <target state="translated">'using' ステートメントを導入します</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>

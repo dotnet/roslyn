@@ -9,15 +9,6 @@
             "vsBranch": "rel/d15.9",
             "vsMajorVersion": 15
         },
-        "dev16.0-preview3-vs-deps": {
-            "nugetKind": ["Shipping", "NonShipping"],
-            "version": "3.0.*",
-            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
-            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
-            "channels": [ "dev16.0p3" ],
-            "vsBranch": "lab/d16.0stg",
-            "vsMajorVersion": 16
-        },
         "dev16.0-vs-deps": {
             "nugetKind": ["Shipping", "NonShipping"],
             "version": "3.0.*",
@@ -33,7 +24,7 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev16.1", "dev16.1p1" ],
-            "vsBranch": "master",
+            "vsBranch": "lab/d16.1stg",
             "vsMajorVersion": 16
         },
         "features/NullableReferenceTypes": {
@@ -42,7 +33,7 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn-nonnull/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn-nonnull/vsix/upload" ],
             "channels": [ "nonnull" ],
-            "vsBranch": "master",
+            "vsBranch": "lab/d16.1stg",
             "vsMajorVersion": 16,
             "ibcSourceBranch": "master-vs-deps"
         },
@@ -52,7 +43,7 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dataflow" ],
-            "vsBranch": "master",
+            "vsBranch": "lab/d16.1stg",
             "vsMajorVersion": 16,
             "ibcSourceBranch": "master-vs-deps"
         },
@@ -62,7 +53,7 @@
             "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "editorconfig" ],
-            "vsBranch": "master",
+            "vsBranch": "lab/d16.1stg",
             "vsMajorVersion": 16,
             "ibcSourceBranch": "master-vs-deps"
         }

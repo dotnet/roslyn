@@ -65,7 +65,9 @@ jobs:
       condition: not(succeeded())
 
 - job: Windows_Desktop_Spanish_Unit_Tests
-  pool: dnceng-windows-spanish-external-temp
+  pool:
+    name: NetCorePublic-Int-Pool
+    queue: BuildPool.Windows.10.Amd64.ES.VS2017.Open
   timeoutInMinutes: 90
 
   steps:

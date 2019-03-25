@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             _source = new JsonRpcAssetSource(this);
 
-            Rpc.StartListening();
+            StartService();
         }
     }
 }

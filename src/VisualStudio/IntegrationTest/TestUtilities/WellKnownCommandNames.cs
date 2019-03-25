@@ -8,6 +8,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Build_SolutionConfigurations = "Build.SolutionConfigurations";
 
         public const string Edit_GoToAll = "Edit.GoToAll";
+        public const string Edit_GoToDefinition = "Edit.GoToDefinition";
+        public const string Edit_GoToImplementation = "Edit.GoToImplementation";
         public const string Edit_ListMembers = "Edit.ListMembers";
         public const string Edit_ParameterInfo = "Edit.ParameterInfo";
         public const string Edit_QuickInfo = "Edit.QuickInfo";

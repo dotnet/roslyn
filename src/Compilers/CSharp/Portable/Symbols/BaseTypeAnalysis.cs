@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    StructDependsClosure((NamedTypeSymbol)field.Type.TypeSymbol, partialClosure, on);
+                    StructDependsClosure((NamedTypeSymbol)field.Type, partialClosure, on);
                 }
             }
         }
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    TypeSymbol fieldType = field.Type.TypeSymbol;
+                    TypeSymbol fieldType = field.Type;
                     NamedTypeSymbol fieldNamedType = fieldType as NamedTypeSymbol;
                     if ((object)fieldNamedType == null)
                     {
