@@ -54061,6 +54061,34 @@ class Program
         }
 
         [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(32600, "https://github.com/dotnet/roslyn/issues/32600")]
+        public void Conversions_TupleConversions_14()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator A?(int i) => new A();
+}
+class B
+{
+    public static implicit operator B(int i) => new B();
+}
+class Program
+{
+    static void F((int, int) t)
+    {
+        (A, B?) u = t; // 1
+        u.Item1.ToString(); // 2
+        u.Item2.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32599: Track state across tuple element conversions.
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Conversions_BoxingConversions_01()
         {
             var source =
