@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                     if (foundSymbol)
                         return true;
                     
-                    var foundMetaData = externalNavigationService.TryNavigateToSymbol(symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat), cancellationToken)
+                    var foundMetaData = externalNavigationService.TryNavigateToSymbol(RQNameInternal.From(symbol), cancellationToken) // TODO what if RQNameInternal.From(symbol) returns null?
                         .WaitAndGetResult(cancellationToken);
                     if (foundMetaData)
                         return true;
