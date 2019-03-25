@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
         // If the member is already qualified with `base.`,
         // or member is in object initialization context,
         // or member in property or field initialization,
-        // or member in base constructor,  it cannot be qualified.
+        // or member in constructor initializer, it cannot be qualified.
         protected override bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node)
         {
             if (node.GetAncestorOrThis<AttributeSyntax>() != null)
