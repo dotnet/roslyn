@@ -23280,7 +23280,7 @@ class C
     static void F1(bool b)
     {
         (b ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)) /*T:string!*/ = null; // 1, 2
-        (b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())) /*T:string?*/ = null; // 3
+        (b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())) /*T:string?*/ = null; // 3, 4
     }
     static ref string? M1(int i) => throw null!;
     static ref string M2(int i) => throw null!;
@@ -23295,8 +23295,11 @@ class C
                 //         (b ? ref M1(false ? 1 : throw new System.Exception()) : ref M2(2)) /*T:string!*/ = null; // 1, 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 92),
                 // (7,10): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
-                //         (b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())) /*T:string?*/ = null; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())").WithArguments("string?", "string").WithLocation(7, 10)
+                //         (b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())) /*T:string?*/ = null; // 3, 4
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())").WithArguments("string?", "string").WithLocation(7, 10),
+                // (7,92): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         (b ? ref M1(1) : ref M2(false ? 2 : throw new System.Exception())) /*T:string?*/ = null; // 3, 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 92)
                 );
         }
 
@@ -23331,13 +23334,13 @@ class C
     {
         ((b && false) ? ref x1 : ref x1)/*T:string?*/ = null;
         ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1, 2
-        ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null; // 3
-        ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 4
+        ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null; // 3, 4
+        ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 5
 
         ((b || true) ? ref x1 : ref x1)/*T:string?*/ = null;
-        ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null; // 5
-        ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 6, 7
-        ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 8
+        ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null; // 6, 7
+        ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 8, 9
+        ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 10
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
@@ -23350,22 +23353,28 @@ class C
                 //         ((b && false) ? ref x1 : ref y1)/*T:string!*/ = null; // 1, 2
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 57),
                 // (8,10): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
-                //         ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null; // 3
+                //         ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null; // 3, 4
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b && false) ? ref y1 : ref x1").WithArguments("string", "string?").WithLocation(8, 10),
+                // (8,57): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         ((b && false) ? ref y1 : ref x1)/*T:string?*/ = null; // 3, 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(8, 57),
                 // (9,57): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 4
+                //         ((b && false) ? ref y1 : ref y1)/*T:string!*/ = null; // 5
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 57),
                 // (12,10): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
-                //         ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null; // 5
+                //         ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null; // 6, 7
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b || true) ? ref x1 : ref y1").WithArguments("string?", "string").WithLocation(12, 10),
+                // (12,56): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         ((b || true) ? ref x1 : ref y1)/*T:string?*/ = null; // 6, 7
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 56),
                 // (13,10): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
-                //         ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 6, 7
+                //         ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 8, 9
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(b || true) ? ref y1 : ref x1").WithArguments("string", "string?").WithLocation(13, 10),
                 // (13,56): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 6, 7
+                //         ((b || true) ? ref y1 : ref x1)/*T:string!*/ = null; // 8, 9
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 56),
                 // (14,56): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 8
+                //         ((b || true) ? ref y1 : ref y1)/*T:string!*/ = null; // 10
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 56)
                 );
         }

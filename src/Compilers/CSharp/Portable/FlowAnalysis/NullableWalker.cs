@@ -2393,14 +2393,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     refResultType = consequenceRValue.Type.MergeNullability(alternativeRValue.Type, VarianceKind.None);
                 }
 
-                var lValueAnnotation = (consequenceEndReachable, alternativeEndReachable) switch
-                {
-                    (false, false) => NullableAnnotation.Oblivious,
-                    (false, _) => alternativeLValue.NullableAnnotation,
-                    (_, false) => consequenceLValue.NullableAnnotation,
-                    _ => consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation)
-                };
-
+                var lValueAnnotation = consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation);
                 var rValueState = consequenceRValue.State.Join(alternativeRValue.State);
 
                 SetResult(new TypeWithState(refResultType, rValueState), TypeWithAnnotations.Create(refResultType, lValueAnnotation));
