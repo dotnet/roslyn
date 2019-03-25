@@ -697,6 +697,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void Undo()
             => ExecuteCommand(WellKnownCommandNames.Edit_Undo);
 
+        public void Redo()
+            => GetDTE().ExecuteCommand(WellKnownCommandNames.Edit_Redo);
+
         protected override ITextBuffer GetBufferContainingCaret(IWpfTextView view)
         {
             return view.GetBufferContainingCaret();

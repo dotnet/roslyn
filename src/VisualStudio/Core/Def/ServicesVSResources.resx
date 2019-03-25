@@ -1216,4 +1216,7 @@ I agree to all of the foregoing:</value>
   <data name="A_new_namespace_will_be_created" xml:space="preserve">
     <value>A new namespace will be created</value>
   </data>
+  <data name="Rename_0_to_1" xml:space="preserve">
+    <value>Rename {0} to {1}</value>
+  </data>
 </root>

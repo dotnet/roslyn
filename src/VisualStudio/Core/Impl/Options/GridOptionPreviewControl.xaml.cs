@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
         }
 
-        internal override void LoadSettings()
+        internal override void OnLoad()
         {
             this.ViewModel = _createViewModel(OptionStore, _serviceProvider);
 
