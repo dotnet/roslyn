@@ -421,7 +421,8 @@ End Class", index:=2, title:=String.Format(FeaturesResources.Add_to_0, "Program(
 "Class Program
     Private [|l|] As Integer
 
-    ' index 0, and 2 as optional
+    ' index 0 as regular
+    ' index 2 as optional
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
@@ -430,14 +431,16 @@ End Class", index:=2, title:=String.Format(FeaturesResources.Add_to_0, "Program(
     Public Sub New(Optional j As Double = Nothing)
     End Sub
 
-    ' index 1, and 4 as optional
+    ' index 1 as regular
+    ' index 4 as optional
     Public Sub New(i As Integer, j As Double)
     End Sub
 End Class",
 "Class Program
     Private [|l|] As Integer
 
-    ' index 0, and 2 as optional
+    ' index 0 as regular
+    ' index 2 as optional
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
@@ -446,7 +449,8 @@ End Class",
     Public Sub New(Optional j As Double = Nothing)
     End Sub
 
-    ' index 1, and 4 as optional
+    ' index 1 as regular
+    ' index 4 as optional
     Public Sub New(i As Integer, j As Double, l As Integer)
         Me.l = l
     End Sub

@@ -1029,7 +1029,8 @@ class C
     {
     }
 
-    // index 1, and 4 as optional
+    // index 1 as required
+    // index 4 as optional
     public C(int i, double j, int k)
     {
     }
@@ -1040,7 +1041,8 @@ class C
 {
     int [|l|];
 
-    // index 0, and 2 as optional
+    // index 0 as required
+    // index 2 as optional
     public C(int i)
     {
     }
@@ -1050,7 +1052,8 @@ class C
     {
     }
 
-    // index 1, and 4 as optional
+    // index 1 as required
+    // index 4 as optional
     public C(int i, double j, int k, int l)
     {
         this.l = l;
