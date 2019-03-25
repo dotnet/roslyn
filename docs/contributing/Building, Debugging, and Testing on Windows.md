@@ -57,7 +57,7 @@ Tests can be run and debugged from the Test Explorer window. For best performanc
     2. Uncheck the box for **Additionally discover tests from build assemblies...**
 2. Use the Search box of Test Explorer to narrow the scope of visible tests to the feature(s) you are working on
 3. When you are not actively running tests, set the search query to `__NonExistent__` to hide all tests from the UI
-
+ 
 ### WPF Test Runner
 
 To debug through tests, you can right click the test project that contains your
