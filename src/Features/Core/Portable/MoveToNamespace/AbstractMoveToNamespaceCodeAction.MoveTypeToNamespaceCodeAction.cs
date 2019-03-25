@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         {
             public override string Title => FeaturesResources.Move_to_namespace;
 
-            public MoveTypeToNamespaceCodeAction(AbstractMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+            public MoveTypeToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
                 : base(changeNamespaceService, analysisResult)
             {
             }

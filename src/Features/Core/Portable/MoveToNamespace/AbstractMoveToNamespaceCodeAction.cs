@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     internal abstract partial class AbstractMoveToNamespaceCodeAction : CodeActionWithOptions
     {
-        private readonly AbstractMoveToNamespaceService _changeNamespaceService;
+        private readonly IMoveToNamespaceService _changeNamespaceService;
         private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult;
 
-        public AbstractMoveToNamespaceCodeAction(AbstractMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+        public AbstractMoveToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
         {
             _changeNamespaceService = changeNamespaceService;
             _moveToNamespaceAnalysisResult = analysisResult;
@@ -22,10 +22,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
-            return _changeNamespaceService.GetOptionsAsync(
+            return _changeNamespaceService.GetChangeNamespaceOptions(
                 _moveToNamespaceAnalysisResult.Document,
                 _moveToNamespaceAnalysisResult.OriginalNamespace,
-                cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
+                _moveToNamespaceAnalysisResult.Namespaces);
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
@@ -41,17 +41,14 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
                 if (moveToNamespaceResult.Succeeded)
                 {
-                    operations = new CodeActionOperation[]
-                    {
-                        new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution)
-                    };
+                    operations = SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
                 }
             }
 
             return operations;
         }
 
-        public static AbstractMoveToNamespaceCodeAction Generate(AbstractMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+        public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
             => analysisResult.Type switch
         {
             MoveToNamespaceAnalysisResult.ContainerType.NamedType => (AbstractMoveToNamespaceCodeAction)new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),

@@ -6,12 +6,12 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     internal class MoveToNamespaceOptionsResult
     {
-        public static readonly MoveToNamespaceOptionsResult Cancelled = new MoveToNamespaceOptionsResult(isCancelled: true);
+        public static readonly MoveToNamespaceOptionsResult Cancelled = new MoveToNamespaceOptionsResult();
 
         public bool IsCancelled { get; }
         public string Namespace { get; }
 
-        public MoveToNamespaceOptionsResult(bool isCancelled)
+        private MoveToNamespaceOptionsResult()
         {
             IsCancelled = true;
         }

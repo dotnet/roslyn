@@ -1,7 +1,6 @@
-﻿
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,28 +11,30 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
-    internal abstract class AbstractMoveToNamespaceService : ILanguageService
+    internal interface IMoveToNamespaceService : ILanguageService
     {
-        internal abstract Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
-        internal abstract Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
-        public abstract Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
-        public abstract Task<MoveToNamespaceOptionsResult> GetOptionsAsync(Document document, string defaultNamespace, CancellationToken cancellationToken);
+        Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+        Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
+        Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
+        MoveToNamespaceOptionsResult GetChangeNamespaceOptions(Document document, string defaultNamespace, ImmutableArray<string> namespaces);
+        bool IsValidIdentifier(string identifier);
     }
 
-    internal abstract class AbstractMoveToNamespaceService<TCompilationSyntax, TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
-        : AbstractMoveToNamespaceService
+    internal abstract class AbstractMoveToNamespaceService<TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
+        : IMoveToNamespaceService
     {
         private IMoveToNamespaceOptionsService _moveToNamespaceOptionsService;
 
         protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax syntax);
         protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax syntax);
+        public abstract bool IsValidIdentifier(string identifier);
 
         public AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
         {
             _moveToNamespaceOptionsService = moveToNamespaceOptionsService;
         }
 
-        internal override async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
+        public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
             Document document,
             TextSpan span,
             CancellationToken cancellationToken)
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return ImmutableArray<AbstractMoveToNamespaceCodeAction>.Empty;
         }
 
-        internal override async Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(
+        public async Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(
             Document document,
             int position,
             CancellationToken cancellationToken)
@@ -73,11 +74,12 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             {
                 if (ContainsNamespaceDeclaration(node))
                 {
-                    return new MoveToNamespaceAnalysisResult("Namespace container contains nested namespace declaration");
+                    return MoveToNamespaceAnalysisResult.Invalid;
                 }
 
                 @namespace = GetNamespaceName(declarationSyntax);
-                return new MoveToNamespaceAnalysisResult(document, node, @namespace, MoveToNamespaceAnalysisResult.ContainerType.Namespace);
+                var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
+                return new MoveToNamespaceAnalysisResult(document, node, @namespace, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.Namespace);
             }
 
             if (symbol is INamedTypeSymbol namedTypeSymbol)
@@ -89,21 +91,21 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             if (node is TNamedTypeDeclarationSyntax namedTypeDeclarationSyntax)
             {
                 @namespace = @namespace ?? GetNamespaceName(namedTypeDeclarationSyntax);
-                return new MoveToNamespaceAnalysisResult(document, node, @namespace, MoveToNamespaceAnalysisResult.ContainerType.NamedType);
+                var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
+                return new MoveToNamespaceAnalysisResult(document, node, @namespace, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.NamedType);
             }
 
-            return new MoveToNamespaceAnalysisResult("Not a valid position");
-#else 
+            return MoveToNamespaceAnalysisResult.Invalid;
+#else
 
-            return await Task.FromResult(new MoveToNamespaceAnalysisResult("Feature is not complete yet")).ConfigureAwait(false);
+            return await Task.FromResult(MoveToNamespaceAnalysisResult.Invalid).ConfigureAwait(false);
 #endif
         }
 
         private bool ContainsNamespaceDeclaration(SyntaxNode node)
-            => node.DescendantNodes(n => n is TCompilationSyntax || n is TNamespaceDeclarationSyntax)
-                        .OfType<TNamespaceDeclarationSyntax>().Any();
+            => node.DescendantNodes().OfType<TNamespaceDeclarationSyntax>().Any();
 
-        public override Task<MoveToNamespaceResult> MoveToNamespaceAsync(
+        public Task<MoveToNamespaceResult> MoveToNamespaceAsync(
             MoveToNamespaceAnalysisResult analysisResult,
             string targetNamespace,
             CancellationToken cancellationToken)
@@ -119,21 +121,24 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         protected static string GetQualifiedName(INamespaceSymbol namespaceSymbol)
             => namespaceSymbol.ToDisplayString(QualifiedNamespaceFormat);
 
-        public override async Task<MoveToNamespaceOptionsResult> GetOptionsAsync(
-            Document document,
-            string defaultNamespace,
-            CancellationToken cancellationToken)
+        private static async Task<IEnumerable<string>> GetNamespacesAsync(Document document, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            var namespaces = compilation.GlobalNamespace.GetAllNamespaces(cancellationToken)
+            return compilation.GlobalNamespace.GetAllNamespaces(cancellationToken)
                 .Where(n => n.NamespaceKind == NamespaceKind.Module && n.ContainingAssembly == compilation.Assembly)
                 .Select(GetQualifiedName);
+        }
 
-            return await _moveToNamespaceOptionsService.GetChangeNamespaceOptionsAsync(
+        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
+            Document document,
+            string defaultNamespace,
+            ImmutableArray<string> namespaces)
+        {
+            return _moveToNamespaceOptionsService.GetChangeNamespaceOptions(
                 defaultNamespace,
-                namespaces.ToImmutableArray(),
-                cancellationToken).ConfigureAwait(false);
+                namespaces,
+                this);
         }
     }
 }

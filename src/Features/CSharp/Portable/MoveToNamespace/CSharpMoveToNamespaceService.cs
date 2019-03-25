@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.MoveToNamespace;
 
 namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
 {
-    [ExportLanguageService(typeof(AbstractMoveToNamespaceService), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(IMoveToNamespaceService), LanguageNames.CSharp), Shared]
     internal class CSharpMoveToNamespaceService :
-        AbstractMoveToNamespaceService<CompilationUnitSyntax, NamespaceDeclarationSyntax, TypeDeclarationSyntax>
+        AbstractMoveToNamespaceService<NamespaceDeclarationSyntax, TypeDeclarationSyntax>
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
             : base(moveToNamespaceOptionsService)
         {
         }
+
+        public override bool IsValidIdentifier(string identifier)
+            => SyntaxFacts.IsValidIdentifier(identifier);
 
         protected override string GetNamespaceName(NamespaceDeclarationSyntax syntax)
             => syntax.Name.ToString();

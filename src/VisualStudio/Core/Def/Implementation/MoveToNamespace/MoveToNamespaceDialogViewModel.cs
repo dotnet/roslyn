@@ -4,16 +4,21 @@ using System.Collections.Immutable;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Imaging;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.MoveToNamespace;
+using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {
     class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged
     {
+        private readonly IMoveToNamespaceService _moveToNamespaceService;
+
         public MoveToNamespaceDialogViewModel(
             string defaultNamespace,
-            ImmutableArray<string> availableNamespaces)
+            ImmutableArray<string> availableNamespaces,
+            IMoveToNamespaceService moveToNamespaceService)
         {
+            _moveToNamespaceService = moveToNamespaceService ?? throw new ArgumentNullException(nameof(moveToNamespaceService));
             NamespaceName = defaultNamespace;
             AvailableNamespaces = availableNamespaces;
 
@@ -56,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             }
         }
 
-        private static bool IsValidNamespace(string namespaceName)
+        private bool IsValidNamespace(string namespaceName)
         {
             if (string.IsNullOrEmpty(namespaceName))
             {
@@ -65,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 
             foreach (var identifier in namespaceName.Split('.'))
             {
-                if (UnicodeCharacterUtilities.IsValidIdentifier(identifier))
+                if (_moveToNamespaceService.IsValidIdentifier(identifier))
                 {
                     continue;
                 }
