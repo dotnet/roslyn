@@ -67,6 +67,11 @@ if ($PSVersionTable.PSVersion.Major -lt "5") {
     exit 1
 }
 
+$regKeyProperty = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
+if (($null -eq $regKeyProperty) -or ($regKeyProperty.LongPathsEnabled -ne 1)) {
+    Write-Warning "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with ``reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1``"
+}
+
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 

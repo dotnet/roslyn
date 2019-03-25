@@ -435,6 +435,26 @@ namespace Microsoft.CodeAnalysis
             => ReportErrors(diagnostics.ToReadOnly(), consoleOutput, errorLoggerOpt);
 
         /// <summary>
+        /// Returns true if there are any diagnostics in the bag which have error severity and are
+        /// not marked "suppressed". Note: does NOT do filtering, so it may return false if a
+        /// non-error diagnostic were later elevated to an error through filtering (e.g., through
+        /// warn-as-error). This is meant to be a check if there are any "real" errors, in the bag
+        /// since diagnostics with default "error" severity can never be suppressed or reduced
+        /// below error severity.
+        /// </summary>
+        internal static bool HasUnsuppressedErrors(DiagnosticBag diagnostics)
+        {
+            foreach (var diag in diagnostics.AsEnumerable())
+            {
+                if (IsReportedError(diag))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Returns true if the diagnostic is an error that should be reported.
         /// </summary>
         private static bool IsReportedError(Diagnostic diagnostic)
@@ -648,7 +668,7 @@ namespace Microsoft.CodeAnalysis
 
             // Print the diagnostics produced during the parsing stage and exit if there were any errors.
             compilation.GetDiagnostics(CompilationStage.Parse, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (diagnostics.HasAnyErrors())
+            if (HasUnsuppressedErrors(diagnostics))
             {
                 return;
             }
@@ -674,7 +694,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             compilation.GetDiagnostics(CompilationStage.Declare, includeEarlierStages: false, diagnostics, cancellationToken);
-            if (diagnostics.HasAnyErrors())
+            if (HasUnsuppressedErrors(diagnostics))
             {
                 return;
             }
@@ -786,7 +806,7 @@ namespace Microsoft.CodeAnalysis
                             {
                                 using (var win32ResourceStreamOpt = GetWin32Resources(MessageProvider, Arguments, compilation, diagnostics))
                                 {
-                                    if (diagnostics.HasAnyErrors())
+                                    if (HasUnsuppressedErrors(diagnostics))
                                     {
                                         return;
                                     }
@@ -882,7 +902,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                if (diagnostics.HasAnyErrors())
+                if (HasUnsuppressedErrors(diagnostics))
                 {
                     return;
                 }
@@ -902,7 +922,7 @@ namespace Microsoft.CodeAnalysis
             if (analyzerExceptionDiagnostics != null)
             {
                 diagnostics.AddRange(analyzerExceptionDiagnostics);
-                if (analyzerExceptionDiagnostics.HasAnyErrors())
+                if (HasUnsuppressedErrors(analyzerExceptionDiagnostics))
                 {
                     return;
                 }

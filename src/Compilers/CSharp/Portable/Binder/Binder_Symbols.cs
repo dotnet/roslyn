@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.ArrayType:
                     {
-                        return BindArrayType((ArrayTypeSyntax)syntax, diagnostics, permitDimensions: false, basesBeingResolved);
+                        return BindArrayType((ArrayTypeSyntax)syntax, diagnostics, permitDimensions: false, basesBeingResolved, disallowRestrictedTypes: true);
                     }
 
                 case SyntaxKind.PointerType:
@@ -516,7 +516,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayTypeSyntax node,
             DiagnosticBag diagnostics,
             bool permitDimensions,
-            ConsList<TypeSymbol> basesBeingResolved)
+            ConsList<TypeSymbol> basesBeingResolved,
+            bool disallowRestrictedTypes)
         {
             TypeWithAnnotations type = BindType(node.ElementType, diagnostics, basesBeingResolved);
             if (type.IsStatic)
@@ -525,17 +526,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_ArrayOfStaticClass, node.ElementType, type.Type);
             }
 
-            if (ShouldCheckConstraints)
+            if (disallowRestrictedTypes)
             {
-                if (type.IsRestrictedType())
+                // Restricted types cannot be on the heap, but they can be on the stack, so are allowed in a stackalloc
+                if (ShouldCheckConstraints)
                 {
-                    // CS0611: Array elements cannot be of type '{0}'
-                    Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node.ElementType, type.Type);
+                    if (type.IsRestrictedType())
+                    {
+                        // CS0611: Array elements cannot be of type '{0}'
+                        Error(diagnostics, ErrorCode.ERR_ArrayElementCantBeRefAny, node.ElementType, type.Type);
+                    }
                 }
-            }
-            else
-            {
-                diagnostics.Add(new LazyArrayElementCantBeRefAnyDiagnosticInfo(type), node.ElementType.GetLocation());
+                else
+                {
+                    diagnostics.Add(new LazyArrayElementCantBeRefAnyDiagnosticInfo(type), node.ElementType.GetLocation());
+                }
             }
 
             for (int i = node.RankSpecifiers.Count - 1; i >= 0; i--)
