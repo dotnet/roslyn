@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
@@ -16,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
         protected readonly CancellationToken _cancellationToken;
 
         public AbstractRecommendationServiceRunner(
-            TSyntaxContext context, 
-            bool filterOutOfScopeLocals, 
+            TSyntaxContext context,
+            bool filterOutOfScopeLocals,
             CancellationToken cancellationToken)
         {
             _context = context;
@@ -26,6 +29,90 @@ namespace Microsoft.CodeAnalysis.Recommendations
         }
 
         public abstract ImmutableArray<ISymbol> GetSymbols();
+
+        protected ImmutableArray<ISymbol> GetSymbols<TLambdaExpressionSyntax, TArgumentSyntax, TArgumentListSyntax, TInvocationExpressionSyntax>(
+          SemanticModel semanticModel,
+          IParameterSymbol parameter,
+          int position,
+          Func<TArgumentListSyntax, SeparatedSyntaxList<TArgumentSyntax>> getArguments,
+          CancellationToken cancellationToken)
+          where TArgumentListSyntax : SyntaxNode
+          where TArgumentSyntax : SyntaxNode
+          where TInvocationExpressionSyntax : SyntaxNode
+          where TLambdaExpressionSyntax : SyntaxNode
+        {
+            if (!(parameter.ContainingSymbol is IMethodSymbol containingMethod &&
+                containingMethod.MethodKind == MethodKind.AnonymousFunction))
+            {
+                return default;
+            }
+
+            // Cannot proceed without DeclaringSyntaxReferences.
+            // We expect that there is a single DeclaringSyntaxReferences in the scenario.
+            // If anything changes on the compiler side, the approach shuold be revised.
+            if (containingMethod.DeclaringSyntaxReferences.IsDefaultOrEmpty || containingMethod.DeclaringSyntaxReferences.Length > 1)
+            {
+                return default;
+            }
+
+            var lambdaSyntax = containingMethod.DeclaringSyntaxReferences.Single().GetSyntax(cancellationToken) as TLambdaExpressionSyntax;
+            if (!(lambdaSyntax.Parent is TArgumentSyntax argumentSyntax &&
+                argumentSyntax.Parent is TArgumentListSyntax argumentListSyntax &&
+                argumentListSyntax.Parent is TInvocationExpressionSyntax invocationExpression))
+            {
+                return default;
+            }
+
+            var ordinalInInvocation = getArguments(argumentListSyntax).IndexOf(argumentSyntax);
+            var invocation = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken);
+            var candidateSymbols =
+                invocation.CandidateSymbols.Length > 0
+                ? invocation.CandidateSymbols
+                : new[] { invocation.Symbol }.ToImmutableArray();
+
+            var parameterTypeSymbols = GetTypeSymbols(
+                semanticModel, candidateSymbols, ordinalInInvocation: ordinalInInvocation, ordinalInLambda: parameter.Ordinal);
+
+            return parameterTypeSymbols
+                .SelectMany(parameterTypeSymbol => GetSymbols(parameterTypeSymbol, position, excludeInstance: false, useBaseReferenceAccessibility: false))
+                .ToImmutableArray();
+        }
+
+        protected static ImmutableArray<ITypeSymbol> GetTypeSymbols(
+            SemanticModel semanticModel, ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
+        {
+            var builder = ArrayBuilder<ITypeSymbol>.GetInstance();
+            var expressionSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
+            var funcSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(Func<>).FullName);
+
+            foreach (var candidateSymbol in candidateSymbols)
+            {
+                if (candidateSymbol is IMethodSymbol method)
+                {
+                    if (method.Parameters.Length > ordinalInInvocation)
+                    {
+                        var methodParameterSymbool = method.Parameters[ordinalInInvocation];
+                        var type = methodParameterSymbool.Type;
+                        if (type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
+                            Equals(expressionSymbolNamedTypeCandidate.OriginalDefinition, expressionSymbol))
+                        {
+                            type = type.GetAllTypeArguments().Single();
+                        }
+
+                        if (type is INamedTypeSymbol funcSymbolNamedTypeCandidate &&
+                            Equals(funcSymbolNamedTypeCandidate.Name, funcSymbol.Name) &&
+                            Equals(funcSymbolNamedTypeCandidate.ContainingNamespace, funcSymbol.ContainingNamespace))
+                        {
+                            type = type.GetAllTypeArguments()[ordinalInLambda];
+                        }
+
+                        builder.Add(type);
+                    }
+                }
+            }
+
+            return builder.ToImmutableAndFree().Distinct();
+        }
 
         protected ImmutableArray<ISymbol> GetSymbolsForNamespaceDeclarationNameContext<TNamespaceDeclarationSyntax>()
             where TNamespaceDeclarationSyntax : SyntaxNode

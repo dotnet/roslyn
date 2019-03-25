@@ -4697,7 +4697,7 @@ namespace ThenIncludeIntellisenseBug
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"Task", "FirstOrDefault"}))
+                state.AssertCompletionItemsContainAll({"Task", "FirstOrDefault"})
             End Using
         End Function
 
@@ -4770,7 +4770,7 @@ namespace ThenIncludeIntellisenseBug
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"Task", "FirstOrDefault"}))
+                state.AssertCompletionItemsContainAll({"Task", "FirstOrDefault"})
             End Using
         End Function
 
@@ -4845,7 +4845,7 @@ namespace ThenIncludeIntellisenseBug
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"Task", "FirstOrDefault"}))
+                state.AssertCompletionItemsContainAll({"Task", "FirstOrDefault"})
             End Using
         End Function
 
@@ -4920,7 +4920,7 @@ namespace ThenIncludeIntellisenseBug
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"Task", "FirstOrDefault"}))
+                state.AssertCompletionItemsContainAll({"Task", "FirstOrDefault"})
             End Using
         End Function
 
@@ -4994,8 +4994,8 @@ namespace ThenIncludeIntellisenseBug
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"FirstOrDefault"}))
-                Assert.True(state.CompletionItemsContainsAll({"Task"}))
+                state.AssertCompletionItemsDoNotContainAny({"FirstOrDefault"})
+                state.AssertCompletionItemsContainAll({"Task"})
             End Using
         End Function
 
@@ -5070,8 +5070,8 @@ namespace ThenIncludeIntellisenseBug
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAny({"FirstOrDefault"}))
-                Assert.False(state.CompletionItemsContainsAll({"Task"}))
+                state.AssertCompletionItemsContainAll({"FirstOrDefault"})
+                state.AssertCompletionItemsDoNotContainAny({"Task"})
             End Using
         End Function
 

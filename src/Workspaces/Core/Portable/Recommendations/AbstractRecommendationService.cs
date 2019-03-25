@@ -39,42 +39,6 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return symbols;
         }
 
-        protected static ImmutableArray<ITypeSymbol> GetTypeSymbols(
-            SemanticModel semanticModel, ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
-        {
-            var builder = ArrayBuilder<ITypeSymbol>.GetInstance();
-            var expressionSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
-            var funcSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(Func<>).FullName);
-
-            foreach (var candidateSymbol in candidateSymbols)
-            {
-                if (candidateSymbol is IMethodSymbol method)
-                {
-                    if (method.Parameters.Length > ordinalInInvocation)
-                    {
-                        var methodParameterSymbool = method.Parameters[ordinalInInvocation];
-                        var type = methodParameterSymbool.Type;
-                        if (type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
-                            Equals(expressionSymbolNamedTypeCandidate.OriginalDefinition, expressionSymbol))
-                        {
-                            type = type.GetAllTypeArguments().Single();
-                        }
-
-                        if (type is INamedTypeSymbol funcSymbolNamedTypeCandidate &&
-                            Equals(funcSymbolNamedTypeCandidate.Name, funcSymbol.Name) &&
-                            Equals(funcSymbolNamedTypeCandidate.ContainingNamespace, funcSymbol.ContainingNamespace))
-                        {
-                            type = type.GetAllTypeArguments()[ordinalInLambda];
-                        }
-
-                        builder.Add(type);
-                    }
-                }
-            }
-
-            return builder.ToImmutableAndFree().Distinct();
-        }
-
         private sealed class ShouldIncludeSymbolContext
         {
             private readonly SyntaxContext _context;

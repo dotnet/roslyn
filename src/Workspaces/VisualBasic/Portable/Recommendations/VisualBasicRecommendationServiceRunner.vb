@@ -207,6 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim couldBeMergedNamespace = False
+            Dim symbols As ImmutableArray(Of ISymbol) = Nothing
 
             If leftHandSymbolInfo.Symbol IsNot Nothing Then
 
@@ -230,6 +231,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                         If parameter.IsMe Then
                             excludeShared = False
                         End If
+
+                        symbols = GetSymbols(Of LambdaExpressionSyntax, ArgumentSyntax, ArgumentListSyntax, InvocationExpressionSyntax)(
+                            _context.SemanticModel, parameter, node.SpanStart,
+                            Function(argumentList) argumentList.Arguments, _cancellationToken)
 
                         ' case:
                         '    MyBase.
@@ -281,15 +286,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim position = node.SpanStart
-            Dim symbols As ImmutableArray(Of ISymbol)
-            If couldBeMergedNamespace Then
-                symbols = leftHandSymbolInfo.CandidateSymbols _
+            If symbols.IsDefault Then
+                If couldBeMergedNamespace Then
+                    symbols = leftHandSymbolInfo.CandidateSymbols _
                     .OfType(Of INamespaceSymbol) _
                     .SelectMany(Function(n) LookupSymbolsInContainer(n, position, excludeInstance)) _
                     .ToImmutableArray()
-            Else
-                symbols = GetSymbols(
+                Else
+                    symbols = GetSymbols(
                     container, position:=position, excludeInstance:=excludeInstance, useBaseReferenceAccessibility:=useBaseReferenceAccessibility)
+                End If
             End If
 
             If excludeShared Then
@@ -372,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
                 Dim typeBlock = _context.TargetToken.Parent?.FirstAncestorOrSelf(Of TypeBlockSyntax)()
                 If typeBlock IsNot Nothing Then
-                    Dim typeOrAssemblySymbol As ISymbol = _context.SemanticModel.GetDeclaredSymbol(typeBlock)
+                    Dim typeOrAssemblySymbol As ISymbol = _context.SemanticModel.GetDeclaredSymbol(typeBlock, _cancellationToken)
                     If typeOrAssemblySymbol Is Nothing Then
                         typeOrAssemblySymbol = _context.SemanticModel.Compilation.Assembly
                     End If
