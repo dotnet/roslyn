@@ -31,15 +31,5 @@ namespace Microsoft.CodeAnalysis.Host
             // by the default, we are always fully loaded
             return SpecializedTasks.True;
         }
-
-        Task IWorkspaceStatusService.WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        Task<bool> IWorkspaceStatusService.IsFullyLoadedAsync(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
