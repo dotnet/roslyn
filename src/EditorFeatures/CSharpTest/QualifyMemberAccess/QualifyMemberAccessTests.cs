@@ -1393,6 +1393,7 @@ public class Derived : Base
 ",
                 CodeStyleOptions.QualifyFieldAccess);
         }
+
         [WorkItem(21519, "https://github.com/dotnet/roslyn/issues/21519")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyPropertyAccess_InAccessorExpressionBody()
