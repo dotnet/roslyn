@@ -734,12 +734,12 @@
       </trans-unit>
       <trans-unit id="Class">
         <source>Class</source>
-        <target state="new">Class</target>
+        <target state="new">Classe</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Delegate">
         <source>Delegate</source>
-        <target state="new">Delegate</target>
+        <target state="new">Délégué</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Enum">
@@ -749,7 +749,7 @@
       </trans-unit>
       <trans-unit id="Event">
         <source>Event</source>
-        <target state="new">Event</target>
+        <target state="new">Événement</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Interface">
@@ -779,7 +779,7 @@
       </trans-unit>
       <trans-unit id="Property">
         <source>Property</source>
-        <target state="new">Property</target>
+        <target state="new">Propriété</target>
         <note>{locked} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Public_or_Protected_Field">
@@ -809,7 +809,7 @@
       </trans-unit>
       <trans-unit id="Method">
         <source>Method</source>
-        <target state="translated">méthode</target>
+        <target state="translated">Méthode</target>
         <note>{locked:method} unless the capitalization should be handled differently</note>
       </trans-unit>
       <trans-unit id="Missing_prefix_colon_0">
