@@ -313,8 +313,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 var buffer = textBufferScope.SubjectBuffer;
 
                 // Load document here so that the partial load message actually shows up before the next scope kicks in.
-                var document = buffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                        context.OperationContext).WaitAndGetResult(cancellationToken);
+                var document = await buffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(context.OperationContext).ConfigureAwait(false);
 
                 using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
                 {
