@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureStaticLocalFunctions:
                 case MessageID.IDS_FeatureNameShadowingInNestedFunctions:
                 case MessageID.IDS_FeatureUnmanagedConstructedTypes: // semantic check
-                case MessageID.IDS_FeatureReadOnlyMembers: // syntax check
+                case MessageID.IDS_FeatureReadOnlyMembers:
                     return LanguageVersion.CSharp8;
 
                 // C# 7.3 features.
