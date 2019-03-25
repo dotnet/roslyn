@@ -134,6 +134,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
             VerifyTypingSemicolon(code, expected);
         }
 
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/pull/34177")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_StringAsMethodArgument()
+        {
+            var code = CreateTestWithMethodCall(@"var test = Console.WriteLine( $$""Test"")");
+
+            var expected = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test"");$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/pull/34177")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_StringAsMethodArgument2()
+        {
+            var code = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test""$$ )");
+
+            var expected = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test"" );$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ArgumentListOfMethodInvocation_MultiLine()
         {
