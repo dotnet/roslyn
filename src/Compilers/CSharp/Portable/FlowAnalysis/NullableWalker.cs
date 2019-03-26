@@ -598,8 +598,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return _lastConditionalAccessSlot;
                     }
                 default:
-                    int slot = getPlaceholderSlot(node);
-                    return (slot > 0) ? slot : base.MakeSlot(node);
+                    {
+                        int slot = getPlaceholderSlot(node);
+                        return (slot > 0) ? slot : base.MakeSlot(node);
+                    }
             }
 
             return -1;
@@ -3707,7 +3709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            int slot = GetOrCreateObjectCreationPlaceholderSlot(node);
+            int slot = GetOrCreatePlaceholderSlot(node);
             if (slot < 0)
             {
                 return;
