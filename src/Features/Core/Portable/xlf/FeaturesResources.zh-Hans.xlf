@@ -192,6 +192,11 @@
         <target state="new">Make local function 'static'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Matching_type">
+        <source>Matching type</source>
+        <target state="new">Matching type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Merge_with_nested_0_statement">
         <source>Merge with nested '{0}' statement</source>
         <target state="new">Merge with nested '{0}' statement</target>

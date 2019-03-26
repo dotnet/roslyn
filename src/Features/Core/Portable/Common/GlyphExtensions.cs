@@ -174,6 +174,9 @@ namespace Microsoft.CodeAnalysis
                             return Glyph.InterfacePublic;
                     }
 
+                case WellKnownTags.MatchingType:
+                    return Glyph.MatchingType;
+
                 case WellKnownTags.Intrinsic:
                     return Glyph.Intrinsic;
 

@@ -46,18 +46,65 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private ImmutableArray<CompletionItem> CreateItems(
             ImmutableArray<ISymbol> symbols,
             SyntaxContext context,
-            bool preselect)
+            bool preselect,
+            ImmutableArray<ITypeSymbol> inferredTypes = default)
         {
-            var tree = context.SyntaxTree;
+            var symbolGroups = from symbol in symbols
+                               let texts = GetDisplayAndSuffixAndInsertionText(symbol, context)
+                               group symbol by texts into g
+                               select g;
 
-            var q = from symbol in symbols
-                    let texts = GetDisplayAndSuffixAndInsertionText(symbol, context)
-                    group symbol by texts into g
-                    select this.CreateItem(
-                        g.Key.displayText, g.Key.suffix, g.Key.insertionText, g.ToList(), context,
+            var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+
+            foreach (var symbolGroup in symbolGroups)
+            {
+                var item = this.CreateItem(
+                        symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(), context,
                         invalidProjectMap: null, totalProjects: null, preselect: preselect);
 
-            return q.ToImmutableArray();
+                if (symbolGroup.Any(s => ShouldIncludeInTargetTypedCompletionList(s, inferredTypes, context.SemanticModel, context.Position)))
+                {
+                    item = item.AddTag("MatchingType");
+                }
+
+                itemListBuilder.Add(item);
+            }
+
+            return itemListBuilder.ToImmutable();
+        }
+
+        private bool ShouldIncludeInTargetTypedCompletionList(ISymbol symbol, ImmutableArray<ITypeSymbol> inferredTypes, SemanticModel semanticModel, int position)
+        {
+            // When searching for identifiers of type C, exclude the symbol for the `C` type itself.
+            if (symbol.Kind == SymbolKind.NamedType)
+            {
+                return false;
+            }
+
+            // Avoid offering object.ToString() when a string is expected, for example.
+            if (symbol.ContainingType?.SpecialType == SpecialType.System_Object)
+            {
+                return false;
+            }
+
+            // Don't offer locals on the right-hand-side of their declaration: `int x = x`
+            if (symbol.Kind == SymbolKind.Local)
+            {
+                var local = (ILocalSymbol)symbol;
+                var declarationSyntax = symbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).SingleOrDefault();
+                if (declarationSyntax != null && position < declarationSyntax.FullSpan.End)
+                {
+                    return false;
+                }
+            }
+
+            var type = symbol.GetMemberType() ?? symbol.GetSymbolType();
+            if (type == null)
+            {
+                return false;
+            }
+
+            return inferredTypes.Any(inferredType => semanticModel.Compilation.ClassifyCommonConversion(type, inferredType).IsImplicit);
         }
 
         /// <summary>
@@ -203,7 +250,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             if (relatedDocumentIds.IsEmpty)
             {
                 var itemsForCurrentDocument = await GetSymbolsWorker(position, preselect, context, options, cancellationToken).ConfigureAwait(false);
-                return CreateItems(itemsForCurrentDocument, context, preselect);
+
+                var inferenceService = document.GetLanguageService<ITypeInferenceService>();
+                var inferredTypes = inferenceService.InferTypes(context.SemanticModel, position, cancellationToken);
+
+                return CreateItems(itemsForCurrentDocument, context, preselect, inferredTypes);
             }
 
             var contextAndSymbolLists = await GetPerContextSymbols(document, position, options, new[] { document.Id }.Concat(relatedDocumentIds), preselect, cancellationToken).ConfigureAwait(false);

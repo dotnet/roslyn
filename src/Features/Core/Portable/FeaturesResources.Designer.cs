@@ -2305,6 +2305,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Matching type.
+        /// </summary>
+        internal static string Matching_type {
+            get {
+                return ResourceManager.GetString("Matching_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Member name can be simplified.
         /// </summary>
         internal static string Member_name_can_be_simplified {

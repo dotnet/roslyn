@@ -1614,4 +1614,7 @@ This version used in: {2}</value>
   <data name="Add_parameter_to_constructor" xml:space="preserve">
     <value>Add parameter to constructor</value>
   </data>
+  <data name="Matching_type" xml:space="preserve">
+    <value>Matching type</value>
+  </data>
 </root>
