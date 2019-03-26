@@ -462,8 +462,8 @@ class C
 </symbols>");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")] // PROTOTYPE(DefaultInterfaceImplementation): https://github.com/dotnet/roslyn/issues/33564
-        // PROTOTYPE(DefaultInterfaceImplementation): Was [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [ConditionalFact(typeof(WindowsDesktopOnly), Reason = "https://github.com/dotnet/roslyn/issues/33564")]
+        // https://github.com/dotnet/roslyn/issues/33564: Was [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")]
         public void LocalConstantsTypes()
         {

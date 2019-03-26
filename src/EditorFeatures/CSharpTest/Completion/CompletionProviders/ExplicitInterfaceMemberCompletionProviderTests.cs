@@ -336,6 +336,7 @@ interface IBar : IGoo
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
         public async Task NotInaccessibleMember_01()
         {
             var markup =
@@ -364,13 +365,14 @@ interface IGoo
     </Project>
 </Workspace>";
 
-            await VerifyItemExistsAsync(markup, "Goo1()"); // PROTOTYPE(DefaultInterfaceImplementation): Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
-            await VerifyItemExistsAsync(markup, "Prop1"); // PROTOTYPE(DefaultInterfaceImplementation): Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
+            await VerifyItemExistsAsync(markup, "Goo1()"); // https://github.com/dotnet/roslyn/issues/34456: Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
+            await VerifyItemExistsAsync(markup, "Prop1"); // https://github.com/dotnet/roslyn/issues/34456: Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
             await VerifyItemExistsAsync(markup, "Goo2()");
             await VerifyItemExistsAsync(markup, "Prop2");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(34456, "https://github.com/dotnet/roslyn/issues/34456")]
         public async Task NotInaccessibleMember_02()
         {
             var markup =
@@ -399,8 +401,8 @@ interface IGoo
     </Project>
 </Workspace>";
 
-            await VerifyItemExistsAsync(markup, "Goo1()"); // PROTOTYPE(DefaultInterfaceImplementation): Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
-            await VerifyItemExistsAsync(markup, "Prop1"); // PROTOTYPE(DefaultInterfaceImplementation): Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
+            await VerifyItemExistsAsync(markup, "Goo1()"); // https://github.com/dotnet/roslyn/issues/34456: Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
+            await VerifyItemExistsAsync(markup, "Prop1"); // https://github.com/dotnet/roslyn/issues/34456: Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
             await VerifyItemExistsAsync(markup, "Goo2()");
             await VerifyItemExistsAsync(markup, "Prop2");
         }

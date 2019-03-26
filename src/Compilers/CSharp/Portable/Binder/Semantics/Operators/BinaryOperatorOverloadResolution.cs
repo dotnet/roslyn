@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result.Results.Clear();
                 GetAllBuiltInOperators(kind, left, right, result.Results, ref useSiteDiagnostics);
             }
-            
+
             // SPEC: The overload resolution rules of 7.5.3 are applied to the set of candidate operators to select the best 
             // SPEC: operator with respect to the argument list (x, y), and this operator becomes the result of the overload 
             // SPEC: resolution process. If overload resolution fails to select a single best operator, a binding-time 
@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorOverloadResolution(left, right, result, ref useSiteDiagnostics);
         }
 
-        private bool GetUserDefinedBinaryOperatorsFromInterfaces(BinaryOperatorKind kind, string name, 
+        private bool GetUserDefinedBinaryOperatorsFromInterfaces(BinaryOperatorKind kind, string name,
             TypeSymbol operatorSourceOpt, bool sourceIsInterface,
-            BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics, 
+            BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             Dictionary<TypeSymbol, bool> lookedInInterfaces, ArrayBuilder<BinaryOperatorAnalysisResult> candidates)
         {
             Debug.Assert(candidates.Count == 0);

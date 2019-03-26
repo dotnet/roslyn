@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class UnaryOperators
         Inherits BasicTestBase
 
-        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")> ' PROTOTYPE(DefaultInterfaceImplementation) https://github.com/dotnet/roslyn/issues/33564
+        <ConditionalFact(GetType(WindowsDesktopOnly), Reason:="https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         Public Sub Test1()
 
