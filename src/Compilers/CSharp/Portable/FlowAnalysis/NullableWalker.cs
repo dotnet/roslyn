@@ -544,6 +544,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case BoundKind.Conversion:
                     {
+                        int slot = getPlaceholderSlot(node);
+                        if (slot > 0)
+                        {
+                            return slot;
+                        }
                         var conv = (BoundConversion)node;
                         switch (conv.Conversion.Kind)
                         {
@@ -563,18 +568,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         int containingSlot = MakeSlot(operand);
                                         return containingSlot < 0 ? -1 : GetNullableOfTValueSlot(operandType, containingSlot, out _);
                                     }
-                                    else if (AreNullableAndUnderlyingTypes(convertedType, operandType, out _))
-                                    {
-                                        // Explicit conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
-                                        return getPlaceholderSlot(node);
-                                    }
-                                }
-                                break;
-                            case ConversionKind.ImplicitNullable:
-                                // Implicit conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
-                                if (AreNullableAndUnderlyingTypes(conv.Type, conv.Operand.Type, out _))
-                                {
-                                    return getPlaceholderSlot(node);
                                 }
                                 break;
                             case ConversionKind.Identity:
@@ -582,17 +575,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case ConversionKind.ExplicitReference:
                             case ConversionKind.ImplicitTupleLiteral:
                             case ConversionKind.ExplicitTupleLiteral:
-                            case ConversionKind.ImplicitTuple:
-                            case ConversionKind.ExplicitTuple:
                             case ConversionKind.Boxing:
                             case ConversionKind.Unboxing:
-                                if (isSupportedConversion(conv.Conversion, conv.Operand))
-                                {
-                                    // No need to create a slot for the boxed value (in the Boxing case) since assignment already
-                                    // clones slots and there is not another scenario where creating a slot is observable.
-                                    return MakeSlot(conv.Operand);
-                                }
-                                break;
+                                // No need to create a slot for the boxed value (in the Boxing case) since assignment already
+                                // clones slots and there is not another scenario where creating a slot is observable.
+                                return MakeSlot(conv.Operand);
                         }
                     }
                     break;
@@ -638,58 +625,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     method = container as MethodSymbol;
                 }
                 return null;
-            }
-
-            // Returns true if the nullable state from the operand of the conversion
-            // can be used as is, and we can create a slot from the conversion.
-            static bool isSupportedConversion(Conversion conversion, BoundExpression operandOpt)
-            {
-                // https://github.com/dotnet/roslyn/issues/32599: Allow implicit and explicit
-                // conversions where the nullable state of the operand remains valid.
-                switch (conversion.Kind)
-                {
-                    case ConversionKind.Identity:
-                    case ConversionKind.DefaultOrNullLiteral:
-                    case ConversionKind.ImplicitReference:
-                    case ConversionKind.ExplicitReference:
-                    case ConversionKind.Boxing:
-                    case ConversionKind.Unboxing:
-                        return true;
-                    case ConversionKind.ImplicitTupleLiteral:
-                    case ConversionKind.ExplicitTupleLiteral:
-                        switch (operandOpt?.Kind)
-                        {
-                            case BoundKind.Conversion:
-                                {
-                                    var operandConversion = (BoundConversion)operandOpt;
-                                    return isSupportedConversion(operandConversion.Conversion, operandConversion.Operand);
-                                }
-                            case BoundKind.ConvertedTupleLiteral:
-                                {
-                                    var arguments = ((BoundConvertedTupleLiteral)operandOpt).Arguments;
-                                    var conversions = conversion.UnderlyingConversions;
-                                    for (int i = 0; i < arguments.Length; i++)
-                                    {
-                                        // https://github.com/dotnet/roslyn/issues/32600: Copy nullable
-                                        // state of tuple elements independently.
-                                        if (!isSupportedConversion(conversions[i], (arguments[i] as BoundConversion)?.Operand))
-                                        {
-                                            return false;
-                                        }
-                                    }
-                                    return true;
-                                }
-                            default:
-                                return false;
-                        }
-                    case ConversionKind.ImplicitTuple:
-                    case ConversionKind.ExplicitTuple:
-                        // https://github.com/dotnet/roslyn/issues/32600: Copy nullable
-                        // state of tuple elements independently.
-                        return conversion.UnderlyingConversions.All(c => isSupportedConversion(c, null));
-                    default:
-                        return false;
-                }
             }
         }
 
@@ -885,13 +820,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Update tracked value on assignment.
         /// </summary>
         private void TrackNullableStateForAssignment(
-            BoundExpression value,
+            BoundExpression valueOpt,
             TypeWithAnnotations targetType,
             int targetSlot,
             TypeWithState valueType,
             int valueSlot = -1)
         {
-            Debug.Assert(value != null);
             Debug.Assert(!IsConditionalState);
 
             if (this.State.Reachable)
@@ -919,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // https://github.com/dotnet/roslyn/issues/31395: We should copy all tracked state from `value` regardless of
                     // BoundNode type but we'll need to handle cycles (see NullableReferenceTypesTests.Members_FieldCycle_07).
                     // For now, we copy a limited set of BoundNode types that shouldn't contain cycles.
-                    if (((targetType.Type.IsReferenceType || targetType.TypeKind == TypeKind.TypeParameter) && (isSupportedReferenceTypeValue(value) || targetType.Type.IsAnonymousType)) ||
+                    if (((targetType.Type.IsReferenceType || targetType.TypeKind == TypeKind.TypeParameter) && (valueOpt is null || isSupportedReferenceTypeValue(valueOpt) || targetType.Type.IsAnonymousType)) ||
                         targetType.IsNullableType())
                     {
                         // Nullable<T> is handled here rather than in InheritNullableStateOfTrackableStruct since that
@@ -932,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (EmptyStructTypeCache.IsTrackableStructType(targetType.Type))
                     {
-                        InheritNullableStateOfTrackableStruct(targetType.Type, targetSlot, valueSlot, isDefaultValue: IsDefaultValue(value), skipSlot: targetSlot);
+                        InheritNullableStateOfTrackableStruct(targetType.Type, targetSlot, valueSlot, isDefaultValue: !(valueOpt is null) && IsDefaultValue(valueOpt), skipSlot: targetSlot);
                     }
                 }
             }
@@ -1306,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.RefKind == RefKind.None)
                 {
-                    VisitOptionalImplicitConversion(expr, returnType, useLegacyWarnings: false, AssignmentKind.Return);
+                    VisitOptionalImplicitConversion(expr, returnType, useLegacyWarnings: false, trackNullability: false, AssignmentKind.Return);
                 }
                 else
                 {
@@ -1410,7 +1344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 bool inferredType = node.InferredType;
-                valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, AssignmentKind.Assignment);
+                valueType = VisitOptionalImplicitConversion(initializer, targetTypeOpt: inferredType ? default : type, useLegacyWarnings: true, trackNullability: true, AssignmentKind.Assignment);
                 if (inferredType)
                 {
                     if (valueType.HasNullType)
@@ -1522,7 +1456,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (EmptyStructTypeCache.IsTrackableStructType(type))
                     {
-                        this.State[slot] = NullableFlowState.NotNull;
                         var tupleType = constructor?.ContainingType as TupleTypeSymbol;
                         if ((object)tupleType != null && !isDefaultValueTypeConstructor)
                         {
@@ -1555,6 +1488,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+
+                    this.State[slot] = resultState;
                 }
             }
 
@@ -1738,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < n; i++)
                 {
-                    _ = VisitOptionalImplicitConversion(expressions[i], elementType, useLegacyWarnings: false, AssignmentKind.Assignment);
+                    _ = VisitOptionalImplicitConversion(expressions[i], elementType, useLegacyWarnings: false, trackNullability: false, AssignmentKind.Assignment);
                 }
 
                 ResultType = _invalidType;
@@ -1803,6 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            conversions.Free();
             resultTypes.Free();
             expressions.Free();
 
@@ -2224,7 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var leftState = this.State.Clone();
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
-            TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, UseLegacyWarnings(leftOperand), AssignmentKind.Assignment);
+            TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand), trackNullability: false, AssignmentKind.Assignment);
             TrackNullableStateForAssignment(rightOperand, targetType, leftSlot, rightResult, MakeSlot(rightOperand));
             Join(ref this.State, ref leftState);
             TypeWithState resultType = GetNullCoalescingResultType(rightResult, targetType.Type);
@@ -3671,16 +3607,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: fromExplicitCast && !RequiresSafetyWarningWhenNullIntroduced(explicitType.Type),
                 AssignmentKind.Assignment,
                 reportTopLevelWarnings: fromExplicitCast,
-                reportRemainingWarnings: true);
-
-            switch (node.ConversionKind)
-            {
-                case ConversionKind.ImplicitNullable:
-                case ConversionKind.ExplicitNullable:
-                    TrackNullableStateIfNullableConversion(node);
-                    break;
-            }
-
+                reportRemainingWarnings: true,
+                trackMembers: true);
             return null;
         }
 
@@ -3690,7 +3618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// an implicit conversion, even if that conversion was omitted from the bound tree,
         /// so the conversion can be re-classified with nullability.
         /// </summary>
-        private TypeWithState VisitOptionalImplicitConversion(BoundExpression expr, TypeWithAnnotations targetTypeOpt, bool useLegacyWarnings, AssignmentKind assignmentKind)
+        private TypeWithState VisitOptionalImplicitConversion(BoundExpression expr, TypeWithAnnotations targetTypeOpt, bool useLegacyWarnings, bool trackNullability, AssignmentKind assignmentKind)
         {
             if (!targetTypeOpt.HasType)
             {
@@ -3704,7 +3632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Cannot implicitly convert type '...' to '...'. An explicit conversion exists ...".
             // Since an error was reported, we don't need to report nested warnings as well.
             bool reportNestedWarnings = !conversion.IsExplicit;
-            var resultType = ApplyConversion(
+            return ApplyConversion(
                 expr,
                 operand,
                 conversion,
@@ -3715,15 +3643,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings: useLegacyWarnings,
                 assignmentKind,
                 reportTopLevelWarnings: true,
-                reportRemainingWarnings: reportNestedWarnings);
-
-            var conv = expr as BoundConversion;
-            if (conv != null && conv.ConversionKind == ConversionKind.ImplicitNullable)
-            {
-                TrackNullableStateIfNullableConversion(conv);
-            }
-
-            return resultType;
+                reportRemainingWarnings: reportNestedWarnings,
+                trackMembers: trackNullability);
         }
 
         private static bool AreNullableAndUnderlyingTypes(TypeSymbol nullableTypeOpt, TypeSymbol underlyingTypeOpt, out TypeWithAnnotations underlyingTypeWithAnnotations)
@@ -3835,7 +3756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void TrackNullableStateIfNullableConversion(BoundConversion node)
+        private void TrackNullableStateOfNullableConversion(BoundConversion node)
         {
             Debug.Assert(node.ConversionKind == ConversionKind.ImplicitNullable || node.ConversionKind == ConversionKind.ExplicitNullable);
 
@@ -3857,6 +3778,90 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int containingSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
                 Debug.Assert(containingSlot > 0);
                 TrackNullableStateOfNullableValue(containingSlot, convertedType, operand, underlyingType.ToTypeWithState(), valueSlot);
+            }
+        }
+
+        private void TrackNullableStateOfTupleConversion(BoundConversion node)
+        {
+            Debug.Assert(node.ConversionKind == ConversionKind.ImplicitTuple || node.ConversionKind == ConversionKind.ExplicitTuple);
+
+            int valueSlot = MakeSlot(node.Operand);
+            if (valueSlot < 0)
+            {
+                return;
+            }
+
+            int slot = GetOrCreateObjectCreationPlaceholderSlot(node);
+            if (slot < 0)
+            {
+                return;
+            }
+
+            TrackNullableStateOfTupleConversion(node.Conversion, node.Type, node.Operand.Type, slot, valueSlot);
+        }
+
+        private void TrackNullableStateOfTupleConversion(Conversion conversion, TypeSymbol targetType, TypeSymbol operandType, int slot, int valueSlot)
+        {
+            Debug.Assert(conversion.Kind == ConversionKind.ImplicitTuple || conversion.Kind == ConversionKind.ExplicitTuple);
+            Debug.Assert(slot > 0);
+            Debug.Assert(valueSlot > 0);
+
+            var valueTuple = operandType as TupleTypeSymbol;
+            if (valueTuple is null)
+            {
+                return;
+            }
+
+            var conversions = conversion.UnderlyingConversions;
+            var targetElements = ((TupleTypeSymbol)targetType).TupleElements;
+            var valueElements = valueTuple.TupleElements;
+            int n = valueElements.Length;
+            for (int i = 0; i < n; i++)
+            {
+                trackConvertedValue(targetElements[i], conversions[i], valueElements[i]);
+            }
+
+            void trackConvertedValue(FieldSymbol targetField, Conversion conversion, FieldSymbol valueField)
+            {
+                switch (conversion.Kind)
+                {
+                    case ConversionKind.Identity:
+                    case ConversionKind.DefaultOrNullLiteral:
+                    case ConversionKind.ImplicitReference:
+                    case ConversionKind.ExplicitReference:
+                    case ConversionKind.Boxing:
+                    case ConversionKind.Unboxing:
+                        InheritNullableStateOfMember(slot, valueSlot, valueField, isDefaultValue: false, skipSlot: slot);
+                        break;
+                    case ConversionKind.ImplicitTupleLiteral:
+                    case ConversionKind.ExplicitTupleLiteral:
+                    case ConversionKind.ImplicitTuple:
+                    case ConversionKind.ExplicitTuple:
+                        {
+                            int targetFieldSlot = GetOrCreateSlot(targetField, slot);
+                            int valueFieldSlot = GetOrCreateSlot(valueField, valueSlot);
+                            Debug.Assert(targetFieldSlot > 0);
+                            Debug.Assert(valueFieldSlot > 0);
+                            this.State[targetFieldSlot] = NullableFlowState.NotNull;
+                            TrackNullableStateOfTupleConversion(conversion, targetField.Type, valueField.Type, targetFieldSlot, valueFieldSlot);
+                        }
+                        break;
+                    case ConversionKind.ImplicitNullable:
+                    case ConversionKind.ExplicitNullable:
+                        // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
+                        if (AreNullableAndUnderlyingTypes(targetField.Type, valueField.Type, out _))
+                        {
+                            int targetFieldSlot = GetOrCreateSlot(targetField, slot);
+                            int valueFieldSlot = GetOrCreateSlot(valueField, valueSlot);
+                            Debug.Assert(targetFieldSlot > 0);
+                            Debug.Assert(valueFieldSlot > 0);
+                            this.State[targetFieldSlot] = NullableFlowState.NotNull;
+                            TrackNullableStateOfNullableValue(targetFieldSlot, targetField.Type, null, valueField.TypeWithAnnotations.ToTypeWithState(), valueFieldSlot);
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -3962,8 +3967,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If `checkConversion` is set, the incoming conversion is assumed to be from binding and will be
         /// re-calculated, this time considering nullability. (Note that the conversion calculation considers
         /// nested nullability only. The caller is responsible for checking the top-level nullability of
-        /// the type returned by this method.) `canConvertNestedNullability` is set if the conversion
-        /// considering nested nullability succeeded. `node` is used only for the location of diagnostics.
+        /// the type returned by this method.) `trackMembers` should be set if the nullability of any
+        /// members of the operand should be copied to the converted result when possible.
         /// </summary>
         private TypeWithState ApplyConversion(
             BoundExpression node,
@@ -3979,8 +3984,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reportTopLevelWarnings = true,
             bool reportRemainingWarnings = true,
             bool extensionMethodThisArgument = false,
-            Optional<LocalState> stateForLambda = default)
+            Optional<LocalState> stateForLambda = default,
+            bool trackMembers = false)
         {
+            Debug.Assert(!trackMembers || !IsConditionalState);
             Debug.Assert(node != null);
             Debug.Assert(operandOpt != null || !operandType.HasNullType);
             Debug.Assert(targetTypeWithNullability.HasType);
@@ -4164,6 +4171,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.ImplicitNullable:
+                    if (trackMembers && node.Kind == BoundKind.Conversion)
+                    {
+                        // https://github.com/dotnet/roslyn/issues/34302: Should visit each BoundConversion so node matches conversion.
+                        var conv = (BoundConversion)node;
+                        switch (conv.ConversionKind)
+                        {
+                            case ConversionKind.ImplicitNullable:
+                            case ConversionKind.ExplicitNullable:
+                                TrackNullableStateOfNullableConversion(conv);
+                                break;
+                        }
+                    }
+
                     if (checkConversion)
                     {
                         conversion = GenerateConversion(_conversions, operandOpt, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument);
@@ -4195,10 +4215,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     goto case ConversionKind.ImplicitNullable;
 
-                case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ImplicitTuple:
+                case ConversionKind.ImplicitTupleLiteral:
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
+                    if (trackMembers && node.Kind == BoundKind.Conversion)
+                    {
+                        // https://github.com/dotnet/roslyn/issues/34302: Should visit each BoundConversion so node matches conversion.
+                        var conv = (BoundConversion)node;
+                        switch (conv.ConversionKind)
+                        {
+                            case ConversionKind.ImplicitTuple:
+                            case ConversionKind.ExplicitTuple:
+                                TrackNullableStateOfTupleConversion(conv);
+                                break;
+                        }
+                    }
+
                     if (checkConversion)
                     {
                         // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
@@ -4432,7 +4465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeWithState rightType;
                 if (!node.IsRef)
                 {
-                    rightType = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left), AssignmentKind.Assignment);
+                    rightType = VisitOptionalImplicitConversion(right, leftLValueType, UseLegacyWarnings(left), trackNullability: true, AssignmentKind.Assignment);
                 }
                 else
                 {
@@ -4562,7 +4595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (underlyingConversion.IsIdentity)
                         {
                             operandType = default;
-                            valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, AssignmentKind.Assignment);
+                            valueType = VisitOptionalImplicitConversion(rightPart, targetType, useLegacyWarnings: true, trackNullability: true, AssignmentKind.Assignment);
                             valueSlot = MakeSlot(rightPart);
                         }
                         else
@@ -4579,7 +4612,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 useLegacyWarnings: true,
                                 AssignmentKind.Assignment,
                                 reportTopLevelWarnings: true,
-                                reportRemainingWarnings: true);
+                                reportRemainingWarnings: true,
+                                trackMembers: false);
                             valueSlot = -1;
                         }
 
@@ -5777,7 +5811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations elementType = InMethodBinder.GetIteratorElementTypeFromReturnType(compilation, RefKind.None,
                 method.ReturnType, errorLocationNode: null, diagnostics: null).elementType;
 
-            _ = VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, AssignmentKind.Return);
+            _ = VisitOptionalImplicitConversion(expr, elementType, useLegacyWarnings: false, trackNullability: false, AssignmentKind.Return);
             return null;
         }
 
