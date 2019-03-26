@@ -342,13 +342,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return type.GetBaseTypesAndThis().Contains(t => SymbolEquivalenceComparer.Instance.Equals(t, baseType));
         }
 
-        // Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
+        // Determine if "type" inherits from or implements "baseType", ignoring constructed types, and dealing
         // only with original types.
-        public static bool InheritsFromOrEqualsIgnoringConstruction(
+        public static bool InheritsFromOrImplementsOrEqualsIgnoringConstruction(
             this ITypeSymbol type, ITypeSymbol baseType)
         {
             var originalBaseType = baseType.OriginalDefinition;
-            return type.GetBaseTypesAndThis().Contains(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalBaseType));
+            type = type.OriginalDefinition;
+
+            if (SymbolEquivalenceComparer.Instance.Equals(type, originalBaseType))
+            {
+                return true;
+            }
+
+            IEnumerable<ITypeSymbol> baseTypes = (baseType.TypeKind == TypeKind.Interface) ? type.AllInterfaces : type.GetBaseTypes();
+            return baseTypes.Contains(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalBaseType));
         }
 
         // Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
