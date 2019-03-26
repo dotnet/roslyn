@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string Edit_QuickInfo = "Edit.QuickInfo";
         public const string Edit_ToggleCompletionMode = "Edit.ToggleCompletionMode";
         public const string Edit_Undo = "Edit.Undo";
+        public const string Edit_Redo = "Edit.Redo";
         public const string Edit_SelectionCancel = "Edit.SelectionCancel";
         public const string Edit_LineStart = "Edit.LineStart";
         public const string Edit_LineEnd = "Edit.LineEnd";

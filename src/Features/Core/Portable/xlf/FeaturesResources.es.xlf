@@ -7,9 +7,19 @@
         <target state="translated">Agregar nombre de miembro</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_optional_parameter_to_constructor">
+        <source>Add optional parameter to constructor</source>
+        <target state="new">Add optional parameter to constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
         <target state="translated">Agregar un parámetro a “{0}” (y reemplazos/implementaciones)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_constructor">
+        <source>Add parameter to constructor</source>
+        <target state="new">Add parameter to constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
@@ -672,36 +682,6 @@
         <target state="translated">Implementar interfaz</target>
         <note />
       </trans-unit>
-      <trans-unit id="Loading_context_from_0">
-        <source>Loading context from '{0}'.</source>
-        <target state="translated">Cargando contexto de '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Sharphelp_for_more_information">
-        <source>Type "#help" for more information.</source>
-        <target state="translated">Escriba "#help" para más información.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found_colon_0">
-        <source>Specified file not found: {0}</source>
-        <target state="translated">Archivo especificado no encontrado: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_file_not_found">
-        <source>Specified file not found.</source>
-        <target state="translated">Archivo especificado no encontrado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directory_colon">
-        <source>Searched in directory:</source>
-        <target state="translated">Buscado en directorio:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Searched_in_directories_colon">
-        <source>Searched in directories:</source>
-        <target state="translated">Buscado en directorios:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_field_for_0">
         <source>Introduce field for '{0}'</source>
         <target state="translated">Introducir el campo de '{0}'</target>
@@ -1232,54 +1212,9 @@
         <target state="translated">Generar el método '{1}.{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_create_a_remote_process_for_interactive_code_execution">
-        <source>Failed to create a remote process for interactive code execution.</source>
-        <target state="translated">Error al crear un proceso remoto para la ejecución de código interactivo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_initialize_remote_interactive_process">
-        <source>Failed to initialize remote interactive process.</source>
-        <target state="translated">Error al inicializar el proceso remoto interactivo.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
-        <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">Error al intentar conectar con el proceso #{0}, reintentando...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
-        <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
-        <target state="translated">Error al iniciar el proceso '{0}' (código de salida: {1}) con la salida: </target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Hosting_process_exited_with_exit_code_0">
-        <source>Hosting process exited with exit code {0}.</source>
-        <target state="translated">El proceso de hospedaje terminó con el código de salida {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Host_not_initialized">
-        <source>Interactive Host not initialized.</source>
-        <target state="translated">Host interactivo no inicializado.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_resolve_reference_0">
-        <source>Cannot resolve reference '{0}'.</source>
-        <target state="translated">No se puede resolver la referencia '{0}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Requested_assembly_already_loaded_from_0">
         <source>Requested assembly already loaded from '{0}'.</source>
         <target state="translated">El ensamblado solicitado ya se ha cargado desde '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="plus_additional_0_1">
-        <source> + additional {0} {1}</source>
-        <target state="translated"> + adicional {0} {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unable_to_create_hosting_process">
-        <source>Unable to create hosting process.</source>
-        <target state="translated">No se puede crear el proceso de hospedaje.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_symbol_does_not_have_an_icon">

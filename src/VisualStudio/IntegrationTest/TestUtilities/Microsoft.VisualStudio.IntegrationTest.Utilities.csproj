@@ -80,8 +80,7 @@
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
-    <ProjectReference Include="..\..\CSharp\Repl\Microsoft.VisualStudio.CSharp.Repl.csproj" />
-    <ProjectReference Include="..\..\InteractiveServices\Microsoft.VisualStudio.InteractiveServices.csproj" />
+    <ProjectReference Include="..\..\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" />
     <ProjectReference Include="..\IntegrationService\Microsoft.VisualStudio.IntegrationTest.IntegrationService.csproj" />
   </ItemGroup>
   <ItemGroup>
