@@ -278,6 +278,5 @@
   <ItemGroup>
     <VsdConfigXml Include="ManagedEditAndContinueService.vsdconfigxml" />
   </ItemGroup>
-  <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="$(RepositoryEngineeringDir)targets\Vsdconfig.targets" />
 </Project>

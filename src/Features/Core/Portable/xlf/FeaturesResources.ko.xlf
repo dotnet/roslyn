@@ -7,9 +7,19 @@
         <target state="translated">멤버 이름 추가</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_optional_parameter_to_constructor">
+        <source>Add optional parameter to constructor</source>
+        <target state="new">Add optional parameter to constructor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_parameter_to_0_and_overrides_implementations">
         <source>Add parameter to '{0}' (and overrides/implementations)</source>
         <target state="translated">'{0}'(및 재정의/구현)에 매개 변수 추가</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parameter_to_constructor">
+        <source>Add parameter to constructor</source>
+        <target state="new">Add parameter to constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_project_reference_to_0">
