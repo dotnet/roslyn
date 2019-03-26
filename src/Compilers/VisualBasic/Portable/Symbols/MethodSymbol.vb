@@ -100,6 +100,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+
+        ''' <summary>
+        ''' Always returns false because the 'readonly members' feature is not available in VB.
+        ''' </summary>
+        Public ReadOnly Property IsDeclaredReadOnly As Boolean Implements IMethodSymbol.IsDeclaredReadOnly
+            Get
+                Return False
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Always returns false because the 'readonly members' feature is not available in VB.
+        ''' </summary>
+        Public ReadOnly Property IsEffectivelyReadOnly As Boolean Implements IMethodSymbol.IsEffectivelyReadOnly
+            Get
+                Return False
+            End Get
+        End Property
+
         ''' <summary>
         ''' Returns true if this method has no return type; i.e., is a Sub instead of a Function.
         ''' </summary>

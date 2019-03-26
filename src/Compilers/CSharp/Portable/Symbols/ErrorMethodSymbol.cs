@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<MethodSymbol>.Empty; }
         }
 
-        internal override bool IsDeclaredReadOnly => false;
+        public override bool IsDeclaredReadOnly => false;
 
         internal override int ParameterCount
         {

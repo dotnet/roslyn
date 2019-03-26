@@ -321,6 +321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
+        public override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
     }
 }
