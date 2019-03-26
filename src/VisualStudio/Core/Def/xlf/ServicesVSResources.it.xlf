@@ -59,7 +59,7 @@
       </trans-unit>
       <trans-unit id="Classifications">
         <source>Classifications</source>
-        <target state="new">Classifications</target>
+        <target state="translated">Classificazioni</target>
         <note />
       </trans-unit>
       <trans-unit id="Colorize_regular_expressions">
@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="Use_enhanced_colors_for_C_and_Basic">
         <source>Use enhanced colors for C# and Basic</source>
-        <target state="new">Use enhanced colors for C# and Basic</target>
+        <target state="translated">Usa colori migliorati per C# e Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_expression_body_for_lambdas">
