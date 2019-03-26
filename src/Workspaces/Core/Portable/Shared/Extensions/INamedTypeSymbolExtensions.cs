@@ -125,9 +125,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             // A property is only fully implemented if both it's setter and getter is implemented.
 
-            return isAccessorImplemented(propertySymbol.GetMethod, classOrStructType) && isAccessorImplemented(propertySymbol.SetMethod, classOrStructType);
+            return IsAccessorImplemented(propertySymbol.GetMethod, classOrStructType) && IsAccessorImplemented(propertySymbol.SetMethod, classOrStructType);
 
-            static bool isAccessorImplemented(IMethodSymbol accessor, INamedTypeSymbol classOrStructType)
+            // local functions
+
+            static bool IsAccessorImplemented(IMethodSymbol accessor, INamedTypeSymbol classOrStructType)
             {
                 return accessor == null || !IsImplementable(accessor) || classOrStructType.FindImplementationForInterfaceMember(accessor) != null;
             }
@@ -166,6 +168,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (implementation?.ContainingType.TypeKind == TypeKind.Interface)
             {
                 // Treat all implementations in interfaces as explicit, even the original declaration with implementation.
+                // There are no implicit interface implementations in derived interfaces and it feels reasonable to treat
+                // original declaration with implementation as an explicit implementation as well, the implementation is
+                // explicitly provided after all. All implementations in interfaces will be treated uniformly.
                 return true;
             }
 
@@ -193,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         return type.GetMembers().WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public &&
                                                                    m.Kind != SymbolKind.NamedType && IsImplementable(m) &&
-                                                                   !isPropertyWithNonPublicImplementableAccessor(m));
+                                                                   !IsPropertyWithNonPublicImplementableAccessor(m));
                     }
 
                     return type.GetMembers();
@@ -201,19 +206,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
 
-            static bool isPropertyWithNonPublicImplementableAccessor(ISymbol m)
+            // local functions
+
+            static bool IsPropertyWithNonPublicImplementableAccessor(ISymbol member)
             {
-                if (m.Kind != SymbolKind.Property)
+                if (member.Kind != SymbolKind.Property)
                 {
                     return false;
                 }
 
-                var property = (IPropertySymbol)m;
+                var property = (IPropertySymbol)member;
 
-                return isNonPublicImplementableAccessor(property.GetMethod) || isNonPublicImplementableAccessor(property.SetMethod);
+                return IsNonPublicImplementableAccessor(property.GetMethod) || IsNonPublicImplementableAccessor(property.SetMethod);
             }
 
-            static bool isNonPublicImplementableAccessor(IMethodSymbol accessor)
+            static bool IsNonPublicImplementableAccessor(IMethodSymbol accessor)
             {
                 return accessor != null && IsImplementable(accessor) && accessor.DeclaredAccessibility != Accessibility.Public;
             }
@@ -276,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     {
                         return type.GetMembers().WhereAsArray(m => m.Kind != SymbolKind.NamedType &&
                                                                    IsImplementable(m) && m.IsAccessibleWithin(within) &&
-                                                                   !isPropertyWithInaccessibleImplementableAccessor(m, within));
+                                                                   !IsPropertyWithInaccessibleImplementableAccessor(m, within));
                     }
 
                     return type.GetMembers();
@@ -284,19 +291,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
 
-            static bool isPropertyWithInaccessibleImplementableAccessor(ISymbol m, ISymbol within)
+            // local functions
+
+            static bool IsPropertyWithInaccessibleImplementableAccessor(ISymbol member, ISymbol within)
             {
-                if (m.Kind != SymbolKind.Property)
+                if (member.Kind != SymbolKind.Property)
                 {
                     return false;
                 }
 
-                var property = (IPropertySymbol)m;
+                var property = (IPropertySymbol)member;
 
-                return isInaccessibleImplementableAccessor(property.GetMethod, within) || isInaccessibleImplementableAccessor(property.SetMethod, within);
+                return IsInaccessibleImplementableAccessor(property.GetMethod, within) || IsInaccessibleImplementableAccessor(property.SetMethod, within);
             }
 
-            static bool isInaccessibleImplementableAccessor(IMethodSymbol accessor, ISymbol within)
+            static bool IsInaccessibleImplementableAccessor(IMethodSymbol accessor, ISymbol within)
             {
                 return accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
             }

@@ -354,17 +354,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-            IEnumerable<ITypeSymbol> baseTypes;
-
-            if (baseType.TypeKind == TypeKind.Interface)
-            {
-                baseTypes = type.AllInterfaces;
-            }
-            else
-            {
-                baseTypes = type.GetBaseTypes();
-            }
-
+            IEnumerable<ITypeSymbol> baseTypes = (baseType.TypeKind == TypeKind.Interface) ? type.AllInterfaces : type.GetBaseTypes();
             return baseTypes.Contains(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalBaseType));
         }
 

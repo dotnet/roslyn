@@ -861,9 +861,8 @@ Class A
 End Class")
         End Function
 
-        <WorkItem(541092, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541092")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
-        Public Async Function TestShowForNonImplementedPrivateInterfaceMethod() As Task
+        Public Async Function TestDoNotShowForNonImplementedPrivateInterfaceMethod() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Interface I1
     Private Sub Goo()
