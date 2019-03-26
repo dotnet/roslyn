@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
-                var delay = new ResettableDelay((int)s_delay.TotalMilliseconds);
+                var delay = new ResettableDelay((int)s_delay.TotalMilliseconds, expeditableDelaySource: AsynchronousOperationListenerProvider.NullListener);
 
                 _resettableDelay = delay;
                 delay.Task.ContinueWith(InvalidateAsync, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
