@@ -1599,4 +1599,10 @@ This version used in: {2}</value>
     <value>Make readonly fields writable</value>
     <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
   </data>
+  <data name="Add_optional_parameter_to_constructor" xml:space="preserve">
+    <value>Add optional parameter to constructor</value>
+  </data>
+  <data name="Add_parameter_to_constructor" xml:space="preserve">
+    <value>Add parameter to constructor</value>
+  </data>
 </root>

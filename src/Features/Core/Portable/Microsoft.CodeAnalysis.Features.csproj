@@ -6,7 +6,8 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <TargetFramework>netstandard2.0</TargetFramework>
     <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
-
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
     <PackageDescription>
@@ -127,4 +128,5 @@
     <PackageReference Include="Microsoft.DiaSymReader" Version="$(MicrosoftDiaSymReaderVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
 </Project>

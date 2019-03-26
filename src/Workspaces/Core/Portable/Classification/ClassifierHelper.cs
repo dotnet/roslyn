@@ -42,6 +42,14 @@ namespace Microsoft.CodeAnalysis.Classification
                 await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
                 await classificationService.AddSemanticClassificationsAsync(document, span, semanticSpans, cancellationToken).ConfigureAwait(false);
 
+                // MergeClassifiedSpans will ultimately filter multiple classifications for the same
+                // span down to one. We know that additive classifications are there just to 
+                // provide additional information about the true classification. We will remove
+                // additive ClassifiedSpans until we have support for additive classifications
+                // in classified spans. https://github.com/dotnet/roslyn/issues/32770
+                RemoveAdditiveSpans(syntaxSpans);
+                RemoveAdditiveSpans(semanticSpans);
+
                 var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span);
                 return classifiedSpans;
             }
@@ -49,6 +57,18 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 ListPool<ClassifiedSpan>.Free(syntaxSpans);
                 ListPool<ClassifiedSpan>.Free(semanticSpans);
+            }
+        }
+
+        private static void RemoveAdditiveSpans(List<ClassifiedSpan> spans)
+        {
+            for (var i = spans.Count - 1; i >= 0; i--)
+            {
+                var span = spans[i];
+                if (ClassificationTypeNames.AdditiveTypeNames.Contains(span.ClassificationType))
+                {
+                    spans.RemoveAt(i);
+                }
             }
         }
 
