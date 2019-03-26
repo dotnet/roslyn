@@ -262,8 +262,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // representing System.Xml.XmlReader will say it implements IDisposable, but
             // the XmlReader.Dispose() method will not be an explicit implementation of
             // IDisposable.Dispose()
-            if (!semanticFacts.SupportsImplicitInterfaceImplementation &&
-                typeSymbol.Locations.Any(location => location.IsInSource))
+            if ((!semanticFacts.SupportsImplicitInterfaceImplementation &&
+                typeSymbol.Locations.Any(location => location.IsInSource)) ||
+                typeSymbol.TypeKind == TypeKind.Interface)
             {
                 return explicitMatches.FirstOrDefault();
             }
@@ -378,12 +379,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ITypeSymbol type, ITypeSymbol interfaceType)
         {
             var originalInterfaceType = interfaceType.OriginalDefinition;
-            if (type is INamedTypeSymbol && type.TypeKind == TypeKind.Interface)
-            {
-                // Interfaces don't implement other interfaces. They extend them.
-                return false;
-            }
-
             return type.AllInterfaces.Any(t => SymbolEquivalenceComparer.Instance.Equals(t.OriginalDefinition, originalInterfaceType));
         }
 
