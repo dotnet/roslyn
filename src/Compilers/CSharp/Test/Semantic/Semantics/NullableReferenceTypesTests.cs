@@ -2299,6 +2299,46 @@ class C
                 );
         }
 
+        [Fact, WorkItem(31584, "https://github.com/dotnet/roslyn/issues/31584")]
+        public void Verify31584()
+        {
+            var comp = CreateCompilation(@"
+using System;
+using System.Linq;
+class C
+{
+    void M<T>(Func<T, bool>? predicate)
+    {
+        var items = Enumerable.Empty<T>();
+        if (predicate != null)
+            items = items.Where(x => predicate(x));
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(32463, "https://github.com/dotnet/roslyn/issues/32463")]
+        public void Verify32463()
+        {
+            var comp = CreateCompilation(@"
+using System.Linq;
+class C
+{
+    public void F(string? param)
+    {
+        if (param != null)
+            _ = new[] { 0 }.Select(_ => param.Length);
+
+        string? local = """";
+        if (local != null)
+            _ = new[] { 0 }.Select(_ => local.Length);
+    }
+}", options: WithNonNullTypesTrue());
+
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(32701, "https://github.com/dotnet/roslyn/issues/32701")]
         public void Verify32701()
         {
@@ -2323,6 +2363,23 @@ class C
                 //         t = d; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "d").WithLocation(10, 13)
                 );
+        }
+
+        [Fact, WorkItem(26696, "https://github.com/dotnet/roslyn/issues/26696")]
+        public void Verify26696()
+        {
+            var source = @"
+interface I
+{
+    object this[int i] { get; }
+}
+class C<T> : I
+{
+    T this[int i] => throw null!;
+    object I.this[int i] => this[i]!;
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(31297, "https://github.com/dotnet/roslyn/issues/31297")]
