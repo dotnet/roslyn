@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -58,7 +57,7 @@ int y;
 }
 ";
 
-            AssertFormatWithView(expected, code, (CodeCleanupOptions.PerformAdditionalCodeCleanupDuringFormatting, true));
+            AssertFormatWithView(expected, code);
         }
 
         [WpfFact]
