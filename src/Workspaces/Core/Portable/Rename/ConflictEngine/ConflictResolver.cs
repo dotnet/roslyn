@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                     if (semanticFactsService.SupportsParameterizedProperties)
                     {
                         otherThingsNamedTheSameExcludeMethodAndParameterizedProperty = otherThingsNamedTheSame
-                            .Where(s=> !s.MatchesKind(SymbolKind.Method, SymbolKind.Property) ||
+                            .Where(s => !s.MatchesKind(SymbolKind.Method, SymbolKind.Property) ||
                                 !renamedSymbol.MatchesKind(SymbolKind.Method, SymbolKind.Property));
                     }
                     else

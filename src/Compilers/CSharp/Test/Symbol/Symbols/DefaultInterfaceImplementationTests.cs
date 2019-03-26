@@ -27972,6 +27972,8 @@ public interface I1
     {
         B
     }
+
+    delegate void T5();
 }
 
 class Test1 : I1.T1
@@ -27983,6 +27985,7 @@ class Test1 : I1.T1
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
+        System.Console.WriteLine(new I1.T5(a.M1));
     }
 
     public void M1()
@@ -28000,7 +28003,7 @@ class Test1 : I1.T1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: targetFramework);
 
-            for (int i = 1; i <= 4; i++)
+            for (int i = 1; i <= 5; i++)
             {
                 Assert.Equal(expected, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
             }
@@ -28009,7 +28012,8 @@ class Test1 : I1.T1
 @"M1
 I1+T2
 I1+T3
-B",
+B
+I1+T5",
                 verify: verify);
         }
 
@@ -28100,6 +28104,8 @@ public interface I1
     {
         B
     }
+
+    public delegate void T5();
 }
 
 class Test1 : I1.T1
@@ -28111,6 +28117,7 @@ class Test1 : I1.T1
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
+        System.Console.WriteLine(new I1.T5(a.M1));
     }
 
     public void M1()
@@ -28144,6 +28151,8 @@ public interface I1
     {
         B
     }
+
+    protected delegate void T5();
 }
 ";
             var source1 =
@@ -28157,6 +28166,7 @@ class Test1 : I1
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
+        System.Console.WriteLine(new I1.T5(a.M1));
     }
 
     class Test2 : I1.T1
@@ -28175,7 +28185,7 @@ class Test1 : I1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            for (int i = 1; i <= 4; i++)
+            for (int i = 1; i <= 5; i++)
             {
                 Assert.Equal(Accessibility.Protected, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
             }
@@ -28192,7 +28202,10 @@ class Test1 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T3").WithLocation(12, 22),
                 // (15,20): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected enum T4
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 20)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 20),
+                // (20,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected delegate void T5();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T5").WithLocation(20, 29)
                 );
 
             var source2 =
@@ -28206,6 +28219,7 @@ class Test1
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
+        System.Console.WriteLine(new I1.T5(a.M1));
     }
 
     class Test2 : I1.T1
@@ -28238,9 +28252,15 @@ class Test1
                 // (10,37): error CS0122: 'I1.T4' is inaccessible due to its protection level
                 //         System.Console.WriteLine(I1.T4.B);
                 Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(10, 37),
-                // (13,22): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                // (11,41): error CS0122: 'I1.T5' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T5(a.M1));
+                Diagnostic(ErrorCode.ERR_BadAccess, "T5").WithArguments("I1.T5").WithLocation(11, 41),
+                // (11,46): error CS0122: 'I1.T1.M1()' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T5(a.M1));
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.T1.M1()").WithLocation(11, 46),
+                // (14,22): error CS0122: 'I1.T1' is inaccessible due to its protection level
                 //     class Test2 : I1.T1
-                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(13, 22)
+                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(14, 22)
                 };
 
             compilation2.VerifyDiagnostics(expected);
@@ -28263,7 +28283,8 @@ class Test1
 @"M1
 I1+T2
 I1+T3
-B",
+B
+I1+T5",
                     verify: VerifyOnMonoOrCoreClr);
 
                 var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
@@ -28297,6 +28318,8 @@ public interface I1
     {
         B
     }
+
+    protected internal delegate void T5();
 }
 ";
             var source1 =
@@ -28310,6 +28333,7 @@ class Test1 : I1
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
+        System.Console.WriteLine(new I1.T5(a.M1));
     }
 
     class Test2 : I1.T1
@@ -28333,6 +28357,7 @@ class Test1
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
+        System.Console.WriteLine(new I1.T5(a.M1));
     }
 
     class Test2 : I1.T1
@@ -28351,7 +28376,7 @@ class Test1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            for (int i = 1; i <= 4; i++)
+            for (int i = 1; i <= 5; i++)
             {
                 Assert.Equal(Accessibility.ProtectedOrInternal, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
             }
@@ -28368,7 +28393,10 @@ class Test1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T3").WithLocation(12, 31),
                 // (15,29): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     protected internal enum T4
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 29)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 29),
+                // (20,38): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     protected internal delegate void T5();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T5").WithLocation(20, 38)
                 );
 
 
@@ -28390,7 +28418,8 @@ class Test1
 @"M1
 I1+T2
 I1+T3
-B",
+B
+I1+T5",
                     verify: VerifyOnMonoOrCoreClr);
 
                 var compilation5 = CreateCompilation(source2, options: TestOptions.DebugExe,
@@ -28414,9 +28443,15 @@ B",
                     // (10,37): error CS0122: 'I1.T4' is inaccessible due to its protection level
                     //         System.Console.WriteLine(I1.T4.B);
                     Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(10, 37),
-                    // (13,22): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                    // (11,41): error CS0122: 'I1.T5' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(new I1.T5(a.M1));
+                    Diagnostic(ErrorCode.ERR_BadAccess, "T5").WithArguments("I1.T5").WithLocation(11, 41),
+                    // (11,46): error CS0122: 'I1.T1.M1()' is inaccessible due to its protection level
+                    //         System.Console.WriteLine(new I1.T5(a.M1));
+                    Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.T1.M1()").WithLocation(11, 46),
+                    // (14,22): error CS0122: 'I1.T1' is inaccessible due to its protection level
                     //     class Test2 : I1.T1
-                    Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(13, 22)
+                    Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(14, 22)
                     );
             }
         }
@@ -28443,6 +28478,8 @@ public interface I1
     {
         B
     }
+
+    internal delegate void T5();
 }
 ";
             var source2 =
@@ -28456,6 +28493,7 @@ class Test1 : I1.T1
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
+        System.Console.WriteLine(new I1.T5(a.M1));
     }
 
     public void M1()
@@ -28489,7 +28527,13 @@ class Test1 : I1.T1
                 Diagnostic(ErrorCode.ERR_BadAccess, "T3").WithArguments("I1.T3").WithLocation(9, 41),
                 // (10,37): error CS0122: 'I1.T4' is inaccessible due to its protection level
                 //         System.Console.WriteLine(I1.T4.B);
-                Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(10, 37)
+                Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(10, 37),
+                // (11,41): error CS0122: 'I1.T5' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T5(a.M1));
+                Diagnostic(ErrorCode.ERR_BadAccess, "T5").WithArguments("I1.T5").WithLocation(11, 41),
+                // (11,46): error CS0122: 'I1.T1.M1()' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T5(a.M1));
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.T1.M1()").WithLocation(11, 46)
                 };
             compilation2.VerifyDiagnostics(expected);
 
@@ -28521,6 +28565,8 @@ public interface I1
         B
     }
 
+    private delegate void T5();
+
     class Test1 : I1.T1
     {
         static void Main()
@@ -28530,6 +28576,7 @@ public interface I1
             System.Console.WriteLine(new I1.T2());
             System.Console.WriteLine(new I1.T3());
             System.Console.WriteLine(I1.T4.B);
+            System.Console.WriteLine(new I1.T5(a.M1));
         }
 
         public void M1()
@@ -28631,6 +28678,8 @@ public interface I1
     {
         B
     }
+
+    private protected delegate void T5();
 }
 ";
             var source1 =
@@ -28644,6 +28693,7 @@ class Test1 : I1
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
+        System.Console.WriteLine(new I1.T5(a.M1));
     }
 
     class Test2 : I1.T1
@@ -28667,6 +28717,7 @@ class Test1
         System.Console.WriteLine(new I1.T2());
         System.Console.WriteLine(new I1.T3());
         System.Console.WriteLine(I1.T4.B);
+        System.Console.WriteLine(new I1.T5(a.M1));
     }
 
     class Test2 : I1.T1
@@ -28684,7 +28735,7 @@ class Test1
                                                  parseOptions: TestOptions.Regular,
                                                  targetFramework: TargetFramework.DesktopLatestExtended);
 
-            for (int i = 1; i <= 4; i++)
+            for (int i = 1; i <= 5; i++)
             {
                 Assert.Equal(Accessibility.ProtectedAndInternal, compilation1.GetMember("I1.T" + i).DeclaredAccessibility);
             }
@@ -28701,7 +28752,10 @@ class Test1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T3").WithLocation(12, 30),
                 // (15,28): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
                 //     private protected enum T4
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 28)
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T4").WithLocation(15, 28),
+                // (20,37): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
+                //     private protected delegate void T5();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, "T5").WithLocation(20, 37)
                 );
 
             var compilation2 = CreateCompilation(source2 + source0, options: TestOptions.DebugExe,
@@ -28724,9 +28778,15 @@ class Test1
                 // (10,37): error CS0122: 'I1.T4' is inaccessible due to its protection level
                 //         System.Console.WriteLine(I1.T4.B);
                 Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(10, 37),
-                // (13,22): error CS0122: 'I1.T1' is inaccessible due to its protection level
+                // (11,41): error CS0122: 'I1.T5' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T5(a.M1));
+                Diagnostic(ErrorCode.ERR_BadAccess, "T5").WithArguments("I1.T5").WithLocation(11, 41),
+                // (11,46): error CS0122: 'I1.T1.M1()' is inaccessible due to its protection level
+                //         System.Console.WriteLine(new I1.T5(a.M1));
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I1.T1.M1()").WithLocation(11, 46),
+                // (14,22): error CS0122: 'I1.T1' is inaccessible due to its protection level
                 //     class Test2 : I1.T1
-                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(13, 22)
+                Diagnostic(ErrorCode.ERR_BadAccess, "T1").WithArguments("I1.T1").WithLocation(14, 22)
                 };
 
             compilation2.VerifyDiagnostics(expected);

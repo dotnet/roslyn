@@ -215,8 +215,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var typeSymbol = this.Type;
 
-            // It is not safe to check if a type parameter is a reference type right away, this can send us into a cycle.
-            // In this case we delay asking this question as long as possible.
             if (typeSymbol.TypeKind != TypeKind.TypeParameter)
             {
                 if (!typeSymbol.IsValueType && !typeSymbol.IsErrorType())
@@ -225,11 +223,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    return Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol)));
+                    return makeNullableT();
                 }
             }
 
+            if (((TypeParameterSymbol)typeSymbol).TypeParameterKind == TypeParameterKind.Cref)
+            {
+                // We always bind annotated type parameters in cref as `Nullable<T>`
+                return makeNullableT();
+            }
+
+            // It is not safe to check if a type parameter is a reference type right away, this can send us into a cycle.
+            // In this case we delay asking this question as long as possible.
             return CreateLazyNullableType(compilation, this);
+
+            TypeWithAnnotations makeNullableT()
+                => Create(compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(typeSymbol)));
         }
 
         private TypeWithAnnotations AsNullableReferenceType() => _extensions.AsNullableReferenceType(this);
@@ -241,28 +250,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeWithAnnotations MergeNullability(TypeWithAnnotations other, VarianceKind variance)
         {
             TypeSymbol typeSymbol = other.Type;
-            NullableAnnotation nullableAnnotation = MergeNullableAnnotation(this.NullableAnnotation, other.NullableAnnotation, variance);
+            NullableAnnotation nullableAnnotation = this.NullableAnnotation.MergeNullableAnnotation(other.NullableAnnotation, variance);
             TypeSymbol type = Type.MergeNullability(typeSymbol, variance);
             Debug.Assert((object)type != null);
             return Create(type, nullableAnnotation, CustomModifiers);
-        }
-
-        /// <summary>
-        /// Merges nullability.
-        /// </summary>
-        private static NullableAnnotation MergeNullableAnnotation(NullableAnnotation a, NullableAnnotation b, VarianceKind variance)
-        {
-            switch (variance)
-            {
-                case VarianceKind.In:
-                    return a.Meet(b);
-                case VarianceKind.Out:
-                    return a.Join(b);
-                case VarianceKind.None:
-                    return a.EnsureCompatible(b);
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(variance);
-            }
         }
 
         public TypeWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers) =>

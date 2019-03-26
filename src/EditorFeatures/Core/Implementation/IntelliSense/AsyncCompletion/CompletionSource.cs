@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -10,7 +11,6 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -256,7 +256,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
 
             var description = await service.GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
-            return IntelliSense.Helpers.BuildClassifiedTextElement(description.TaggedParts);
+            var elements = IntelliSense.Helpers.BuildClassifiedTextElements(description.TaggedParts).ToArray();
+            if (elements.Length == 0)
+            {
+                return new ClassifiedTextElement();
+            }
+            else if (elements.Length == 1)
+            {
+                return elements[0];
+            }
+            else
+            {
+                return new ContainerElement(ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding, elements);
+            }
         }
 
         private VSCompletionItem Convert(
@@ -284,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 source: this,
                 icon: new ImageElement(new ImageId(imageId.Guid, imageId.Id), roslynItem.DisplayText),
                 filters: filters,
-                suffix: string.Empty, // Do not use the suffix unless want it to be right-aligned in the selection popup
+                suffix: roslynItem.InlineDescription, // InlineDescription will be right-aligned in the selection popup
                 insertText: insertionText,
                 sortText: roslynItem.SortText,
                 filterText: roslynItem.FilterText,
