@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static readonly RelatedTypeCache s_typeToImmediatelyDerivedClassesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToTransitivelyDerivedClassesMap = new RelatedTypeCache();
-        private static readonly RelatedTypeCache s_typeToTransitivelyImplementingStructuresAndClassesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToTransitivelyImplementingStructuresClassesAndInterfacesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToImmediatelyDerivedAndImplementingTypesMap = new RelatedTypeCache();
 
@@ -191,27 +190,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync(SymbolAndProjectId, Solution, IImmutableSet{Project}, CancellationToken)"/> for 
         /// <see cref="INamedTypeSymbol"/>s
         /// </summary>
-        public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingStructuresAndClassesAsync(
+        public static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingStructuresAndClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            return FindTypesFromCacheOrComputeAsync(
-                type, solution, projects, s_typeToTransitivelyImplementingStructuresAndClassesMap,
-                c => FindTransitivelyImplementingStructuresAndClassesWorkerAsync(type, solution, projects, c),
-                cancellationToken);
-        }
-
-        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingStructuresAndClassesWorkerAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            var derivedAndImplementingTypes = await FindDerivedAndImplementingTypesAsync(
-                SymbolAndProjectId.Create(type, projectId: null), solution, projects,
-                transitive: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var derivedAndImplementingTypes = await FindTransitivelyImplementingStructuresClassesAndInterfacesAsync(type, solution, projects, cancellationToken).ConfigureAwait(false);
 
             // We only want implementing types here, not derived interfaces.
             return derivedAndImplementingTypes.WhereAsArray(
@@ -234,15 +219,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken);
         }
 
-        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingStructuresClassesAndInterfacesWorkerAsync(
+        private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingStructuresClassesAndInterfacesWorkerAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            return await FindDerivedAndImplementingTypesAsync(
+            return FindDerivedAndImplementingTypesAsync(
                 SymbolAndProjectId.Create(type, projectId: null), solution, projects,
-                transitive: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                transitive: true, cancellationToken: cancellationToken);
         }
 
         /// <summary>
