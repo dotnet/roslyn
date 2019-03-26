@@ -1491,6 +1491,8 @@ namespace BoundTreeGenerator
 
                         foreach (var node in _tree.Types.OfType<Node>().Where(n => IsDerivedType("BoundExpression", n.Name)))
                         {
+                            if (SkipInNullabilityRewriter(node)) continue;
+
                             Blank();
                             WriteLine(GetVisitFunctionDeclaration(node.Name, isOverride: true));
                             Brace();
@@ -1711,6 +1713,11 @@ namespace BoundTreeGenerator
         private static bool SkipInVisitor(Field f)
         {
             return string.Compare(f.SkipInVisitor, "true", true) == 0;
+        }
+
+        private static bool SkipInNullabilityRewriter(Node n)
+        {
+            return string.Compare(n.SkipInNullabilityRewriter, "true", true) == 0;
         }
 
         private static bool SkipShallowClone(Node n)

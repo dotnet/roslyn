@@ -4451,7 +4451,7 @@ class C
             comp.VerifyTypes();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api): Nullable Context")]
         public void Directive_NullableDefault()
         {
             var source =
@@ -4497,7 +4497,7 @@ class B
             comp.VerifyTypes();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api): Nullable Context")]
         public void Directive_NullableFalse()
         {
             var source =
@@ -9293,7 +9293,7 @@ public class Base
     public string? FalseNMethod() => throw null!; // warn 8
 }
 ";
-            var compilation = CreateCompilation(new[] { source });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -9387,7 +9387,7 @@ public class Base
     public string? FalseNMethod() => throw null!; // 3
 }
 ";
-            var compilation = CreateCompilation(new[] { source });
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyTypes();
             compilation.VerifyDiagnostics(
@@ -32364,7 +32364,9 @@ class C
         {
             // https://github.com/dotnet/roslyn/issues/29635 Need to re-infer discards
             var source =
-@"class C<T>
+NonNullTypesOff() +
+@"
+class C<T>
 {
 " + NonNullTypesOn() + @"
     void F(object o1, object? o2, C<object> o3, C<object?> o4)
@@ -32380,7 +32382,7 @@ class C
         _ /*T:C<object>?*/ = o;
     }
 }";
-            var comp = CreateCompilation(new[] { source });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
             comp.VerifyTypes();
         }
@@ -32391,7 +32393,9 @@ class C
             // https://github.com/dotnet/roslyn/issues/33393 Need to re-infer discards.
             // The types below should have non-oblivious type arguments in the expected results.
             var source =
-@"class C<T>
+NonNullTypesOff() +
+@"
+class C<T>
 {
 " + NonNullTypesOn() + @"
     void F(bool b, object o1, object? o2, C<object> o3, C<object?> o4)
@@ -32405,15 +32409,15 @@ class C
 " + NonNullTypesOff() + @"
     static C<object> o5 = null;
 }";
-            var comp = CreateCompilation(new[] { source });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (7,40): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                // (8,40): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         _ /*T:C<object>?*/ = (b ? o3 : o4); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o4").WithArguments("C<object?>", "C<object>").WithLocation(7, 40),
-                // (8,35): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o4").WithArguments("C<object?>", "C<object>").WithLocation(8, 40),
+                // (9,35): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         _ /*T:C<object>?*/ = (b ? o4 : o3); // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o4").WithArguments("C<object?>", "C<object>").WithLocation(8, 35)
-                );
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "o4").WithArguments("C<object?>", "C<object>").WithLocation(9, 35)
+            );
             comp.VerifyTypes();
         }
 
@@ -32421,7 +32425,9 @@ class C
         public void Discard_04()
         {
             var source =
-@"class C<T>
+NonNullTypesOff() +
+@"
+class C<T>
 {
 " + NonNullTypesOn() + @"
     void F(bool b, object o1)
@@ -32429,7 +32435,7 @@ class C
         (_ /*T:object?*/ = o1) /*T:object!*/.ToString();
     }
 }";
-            var comp = CreateCompilation(new[] { source });
+            var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
             comp.VerifyTypes();
         }
@@ -35636,7 +35642,7 @@ class D
     }
 }
 ";
-            var comp2 = CreateCompilation(source2, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(source2, references: new[] { comp.EmitToImageReference() }, options: WithNonNullTypesTrue());
             comp2.VerifyTypes();
         }
 
@@ -35678,7 +35684,7 @@ class D
     }
 }
 ";
-            var comp2 = CreateCompilation(source2, references: new[] { comp.EmitToImageReference() });
+            var comp2 = CreateCompilation(source2, references: new[] { comp.EmitToImageReference() }, options: WithNonNullTypesTrue());
             comp2.VerifyTypes();
         }
 
@@ -45315,7 +45321,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Rest.Item2").WithLocation(11, 13));
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_01()
         {
@@ -45357,7 +45363,7 @@ class C
             comp.VerifyTypes();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_02()
         {
@@ -45446,7 +45452,7 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_04()
         {
@@ -45486,7 +45492,7 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_05()
         {
@@ -45520,7 +45526,7 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_06()
         {
@@ -45603,7 +45609,7 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_08()
         {
@@ -45665,7 +45671,7 @@ class Program
             comp.VerifyTypes();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api): Deconstruction unsupported")]
         [WorkItem(29970, "https://github.com/dotnet/roslyn/issues/29970")]
         public void Tuple_Assignment_09()
         {
@@ -47560,14 +47566,14 @@ class Program
 {
     static void F()
     {
-        _ = default/*T:<null>*/.ToString();
+        _ = default/*T:<null>!*/.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (5,32): error CS0023: Operator '.' cannot be applied to operand of type 'default'
-                //         _ = default/*T:<null>*/.ToString();
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(5, 32));
+                // (5,33): error CS0023: Operator '.' cannot be applied to operand of type 'default'
+                //         _ = default/*T:<null>!*/.ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "default").WithLocation(5, 33));
             comp.VerifyTypes();
         }
 
@@ -48057,18 +48063,18 @@ class Program
 {
     static void F(object? x)
     {
-        _ = (default, default)/*T:<null>*/.Item1.ToString();
-        _ = (x, default)/*T:<null>*/.Item2.ToString();
+        _ = (default, default)/*T:<null>!*/.Item1.ToString();
+        _ = (x, default)/*T:<null>!*/.Item2.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
-                // (5,44): error CS0117: '(default, default)' does not contain a definition for 'Item1'
-                //         _ = (default, default)/*T:<null>*/.Item1.ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "Item1").WithArguments("(default, default)", "Item1").WithLocation(5, 44),
-                // (6,38): error CS0117: '(object, default)' does not contain a definition for 'Item2'
-                //         _ = (x, default)/*T:<null>*/.Item2.ToString();
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "Item2").WithArguments("(object, default)", "Item2").WithLocation(6, 38));
+                // (5,45): error CS0117: '(default, default)' does not contain a definition for 'Item1'
+                //         _ = (default, default)/*T:<null>!*/.Item1.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Item1").WithArguments("(default, default)", "Item1").WithLocation(5, 45),
+                // (6,39): error CS0117: '(object, default)' does not contain a definition for 'Item2'
+                //         _ = (x, default)/*T:<null>!*/.Item2.ToString();
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Item2").WithArguments("(object, default)", "Item2").WithLocation(6, 39));
             comp.VerifyTypes();
         }
 

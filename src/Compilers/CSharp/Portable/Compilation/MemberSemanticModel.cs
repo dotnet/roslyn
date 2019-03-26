@@ -1435,19 +1435,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 #endif
 
+            if (EnableNullableAnalysis)
+            {
+                // PROTOTYPE(nullable-api): This doesn't work for speculative models: the root is just the statement
+                // or expression being speculated on.
+                return Root;
+            }
+
             for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
             {
-                if (current is StatementSyntax)
+                switch (current)
                 {
-                    return current;
-                }
-
-                switch (current.Kind())
-                {
-                    case SyntaxKind.ThisConstructorInitializer:
-                    case SyntaxKind.BaseConstructorInitializer:
+                    case StatementSyntax _:
+                    case ConstructorInitializerSyntax _:
                         return current;
-                    case SyntaxKind.ArrowExpressionClause:
+
+                    case ArrowExpressionClauseSyntax _:
                         // If this is an arrow expression on a local function statement, then our bindable root is actually our parent syntax as it's
                         // a statement in a function. If this is returned directly in IOperation, we'll end up with a separate tree.
                         if (current.Parent == null || current.Parent.Kind() != SyntaxKind.LocalFunctionStatement)
@@ -1833,10 +1836,40 @@ done:
             var statementBinder = GetEnclosingBinder(GetAdjustedNodePosition(nodeToBind));
             Binder incrementalBinder = new IncrementalBinder(this, statementBinder);
 
+            // PROTOTYPE(nullable-api): Speculative models are going to have to do something more advanced
+            // here. They will need to run nullable analysis up to the point that is being speculated on, and
+            // then take that state and run analysis on the statement or expression being speculated on.
+            // Currently, it will return incorrect info because it's just running analysis on the speculated
+            // part.
+
+            BoundNode root;
             using (_nodeMapLock.DisposableWrite())
             {
-                BoundNode boundStatement = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
-                results = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, boundStatement);
+                root = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
+            }
+
+            if (EnableNullableAnalysis)
+            {
+                if (MemberSymbol is MethodSymbol method)
+                {
+                    BoundNode rewritten = NullableWalker.AnalyzeAndRewrite(Compilation, method, root, RootBinder.Conversions, new DiagnosticBag());
+                    using (_nodeMapLock.DisposableWrite())
+                    {
+                        results = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, rewritten);
+                    }
+                }
+                else
+                {
+                    // PROTOTYPE(nullable-api): Handle other symbol types
+                    using (_nodeMapLock.DisposableWrite())
+                    {
+                        _ = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, root);
+                    }
+                }
+            }
+            else
+            {
+                results = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, root);
             }
 
             if (!results.IsDefaultOrEmpty)
@@ -1860,6 +1893,7 @@ done:
 
             if (results.IsDefaultOrEmpty)
             {
+                // PROTOTYPE(nullable-api): We have to run analysis on this node in some manner
                 using (_nodeMapLock.DisposableWrite())
                 {
                     var boundNode = this.Bind(binder, node, _ignoredDiagnostics);

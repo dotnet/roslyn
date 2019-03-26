@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.Type; }
         }
 
-        CodeAnalysis.NullableAnnotation IPropertySymbol.NullableAnnotation => default;
+        CodeAnalysis.NullableAnnotation IPropertySymbol.NullableAnnotation => TypeWithAnnotations.NullableAnnotation.ToPublicAnnotation();
 
         ImmutableArray<IParameterSymbol> IPropertySymbol.Parameters
         {

@@ -690,10 +690,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region ITypeParameterTypeSymbol Members
 
-        CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation
+        CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation => ReferenceTypeConstraintIsNullable switch
         {
-            get => default;
-        }
+            false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.NotApplicable,
+            false => CodeAnalysis.NullableAnnotation.NotAnnotated,
+            true => CodeAnalysis.NullableAnnotation.Annotated,
+            null => CodeAnalysis.NullableAnnotation.Disabled,
+        };
 
         TypeParameterKind ITypeParameterSymbol.TypeParameterKind
         {
@@ -723,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         ImmutableArray<CodeAnalysis.NullableAnnotation> ITypeParameterSymbol.ConstraintNullableAnnotations
         {
-            get => this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => default(CodeAnalysis.NullableAnnotation));
+            get => this.ConstraintTypesNoUseSiteDiagnostics.SelectAsArray(c => c.NullableAnnotation.ToPublicAnnotation());
         }
 
         ITypeParameterSymbol ITypeParameterSymbol.OriginalDefinition

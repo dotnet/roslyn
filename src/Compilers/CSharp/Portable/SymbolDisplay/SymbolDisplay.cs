@@ -37,10 +37,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             ITypeSymbol symbol,
             CodeAnalysis.NullableFlowState topLevelNullability,
             SymbolDisplayFormat format = null)
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             return ToDisplayParts(symbol, topLevelNullability, format).ToDisplayString();
         }
+
+        public static string ToDisplayString(
+            ITypeSymbol symbol,
+            CodeAnalysis.NullableAnnotation topLevelNullability,
+            SymbolDisplayFormat format = null)
+        {
+            return ToDisplayParts(symbol, topLevelNullability, format).ToDisplayString();
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
         /// Displays a symbol in the C# style, based on a <see cref="SymbolDisplayFormat"/>.
@@ -67,14 +75,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string ToMinimalDisplayString(
             ITypeSymbol symbol,
-            CodeAnalysis.NullableFlowState topLevelNullability,
+            CodeAnalysis.NullableFlowState nullableFlowState,
             SemanticModel semanticModel,
             int position,
             SymbolDisplayFormat format = null)
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
-            return ToMinimalDisplayParts(symbol, topLevelNullability, semanticModel, position, format).ToDisplayString();
+            return ToMinimalDisplayParts(symbol, nullableFlowState, semanticModel, position, format).ToDisplayString();
         }
+
+        public static string ToMinimalDisplayString(
+            ITypeSymbol symbol,
+            CodeAnalysis.NullableAnnotation annotation,
+            SemanticModel semanticModel,
+            int position,
+            SymbolDisplayFormat format = null)
+        {
+            return ToMinimalDisplayParts(symbol, annotation, semanticModel, position, format).ToDisplayString();
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. Useful for
@@ -93,21 +111,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             // null indicates the default format
             format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
             return ToDisplayParts(
-                symbol, topLevelNullabilityOpt: null, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
+                symbol, nullableAnnotationOpt: null, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ITypeSymbol symbol,
-            CodeAnalysis.NullableFlowState topLevelNullability,
+            CodeAnalysis.NullableFlowState nullableFlowState,
             SymbolDisplayFormat format = null)
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
             // null indicates the default format
             format = format ?? SymbolDisplayFormat.CSharpErrorMessageFormat;
             return ToDisplayParts(
-                symbol, topLevelNullability, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
+                symbol, nullableFlowState, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
         }
+
+        public static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
+            ITypeSymbol symbol,
+            CodeAnalysis.NullableAnnotation nullableAnnotation,
+            SymbolDisplayFormat format = null)
+        {
+            // null indicates the default format
+            format ??= SymbolDisplayFormat.CSharpErrorMessageFormat;
+            return ToDisplayParts(
+                symbol, nullableAnnotation, semanticModelOpt: null, positionOpt: -1, format: format, minimal: false);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
         /// Convert a symbol to an array of string parts, each of which has a kind. Useful for
@@ -128,25 +157,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format = null)
         {
             format = format ?? SymbolDisplayFormat.MinimallyQualifiedFormat;
-            return ToDisplayParts(symbol, topLevelNullabilityOpt: null, semanticModel, position, format, minimal: true);
+            return ToDisplayParts(symbol, nullableAnnotationOpt: null, semanticModel, position, format, minimal: true);
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
             ITypeSymbol symbol,
-            CodeAnalysis.NullableFlowState topLevelNullability,
+            CodeAnalysis.NullableFlowState nullableFlowState,
             SemanticModel semanticModel,
             int position,
             SymbolDisplayFormat format = null)
-#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
         {
-            format = format ?? SymbolDisplayFormat.MinimallyQualifiedFormat;
-            return ToDisplayParts(symbol, topLevelNullability, semanticModel, position, format, minimal: true);
+            format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
+            return ToDisplayParts(symbol, nullableFlowState, semanticModel, position, format, minimal: true);
+        }
+
+        public static ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(
+            ITypeSymbol symbol,
+            CodeAnalysis.NullableAnnotation nullableAnnotation,
+            SemanticModel semanticModel,
+            int position,
+            SymbolDisplayFormat format = null)
+        {
+            format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
+            return ToDisplayParts(symbol, nullableAnnotation, semanticModel, position, format, minimal: true);
+        }
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
+
+        private static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
+            ITypeSymbol symbol,
+            CodeAnalysis.NullableFlowState nullableFlowState,
+            SemanticModel semanticModelOpt,
+            int positionOpt,
+            SymbolDisplayFormat format,
+            bool minimal)
+        {
+            var annotation = (CodeAnalysis.NullableAnnotation?)new TypeWithState((TypeSymbol)symbol, nullableFlowState.ToInternalFlowState()).ToTypeWithAnnotations().NullableAnnotation.ToPublicAnnotation();
+            return ToDisplayParts(symbol, annotation, semanticModelOpt, positionOpt, format, minimal);
         }
 
         private static ImmutableArray<SymbolDisplayPart> ToDisplayParts(
             ISymbol symbol,
-            CodeAnalysis.NullableFlowState? topLevelNullabilityOpt,
+            CodeAnalysis.NullableAnnotation? nullableAnnotationOpt,
             SemanticModel semanticModelOpt,
             int positionOpt,
             SymbolDisplayFormat format,
@@ -157,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(symbol));
             }
 
-            Debug.Assert(!topLevelNullabilityOpt.HasValue || symbol is ITypeSymbol);
+            Debug.Assert(!nullableAnnotationOpt.HasValue || symbol is ITypeSymbol);
 
             if (minimal)
             {
@@ -178,9 +230,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var builder = ArrayBuilder<SymbolDisplayPart>.GetInstance();
             var visitor = new SymbolDisplayVisitor(builder, format, semanticModelOpt, positionOpt);
-            if (topLevelNullabilityOpt.HasValue)
+            if (nullableAnnotationOpt.HasValue)
             {
-                visitor.VisitWithNullability((TypeSymbol)symbol, topLevelNullabilityOpt.GetValueOrDefault().ToInternalFlowState());
+                visitor.VisitWithNullableAnnotation((TypeSymbol)symbol, nullableAnnotationOpt.GetValueOrDefault().ToInternalAnnotation());
             }
             else
             {

@@ -12433,24 +12433,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return updatedNode;
         }
 
-        public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
-        {
-            BoundExpression left = (BoundExpression)this.Visit(node.Left);
-            BoundExpression right = (BoundExpression)this.Visit(node.Right);
-            BoundBinaryOperator updatedNode;
-
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
-            {
-                updatedNode = node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, left, right, infoAndType.Type);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, left, right, node.Type);
-            }
-            return updatedNode;
-        }
-
         public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
         {
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
@@ -12467,24 +12449,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, node.Type);
-            }
-            return updatedNode;
-        }
-
-        public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
-        {
-            BoundExpression left = (BoundExpression)this.Visit(node.Left);
-            BoundExpression right = (BoundExpression)this.Visit(node.Right);
-            BoundUserDefinedConditionalLogicalOperator updatedNode;
-
-            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType))
-            {
-                updatedNode = node.Update(node.OperatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, left, right, infoAndType.Type);
-                updatedNode.TopLevelNullability = infoAndType.Info;
-            }
-            else
-            {
-                updatedNode = node.Update(node.OperatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, left, right, node.Type);
             }
             return updatedNode;
         }

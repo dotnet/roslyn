@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -51,6 +52,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((CodeAnalysis.NullableAnnotation)(NullableAnnotation.Oblivious + 1) == CodeAnalysis.NullableAnnotation.Disabled);
             return (CodeAnalysis.NullableAnnotation)annotation + 1;
+        }
+
+        internal static NullabilityInfo ToNullabilityInfo(this CodeAnalysis.NullableAnnotation annotation, TypeSymbol type)
+        {
+            if (annotation == CodeAnalysis.NullableAnnotation.NotApplicable)
+            {
+                return default;
+            }
+
+            NullableAnnotation internalAnnotation = (NullableAnnotation)annotation - 1;
+            return internalAnnotation.ToNullabilityInfo(type);
+        }
+
+        internal static NullabilityInfo ToNullabilityInfo(this NullableAnnotation annotation, TypeSymbol type)
+        {
+            var flowState = TypeWithAnnotations.Create(type, annotation).ToTypeWithState().State;
+            return new NullabilityInfo(annotation.ToPublicAnnotation(), flowState.ToPublicFlowState());
+        }
+
+        internal static NullableAnnotation ToInternalAnnotation(this CodeAnalysis.NullableAnnotation annotation)
+        {
+            Debug.Assert((CodeAnalysis.NullableAnnotation)(NullableAnnotation.Oblivious + 1) == CodeAnalysis.NullableAnnotation.Disabled);
+            return annotation == CodeAnalysis.NullableAnnotation.NotApplicable ? NullableAnnotation.Oblivious : (NullableAnnotation)(annotation - 1);
         }
     }
 }
