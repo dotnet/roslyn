@@ -24,40 +24,67 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
         where TMemberDeclarationSyntax : SyntaxNode
         where TCompilationUnitSyntax : SyntaxNode
     {
-        private enum OperationKind
-        {
-            MoveType,
-            RenameType,
-            RenameFile
-        }
-
         public async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
-            if (textSpan.IsEmpty)
-            {
-                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var nodeToAnalyze = root.FindToken(textSpan.Start).GetAncestor<TTypeDeclarationSyntax>();
-                if (nodeToAnalyze != null)
-                {
-                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                    if (syntaxFacts.IsOnTypeHeader(root, textSpan.Start))
-                    {
-                        var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                        var state = State.Generate(
-                            semanticDocument, textSpan, nodeToAnalyze, cancellationToken);
-                        if (state != null)
-                        {
-                            var actions = CreateActions(state, cancellationToken);
+            var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
-                            Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
-                            return actions;
-                        }
-                    }
-                }
+            if (state == null)
+            {
+                return ImmutableArray<CodeAction>.Empty;
             }
 
-            return ImmutableArray<CodeAction>.Empty;
+            var actions = CreateActions(state, cancellationToken);
+
+            Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
+            return actions;
+        }
+
+        public async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
+        {
+            var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+
+            if (state == null)
+            {
+                return document.Project.Solution;
+            }
+
+            var suggestedFileNames = GetSuggestedFileNames(
+                state.TypeNode,
+                IsNestedType(state.TypeNode),
+                state.TypeName,
+                state.SemanticDocument.Document.Name,
+                state.SemanticDocument.SemanticModel,
+                cancellationToken);
+
+            var editor = Editor.GetEditor(operationKind, (TService)this, state, suggestedFileNames.FirstOrDefault(), cancellationToken);
+            var modifiedSolution = await editor.GetModifiedSolutionAsync().ConfigureAwait(false);
+            return modifiedSolution ?? document.Project.Solution;
+        }
+
+        private async Task<State> CreateStateAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+        {
+            if (!textSpan.IsEmpty)
+            {
+                return null;
+            }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var nodeToAnalyze = root.FindToken(textSpan.Start).GetAncestor<TTypeDeclarationSyntax>();
+
+            if (nodeToAnalyze == null)
+            {
+                return null;
+            }
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (!syntaxFacts.IsOnTypeHeader(root, textSpan.Start))
+            {
+                return null;
+            }
+
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            return State.Generate(semanticDocument, textSpan, nodeToAnalyze, cancellationToken);
         }
 
         private ImmutableArray<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
@@ -83,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
                 foreach (var fileName in suggestedFileNames)
                 {
-                    actions.Add(GetCodeAction(state, fileName, operationKind: OperationKind.MoveType));
+                    actions.Add(GetCodeAction(state, fileName, operationKind: MoveTypeOperationKind.MoveType));
                 }
             }
 
@@ -93,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
                 foreach (var fileName in suggestedFileNames)
                 {
-                    actions.Add(GetCodeAction(state, fileName, operationKind: OperationKind.RenameFile));
+                    actions.Add(GetCodeAction(state, fileName, operationKind: MoveTypeOperationKind.RenameFile));
                 }
 
                 // only if the document name can be legal identifier in the language,
@@ -102,14 +129,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 {
                     actions.Add(GetCodeAction(
                         state, fileName: state.DocumentNameWithoutExtension,
-                        operationKind: OperationKind.RenameType));
+                        operationKind: MoveTypeOperationKind.RenameType));
                 }
             }
 
             return actions.ToImmutableArray();
         }
 
-        private CodeAction GetCodeAction(State state, string fileName, OperationKind operationKind) =>
+        private CodeAction GetCodeAction(State state, string fileName, MoveTypeOperationKind operationKind) =>
             new MoveTypeCodeAction((TService)this, state, operationKind, fileName);
 
         private bool IsNestedType(TTypeDeclarationSyntax typeNode) =>

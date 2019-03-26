@@ -218,6 +218,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void Undo()
             => _editorInProc.Undo();
 
+        public void Redo()
+            => _editorInProc.Redo();
+
         public void NavigateToSendKeys(params object[] keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
 

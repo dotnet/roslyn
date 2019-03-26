@@ -16,6 +16,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class CodeGenTests : CSharpTestBase
     {
+        [Fact]
+        public void EmitWithSuppressedWarnAsError()
+        {
+            var src = @"
+#pragma warning disable 1591
+
+public class P {
+    public static void Main() {}
+}";
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            var options = TestOptions.ReleaseDll
+                .WithXmlReferenceResolver(XmlFileResolver.Default)
+                .WithGeneralDiagnosticOption(ReportDiagnostic.Error);
+
+            var comp = CreateCompilation(src, parseOptions: parseOptions, options: options);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp);
+        }
+
         [Fact()]
         [WorkItem(776642, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/776642")]
         public void Bug776642a()
@@ -11317,10 +11336,11 @@ class C
 }");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/34198")]
+        [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/34198")]
         public void DecimalBinaryOp_03()
         {
-            // Test temporarily disabled as it fails CI on Linux in master branch
+            // Test temporarily disabled on Mono as it fails on nightlies due to System.Decimal changes
+            // We'll need to update / disable for CoreCLR 3.0 too as it has the same change
             // Tracked by https://github.com/dotnet/roslyn/issues/34198
 
             string source = @"

@@ -52,16 +52,24 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Locating_implementations))
             {
                 var subjectBuffer = args.SubjectBuffer;
-                var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                    context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-                var findUsagesService = document?.GetLanguageService<IFindUsagesService>();
+                if (!subjectBuffer.TryGetWorkspace(out var workspace))
+                {
+                    return false;
+                }
+
+                var findUsagesService = workspace.Services.GetLanguageServices(args.SubjectBuffer)?.GetService<IFindUsagesService>();
                 if (findUsagesService != null)
                 {
                     var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
                     if (caret.HasValue)
                     {
-                        ExecuteCommand(document, caret.Value, findUsagesService, context);
-                        return true;
+                        var document = subjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                            context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+                        if (document != null)
+                        {
+                            ExecuteCommand(document, caret.Value, findUsagesService, context);
+                            return true;
+                        }
                     }
                 }
 

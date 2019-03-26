@@ -387,5 +387,82 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return p.Designation.Kind() == SyntaxKind.SingleVariableDesignation && p.IsOutDeclaration();
         }
+
+        /// <summary>
+        /// Visits all the ArrayRankSpecifiers of a typeSyntax, invoking an action on each one in turn.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="action"></param>
+        /// <param name="argument">The argument that is passed to the action whenever it is invoked</param>
+        internal static void VisitRankSpecifiers<TArg>(this TypeSyntax type, Action<ArrayRankSpecifierSyntax, TArg> action, in TArg argument)
+        {
+recurse:
+            switch (type.Kind())
+            {
+                case SyntaxKind.ArrayType:
+                    var arrayTypeSyntax = (ArrayTypeSyntax)type;
+                    arrayTypeSyntax.ElementType.VisitRankSpecifiers(action, argument);
+                    foreach (var rankSpecifier in arrayTypeSyntax.RankSpecifiers)
+                    {
+                        action(rankSpecifier, argument);
+                    }
+                    break;
+                case SyntaxKind.NullableType:
+                    var nullableTypeSyntax = (NullableTypeSyntax)type;
+                    type = nullableTypeSyntax.ElementType;
+                    goto recurse;
+                case SyntaxKind.PointerType:
+                    var pointerTypeSyntax = (PointerTypeSyntax)type;
+                    type = pointerTypeSyntax.ElementType;
+                    goto recurse;
+                case SyntaxKind.TupleType:
+                    var tupleTypeSyntax = (TupleTypeSyntax)type;
+                    var elementsCount = tupleTypeSyntax.Elements.Count;
+                    if (elementsCount == 0)
+                        break;
+
+                    for (int index = 0; index < elementsCount - 1; index++)
+                    {
+                        var element = tupleTypeSyntax.Elements[index];
+                        element.Type.VisitRankSpecifiers(action, argument);
+                    }
+
+                    type = tupleTypeSyntax.Elements[elementsCount - 1].Type;
+                    goto recurse;
+                case SyntaxKind.RefType:
+                    var refTypeSyntax = (RefTypeSyntax)type;
+                    type = refTypeSyntax.Type;
+                    goto recurse;
+                case SyntaxKind.GenericName:
+                    var genericNameSyntax = (GenericNameSyntax)type;
+                    var argsCount = genericNameSyntax.TypeArgumentList.Arguments.Count;
+                    if (argsCount == 0)
+                        break;
+
+                    for (int index = 0; index < argsCount - 1; index++)
+                    {
+                        var typeArgument = genericNameSyntax.TypeArgumentList.Arguments[index];
+                        typeArgument.VisitRankSpecifiers(action, argument);
+                    }
+
+                    type = genericNameSyntax.TypeArgumentList.Arguments[argsCount - 1];
+                    goto recurse;
+                case SyntaxKind.QualifiedName:
+                    var qualifiedNameSyntax = (QualifiedNameSyntax)type;
+                    qualifiedNameSyntax.Left.VisitRankSpecifiers(action, argument);
+                    type = qualifiedNameSyntax.Right;
+                    goto recurse;
+                case SyntaxKind.AliasQualifiedName:
+                    var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)type;
+                    type = aliasQualifiedNameSyntax.Name;
+                    goto recurse;
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.OmittedTypeArgument:
+                case SyntaxKind.PredefinedType:
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(type.Kind());
+            }
+        }
     }
 }

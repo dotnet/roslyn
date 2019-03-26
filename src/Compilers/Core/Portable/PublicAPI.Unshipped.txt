@@ -10,6 +10,7 @@ Microsoft.CodeAnalysis.ITypeDeclaration.Arity.get -> int
 Microsoft.CodeAnalysis.ITypeDeclaration.Children.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeDeclaration>
 Microsoft.CodeAnalysis.ITypeDeclaration.DeclaredAccessibility.get -> Microsoft.CodeAnalysis.Accessibility
 Microsoft.CodeAnalysis.ITypeDeclaration.TypeKind.get -> Microsoft.CodeAnalysis.TypeKind
+Microsoft.CodeAnalysis.Operations.IVariableDeclarationOperation.IgnoredDimensions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
 abstract Microsoft.CodeAnalysis.Compilation.ContainsSymbolsWithName(string name, Microsoft.CodeAnalysis.SymbolFilter filter = Microsoft.CodeAnalysis.SymbolFilter.TypeAndMember, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> bool
 abstract Microsoft.CodeAnalysis.Compilation.DeclarationRoot.get -> Microsoft.CodeAnalysis.INamespaceDeclaration
