@@ -80,8 +80,7 @@ namespace Microsoft.CodeAnalysis.Text
                 canBeEmbedded: canBeEmbedded);
         }
 
-        // internal for testing
-        internal static SourceText Create(Stream stream, Lazy<Encoding> getEncoding,
+        private static SourceText Create(Stream stream, Lazy<Encoding> getEncoding,
             Encoding defaultEncoding = null,
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
             bool canBeEmbedded = false)
@@ -123,10 +122,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <returns>The <see cref="SourceText"/> decoded from the stream.</returns>
         /// <exception cref="DecoderFallbackException">The decoder was unable to decode the stream with the given encoding.</exception>
         /// <exception cref="IOException">Error reading from stream.</exception> 
-        /// <remarks>
-        /// internal for unit testing
-        /// </remarks>
-        internal static SourceText Decode(
+        private static SourceText Decode(
             Stream data,
             Encoding encoding,
             SourceHashAlgorithm checksumAlgorithm,
@@ -223,6 +219,15 @@ namespace Microsoft.CodeAnalysis.Text
                 : new ArraySegment<byte>(Array.Empty<byte>());
 
             return success;
+        }
+
+        internal static class TestAccessor
+        {
+            internal static SourceText Create(Stream stream, Lazy<Encoding> getEncoding, Encoding defaultEncoding, SourceHashAlgorithm checksumAlgorithm, bool canBeEmbedded)
+                => EncodedStringText.Create(stream, getEncoding, defaultEncoding, checksumAlgorithm, canBeEmbedded);
+
+            internal static SourceText Decode(Stream data, Encoding encoding, SourceHashAlgorithm checksumAlgorithm, bool throwIfBinaryDetected, bool canBeEmbedded)
+                => EncodedStringText.Decode(data, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
         }
     }
 }
