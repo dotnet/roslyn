@@ -85,7 +85,7 @@
                             HorizontalAlignment="Stretch"
                             Focusable="False"
                             VerticalAlignment="Stretch">
-                            <Image Source="{Binding Glyph}" Margin="0, 0, 5, 0"/>
+                            <Image Source="{Binding Glyph}" Margin="0, 0, 5, 0" />
                             <TextBlock
                                 x:Uid="DestinationTextBlock"
                                 Text="{Binding SymbolName}"
@@ -126,7 +126,7 @@
                     GridLinesVisibility="None"
                     ScrollViewer.VerticalScrollBarVisibility="Auto"
                     CanUserReorderColumns="False"
-                    Focusable="False"
+                    Focusable="True"
                     MinWidth="334"
                     Height="Auto"
                     Background="White"
