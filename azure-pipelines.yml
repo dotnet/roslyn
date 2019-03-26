@@ -4,10 +4,10 @@ trigger:
 - master-vs-deps
 - features/*
 - demos/*
-- dev16.0-preview3
-- dev16.0-preview3-vs-deps
 - dev16.0
 - dev16.0-vs-deps
+- dev16.1-preview1
+- dev16.1-preview1-vs-deps
 
 # Branches that trigger builds on PR
 pr:
@@ -15,10 +15,10 @@ pr:
 - master-vs-deps
 - features/*
 - demos/*
-- dev16.0-preview3
-- dev16.0-preview3-vs-deps
 - dev16.0
 - dev16.0-vs-deps
+- dev16.1-preview1
+- dev16.1-preview1-vs-deps
 
 jobs:
 - job: Windows_Desktop_Unit_Tests

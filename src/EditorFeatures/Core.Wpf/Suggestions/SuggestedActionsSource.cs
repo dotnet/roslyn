@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.Shared;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -24,12 +25,10 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
-
 using CodeFixGroupKey = System.Tuple<Microsoft.CodeAnalysis.Diagnostics.DiagnosticData, Microsoft.CodeAnalysis.CodeActions.CodeActionPriority>;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
-
     internal partial class SuggestedActionsSourceProvider
     {
         private class SuggestedActionsSource : ForegroundThreadAffinitizedObject, ISuggestedActionsSource2
@@ -44,6 +43,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             // mutable state
             private Workspace _workspace;
+            private IWorkspaceStatusService _workspaceStatusService;
             private int _lastSolutionVersionReported;
 
             public event EventHandler<EventArgs> SuggestedActionsChanged;
@@ -67,11 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var updateSource = (IDiagnosticUpdateSource)_owner._diagnosticService;
                 updateSource.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
-                if (_registration.Workspace != null)
-                {
-                    _workspace = _registration.Workspace;
-                    _workspace.DocumentActiveContextChanged += OnActiveContextChanged;
-                }
+                RegisterEventsToWorkspace(_registration.Workspace);
 
                 _registration.WorkspaceChanged += OnWorkspaceChanged;
             }
@@ -82,6 +78,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     var updateSource = (IDiagnosticUpdateSource)_owner._diagnosticService;
                     updateSource.DiagnosticsUpdated -= OnDiagnosticsUpdated;
+                }
+
+                if (_workspaceStatusService != null)
+                {
+                    _workspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
                 }
 
                 if (_workspace != null)
@@ -101,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 _owner = null;
                 _workspace = null;
+                _workspaceStatusService = null;
                 _registration = null;
                 _textView = null;
                 _subjectBuffer = null;
@@ -156,6 +158,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (IsDisposed)
                 {
                     return null;
+                }
+
+                if (_workspaceStatusService != null)
+                {
+                    // TODO: right now, LightBulb uses IVsThreadedWaitDialog directly rather than new
+                    //       IUIThreadOperationContext. we need to talk to editor team whether we want to
+                    //       update API to pass in OperationContext like any new API, or we use 
+                    //       IWaitIndicator abstraction (which is a thin wrapper on top of IVsThreadedWaitDialog) directly
+                    //       for now, we use the one LB created before calling us. meaning we don't update
+                    //       text on the wait dialog window
+                    _workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).Wait(cancellationToken);
                 }
 
                 using (Logger.LogBlock(FunctionId.SuggestedActions_GetSuggestedActions, cancellationToken))
@@ -878,6 +891,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 // one doesn't need to hold onto workspace in field.
 
                 // remove existing event registration
+                if (_workspaceStatusService != null)
+                {
+                    _workspaceStatusService.StatusChanged -= OnWorkspaceStatusChanged;
+                }
+
                 if (_workspace != null)
                 {
                     _workspace.DocumentActiveContextChanged -= OnActiveContextChanged;
@@ -885,11 +903,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // REVIEW: why one need to get new workspace from registration? why not just pass in the new workspace?
                 // add new event registration
-                _workspace = _registration.Workspace;
+                RegisterEventsToWorkspace(_registration.Workspace);
+            }
 
-                if (_workspace != null)
+            private void RegisterEventsToWorkspace(Workspace workspace)
+            {
+                _workspace = workspace;
+
+                if (_workspace == null)
                 {
-                    _workspace.DocumentActiveContextChanged += OnActiveContextChanged;
+                    return;
+                }
+
+                _workspace.DocumentActiveContextChanged += OnActiveContextChanged;
+                _workspaceStatusService = workspace.Services.GetService<IWorkspaceStatusService>();
+                if (_workspaceStatusService != null)
+                {
+                    _workspaceStatusService.StatusChanged += OnWorkspaceStatusChanged;
                 }
             }
 
@@ -910,7 +940,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 OnSuggestedActionsChanged(e.Workspace, e.DocumentId, e.Solution.WorkspaceVersion);
             }
 
-            private void OnSuggestedActionsChanged(Workspace currentWorkspace, DocumentId currentDocumentId, int solutionVersion, DiagnosticsUpdatedArgs args = null)
+            private void OnWorkspaceStatusChanged(object sender, bool fullyLoaded)
+            {
+                var document = _subjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
+                if (document == null)
+                {
+                    // document is already closed
+                    return;
+                }
+
+                // ask editor to refresh lightbulb when workspace solution status is changed
+                this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
+            }
+
+            private void OnSuggestedActionsChanged(Workspace currentWorkspace, DocumentId currentDocumentId, int solutionVersion)
             {
                 // Explicitly hold onto the _subjectBuffer field in a local and use this local in this function to avoid crashes
                 // if this field happens to be cleared by Dispose() below. This is required since this code path involves code
@@ -934,6 +977,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 {
                     return;
                 }
+
                 this.SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
 
                 Volatile.Write(ref _lastSolutionVersionReported, solutionVersion);
@@ -941,6 +985,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
             public async Task<ISuggestedActionCategorySet> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
+                if (_workspaceStatusService != null && !await _workspaceStatusService.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    // never show light bulb if solution is not fully loaded yet
+                    return null;
+                }
+
                 var provider = _owner;
                 using (var asyncToken = _owner.OperationListener.BeginAsyncOperation(nameof(GetSuggestedActionCategoriesAsync)))
                 {
@@ -959,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                         var selection = await GetSpanAsync(range, linkedToken).ConfigureAwait(false);
 
-                        Task<string> refactoringTask = Task.FromResult((string)null);
+                        var refactoringTask = SpecializedTasks.Default<string>();
                         if (selection != null && requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
                         {
                             refactoringTask = Task.Run(
