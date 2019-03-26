@@ -1548,23 +1548,30 @@ public readonly struct S2
                 var s1 = comp.GetMember<NamedTypeSymbol>("S1");
                 Assert.False(s1.GetMethod("M1").IsDeclaredReadOnly);
                 Assert.False(s1.GetMethod("M1").IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.Ref, s1.GetMethod("M1").ThisParameter.RefKind);
 
                 Assert.True(s1.GetMethod("M2").IsDeclaredReadOnly);
                 Assert.True(s1.GetMethod("M2").IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s1.GetMethod("M2").ThisParameter.RefKind);
 
                 Assert.True(s1.GetProperty("P1").GetMethod.IsDeclaredReadOnly);
                 Assert.True(s1.GetProperty("P1").GetMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s1.GetProperty("P1").GetMethod.ThisParameter.RefKind);
                 Assert.False(s1.GetProperty("P1").SetMethod.IsDeclaredReadOnly);
                 Assert.False(s1.GetProperty("P1").SetMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.Ref, s1.GetProperty("P1").SetMethod.ThisParameter.RefKind);
 
                 Assert.True(s1.GetProperty("P2").GetMethod.IsDeclaredReadOnly);
                 Assert.True(s1.GetProperty("P2").GetMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s1.GetProperty("P2").GetMethod.ThisParameter.RefKind);
 
                 Assert.True(s1.GetProperty("P3").GetMethod.IsDeclaredReadOnly);
                 Assert.True(s1.GetProperty("P3").GetMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s1.GetProperty("P3").GetMethod.ThisParameter.RefKind);
 
                 Assert.True(s1.GetProperty("P4").SetMethod.IsDeclaredReadOnly);
                 Assert.True(s1.GetProperty("P4").SetMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s1.GetProperty("P4").SetMethod.ThisParameter.RefKind);
 
                 Assert.False(s1.GetProperty("P5").GetMethod.IsDeclaredReadOnly);
                 Assert.False(s1.GetProperty("P5").GetMethod.IsEffectivelyReadOnly);
@@ -1573,22 +1580,28 @@ public readonly struct S2
 
                 Assert.True(s1.GetEvent("E").AddMethod.IsDeclaredReadOnly);
                 Assert.True(s1.GetEvent("E").AddMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s1.GetEvent("E").AddMethod.ThisParameter.RefKind);
 
                 Assert.True(s1.GetEvent("E").RemoveMethod.IsDeclaredReadOnly);
                 Assert.True(s1.GetEvent("E").RemoveMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s1.GetEvent("E").RemoveMethod.ThisParameter.RefKind);
 
                 var s2 = comp.GetMember<NamedTypeSymbol>("S2");
                 Assert.False(s2.GetMethod("M1").IsDeclaredReadOnly);
                 Assert.True(s2.GetMethod("M1").IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s2.GetMethod("M1").ThisParameter.RefKind);
 
                 Assert.True(s2.GetProperty("P1").GetMethod.IsDeclaredReadOnly);
                 Assert.True(s2.GetProperty("P1").GetMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s2.GetProperty("P1").GetMethod.ThisParameter.RefKind);
 
                 Assert.False(s2.GetProperty("P2").GetMethod.IsDeclaredReadOnly);
                 Assert.True(s2.GetProperty("P2").GetMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s2.GetProperty("P2").GetMethod.ThisParameter.RefKind);
 
                 Assert.False(s2.GetProperty("P3").SetMethod.IsDeclaredReadOnly);
                 Assert.True(s2.GetProperty("P3").SetMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s2.GetProperty("P3").SetMethod.ThisParameter.RefKind);
 
                 Assert.False(s2.GetProperty("P4").GetMethod.IsDeclaredReadOnly);
                 Assert.False(s2.GetProperty("P4").GetMethod.IsEffectivelyReadOnly);
@@ -1597,8 +1610,11 @@ public readonly struct S2
 
                 Assert.False(s2.GetEvent("E").AddMethod.IsDeclaredReadOnly);
                 Assert.True(s2.GetEvent("E").AddMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s2.GetEvent("E").AddMethod.ThisParameter.RefKind);
+
                 Assert.False(s2.GetEvent("E").RemoveMethod.IsDeclaredReadOnly);
                 Assert.True(s2.GetEvent("E").RemoveMethod.IsEffectivelyReadOnly);
+                Assert.Equal(RefKind.RefReadOnly, s2.GetEvent("E").RemoveMethod.ThisParameter.RefKind);
             }
         }
 

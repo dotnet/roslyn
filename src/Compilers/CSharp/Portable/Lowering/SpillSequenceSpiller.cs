@@ -785,6 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = RefKind.None;
             if (!receiver.Type.IsReferenceType && LocalRewriter.CanBePassedByReference(receiver))
             {
+                // PROTOTYPE: does this need to check MethodSymbol.IsEffectivelyReadOnly?
                 result = receiver.Type.IsReadOnly ? RefKind.In : RefKind.Ref;
             }
 
