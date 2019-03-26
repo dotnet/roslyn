@@ -19,7 +19,7 @@ function InstallDarcCli ($darcVersion) {
   # Until we can anonymously query the BAR API for the latest arcade-services
   # build applied to the PROD channel, this is hardcoded.
   if (-not $darcVersion) {
-    $darcVersion = '1.1.0-beta.19172.2'
+    $darcVersion = '1.1.0-beta.19175.6'
   }
   
   $arcadeServicesSource = 'https://dotnetfeed.blob.core.windows.net/dotnet-arcade/index.json'
