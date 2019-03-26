@@ -10,7 +10,12 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         bool TrackActiveTokens { get; set; }
         ImmutableArray<AsynchronousOperationListener.DiagnosticAsyncToken> ActiveDiagnosticTokens { get; }
 
-        Task CreateWaitTask();
+        /// <summary>
+        /// Returns a task which completes when all asynchronous operations currently tracked by this waiter are
+        /// completed. Asynchronous operations are expedited when possible, meaning artificial delays placed before
+        /// asynchronous operations are shortened.
+        /// </summary>
+        Task CreateExpeditedWaitTask();
         bool HasPendingWork { get; }
     }
 }

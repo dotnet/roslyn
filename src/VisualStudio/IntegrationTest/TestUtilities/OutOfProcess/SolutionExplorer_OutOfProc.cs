@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
@@ -205,5 +206,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void AddStandaloneFile(string fileName)
             => _inProc.AddStandaloneFile(fileName);
+
+        public void BeginWatchForCodingConventionsChange(ProjectUtils.Project project, string fileName)
+            => _inProc.BeginWatchForCodingConventionsChange(project.Name, fileName);
+
+        public void EndWaitForCodingConventionsChange(TimeSpan timeout)
+            => _inProc.EndWaitForCodingConventionsChange(timeout);
     }
 }
