@@ -2365,8 +2365,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
 
-            bool consequenceEndReachable;
-            bool alternativeEndReachable;
             TypeWithState consequenceRValue;
             TypeWithState alternativeRValue;
 
@@ -2377,9 +2375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 (consequenceLValue, consequenceRValue) = visitConditionalRefOperand(consequenceState, node.Consequence);
                 consequenceState = this.State;
-                consequenceEndReachable = this.State.Reachable;
                 (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, node.Alternative);
-                alternativeEndReachable = this.State.Reachable;
                 Join(ref this.State, ref consequenceState);
 
                 TypeSymbol refResultType = node.Type.SetUnknownNullabilityForReferenceTypes();
@@ -2404,6 +2400,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression alternative;
             Conversion consequenceConversion;
             Conversion alternativeConversion;
+            bool consequenceEndReachable;
+            bool alternativeEndReachable;
 
             // In cases where one branch is unreachable, we don't need to Unsplit the state
             if (!alternativeState.Reachable)
