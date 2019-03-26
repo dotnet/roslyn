@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -25,10 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         {
             var result = new HashSet<INamespaceSymbol>(semanticModel.GetUsingNamespacesInScope(location));
 
-            var containingNamespaceDeclaration = location.GetAncestorOrThis<NamespaceDeclarationSyntax>();
-            var namespaceSymbol = semanticModel.GetDeclaredSymbol(containingNamespaceDeclaration, cancellationToken);
+            var containingNamespaceDeclaration = location.Ancestors().First(n => n.IsKind(SyntaxKind.NamespaceDeclaration) || n.IsKind(SyntaxKind.CompilationUnit));
 
-            if (namespaceSymbol != null)
+            var symbol = semanticModel.GetDeclaredSymbol(containingNamespaceDeclaration, cancellationToken);
+
+            if (symbol is INamespaceSymbol namespaceSymbol)
             {
                 while (!namespaceSymbol.IsGlobalNamespace)
                 {

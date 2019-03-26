@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
+            var tick = Environment.TickCount;
             var document = completionContext.Document;
             var position = completionContext.Position;
             var cancellationToken = completionContext.CancellationToken;
@@ -50,6 +51,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var items = await GetCompletionItemsAsync(document, syntaxContext, position, cancellationToken).ConfigureAwait(false);
             completionContext.AddItems(items);
+
+            _debug_total_time_with_ItemCreation = Environment.TickCount - tick;
 
             return;
         }
@@ -104,11 +107,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             root = root.ReplaceNode(addedNode, annotatedNode);
             document = document.WithSyntaxRoot(root);
 
-            if (TypeImportCompletionItem.TryGetContainingNamespace(completionItem, out var containingnNamespace))
+            if (completionItem is TypeImportCompletionItem importItem)
             {
                 var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
                 var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-                var importNode = CreateImport(document, containingnNamespace);
+                var importNode = CreateImport(document, importItem.ContainingNamespace);
 
                 var addImportService = document.GetLanguageService<IAddImportsService>();
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -130,10 +133,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (TypeImportCompletionItem.TryGetMetadataName(item, out var metadataName))
+            if (item is TypeImportCompletionItem importItem)
             {
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = compilation.GetTypeByMetadataName(metadataName);
+                var symbol = compilation.GetTypeByMetadataName(importItem.MetadataName);
                 if (symbol != null)
                 {
                     return CompletionDescription.FromText(DebugText);
@@ -170,34 +173,34 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (project.SupportsCompilation)
                 {
-                    var tick = Environment.TickCount;
-
                     var builder = ArrayBuilder<CompletionItem>.GetInstance();
 
                     using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
                     {
-                        var declarationsInCurrentProject = await GetAccessibleOutOfScopeDeclarationInfosFromProjectAsync(project, namespacesInScope, true, cancellationToken)
-                            .ConfigureAwait(false);
+                        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                        var declarationsInCurrentProject = GetAccessibleOutOfScopeDeclarationInfosFromCompilation(compilation, namespacesInScope, true, cancellationToken);
 
                         builder.AddRange(declarationsInCurrentProject);
 
-                        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                        // get declarations from directly referenced projects and metadata
-                        foreach (var referencedAssembly in compilation.GetReferencedAssemblySymbols())
+                        foreach (var reference in compilation.References)
                         {
-                            var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(referencedAssembly);
-                            var assemblyProject = project.Solution.GetProject(referencedAssembly, cancellationToken);
+                            if (reference is CompilationReference compilationReference)
+                            {
+                                var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(compilationReference.Compilation.Assembly);
+                                var declarationsInReference = GetAccessibleOutOfScopeDeclarationInfosFromCompilation(compilationReference.Compilation, namespacesInScope, isInternalsVisible, cancellationToken);
 
-                            var declarationsInReference = assemblyProject != null
-                                ? await GetAccessibleOutOfScopeDeclarationInfosFromProjectAsync(assemblyProject, namespacesInScope, isInternalsVisible, cancellationToken).ConfigureAwait(false)
-                                : GetAccessibleOutOfScopeTopLevelDeclarationsFromAssembly(referencedAssembly, namespacesInScope, isInternalsVisible);
+                                builder.AddRange(declarationsInReference);
+                            }
+                            else if (reference is PortableExecutableReference && compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assemblySymbol)
+                            {
+                                var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
+                                var declarationsInReference = GetAccessibleOutOfScopeTopLevelDeclarationsFromAssembly(assemblySymbol, namespacesInScope, isInternalsVisible);
 
-                            builder.AddRange(declarationsInReference);
+                                builder.AddRange(declarationsInReference);
+                            }
                         }
                     }
 
-                    _debug_total_time_with_ItemCreation = Environment.TickCount - tick;
                     return builder.ToImmutableAndFree();
                 }
             }
@@ -205,15 +208,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return ImmutableArray<CompletionItem>.Empty;
         }
 
-        private async Task<ImmutableArray<CompletionItem>> GetAccessibleOutOfScopeDeclarationInfosFromProjectAsync(
-            Project fromProject,
+        private ImmutableArray<CompletionItem> GetAccessibleOutOfScopeDeclarationInfosFromCompilation(
+            Compilation compilation,
             ImmutableHashSet<string> namespacesInScope,
             bool isInternalsVisible,
             CancellationToken cancellationToken)
         {
             var tick = Environment.TickCount;
 
-            var items = await GetCompletionItemsForTopLevelTypeDeclarationsAsync(fromProject, namespacesInScope, isInternalsVisible, cancellationToken).ConfigureAwait(false);
+            var items = GetCompletionItemsForTopLevelTypeDeclarations(compilation, namespacesInScope, isInternalsVisible, cancellationToken);
 
             tick = Environment.TickCount - tick;
 
@@ -223,14 +226,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             return items;
 
-            static async Task<ImmutableArray<CompletionItem>> GetCompletionItemsForTopLevelTypeDeclarationsAsync(
-                Project project,
+            static ImmutableArray<CompletionItem> GetCompletionItemsForTopLevelTypeDeclarations(
+                Compilation compilation,
                 ImmutableHashSet<string> namespacesInScope,
                 bool isInternalsVisible,
                 CancellationToken cancellationToken)
             {
                 var builder = ArrayBuilder<CompletionItem>.GetInstance();
-                var root = await project.GetDeclarationRootAsync(cancellationToken).ConfigureAwait(false);
+                var root = compilation.DeclarationRoot;
                 var minimumAccessibility = isInternalsVisible ? Accessibility.Internal : Accessibility.Public;
 
                 VisitDeclaration(root, null, false);

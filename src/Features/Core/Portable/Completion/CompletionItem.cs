@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// One of many possible completions used to form the completion list presented to the user.
     /// </summary>
     [DebuggerDisplay("{DisplayText}")]
-    public sealed class CompletionItem : IComparable<CompletionItem>
+    public class CompletionItem : IComparable<CompletionItem>
     {
         /// <summary>
         /// The text that is displayed to the user.
@@ -84,7 +84,15 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal Document Document { get; set; }
 
-        private CompletionItem(
+        /// <summary>
+        /// The name of the <see cref="CompletionProvider"> that created this 
+        /// <see cref="CompletionItem"/>. Not available to clients. Only used by 
+        /// the Completion subsystem itself for things like getting description text
+        /// and making additional change during commit.
+        /// </summary>
+        internal string ProviderName { get; set; }
+
+        protected CompletionItem(
             string displayText,
             string filterText,
             string sortText,
@@ -193,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 inlineDescription: null);
         }
 
-        private CompletionItem With(
+        protected virtual CompletionItem With(
             Optional<TextSpan> span = default,
             Optional<string> displayText = default,
             Optional<string> filterText = default,

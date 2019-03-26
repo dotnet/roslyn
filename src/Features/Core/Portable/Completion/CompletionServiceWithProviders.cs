@@ -185,18 +185,17 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return ImmutableArray<CompletionProvider>.Empty;
-
         }
 
         internal protected CompletionProvider GetProvider(CompletionItem item)
         {
             CompletionProvider provider = null;
 
-            if (item.Properties.TryGetValue("Provider", out var name))
+            if (item.ProviderName != null)
             {
                 lock (_gate)
                 {
-                    provider = _nameToProvider.GetOrAdd(name, _getProviderByName);
+                    provider = _nameToProvider.GetOrAdd(item.ProviderName, _getProviderByName);
                 }
             }
 
