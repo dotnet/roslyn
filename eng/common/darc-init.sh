@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 source="${BASH_SOURCE[0]}"
-darcVersion="1.1.0-beta.19151.3"
+darcVersion="1.1.0-beta.19172.2"
 
 while [[ $# > 0 ]]; do
   opt="$(echo "$1" | awk '{print tolower($0)}')"
