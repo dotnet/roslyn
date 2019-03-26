@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     /// </remarks>
     internal sealed class TraceLog
     {
-        internal struct Arg
+        internal readonly struct Arg
         {
             public readonly string String;
             public readonly int Int32;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             public static implicit operator Arg(int value) => new Arg(value);
         }
 
-        internal struct Entry
+        internal readonly struct Entry
         {
             public readonly string MessageFormat;
             public readonly Arg[] ArgsOpt;
