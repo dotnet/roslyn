@@ -8,7 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GroupClassTests
         Inherits BasicTestBase
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/34467")>
         Public Sub SimpleTest1()
             Dim compilationDef =
 <compilation name="SimpleTest1">
