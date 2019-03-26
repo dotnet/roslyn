@@ -940,8 +940,6 @@ public class Program
                 );
         }
 
-        // PROTOTYPE: readonly members features should require C# 8.0 or greater
-
         [Fact]
         public void ReadOnlyStructMethod()
         {
@@ -1779,6 +1777,54 @@ public struct S1
                 // (9,9): error CS1609: Modifiers cannot be placed on event accessor declarations
                 //         readonly remove {}
                 Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "readonly").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void ReadOnlyMembers_LangVersion()
+        {
+            var csharp = @"
+using System;
+
+public struct S
+{
+    public readonly void M() {}
+
+    public readonly int P1 => 42;
+    public int P2 { readonly get => 123; }
+    public int P3 { readonly set {} }
+
+    public readonly int this[int i] => i;
+    public int this[int i, int j] { readonly get => i + j; }
+
+    public readonly event Action<EventArgs> E { add {} remove {} }
+}
+";
+            var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (6,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public readonly void M1() {}
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(6, 12),
+                // (8,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public readonly int P1 => 42;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(8, 12),
+                // (9,21): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int P2 { readonly get => 123; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(9, 21),
+                // (10,21): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int P3 { readonly set {} }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(10, 21),
+                // (12,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public readonly int this[int i] => i;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(12, 12),
+                // (13,37): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int this[int i, int j] { readonly get => i + j; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(13, 37),
+                // (15,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public readonly event Action<EventArgs> E { add {} remove {} }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(15, 12));
+
+            comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
         }
     }
 }

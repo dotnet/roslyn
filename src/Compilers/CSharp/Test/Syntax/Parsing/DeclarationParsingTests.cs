@@ -2733,7 +2733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStructMethodWithReadonly()
         {
             var text = "struct a { readonly void M() { } }";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2780,7 +2780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestReadOnlyRefReturning()
         {
             var text = "struct a { readonly ref readonly int M() { } }";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2830,7 +2830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStructExpressionPropertyWithReadonly()
         {
             var text = "struct a { readonly int M => 42; }";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2871,7 +2871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStructGetterPropertyWithReadonly()
         {
             var text = "struct a { int P { readonly get { return 42; } } }";
-            var file = this.ParseFile(text);
+            var file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
