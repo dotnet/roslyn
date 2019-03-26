@@ -16,7 +16,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             semanticModel As SemanticModel,
             position As Integer,
             cancellationToken As CancellationToken) As Task(Of VisualBasicSyntaxContext)
-
             Return VisualBasicSyntaxContext.CreateContextAsync(workspace, semanticModel, position, cancellationToken)
         End Function
 
@@ -24,9 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             context As VisualBasicSyntaxContext,
             filterOutOfScopeLocals As Boolean,
             cancellationToken As CancellationToken) As AbstractRecommendationServiceRunner(Of VisualBasicSyntaxContext)
-
             Return New VisualBasicRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken)
         End Function
-
     End Class
 End Namespace

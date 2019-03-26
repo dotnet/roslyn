@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -30,14 +31,8 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
         public abstract ImmutableArray<ISymbol> GetSymbols();
 
-        protected abstract bool IsLambdaExpression(SyntaxNode node);
-
-        protected abstract bool IsInvocationExpression(SyntaxNode node);
-
-        protected abstract bool TryGetOrdinalInArgumentList(SyntaxNode argumentOpt, out int ordinalInInvocation);
-
         // This code is to help give intellisense in the following case: 
-        // query.Include(a => a.SomeProerty).ThenInclude(a => a.
+        // query.Include(a => a.SomeProperty).ThenInclude(a => a.
         // where there are more than one overloads of ThenInclude accepting different types of parameters.
         protected ImmutableArray<ISymbol> GetSymbols(IParameterSymbol parameter, int position)
         {
@@ -51,29 +46,29 @@ namespace Microsoft.CodeAnalysis.Recommendations
             // Cannot proceed without DeclaringSyntaxReferences.
             // We expect that there is a single DeclaringSyntaxReferences in the scenario.
             // If anything changes on the compiler side, the approach should be revised.
-            if (containingMethod.DeclaringSyntaxReferences.IsDefaultOrEmpty || containingMethod.DeclaringSyntaxReferences.Length > 1)
+            if (containingMethod.DeclaringSyntaxReferences.Length != 1)
             {
                 return default;
             }
+
+            var syntaxFactsService = _context.Workspace.Services.GetLanguageServices(_context.SemanticModel.Language).GetService<ISyntaxFactsService>();
 
             // Check that a => a. belongs to an invocation.
             // Find its' ordinal in the invocation, e.g. ThenInclude(a => a.Something, a=> a.
             var lambdaSyntax = containingMethod.DeclaringSyntaxReferences.Single().GetSyntax(_cancellationToken);
-            if (!(IsLambdaExpression(lambdaSyntax) &&
-                TryGetOrdinalInArgumentList(lambdaSyntax.Parent, out var ordinalInInvocation) &&
-                IsInvocationExpression(lambdaSyntax.Parent.Parent.Parent)))
+            if (!(syntaxFactsService.IsAnonymousFunction(lambdaSyntax) &&
+                syntaxFactsService.IsArgument(lambdaSyntax.Parent) &&
+                syntaxFactsService.IsInvocationExpression(lambdaSyntax.Parent.Parent.Parent)))
             {
                 return default;
             }
 
-            var invocation = _context.SemanticModel.GetSymbolInfo(lambdaSyntax.Parent.Parent.Parent, _cancellationToken);
+            var invocationExpression = lambdaSyntax.Parent.Parent.Parent;
+            var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocationExpression);
+            var ordinalInInvocation = arguments.IndexOf(lambdaSyntax.Parent);
 
-            // If there is a single candidate (e.g. no overloads), 
-            // we may need to take it from invocation.Symbol because invocation.CandidateSymbols as empty.
-            var candidateSymbols =
-                invocation.CandidateSymbols.Length > 0
-                ? invocation.CandidateSymbols
-                : new[] { invocation.Symbol }.ToImmutableArray();
+            var invocation = _context.SemanticModel.GetSymbolInfo(invocationExpression, _cancellationToken);
+            var candidateSymbols = invocation.GetAllSymbols();
 
             // parameter.Ordinal is the ordinal within (a,b,c) => b.
             // For candidate symbols of (a,b,c) => b., get types of all possible b.
@@ -108,6 +103,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                     {
                         var methodParameterSymbool = method.Parameters[ordinalInInvocation];
                         var type = methodParameterSymbool.Type;
+                        // If type is <see cref="Expression{TDelegate}"/>, ignore <see cref="Expression"/> and use TDelegate.
                         if (type is INamedTypeSymbol expressionSymbolNamedTypeCandidate &&
                             Equals(expressionSymbolNamedTypeCandidate.OriginalDefinition, expressionSymbol))
                         {
@@ -117,9 +113,11 @@ namespace Microsoft.CodeAnalysis.Recommendations
                                 continue;
                             }
 
-                            type = type.GetAllTypeArguments().Single();
+                            type = allTypeArguments[0];
                         }
 
+                        // If type is <see cref="Func{TSomeArguments, TResult}"/>, extract TSomeArguments 
+                        // and find the type of thee argument corresponding to the ordinal.
                         if (type is INamedTypeSymbol funcSymbolNamedTypeCandidate &&
                             Equals(funcSymbolNamedTypeCandidate.Name, funcSymbol.Name) &&
                             Equals(funcSymbolNamedTypeCandidate.ContainingNamespace, funcSymbol.ContainingNamespace))
@@ -130,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
                                 continue;
                             }
 
-                            type = type.GetAllTypeArguments()[ordinalInLambda];
+                            type = allTypeArguments[ordinalInLambda];
                         }
 
                         builder.Add(type);

@@ -12,12 +12,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         Inherits AbstractRecommendationServiceRunner(Of VisualBasicSyntaxContext)
 
         Public Sub New(context As VisualBasicSyntaxContext, filterOutOfScopeLocals As Boolean, cancellationToken As CancellationToken)
-
             MyBase.New(context, filterOutOfScopeLocals, cancellationToken)
         End Sub
 
         Public Overrides Function GetSymbols() As ImmutableArray(Of ISymbol)
-
             If _context.SyntaxTree.IsInNonUserCode(_context.Position, _cancellationToken) OrElse
                _context.SyntaxTree.IsInSkippedText(_context.Position, _cancellationToken) Then
                 Return ImmutableArray(Of ISymbol).Empty
@@ -54,31 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Return ImmutableArray(Of ISymbol).Empty
         End Function
 
-        Protected Overrides Function IsInvocationExpression(syntaxNode As SyntaxNode) As Boolean
-
-            Return syntaxNode.IsKind(SyntaxKind.InvocationExpression)
-        End Function
-
-        Protected Overrides Function IsLambdaExpression(syntaxNode As SyntaxNode) As Boolean
-
-            Return TypeOf syntaxNode Is LambdaExpressionSyntax
-        End Function
-
-        Protected Overrides Function TryGetOrdinalInArgumentList(argumentOpt As SyntaxNode, ByRef ordinalInInvocation As Integer) As Boolean
-
-            Dim argument = TryCast(argumentOpt, ArgumentSyntax)
-            Dim argumentList = TryCast(argumentOpt.Parent, ArgumentListSyntax)
-            If argument IsNot Nothing AndAlso argumentList IsNot Nothing Then
-                ordinalInInvocation = argumentList.Arguments.IndexOf(argument)
-                Return True
-            End If
-
-            ordinalInInvocation = -1
-            Return False
-        End Function
-
         Private Function IsWritableFieldOrLocal(symbol As ISymbol) As Boolean
-
             If symbol.Kind() = SymbolKind.Field Then
                 Dim field = DirectCast(symbol, IFieldSymbol)
                 Return Not field.IsReadOnly AndAlso Not field.IsConst
@@ -93,12 +67,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function GetSymbolsForGlobalStatementContext() As ImmutableArray(Of ISymbol)
-
             Return _context.SemanticModel.LookupSymbols(_context.TargetToken.Span.End)
         End Function
 
         Private Function GetUnqualifiedSymbolsForQueryIntoContext() As ImmutableArray(Of ISymbol)
-
             Dim symbols = _context.SemanticModel _
                 .LookupSymbols(_context.TargetToken.SpanStart, includeReducedExtensionMethods:=True)
 
@@ -109,12 +81,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function GetUnqualifiedSymbolsForLabelContext() As ImmutableArray(Of ISymbol)
-
             Return _context.SemanticModel.LookupLabels(_context.TargetToken.SpanStart)
         End Function
 
         Private Function GetUnqualifiedSymbolsForRaiseEvent() As ImmutableArray(Of ISymbol)
-
             Dim containingType = _context.SemanticModel.GetEnclosingSymbol(_context.Position, _cancellationToken).ContainingType
 
             Return _context.SemanticModel _
@@ -123,13 +93,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function GetUnqualifiedSymbolsForType() As ImmutableArray(Of ISymbol)
-
             Dim symbols = _context.SemanticModel.LookupNamespacesAndTypes(_context.TargetToken.SpanStart)
             Return FilterToValidAccessibleSymbols(symbols)
         End Function
 
         Private Function GetUnqualifiedSymbolsForExpressionOrStatementContext() As ImmutableArray(Of ISymbol)
-
             Dim lookupPosition = _context.TargetToken.SpanStart
             If _context.FollowsEndOfStatement Then
                 lookupPosition = _context.Position
@@ -149,7 +117,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ' contexts, except within GetType
             If Not _context.TargetToken.IsKind(SyntaxKind.OpenParenToken) OrElse
                     Not _context.TargetToken.Parent.IsKind(SyntaxKind.GetTypeExpression) Then
-
                 symbols = symbols.WhereAsArray(Function(s) Not IsInEligibleDelegate(s))
             End If
 
@@ -158,7 +125,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function IsInEligibleDelegate(s As ISymbol) As Boolean
-
             If s.IsDelegateType() Then
                 Dim typeSymbol = DirectCast(s, ITypeSymbol)
                 Return typeSymbol.SpecialType <> SpecialType.System_Delegate
@@ -168,7 +134,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function GetSymbolsForQualifiedNameSyntax(node As QualifiedNameSyntax) As ImmutableArray(Of ISymbol)
-
             ' We're in a name-only context, since if we were an expression we'd be a
             ' MemberAccessExpressionSyntax. Thus, let's do other namespaces and types.
             Dim leftHandSymbolInfo = _context.SemanticModel.GetSymbolInfo(node.Left, _cancellationToken)
@@ -198,7 +163,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function GetSymbolsForMemberAccessExpression(node As MemberAccessExpressionSyntax) As ImmutableArray(Of ISymbol)
-
             Dim leftExpression = node.GetExpressionOfMemberAccessExpression(allowImplicitTarget:=True)
             If leftExpression Is Nothing Then
                 Return ImmutableArray(Of ISymbol).Empty
@@ -378,7 +342,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function GetEnclosingCtor(node As MemberAccessExpressionSyntax) As IMethodSymbol
-
             Dim symbol = _context.SemanticModel.GetEnclosingSymbol(node.SpanStart, _cancellationToken)
 
             While symbol IsNot Nothing
@@ -392,7 +355,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function FilterToValidAccessibleSymbols(symbols As ImmutableArray(Of ISymbol)) As ImmutableArray(Of ISymbol)
-
             ' If this is an Inherits or Implements statement, we filter out symbols which do not recursively contain accessible, valid types.
             Dim inheritsContext = IsInheritsStatementContext(_context.TargetToken)
             Dim implementsContext = IsImplementsStatementContext(_context.TargetToken)
@@ -433,7 +395,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Shared Function IsInheritsStatementContext(token As SyntaxToken) As Boolean
-
             If token.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) Then
                 Return True
             End If
@@ -452,7 +413,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function IsValidAccessibleInterfaceOrContainer(symbol As ISymbol, within As ISymbol) As Boolean
-
             If symbol.Kind = SymbolKind.Alias Then
                 symbol = DirectCast(symbol, IAliasSymbol).Target
             End If
@@ -494,7 +454,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function IsValidAccessibleClassOrContainer(symbol As ISymbol, within As ISymbol) As Boolean
-
             If symbol.Kind = SymbolKind.Alias Then
                 symbol = DirectCast(symbol, IAliasSymbol).Target
             End If
@@ -523,7 +482,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function IsOrContainsValidAccessibleClass(namespaceOrTypeSymbol As INamespaceOrTypeSymbol, within As ISymbol) As Boolean
-
             If namespaceOrTypeSymbol.Kind = SymbolKind.Namespace Then
                 Return IsValidAccessibleClassOrContainer(namespaceOrTypeSymbol, within)
             End If

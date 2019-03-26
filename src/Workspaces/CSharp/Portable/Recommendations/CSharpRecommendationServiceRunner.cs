@@ -36,25 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 : GetSymbolsForCurrentContext();
         }
 
-        protected override bool IsInvocationExpression(SyntaxNode node)
-            => node.IsKind(SyntaxKind.InvocationExpression);
-
-        protected override bool IsLambdaExpression(SyntaxNode node)
-            => node.IsAnyLambda();
-
-        protected override bool TryGetOrdinalInArgumentList(SyntaxNode argumentOpt, out int ordinalInInvocation)
-        {
-            if (argumentOpt is ArgumentSyntax argument &&
-                argument.Parent is ArgumentListSyntax argumentList)
-            {
-                ordinalInInvocation = argumentList.Arguments.IndexOf(argument);
-                return true;
-            }
-
-            ordinalInInvocation = -1;
-            return false;
-        }
-
         private ImmutableArray<ISymbol> GetSymbolsForCurrentContext()
         {
             if (_context.IsGlobalStatementContext)
