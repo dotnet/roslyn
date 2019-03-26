@@ -5,11 +5,7 @@ extern alias WORKSPACES;
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveToNamespace;
-using Microsoft.CodeAnalysis.Notification;
 using WORKSPACES::Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
@@ -24,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         {
         }
 
-        public Task<MoveToNamespaceOptionsResult> GetChangeNamespaceOptionsAsync(string defaultNamespace, ImmutableArray<string> availableNamespaces, CancellationToken cancellationToken)
+        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, IMoveToNamespaceService moveToNamespaceService)
         {
             throw new NotImplementedException();
         }

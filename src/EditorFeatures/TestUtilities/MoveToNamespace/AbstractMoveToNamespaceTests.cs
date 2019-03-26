@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             string newNamespace)
         {
             var cancellationToken = CancellationToken.None;
-            var moveToNamespaceService = document.GetLanguageService<AbstractMoveToNamespaceService>();
+            var moveToNamespaceService = document.GetLanguageService<IMoveToNamespaceService>();
 
             var analysisResult = await moveToNamespaceService.AnalyzeTypeAtPositionAsync(
                 document,

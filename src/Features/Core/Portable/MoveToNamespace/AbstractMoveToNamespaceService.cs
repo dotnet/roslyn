@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             {
                 if (ContainsMultipleNamespaceInSpine(node))
                 {
-                    return new MoveToNamespaceAnalysisResult("Multiple namespace declarations in spine");
+                    return MoveToNamespaceAnalysisResult.Invalid;
                 }
 
                 @namespace = @namespace ?? GetNamespaceName(namedTypeDeclarationSyntax);
@@ -111,18 +111,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         private bool ContainsNamespaceDeclaration(SyntaxNode node)
             => node.DescendantNodes().OfType<TNamespaceDeclarationSyntax>().Any();
 
-        private static bool ContainsNamespaceDeclaration(SyntaxNode node)
-            => node.DescendantNodes(IsNamespaceOrCompilationSyntax)
-                        .OfType<TNamespaceDeclarationSyntax>().Any();
-
         private static bool ContainsMultipleNamespaceInSpine(SyntaxNode node)
-            => node.AncestorsAndSelf().Where(IsNamespaceOrCompilationSyntax)
-                .OfType<TNamespaceDeclarationSyntax>().Count() > 1;
+            => node.AncestorsAndSelf().OfType<TNamespaceDeclarationSyntax>().Count() > 1;
 
-        private static bool IsNamespaceOrCompilationSyntax(SyntaxNode node)
-            => node is TCompilationSyntax || node is TNamespaceDeclarationSyntax;
-
-        public override Task<MoveToNamespaceResult> MoveToNamespaceAsync(
+        public Task<MoveToNamespaceResult> MoveToNamespaceAsync(
             MoveToNamespaceAnalysisResult analysisResult,
             string targetNamespace,
             CancellationToken cancellationToken)

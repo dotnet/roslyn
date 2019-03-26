@@ -11,18 +11,18 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     internal abstract partial class AbstractMoveToNamespaceCodeAction : CodeActionWithOptions
     {
-        private readonly IMoveToNamespaceService _changeNamespaceService;
+        private readonly IMoveToNamespaceService _moveToNamespaceService;
         private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult;
 
         public AbstractMoveToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
         {
-            _changeNamespaceService = changeNamespaceService;
+            _moveToNamespaceService = changeNamespaceService;
             _moveToNamespaceAnalysisResult = analysisResult;
         }
 
         public override object GetOptions(CancellationToken cancellationToken)
         {
-            return _changeNamespaceService.GetChangeNamespaceOptions(
+            return _moveToNamespaceService.GetChangeNamespaceOptions(
                 _moveToNamespaceAnalysisResult.Document,
                 _moveToNamespaceAnalysisResult.OriginalNamespace,
                 _moveToNamespaceAnalysisResult.Namespaces);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
             if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions && !moveToNamespaceOptions.IsCancelled)
             {
-                var moveToNamespaceResult = await _changeNamespaceService.MoveToNamespaceAsync(
+                var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
                     _moveToNamespaceAnalysisResult,
                     moveToNamespaceOptions.Namespace,
                     cancellationToken).ConfigureAwait(false);
