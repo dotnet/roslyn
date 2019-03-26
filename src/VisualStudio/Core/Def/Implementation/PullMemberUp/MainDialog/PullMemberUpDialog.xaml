@@ -136,6 +136,7 @@
                         <Style TargetType="DataGridCell">
                             <Setter Property="BorderThickness" Value="0"/>
                             <Setter Property="Focusable" Value="False"/>
+                            <Setter Property="AutomationProperties.Name" Value="{Binding SymbolName}" />
                         </Style>
                     </DataGrid.CellStyle>
                     <DataGrid.RowStyle>
