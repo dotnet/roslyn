@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess
                 return false;
             }
 
-            if (node.GetAncestorsOrThis<ConstructorInitializerSyntax>() != null)
+            if (node.GetAncestorOrThis<ConstructorInitializerSyntax>() != null)
             {
                 return false;
             }
