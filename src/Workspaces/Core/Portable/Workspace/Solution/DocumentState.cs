@@ -448,39 +448,38 @@ namespace Microsoft.CodeAnalysis
 
         public new DocumentState UpdateText(SourceText newText, PreservationMode mode)
         {
-            if (newText == null)
-            {
-                throw new ArgumentNullException(nameof(newText));
-            }
-
-            var newVersion = this.GetNewerVersion();
-            var newTextAndVersion = TextAndVersion.Create(newText, newVersion, this.FilePath);
-
-            return this.UpdateText(newTextAndVersion, mode);
+            return (DocumentState)base.UpdateText(newText, mode);
         }
 
         public new DocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
         {
-            if (newTextAndVersion == null)
+            return (DocumentState)base.UpdateText(newTextAndVersion, mode);
+        }
+
+        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        {
+            ValueSource<TreeAndVersion> newTreeSource;
+
+            if (!this.SupportsSyntaxTree)
             {
-                throw new ArgumentNullException(nameof(newTextAndVersion));
+                newTreeSource = ValueSource<TreeAndVersion>.Empty;
             }
-
-            var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(newTextAndVersion)
-                : CreateRecoverableText(newTextAndVersion, this.solutionServices);
-
-            // always chain incremental parsing request, it will internally put
-            // appropriate request such as full parsing request if there are too many pending
-            // incremental parsing requests hanging around.
-            //
-            // However, don't bother with the chaining if this is a document that doesn't support
-            // syntax trees.  The chaining will keep old data alive (like the old tree source,
-            // which itself is keeping an old tree source which itself is keeping a ... alive),
-            // causing a slow memory leak.
-            var newTreeSource = !this.SupportsSyntaxTree
-                ? ValueSource<TreeAndVersion>.Empty
-                : CreateLazyIncrementallyParsedTree(_treeSource, newTextSource);
+            else if (incremental)
+            {
+                newTreeSource = CreateLazyIncrementallyParsedTree(_treeSource, newTextSource);
+            }
+            else
+            {
+                newTreeSource = CreateLazyFullyParsedTree(
+                    newTextSource,
+                    this.Id.ProjectId,
+                    GetSyntaxTreeFilePath(this.Attributes),
+                    _options,
+                    _analyzerConfigSetSource,
+                    _languageServices,
+                    this.solutionServices,
+                    mode); // TODO: understand why the mode is given here. If we're preserving text by identity, why also preserve the tree?
+            }
 
             return new DocumentState(
                 this.LanguageServices,
@@ -501,40 +500,27 @@ namespace Microsoft.CodeAnalysis
 
         internal DocumentState UpdateText(TextLoader loader, SourceText textOpt, PreservationMode mode)
         {
-            if (loader == null)
+            var documentState = (DocumentState)base.UpdateText(loader, mode);
+
+            // If we are given a SourceText directly, fork it since we didn't pass that into the base.
+            // TODO: understand why this is being called this way at all. It seems we only have a textOpt in a specific case
+            // when we are opening a file, when it seems this could have just called the other overload that took a
+            // TextAndVersion that could have just pinned the object directly.
+            if (textOpt != null)
             {
-                throw new ArgumentNullException(nameof(loader));
-            }
-
-            var newTextSource = mode == PreservationMode.PreserveIdentity
-                ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: true)
-                : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: true);
-
-            // Only create the ValueSource for creating the SyntaxTree if this is a Document that
-            // supports SyntaxTrees.  There's no point in creating the async lazy and holding onto
-            // this data otherwise.
-            var newTreeSource = !this.SupportsSyntaxTree
-                ? ValueSource<TreeAndVersion>.Empty
-                : CreateLazyFullyParsedTree(
-                    newTextSource,
-                    this.Id.ProjectId,
-                    GetSyntaxTreeFilePath(this.Attributes),
+                return new DocumentState(
+                    this.LanguageServices,
+                    this.solutionServices,
+                    this.Services,
+                    this.Attributes,
                     _options,
                     _analyzerConfigSetSource,
-                    _languageServices,
-                    this.solutionServices,
-                    mode);
+                    sourceTextOpt: textOpt,
+                    textSource: documentState.TextAndVersionSource,
+                    treeSource: documentState._treeSource);
+            }
 
-            return new DocumentState(
-                this.LanguageServices,
-                this.solutionServices,
-                this.Services,
-                this.Attributes,
-                _options,
-                _analyzerConfigSetSource,
-                sourceTextOpt: textOpt,
-                textSource: newTextSource,
-                treeSource: newTreeSource);
+            return documentState;
         }
 
         internal DocumentState UpdateTree(SyntaxNode newRoot, PreservationMode mode)

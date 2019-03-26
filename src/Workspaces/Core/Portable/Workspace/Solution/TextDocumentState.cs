@@ -317,12 +317,7 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(newTextAndVersion)
                 : CreateRecoverableText(newTextAndVersion, this.solutionServices);
 
-            return new TextDocumentState(
-                this.solutionServices,
-                this.Services,
-                this.Attributes,
-                sourceTextOpt: null,
-                textAndVersionSource: newTextSource);
+            return UpdateText(newTextSource, mode, incremental: true);
         }
 
         public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
@@ -351,6 +346,11 @@ namespace Microsoft.CodeAnalysis
                 ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: false)
                 : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: false);
 
+            return UpdateText(newTextSource, mode, incremental: false);
+        }
+
+        protected virtual TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        {
             return new TextDocumentState(
                 this.solutionServices,
                 this.Services,
