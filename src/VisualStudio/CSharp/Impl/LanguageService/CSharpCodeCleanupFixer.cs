@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 using __VSHPROPID8 = Microsoft.VisualStudio.Shell.Interop.__VSHPROPID8;
 using IVsHierarchyItemManager = Microsoft.VisualStudio.Shell.IVsHierarchyItemManager;
 
@@ -377,7 +378,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return Task.FromResult(false);
+                return SpecializedTasks.False;
             }
 
             return FixAsync(buffer.GetWorkspace(), ApplyFixAsync, context, document.Name, cancellationToken);
