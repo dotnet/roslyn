@@ -2,10 +2,12 @@
 Microsoft.CodeAnalysis.Solution.AddAnalyzerConfigDocuments(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.ContainsAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> bool
 Microsoft.CodeAnalysis.Solution.RemoveAnalyzerConfigDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Solution.WithAnalyzerConfigDocumentTextLoader(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader loader, Microsoft.CodeAnalysis.PreservationMode mode) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Workspace.CheckAnalyzerConfigDocumentIsInCurrentSolution(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 Microsoft.CodeAnalysis.Workspace.CheckAnalyzerConfigDocumentIsNotInCurrentSolution(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentAdded(Microsoft.CodeAnalysis.DocumentInfo documentInfo) -> void
 Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentRemoved(Microsoft.CodeAnalysis.DocumentId documentId) -> void
+Microsoft.CodeAnalysis.Workspace.OnAnalyzerConfigDocumentTextLoaderChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader loader) -> void
 Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentAdded = 18 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
 Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentChanged = 21 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
 Microsoft.CodeAnalysis.WorkspaceChangeKind.AnalyzerConfigDocumentReloaded = 20 -> Microsoft.CodeAnalysis.WorkspaceChangeKind

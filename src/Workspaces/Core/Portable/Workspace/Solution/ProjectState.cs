@@ -795,6 +795,21 @@ namespace Microsoft.CodeAnalysis
                 latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
         }
 
+        public ProjectState UpdateAnalyzerConfigDocument(AnalyzerConfigDocumentState newDocument, bool textChanged, bool recalculateDependentVersions)
+        {
+            Debug.Assert(this.ContainsAnalyzerConfigDocument(newDocument.Id));
+
+            var oldDocument = this.GetAnalyzerConfigDocumentState(newDocument.Id);
+            if (oldDocument == newDocument)
+            {
+                return this;
+            }
+
+            var newDocumentStates = _analyzerConfigDocumentStates.SetItem(newDocument.Id, newDocument);
+
+            return CreateNewStateForChangedAnalyzerConfigDocuments(newDocumentStates);
+        }
+
         public ProjectState UpdateDocumentsOrder(ImmutableList<DocumentId> documentIds)
         {
             if (documentIds.IsEmpty)

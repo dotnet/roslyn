@@ -42,5 +42,20 @@ namespace Microsoft.CodeAnalysis
 
         public AnalyzerConfig GetAnalyzerConfig(CancellationToken cancellationToken) => _analyzerConfigValueSource.GetValue(cancellationToken);
         public Task<AnalyzerConfig> GetAnalyzerConfigAsync(CancellationToken cancellationToken) => _analyzerConfigValueSource.GetValueAsync(cancellationToken);
+
+        public new AnalyzerConfigDocumentState UpdateText(TextLoader loader, PreservationMode mode)
+        {
+            return (AnalyzerConfigDocumentState)base.UpdateText(loader, mode);
+        }
+
+        protected override TextDocumentState UpdateText(ValueSource<TextAndVersion> newTextSource, PreservationMode mode, bool incremental)
+        {
+            return new AnalyzerConfigDocumentState(
+                this.solutionServices,
+                this.Services,
+                this.Attributes,
+                this.sourceTextOpt,
+                newTextSource);
+        }
     }
 }

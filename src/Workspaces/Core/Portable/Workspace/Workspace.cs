@@ -701,6 +701,25 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+
+        /// <summary>
+        /// Call this method when the text of a analyzer config document is changed on disk.
+        /// </summary>
+        protected internal void OnAnalyzerConfigDocumentTextLoaderChanged(DocumentId documentId, TextLoader loader)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckAnalyzerConfigDocumentIsInCurrentSolution(documentId);
+
+                var oldSolution = this.CurrentSolution;
+
+                var newSolution = oldSolution.WithAnalyzerConfigDocumentTextLoader(documentId, loader, PreservationMode.PreserveValue);
+                newSolution = this.SetCurrentSolution(newSolution);
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.AnalyzerConfigDocumentChanged, oldSolution, newSolution, documentId: documentId);
+            }
+        }
+
         /// <summary>
         /// Call this method when the document info changes, such as the name, folders or file path.
         /// </summary>

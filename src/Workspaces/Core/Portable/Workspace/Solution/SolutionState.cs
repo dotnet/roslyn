@@ -354,6 +354,20 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        private AnalyzerConfigDocumentState GetAnalyzerConfigDocumentState(DocumentId documentId)
+        {
+            if (documentId != null)
+            {
+                var projectState = this.GetProjectState(documentId.ProjectId);
+                if (projectState != null)
+                {
+                    return projectState.GetAnalyzerConfigDocumentState(documentId);
+                }
+            }
+
+            return null;
+        }
+
         public Task<VersionStamp> GetDependentVersionAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
             return this.GetCompilationTracker(projectId).GetDependentVersionAsync(this, cancellationToken);
@@ -1517,6 +1531,21 @@ namespace Microsoft.CodeAnalysis
             return this.WithTextDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
         }
 
+        /// <summary>
+        /// Creates a new solution instance with the analyzer config document specified updated to have the text
+        /// supplied by the text loader.
+        /// </summary>
+        public SolutionState WithAnalyzerConfigDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
+        {
+            CheckContainsAnalyzerConfigDocument(documentId);
+
+            var oldDocument = this.GetAnalyzerConfigDocumentState(documentId);
+
+            // assumes that text has changed. user could have closed a doc without saving and we are loading text from closed file with
+            // old content. also this should make sure we don't re-use latest doc version with data associated with opened document.
+            return this.WithAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode), textChanged: true, recalculateDependentVersions: true);
+        }
+
         private SolutionState WithDocumentState(DocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
         {
             if (newDocument == null)
@@ -1581,6 +1610,32 @@ namespace Microsoft.CodeAnalysis
             return this.ForkProject(newProject);
         }
 
+        private SolutionState WithAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument, bool textChanged = false, bool recalculateDependentVersions = false)
+        {
+            if (newDocument == null)
+            {
+                throw new ArgumentNullException(nameof(newDocument));
+            }
+
+            CheckContainsAnalyzerConfigDocument(newDocument.Id);
+
+            if (newDocument == this.GetAnalyzerConfigDocumentState(newDocument.Id))
+            {
+                // old and new documents are the same instance
+                return this;
+            }
+
+            var oldProject = this.GetProjectState(newDocument.Id.ProjectId);
+            var newProject = oldProject.UpdateAnalyzerConfigDocument(newDocument, textChanged, recalculateDependentVersions);
+
+            if (oldProject == newProject)
+            {
+                // old and new projects are the same instance
+                return this;
+            }
+
+            return this.ForkProject(newProject, new CompilationTranslationAction.ReplaceAllSyntaxTreesAction(newProject));
+        }
 
         /// <summary>
         /// Creates a new snapshot with an updated project and an action that will produce a new
