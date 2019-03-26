@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
@@ -102,15 +101,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public static Task<RemoteHostClient> TryGetRemoteHostClientAsync(
             this Workspace workspace, CancellationToken cancellationToken)
-        {
-            var service = workspace.Services.GetService<IRemoteHostClientService>();
-            if (service == null)
-            {
-                return SpecializedTasks.Default<RemoteHostClient>();
-            }
-
-            return service.TryGetRemoteHostClientAsync(cancellationToken);
-        }
+            => workspace.Services.GetService<IRemoteHostClientService>()?.TryGetRemoteHostClientAsync(cancellationToken) ?? SpecializedTasks.Default<RemoteHostClient>();
 
         public static Task<bool> TryRunRemoteAsync(
             this RemoteHostClient client, string serviceName, Solution solution, string targetName, object argument, CancellationToken cancellationToken)
