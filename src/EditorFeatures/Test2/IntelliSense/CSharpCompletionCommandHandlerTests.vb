@@ -4628,11 +4628,8 @@ class C
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestThenInclude(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document><![CDATA[
+        Private Shared Function CreateThenIncludeTestCode(lambdaExpressionString As String, methodsDeclarationString As String) As XElement
+            Dim template = "<Document><![CDATA[
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -4645,7 +4642,7 @@ namespace ThenIncludeIntellisenseBug
         static void Main(string[] args)
         {
             var registrations = new List<Registration>().AsQueryable();
-            var reg = registrations.Include(r => r.Activities).ThenInclude(b => b$$);
+            var reg = registrations.Include(r => r.Activities).ThenInclude([1]);
         }
     }
 
@@ -4678,22 +4675,34 @@ namespace ThenIncludeIntellisenseBug
             return default(IIncludableQueryable<TEntity, TProperty>);
         }
 
-        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
-            this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
-            Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+        [2]
+    }
+}]]></Document>"
+
+            Return XElement.Parse(template.Replace("[1]", lambdaExpressionString).Replace("[2]", methodsDeclarationString))
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenInclude(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "b => b$$",
+                "
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
         {
             return default(IIncludableQueryable<TEntity, TProperty>);
         }
 
-        public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
-            this IIncludableQueryable<TEntity, TPreviousProperty> source,
-            Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
+    public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
+        this IIncludableQueryable<TEntity, TPreviousProperty> source,
+        Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
         {
             return default(IIncludableQueryable<TEntity, TProperty>);
-        }
-    }
-}]]>
-                              </Document>)
+        }"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -4704,53 +4713,11 @@ namespace ThenIncludeIntellisenseBug
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeNoExpression(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document><![CDATA[
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-
-namespace ThenIncludeIntellisenseBug
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var registrations = new List<Registration>().AsQueryable();
-            var reg = registrations.Include(r => r.Activities).ThenInclude(b => b$$);
-        }
-    }
-
-    internal class Registration
-    {
-        public ICollection<Activity> Activities { get; set; }
-    }
-
-    public class Activity
-    {
-        public Task Task { get; set; }
-    }
-
-    public class Task
-    {
-        public string Name { get; set; }
-    }
-
-    public interface IIncludableQueryable<out TEntity, out TProperty> : IQueryable<TEntity>
-    {
-    }
-
-    public static class EntityFrameworkQuerybleExtensions
-    {
-        public static IIncludableQueryable<TEntity, TProperty> Include<TEntity, TProperty>(
-            this IQueryable<TEntity> source,
-            Expression<Func<TEntity, TProperty>> navigationPropertyPath)
-         where TEntity : class
-        {
-            return default(IIncludableQueryable<TEntity, TProperty>);
-        }
-
+            Using state = TestStateFactory.CreateCSharpTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "b => b$$",
+                "
         public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
             this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
             Func<TPreviousProperty, TProperty> navigationPropertyPath) where TEntity : class
@@ -4763,10 +4730,7 @@ namespace ThenIncludeIntellisenseBug
             Func<TPreviousProperty, TProperty> navigationPropertyPath) where TEntity : class
         {
             return default(IIncludableQueryable<TEntity, TProperty>);
-        }
-    }
-}]]>
-                              </Document>)
+        }"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -4777,53 +4741,11 @@ namespace ThenIncludeIntellisenseBug
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgument(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document><![CDATA[
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-
-namespace ThenIncludeIntellisenseBug
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var registrations = new List<Registration>().AsQueryable();
-            var reg = registrations.Include(r => r.Activities).ThenInclude(0, b => b$$);
-        }
-    }
-
-    internal class Registration
-    {
-        public ICollection<Activity> Activities { get; set; }
-    }
-
-    public class Activity
-    {
-        public Task Task { get; set; }
-    }
-
-    public class Task
-    {
-        public string Name { get; set; }
-    }
-
-    public interface IIncludableQueryable<out TEntity, out TProperty> : IQueryable<TEntity>
-    {
-    }
-
-    public static class EntityFrameworkQuerybleExtensions
-    {
-        public static IIncludableQueryable<TEntity, TProperty> Include<TEntity, TProperty>(
-            this IQueryable<TEntity> source,
-            Expression<Func<TEntity, TProperty>> navigationPropertyPath)
-         where TEntity : class
-        {
-            return default(IIncludableQueryable<TEntity, TProperty>);
-        }
-
+            Using state = TestStateFactory.CreateCSharpTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "0, b => b$$",
+                "
         public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
             this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
             int a,
@@ -4838,10 +4760,7 @@ namespace ThenIncludeIntellisenseBug
             Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
         {
             return default(IIncludableQueryable<TEntity, TProperty>);
-        }
-    }
-}]]>
-                              </Document>)
+        }"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -4852,53 +4771,11 @@ namespace ThenIncludeIntellisenseBug
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgumentAndMultiArgumentLambda(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document><![CDATA[
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-
-namespace ThenIncludeIntellisenseBug
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var registrations = new List<Registration>().AsQueryable();
-            var reg = registrations.Include(r => r.Activities).ThenInclude(0, (a,b,c) => c$$);
-        }
-    }
-
-    internal class Registration
-    {
-        public ICollection<Activity> Activities { get; set; }
-    }
-
-    public class Activity
-    {
-        public Task Task { get; set; }
-    }
-
-    public class Task
-    {
-        public string Name { get; set; }
-    }
-
-    public interface IIncludableQueryable<out TEntity, out TProperty> : IQueryable<TEntity>
-    {
-    }
-
-    public static class EntityFrameworkQuerybleExtensions
-    {
-        public static IIncludableQueryable<TEntity, TProperty> Include<TEntity, TProperty>(
-            this IQueryable<TEntity> source,
-            Expression<Func<TEntity, TProperty>> navigationPropertyPath)
-         where TEntity : class
-        {
-            return default(IIncludableQueryable<TEntity, TProperty>);
-        }
-
+            Using state = TestStateFactory.CreateCSharpTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "0, (a,b,c) => c$$)",
+                "
         public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
             this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
             int a,
@@ -4913,10 +4790,7 @@ namespace ThenIncludeIntellisenseBug
             Expression<Func<string, string, TPreviousProperty, TProperty>> navigationPropertyPath) where TEntity : class
         {
             return default(IIncludableQueryable<TEntity, TProperty>);
-        }
-    }
-}]]>
-                              </Document>)
+        }"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -4927,53 +4801,11 @@ namespace ThenIncludeIntellisenseBug
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgumentNoOverlap(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document><![CDATA[
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-
-namespace ThenIncludeIntellisenseBug
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var registrations = new List<Registration>().AsQueryable();
-            var reg = registrations.Include(r => r.Activities).ThenInclude(b => b.Task, b =>b$$);
-        }
-    }
-
-    internal class Registration
-    {
-        public ICollection<Activity> Activities { get; set; }
-    }
-
-    public class Activity
-    {
-        public Task Task { get; set; }
-    }
-
-    public class Task
-    {
-        public string Name { get; set; }
-    }
-
-    public interface IIncludableQueryable<out TEntity, out TProperty> : IQueryable<TEntity>
-    {
-    }
-
-    public static class EntityFrameworkQuerybleExtensions
-    {
-        public static IIncludableQueryable<TEntity, TProperty> Include<TEntity, TProperty>(
-            this IQueryable<TEntity> source,
-            Expression<Func<TEntity, TProperty>> navigationPropertyPath)
-         where TEntity : class
-        {
-            return default(IIncludableQueryable<TEntity, TProperty>);
-        }
-
+            Using state = TestStateFactory.CreateCSharpTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "b => b.Task, b =>b$$",
+                "
         public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
             this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
             Expression<Func<TPreviousProperty, TProperty>> navigationPropertyPath,
@@ -4988,9 +4820,7 @@ namespace ThenIncludeIntellisenseBug
         {
             return default(IIncludableQueryable<TEntity, TProperty>);
         }
-    }
-}]]>
-                              </Document>)
+"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -5002,53 +4832,11 @@ namespace ThenIncludeIntellisenseBug
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
-                              <Document><![CDATA[
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-
-namespace ThenIncludeIntellisenseBug
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            var registrations = new List<Registration>().AsQueryable();
-            var reg = registrations.Include(r => r.Activities).ThenInclude(0, (a,b,c) => c$$);
-        }
-    }
-
-    internal class Registration
-    {
-        public ICollection<Activity> Activities { get; set; }
-    }
-
-    public class Activity
-    {
-        public Task Task { get; set; }
-    }
-
-    public class Task
-    {
-        public string Name { get; set; }
-    }
-
-    public interface IIncludableQueryable<out TEntity, out TProperty> : IQueryable<TEntity>
-    {
-    }
-
-    public static class EntityFrameworkQuerybleExtensions
-    {
-        public static IIncludableQueryable<TEntity, TProperty> Include<TEntity, TProperty>(
-            this IQueryable<TEntity> source,
-            Expression<Func<TEntity, TProperty>> navigationPropertyPath)
-         where TEntity : class
-        {
-            return default(IIncludableQueryable<TEntity, TProperty>);
-        }
-
+            Using state = TestStateFactory.CreateCSharpTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "0, (a,b,c) => c$$",
+                "
         public static IIncludableQueryable<TEntity, TProperty> ThenInclude<TEntity, TPreviousProperty, TProperty>(
             this IIncludableQueryable<TEntity, ICollection<TPreviousProperty>> source,
             int a,
@@ -5064,9 +4852,7 @@ namespace ThenIncludeIntellisenseBug
         {
             return default(IIncludableQueryable<TEntity, TProperty>);
         }
-    }
-}]]>
-                              </Document>)
+"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()

@@ -3143,11 +3143,8 @@ End Class
             End Using
         End Function
 
-        <MemberData(NameOf(AllCompletionImplementations))>
-        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestThenInclude(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
-                              <Document><![CDATA[
+        Private Shared Function CreateThenIncludeTestCode(lambdaExpressionString As String, methodsDeclarationString As String) As XElement
+            Dim template = "<Document><![CDATA[
 Imports System.Linq.Expressions
 
 Namespace ThenIncludeIntellisenseBug
@@ -3155,7 +3152,7 @@ Namespace ThenIncludeIntellisenseBug
     Class Program
         Shared Sub Main(args As String())
             Dim registrations = New List(Of Registration)().AsQueryable()
-            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude(Function(b) b$$)
+            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude([1])
         End Sub
     End Class
 
@@ -3183,6 +3180,23 @@ Namespace ThenIncludeIntellisenseBug
             Return Nothing
         End Function
 
+[2]
+
+    End Module
+End Namespace
+]]></Document>"
+
+            Return XElement.Parse(template.Replace("[1]", lambdaExpressionString).Replace("[2]", methodsDeclarationString))
+        End Function
+
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestThenInclude(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "Function(b) b$$",
+                "
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
                                                                              source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
@@ -3196,9 +3210,7 @@ Namespace ThenIncludeIntellisenseBug
                                                                              navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
-    End Module
-End Namespace
-]]></Document>)
+"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -3209,43 +3221,11 @@ End Namespace
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeNoExpression(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
-                              <Document><![CDATA[
-Imports System.Linq.Expressions
-
-Namespace ThenIncludeIntellisenseBug
-
-    Class Program
-        Shared Sub Main(args As String())
-            Dim registrations = New List(Of Registration)().AsQueryable()
-            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude(Function(b) b$$)
-        End Sub
-    End Class
-
-    Friend Class Registration
-        Public Property Activities As ICollection(Of Activity)
-    End Class
-
-    Public Class Activity
-        Public Property Task As Task
-    End Class
-
-    Public Class Task
-        Public Property Name As String
-    End Class
-
-    Public Interface IIncludableQueryable(Of Out TEntity, Out TProperty)
-        Inherits IQueryable(Of TEntity)
-    End Interface
-
-    Public Module EntityFrameworkQuerybleExtensions
-        <System.Runtime.CompilerServices.Extension>
-        Public Function Include(Of TEntity, TProperty)(
-                                                      source As IQueryable(Of TEntity), 
-                                                      navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
-            Return Nothing
-        End Function
-
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "Function(b) b$$",
+                "
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
                                                                              source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
@@ -3258,10 +3238,7 @@ Namespace ThenIncludeIntellisenseBug
                                                                              source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
                                                                              navigationPropertyPath As Func(Of TPreviousProperty, TProperty)) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
-        End Function
-    End Module
-End Namespace
-]]></Document>)
+        End Function"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -3272,43 +3249,11 @@ End Namespace
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgument(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
-                              <Document><![CDATA[
-Imports System.Linq.Expressions
-
-Namespace ThenIncludeIntellisenseBug
-
-    Class Program
-        Shared Sub Main(args As String())
-            Dim registrations = New List(Of Registration)().AsQueryable()
-            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude(0, Function(b) b$$)
-        End Sub
-    End Class
-
-    Friend Class Registration
-        Public Property Activities As ICollection(Of Activity)
-    End Class
-
-    Public Class Activity
-        Public Property Task As Task
-    End Class
-
-    Public Class Task
-        Public Property Name As String
-    End Class
-
-    Public Interface IIncludableQueryable(Of Out TEntity, Out TProperty)
-        Inherits IQueryable(Of TEntity)
-    End Interface
-
-    Public Module EntityFrameworkQuerybleExtensions
-        <System.Runtime.CompilerServices.Extension>
-        Public Function Include(Of TEntity, TProperty)(
-                                                      source As IQueryable(Of TEntity), 
-                                                      navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
-            Return Nothing
-        End Function
-
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "0, Function(b) b$$",
+                "
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
                                                                              source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
@@ -3324,9 +3269,7 @@ Namespace ThenIncludeIntellisenseBug
                                                                              navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
-    End Module
-End Namespace
-]]></Document>)
+"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -3337,44 +3280,11 @@ End Namespace
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgumentAndMultiArgumentLambda(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
-                              <Document><![CDATA[
-Imports System.Linq.Expressions
-
-Namespace ThenIncludeIntellisenseBug
-
-    Class Program
-        Shared Sub Main(args As String())
-            Dim registrations = New List(Of Registration)().AsQueryable()
-            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude(0, Function(a, b, c) c$$)
-        End Sub
-    End Class
-
-    Friend Class Registration
-        Public Property Activities As ICollection(Of Activity)
-    End Class
-
-    Public Class Activity
-        Public Property Task As Task
-    End Class
-
-    Public Class Task
-        Public Property Name As String
-    End Class
-
-    Public Interface IIncludableQueryable(Of Out TEntity, Out TProperty)
-        Inherits IQueryable(Of TEntity)
-    End Interface
-
-    Public Module EntityFrameworkQuerybleExtensions
-        <System.Runtime.CompilerServices.Extension>
-        Public Function Include(Of TEntity, TProperty)(
-                                                      source As IQueryable(Of TEntity),
-                                                      navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
-            Return Nothing
-        End Function
-
-        <System.Runtime.CompilerServices.Extension>
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "0, Function(a, b, c) c$$",
+                "<System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
                                                                              source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
                                                                              a as Integer,
@@ -3388,10 +3298,7 @@ Namespace ThenIncludeIntellisenseBug
                                                                              a as Integer,
                                                                              navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
-        End Function
-    End Module
-End Namespace
-]]></Document>)
+        End Function"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -3402,43 +3309,11 @@ End Namespace
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgumentNoOverlap(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
-                              <Document><![CDATA[
-Imports System.Linq.Expressions
-
-Namespace ThenIncludeIntellisenseBug
-
-    Class Program
-        Shared Sub Main(args As String())
-            Dim registrations = New List(Of Registration)().AsQueryable()
-            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude(Function(b) b.Task, Function(b) b$$)
-        End Sub
-    End Class
-
-    Friend Class Registration
-        Public Property Activities As ICollection(Of Activity)
-    End Class
-
-    Public Class Activity
-        Public Property Task As Task
-    End Class
-
-    Public Class Task
-        Public Property Name As String
-    End Class
-
-    Public Interface IIncludableQueryable(Of Out TEntity, Out TProperty)
-        Inherits IQueryable(Of TEntity)
-    End Interface
-
-    Public Module EntityFrameworkQuerybleExtensions
-        <System.Runtime.CompilerServices.Extension>
-        Public Function Include(Of TEntity, TProperty)(
-                                                      source As IQueryable(Of TEntity), 
-                                                      navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
-            Return Nothing
-        End Function
-
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "Function(b) b.Task, Function(b) b$$",
+                "        
         <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
                                                                              source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
@@ -3452,10 +3327,7 @@ Namespace ThenIncludeIntellisenseBug
                                                                              source As IIncludableQueryable(Of TEntity, TPreviousProperty), 
                                                                              navigationPropertyPath As Expression(Of Func(Of TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
-        End Function
-    End Module
-End Namespace
-]]></Document>)
+        End Function"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
@@ -3467,44 +3339,12 @@ End Namespace
         <MemberData(NameOf(AllCompletionImplementations))>
         <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestThenIncludeSecondArgumentAndMultiArgumentLambdaWithNoLambdaOverlap(completionImplementation As CompletionImplementation) As Task
-            Using state = TestStateFactory.CreateVisualBasicTestState(completionImplementation,
-                              <Document><![CDATA[
-Imports System.Linq.Expressions
-
-Namespace ThenIncludeIntellisenseBug
-
-    Class Program
-        Shared Sub Main(args As String())
-            Dim registrations = New List(Of Registration)().AsQueryable()
-            Dim reg = registrations.Include(Function(r) r.Activities).ThenInclude(0, Function(a, b, c) c$$)
-        End Sub
-    End Class
-
-    Friend Class Registration
-        Public Property Activities As ICollection(Of Activity)
-    End Class
-
-    Public Class Activity
-        Public Property Task As Task
-    End Class
-
-    Public Class Task
-        Public Property Name As String
-    End Class
-
-    Public Interface IIncludableQueryable(Of Out TEntity, Out TProperty)
-        Inherits IQueryable(Of TEntity)
-    End Interface
-
-    Public Module EntityFrameworkQuerybleExtensions
-        <System.Runtime.CompilerServices.Extension>
-        Public Function Include(Of TEntity, TProperty)(
-                                                      source As IQueryable(Of TEntity), 
-                                                      navigationPropertyPath As Expression(Of Func(Of TEntity, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
-            Return Nothing
-        End Function
-
-        <System.Runtime.CompilerServices.Extension>
+            Using state = TestStateFactory.CreateVisualBasicTestState(
+                completionImplementation,
+                CreateThenIncludeTestCode(
+                "0, Function(a, b, c) c$$",
+                "
+       <System.Runtime.CompilerServices.Extension>
         Public Function ThenInclude(Of TEntity, TPreviousProperty, TProperty)(
                                                                              source As IIncludableQueryable(Of TEntity, ICollection(Of TPreviousProperty)), 
                                                                              a as Integer,
@@ -3519,9 +3359,7 @@ Namespace ThenIncludeIntellisenseBug
                                                                              navigationPropertyPath As Expression(Of Func(Of string, string, TPreviousProperty, TProperty))) As IIncludableQueryable(Of TEntity, TProperty)
             Return Nothing
         End Function
-    End Module
-End Namespace
-]]></Document>)
+"))
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
