@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Sub
 
         Public Overrides Function GetSymbols() As ImmutableArray(Of ISymbol)
+
             If _context.SyntaxTree.IsInNonUserCode(_context.Position, _cancellationToken) OrElse
                _context.SyntaxTree.IsInSkippedText(_context.Position, _cancellationToken) Then
                 Return ImmutableArray(Of ISymbol).Empty
@@ -53,6 +54,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Return ImmutableArray(Of ISymbol).Empty
         End Function
 
+        Protected Overrides Function IsInvocationExpression(syntaxNode As SyntaxNode) As Boolean
+
+            Return syntaxNode.IsKind(SyntaxKind.InvocationExpression)
+        End Function
+
+        Protected Overrides Function IsLambdaExpression(syntaxNode As SyntaxNode) As Boolean
+
+            Return TypeOf syntaxNode Is LambdaExpressionSyntax
+        End Function
+
+        Protected Overrides Function TryGetOrdinalInArgumentList(argumentOpt As SyntaxNode, ByRef ordinalInInvocation As Integer) As Boolean
+
+            Dim argument = TryCast(argumentOpt, ArgumentSyntax)
+            Dim argumentList = TryCast(argumentOpt.Parent, ArgumentListSyntax)
+            If argument IsNot Nothing AndAlso argumentList IsNot Nothing Then
+                ordinalInInvocation = argumentList.Arguments.IndexOf(argument)
+                Return True
+            End If
+
+            ordinalInInvocation = -1
+            Return False
+        End Function
+
         Private Function IsWritableFieldOrLocal(symbol As ISymbol) As Boolean
 
             If symbol.Kind() = SymbolKind.Field Then
@@ -85,6 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function GetUnqualifiedSymbolsForLabelContext() As ImmutableArray(Of ISymbol)
+
             Return _context.SemanticModel.LookupLabels(_context.TargetToken.SpanStart)
         End Function
 
@@ -232,9 +257,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                             excludeShared = False
                         End If
 
-                        symbols = GetSymbols(Of LambdaExpressionSyntax, ArgumentSyntax, ArgumentListSyntax, InvocationExpressionSyntax)(
-                            _context.SemanticModel, parameter, node.SpanStart,
-                            Function(argumentList) argumentList.Arguments, _cancellationToken)
+                        symbols = GetSymbols(parameter, node.SpanStart)
 
                         ' case:
                         '    MyBase.
@@ -294,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                     .ToImmutableArray()
                 Else
                     symbols = GetSymbols(
-                    container, position:=position, excludeInstance:=excludeInstance, useBaseReferenceAccessibility:=useBaseReferenceAccessibility)
+                        container, position:=position, excludeInstance:=excludeInstance, useBaseReferenceAccessibility:=useBaseReferenceAccessibility)
                 End If
             End If
 
@@ -410,6 +433,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Shared Function IsInheritsStatementContext(token As SyntaxToken) As Boolean
+
             If token.IsChildToken(Of InheritsStatementSyntax)(Function(n) n.InheritsKeyword) Then
                 Return True
             End If
@@ -428,6 +452,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function IsValidAccessibleInterfaceOrContainer(symbol As ISymbol, within As ISymbol) As Boolean
+
             If symbol.Kind = SymbolKind.Alias Then
                 symbol = DirectCast(symbol, IAliasSymbol).Target
             End If
@@ -469,6 +494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function IsValidAccessibleClassOrContainer(symbol As ISymbol, within As ISymbol) As Boolean
+
             If symbol.Kind = SymbolKind.Alias Then
                 symbol = DirectCast(symbol, IAliasSymbol).Target
             End If
@@ -497,6 +523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
         End Function
 
         Private Function IsOrContainsValidAccessibleClass(namespaceOrTypeSymbol As INamespaceOrTypeSymbol, within As ISymbol) As Boolean
+
             If namespaceOrTypeSymbol.Kind = SymbolKind.Namespace Then
                 Return IsValidAccessibleClassOrContainer(namespaceOrTypeSymbol, within)
             End If

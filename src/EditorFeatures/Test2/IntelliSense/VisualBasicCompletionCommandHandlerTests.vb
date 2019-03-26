@@ -3202,7 +3202,7 @@ End Namespace
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"Task", "FirstOrDefault"}))
+                state.AssertCompletionItemsContainAll({"Task", "FirstOrDefault"})
             End Using
         End Function
 
@@ -3525,7 +3525,7 @@ End Namespace
 
                 state.SendTypeChars(".")
                 Await state.AssertCompletionSession()
-                state.AssertCompletionItemsContainAll({"FirstOrDefault"}))
+                state.AssertCompletionItemsContainAll({"FirstOrDefault"})
                 state.AssertCompletionItemsDoNotContainAny({"Task"})
             End Using
         End Function

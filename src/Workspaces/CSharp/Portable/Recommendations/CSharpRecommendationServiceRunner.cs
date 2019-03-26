@@ -36,6 +36,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 : GetSymbolsForCurrentContext();
         }
 
+        protected override bool IsInvocationExpression(SyntaxNode node)
+            => node.IsKind(SyntaxKind.InvocationExpression);
+
+        protected override bool IsLambdaExpression(SyntaxNode node)
+            => node.IsAnyLambda();
+
+        protected override bool TryGetOrdinalInArgumentList(SyntaxNode argumentOpt, out int ordinalInInvocation)
+        {
+            if (argumentOpt is ArgumentSyntax argument &&
+                argument.Parent is ArgumentListSyntax argumentList)
+            {
+                ordinalInInvocation = argumentList.Arguments.IndexOf(argument);
+                return true;
+            }
+
+            ordinalInInvocation = -1;
+            return false;
+        }
+
         private ImmutableArray<ISymbol> GetSymbolsForCurrentContext()
         {
             if (_context.IsGlobalStatementContext)
@@ -449,8 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
                         excludeStatic = true;
 
-                        symbols = GetSymbols<LambdaExpressionSyntax, ArgumentSyntax, ArgumentListSyntax, InvocationExpressionSyntax>(
-                           _context.SemanticModel, parameter, originalExpression.SpanStart, argumentList => argumentList.Arguments, _cancellationToken);
+                        symbols = GetSymbols(parameter, originalExpression.SpanStart);
 
                         // case:
                         //    base.|
@@ -489,10 +507,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             if (symbols.IsDefault)
             {
                 symbols = GetSymbols(
-                container,
-                position: originalExpression.SpanStart,
-                excludeInstance: excludeInstance,
-                useBaseReferenceAccessibility: useBaseReferenceAccessibility);
+                    container,
+                    position: originalExpression.SpanStart,
+                    excludeInstance: excludeInstance,
+                    useBaseReferenceAccessibility: useBaseReferenceAccessibility);
             }
 
             // If we're showing instance members, don't include nested types
