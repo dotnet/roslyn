@@ -70,7 +70,7 @@
     <MicrosoftNetCompilersToolsetVersion>3.1.0-beta1-19164-01</MicrosoftNetCompilersToolsetVersion>
     <MicrosoftNetCoreAnalyzersVersion>$(RoslynDiagnosticsNugetPackageVersion)</MicrosoftNetCoreAnalyzersVersion>
     <!-- PROTOTYPE(DefaultInterfaceImplementation): The MicrosoftNetCoreILAsmVersion was 2.0.0 -->
-    <MicrosoftNetCoreILAsmVersion>3.0.0-preview4-27420-71</MicrosoftNetCoreILAsmVersion>
+    <MicrosoftNetCoreILAsmVersion>3.0.0-preview4-27525-72</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCorePlatformsVersion>2.1.2</MicrosoftNETCorePlatformsVersion>
     <!-- Using a private build of Microsoft.Net.Test.SDK to work around issue https://github.com/Microsoft/vstest/issues/1764 -->
     <MicrosoftNETTestSdkVersion>15.9.0-dev2</MicrosoftNETTestSdkVersion>
