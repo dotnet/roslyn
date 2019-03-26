@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1", "ClassLibrary2", "ClassLibrary3"}))
+                state.AssertCompletionItemsContainAll({"ClassLibrary1", "ClassLibrary2", "ClassLibrary3"})
             End Using
         End Function
 
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 </Workspace>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars(""""c)
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -85,15 +85,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Await state.AssertNoCompletionSession()
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
                 state.SendTypeChars("("c)
                 Await state.AssertNoCompletionSession()
                 state.SendInvokeCompletionList()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
                 state.SendTypeChars(""""c)
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars("a"c)
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Await state.AssertNoCompletionSession()
                 state.SendTypeChars("a"c)
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
             End Using
         End Function
 
@@ -206,7 +206,7 @@ using System.Reflection;
                 Await state.WaitForAsynchronousOperationsAsync()
                 If hasItems Then
                     Await state.AssertCompletionSession()
-                    Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                    state.AssertCompletionItemsContainAll({"ClassLibrary1"})
                 Else
                     Await state.AssertNoCompletionSession
                 End If
@@ -321,7 +321,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                 </Workspace>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -339,7 +339,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
                 </Workspace>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"TestAssembly"}))
+                state.AssertCompletionItemsDoNotContainAny({"TestAssembly"})
             End Using
         End Function
 
@@ -485,8 +485,8 @@ namespace Test
                 </Workspace>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1", "ClassLibrary2"}))
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary3"}))
+                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1", "ClassLibrary2"})
+                state.AssertCompletionItemsContainAll({"ClassLibrary3"})
             End Using
         End Function
 
@@ -519,8 +519,8 @@ namespace A {
                 </Workspace>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1", "ClassLibrary2"}))
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary3"}))
+                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1", "ClassLibrary2"})
+                state.AssertCompletionItemsContainAll({"ClassLibrary3"})
             End Using
         End Function
 
@@ -563,8 +563,8 @@ namespace A {
                 </Workspace>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1", "ClassLibrary2", "ClassLibrary3", "ClassLibrary4", "ClassLibrary5", "ClassLibrary6", "ClassLibrary7", "ClassLibrary8"}))
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary9"}))
+                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1", "ClassLibrary2", "ClassLibrary3", "ClassLibrary4", "ClassLibrary5", "ClassLibrary6", "ClassLibrary7", "ClassLibrary8"})
+                state.AssertCompletionItemsContainAll({"ClassLibrary9"})
             End Using
         End Function
 
@@ -587,7 +587,7 @@ using System.Reflection;
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
                 ' ClassLibrary1 must be listed because the existing attribute argument can't be resolved to a constant.
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                state.AssertCompletionItemsContainAll({"ClassLibrary1"})
             End Using
         End Function
 
@@ -614,8 +614,8 @@ using System.Reflection;
                 </Workspace>)
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
-                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary2"}))
+                state.AssertCompletionItemsDoNotContainAny({"ClassLibrary1"})
+                state.AssertCompletionItemsContainAll({"ClassLibrary2"})
             End Using
         End Function
 

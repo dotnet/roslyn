@@ -207,6 +207,11 @@
         <target state="translated">規則運算式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="new">Rename {0} to {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">回報無效的規則運算式</target>

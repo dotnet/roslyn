@@ -1411,6 +1411,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             return null;
         }
+
+        protected override ImmutableArray<IOperation> CreateIgnoredDimensions()
+        {
+            return _operationFactory.CreateIgnoredDimensions(_localDeclaration, Syntax);
+        }
     }
 
     internal sealed class CSharpLazyWhileLoopOperation : LazyWhileLoopOperation
