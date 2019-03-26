@@ -202,7 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 outputSlot = inputSlot;
                                                 break;
                                             case ConversionKind.ExplicitNullable when AreNullableAndUnderlyingTypes(inputType, e.Type, out _):
-                                                outputSlot = GetNullableOfTValueSlot(inputType, inputSlot, out _);
+                                                outputSlot = GetNullableOfTValueSlot(inputType, inputSlot, out _, forceSlotEvenIfEmpty: true);
+                                                if (outputSlot < 0)
+                                                    goto default;
                                                 break;
                                             default:
                                                 outputSlot = makeDagTempSlot(TypeWithAnnotations.Create(e.Type, NullableAnnotation.NotAnnotated), output);
@@ -217,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         Debug.Assert(inputSlot > 0);
                                         var field = (FieldSymbol)AsMemberOfType(inputType, e.Field);
-                                        int outputSlot = GetOrCreateSlot(field, inputSlot);
+                                        int outputSlot = GetOrCreateSlot(field, inputSlot, forceSlotEvenIfEmpty: true);
                                         Debug.Assert(outputSlot > 0);
                                         var type = field.Type;
                                         var output = new BoundDagTemp(e.Syntax, type, e);
@@ -230,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         var property = (PropertySymbol)AsMemberOfType(inputType, e.Property);
                                         var type = property.TypeWithAnnotations;
                                         var output = new BoundDagTemp(e.Syntax, type.Type, e);
-                                        int outputSlot = GetOrCreateSlot(property, inputSlot);
+                                        int outputSlot = GetOrCreateSlot(property, inputSlot, forceSlotEvenIfEmpty: true);
                                         if (outputSlot <= 0)
                                         {
                                             // This is needed due to https://github.com/dotnet/roslyn/issues/29619
@@ -332,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     _variableTypes[local] = inferredType;
                                 }
 
-                                int localSlot = GetOrCreateSlot(local);
+                                int localSlot = GetOrCreateSlot(local, forceSlotEvenIfEmpty: true);
                                 this.State[localSlot] = tempState;
                             }
                             else

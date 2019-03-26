@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
-        protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
+        protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
                 var variableType = symbol.GetTypeOrReturnType().Type;
-                if (_emptyStructTypeCache.IsEmptyStructType(variableType))
+                if (!forceSlotEvenIfEmpty && _emptyStructTypeCache.IsEmptyStructType(variableType))
                 {
                     return -1;
                 }
