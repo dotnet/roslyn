@@ -1201,4 +1201,7 @@ I agree to all of the foregoing:</value>
   <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
     <value>Use enhanced colors for C# and Basic</value>
   </data>
+  <data name="Rename_0_to_1" xml:space="preserve">
+    <value>Rename {0} to {1}</value>
+  </data>
 </root>
