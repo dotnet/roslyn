@@ -137,7 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // variable's parts based on matched pattern parts.  Mutations in `when` clauses can show the inaccuracy
             // of analysis based on this choice.
             var rootTemp = BoundDagTemp.ForOriginalInput(expression);
-            var s = decisionDag.Dump();
             int originalInputSlot = MakeSlot(expression);
             if (originalInputSlot <= 0)
             {
