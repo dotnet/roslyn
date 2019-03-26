@@ -1302,7 +1302,6 @@ moreArguments:
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
 
-            // PROTOTYPE: does this need to check MethodSymbol.IsEffectivelyReadOnly?
             if (receiverType?.IsRefLikeType == true && receiverType?.IsReadOnly == false)
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
