@@ -16,9 +16,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         public MoveToNamespaceDialogViewModel(
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces,
-            ISyntaxFactsService moveToNamespaceService)
+            ISyntaxFactsService syntaxFactsService)
         {
-            _syntaxFactsService = moveToNamespaceService ?? throw new ArgumentNullException(nameof(moveToNamespaceService));
+            _syntaxFactsService = syntaxFactsService ?? throw new ArgumentNullException(nameof(syntaxFactsService));
             NamespaceName = defaultNamespace;
             AvailableNamespaces = availableNamespaces;
 

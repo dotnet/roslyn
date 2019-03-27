@@ -83,32 +83,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.MoveToNamespace
                                                             defaultNamespace & "2"})
             End If
 
-            Return New MoveToNamespaceDialogViewModel(defaultNamespace, availableNamespaces, New MoveToNamespaceMock())
+            Return New MoveToNamespaceDialogViewModel(defaultNamespace, availableNamespaces, CSharpSyntaxFactsService.Instance)
         End Function
-
-        Private Class MoveToNamespaceMock
-            Implements IMoveToNamespaceService
-
-            Public Function IsValidIdentifier(identifier As String) As Boolean Implements IMoveToNamespaceService.IsValidIdentifier
-                Return SyntaxFacts.IsValidIdentifier(identifier)
-            End Function
-
-            Public Function GetCodeActionsAsync(document As Document, span As TextSpan, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of AbstractMoveToNamespaceCodeAction)) Implements IMoveToNamespaceService.GetCodeActionsAsync
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function AnalyzeTypeAtPositionAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of MoveToNamespaceAnalysisResult) Implements IMoveToNamespaceService.AnalyzeTypeAtPositionAsync
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function MoveToNamespaceAsync(analysisResult As MoveToNamespaceAnalysisResult, targetNamespace As String, cancellationToken As CancellationToken) As Task(Of MoveToNamespaceResult) Implements IMoveToNamespaceService.MoveToNamespaceAsync
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function GetChangeNamespaceOptions(document As Document, defaultNamespace As String, namespaces As ImmutableArray(Of String)) As MoveToNamespaceOptionsResult Implements IMoveToNamespaceService.GetChangeNamespaceOptions
-                Throw New NotImplementedException()
-            End Function
-        End Class
     End Class
 End Namespace
 
