@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
         void Method() { }
     }
 }",
-@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+@$"namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     class MyClass
     {{
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
         void Method() { }
     }
 }",
-@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+@$"namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     class MyClass
     {{
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
         void Method() { }
     }
 }",
-@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+@$"namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     class MyClass
     {{
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
         void Method() { }
     }
 }",
-@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+@$"namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     public delegate void MyDelegate();
 
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     {
     }
 }",
-@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+@$"namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     class MyClass
     {{
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
     {
     }
 }",
-@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+@$"namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     class MyClass
     {{
@@ -235,7 +235,7 @@ namespace A
 }",
 @$"using A;
 
-namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     class MyClass : IMyClass
     {{
@@ -269,7 +269,7 @@ namespace A
     }}
 }}
 
-namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     class MyClass2
     {{
@@ -296,7 +296,7 @@ namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
     }}
 }}
 
-namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     interface IMyClass
     {{
@@ -327,7 +327,7 @@ namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
     }}
 }}
 
-namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     class MyClass2
     {{
@@ -365,7 +365,7 @@ namespace A
     }}
 }}
 
-namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     interface IMyClass
     {{
@@ -413,7 +413,7 @@ namespace A
     }}
 }}
 
-namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+namespace {{|Warning:{TestMoveToNamespaceOptionsService.NamespaceValue}|}}
 {{
     class MyClass3 : IMyClass
     {{
