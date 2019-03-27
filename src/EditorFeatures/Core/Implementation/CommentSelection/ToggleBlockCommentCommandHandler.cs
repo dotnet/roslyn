@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    // TODO - Change to toggle handler.
-    [Name(PredefinedCommandHandlerNames.CommentSelection)]
+    [Name(PredefinedCommandHandlerNames.ToggleBlockComment)]
     internal class ToggleBlockCommentCommandHandler : AbstractToggleBlockCommentBase
     {
         [ImportingConstructor]

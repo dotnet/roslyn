@@ -21,8 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
 {
     [Export(typeof(VSCommanding.ICommandHandler))]
     [ContentType(ContentTypeNames.CSharpContentType)]
-    // TODO - Change to toggle handler.
-    [Name(PredefinedCommandHandlerNames.CommentSelection)]
+    [Name(PredefinedCommandHandlerNames.ToggleBlockComment)]
     internal class CSharpToggleBlockCommentCommandHandler :
         ToggleBlockCommentCommandHandler
     {

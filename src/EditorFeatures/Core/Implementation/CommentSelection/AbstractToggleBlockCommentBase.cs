@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
     internal abstract class AbstractToggleBlockCommentBase :
         // Value tuple to represent that there is no distinct command to be passed in.
         AbstractCommentSelectionBase<ValueTuple>,
-        VSCommanding.ICommandHandler<CommentSelectionCommandArgs>
+        VSCommanding.ICommandHandler<ToggleBlockCommentCommandArgs>
     {
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
             new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
@@ -47,14 +47,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         protected abstract Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
             CommentSelectionInfo commentInfo, CancellationToken cancellationToken);
 
-        // TODO - Change to toggle handler.
-        public VSCommanding.CommandState GetCommandState(CommentSelectionCommandArgs args)
+        public VSCommanding.CommandState GetCommandState(ToggleBlockCommentCommandArgs args)
         {
             return GetCommandState(args.SubjectBuffer);
         }
 
-        // TODO - Change to toggle handler.
-        public bool ExecuteCommand(CommentSelectionCommandArgs args, CommandExecutionContext context)
+        public bool ExecuteCommand(ToggleBlockCommentCommandArgs args, CommandExecutionContext context)
         {
             return ExecuteCommand(args.TextView, args.SubjectBuffer, ValueTuple.Create(), context);
         }
