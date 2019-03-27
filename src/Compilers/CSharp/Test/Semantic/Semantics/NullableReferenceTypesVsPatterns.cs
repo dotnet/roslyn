@@ -42,7 +42,7 @@ class C
 ");
 
             c.VerifyDiagnostics(
-                // (8,13): warning CS8602: Possible dereference of a null reference.
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13)
                 );
@@ -68,7 +68,7 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                // (12,13): warning CS8602: Possible dereference of a null reference.
+                // (12,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 13)
                 );
@@ -95,7 +95,7 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                // (13,13): warning CS8602: Possible dereference of a null reference.
+                // (13,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13)
                 );
@@ -122,7 +122,7 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                // (9,13): warning CS8602: Possible dereference of a null reference.
+                // (9,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13)
                 );
@@ -148,7 +148,7 @@ class C
                 // (7,18): error CS0150: A constant value is expected
                 //         if (x is nonConstant)
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "nonConstant").WithLocation(7, 18),
-                // (9,13): warning CS8602: Possible dereference of a null reference.
+                // (9,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(9, 13)
                 );
@@ -177,7 +177,7 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                // (10,17): warning CS8602: Possible dereference of a null reference.
+                // (10,17): warning CS8602: Dereference of a possibly null reference.
                 //                 x.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 17)
                 );
@@ -206,7 +206,7 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                // (10,17): warning CS8602: Possible dereference of a null reference.
+                // (10,17): warning CS8602: Dereference of a possibly null reference.
                 //                 x.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(10, 17)
                 );
@@ -245,7 +245,7 @@ class C
 }
 ");
             c.VerifyDiagnostics(
-                // (13,13): warning CS8602: Possible dereference of a null reference.
+                // (13,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13)
                 );
@@ -285,10 +285,10 @@ class C
 ");
             c.VerifyTypes();
             c.VerifyDiagnostics(
-                // (8,13): warning CS8602: Possible dereference of a null reference.
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // warn 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
-                // (9,13): warning CS8602: Possible dereference of a null reference.
+                // (9,13): warning CS8602: Dereference of a possibly null reference.
                 //             c /*T:object?*/ .ToString(); // warn 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 13)
                 );
@@ -326,7 +326,7 @@ class C
 ");
             c.VerifyTypes();
             c.VerifyDiagnostics(
-                // (8,13): warning CS8602: Possible dereference of a null reference.
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
                 //             x.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13));
         }
@@ -439,10 +439,10 @@ class C
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8602: Possible dereference of a null reference.
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
                 //             s.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(11, 13),
-                // (22,13): warning CS8602: Possible dereference of a null reference.
+                // (22,13): warning CS8602: Dereference of a possibly null reference.
                 //             s.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(22, 13));
         }
@@ -554,7 +554,7 @@ class C
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,13): warning CS8602: Possible dereference of a null reference.
+                // (7,13): warning CS8602: Dereference of a possibly null reference.
                 //             s.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 13)
                 );
@@ -580,7 +580,7 @@ class C
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (7,13): warning CS8602: Possible dereference of a null reference.
+                // (7,13): warning CS8602: Dereference of a possibly null reference.
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 13)
                 );
@@ -671,13 +671,13 @@ class C
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (19,9): warning CS8602: Possible dereference of a null reference.
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
                 //         x2.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(19, 9),
                 // (23,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x3 = null; // 2
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(23, 14),
-                // (29,9): warning CS8602: Possible dereference of a null reference.
+                // (29,9): warning CS8602: Dereference of a possibly null reference.
                 //         x3.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(29, 9));
             comp.VerifyTypes();
@@ -739,13 +739,13 @@ class C
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (23,9): warning CS8602: Possible dereference of a null reference.
+                // (23,9): warning CS8602: Dereference of a possibly null reference.
                 //         t2.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2").WithLocation(23, 9),
                 // (29,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         t3 = null; // 2
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(29, 14),
-                // (35,9): warning CS8602: Possible dereference of a null reference.
+                // (35,9): warning CS8602: Dereference of a possibly null reference.
                 //         t3.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t3").WithLocation(35, 9));
         }
@@ -778,7 +778,7 @@ class C
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,9): warning CS8602: Possible dereference of a null reference.
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         t1.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(10, 9));
         }
@@ -814,10 +814,10 @@ class C
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (12,9): warning CS8602: Possible dereference of a null reference.
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         x1.ToString(); // 1 (because of x1?. above)
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(12, 9),
-                // (23,9): warning CS8602: Possible dereference of a null reference.
+                // (23,9): warning CS8602: Dereference of a possibly null reference.
                 //         x2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(23, 9));
         }
@@ -880,7 +880,7 @@ class C
                 // (11,13): error CS0165: Use of unassigned local variable 'y1'
                 //             y1.ToString(); // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(11, 13),
-                // (21,13): warning CS8602: Possible dereference of a null reference.
+                // (21,13): warning CS8602: Dereference of a possibly null reference.
                 //             x2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(21, 13),
                 // (22,13): error CS0165: Use of unassigned local variable 'y2'
@@ -889,7 +889,7 @@ class C
                 // (27,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x3 = null; // 4
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(27, 14),
-                // (33,13): warning CS8602: Possible dereference of a null reference.
+                // (33,13): warning CS8602: Dereference of a possibly null reference.
                 //             x3.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(33, 13),
                 // (34,13): error CS0165: Use of unassigned local variable 'y3'
@@ -938,7 +938,7 @@ class C
                 // (7,9): error CS0165: Use of unassigned local variable 'y1'
                 //         y1.ToString(); // 1
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(7, 9),
-                // (12,9): warning CS8602: Possible dereference of a null reference.
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         x2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(12, 9),
                 // (13,9): error CS0165: Use of unassigned local variable 'y2'
@@ -947,7 +947,7 @@ class C
                 // (17,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         x3 = null; // 4
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(17, 14),
-                // (19,9): warning CS8602: Possible dereference of a null reference.
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
                 //         x3.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x3").WithLocation(19, 9),
                 // (20,9): error CS0165: Use of unassigned local variable 'y3'
@@ -998,10 +998,10 @@ class C
                 // (12,18): warning CS8652: A default expression introduces a null value when 'T' is a non-nullable reference type.
                 //             t1 = default; // 1
                 Diagnostic(ErrorCode.WRN_DefaultExpressionMayIntroduceNullT, "default").WithArguments("T").WithLocation(12, 18),
-                // (15,9): warning CS8602: Possible dereference of a null reference.
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         t1.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(15, 9),
-                // (25,9): warning CS8602: Possible dereference of a null reference.
+                // (25,9): warning CS8602: Dereference of a possibly null reference.
                 //         t2.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2").WithLocation(25, 9)
                 );
@@ -1091,7 +1091,7 @@ class Program
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (14,13): warning CS8602: Possible dereference of a null reference.
+                // (14,13): warning CS8602: Dereference of a possibly null reference.
                 //             b.Value.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Value").WithLocation(14, 13));
         }
@@ -1116,7 +1116,7 @@ class Program
 }";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8602: Possible dereference of a null reference.
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
                 //             t.Item2.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t.Item2").WithLocation(11, 13));
         }
@@ -1191,13 +1191,13 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (14,27): warning CS8602: Possible dereference of a null reference.
+                // (14,27): warning CS8602: Dereference of a possibly null reference.
                 //                 if (cond) o.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(14, 27),
-                // (28,27): warning CS8602: Possible dereference of a null reference.
+                // (28,27): warning CS8602: Dereference of a possibly null reference.
                 //                 if (cond) o.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(28, 27),
-                // (58,17): warning CS8602: Possible dereference of a null reference.
+                // (58,17): warning CS8602: Dereference of a possibly null reference.
                 //                 q.ToString(); // 3 (!?)
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "q").WithLocation(58, 17));
         }
@@ -1471,13 +1471,13 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,9): warning CS8602: Possible dereference of a null reference.
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n").WithLocation(11, 9),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
+                // (16,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next").WithLocation(16, 9),
-                // (21,9): warning CS8602: Possible dereference of a null reference.
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next.Next").WithLocation(21, 9));
         }
@@ -1511,13 +1511,13 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,9): warning CS8602: Possible dereference of a null reference.
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n").WithLocation(11, 9),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
+                // (16,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next").WithLocation(16, 9),
-                // (21,9): warning CS8602: Possible dereference of a null reference.
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next.Next").WithLocation(21, 9));
         }
@@ -1551,13 +1551,13 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,9): warning CS8602: Possible dereference of a null reference.
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n").WithLocation(11, 9),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
+                // (16,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next").WithLocation(16, 9),
-                // (21,9): warning CS8602: Possible dereference of a null reference.
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next.Next").WithLocation(21, 9));
         }
@@ -1599,13 +1599,13 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (15,9): warning CS8602: Possible dereference of a null reference.
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n").WithLocation(15, 9),
-                // (22,9): warning CS8602: Possible dereference of a null reference.
+                // (22,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next").WithLocation(22, 9),
-                // (29,9): warning CS8602: Possible dereference of a null reference.
+                // (29,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.Next.Next.Next.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next.Next").WithLocation(29, 9));
         }
@@ -1638,10 +1638,10 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,9): warning CS8602: Possible dereference of a null reference.
+                // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         n.s2.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.s2").WithLocation(11, 9),
-                // (16,26): warning CS8602: Possible dereference of a null reference.
+                // (16,26): warning CS8602: Dereference of a possibly null reference.
                 //             (null, _) => n.s1.ToString(), // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.s1").WithLocation(16, 26));
         }
@@ -1675,13 +1675,13 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8602: Possible dereference of a null reference.
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
                 //             n.Next.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next").WithLocation(11, 13),
-                // (16,13): warning CS8602: Possible dereference of a null reference.
+                // (16,13): warning CS8602: Dereference of a possibly null reference.
                 //             n.Next.Next.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next.Next").WithLocation(16, 13),
-                // (21,13): warning CS8602: Possible dereference of a null reference.
+                // (21,13): warning CS8602: Dereference of a possibly null reference.
                 //             n.Next.Next.Next.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next.Next.Next").WithLocation(21, 13));
         }
@@ -1718,13 +1718,13 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8602: Possible dereference of a null reference.
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
                 //             n.Next.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next").WithLocation(11, 13),
-                // (17,13): warning CS8602: Possible dereference of a null reference.
+                // (17,13): warning CS8602: Dereference of a possibly null reference.
                 //             n.Next.Next.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next.Next").WithLocation(17, 13),
-                // (23,13): warning CS8602: Possible dereference of a null reference.
+                // (23,13): warning CS8602: Dereference of a possibly null reference.
                 //             n.Next.Next.Next.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next.Next.Next").WithLocation(23, 13));
         }
@@ -1761,13 +1761,13 @@ class Program
 ";
             var comp = CreateNullableCompilation(source);
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8602: Possible dereference of a null reference.
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
                 //             n.Next.ToString(), // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next").WithLocation(11, 13),
-                // (17,13): warning CS8602: Possible dereference of a null reference.
+                // (17,13): warning CS8602: Dereference of a possibly null reference.
                 //             n.Next.Next.ToString(), // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next.Next").WithLocation(17, 13),
-                // (23,13): warning CS8602: Possible dereference of a null reference.
+                // (23,13): warning CS8602: Dereference of a possibly null reference.
                 //             n.Next.Next.Next.ToString(), // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Next.Next.Next").WithLocation(23, 13));
         }
@@ -1815,19 +1815,19 @@ class Program
                 // (7,22): warning CS8629: Nullable value type may be null.
                 //             var q => n.Value.ToString(), // 1: n
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "n").WithLocation(7, 22),
-                // (13,23): warning CS8602: Possible dereference of a null reference.
+                // (13,23): warning CS8602: Dereference of a possibly null reference.
                 //             (_, _) => n.Value.s1.ToString(), // 2: n.Value.s1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Value.s1").WithLocation(13, 23),
                 // (14,23): warning CS8629: Nullable value type may be null.
                 //             _      => n.Value.ToString(), // 3: n
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "n").WithLocation(14, 23),
-                // (21,24): warning CS8602: Possible dereference of a null reference.
+                // (21,24): warning CS8602: Dereference of a possibly null reference.
                 //             (_, _)  => n.Value.s1.ToString(), // 4: n.Value.s1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Value.s1").WithLocation(21, 24),
                 // (22,24): warning CS8629: Nullable value type may be null.
                 //             _       => n.Value.ToString(), // 5: n
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "n").WithLocation(22, 24),
-                // (28,26): warning CS8602: Possible dereference of a null reference.
+                // (28,26): warning CS8602: Dereference of a possibly null reference.
                 //             (null, _) => n.Value.s2.ToString(), // 6: n.Value.s2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "n.Value.s2").WithLocation(28, 26),
                 // (31,26): warning CS8629: Nullable value type may be null.
