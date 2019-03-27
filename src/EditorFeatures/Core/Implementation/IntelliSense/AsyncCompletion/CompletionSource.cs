@@ -63,6 +63,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             // We would like to be sure that nobody changes buffers at the same time.
             AssertIsForeground();
 
+            if (_textView.Selection.Mode == TextSelectionMode.Box)
+            {
+                // No completion with multiple selection
+                return AsyncCompletionData.CompletionStartData.DoesNotParticipateInCompletion;
+            }
+
             var document = triggerLocation.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
@@ -107,6 +113,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 trigger.Reason == AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique)
             {
                 return true;
+            }
+
+            // Enter does not trigger completion.
+            if (trigger.Reason == AsyncCompletionData.CompletionTriggerReason.Insertion && trigger.Character == '\n')
+            {
+                return false;
             }
 
             //The user may be trying to invoke snippets through question-tab.
