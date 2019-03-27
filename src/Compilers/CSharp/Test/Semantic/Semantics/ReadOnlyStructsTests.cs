@@ -1637,6 +1637,56 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyLambda()
+        {
+            var csharp = @"
+public struct S
+{
+    void M1()
+    {
+        M2(readonly () => 42);
+    }
+    void M2(System.Func<int> a)
+    {
+        _ = a();
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'S.M2(Func<int>)'
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("a", "S.M2(System.Func<int>)").WithLocation(6, 9),
+                // (6,12): error CS1026: ) expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(6, 12),
+                // (6,12): error CS1002: ; expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(6, 12),
+                // (6,12): error CS0106: The modifier 'readonly' is not valid for this item
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(6, 12),
+                // (6,22): error CS8124: Tuple must contain at least two elements.
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(6, 22),
+                // (6,24): error CS1001: Identifier expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(6, 24),
+                // (6,24): error CS1003: Syntax error, ',' expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 24),
+                // (6,27): error CS1002: ; expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "42").WithLocation(6, 27),
+                // (6,29): error CS1002: ; expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 29),
+                // (6,29): error CS1513: } expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 29));
+        }
+
+        [Fact]
         public void ReadOnlyIndexer()
         {
             var csharp = @"
