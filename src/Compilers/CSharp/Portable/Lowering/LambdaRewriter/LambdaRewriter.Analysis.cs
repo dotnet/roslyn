@@ -87,7 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 analysis.MakeAndAssignEnvironments();
                 analysis.ComputeLambdaScopesAndFrameCaptures();
-                analysis.MergeEnvironments();
+                if (compilationState.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
+                {
+                    // This can affect when a variable is in scope whilst debugging, so only do this in release mode.
+                    analysis.MergeEnvironments();
+                }
                 analysis.InlineThisOnlyEnvironments();
                 return analysis;
             }
