@@ -77,7 +77,7 @@ binaries.  This means trying out a change to the language, IDE or debugger is as
 simple as hitting F5.
 
 The startup project needs to be set to `RoslynDeployment`.  This should be
-the default but in same cases will need to be set explicitly.
+the default but in some cases will need to be set explicitly.
 
 Here are what is deployed with each extension, by project that builds it. If
 you're working on a particular area, you probably want to set the appropriate
