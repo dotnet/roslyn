@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsDeclaredReadOnly => true;
+        public override bool IsDeclaredReadOnly => false;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

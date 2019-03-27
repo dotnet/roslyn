@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
@@ -39,8 +40,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
         public abstract ImmutableArray<IParameterSymbol> Parameters { get; }
         public abstract IMethodSymbol ConstructedFrom { get; }
-        public abstract bool IsDeclaredReadOnly { get; }
-        public abstract bool IsEffectivelyReadOnly { get; }
         public abstract IMethodSymbol OverriddenMethod { get; }
         public abstract IMethodSymbol ReducedFrom { get; }
         public abstract ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter);
@@ -70,6 +69,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public virtual MethodKind MethodKind => MethodKind.Ordinary;
 
         public override SymbolKind Kind => SymbolKind.Method;
+
+        public virtual bool IsDeclaredReadOnly => throw new NotImplementedException();
+
+        public virtual bool IsEffectivelyReadOnly => throw new NotImplementedException();
 
         public virtual bool IsGenericMethod
         {
