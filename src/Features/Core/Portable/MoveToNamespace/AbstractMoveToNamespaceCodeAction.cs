@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         }
 
         public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
-            => analysisResult.Type switch
+            => analysisResult.Container switch
         {
             MoveToNamespaceAnalysisResult.ContainerType.NamedType => (AbstractMoveToNamespaceCodeAction)new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
             MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
-            _ => throw new InvalidOperationException($"Unexpected type {analysisResult.Type}")
+            _ => throw new InvalidOperationException($"Unexpected type {analysisResult.Container}")
         };
     }
 }

@@ -124,12 +124,12 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 return Task.FromResult(MoveToNamespaceResult.Failed);
             }
 
-            switch (analysisResult.Type)
+            switch (analysisResult.Container)
             {
                 case MoveToNamespaceAnalysisResult.ContainerType.Namespace:
-                    return MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.Container, targetNamespace, cancellationToken);
+                    return MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken);
                 case MoveToNamespaceAnalysisResult.ContainerType.NamedType:
-                    return MoveTypeToNamespace(analysisResult.Document, analysisResult.Container, targetNamespace, cancellationToken);
+                    return MoveTypeToNamespace(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken);
                 default:
                     throw new InvalidOperationException();
             }

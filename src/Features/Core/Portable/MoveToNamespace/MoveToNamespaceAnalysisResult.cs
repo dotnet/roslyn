@@ -10,23 +10,23 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         public bool CanPerform { get; }
         public Document Document { get; }
-        public SyntaxNode Container { get; }
+        public SyntaxNode SyntaxNode { get; }
         public string OriginalNamespace { get; }
-        public ContainerType Type { get; }
+        public ContainerType Container { get; }
         public ImmutableArray<string> Namespaces { get; }
 
         public MoveToNamespaceAnalysisResult(
             Document document,
-            SyntaxNode container,
+            SyntaxNode syntaxNode,
             string originalNamespace,
             ImmutableArray<string> namespaces,
-            ContainerType containerType)
+            ContainerType container)
         {
             CanPerform = true;
             Document = document;
-            Container = container;
+            SyntaxNode = syntaxNode;
             OriginalNamespace = originalNamespace;
-            Type = containerType;
+            Container = container;
             Namespaces = namespaces;
         }
 
