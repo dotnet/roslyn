@@ -323,8 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         });
                     } while (addedItem == true);
-
-
+                    
                     // Next create the environment and add it to the declaration scope
                     var env = new ClosureEnvironment(variablesInEnvironment, isStruct);
                     scope.DeclaredEnvironments.Add(env);
@@ -410,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Must be called only after <see cref="MakeAndAssignEnvironments"/> and <see cref="ComputeLambdaScopesAndFrameCaptures"/>
+            /// Must be called only after <see cref="MakeAndAssignEnvironments"/> and <see cref="ComputeLambdaScopesAndFrameCaptures"/>.
             /// 
             /// In order to reduce allocations, merge environments into a parent environment when it is safe to do so.
             /// This must be done whilst preserving semantics.

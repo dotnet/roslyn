@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// At the same time it sets <see cref="Scope.CanMergeWithParent"/>
             /// for each Scope. This is done by looking for <see cref="BoundGotoStatement"/>s 
             /// and <see cref="BoundConditionalGoto"/>s that jump from a point 
-            /// after the begining of a <see cref="Scope"/>, to a <see cref="BoundLabelStatement"/>
+            /// after the beginning of a <see cref="Scope"/>, to a <see cref="BoundLabelStatement"/>
             /// before the start of the scope, but after the start of <see cref="Scope.Parent"/>.
             /// 
-            /// All control structures have been converted to gotos and labels by this stage,
+            /// All loops have been converted to gotos and labels by this stage,
             /// so we do not have to visit them to do so. Similarly all <see cref="BoundLabeledStatement"/>s
             /// have been converted to <see cref="BoundLabelStatement"/>s, so we do not have to 
             /// visit them.
