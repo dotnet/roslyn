@@ -90,7 +90,19 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             Debug.WriteLine(entry.ToString(), _id);
         }
 
-        // test only
-        internal Entry[] GetEntries() => _log;
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly TraceLog _traceLog;
+
+            public TestAccessor(TraceLog traceLog)
+            {
+                _traceLog = traceLog;
+            }
+
+            internal Entry[] Entries => _traceLog._log;
+        }
     }
 }
