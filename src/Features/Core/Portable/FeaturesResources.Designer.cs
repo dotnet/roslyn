@@ -233,6 +233,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add optional parameter to constructor.
+        /// </summary>
+        internal static string Add_optional_parameter_to_constructor {
+            get {
+                return ResourceManager.GetString("Add_optional_parameter_to_constructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}&apos;.
         /// </summary>
         internal static string Add_optional_parameters_to_0 {
@@ -256,6 +265,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Add_parameter_to_0_and_overrides_implementations {
             get {
                 return ResourceManager.GetString("Add_parameter_to_0_and_overrides_implementations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add parameter to constructor.
+        /// </summary>
+        internal static string Add_parameter_to_constructor {
+            get {
+                return ResourceManager.GetString("Add_parameter_to_constructor", resourceCulture);
             }
         }
         
@@ -639,15 +657,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Attempt to connect to process #{0} failed, retrying ....
-        /// </summary>
-        internal static string Attempt_to_connect_to_process_Sharp_0_failed_retrying {
-            get {
-                return ResourceManager.GetString("Attempt_to_connect_to_process_Sharp_0_failed_retrying", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to attribute.
         /// </summary>
         internal static string attribute {
@@ -699,15 +708,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string can_t_not_construct_final_tree {
             get {
                 return ResourceManager.GetString("can_t_not_construct_final_tree", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot resolve reference &apos;{0}&apos;..
-        /// </summary>
-        internal static string Cannot_resolve_reference_0 {
-            get {
-                return ResourceManager.GetString("Cannot_resolve_reference_0", resourceCulture);
             }
         }
         
@@ -1351,33 +1351,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to create a remote process for interactive code execution..
-        /// </summary>
-        internal static string Failed_to_create_a_remote_process_for_interactive_code_execution {
-            get {
-                return ResourceManager.GetString("Failed_to_create_a_remote_process_for_interactive_code_execution", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to initialize remote interactive process..
-        /// </summary>
-        internal static string Failed_to_initialize_remote_interactive_process {
-            get {
-                return ResourceManager.GetString("Failed_to_initialize_remote_interactive_process", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Failed to launch &apos;{0}&apos; process (exit code: {1}) with output: .
-        /// </summary>
-        internal static string Failed_to_launch_0_process_exit_code_colon_1_with_output_colon {
-            get {
-                return ResourceManager.GetString("Failed_to_launch_0_process_exit_code_colon_1_with_output_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to field.
         /// </summary>
         internal static string field {
@@ -1792,15 +1765,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hosting process exited with exit code {0}..
-        /// </summary>
-        internal static string Hosting_process_exited_with_exit_code_0 {
-            get {
-                return ResourceManager.GetString("Hosting_process_exited_with_exit_code_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Implement {0}.
         /// </summary>
         internal static string Implement_0 {
@@ -2026,15 +1990,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Interactive Host not initialized..
-        /// </summary>
-        internal static string Interactive_Host_not_initialized {
-            get {
-                return ResourceManager.GetString("Interactive_Host_not_initialized", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to interface.
         /// </summary>
         internal static string interface_ {
@@ -2229,15 +2184,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Live {
             get {
                 return ResourceManager.GetString("Live", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Loading context from &apos;{0}&apos;..
-        /// </summary>
-        internal static string Loading_context_from_0 {
-            get {
-                return ResourceManager.GetString("Loading_context_from_0", resourceCulture);
             }
         }
         
@@ -2879,15 +2825,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  + additional {0} {1}.
-        /// </summary>
-        internal static string plus_additional_0_1 {
-            get {
-                return ResourceManager.GetString("plus_additional_0_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Prefer explicitly provided tuple element name.
         /// </summary>
         internal static string Prefer_explicitly_provided_tuple_element_name {
@@ -3389,24 +3326,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Searched in directories:.
-        /// </summary>
-        internal static string Searched_in_directories_colon {
-            get {
-                return ResourceManager.GetString("Searched_in_directories_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Searched in directory:.
-        /// </summary>
-        internal static string Searched_in_directory_colon {
-            get {
-                return ResourceManager.GetString("Searched_in_directory_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Separate nibbles.
         /// </summary>
         internal static string Separate_nibbles {
@@ -3493,24 +3412,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Solution {
             get {
                 return ResourceManager.GetString("Solution", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Specified file not found..
-        /// </summary>
-        internal static string Specified_file_not_found {
-            get {
-                return ResourceManager.GetString("Specified_file_not_found", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Specified file not found: {0}.
-        /// </summary>
-        internal static string Specified_file_not_found_colon_0 {
-            get {
-                return ResourceManager.GetString("Specified_file_not_found_colon_0", resourceCulture);
             }
         }
         
@@ -3749,24 +3650,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Type_parameters_colon {
             get {
                 return ResourceManager.GetString("Type_parameters_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type &quot;#help&quot; for more information..
-        /// </summary>
-        internal static string Type_Sharphelp_for_more_information {
-            get {
-                return ResourceManager.GetString("Type_Sharphelp_for_more_information", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unable to create hosting process..
-        /// </summary>
-        internal static string Unable_to_create_hosting_process {
-            get {
-                return ResourceManager.GetString("Unable_to_create_hosting_process", resourceCulture);
             }
         }
         
