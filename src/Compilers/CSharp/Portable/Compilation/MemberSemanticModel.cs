@@ -1850,25 +1850,26 @@ done:
 
             if (EnableNullableAnalysis)
             {
+                // PROTOTYPE(nullable-api): Handle other symbol types
                 if (MemberSymbol is MethodSymbol method)
                 {
-                    BoundNode rewritten = NullableWalker.AnalyzeAndRewrite(Compilation, method, root, RootBinder.Conversions, new DiagnosticBag());
-                    using (_nodeMapLock.DisposableWrite())
-                    {
-                        results = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, rewritten);
-                    }
-                }
-                else
-                {
-                    // PROTOTYPE(nullable-api): Handle other symbol types
-                    using (_nodeMapLock.DisposableWrite())
-                    {
-                        _ = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, root);
-                    }
+                    root = NullableWalker.AnalyzeAndRewrite(Compilation, method, root, RootBinder.Conversions, _ignoredDiagnostics);
                 }
             }
+#if DEBUG
             else
             {
+                // Always rewrite in DEBUG mode and just throw the results away.
+                if (MemberSymbol is MethodSymbol method)
+                {
+                    _ = NullableWalker.AnalyzeAndRewrite(Compilation, method, Bind(incrementalBinder, Root, _ignoredDiagnostics), RootBinder.Conversions, _ignoredDiagnostics);
+                }
+            }
+#endif
+
+            using (_nodeMapLock.DisposableWrite())
+            {
+
                 results = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, root);
             }
 

@@ -11,16 +11,34 @@ namespace Microsoft.CodeAnalysis
         [Fact]
         public void Equality()
         {
-            Assert.Equal(default(NullabilityInfo), default(NullabilityInfo));
-            Assert.Equal(new NullabilityInfo(NullableAnnotation.Annotated, NullableFlowState.NotNull), new NullabilityInfo(NullableAnnotation.Annotated, NullableFlowState.NotNull));
+            assertEqualsAndHashCode(default(NullabilityInfo), default(NullabilityInfo), equal: true);
+            assertEqualsAndHashCode(new NullabilityInfo(NullableAnnotation.Annotated, NullableFlowState.NotNull),
+                                    new NullabilityInfo(NullableAnnotation.Annotated, NullableFlowState.NotNull),
+                                    equal: true);
 
 #pragma warning disable IDE0055 // Fix formatting: spacing is intentional to allow for visual field comparison
-            Assert.NotEqual(new NullabilityInfo(NullableAnnotation.Annotated,    NullableFlowState.NotNull),
-                            new NullabilityInfo(NullableAnnotation.NotAnnotated, NullableFlowState.NotNull));
+            assertEqualsAndHashCode(new NullabilityInfo(NullableAnnotation.Annotated,    NullableFlowState.NotNull),
+                                    new NullabilityInfo(NullableAnnotation.NotAnnotated, NullableFlowState.NotNull),
+                                    equal: false);
 
-            Assert.NotEqual(new NullabilityInfo(NullableAnnotation.Annotated, NullableFlowState.MaybeNull),
-                            new NullabilityInfo(NullableAnnotation.Annotated, NullableFlowState.NotNull));
+            assertEqualsAndHashCode(new NullabilityInfo(NullableAnnotation.Annotated, NullableFlowState.MaybeNull),
+                                    new NullabilityInfo(NullableAnnotation.Annotated, NullableFlowState.NotNull),
+                                    equal: false);
 #pragma warning restore IDE0055 // Fix formatting
+
+            void assertEqualsAndHashCode(NullabilityInfo n1, NullabilityInfo n2, bool equal)
+            {
+                if (equal)
+                {
+                    Assert.Equal(n1, n2);
+                    Assert.Equal(n1.GetHashCode(), n2.GetHashCode());
+                }
+                else
+                {
+                    Assert.NotEqual(n1, n2);
+                    Assert.NotEqual(n1.GetHashCode(), n2.GetHashCode());
+                }
+            }
         }
     }
 }

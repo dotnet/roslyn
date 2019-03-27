@@ -35,18 +35,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         public static string ToDisplayString(
             ITypeSymbol symbol,
-            CodeAnalysis.NullableFlowState topLevelNullability,
+            CodeAnalysis.NullableFlowState nullableFlowState,
             SymbolDisplayFormat format = null)
         {
-            return ToDisplayParts(symbol, topLevelNullability, format).ToDisplayString();
+            return ToDisplayParts(symbol, nullableFlowState, format).ToDisplayString();
         }
 
         public static string ToDisplayString(
             ITypeSymbol symbol,
-            CodeAnalysis.NullableAnnotation topLevelNullability,
+            CodeAnalysis.NullableAnnotation nullableAnnotation,
             SymbolDisplayFormat format = null)
         {
-            return ToDisplayParts(symbol, topLevelNullability, format).ToDisplayString();
+            return ToDisplayParts(symbol, nullableAnnotation, format).ToDisplayString();
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -85,12 +85,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static string ToMinimalDisplayString(
             ITypeSymbol symbol,
-            CodeAnalysis.NullableAnnotation annotation,
+            CodeAnalysis.NullableAnnotation nullableAnnotation,
             SemanticModel semanticModel,
             int position,
             SymbolDisplayFormat format = null)
         {
-            return ToMinimalDisplayParts(symbol, annotation, semanticModel, position, format).ToDisplayString();
+            return ToMinimalDisplayParts(symbol, nullableAnnotation, semanticModel, position, format).ToDisplayString();
         }
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int position,
             SymbolDisplayFormat format = null)
         {
-            format = format ?? SymbolDisplayFormat.MinimallyQualifiedFormat;
+            format ??= SymbolDisplayFormat.MinimallyQualifiedFormat;
             return ToDisplayParts(symbol, nullableAnnotationOpt: null, semanticModel, position, format, minimal: true);
         }
 
@@ -192,6 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SymbolDisplayFormat format,
             bool minimal)
         {
+            // PROTOTYPE(nullable-api): Refactor this. We need to be able to handle non-TypeSymbol inputs, and add tests
             var annotation = (CodeAnalysis.NullableAnnotation?)new TypeWithState((TypeSymbol)symbol, nullableFlowState.ToInternalFlowState()).ToTypeWithAnnotations().NullableAnnotation.ToPublicAnnotation();
             return ToDisplayParts(symbol, annotation, semanticModelOpt, positionOpt, format, minimal);
         }

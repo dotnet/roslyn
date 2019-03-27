@@ -580,15 +580,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var variable = GetDeclaredSymbol(variableDesignation, cancellationToken);
 
-            if (variable != null)
+            switch (variable)
             {
-                switch (variable)
-                {
-                    case ILocalSymbol local:
-                        return (local.Type, local.NullableAnnotation);
-                    case IFieldSymbol field:
-                        return (field.Type, field.NullableAnnotation);
-                }
+                case ILocalSymbol local:
+                    return (local.Type, local.NullableAnnotation);
+                case IFieldSymbol field:
+                    return (field.Type, field.NullableAnnotation);
             }
 
             return default;
@@ -1932,9 +1929,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // is right. For example, C# allows the assignment statement:
                 //    (i) = 9;  
                 // So I don't assume this code should special case parenthesized expressions.
-                TypeSymbol type = null, convertedType;
-                NullabilityInfo nullability = boundExpr.TopLevelNullability, convertedNullability;
-                Conversion conversion;
+                TypeSymbol type = null;
+                NullabilityInfo nullability = boundExpr.TopLevelNullability;
 
                 if (boundExpr.HasExpressionType())
                 {
@@ -1973,6 +1969,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we match highestBoundExpr.Kind to various kind frequently, so cache it here.
                 // use NoOp kind for the case when highestBoundExpr == null - NoOp will not match anything below.
                 var highestBoundExprKind = highestBoundExpr?.Kind ?? BoundKind.NoOpStatement;
+                TypeSymbol convertedType;
+                NullabilityInfo convertedNullability;
+                Conversion conversion;
 
                 if (highestBoundExprKind == BoundKind.Lambda) // the enclosing conversion is explicit
                 {
@@ -1998,28 +1997,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        type = tupleLiteralConversion.Operand.Type;
-                        nullability = tupleLiteralConversion.Operand.TopLevelNullability;
+                        (type, nullability) = getTypeAndNullability(tupleLiteralConversion.Operand);
                     }
-                    convertedType = tupleLiteralConversion.Type;
-                    convertedNullability = tupleLiteralConversion.TopLevelNullability;
+
+                    (convertedType, convertedNullability) = getTypeAndNullability(tupleLiteralConversion);
                     conversion = tupleLiteralConversion.Conversion;
                 }
                 else if (highestBoundExprKind == BoundKind.FixedLocalCollectionInitializer)
                 {
                     var initializer = (BoundFixedLocalCollectionInitializer)highestBoundExpr;
-                    convertedType = initializer.Type;
-                    convertedNullability = initializer.TopLevelNullability;
-                    type = initializer.Expression.Type;
-                    nullability = initializer.Expression.TopLevelNullability;
+                    (convertedType, convertedNullability) = getTypeAndNullability(initializer);
+                    (type, nullability) = getTypeAndNullability(initializer.Expression);
 
                     // the most pertinent conversion is the pointer conversion 
                     conversion = initializer.ElementPointerTypeConversion;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
-                    convertedType = highestBoundExpr.Type;
-                    convertedNullability = highestBoundExpr.TopLevelNullability;
+                    (convertedType, convertedNullability) = getTypeAndNullability(highestBoundExpr);
                     if (highestBoundExprKind != BoundKind.Conversion)
                     {
                         conversion = Conversion.Identity;
@@ -2046,8 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // A delegate creation expression takes the place of a method group or anonymous function conversion.
                     var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
-                    convertedType = delegateCreation.Type;
-                    convertedNullability = delegateCreation.TopLevelNullability;
+                    (convertedType, convertedNullability) = getTypeAndNullability(delegateCreation);
                     switch (boundExpr.Kind)
                     {
                         case BoundKind.MethodGroup:
@@ -2083,6 +2077,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return CSharpTypeInfo.None;
+
+            (TypeSymbol, NullabilityInfo) getTypeAndNullability(BoundExpression expr) => (expr.Type, expr.TopLevelNullability);
         }
 
         // Gets the method or property group from a specific bound node.

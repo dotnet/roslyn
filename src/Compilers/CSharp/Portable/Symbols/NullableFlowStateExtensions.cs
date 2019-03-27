@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -23,23 +22,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static NullableFlowState Meet(this NullableFlowState a, NullableFlowState b) => (a < b) ? a : b;
 
-        internal static CodeAnalysis.NullableFlowState ToPublicFlowState(this NullableFlowState nullableFlowState)
+        internal static CodeAnalysis.NullableFlowState ToPublicFlowState(this NullableFlowState nullableFlowState) => nullableFlowState switch
         {
-            Debug.Assert((CodeAnalysis.NullableFlowState)(NullableFlowState.NotNull + 1) == CodeAnalysis.NullableFlowState.NotNull);
-            return (CodeAnalysis.NullableFlowState)nullableFlowState + 1;
-        }
+            NullableFlowState.NotNull => CodeAnalysis.NullableFlowState.NotNull,
+            NullableFlowState.MaybeNull => CodeAnalysis.NullableFlowState.MaybeNull,
+            _ => throw ExceptionUtilities.UnexpectedValue(nullableFlowState)
+        };
 
         // PROTOTYPE(nullable-api): remove if possible
-        public static NullableFlowState ToInternalFlowState(this CodeAnalysis.NullableFlowState flowState)
+        public static NullableFlowState ToInternalFlowState(this CodeAnalysis.NullableFlowState flowState) => flowState switch
         {
-            Debug.Assert((CodeAnalysis.NullableFlowState)(NullableFlowState.NotNull + 1) == CodeAnalysis.NullableFlowState.NotNull);
-            return flowState switch
-            {
-                CodeAnalysis.NullableFlowState.NotApplicable => NullableFlowState.NotNull,
-                CodeAnalysis.NullableFlowState.NotNull => NullableFlowState.NotNull,
-                CodeAnalysis.NullableFlowState.MaybeNull => NullableFlowState.MaybeNull,
-                _ => throw ExceptionUtilities.UnexpectedValue(flowState)
-            };
-        }
+            CodeAnalysis.NullableFlowState.NotApplicable => NullableFlowState.NotNull,
+            CodeAnalysis.NullableFlowState.NotNull => NullableFlowState.NotNull,
+            CodeAnalysis.NullableFlowState.MaybeNull => NullableFlowState.MaybeNull,
+            _ => throw ExceptionUtilities.UnexpectedValue(flowState)
+        };
     }
 }

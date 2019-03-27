@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -48,11 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (a < b) ? a : b;
         }
 
-        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(this NullableAnnotation annotation)
+        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(this NullableAnnotation annotation) => annotation switch
         {
-            Debug.Assert((CodeAnalysis.NullableAnnotation)(NullableAnnotation.Oblivious + 1) == CodeAnalysis.NullableAnnotation.Disabled);
-            return (CodeAnalysis.NullableAnnotation)annotation + 1;
-        }
+            NullableAnnotation.Annotated => CodeAnalysis.NullableAnnotation.Annotated,
+            NullableAnnotation.NotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
+            NullableAnnotation.Oblivious => CodeAnalysis.NullableAnnotation.Disabled,
+            _ => throw ExceptionUtilities.UnexpectedValue(annotation)
+        };
 
         internal static NullabilityInfo ToNullabilityInfo(this CodeAnalysis.NullableAnnotation annotation, TypeSymbol type)
         {
@@ -61,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default;
             }
 
-            NullableAnnotation internalAnnotation = (NullableAnnotation)annotation - 1;
+            NullableAnnotation internalAnnotation = annotation.ToInternalAnnotation();
             return internalAnnotation.ToNullabilityInfo(type);
         }
 
@@ -71,10 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new NullabilityInfo(annotation.ToPublicAnnotation(), flowState.ToPublicFlowState());
         }
 
-        internal static NullableAnnotation ToInternalAnnotation(this CodeAnalysis.NullableAnnotation annotation)
+        internal static NullableAnnotation ToInternalAnnotation(this CodeAnalysis.NullableAnnotation annotation) => annotation switch
         {
-            Debug.Assert((CodeAnalysis.NullableAnnotation)(NullableAnnotation.Oblivious + 1) == CodeAnalysis.NullableAnnotation.Disabled);
-            return annotation == CodeAnalysis.NullableAnnotation.NotApplicable ? NullableAnnotation.Oblivious : (NullableAnnotation)(annotation - 1);
-        }
+            CodeAnalysis.NullableAnnotation.NotApplicable => NullableAnnotation.Oblivious,
+            CodeAnalysis.NullableAnnotation.Disabled => NullableAnnotation.Oblivious,
+            CodeAnalysis.NullableAnnotation.NotAnnotated => NullableAnnotation.NotAnnotated,
+            CodeAnalysis.NullableAnnotation.Annotated => NullableAnnotation.Annotated,
+            _ => throw ExceptionUtilities.UnexpectedValue(annotation)
+        };
     }
 }

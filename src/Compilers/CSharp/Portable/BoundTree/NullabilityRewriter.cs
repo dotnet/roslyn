@@ -49,17 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(stack.Count > 0);
             currentBinary = null;
 
-            while (true)
+            while (stack.Count > 0)
             {
-                if (stack.Count == 0)
-                {
-                    return currentBinary;
-                }
-
                 var left = currentBinary;
                 currentBinary = stack.Pop();
                 currentBinary = updateNode(currentBinary, left, this, nodeUpdater);
             }
+
+            Debug.Assert(currentBinary != null);
+            return currentBinary;
 
             static BoundBinaryOperatorBase updateNode(BoundBinaryOperatorBase node, BoundExpression leftOpt, NullabilityRewriter rewriter, Func<BoundBinaryOperatorBase, BoundExpression, BoundExpression, TypeSymbol, BoundBinaryOperatorBase> nodeUpdater)
             {

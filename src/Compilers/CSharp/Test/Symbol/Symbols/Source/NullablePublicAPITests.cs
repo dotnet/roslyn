@@ -1,8 +1,11 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 using PublicNullableAnnotation = Microsoft.CodeAnalysis.NullableAnnotation;
 using PublicNullableFlowState = Microsoft.CodeAnalysis.NullableFlowState;
@@ -581,7 +584,7 @@ public class C
                 PublicNullableAnnotation.Annotated);
         }
 
-        private void VerifyAcrossCompilations<T>(string source,
+        private static void VerifyAcrossCompilations<T>(string source,
                                                  DiagnosticDescription[] nullableEnabledErrors,
                                                  DiagnosticDescription[] nullableDisabledErrors,
                                                  Func<CSharpCompilation, T[]> memberFunc,
@@ -621,13 +624,7 @@ public class C
             void verifyCompilation(CSharpCompilation compilation)
             {
                 var members = memberFunc(compilation);
-
-                Assert.Equal(members.Length, expectedNullabilities.Length);
-
-                for (int i = 0; i < expectedNullabilities.Length; i++)
-                {
-                    Assert.Equal(expectedNullabilities[i], nullabilityFunc(members[i]));
-                }
+                AssertEx.Equal(expectedNullabilities, members.Select(nullabilityFunc));
             }
         }
     }

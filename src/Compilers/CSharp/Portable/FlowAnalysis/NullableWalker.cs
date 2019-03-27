@@ -284,6 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
             BoundNode node,
+            // PROTOTYPE(nullable-api): Can we make callers of analyze stricter about the type of `Conversions` that they take in? Most of them take in
+            // a `ConversionsBase` currently, but `NullableWalker` needs a `Conversions` specifically. Perhaps tie it to `ConversionsBase.IncludeNullability`?
             Conversions conversions,
             ArrayBuilder<(BoundReturnStatement, TypeWithAnnotations)> returnTypesOpt,
             VariableState initialState,

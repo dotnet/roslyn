@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is broken out into a separate property so the debugger can display the
                 // top level nullability without setting the _attributes flag and interferring
                 // with the normal operation of tests.
-                return TopLevelNullabilityDebuggerDisplay;
+                return TopLevelNullabilityCore;
             }
             set
             {
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is for debugger display use only: <see cref="TopLevelNullability"/> will set the <see cref="BoundNodeAttributes.WasTopLevelNullabilityChecked"/>
         /// bit in the boundnode properties, which will break debugging. This allows the debugger to display the current value without setting the bit.
         /// </summary>
-        private NullabilityInfo TopLevelNullabilityDebuggerDisplay
+        private NullabilityInfo TopLevelNullabilityCore
         {
             get
             {

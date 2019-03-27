@@ -94,15 +94,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public void VisitWithNullability(TypeSymbol symbol, NullableFlowState topLevelNullability)
         {
-            VisitWithAnntoation(new TypeWithState(symbol, topLevelNullability).ToTypeWithAnnotations());
+            VisitWithAnnotation(new TypeWithState(symbol, topLevelNullability).ToTypeWithAnnotations());
         }
 
         public void VisitWithNullableAnnotation(TypeSymbol symbol, NullableAnnotation topLevelAnnotation)
         {
-            VisitWithAnntoation(TypeWithAnnotations.Create(symbol, topLevelAnnotation));
+            VisitWithAnnotation(TypeWithAnnotations.Create(symbol, topLevelAnnotation));
         }
 
-        private void VisitWithAnntoation(TypeWithAnnotations type)
+        private void VisitWithAnnotation(TypeWithAnnotations type)
         {
             Debug.Assert(!(type.Type is null));
             Visit(type.Type);
