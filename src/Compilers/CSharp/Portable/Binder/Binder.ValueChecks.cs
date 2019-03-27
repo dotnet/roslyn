@@ -1301,7 +1301,6 @@ moreArguments:
 
             // collect all writeable ref-like arguments, including receiver
             var receiverType = receiverOpt?.Type;
-
             if (receiverType?.IsRefLikeType == true && receiverType?.IsReadOnly == false)
             {
                 escapeTo = GetValEscape(receiverOpt, scopeOfTheContainingExpression);
