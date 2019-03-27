@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.CopyAnalysis;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
@@ -2101,7 +2102,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                         return ImmutableDictionary<ISymbol, PointsToAbstractValue>.Empty;
                     }
 
-                    PooledHashSet<ISymbol> capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
+                    var capturedVariables = cfg.OriginalOperation.GetCaptures(invokedMethod);
                     try
                     {
                         if (capturedVariables.Count == 0)

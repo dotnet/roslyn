@@ -2,6 +2,8 @@
 
 #pragma warning disable CA1067 // Override Object.Equals(object) when implementing IEquatable<T>
 
+using Analyzer.Utilities.PooledObjects;
+
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
     public abstract partial class AbstractIndex
