@@ -1001,6 +1001,26 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyMembers_SemanticModel()
+        {
+            var csharp = @"
+public struct S1
+{
+    public void M1() {}
+    public readonly void M2() {}
+}
+";
+            Compilation comp = CreateCompilation(csharp);
+            var s1 = (INamedTypeSymbol)comp.GetSymbolsWithName("S1").Single();
+
+            Assert.False(((IMethodSymbol)s1.GetMembers("M1").Single()).IsDeclaredReadOnly);
+            Assert.False(((IMethodSymbol)s1.GetMembers("M1").Single()).IsEffectivelyReadOnly);
+
+            Assert.True(((IMethodSymbol)s1.GetMembers("M2").Single()).IsDeclaredReadOnly);
+            Assert.True(((IMethodSymbol)s1.GetMembers("M2").Single()).IsEffectivelyReadOnly);
+        }
+
+        [Fact]
         public void ReadOnlyClass()
         {
             var csharp = @"
