@@ -91,9 +91,16 @@ namespace Microsoft.CodeAnalysis.Recommendations
         /// <returns></returns>
         protected ImmutableArray<ITypeSymbol> GetTypeSymbols(ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
         {
-            var builder = ArrayBuilder<ITypeSymbol>.GetInstance();
             var expressionSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
             var funcSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Func<>).FullName);
+            // We cannot help if semantic model is corrupted or incomplete (e.g. during solution loading) and those symbols are not loaded. 
+            // Just bail out.
+            if (expressionSymbol == null || funcSymbol == null)
+            {
+                return default;
+            }
+
+            var builder = ArrayBuilder<ITypeSymbol>.GetInstance();
 
             foreach (var candidateSymbol in candidateSymbols)
             {
