@@ -351,64 +351,6 @@ public struct S
         }
 
         [Fact]
-        public void ReadOnlyMethod_OverrideBaseMethod()
-        {
-            var csharp = @"
-public struct S1
-{
-    // note: GetType can't be overridden
-    public override string ToString() => throw null;
-    public override int GetHashCode() => throw null;
-    public override bool Equals(object o) => throw null;
-
-    readonly void M()
-    {
-        // should warn--non-readonly invocation
-        ToString();
-        GetHashCode();
-        Equals(null);
-
-        // ok
-        base.ToString();
-        base.GetHashCode();
-        base.Equals(null);
-    }
-}
-
-public struct S2
-{
-    public readonly override string ToString() => throw null;
-    public readonly override int GetHashCode() => throw null;
-    public readonly override bool Equals(object o) => throw null;
-
-    readonly void M()
-    {
-        // no warnings
-        ToString();
-        GetHashCode();
-        Equals(null);
-
-        base.ToString();
-        base.GetHashCode();
-        base.Equals(null);
-    }
-}
-";
-            var comp = CreateCompilation(csharp);
-            comp.VerifyDiagnostics(
-
-                // (12,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
-                //         ToString();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(12, 9),
-                // (13,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
-                //         GetHashCode();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(13, 9),
-                // (14,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
-                //         Equals(null);
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(14, 9));
-        }
-
-        [Fact]
         public void ReadOnlyMethod_Override_AssignThis()
         {
             var csharp = @"

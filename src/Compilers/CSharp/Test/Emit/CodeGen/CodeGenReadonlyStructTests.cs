@@ -2152,5 +2152,171 @@ public struct S2
             // should warn about calling s2.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ReadOnlyMethod_OverrideBaseMethod()
+        {
+            var csharp = @"
+public struct S1
+{
+    // note: GetType can't be overridden
+    public override string ToString() => throw null;
+    public override int GetHashCode() => throw null;
+    public override bool Equals(object o) => throw null;
+
+    readonly void M()
+    {
+        // should warn--non-readonly invocation
+        ToString();
+        GetHashCode();
+        Equals(null);
+
+        // ok
+        base.ToString();
+        base.GetHashCode();
+        base.Equals(null);
+    }
+}
+
+public struct S2
+{
+    public readonly override string ToString() => throw null;
+    public readonly override int GetHashCode() => throw null;
+    public readonly override bool Equals(object o) => throw null;
+
+    readonly void M()
+    {
+        // no warnings
+        ToString();
+        GetHashCode();
+        Equals(null);
+
+        base.ToString();
+        base.GetHashCode();
+        base.Equals(null);
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp);
+            verifier.VerifyDiagnostics(
+                // (12,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
+                //         ToString();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(12, 9),
+                // (13,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
+                //         GetHashCode();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(13, 9),
+                // (14,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
+                //         Equals(null);
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(14, 9));
+
+            verifier.VerifyIL("S1.M", @"
+{
+  // Code size      117 (0x75)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S1""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S1""
+  IL_000f:  callvirt   ""string object.ToString()""
+  IL_0014:  pop
+  IL_0015:  ldarg.0
+  IL_0016:  ldobj      ""S1""
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  constrained. ""S1""
+  IL_0024:  callvirt   ""int object.GetHashCode()""
+  IL_0029:  pop
+  IL_002a:  ldarg.0
+  IL_002b:  ldobj      ""S1""
+  IL_0030:  stloc.0
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  ldnull
+  IL_0034:  constrained. ""S1""
+  IL_003a:  callvirt   ""bool object.Equals(object)""
+  IL_003f:  pop
+  IL_0040:  ldarg.0
+  IL_0041:  ldobj      ""S1""
+  IL_0046:  box        ""S1""
+  IL_004b:  call       ""string System.ValueType.ToString()""
+  IL_0050:  pop
+  IL_0051:  ldarg.0
+  IL_0052:  ldobj      ""S1""
+  IL_0057:  box        ""S1""
+  IL_005c:  call       ""int System.ValueType.GetHashCode()""
+  IL_0061:  pop
+  IL_0062:  ldarg.0
+  IL_0063:  ldobj      ""S1""
+  IL_0068:  box        ""S1""
+  IL_006d:  ldnull
+  IL_006e:  call       ""bool System.ValueType.Equals(object)""
+  IL_0073:  pop
+  IL_0074:  ret
+}");
+
+            verifier.VerifyIL("S2.M", @"
+{
+  // Code size       93 (0x5d)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""S2""
+  IL_0007:  callvirt   ""string object.ToString()""
+  IL_000c:  pop
+  IL_000d:  ldarg.0
+  IL_000e:  constrained. ""S2""
+  IL_0014:  callvirt   ""int object.GetHashCode()""
+  IL_0019:  pop
+  IL_001a:  ldarg.0
+  IL_001b:  ldnull
+  IL_001c:  constrained. ""S2""
+  IL_0022:  callvirt   ""bool object.Equals(object)""
+  IL_0027:  pop
+  IL_0028:  ldarg.0
+  IL_0029:  ldobj      ""S2""
+  IL_002e:  box        ""S2""
+  IL_0033:  call       ""string System.ValueType.ToString()""
+  IL_0038:  pop
+  IL_0039:  ldarg.0
+  IL_003a:  ldobj      ""S2""
+  IL_003f:  box        ""S2""
+  IL_0044:  call       ""int System.ValueType.GetHashCode()""
+  IL_0049:  pop
+  IL_004a:  ldarg.0
+  IL_004b:  ldobj      ""S2""
+  IL_0050:  box        ""S2""
+  IL_0055:  ldnull
+  IL_0056:  call       ""bool System.ValueType.Equals(object)""
+  IL_005b:  pop
+  IL_005c:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_FixedThis()
+        {
+            var csharp = @"
+struct S
+{
+    int i;
+
+    readonly unsafe void M()
+    {
+        fixed (S* sp = &this)
+        {
+			sp->i = 42;
+        }
+    }
+
+    static void Main()
+    {
+        var s = new S();
+        s.M();
+        System.Console.Write(s.i);
+    }
+}
+";
+            CompileAndVerify(csharp, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "42");
+        }
     }
 }
