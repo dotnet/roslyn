@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
     [PartNotDiscoverable]
     class TestMoveToNamespaceOptionsService : IMoveToNamespaceOptionsService
     {
+        public static readonly string NamespaceValue = "TestNewNamespaceValue";
+
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestMoveToNamespaceOptionsService()
@@ -21,8 +23,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         }
 
         public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, IMoveToNamespaceService moveToNamespaceService)
-        {
-            throw new NotImplementedException();
-        }
+            => new MoveToNamespaceOptionsResult(NamespaceValue);
     }
 }

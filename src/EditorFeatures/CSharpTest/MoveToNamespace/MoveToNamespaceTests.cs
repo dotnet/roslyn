@@ -1,84 +1,72 @@
 ﻿// Copyright(c) Microsoft.All Rights Reserved.Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.MoveToNamespace;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace;
+using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
 {
-    public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
+    public class MoveToNamespaceTests : AbstractCSharpCodeActionTest
     {
+        private static readonly IExportProviderFactory CSharpExportProviderFactory =
+            ExportProviderCache.GetOrCreateExportProviderFactory(
+                TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
+                    .WithPart(typeof(TestMoveToNamespaceOptionsService)));
+
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+            => new MoveToNamespaceCodeActionProvider();
+
+        protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
+            => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, exportProvider: CSharpExportProviderFactory.CreateExportProvider());
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceName()
-        {
-            var markup =
-@"using System;
-
-namespace A[||] 
+            => TestInRegularAndScriptAsync(
+@"namespace A[||] 
 {
     class MyClass
     {
         void Method() { }
     }
-}";
-
-            var expectedMarkup =
-@"using System;
-
-namespace B
-{
+}",
+@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     class MyClass
-    {
-        void Method() { }
-    }
-}";
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expectedMarkup);
-        }
+    {{
+        void Method() {{ }}
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword()
-        {
-            var markup =
-@"using System;
-
-namespace[||] A
+        => TestInRegularAndScriptAsync(
+@"namespace[||] A
 {
     class MyClass
     {
         void Method() { }
     }
-}";
-
-            var expectedMarkup =
-@"using System;
-
-namespace B
-{
+}",
+@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     class MyClass
-    {
-        void Method() { }
-    }
-}";
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expectedMarkup);
-        }
+    {{
+        void Method() {{ }}
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_MultipleDeclarations()
-        {
-            var markup =
-@"using System;
-
-namespace A[||] 
+            => TestInRegularAndScriptAsync(
+@"namespace A[||] 
 {
     class MyClass
     {
@@ -89,37 +77,24 @@ namespace A[||]
     {
         void Method() { }
     }
-}";
-
-            var expectedMarkup =
-@"using System;
-
-namespace B
-{
+}",
+@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     class MyClass
-    {
-        void Method() { }
-    }
+    {{
+        void Method() {{ }}
+    }}
 
     class MyOtherClass
-    {
-        void Method() { }
-    }
-}";
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expectedMarkup);
-        }
+    {{
+        void Method() {{ }}
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_WithVariousSymbols()
-        {
-            var markup =
-@"using System;
-
-namespace A[||] 
+        => TestInRegularAndScriptAsync(
+@"namespace A[||] 
 {
     public delegate void MyDelegate();
 
@@ -145,52 +120,39 @@ namespace A[||]
     {
         void Method() { }
     }
-}";
-
-            var expectedMarkup =
-@"using System;
-
-namespace B
-{
+}",
+@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     public delegate void MyDelegate();
 
     public enum MyEnum
-    {
+    {{
         One,
         Two,
         Three
-    }
+    }}
 
     public struct MyStruct
-    { }
+    {{ }}
 
     public interface MyInterface
-    { }
+    {{ }}
 
     class MyClass
-    {
-        void Method() { }
-    }
+    {{
+        void Method() {{ }}
+    }}
 
     class MyOtherClass
-    {
-        void Method() { }
-    }
-}";
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expectedMarkup);
-        }
+    {{
+        void Method() {{ }}
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_NestedNamespace()
-        {
-            var markup =
-@"using System;
-
-namespace A[||]
+        => TestMissingInRegularAndScriptAsync(
+@"namespace A[||]
 {
     namespace C 
     {
@@ -199,19 +161,12 @@ namespace A[||]
             void Method() { }
         }
     }
-}";
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: false);
-        }
+}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_NestedNamespace2()
-        {
-            var markup =
-@"using System;
-
-namespace A
+        => TestMissingInRegularAndScriptAsync(
+@"namespace A
 {
     namespace C[||]
     {
@@ -220,42 +175,27 @@ namespace A
             void Method() { }
         }
     }
-}";
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: false);
-        }
+}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Single()
-        {
-            var markup =
+        => TestInRegularAndScriptAsync(
 @"namespace A
 {
     class MyClass[||]
     {
     }
-}";
-
-            var expected =
-@"namespace B
-{
+}",
+@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     class MyClass
-    {
-    }
-}";
-
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expected);
-        }
+    {{
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_SingleTop()
-        {
-            var markup =
+        => TestInRegularAndScriptAsync(
 @"namespace A
 {
     class MyClass[||]
@@ -265,34 +205,24 @@ namespace A
     class MyClass2
     {
     }
-}";
-
-            var expected =
-@"namespace B
-{
+}",
+@$"namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     class MyClass
-    {
-    }
-}
+    {{
+    }}
+}}
 
 namespace A
-{
+{{
     class MyClass2
-    {
-    }
-}";
-
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expected);
-        }
+    {{
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_TopWithReference()
-        {
-            var markup =
+        => TestInRegularAndScriptAsync(
 @"namespace A
 {
     class MyClass[||] : IMyClass
@@ -302,36 +232,26 @@ namespace A
     interface IMyClass
     {
     }
-}";
+}",
+@$"using A;
 
-            var expected =
-@"using A;
-
-namespace B
-{
+namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     class MyClass : IMyClass
-    {
-    }
-}
+    {{
+    }}
+}}
 
 namespace A
-{
+{{
     interface IMyClass
-    {
-    }
-}";
-
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expected);
-        }
+    {{
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Bottom()
-        {
-            var markup =
+        => TestInRegularAndScriptAsync(
 @"namespace A
 {
     class MyClass
@@ -341,34 +261,24 @@ namespace A
     class MyClass2[||]
     {
     }
-}";
-
-            var expected =
-@"namespace A
-{
+}",
+@$"namespace A
+{{
     class MyClass
-    {
-    }
-}
+    {{
+    }}
+}}
 
-namespace B
-{
+namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     class MyClass2
-    {
-    }
-}";
-
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expected);
-        }
+    {{
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_BottomReference()
-        {
-            var markup =
+        => TestInRegularAndScriptAsync(
 @"namespace A
 {
     class MyClass : IMyClass
@@ -378,34 +288,24 @@ namespace B
     interface IMyClass[||]
     {
     }
-}";
-
-            var expected =
-@"namespace A
-{
+}",
+@$"namespace A
+{{
     class MyClass : IMyClass
-    {
-    }
-}
+    {{
+    }}
+}}
 
-namespace B
-{
+namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     interface IMyClass
-    {
-    }
-}";
-
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expected);
-        }
+    {{
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Middle()
-        {
-            var markup =
+        => TestInRegularAndScriptAsync(
 @"namespace A
 {
     class MyClass
@@ -419,41 +319,31 @@ namespace B
     class MyClass3
     {
     }
-}";
-
-            var expected =
-@"namespace A
-{
+}",
+@$"namespace A
+{{
     class MyClass
-    {
-    }
-}
+    {{
+    }}
+}}
 
-namespace B
-{
+namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     class MyClass2
-    {
-    }
-}
+    {{
+    }}
+}}
 
 namespace A
-{
+{{
     class MyClass3
-    {
-    }
-}";
-
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expected);
-        }
+    {{
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference()
-        {
-            var markup =
+        => TestInRegularAndScriptAsync(
 @"namespace A
 {
     class MyClass : IMyClass
@@ -467,41 +357,31 @@ namespace A
     class MyClass3 : IMyClass
     {
     }
-}";
-
-            var expected =
-@"namespace A
-{
+}",
+@$"namespace A
+{{
     class MyClass : IMyClass
-    {
-    }
-}
+    {{
+    }}
+}}
 
-namespace B
-{
+namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     interface IMyClass
-    {
-    }
-}
+    {{
+    }}
+}}
 
 namespace A
-{
+{{
     class MyClass3 : IMyClass
-    {
-    }
-}";
-
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expected);
-        }
+    {{
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference2()
-        {
-            var markup =
+        => TestInRegularAndScriptAsync(
 @"namespace A
 {
     class MyClass : IMyClass
@@ -519,47 +399,37 @@ namespace A
     class MyClass4
     {
     }
-}";
-
-            var expected =
-@"using A;
+}",
+@$"using A;
 
 namespace A
-{
+{{
     class MyClass : IMyClass
-    {
-    }
+    {{
+    }}
 
     interface IMyClass
-    {
-    }
-}
+    {{
+    }}
+}}
 
-namespace B
-{
+namespace {TestMoveToNamespaceOptionsService.NamespaceValue}
+{{
     class MyClass3 : IMyClass
-    {
-    }
-}
+    {{
+    }}
+}}
 
 namespace A
-{
+{{
     class MyClass4
-    {
-    }
-}";
-
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: true,
-                expectedNamespace: "B",
-                expectedMarkup: expected);
-        }
+    {{
+    }}
+}}");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_NestedInNamespace()
-        {
-            var markup =
+        => TestMissingInRegularAndScriptAsync(
 @"namespace A
 {
     class MyClass
@@ -576,10 +446,6 @@ namespace A
     class MyClass2 : B.IMyClass
     {
     }
-}";
-            return TestMoveToNamespaceCommandCSharpAsync(
-                markup,
-                expectedSuccess: false);
-        }
+}");
     }
 }
