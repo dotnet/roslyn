@@ -51,13 +51,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ///  ignores inaccessible fields of reference type for structs loaded from metadata.</param>
         /// <param name="compilation">if <see cref="_dev12CompilerCompatibility"/> is true, set to the compilation from
         /// which to check accessibility.</param>
-        internal EmptyStructTypeCache(Compilation compilation, bool dev12CompilerCompatibility)
+        private EmptyStructTypeCache(Compilation compilation, bool dev12CompilerCompatibility)
         {
             Debug.Assert(compilation != null || !dev12CompilerCompatibility);
             _dev12CompilerCompatibility = dev12CompilerCompatibility;
             _sourceAssembly = (SourceAssemblySymbol)compilation?.Assembly;
         }
-
 
         /// <summary>
         /// Specialized EmptyStructTypeCache that reports all structs as not empty
