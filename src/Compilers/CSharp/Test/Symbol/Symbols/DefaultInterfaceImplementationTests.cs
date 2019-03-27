@@ -15143,7 +15143,7 @@ set_P4
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void PropertyModifiers_23_00()
         {
             var source1 =
@@ -21232,7 +21232,7 @@ class Test1 : I1, I2, I3, I4
             ValidatePropertyModifiers_22(source1, Accessibility.Internal);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void IndexerModifiers_23_00()
         {
             var source1 =
@@ -28129,7 +28129,7 @@ class Test1 : I1.T1
             ValidateNestedTypes_01(source1);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void NestedTypes_04()
         {
             var source0 =
@@ -28296,7 +28296,7 @@ I1+T5",
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void NestedTypes_05()
         {
             var source0 =
@@ -28656,7 +28656,7 @@ class Test1 : I1.T1
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void NestedTypes_09()
         {
             var source0 =
@@ -29764,7 +29764,7 @@ I4.M1
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void MethodImplementationInDerived_12()
         {
@@ -30197,7 +30197,7 @@ class Test1 : I2, I3
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void MethodImplementationInDerived_14()
         {
@@ -31002,7 +31002,7 @@ I3.M1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void MethodImplementationInDerived_22()
         {
             var source1 =
@@ -31086,7 +31086,7 @@ I2.M1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void MethodImplementationInDerived_23()
         {
             var source1 =
@@ -31461,7 +31461,7 @@ I4.M1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void MethodImplementationInDerived_28()
         {
             var source1 =
@@ -31707,7 +31707,7 @@ I4.M1
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void MethodImplementationInDerived_30()
         {
             var source1 =
@@ -32892,7 +32892,7 @@ I4.M1.set
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void PropertyImplementationInDerived_12()
         {
@@ -33387,7 +33387,7 @@ class Test1 : I2, I3
             compilation3.VerifyDiagnostics(expected2 ?? expected1);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void PropertyImplementationInDerived_14()
         {
@@ -34924,7 +34924,7 @@ I4.M1.remove
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void EventImplementationInDerived_12()
         {
@@ -35414,7 +35414,7 @@ class Test1 : I2, I3
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void EventImplementationInDerived_14()
         {
@@ -36652,7 +36652,7 @@ public interface I3 : I1
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void IndexerImplementationInDerived_12()
         {
@@ -36936,7 +36936,7 @@ class Test1 : I2, I3
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void IndexerImplementationInDerived_14()
         {
@@ -41158,7 +41158,7 @@ I2.+2
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void Operators_16()
         {
             var source1 =
@@ -41379,7 +41379,7 @@ I1.+
             CompileAndVerify(compilation3, expectedOutput: expectedOutput);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void Operators_19()
         {
             var source1 =
@@ -49376,9 +49376,13 @@ interface D
             var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1
+            var verifier = CompileAndVerify(compilation1, expectedOutput:
 #if Issue33535_Is_Fixed // https://github.com/dotnet/roslyn/issues/33535
-                , expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                !ExecutionConditionUtil.IsMonoOrCoreClr
+#else
+                !ExecutionConditionUtil.IsMono
+#endif
+                    ? null :
 @"
 B
 D
@@ -49387,7 +49391,6 @@ D
 B
 D
 "
-#endif
 , verify: VerifyOnMonoOrCoreClr);
 
             verifier.VerifyIL("F.Test",
@@ -50537,7 +50540,7 @@ remove 2
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_125()
         {
             var source0 = @"
@@ -50640,7 +50643,7 @@ B
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         [WorkItem(33083, "https://github.com/dotnet/roslyn/issues/33083")]
         public void ExplicitBase_125_Delegate()
         {
@@ -50971,7 +50974,7 @@ class A : B
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_130()
         {
             var source0 = @"
@@ -54039,7 +54042,7 @@ class A : B
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_138()
         {
             var source0 = @"
@@ -54601,7 +54604,7 @@ class A : B
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_142()
         {
             var source0 = @"
@@ -55542,7 +55545,7 @@ internal interface C
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_150()
         {
             var source1 = @"
@@ -55757,9 +55760,13 @@ interface D
             var compilation1 = CreateCompilation(source1 + source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
             compilation1.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(compilation1
+            var verifier = CompileAndVerify(compilation1, expectedOutput:
 #if Issue33535_Is_Fixed // https://github.com/dotnet/roslyn/issues/33535
-                , expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+                !ExecutionConditionUtil.IsMonoOrCoreClr
+#else
+                !ExecutionConditionUtil.IsMono
+#endif
+                    ? null :
 @"
 B
 D
@@ -55768,7 +55775,6 @@ D
 B
 D
 "
-#endif
 , verify: VerifyOnMonoOrCoreClr);
 
             verifier.VerifyIL("F.Test",
@@ -55846,7 +55852,7 @@ interface E : B
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_151()
         {
             var source1 =
@@ -55940,7 +55946,7 @@ C
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_152()
         {
             var source1 =
@@ -56155,7 +56161,7 @@ C
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_157()
         {
             var source0 = @"
@@ -56234,7 +56240,7 @@ B
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_158()
         {
             var source0 = @"
@@ -56313,7 +56319,7 @@ B
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_159()
         {
             var source0 = @"
@@ -56423,7 +56429,7 @@ B
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_160()
         {
             var source0 = @"
@@ -56577,7 +56583,7 @@ C
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_161()
         {
             var source0 = @"
@@ -56731,7 +56737,7 @@ C
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_162()
         {
             var source0 = @"
@@ -56979,7 +56985,7 @@ C
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_163()
         {
             var source0 = @"
@@ -57058,7 +57064,7 @@ set B
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_164()
         {
             var source0 = @"
@@ -57137,7 +57143,7 @@ set B
             }
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ExplicitBase_165()
         {
             var source0 = @"
@@ -57247,7 +57253,7 @@ set B
 ", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ProtectedAccessibility_01()
         {
             var source0 = @"
@@ -57372,7 +57378,7 @@ class A : I1<int>
             CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ProtectedAccessibility_03()
         {
             var source0 = @"
@@ -57535,7 +57541,7 @@ interface I2 : I1
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ProtectedAccessibility_06()
         {
             var source0 = @"
@@ -57596,7 +57602,7 @@ class I2<T>
                 );
         }
 
-        [ConditionalFact(typeof(ClrOnly), Reason = ConditionalSkipReason.MonoDefaultInterfaceMethods)]
+        [Fact]
         public void ProtectedAccessibility_07()
         {
             var source0 = @"
