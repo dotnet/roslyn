@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -712,10 +713,30 @@ namespace Microsoft.CodeAnalysis
             return treeAndVersion.Version;
         }
 
-        public async Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(string projectFilePath, CancellationToken cancellationToken)
         {
+            // We need to work out path to this document. Documents may not have a "real" file path if they're something created
+            // as a part of a code action, but haven't been written to disk yet.
+            string effectiveFilePath;
+
+            if (FilePath != null)
+            {
+                effectiveFilePath = FilePath;
+            }
+            else if (Name != null && projectFilePath != null)
+            {
+                effectiveFilePath = PathUtilities.CombinePathsUnchecked(PathUtilities.GetDirectoryName(projectFilePath), Name);
+            }
+            else
+            {
+                // Really no idea where this is going, so bail
+                // TODO: use AnalyzerConfigOptions.EmptyDictionary, since we don't have a public dictionary
+                return ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer);
+            }
+
             var analyzerConfigSet = await _analyzerConfigSetSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            return analyzerConfigSet.GetOptionsForSourcePath(FilePath).AnalyzerOptions;
+
+            return analyzerConfigSet.GetOptionsForSourcePath(effectiveFilePath).AnalyzerOptions;
         }
 
         private static readonly ConditionalWeakTable<SyntaxTree, DocumentId> s_syntaxTreeToIdMap =

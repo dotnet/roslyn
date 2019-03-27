@@ -485,6 +485,9 @@ namespace Microsoft.CodeAnalysis
             Interlocked.CompareExchange(ref _cachedOptions, newAsyncLazy, comparand: null);
         }
 
-        internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken) => DocumentState.GetAnalyzerOptionsAsync(cancellationToken);
+        internal Task<ImmutableDictionary<string, string>> GetAnalyzerOptionsAsync(CancellationToken cancellationToken)
+        {
+            return DocumentState.GetAnalyzerOptionsAsync(Project.FilePath, cancellationToken);
+        }
     }
 }
