@@ -4,51 +4,25 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Classification
 {
-    internal static class EditorClassifier
+    internal static class ClassifierHelper
     {
         /// <summary>
         /// Classifies the provided <paramref name="span"/> in the given <paramref name="document"/>.
-        /// This will first try to do this using an appropriate <see cref="IClassificationService"/>
-        /// if it can be found, followed by an appropriate <see cref="IEditorClassificationService"/>
+        /// This will do this using an appropriate <see cref="IClassificationService"/>
         /// if that can be found.  <see cref="ImmutableArray{T}.IsDefault"/> will be returned if this
         /// fails.
         /// </summary>
         public static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document, TextSpan span, CancellationToken cancellationToken)
         {
-            var result = await GetClassifiedSpansAsync(
-                WorkspaceClassificationDelegationService.Instance,
-               document, span, cancellationToken).ConfigureAwait(false);
-            if (!result.IsDefault)
-            {
-                return result;
-            }
-
-            result = await GetClassifiedSpansAsync(
-                EditorClassificationDelegationService.Instance,
-                document, span, cancellationToken).ConfigureAwait(false);
-            if (!result.IsDefault)
-            {
-                return result;
-            }
-
-            return default;
-        }
-
-        private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync<TClassificationService>(
-            IClassificationDelegationService<TClassificationService> delegationService,
-            Document document, TextSpan widenedSpan, CancellationToken cancellationToken) where TClassificationService : class, ILanguageService
-        {
-            var classificationService = document.GetLanguageService<TClassificationService>();
+            var classificationService = document.GetLanguageService<IClassificationService>();
             if (classificationService == null)
             {
                 return default;
@@ -65,12 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor
             var semanticSpans = ListPool<ClassifiedSpan>.Allocate();
             try
             {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                await delegationService.AddSyntacticClassificationsAsync(
-                    classificationService, document, widenedSpan, syntaxSpans, cancellationToken).ConfigureAwait(false);
-                await delegationService.AddSemanticClassificationsAsync(
-                    classificationService, document, widenedSpan, semanticSpans, cancellationToken).ConfigureAwait(false);
+                await classificationService.AddSyntacticClassificationsAsync(document, span, syntaxSpans, cancellationToken).ConfigureAwait(false);
+                await classificationService.AddSemanticClassificationsAsync(document, span, semanticSpans, cancellationToken).ConfigureAwait(false);
 
                 // MergeClassifiedSpans will ultimately filter multiple classifications for the same
                 // span down to one. We know that additive classifications are there just to 
@@ -80,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 RemoveAdditiveSpans(syntaxSpans);
                 RemoveAdditiveSpans(semanticSpans);
 
-                var classifiedSpans = MergeClassifiedSpans(
-                    syntaxSpans, semanticSpans, widenedSpan, sourceText);
+                var classifiedSpans = MergeClassifiedSpans(syntaxSpans, semanticSpans, span);
                 return classifiedSpans;
             }
             finally
@@ -104,8 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         private static ImmutableArray<ClassifiedSpan> MergeClassifiedSpans(
-            List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans,
-            TextSpan widenedSpan, SourceText sourceText)
+            List<ClassifiedSpan> syntaxSpans, List<ClassifiedSpan> semanticSpans, TextSpan widenedSpan)
         {
             // The spans produced by the language services may not be ordered
             // (indeed, this happens with semantic classification as different
@@ -184,7 +152,8 @@ namespace Microsoft.CodeAnalysis.Editor
             }
         }
 
-        public static void FillInClassifiedSpanGaps(int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
+        public static void FillInClassifiedSpanGaps(
+            int startPosition, IEnumerable<ClassifiedSpan> classifiedSpans, ArrayBuilder<ClassifiedSpan> result)
         {
             foreach (var span in classifiedSpans)
             {
