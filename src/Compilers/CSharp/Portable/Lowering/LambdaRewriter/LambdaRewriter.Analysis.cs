@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         });
                     } while (addedItem == true);
-                    
+
                     // Next create the environment and add it to the declaration scope
                     var env = new ClosureEnvironment(variablesInEnvironment, isStruct);
                     scope.DeclaredEnvironments.Add(env);
