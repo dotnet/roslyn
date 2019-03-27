@@ -70,6 +70,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override IMethodSymbol ConstructedFrom => _constructedFrom;
 
+        public override bool IsDeclaredReadOnly => _constructedFrom.IsDeclaredReadOnly;
+
+        public override bool IsEffectivelyReadOnly => _constructedFrom.IsEffectivelyReadOnly;
+
         public override IMethodSymbol OverriddenMethod =>
                 // TODO(cyrusn): Construct this.
                 _constructedFrom.OverriddenMethod;

@@ -85,6 +85,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override IMethodSymbol ConstructedFrom => this;
 
+        public override bool IsDeclaredReadOnly => throw new NotImplementedException();
+
+        public override bool IsEffectivelyReadOnly => throw new NotImplementedException();
+
         public override IMethodSymbol OverriddenMethod => null;
 
         public override IMethodSymbol ReducedFrom => null;
