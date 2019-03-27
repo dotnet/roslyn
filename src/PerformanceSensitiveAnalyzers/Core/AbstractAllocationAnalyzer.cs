@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
         public override void Initialize(AnalysisContext context)
         {
+            if (Operations.IsEmpty)
+            {
+                return;
+            }
+
             context.RegisterCompilationStartAction(compilationStartContext =>
             {
                 var compilation = compilationStartContext.Compilation;
@@ -148,67 +153,6 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                 AllowGenericEnumeration = allowGenericEnumeration;
                 AllowLocks = allowLocks;
             }
-        }
-    }
-
-    internal abstract class AbstractAllocationAnalyzer<TLanguageKindEnum>
-        : AbstractAllocationAnalyzer
-        where TLanguageKindEnum : struct
-    {
-        protected abstract ImmutableArray<TLanguageKindEnum> Expressions { get; }
-
-        protected override ImmutableArray<OperationKind> Operations => ImmutableArray<OperationKind>.Empty;
-
-        protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context, in PerformanceSensitiveInfo info);
-
-        protected override void AnalyzeNode(OperationAnalysisContext context, in PerformanceSensitiveInfo info) { }
-
-        public override void Initialize(AnalysisContext context)
-        {
-            context.RegisterCompilationStartAction(compilationStartContext =>
-            {
-                var compilation = compilationStartContext.Compilation;
-                var attributeSymbol = compilation.GetTypeByMetadataName(AllocationRules.PerformanceSensitiveAttributeName);
-
-                // Bail if PerformanceSensitiveAttribute is not delcared in the compilation.
-                if (attributeSymbol == null)
-                {
-                    return;
-                }
-
-                compilationStartContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(blockStartContext =>
-                {
-                    var checker = new AttributeChecker(attributeSymbol);
-                    RegisterSyntaxAnalysis(blockStartContext, checker);
-                });
-            });
-        }
-
-        private void RegisterSyntaxAnalysis(CodeBlockStartAnalysisContext<TLanguageKindEnum> codeBlockStartAnalysisContext, AttributeChecker performanceSensitiveAttributeChecker)
-        {
-            if (AllocationRules.IsIgnoredFile(codeBlockStartAnalysisContext.CodeBlock.SyntaxTree.FilePath))
-            {
-                return;
-            }
-
-            var owningSymbol = codeBlockStartAnalysisContext.OwningSymbol;
-
-            if (owningSymbol.GetAttributes().Any(AllocationRules.IsIgnoredAttribute))
-            {
-                return;
-            }
-
-            if (!performanceSensitiveAttributeChecker.TryGetContainsPerformanceSensitiveInfo(owningSymbol, out var info))
-            {
-                return;
-            }
-
-            codeBlockStartAnalysisContext.RegisterSyntaxNodeAction(
-                syntaxNodeContext =>
-                {
-                    AnalyzeNode(syntaxNodeContext, in info);
-                },
-                Expressions);
         }
     }
 }

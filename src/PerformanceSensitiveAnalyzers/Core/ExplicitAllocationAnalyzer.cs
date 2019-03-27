@@ -83,9 +83,8 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                     return;
                 }
 
-                if (context.Operation.Parent.GetType().Name == "LazyConversionOperation")
+                if (context.Operation.Parent is IConversionOperation)
                 {
-                    // TODO: Should this not be under the TypeConverter analyzer?
                     context.ReportDiagnostic(Diagnostic.Create(ObjectCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
                     return;
                 }
@@ -93,7 +92,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
             if (context.Operation is IAnonymousObjectCreationOperation)
             {
-                if (context.Operation.Syntax.IsKind(CodeAnalysis.CSharp.SyntaxKind.LetClause))
+                if (context.Operation.Syntax.IsKind(CSharp.SyntaxKind.LetClause))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(LetCauseRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
                 }
