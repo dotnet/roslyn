@@ -23,11 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private readonly ICommandHandlerServiceFactory _commandFactory;
-        private readonly IWpfTextView _wpfTextView;
         private readonly IFeatureServiceFactory _featureServiceFactory;
         private AbstractDebuggerIntelliSenseContext _context;
         private IOleCommandTarget _originalNextCommandFilter;
         private IFeatureDisableToken _completionDisabledToken;
+        private object _completionDisabledTokenLock = new object();
 
         internal bool Enabled { get; set; }
 
@@ -39,7 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             IFeatureServiceFactory featureServiceFactory)
             : base(languageService, wpfTextView, adapterFactory, commandFactory)
         {
-            _wpfTextView = wpfTextView;
             _commandFactory = commandFactory;
             _featureServiceFactory = featureServiceFactory;
         }
@@ -49,14 +48,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             var featureService = _featureServiceFactory.GetOrCreate(WpfTextView);
             if (!featureService.IsEnabled(PredefinedEditorFeatureNames.Completion))
             {
-                var completionDisabledToken = _completionDisabledToken;
-                if (completionDisabledToken == null)
+                lock (_completionDisabledTokenLock)
                 {
-                    return;
-                }
+                    if (_completionDisabledToken == null)
+                    {
+                        return;
+                    }
 
-                completionDisabledToken.Dispose();
-                _completionDisabledToken = null;
+                    _completionDisabledToken.Dispose();
+                    _completionDisabledToken = null;
+                }
 
                 var document = _context.ContextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document == null)
@@ -71,9 +72,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         internal void DisableCompletion()
         {
             var featureService = _featureServiceFactory.GetOrCreate(WpfTextView);
-            if (featureService.IsEnabled(PredefinedEditorFeatureNames.Completion) && _completionDisabledToken == null)
+            if (featureService.IsEnabled(PredefinedEditorFeatureNames.Completion))
             {
-                _completionDisabledToken = featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
+                lock (_completionDisabledTokenLock)
+                {
+                    if (_completionDisabledToken == null)
+                    {
+                        _completionDisabledToken = featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
+                    }
+                }
             }
         }
 

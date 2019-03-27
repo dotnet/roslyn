@@ -24,8 +24,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             if (filters.TryGetValue(textView, out var filter))
             {
+                // Disables/enables the old Roslyn completion.
                 filter.Enabled = enable != 0;
 
+                // Disables/enables the new Editor completion.
                 if (enable != 0)
                 {
                     filter.EnableCompletion();
