@@ -45220,11 +45220,16 @@ class C
     }
 }";
             var comp = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/29699: Report warnings for user-defined conversions on tuple elements.
             comp.VerifyDiagnostics(
+                // (13,13): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
+                //         c = x; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("a", "A.implicit operator C(A a)").WithLocation(13, 13),
                 // (13,13): warning CS8619: Nullability of reference types in value of type '(B?, B)' doesn't match target type '(C, C?)'.
                 //         c = x; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("(B?, B)", "(C, C?)").WithLocation(13, 13));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("(B?, B)", "(C, C?)").WithLocation(13, 13),
+                // (14,13): warning CS8604: Possible null reference argument for parameter 'a' in 'A.implicit operator C(A a)'.
+                //         c = y; // (ImplicitTuple)(ImplicitUserDefined)(ImplicitReference)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "y").WithArguments("a", "A.implicit operator C(A a)").WithLocation(14, 13));
         }
 
         [Fact]
@@ -54886,14 +54891,26 @@ class Program
     static void F2()
     {
         (A, S) t2 = (new A(), new S() { F = 2 });
-        var u2 = ((B, S?))t2; // 3, 4
-        u2.Item1.ToString(); // 5
+        var u2 = ((B, S?))t2; // 3
+        u2.Item1.ToString(); // 4
         u2.Item2.Value.F.ToString();
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32599: Track state across tuple element conversions.
-            comp.VerifyDiagnostics();
+            // https://github.com/dotnet/roslyn/issues/34495: Improve warning message to reference user-defined conversion and t1.Item1 or t2.Item1.
+            comp.VerifyDiagnostics(
+                // (17,22): warning CS8601: Possible null reference assignment.
+                //         (B, S?) u1 = t1; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t1").WithLocation(17, 22),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         u1.Item1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1.Item1").WithLocation(18, 9),
+                // (24,18): warning CS8601: Possible null reference assignment.
+                //         var u2 = ((B, S?))t2; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "((B, S?))t2").WithLocation(24, 18),
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         u2.Item1.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.Item1").WithLocation(25, 9));
         }
 
         [Fact]
@@ -54932,8 +54949,20 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32599: Track state across tuple element conversions.
-            comp.VerifyDiagnostics();
+            // https://github.com/dotnet/roslyn/issues/34495: Improve warning message to reference user-defined conversion and t1.Item2.Item1 or t2.Item2.Item1.
+            comp.VerifyDiagnostics(
+                // (18,36): warning CS8601: Possible null reference assignment.
+                //         (object x, (B, S?) y) u1 = t1; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t1").WithLocation(18, 36),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         u1.y.Item1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1.y.Item1").WithLocation(19, 9),
+                // (25,18): warning CS8601: Possible null reference assignment.
+                //         var u2 = ((object x, (B, S?) y))t2; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "((object x, (B, S?) y))t2").WithLocation(25, 18),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         u2.y.Item1.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.y.Item1").WithLocation(26, 9));
         }
 
         [Fact]
@@ -54999,16 +55028,110 @@ class B
 }
 class Program
 {
-    static void F((int, int) t)
+    static void F1((int, int) t1)
     {
-        (A, B?) u = t; // 1
-        u.Item1.ToString(); // 2
-        u.Item2.ToString();
+        (A, B?) u1 = t1; // 1
+        u1.Item1.ToString(); // 2
+        u1.Item2.ToString();
+    }
+    static void F2((int, int) t2)
+    {
+        var u2 = ((B?, A))t2; // 3
+        u2.Item1.ToString();
+        u2.Item2.ToString(); // 4
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/32599: Track state across tuple element conversions.
+            // https://github.com/dotnet/roslyn/issues/34495: Improve warning message to reference user-defined conversion and t1.Item2 or t2.Item1.
+            comp.VerifyDiagnostics(
+                // (13,22): warning CS8601: Possible null reference assignment.
+                //         (A, B?) u1 = t1; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "t1").WithLocation(13, 22),
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         u1.Item1.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u1.Item1").WithLocation(14, 9),
+                // (19,18): warning CS8601: Possible null reference assignment.
+                //         var u2 = ((B?, A))t2; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "((B?, A))t2").WithLocation(19, 18),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         u2.Item2.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u2.Item2").WithLocation(21, 9));
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(32600, "https://github.com/dotnet/roslyn/issues/32600")]
+        public void Conversions_TupleConversions_15()
+        {
+            var source =
+@"class A
+{
+    public static implicit operator A?(int i) => new A();
+}
+class B
+{
+    public static implicit operator B(int i) => new B();
+}
+struct S
+{
+    public static implicit operator S((A, B?) t) => default;
+}
+class Program
+{
+    static void F1((int, int) t)
+    {
+        F2(t); // 1
+        F3(t); // 2
+    }
+    static void F2((A, B?) t)
+    {
+    }
+    static void F3(S? s)
+    {
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32599: Handle tuple element conversions.
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(32599, "https://github.com/dotnet/roslyn/issues/32599")]
+        [WorkItem(32600, "https://github.com/dotnet/roslyn/issues/32600")]
+        public void Conversions_TupleConversions_16()
+        {
+            var source =
+@"class A
+{
+}
+class B
+{
+    public static implicit operator B?(A a) => new B();
+}
+struct S
+{
+    public static implicit operator (A?, A)(S s) => default;
+}
+class Program
+{
+    static void F1(S s)
+    {
+        F2(s); // 1
+        F3(s); // 2
+    }
+    static void F2((A, A?)? t)
+    {
+    }
+    static void F3((B?, B) t)
+    {
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/32599: Handle tuple element conversions.
+            comp.VerifyDiagnostics(
+                // (16,12): warning CS8620: Argument of type '(A?, A)?' cannot be used for parameter 't' of type '(A, A?)?' in 'void Program.F2((A, A?)? t)' due to differences in the nullability of reference types.
+                //         F2(s); // 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "s").WithArguments("(A?, A)?", "(A, A?)?", "t", "void Program.F2((A, A?)? t)").WithLocation(16, 12));
         }
 
         [Fact]
@@ -86025,6 +86148,66 @@ class Program
                 // (11,9): warning CS8602: Dereference of a possibly null reference.
                 //         x.Value.F.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x.Value.F").WithLocation(11, 9));
+        }
+
+        [Fact]
+        [WorkItem(33011, "https://github.com/dotnet/roslyn/issues/33011")]
+        public void Deconstruction_ImplicitNullableConversion_04()
+        {
+            var source =
+@"#pragma warning disable 0649
+struct S<T>
+{
+    internal T F;
+}
+class Program
+{
+    static void F<T>((object, (S<T?>, S<T>)) t) where T : class, new()
+    {
+        (object a, (S<T>? x, S<T?>? y) b) = t; // 1, 2
+        b.x.Value.F.ToString(); // 3
+        b.y.Value.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/34302: Track state at each Conversion.
+            comp.VerifyDiagnostics(
+                // (10,45): warning CS8619: Nullability of reference types in value of type '(S<T?>, S<T>)' doesn't match target type '(S<T>? x, S<T?>? y)'.
+                //         (object a, (S<T>? x, S<T?>? y) b) = t; // 1, 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t").WithArguments("(S<T?>, S<T>)", "(S<T>? x, S<T?>? y)").WithLocation(10, 45),
+                // (11,9): warning CS8629: Nullable value type may be null.
+                //         b.x.Value.F.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "b.x").WithLocation(11, 9),
+                // (12,9): warning CS8629: Nullable value type may be null.
+                //         b.y.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "b.y").WithLocation(12, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         b.y.Value.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.y.Value.F").WithLocation(12, 9));
+        }
+
+        [Fact]
+        [WorkItem(33011, "https://github.com/dotnet/roslyn/issues/33011")]
+        public void Deconstruction_ImplicitUserDefinedConversion_01()
+        {
+            var source =
+@"class A
+{
+}
+class B
+{
+    public static implicit operator B?(A a) => new B();
+}
+class Program
+{
+    static void F((object, (A?, A)) t)
+    {
+        (object x, (B?, B) y) = t;
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/34302: Track state at each Conversion.
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

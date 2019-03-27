@@ -1483,7 +1483,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var parameterType = constructor.ParameterTypesWithAnnotations[0];
                             if (AreNullableAndUnderlyingTypes(type, parameterType.Type, out TypeWithAnnotations underlyingType))
                             {
-                                TrackNullableStateOfNullableValue(node, arguments[0], type, underlyingType);
+                                var operand = arguments[0];
+                                int valueSlot = MakeSlot(operand);
+                                if (valueSlot > 0)
+                                {
+                                    TrackNullableStateOfNullableValue(slot, type, operand, underlyingType.ToTypeWithState(), valueSlot);
+                                }
                             }
                         }
                     }
@@ -3745,51 +3750,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void TrackNullableStateOfNullableConversion(BoundConversion node)
-        {
-            Debug.Assert(node.ConversionKind == ConversionKind.ImplicitNullable || node.ConversionKind == ConversionKind.ExplicitNullable);
-
-            var operand = node.Operand;
-            var operandType = operand.Type;
-            var convertedType = node.Type;
-            if (AreNullableAndUnderlyingTypes(convertedType, operandType, out TypeWithAnnotations underlyingType))
-            {
-                // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
-                TrackNullableStateOfNullableValue(node, operand, convertedType, underlyingType);
-            }
-        }
-
-        private void TrackNullableStateOfNullableValue(BoundExpression node, BoundExpression operand, TypeSymbol convertedType, TypeWithAnnotations underlyingType)
-        {
-            int valueSlot = MakeSlot(operand);
-            if (valueSlot > 0)
-            {
-                int containingSlot = GetOrCreateObjectCreationPlaceholderSlot(node);
-                Debug.Assert(containingSlot > 0);
-                TrackNullableStateOfNullableValue(containingSlot, convertedType, operand, underlyingType.ToTypeWithState(), valueSlot);
-            }
-        }
-
-        private void TrackNullableStateOfTupleConversion(BoundConversion node)
-        {
-            Debug.Assert(node.ConversionKind == ConversionKind.ImplicitTuple || node.ConversionKind == ConversionKind.ExplicitTuple);
-
-            int valueSlot = MakeSlot(node.Operand);
-            if (valueSlot < 0)
-            {
-                return;
-            }
-
-            int slot = GetOrCreateObjectCreationPlaceholderSlot(node);
-            if (slot < 0)
-            {
-                return;
-            }
-
-            TrackNullableStateOfTupleConversion(node.Conversion, node.Type, node.Operand.Type, slot, valueSlot);
-        }
-
-        private void TrackNullableStateOfTupleConversion(Conversion conversion, TypeSymbol targetType, TypeSymbol operandType, int slot, int valueSlot)
+        private void TrackNullableStateOfTupleConversion(
+            BoundExpression node,
+            Conversion conversion,
+            TypeSymbol targetType,
+            TypeSymbol operandType,
+            int slot,
+            int valueSlot,
+            AssignmentKind assignmentKind,
+            ParameterSymbol target,
+            bool reportWarnings)
         {
             Debug.Assert(conversion.Kind == ConversionKind.ImplicitTuple || conversion.Kind == ConversionKind.ExplicitTuple);
             Debug.Assert(slot > 0);
@@ -3832,7 +3802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(targetFieldSlot > 0);
                             Debug.Assert(valueFieldSlot > 0);
                             this.State[targetFieldSlot] = NullableFlowState.NotNull;
-                            TrackNullableStateOfTupleConversion(conversion, targetField.Type, valueField.Type, targetFieldSlot, valueFieldSlot);
+                            TrackNullableStateOfTupleConversion(node, conversion, targetField.Type, valueField.Type, targetFieldSlot, valueFieldSlot, assignmentKind, target, reportWarnings);
                         }
                         break;
                     case ConversionKind.ImplicitNullable:
@@ -3846,6 +3816,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(valueFieldSlot > 0);
                             this.State[targetFieldSlot] = NullableFlowState.NotNull;
                             TrackNullableStateOfNullableValue(targetFieldSlot, targetField.Type, null, valueField.TypeWithAnnotations.ToTypeWithState(), valueFieldSlot);
+                        }
+                        break;
+                    case ConversionKind.ImplicitUserDefined:
+                    case ConversionKind.ExplicitUserDefined:
+                        {
+                            int targetFieldSlot = GetOrCreateSlot(targetField, slot);
+                            Debug.Assert(targetFieldSlot > 0);
+                            var convertedType = ApplyUserDefinedConversion(node, operandOpt: null, conversion, targetField.TypeWithAnnotations, valueField.TypeWithAnnotations.ToTypeWithState(),
+                                useLegacyWarnings: false, assignmentKind, target, reportTopLevelWarnings: reportWarnings, reportRemainingWarnings: reportWarnings);
+                            this.State[targetFieldSlot] = convertedType.State;
                         }
                         break;
                     default:
@@ -4027,76 +4007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:
-                    // cf. Binder.CreateUserDefinedConversion
-                    {
-                        if (!conversion.IsValid)
-                        {
-                            break;
-                        }
-
-                        // operand -> conversion "from" type
-                        // May be distinct from method parameter type for Nullable<T>.
-                        operandType = ApplyConversion(
-                            node,
-                            operandOpt,
-                            conversion.UserDefinedFromConversion,
-                            TypeWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.FromType),
-                            operandType,
-                            checkConversion: true,
-                            fromExplicitCast: false,
-                            useLegacyWarnings,
-                            assignmentKind,
-                            target);
-
-                        // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
-                        // (see NullableReferenceTypesTests.ImplicitConversions_07).
-                        var methodOpt = conversion.Method;
-                        Debug.Assert((object)methodOpt != null);
-                        Debug.Assert(methodOpt.ParameterCount == 1);
-                        var parameter = methodOpt.Parameters[0];
-                        var parameterType = parameter.TypeWithAnnotations;
-                        TypeWithState underlyingOperandType = default;
-                        bool isLiftedConversion = false;
-                        if (operandType.Type.IsNullableType() && !parameterType.IsNullableType())
-                        {
-                            var underlyingOperandTypeWithAnnotations = operandType.Type.GetNullableUnderlyingTypeWithAnnotations();
-                            underlyingOperandType = underlyingOperandTypeWithAnnotations.ToTypeWithState();
-                            isLiftedConversion = parameterType.Equals(underlyingOperandTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
-                        }
-
-                        // conversion "from" type -> method parameter type
-                        NullableFlowState operandState = operandType.State;
-                        _ = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
-                            useLegacyWarnings, AssignmentKind.Argument, target: parameter, reportWarnings: reportRemainingWarnings);
-
-                        // method parameter type -> method return type
-                        var methodReturnType = methodOpt.ReturnTypeWithAnnotations;
-                        if (isLiftedConversion)
-                        {
-                            operandType = LiftedReturnType(methodReturnType, operandState);
-                            if (RequiresSafetyWarningWhenNullIntroduced(methodReturnType.Type) && operandState == NullableFlowState.MaybeNull)
-                            {
-                                ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, operandType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target, conversion: conversion);
-                            }
-                        }
-                        else
-                        {
-                            operandType = methodReturnType.ToTypeWithState();
-                        }
-
-                        // method return type -> conversion "to" type
-                        // May be distinct from method return type for Nullable<T>.
-                        operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType,
-                            useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
-
-                        // conversion "to" type -> final type
-                        // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
-                        // explicit, this conversion should not report nested nullability mismatches.
-                        // (see NullableReferenceTypesTests.ExplicitCast_UserDefined_02).
-                        operandType = ClassifyAndApplyConversion(node, targetTypeWithNullability, operandType,
-                            useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
-                        return operandType;
-                    }
+                    return ApplyUserDefinedConversion(node, operandOpt, conversion, targetTypeWithNullability, operandType, useLegacyWarnings, assignmentKind, target, reportTopLevelWarnings, reportRemainingWarnings);
 
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ImplicitDynamic:
@@ -4168,7 +4079,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case ConversionKind.ImplicitNullable:
                             case ConversionKind.ExplicitNullable:
-                                TrackNullableStateOfNullableConversion(conv);
+                                var operand = conv.Operand;
+                                var convertedType = conv.Type;
+                                if (AreNullableAndUnderlyingTypes(convertedType, operand.Type, out TypeWithAnnotations underlyingType))
+                                {
+                                    // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
+                                    int valueSlot = MakeSlot(operand);
+                                    if (valueSlot > 0)
+                                    {
+                                        int containingSlot = GetOrCreateObjectCreationPlaceholderSlot(conv);
+                                        Debug.Assert(containingSlot > 0);
+                                        TrackNullableStateOfNullableValue(containingSlot, convertedType, operand, underlyingType.ToTypeWithState(), valueSlot);
+                                    }
+                                }
                                 break;
                         }
                     }
@@ -4216,7 +4139,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             case ConversionKind.ImplicitTuple:
                             case ConversionKind.ExplicitTuple:
-                                TrackNullableStateOfTupleConversion(conv);
+                                int valueSlot = MakeSlot(conv.Operand);
+                                if (valueSlot > 0)
+                                {
+                                    int slot = GetOrCreateObjectCreationPlaceholderSlot(conv);
+                                    if (slot > 0)
+                                    {
+                                        TrackNullableStateOfTupleConversion(conv, conv.Conversion, conv.Type, conv.Operand.Type, slot, valueSlot, assignmentKind, target, reportWarnings: reportRemainingWarnings);
+                                    }
+                                }
                                 break;
                         }
                     }
@@ -4286,6 +4217,99 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return resultType;
+        }
+
+        private TypeWithState ApplyUserDefinedConversion(
+            BoundExpression node,
+            BoundExpression operandOpt,
+            Conversion conversion,
+            TypeWithAnnotations targetTypeWithNullability,
+            TypeWithState operandType,
+            bool useLegacyWarnings,
+            AssignmentKind assignmentKind,
+            ParameterSymbol target,
+            bool reportTopLevelWarnings,
+            bool reportRemainingWarnings)
+        {
+            Debug.Assert(!IsConditionalState);
+            Debug.Assert(node != null);
+            Debug.Assert(operandOpt != null || !operandType.HasNullType);
+            Debug.Assert(targetTypeWithNullability.HasType);
+            Debug.Assert((object)target != null || assignmentKind != AssignmentKind.Argument);
+
+            TypeSymbol targetType = targetTypeWithNullability.Type;
+            Debug.Assert(conversion.Kind == ConversionKind.ExplicitUserDefined || conversion.Kind == ConversionKind.ImplicitUserDefined);
+
+            // cf. Binder.CreateUserDefinedConversion
+            if (!conversion.IsValid)
+            {
+                return new TypeWithState(targetType, NullableFlowState.NotNull);
+            }
+
+            // operand -> conversion "from" type
+            // May be distinct from method parameter type for Nullable<T>.
+            operandType = ApplyConversion(
+                node,
+                operandOpt,
+                conversion.UserDefinedFromConversion,
+                TypeWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.FromType),
+                operandType,
+                checkConversion: true,
+                fromExplicitCast: false,
+                useLegacyWarnings,
+                assignmentKind,
+                target,
+                reportTopLevelWarnings,
+                reportRemainingWarnings);
+
+            // Update method based on operandType: see https://github.com/dotnet/roslyn/issues/29605.
+            // (see NullableReferenceTypesTests.ImplicitConversions_07).
+            var methodOpt = conversion.Method;
+            Debug.Assert((object)methodOpt != null);
+            Debug.Assert(methodOpt.ParameterCount == 1);
+            var parameter = methodOpt.Parameters[0];
+            var parameterType = parameter.TypeWithAnnotations;
+            TypeWithState underlyingOperandType = default;
+            bool isLiftedConversion = false;
+            if (operandType.Type.IsNullableType() && !parameterType.IsNullableType())
+            {
+                var underlyingOperandTypeWithAnnotations = operandType.Type.GetNullableUnderlyingTypeWithAnnotations();
+                underlyingOperandType = underlyingOperandTypeWithAnnotations.ToTypeWithState();
+                isLiftedConversion = parameterType.Equals(underlyingOperandTypeWithAnnotations, TypeCompareKind.AllIgnoreOptions);
+            }
+
+            // conversion "from" type -> method parameter type
+            NullableFlowState operandState = operandType.State;
+            _ = ClassifyAndApplyConversion(operandOpt ?? node, parameterType, isLiftedConversion ? underlyingOperandType : operandType,
+                useLegacyWarnings, AssignmentKind.Argument, target: parameter, reportWarnings: reportRemainingWarnings);
+
+            // method parameter type -> method return type
+            var methodReturnType = methodOpt.ReturnTypeWithAnnotations;
+            if (isLiftedConversion)
+            {
+                operandType = LiftedReturnType(methodReturnType, operandState);
+                if (RequiresSafetyWarningWhenNullIntroduced(methodReturnType.Type) && operandState == NullableFlowState.MaybeNull)
+                {
+                    ReportNullableAssignmentIfNecessary(node, targetTypeWithNullability, operandType, useLegacyWarnings: useLegacyWarnings, assignmentKind, target, conversion: conversion);
+                }
+            }
+            else
+            {
+                operandType = methodReturnType.ToTypeWithState();
+            }
+
+            // method return type -> conversion "to" type
+            // May be distinct from method return type for Nullable<T>.
+            operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType,
+                useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
+
+            // conversion "to" type -> final type
+            // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
+            // explicit, this conversion should not report nested nullability mismatches.
+            // (see NullableReferenceTypesTests.ExplicitCast_UserDefined_02).
+            operandType = ClassifyAndApplyConversion(node, targetTypeWithNullability, operandType,
+                useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
+            return operandType;
         }
 
         /// <summary>
@@ -4602,6 +4626,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignmentKind.Assignment,
                                 reportTopLevelWarnings: true,
                                 reportRemainingWarnings: true,
+                                // https://github.com/dotnet/roslyn/issues/34302: There is no advantage to using 'trackMembers: true'
+                                // because ApplyConversion will only track members when the node (in this case, 'rightPart') is the
+                                // BoundConversion which is not the case here.
                                 trackMembers: false);
                             valueSlot = -1;
                         }
@@ -4610,7 +4637,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         TrackNullableStateForAssignment(rightPart, targetType, targetSlot, valueType, valueSlot);
 
                         // Conversion of T to Nullable<T> is equivalent to new Nullable<T>(t).
-                        // (Should this check be moved to VisitOptionalImplicitConversion or TrackNullableStateForAssignment?)
+                        // (Should this check be moved to VisitOptionalImplicitConversion or TrackNullableStateForAssignment?
+                        // See https://github.com/dotnet/roslyn/issues/34302 comment above.)
                         if (targetSlot > 0 &&
                             underlyingConversion.Kind == ConversionKind.ImplicitNullable &&
                             AreNullableAndUnderlyingTypes(targetType.Type, operandType.Type, out TypeWithAnnotations underlyingType))
