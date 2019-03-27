@@ -114,24 +114,23 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
         End Function
 
 #Disable Warning BC40000 ' Type or member is obsolete
-        <ExportLanguageService(GetType(IEditorClassificationService), "NoCompilation"), [Shared]>
+        <ExportLanguageService(GetType(IClassificationService), "NoCompilation"), [Shared]>
         Private Class NoCompilationEditorClassificationService
-            Implements IEditorClassificationService
+            Implements IClassificationService
 
-            Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IEditorClassificationService.AddLexicalClassifications
+            Public Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) Implements IClassificationService.AddLexicalClassifications
             End Sub
 
-            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSemanticClassificationsAsync
+            Public Function AddSemanticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSemanticClassificationsAsync
                 Return Task.CompletedTask
             End Function
 
-            Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IEditorClassificationService.AddSyntacticClassificationsAsync
+            Public Function AddSyntacticClassificationsAsync(document As Document, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken) As Task Implements IClassificationService.AddSyntacticClassificationsAsync
                 Return Task.CompletedTask
             End Function
 
-            Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IEditorClassificationService.AdjustStaleClassification
+            Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IClassificationService.AdjustStaleClassification
             End Function
         End Class
-#Enable Warning BC40008 ' Type or member is obsolete
     End Class
 End Namespace
