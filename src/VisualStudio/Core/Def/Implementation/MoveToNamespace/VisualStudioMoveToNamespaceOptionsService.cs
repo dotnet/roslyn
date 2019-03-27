@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveToNamespace;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
@@ -12,12 +13,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
         public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces,
-            IMoveToNamespaceService moveToNamespaceService)
+            ISyntaxFactsService syntaxFactsService)
         {
             var viewModel = new MoveToNamespaceDialogViewModel(
                 defaultNamespace,
                 availableNamespaces,
-                moveToNamespaceService);
+                syntaxFactsService);
 
             var dialog = new MoveToNamespaceDialog(viewModel);
             var result = dialog.ShowModal();

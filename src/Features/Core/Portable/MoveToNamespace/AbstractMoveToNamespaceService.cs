@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -20,7 +21,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         Task<MoveToNamespaceAnalysisResult> AnalyzeTypeAtPositionAsync(Document document, int position, CancellationToken cancellationToken);
         Task<MoveToNamespaceResult> MoveToNamespaceAsync(MoveToNamespaceAnalysisResult analysisResult, string targetNamespace, CancellationToken cancellationToken);
         MoveToNamespaceOptionsResult GetChangeNamespaceOptions(Document document, string defaultNamespace, ImmutableArray<string> namespaces);
-        bool IsValidIdentifier(string identifier);
     }
 
     internal abstract class AbstractMoveToNamespaceService<TNamespaceDeclarationSyntax, TNamedTypeDeclarationSyntax>
@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax syntax);
         protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax syntax);
-        public abstract bool IsValidIdentifier(string identifier);
 
         public AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
         {
@@ -214,10 +213,12 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             string defaultNamespace,
             ImmutableArray<string> namespaces)
         {
+            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+
             return _moveToNamespaceOptionsService.GetChangeNamespaceOptions(
                 defaultNamespace,
                 namespaces,
-                this);
+                syntaxFactsService);
         }
     }
 }

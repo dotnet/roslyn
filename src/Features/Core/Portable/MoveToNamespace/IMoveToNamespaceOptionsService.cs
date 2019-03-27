@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
@@ -10,6 +11,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         MoveToNamespaceOptionsResult GetChangeNamespaceOptions(
             string defaultNamespace,
             ImmutableArray<string> availableNamespaces,
-            IMoveToNamespaceService moveToNamespaceService);
+            ISyntaxFactsService syntaxFactsService);
     }
 }

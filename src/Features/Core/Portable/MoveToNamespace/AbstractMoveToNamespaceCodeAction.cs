@@ -30,8 +30,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
         {
-            IEnumerable<CodeActionOperation> operations = null;
-
             if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions && !moveToNamespaceOptions.IsCancelled)
             {
                 var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
@@ -41,11 +39,11 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
                 if (moveToNamespaceResult.Succeeded)
                 {
-                    operations = SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
+                    return SpecializedCollections.SingletonEnumerable(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
                 }
             }
 
-            return operations;
+            return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
         }
 
         public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)

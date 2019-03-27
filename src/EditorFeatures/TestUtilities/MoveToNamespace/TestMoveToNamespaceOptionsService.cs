@@ -5,6 +5,7 @@ extern alias WORKSPACES;
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.MoveToNamespace;
 using WORKSPACES::Microsoft.CodeAnalysis.Host.Mef;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         {
         }
 
-        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, IMoveToNamespaceService moveToNamespaceService)
+        public MoveToNamespaceOptionsResult GetChangeNamespaceOptions(string defaultNamespace, ImmutableArray<string> availableNamespaces, ISyntaxFactsService syntaxFactsService)
             => new MoveToNamespaceOptionsResult(NamespaceValue);
     }
 }

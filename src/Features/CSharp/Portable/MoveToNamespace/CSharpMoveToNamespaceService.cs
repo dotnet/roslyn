@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
         {
         }
 
-        public override bool IsValidIdentifier(string identifier)
-            => SyntaxFacts.IsValidIdentifier(identifier);
-
         protected override string GetNamespaceName(NamespaceDeclarationSyntax syntax)
             => syntax.Name.ToString();
 
