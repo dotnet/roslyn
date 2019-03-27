@@ -146,15 +146,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 return service;
             }
 
-            // If we couldn't find one, fallback to the legacy service.
-#pragma warning disable CS0618 // Type or member is obsolete
-            var legacyService = document.GetLanguageService<ICommentUncommentService>();
-#pragma warning restore CS0618 // Type or member is obsolete
-            if (legacyService != null)
-            {
-                return new CommentSelectionServiceProxy(legacyService);
-            }
-
             return null;
         }
 
@@ -303,58 +294,76 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         {
             var info = service.GetInfoAsync(document, span.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
 
+            // If the selection is exactly a block comment, use it as priority over single line comments.
+            if (info.SupportsBlockComment && TryUncommentExactlyBlockComment(info, span, textChanges, spansToSelect))
+            {
+                return;
+            }
+
             if (info.SupportsSingleLineComment &&
                 TryUncommentSingleLineComments(info, span, textChanges, spansToSelect))
             {
                 return;
             }
 
+            // We didn't make any single line changes.  If the language supports block comments, see 
+            // if we're inside a containing block comment and uncomment that.
             if (info.SupportsBlockComment)
             {
                 UncommentContainingBlockComment(info, span, textChanges, spansToSelect);
             }
         }
 
-        private void UncommentContainingBlockComment(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect)
+        /// <summary>
+        /// Check if the selected span matches an entire block comment.
+        /// If it does, uncomment it and return true.
+        /// </summary>
+        private bool TryUncommentExactlyBlockComment(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect)
         {
-            // We didn't make any single line changes.  If the language supports block comments, see 
-            // if we're inside a containing block comment and uncomment that.
-
-            var positionOfStart = -1;
-            var positionOfEnd = -1;
             var spanText = span.GetText();
             var trimmedSpanText = spanText.Trim();
 
             // See if the selection includes just a block comment (plus whitespace)
             if (trimmedSpanText.StartsWith(info.BlockCommentStartString, StringComparison.Ordinal) && trimmedSpanText.EndsWith(info.BlockCommentEndString, StringComparison.Ordinal))
             {
-                positionOfStart = span.Start + spanText.IndexOf(info.BlockCommentStartString, StringComparison.Ordinal);
-                positionOfEnd = span.Start + spanText.LastIndexOf(info.BlockCommentEndString, StringComparison.Ordinal);
+                var positionOfStart = span.Start + spanText.IndexOf(info.BlockCommentStartString, StringComparison.Ordinal);
+                var positionOfEnd = span.Start + spanText.LastIndexOf(info.BlockCommentEndString, StringComparison.Ordinal);
+                UncommentPosition(info, span, textChanges, spansToSelect, positionOfStart, positionOfEnd);
+                return true;
             }
-            else
-            {
-                // See if we are (textually) contained in a block comment.
-                // This could allow a selection that spans multiple block comments to uncomment the beginning of
-                // the first and end of the last.  Oh well.
-                var text = span.Snapshot.AsText();
-                positionOfStart = text.LastIndexOf(info.BlockCommentStartString, span.Start, caseSensitive: true);
 
-                // If we found a start comment marker, make sure there isn't an end comment marker after it but before our span.
-                if (positionOfStart >= 0)
+            return false;
+        }
+
+        private void UncommentContainingBlockComment(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect)
+        {
+            // See if we are (textually) contained in a block comment.
+            // This could allow a selection that spans multiple block comments to uncomment the beginning of
+            // the first and end of the last.  Oh well.
+            var positionOfEnd = -1;
+            var text = span.Snapshot.AsText();
+            var positionOfStart = text.LastIndexOf(info.BlockCommentStartString, span.Start, caseSensitive: true);
+
+            // If we found a start comment marker, make sure there isn't an end comment marker after it but before our span.
+            if (positionOfStart >= 0)
+            {
+                var lastEnd = text.LastIndexOf(info.BlockCommentEndString, span.Start, caseSensitive: true);
+                if (lastEnd < positionOfStart)
                 {
-                    var lastEnd = text.LastIndexOf(info.BlockCommentEndString, span.Start, caseSensitive: true);
-                    if (lastEnd < positionOfStart)
-                    {
-                        positionOfEnd = text.IndexOf(info.BlockCommentEndString, span.End, caseSensitive: true);
-                    }
-                    else if (lastEnd + info.BlockCommentEndString.Length > span.End)
-                    {
-                        // The end of the span is *inside* the end marker, so searching backwards found it.
-                        positionOfEnd = lastEnd;
-                    }
+                    positionOfEnd = text.IndexOf(info.BlockCommentEndString, span.End, caseSensitive: true);
+                }
+                else if (lastEnd + info.BlockCommentEndString.Length > span.End)
+                {
+                    // The end of the span is *inside* the end marker, so searching backwards found it.
+                    positionOfEnd = lastEnd;
                 }
             }
 
+            UncommentPosition(info, span, textChanges, spansToSelect, positionOfStart, positionOfEnd);
+        }
+
+        private void UncommentPosition(CommentSelectionInfo info, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect, int positionOfStart, int positionOfEnd)
+        {
             if (positionOfStart < 0 || positionOfEnd < 0)
             {
                 return;

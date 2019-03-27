@@ -49,11 +49,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.AddNewErrors(project.DocumentIds.First(), diagnostic)
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
 
                 expected = 0
                 source.ClearErrors(project.Id)
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -109,7 +109,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -123,21 +123,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 Dim service = New TestDiagnosticAnalyzerService(ImmutableArray(Of DiagnosticData).Empty)
                 Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
-                AddHandler source.BuildStarted, Sub(o, started)
-                                                    If Not started Then
-                                                        Assert.Equal(2, source.GetBuildErrors().Length)
-                                                    End If
-                                                End Sub
+                AddHandler source.BuildProgressChanged, Sub(o, progress)
+                                                            If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Done Then
+                                                                Assert.Equal(2, source.GetBuildErrors().Length)
+                                                            End If
+                                                        End Sub
 
                 Dim map = New Dictionary(Of DocumentId, HashSet(Of DiagnosticData))()
                 map.Add(project.DocumentIds.First(), New HashSet(Of DiagnosticData)(
                         SpecializedCollections.SingletonEnumerable(GetDiagnosticData(workspace, project.Id))))
 
                 source.AddNewErrors(project.Id, New HashSet(Of DiagnosticData)(SpecializedCollections.SingletonEnumerable(diagnostic)), map)
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -187,7 +187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -216,7 +216,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -245,7 +245,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -277,10 +277,42 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
                 source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
 
-                Await waiter.CreateWaitTask()
+                Await waiter.CreateExpeditedWaitTask()
 
                 ' error is considered live error, so event shouldn't be raised
                 Assert.False(called)
+            End Using
+        End Function
+
+        <Fact>
+        Public Async Function TestBuildProgressUpdated() As Task
+            Using workspace = TestWorkspace.CreateCSharp(String.Empty)
+                Dim waiter = New AsynchronousOperationListener()
+
+                workspace.AddTestProject(New TestHostProject(workspace, language:=LanguageNames.CSharp))
+
+                Dim projectId1 = workspace.CurrentSolution.ProjectIds(0)
+                Dim projectId2 = workspace.CurrentSolution.ProjectIds(1)
+
+                Dim service = New TestDiagnosticAnalyzerService(ImmutableArray(Of DiagnosticData).Empty)
+                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
+
+                source.AddNewErrors(projectId1, GetDiagnosticData(workspace, projectId1))
+                Await waiter.CreateExpeditedWaitTask()
+
+                AddHandler source.BuildProgressChanged, Sub(o, progress)
+                                                            If progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Updated Then
+                                                                Assert.Equal(1, source.GetBuildErrors().Length)
+                                                            ElseIf progress = ExternalErrorDiagnosticUpdateSource.BuildProgress.Done Then
+                                                                Assert.Equal(2, source.GetBuildErrors().Length)
+                                                            End If
+                                                        End Sub
+
+                source.AddNewErrors(projectId2, GetDiagnosticData(workspace, projectId2))
+                Await waiter.CreateExpeditedWaitTask()
+
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(False))
+                Await waiter.CreateExpeditedWaitTask()
             End Using
         End Function
 
@@ -346,6 +378,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Property
 
             Public Event DiagnosticsUpdated As EventHandler(Of DiagnosticsUpdatedArgs) Implements IDiagnosticUpdateSource.DiagnosticsUpdated
+            Public Event DiagnosticsCleared As EventHandler Implements IDiagnosticUpdateSource.DiagnosticsCleared
 
             Public Function GetDiagnostics(workspace As Microsoft.CodeAnalysis.Workspace, projectId As ProjectId, documentId As DocumentId, id As Object, includeSuppressedDiagnostics As Boolean, cancellationToken As CancellationToken) As ImmutableArray(Of DiagnosticData) Implements IDiagnosticUpdateSource.GetDiagnostics
                 Return If(includeSuppressedDiagnostics, _data, _data.WhereAsArray(Function(d) Not d.IsSuppressed))

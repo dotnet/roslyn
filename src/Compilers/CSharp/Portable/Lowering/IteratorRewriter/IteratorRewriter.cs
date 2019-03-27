@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class IteratorRewriter : StateMachineRewriter
     {
-        private readonly TypeSymbol _elementType;
+        private readonly TypeWithAnnotations _elementType;
 
         // true if the iterator implements IEnumerable and IEnumerable<T>,
         // false if it implements IEnumerator and IEnumerator<T>
@@ -48,8 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out IteratorStateMachine stateMachineType)
         {
-            TypeSymbol elementType = method.IteratorElementType;
-            if ((object)elementType == null || method.IsAsync)
+            TypeWithAnnotations elementType = method.IteratorElementTypeWithAnnotations;
+            if (elementType.IsDefault || method.IsAsync)
             {
                 stateMachineType = null;
                 return body;
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Figure out what kind of iterator we are generating.
             bool isEnumerable;
-            switch (method.ReturnType.TypeSymbol.OriginalDefinition.SpecialType)
+            switch (method.ReturnType.OriginalDefinition.SpecialType)
             {
                 case SpecialType.System_Collections_IEnumerable:
                 case SpecialType.System_Collections_Generic_IEnumerable_T:
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(method.ReturnType.TypeSymbol.OriginalDefinition.SpecialType);
+                    throw ExceptionUtilities.UnexpectedValue(method.ReturnType.OriginalDefinition.SpecialType);
             }
 
             stateMachineType = new IteratorStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, isEnumerable, elementType);
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var IEnumerator_Reset = F.SpecialMethod(SpecialMember.System_Collections_IEnumerator__Reset);
             var IEnumerator_get_Current = F.SpecialProperty(SpecialMember.System_Collections_IEnumerator__Current).GetMethod;
 
-            var IEnumeratorOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType);
+            var IEnumeratorOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(ImmutableArray.Create(_elementType));
             var IEnumeratorOfElementType_get_Current = F.SpecialProperty(SpecialMember.System_Collections_Generic_IEnumerator_T__Current).GetMethod.AsMember(IEnumeratorOfElementType);
 
             // Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var IEnumerable_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_IEnumerable__GetEnumerator);
 
-            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType);
+            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType.Type);
             var IEnumerableOfElementType_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).AsMember(IEnumerableOfElementType);
 
             // generate GetEnumerator()

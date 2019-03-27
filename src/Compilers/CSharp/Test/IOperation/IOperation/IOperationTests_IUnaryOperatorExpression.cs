@@ -3629,13 +3629,13 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IFromEndIndexOperation (OperationKind.FromEndIndex, Type: System.Index) (Syntax: '^arg')
+IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^arg')
   Operand: 
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'arg')
 ";
 
-            var operation = (IFromEndIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
+            var operation = (IUnaryOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Null(operation.OperatorMethod);
         }
 
         [Fact]
@@ -3652,13 +3652,13 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IFromEndIndexOperation (IsLifted) (OperationKind.FromEndIndex, Type: System.Index?) (Syntax: '^arg')
+IUnaryOperation (UnaryOperatorKind.Hat, IsLifted) (OperationKind.Unary, Type: System.Index?) (Syntax: '^arg')
   Operand: 
     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'arg')
 ";
 
-            var operation = (IFromEndIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
+            var operation = (IUnaryOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Null(operation.OperatorMethod);
         }
 
         [Fact]
@@ -3675,7 +3675,7 @@ class Test
 }").VerifyDiagnostics();
 
             string expectedOperationTree = @"
-IFromEndIndexOperation (OperationKind.FromEndIndex, Type: System.Index) (Syntax: '^arg')
+IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^arg')
   Operand: 
     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'arg')
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3683,8 +3683,8 @@ IFromEndIndexOperation (OperationKind.FromEndIndex, Type: System.Index) (Syntax:
         IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Byte) (Syntax: 'arg')
 ";
 
-            var operation = (IFromEndIndexOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
-            Assert.Equal("System.Index..ctor(System.Int32 value, System.Boolean fromEnd)", operation.Symbol.ToTestDisplayString());
+            var operation = (IUnaryOperation)VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(compilation, expectedOperationTree);
+            Assert.Null(operation.OperatorMethod);
         }
     }
 }

@@ -505,7 +505,12 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
-        public virtual void VisitRecursivePattern(IRecursivePatternOperation operation)
+        internal virtual void VisitRecursivePattern(IRecursivePatternOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        internal virtual void VisitPropertySubpattern(IPropertySubpatternOperation operation)
         {
             DefaultVisit(operation);
         }
@@ -581,11 +586,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual void VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
-        {
-            DefaultVisit(operation);
-        }
-
-        public virtual void VisitFromEndIndexOperation(IFromEndIndexOperation operation)
         {
             DefaultVisit(operation);
         }
@@ -1113,7 +1113,12 @@ namespace Microsoft.CodeAnalysis.Operations
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitRecursivePattern(IRecursivePatternOperation operation, TArgument argument)
+        internal virtual TResult VisitRecursivePattern(IRecursivePatternOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        internal virtual TResult VisitPropertySubpattern(IPropertySubpatternOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
@@ -1189,11 +1194,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
-        public virtual TResult VisitFromEndIndexOperation(IFromEndIndexOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

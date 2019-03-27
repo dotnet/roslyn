@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
                                     .GetExportedValue<AsynchronousOperationListenerProvider>()
                                     .GetWaiter(FeatureAttribute.Workspace);
 
-            await workspaceWaiter.CreateWaitTask();
+            await workspaceWaiter.CreateExpeditedWaitTask();
         }
 
         [Fact]
@@ -887,7 +887,7 @@ class D { }
             }
         }
 
-        [Fact]
+        [Fact, WorkItem(31540, "https://github.com/dotnet/roslyn/issues/31540")]
         public async Task TestAdditionalFile_OpenClose()
         {
             using (var workspace = CreateWorkspace())
@@ -905,11 +905,15 @@ class D { }
 
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
 
-                // We don't have a GetOpenAdditionalDocumentIds since we don't need it. But make sure additional documents
-                // don't creep into OpenDocumentIds (Bug: 1087470)
-                Assert.Empty(workspace.GetOpenDocumentIds());
+                // Make sure that additional documents are included in GetOpenDocumentIds.
+                var openDocumentIds = workspace.GetOpenDocumentIds();
+                Assert.Single(openDocumentIds);
+                Assert.Equal(additionalDoc.Id, openDocumentIds.Single());
 
                 workspace.OnAdditionalDocumentClosed(additionalDoc.Id, TextLoader.From(TextAndVersion.Create(text, version)));
+
+                // Make sure that closed additional documents are not include in GetOpenDocumentIds.
+                Assert.Empty(workspace.GetOpenDocumentIds());
 
                 // Reopen and close to make sure we are not leaking anything.
                 workspace.OnAdditionalDocumentOpened(additionalDoc.Id, additionalDoc.GetOpenTextContainer());
@@ -983,6 +987,27 @@ class D { }
                 Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).Documents.Count());
                 Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).AdditionalDocuments.Count());
                 Assert.Equal("original.config", workspace.CurrentSolution.GetProject(project1.Id).AdditionalDocuments.Single().Name);
+            }
+        }
+
+        [Fact, WorkItem(31540, "https://github.com/dotnet/roslyn/issues/31540")]
+        public void TestAdditionalFile_GetDocumentIdsWithFilePath()
+        {
+            using (var workspace = CreateWorkspace())
+            {
+                const string docFilePath = "filePath1", additionalDocFilePath = "filePath2";
+                var document = new TestHostDocument("public class C { }", filePath: docFilePath);
+                var additionalDoc = new TestHostDocument(@"<setting value = ""goo""", filePath: additionalDocFilePath);
+                var project1 = new TestHostProject(workspace, name: "project1", documents: new[] { document }, additionalDocuments: new[] { additionalDoc });
+                workspace.AddTestProject(project1);
+
+                var documentIdsWithFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(docFilePath);
+                Assert.Single(documentIdsWithFilePath);
+                Assert.Equal(document.Id, documentIdsWithFilePath.Single());
+
+                documentIdsWithFilePath = workspace.CurrentSolution.GetDocumentIdsWithFilePath(additionalDocFilePath);
+                Assert.Single(documentIdsWithFilePath);
+                Assert.Equal(additionalDoc.Id, documentIdsWithFilePath.Single());
             }
         }
 

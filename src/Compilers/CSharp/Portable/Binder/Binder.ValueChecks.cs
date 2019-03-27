@@ -284,23 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsLegalSuppressionValueKind(BindValueKind valueKind)
-        {
-            // Need to review allowed uses of the suppression operator
-            // Tracked by https://github.com/dotnet/roslyn/issues/31297
-
-            switch (valueKind)
-            {
-                case BindValueKind.RValue:
-                case BindValueKind.RValueOrMethodGroup:
-                case BindValueKind.RefOrOut:
-                    return true;
-            }
-
-            // all others are illegal
-            return false;
-        }
-
         /// <summary>
         /// The purpose of this method is to determine if the expression satisfies desired capabilities. 
         /// If it is not then this code gives an appropriate error message.
@@ -320,12 +303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expr.HasAnyErrors)
             {
-                return false;
-            }
-
-            if (expr.IsSuppressed && !IsLegalSuppressionValueKind(valueKind))
-            {
-                Error(diagnostics, ErrorCode.ERR_IllegalSuppression, node);
                 return false;
             }
 
@@ -954,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // change from Dev10 which reports this error for struct types only,
                     // not for type parameters constrained to "struct".
 
-                    Debug.Assert(!propertySymbol.Type.IsNull);
+                    Debug.Assert(propertySymbol.TypeWithAnnotations.HasType);
                     Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, expr.Syntax, propertySymbol);
                 }
                 else
@@ -1481,7 +1458,7 @@ moreArguments:
 
                         if (parameter.RefKind == RefKind.In &&
                             inParametersMatchedWithArgs?[i] != true &&
-                            parameter.Type.TypeSymbol.IsRefLikeType == false)
+                            parameter.Type.IsRefLikeType == false)
                         {
                             return parameter;
                         }
@@ -1665,7 +1642,7 @@ moreArguments:
         {
             Debug.Assert((object)field != null);
             Debug.Assert(RequiresAssignableVariable(kind));
-            Debug.Assert(!field.Type.IsNull);
+            Debug.Assert(field.Type != (object)null);
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
             // (even though the latter message gives more explanation of why).
@@ -3060,10 +3037,10 @@ moreArguments:
                     return true;
 
                 case BoundKind.ConditionalOperator:
-                    var ternary = (BoundConditionalOperator)expression;
+                    var conditional = (BoundConditionalOperator)expression;
 
-                    // only ref ternary may be referenced as a variable
-                    if (!ternary.IsRef)
+                    // only ref conditional may be referenced as a variable
+                    if (!conditional.IsRef)
                     {
                         return false;
                     }
@@ -3071,8 +3048,8 @@ moreArguments:
                     // branch that has no home will need a temporary
                     // if both have no home, just say whole expression has no home 
                     // so we could just use one temp for the whole thing
-                    return HasHome(ternary.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
-                        && HasHome(ternary.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
+                    return HasHome(conditional.Consequence, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt)
+                        && HasHome(conditional.Alternative, addressKind, method, peVerifyCompatEnabled, stackLocalsOpt);
 
                 default:
                     return false;

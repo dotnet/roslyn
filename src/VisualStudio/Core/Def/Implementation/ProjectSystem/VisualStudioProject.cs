@@ -347,7 +347,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 var documentFileNamesAdded = ImmutableArray.CreateBuilder<string>();
-                var documentsToOpen = new List<(DocumentId, SourceTextContainer)>();
+                var documentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
+                var additionalDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
 
                 _workspace.ApplyBatchChangeToProject(Id, solution =>
                 {
@@ -367,7 +368,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     solution = _additionalFiles.UpdateSolutionForBatch(
                         solution,
                         documentFileNamesAdded,
-                        documentsToOpen,
+                        additionalDocumentsToOpen,
                         (s, documents) =>
                         {
                             foreach (var document in documents)
@@ -475,8 +476,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     _workspace.ApplyChangeToWorkspace(w => w.OnDocumentOpened(documentId, textContainer));
                 }
 
+                foreach (var (documentId, textContainer) in additionalDocumentsToOpen)
+                {
+                    _workspace.ApplyChangeToWorkspace(w => w.OnAdditionalDocumentOpened(documentId, textContainer));
+                }
+
                 // Check for those files being opened to start wire-up if necessary
-                _workspace.CheckForOpenDocuments(documentFileNamesAdded.ToImmutable());
+                _workspace.QueueCheckForFilesBeingOpen(documentFileNamesAdded.ToImmutable());
             }
         }
 
@@ -1072,7 +1078,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     else
                     {
                         _project._workspace.ApplyChangeToWorkspace(w => _documentAddAction(w, documentInfo));
-                        _project._workspace.CheckForOpenDocuments(ImmutableArray.Create(fullPath));
+                        _project._workspace.QueueCheckForFilesBeingOpen(ImmutableArray.Create(fullPath));
                     }
                 }
 
@@ -1432,7 +1438,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             internal Solution UpdateSolutionForBatch(
                 Solution solution,
                 ImmutableArray<string>.Builder documentFileNamesAdded,
-                List<(DocumentId, SourceTextContainer)> documentsToOpen,
+                List<(DocumentId documentId, SourceTextContainer textContainer)> documentsToOpen,
                 Func<Solution, ImmutableArray<DocumentInfo>, Solution> addDocuments,
                 Func<Solution, DocumentId, Solution> removeDocument)
             {
