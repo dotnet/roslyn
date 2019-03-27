@@ -93,7 +93,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         protected bool InImmediateWindow { get { return _immediateWindowContext != null; } }
 
-        protected ITextBuffer ContextBuffer { get; private set; }
+        internal ITextBuffer ContextBuffer { get; private set; }
 
         public abstract bool CompletionStartsOnQuestionMark { get; }
 
@@ -185,11 +185,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             // Put it into a new workspace, and open it and its related documents
             // with the projection buffer as the text.
             _workspace = new DebuggerIntelliSenseWorkspace(forkedSolution);
-            _workspace.OpenDocument(document.Id, _projectionBuffer.AsTextContainer());
-            foreach (var link in document.GetLinkedDocumentIds())
-            {
-                _workspace.OpenDocument(link, _projectionBuffer.AsTextContainer());
-            }
+            OpenDocumentAndLinkedDocuments(document);
 
             // Start getting the compilation so the PartialSolution will be ready when the user starts typing in the window
             document.Project.GetCompilationAsync(System.Threading.CancellationToken.None);
@@ -200,6 +196,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
             _debuggerTextView = new DebuggerTextView(_textView, bufferGraph, _debuggerTextLines, InImmediateWindow);
             return true;
+        }
+
+        internal void OpenDocumentAndLinkedDocuments(Document document)
+        {
+            _workspace.OpenDocument(document.Id, _projectionBuffer.AsTextContainer());
+            foreach (var link in document.GetLinkedDocumentIds())
+            {
+                _workspace.OpenDocument(link, _projectionBuffer.AsTextContainer());
+            }
         }
 
         internal void SetContentType(bool install)

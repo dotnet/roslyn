@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -17,14 +18,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense
 {
-    internal class DebuggerIntelliSenseFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>, IDisposable
+    internal class DebuggerIntelliSenseFilter<TPackage, TLanguageService> : AbstractVsTextViewFilter<TPackage, TLanguageService>, IDisposable, IFeatureController
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
         private readonly ICommandHandlerServiceFactory _commandFactory;
         private readonly IWpfTextView _wpfTextView;
+        private readonly IFeatureServiceFactory _featureServiceFactory;
         private AbstractDebuggerIntelliSenseContext _context;
         private IOleCommandTarget _originalNextCommandFilter;
+        private IFeatureDisableToken _completionDisabledToken;
 
         internal bool Enabled { get; set; }
 
@@ -32,11 +35,46 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             AbstractLanguageService<TPackage, TLanguageService> languageService,
             IWpfTextView wpfTextView,
             IVsEditorAdaptersFactoryService adapterFactory,
-            ICommandHandlerServiceFactory commandFactory)
+            ICommandHandlerServiceFactory commandFactory,
+            IFeatureServiceFactory featureServiceFactory)
             : base(languageService, wpfTextView, adapterFactory, commandFactory)
         {
             _wpfTextView = wpfTextView;
             _commandFactory = commandFactory;
+            _featureServiceFactory = featureServiceFactory;
+        }
+
+        internal void EnableCompletion()
+        {
+            var featureService = _featureServiceFactory.GetOrCreate(WpfTextView);
+            if (!featureService.IsEnabled(PredefinedEditorFeatureNames.Completion))
+            {
+                var completionDisabledToken = _completionDisabledToken;
+                if (completionDisabledToken == null)
+                {
+                    return;
+                }
+
+                completionDisabledToken.Dispose();
+                _completionDisabledToken = null;
+
+                var document = _context.ContextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
+                {
+                    return;
+                }
+
+                _context.OpenDocumentAndLinkedDocuments(document);
+            }
+        }
+
+        internal void DisableCompletion()
+        {
+            var featureService = _featureServiceFactory.GetOrCreate(WpfTextView);
+            if (featureService.IsEnabled(PredefinedEditorFeatureNames.Completion) && _completionDisabledToken == null)
+            {
+                _completionDisabledToken = featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
+            }
         }
 
         internal void SetNextFilter(IOleCommandTarget nextFilter)
@@ -187,6 +225,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             => _context?.SetContentType(install);
 
         public void Dispose()
-            => RemoveContext();
+        {
+            if (_completionDisabledToken != null)
+            {
+                _completionDisabledToken.Dispose();
+            }
+
+            RemoveContext();
+        }
     }
 }
