@@ -246,5 +246,53 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
         }
+
+        [Fact]
+        public async Task ExplicitAllocation_PrimitiveTypeConversion_NoWarning()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        double x = new int();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ImplicitValueTypeConversion_NoWarning()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+struct A
+{
+    public static implicit operator A(B other)
+    {
+        return new A();
+    }
+}
+
+struct B
+{
+}
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        A a = new B();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
     }
 }

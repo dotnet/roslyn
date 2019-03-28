@@ -83,9 +83,13 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                     return;
                 }
 
-                if (context.Operation.Parent is IConversionOperation)
+                if (context.Operation.Parent is IConversionOperation conversion)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(ObjectCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                    if (conversion.Type.IsReferenceType && conversion.Operand.Type.IsValueType)
+                    {
+                        context.ReportDiagnostic(Diagnostic.Create(ObjectCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                    }
+
                     return;
                 }
             }
