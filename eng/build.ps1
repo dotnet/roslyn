@@ -255,7 +255,7 @@ function BuildSolution() {
             /p:TreatWarningsAsErrors=true `
             /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
             /p:VisualStudioIbcDropId=$ibcDropId `
-            /p:EnablePartialNgenOptimization=$applyOptimizationData `
+            /p:EnableNgenOptimization=$applyOptimizationData `
             /p:IbcOptimizationDataDir=$ibcDir `
             $suppressExtensionDeployment `
             @properties
