@@ -6,8 +6,6 @@ using System.Linq;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
@@ -303,42 +301,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <summary>
         /// Override this to change parameters or return without verifying anything, e.g. for script sources. Or to test in other code contexts.
         /// </summary>
-        /// <param name="codeBeforeCommit">The source code (not markup).</param>
+        /// <param name="codeBeforeCommit">The source code or markup.</param>
         /// <param name="position">Position where intellisense is invoked.</param>
         /// <param name="itemToCommit">The item to commit from the completion provider.</param>
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
         protected virtual async Task VerifyCustomCommitProviderWorkerAsync(string codeBeforeCommit, int position, string itemToCommit, string expectedCodeAfterCommit, SourceCodeKind sourceCodeKind, char? commitChar = null)
         {
-            Document document1;
-            if (TryParseXElement(codeBeforeCommit, out var workspaceElement) && workspaceElement.Name == "Workspace")
-            {
-                document1 = WorkspaceFixture.CreateWorkspaceAndGetDocument(workspaceElement);
-            }
-            else
-            {
-                document1 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
-            }
-
+            var document1 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind);
             await VerifyCustomCommitProviderCheckResultsAsync(document1, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
 
             if (await CanUseSpeculativeSemanticModelAsync(document1, position))
             {
                 var document2 = WorkspaceFixture.UpdateDocument(codeBeforeCommit, sourceCodeKind, cleanBeforeUpdate: false);
                 await VerifyCustomCommitProviderCheckResultsAsync(document2, codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, commitChar);
-            }
-        }
-
-        private bool TryParseXElement(string input, out XElement output)
-        {
-            try
-            {
-                output = XElement.Parse(input);
-                return true;
-            }
-            catch(XmlException)
-            {
-                output = null;
-                return false;
             }
         }
 
@@ -434,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <summary>
         /// Override this to change parameters or return without verifying anything, e.g. for script sources. Or to test in other code contexts.
         /// </summary>
-        /// <param name="codeBeforeCommit">The source code (not markup).</param>
+        /// <param name="codeBeforeCommit">The source code or markup.</param>
         /// <param name="position">Position where intellisense is invoked.</param>
         /// <param name="itemToCommit">The item to commit from the completion provider.</param>
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>

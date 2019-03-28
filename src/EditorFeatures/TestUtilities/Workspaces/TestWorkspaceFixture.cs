@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using Microsoft.VisualStudio.Text;
 
@@ -32,29 +33,31 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public Document CreateWorkspaceAndGetDocument(XElement workspaceElement)
-        {
-            _workspace = TestWorkspace.CreateWorkspace(workspaceElement);
-            var hostDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
-            return _workspace.CurrentSolution.GetDocument(hostDocument.Id);
-        }
-
         public Document UpdateDocument(string text, SourceCodeKind sourceCodeKind, bool cleanBeforeUpdate = true)
         {
-            var hostDocument = (GetWorkspace()).Documents.Single();
-
-            // clear the document
-            if (cleanBeforeUpdate)
+            TestHostDocument hostDocument;
+            if (TryParseXElement(text, out var workspaceElement) && workspaceElement.Name == "Workspace")
             {
-                UpdateText(hostDocument.TextBuffer, string.Empty);
+                _workspace = TestWorkspace.CreateWorkspace(workspaceElement);
+                hostDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
+            }
+            else
+            {
+                hostDocument = GetWorkspace().Documents.Single();
+
+                // clear the document
+                if (cleanBeforeUpdate)
+                {
+                    UpdateText(hostDocument.TextBuffer, string.Empty);
+                }
+
+                // and set the content
+                UpdateText(hostDocument.TextBuffer, text);
+
+                GetWorkspace().OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
             }
 
-            // and set the content
-            UpdateText(hostDocument.TextBuffer, text);
-
-            (GetWorkspace()).OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
-
-            return (GetWorkspace()).CurrentSolution.GetDocument(hostDocument.Id);
+            return GetWorkspace().CurrentSolution.GetDocument(hostDocument.Id);
         }
 
         private static void UpdateText(ITextBuffer textBuffer, string text)
@@ -92,6 +95,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var existingPropertiesField = textFormattingRunPropertiesType.GetField("ExistingProperties", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             var existingProperties = (List<VisualStudio.Text.Formatting.TextFormattingRunProperties>)existingPropertiesField.GetValue(null);
             existingProperties.Clear();
+        }
+
+
+        private static bool TryParseXElement(string input, out XElement output)
+        {
+            try
+            {
+                output = XElement.Parse(input);
+                return true;
+            }
+            catch (XmlException)
+            {
+                output = null;
+                return false;
+            }
         }
     }
 }
