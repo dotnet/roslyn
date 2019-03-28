@@ -70,8 +70,10 @@
                                     Height="16"
                                     Width="16"
                                     VerticalAlignment="Top" />
-                <TextBlock x:Name="MessageText"
-                           Text="{Binding Message}" 
+
+                <vs:LiveTextBlock x:Name="MessageText"
+                           Text="{Binding Message}"
+                           AutomationProperties.LiveSetting="Assertive"
                            Margin="7, 0, 0, 0" />
             </StackPanel>
         </StackPanel>
