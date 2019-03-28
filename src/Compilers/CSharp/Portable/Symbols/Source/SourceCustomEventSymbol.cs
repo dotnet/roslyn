@@ -21,7 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<EventSymbol> _explicitInterfaceImplementations;
 
         internal SourceCustomEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, EventDeclarationSyntax syntax, DiagnosticBag diagnostics) :
-            base(containingType, syntax, syntax.Modifiers, syntax.ExplicitInterfaceSpecifier, syntax.Identifier, diagnostics)
+            base(containingType, syntax, syntax.Modifiers, isFieldLike: false,
+                 interfaceSpecifierSyntaxOpt: syntax.ExplicitInterfaceSpecifier,
+                 nameTokenSyntax: syntax.Identifier, diagnostics: diagnostics)
         {
             ExplicitInterfaceSpecifierSyntax interfaceSpecifier = syntax.ExplicitInterfaceSpecifier;
             SyntaxToken nameToken = syntax.Identifier;
@@ -112,21 +114,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _addMethod = CreateAccessorSymbol(addSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
             _removeMethod = CreateAccessorSymbol(removeSyntax, explicitlyImplementedEvent, aliasQualifierOpt, diagnostics);
 
-            if (containingType.IsInterfaceType())
+            if (addSyntax == null || removeSyntax == null)
             {
-                if (addSyntax == null && removeSyntax == null) //NOTE: AND - different error code produced if one is present
-                {
-                    // CONSIDER: we're matching dev10, but it would probably be more helpful to give
-                    // an error like ERR_EventPropertyInInterface.
-                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
-                }
-            }
-            else
-            {
-                if (addSyntax == null || removeSyntax == null)
-                {
-                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
-                }
+                diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
             }
 
             _explicitInterfaceImplementations =

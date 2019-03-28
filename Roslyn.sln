@@ -342,7 +342,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Edit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnalyzerRunner", "src\Tools\AnalyzerRunner\AnalyzerRunner.csproj", "{60166C60-813C-46C4-911D-2411B4ABBC0F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IlAsmDeploy", "src\Tools\ILAsm\IlAsmDeploy.csproj", "{DA8522ED-02BC-499C-AC71-1DF884F63987}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ILTools", "src\Tools\ILTools\ILTools.proj", "{DA8522ED-02BC-499C-AC71-1DF884F63987}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Debugging.Package", "src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.Package.csproj", "{FC2AE90B-2E4B-4045-9FDD-73D4F5ED6C89}"
 EndProject

@@ -1445,7 +1445,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declaringType = members[0].ContainingType;
 
             HashSet<DiagnosticInfo> unused = null;
-            if (currentType.IsEqualToOrDerivedFrom(declaringType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref unused))
+            if (currentType.IsEqualToOrDerivedFrom(declaringType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref unused) ||
+                (currentType.IsInterface && (declaringType.IsObjectType() || currentType.AllInterfacesNoUseSiteDiagnostics.Contains(declaringType))))
             {
                 return ThisReference(syntax, currentType, wasCompilerGenerated: true);
             }
@@ -1668,8 +1669,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var currentType = this.ContainingType;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-            if (currentType.IsEqualToOrDerivedFrom(member.ContainingType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics))
+            NamedTypeSymbol declaringType = member.ContainingType;
+            if (currentType.IsEqualToOrDerivedFrom(declaringType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics) ||
+                (currentType.IsInterface && (declaringType.IsObjectType() || currentType.AllInterfacesNoUseSiteDiagnostics.Contains(declaringType))))
             {
                 bool hasErrors = false;
                 if (EnclosingNameofArgument != node)
@@ -1708,7 +1710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return TryBindInteractiveReceiver(node, ContainingMember(), currentType, member.ContainingType);
+                return TryBindInteractiveReceiver(node, ContainingMember(), currentType, declaringType);
             }
         }
 
@@ -1848,7 +1850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                hasErrors = IsRefOrOutThisParameterCaptured(node, diagnostics);
+                hasErrors = IsRefOrOutThisParameterCaptured(node.Token, diagnostics);
             }
 
             return ThisReference(node, this.ContainingType, hasErrors);
@@ -1859,14 +1861,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundThisReference(node, thisTypeOpt ?? CreateErrorType(), hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
         }
 
-        private bool IsRefOrOutThisParameterCaptured(SyntaxNode node, DiagnosticBag diagnostics)
+        private bool IsRefOrOutThisParameterCaptured(SyntaxNodeOrToken thisOrBaseToken, DiagnosticBag diagnostics)
         {
             ParameterSymbol thisSymbol = this.ContainingMemberOrLambda.EnclosingThisSymbol();
             // If there is no this parameter, then it is definitely not captured and 
             // any diagnostic would be cascading.
             if ((object)thisSymbol != null && thisSymbol.ContainingSymbol != ContainingMemberOrLambda && thisSymbol.RefKind != RefKind.None)
             {
-                Error(diagnostics, ErrorCode.ERR_ThisStructNotInAnonMeth, node);
+                Error(diagnostics, ErrorCode.ERR_ThisStructNotInAnonMeth, thisOrBaseToken);
                 return true;
             }
 
@@ -1875,33 +1877,58 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundBaseReference BindBase(BaseExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            NamedTypeSymbol baseType = (object)this.ContainingType == null ? null : this.ContainingType.BaseTypeNoUseSiteDiagnostics;
-            bool hasErrors = true;
+            TypeSymbol baseType;
+            BoundTypeExpression boundType = null;
+            bool hasErrors = false;
+
+            if (node.TypeClause is null)
+            {
+                baseType = this.ContainingType is null ? null : this.ContainingType.BaseTypeNoUseSiteDiagnostics;
+            }
+            else
+            {
+                baseType = this.BindType(node.TypeClause.BaseType, diagnostics, out AliasSymbol alias).Type;
+                hasErrors = baseType.IsErrorType();
+
+                if (!hasErrors && !(this.ContainingType is null))
+                {
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    if (!this.ContainingType.IsDerivedFrom(baseType, TypeCompareKind.ConsiderEverything, ref useSiteDiagnostics) &&
+                        !this.ContainingType.ImplementsInterface(baseType, ref useSiteDiagnostics))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_NotBaseOrImplementedInterface, node.TypeClause.BaseType, baseType, this.ContainingType);
+                        diagnostics.Add(node.TypeClause.BaseType, useSiteDiagnostics);
+                        hasErrors = true;
+                    }
+                }
+
+                boundType = new BoundTypeExpression(node.TypeClause.BaseType, alias, baseType, hasErrors);
+            }
 
             bool inStaticContext;
             if (!HasThis(isExplicit: true, inStaticContext: out inStaticContext))
             {
                 //this error is returned in the field initializer case
-                Error(diagnostics, inStaticContext ? ErrorCode.ERR_BaseInStaticMeth : ErrorCode.ERR_BaseInBadContext, node);
+                Error(diagnostics, inStaticContext ? ErrorCode.ERR_BaseInStaticMeth : ErrorCode.ERR_BaseInBadContext, node.Token);
+                hasErrors = true;
             }
             else if ((object)baseType == null) // e.g. in System.Object
             {
                 Error(diagnostics, ErrorCode.ERR_NoBaseClass, node);
+                hasErrors = true;
             }
-            else if (node.Parent.Kind() != SyntaxKind.SimpleMemberAccessExpression && node.Parent.Kind() != SyntaxKind.ElementAccessExpression)
+            else if (this.ContainingType is null || (node.Parent.Kind() != SyntaxKind.SimpleMemberAccessExpression && node.Parent.Kind() != SyntaxKind.ElementAccessExpression))
             {
-                Error(diagnostics, ErrorCode.ERR_BaseIllegal, node);
+                Error(diagnostics, ErrorCode.ERR_BaseIllegal, node.Token);
+                hasErrors = true;
             }
-            else if (IsRefOrOutThisParameterCaptured(node, diagnostics))
+            else if (IsRefOrOutThisParameterCaptured(node.Token, diagnostics))
             {
-                // error has been reported by CheckThisReference
-            }
-            else
-            {
-                hasErrors = false;
+                // error has been reported by IsRefOrOutThisParameterCaptured
+                hasErrors = true;
             }
 
-            return new BoundBaseReference(node, baseType, hasErrors);
+            return new BoundBaseReference(node, boundType, baseType, hasErrors);
         }
 
         private BoundExpression BindCast(CastExpressionSyntax node, DiagnosticBag diagnostics)
@@ -2901,7 +2928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (IsNegativeConstantForArraySize(size))
                     {
                         Error(diagnostics, ErrorCode.ERR_NegativeArraySize, dimension);
-						hasErrors = true;
+                        hasErrors = true;
                     }
                 }
 
@@ -5880,7 +5907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool leftIsBaseReference = boundLeft.Kind == BoundKind.BaseReference;
                 if (leftIsBaseReference)
                 {
-                    options |= LookupOptions.UseBaseReferenceAccessibility;
+                    options |= (LookupOptions.UseBaseReferenceAccessibility | LookupOptions.NoObjectMembersOnInterfaces);
                 }
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -6475,6 +6502,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
+            if (!IsBadBaseAccess(node, receiver, fieldSymbol, diagnostics))
+            {
+                CheckRuntimeSupportForSymbolAccess(node, receiver, fieldSymbol, diagnostics);
+            }
+
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).Type;
             BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
 
@@ -6546,6 +6578,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
+        }
+
+        private void CheckRuntimeSupportForSymbolAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol symbol, DiagnosticBag diagnostics)
+        {
+            if (symbol.ContainingType?.IsInterface == true && !Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation && Compilation.SourceModule != symbol.ContainingModule)
+            {
+                if (!symbol.IsStatic && !(symbol is TypeSymbol) &&
+                    (!symbol.IsImplementableInterfaceMember() || (receiverOpt as BoundBaseReference)?.ExplicitBaseReferenceOpt?.Type.IsInterfaceType() == true))
+                {
+                    Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
+                }
+                else
+                {
+                    switch (symbol.DeclaredAccessibility)
+                    {
+                        case Accessibility.Protected:
+                        case Accessibility.ProtectedOrInternal:
+                        case Accessibility.ProtectedAndInternal:
+
+                            Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember, node);
+                            break;
+                    }
+                }
+            }
         }
 
         private BoundExpression BindEventAccess(
@@ -7117,7 +7173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(analyzedArguments != null);
 
             LookupResult lookupResult = LookupResult.GetInstance();
-            LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? LookupOptions.UseBaseReferenceAccessibility : LookupOptions.Default;
+            LookupOptions lookupOptions = expr.Kind == BoundKind.BaseReference ? (LookupOptions.UseBaseReferenceAccessibility | LookupOptions.NoObjectMembersOnInterfaces) : LookupOptions.Default;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.LookupMembersWithFallback(lookupResult, expr.Type, WellKnownMemberNames.Indexer, arity: 0, useSiteDiagnostics: ref useSiteDiagnostics, options: lookupOptions);
             diagnostics.Add(node, useSiteDiagnostics);
