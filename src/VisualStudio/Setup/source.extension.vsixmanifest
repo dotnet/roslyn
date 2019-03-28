@@ -29,6 +29,7 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="EditorFeatures.Wpf" Path="|EditorFeatures.Wpf|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.EditorFeatures.Text.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynRemoteHost.servicehub.service.json" />
     <Asset Type="Microsoft.ServiceHub.Service" d:Source="File" Path="roslynSnapshot.servicehub.service.json" />

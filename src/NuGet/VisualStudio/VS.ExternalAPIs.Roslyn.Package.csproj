@@ -37,6 +37,7 @@
     <ProjectReference Include="..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\Tools\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj" PrivateAssets="all"/>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Microsoft.CodeAnalysis.Workspaces.Desktop.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj" PrivateAssets="all"/>
@@ -47,7 +48,6 @@
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\VisualStudio\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj" PrivateAssets="all"/>
-    <ProjectReference Include="..\..\VisualStudio\Core\SolutionExplorerShim\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\VisualStudio\Core\SolutionExplorerShim\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\VisualStudio\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj" PrivateAssets="all"/>
     <ProjectReference Include="..\..\VisualStudio\VisualBasic\Impl\Microsoft.VisualStudio.LanguageServices.VisualBasic.vbproj" PrivateAssets="all"/>
@@ -93,6 +93,7 @@
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.CSharp\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.CSharp.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Implementation\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Implementation.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient.dll" TargetDir="" />
+      <_File Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.FSharp\$(Configuration)\net472\Microsoft.CodeAnalysis.ExternalAccess.FSharp.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.SolutionExplorer\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.VisualBasic\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" TargetDir="" />
       <_File Include="$(ArtifactsBinDir)Microsoft.VisualStudio.LanguageServices.Xaml\$(Configuration)\net472\Microsoft.VisualStudio.LanguageServices.Xaml.dll" TargetDir="" />
@@ -128,7 +129,7 @@
 
     <!-- Add xml doc comment files -->
     <ItemGroup>
-      <_File Include="%(_File.RootDir)%(_File.Directory)%(_File.FileName).xml" TargetDir="%(_File.TargetDir)" Condition="Exists('%(_File.RootDir)%(_File.Directory)%(_File.FileName).xml')"/>
+      <_File Include="%(_File.RootDir)%(_File.Directory)%(_File.FileName).xml" TargetDir="%(_File.TargetDir)" Condition="Exists('%(_File.RootDir)%(_File.Directory)%(_File.FileName).xml')" />
     </ItemGroup>
 
     <ItemGroup>

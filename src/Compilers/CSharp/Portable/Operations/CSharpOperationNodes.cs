@@ -1810,24 +1810,6 @@ namespace Microsoft.CodeAnalysis.Operations
         }
     }
 
-    internal sealed class CSharpLazyFromEndIndexOperation : LazyFromEndIndexOperation
-    {
-        private readonly CSharpOperationFactory _operationFactory;
-        private readonly BoundNode _operand;
-
-        internal CSharpLazyFromEndIndexOperation(CSharpOperationFactory operationFactory, BoundNode operand, bool isLifted, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, IMethodSymbol symbol, bool isImplicit) :
-            base(isLifted, semanticModel, syntax, type, symbol, isImplicit)
-        {
-            _operationFactory = operationFactory;
-            _operand = operand;
-        }
-
-        protected override IOperation CreateOperand()
-        {
-            return _operationFactory.Create(_operand);
-        }
-    }
-
     internal sealed class CSharpLazyRangeOperation : LazyRangeOperation
     {
         private readonly CSharpOperationFactory _operationFactory;
