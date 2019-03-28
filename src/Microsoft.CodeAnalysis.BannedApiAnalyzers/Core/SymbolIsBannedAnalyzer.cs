@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: BannedApiAnalyzerResources.SymbolIsBannedDescription,
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public static readonly DiagnosticDescriptor DuplicateBannedSymbolRule = new DiagnosticDescriptor(
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.BannedApiAnalyzers
             defaultSeverity: DiagnosticHelpers.DefaultDiagnosticSeverity,
             isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: BannedApiAnalyzerResources.DuplicateBannedSymbolDescription,
+            helpLinkUri: "https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md",
             customTags: WellKnownDiagnosticTags.Telemetry);
     }
 

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.DisposeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System;
+using Analyzer.Utilities.PooledObjects;
 
 namespace Analyzer.Utilities
 {
@@ -99,7 +100,8 @@ namespace Analyzer.Utilities
             CancellationToken cancellationToken,
             out DisposeAnalysisResult disposeAnalysisResult,
             out PointsToAnalysisResult pointsToAnalysisResult,
-            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null)
+            InterproceduralAnalysisPredicate interproceduralAnalysisPredicateOpt = null,
+            bool defaultDisposeOwnershipTransferAtConstructor = false)
         {
             foreach (var operationRoot in operationBlocks)
             {
@@ -111,7 +113,8 @@ namespace Analyzer.Utilities
                     disposeAnalysisResult = DisposeAnalysis.GetOrComputeResult(cfg, containingMethod, _wellKnownTypeProvider,
                         analyzerOptions, rule, _disposeOwnershipTransferLikelyTypes, trackInstanceFields,
                         trackExceptionPaths, cancellationToken, out pointsToAnalysisResult,
-                        interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt);
+                        interproceduralAnalysisPredicateOpt: interproceduralAnalysisPredicateOpt,
+                        defaultDisposeOwnershipTransferAtConstructor: defaultDisposeOwnershipTransferAtConstructor);
                     return true;
                 }
             }
@@ -121,7 +124,7 @@ namespace Analyzer.Utilities
             return false;
         }
 
-        private bool HasDisposableOwnershipTransferForParameter(IMethodSymbol containingMethod) =>
+        private bool HasDisposableOwnershipTransferForConstructorParameter(IMethodSymbol containingMethod) =>
             containingMethod.MethodKind == MethodKind.Constructor &&
             containingMethod.Parameters.Any(p => _disposeOwnershipTransferLikelyTypes.Contains(p.Type));
 
@@ -133,7 +136,7 @@ namespace Analyzer.Utilities
         public bool HasAnyDisposableCreationDescendant(ImmutableArray<IOperation> operationBlocks, IMethodSymbol containingMethod)
         {
             return operationBlocks.HasAnyOperationDescendant(IsDisposableCreation) ||
-                HasDisposableOwnershipTransferForParameter(containingMethod);
+                HasDisposableOwnershipTransferForConstructorParameter(containingMethod);
         }
 
         public ImmutableHashSet<IFieldSymbol> GetDisposableFields(INamedTypeSymbol namedType)
@@ -168,7 +171,7 @@ namespace Analyzer.Utilities
             if (location.CreationOpt == null)
             {
                 return location.SymbolOpt?.Kind == SymbolKind.Parameter &&
-                    HasDisposableOwnershipTransferForParameter(containingMethod);
+                    HasDisposableOwnershipTransferForConstructorParameter(containingMethod);
             }
 
             return IsDisposableCreation(location.CreationOpt);

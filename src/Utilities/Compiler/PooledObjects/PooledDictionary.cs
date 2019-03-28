@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 #pragma warning disable CA1000 // Do not declare static members on generic types
 
-namespace Microsoft.CodeAnalysis
+namespace Analyzer.Utilities.PooledObjects
 {
     // Dictionary that can be recycled via an object pool
     // NOTE: these dictionaries always have the default comparer.

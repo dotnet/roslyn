@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Analyzer.Utilities;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.PointsToAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
@@ -80,7 +81,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
             builder.Add(IsNull.GetHashCode());
         }
 
-        public SyntaxNode GetNodeToReportDiagnostic(PointsToAnalysisResult pointsToAnalysisResultOpt)
+        /// <summary>
+        /// Attempts to get the syntax node to report diagnostic for this abstract location 
+        /// Returns null if the location is owned by another method invoked through interprocedural analysis.
+        /// </summary>
+        public SyntaxNode TryGetNodeToReportDiagnostic(PointsToAnalysisResult pointsToAnalysisResultOpt)
         {
             Debug.Assert(CreationOpt != null);
 
@@ -93,6 +98,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
                     if (syntaxNode != null)
                     {
                         return syntaxNode;
+                    }
+
+                    if (!(creation is IInvocationOperation invocation) ||
+                        !invocation.TargetMethod.IsLambdaOrLocalFunctionOrDelegate())
+                    {
+                        return null;
                     }
                 }
             }

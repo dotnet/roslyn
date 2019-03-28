@@ -1,45 +1,20 @@
-### RS0001: Use SpecializedCollections.EmptyEnumerable() ###
 
-Category: Performance
-
-Severity: Warning
-
-### RS0002: Use SpecializedCollections.SingletonEnumerable() ###
-
-Category: Performance
-
-Severity: Warning
-
-### RS0004: Invoke the correct property to ensure correct use site diagnostics. ###
-
-Category: Usage
-
-Severity: Error
-
-### RS0005: Do not use generic CodeAction.Create to create CodeAction ###
-
-Category: Performance
-
-Severity: Warning
-
-### RS0013: Do not invoke Diagnostic.Descriptor ###
-
-Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.
-
-Category: Performance
-
-Severity: Warning
-
-### RS0019: SymbolDeclaredEvent must be generated for source symbols ###
-
-Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event.
-
-Category: Reliability
-
-Severity: Error
-
-### RS0022: Constructor make noninheritable base class inheritable ###
-
-Category: ApiDesign
-
-Severity: Warning
+Sr. No. | Rule ID | Title | Category | Enabled | CodeFix | Description |
+--------|---------|-------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------|
+1 | RS0001 | Use SpecializedCollections.EmptyEnumerable() | RoslyDiagnosticsPerformance | True | False | Use SpecializedCollections.EmptyEnumerable() |
+2 | RS0002 | Use SpecializedCollections.SingletonEnumerable() | RoslyDiagnosticsPerformance | True | False | Use SpecializedCollections.SingletonEnumerable() |
+3 | RS0004 | Invoke the correct property to ensure correct use site diagnostics. | Usage | False | False | Invoke the correct property to ensure correct use site diagnostics. |
+4 | RS0005 | Do not use generic CodeAction.Create to create CodeAction | RoslyDiagnosticsPerformance | True | False | Do not use generic CodeAction.Create to create CodeAction |
+5 | RS0006 | Do not mix attributes from different versions of MEF | RoslyDiagnosticsReliability | True | True | Do not mix attributes from different versions of MEF |
+6 | RS0013 | Do not invoke Diagnostic.Descriptor | RoslyDiagnosticsPerformance | False | False | Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type. |
+7 | [RS0016](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) | Add public types and members to the declared API | ApiDesign | True | False | All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes. |
+8 | [RS0017](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) | Remove deleted types and members from the declared API | ApiDesign | True | False | When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes. |
+9 | RS0019 | SymbolDeclaredEvent must be generated for source symbols | RoslyDiagnosticsReliability | False | False | Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event. |
+10 | [RS0022](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) | Constructor make noninheritable base class inheritable | ApiDesign | True | False | Constructor makes its noninheritable base class inheritable, thereby exposing its protected members. |
+11 | RS0023 | Parts exported with MEFv2 must be marked as Shared | RoslyDiagnosticsReliability | True | True | Part exported with MEFv2 must be marked with the Shared attribute. |
+12 | [RS0024](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) | The contents of the public API files are invalid | ApiDesign | True | False | The contents of the public API files are invalid: {0} |
+13 | [RS0025](https://github.com/dotnet/roslyn-analyzers/blob/master/src/PublicApiAnalyzers/PublicApiAnalyzers.Help.md) | Do not duplicate symbols in public API files | ApiDesign | True | False | The symbol '{0}' appears more than once in the public API files. |
+14 | [RS0026](https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md) | Do not add multiple public overloads with optional parameters | ApiDesign | True | False | Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details. |
+15 | [RS0027](https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md) | Public API with optional parameter(s) should have the most parameters amongst its public overloads. | ApiDesign | True | False | Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details. |
+16 | [RS0030](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) | Do not used banned APIs | ApiDesign | True | False | The symbol has been marked as banned in this project, and an alternate should be used instead. |
+17 | [RS0031](https://github.com/dotnet/roslyn-analyzers/blob/master/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md) | The list of banned symbols contains a duplicate | ApiDesign | True | False | The list of banned symbols contains a duplicate. |

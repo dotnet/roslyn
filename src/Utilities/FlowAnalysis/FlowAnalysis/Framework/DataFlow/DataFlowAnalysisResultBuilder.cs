@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Analyzer.Utilities.Extensions;
+using Analyzer.Utilities.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 {
