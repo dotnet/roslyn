@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.AddParameter
 {
-    internal struct ArgumentInsertPositionData<TArgumentSyntax> where TArgumentSyntax : SyntaxNode
+    internal readonly struct ArgumentInsertPositionData<TArgumentSyntax> where TArgumentSyntax : SyntaxNode
     {
         public ArgumentInsertPositionData(IMethodSymbol methodToUpdate, TArgumentSyntax argumentToInsert, int argumentInsertionIndex)
         {
