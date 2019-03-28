@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected Task InvokeAsync(string targetName, CancellationToken cancellationToken)
         {
-            return InvokeAsync(targetName, SpecializedCollections.EmptyReadOnlyList<object>(), cancellationToken);
+            return InvokeAsync(targetName, arguments: null, cancellationToken);
         }
 
         protected Task InvokeAsync(
