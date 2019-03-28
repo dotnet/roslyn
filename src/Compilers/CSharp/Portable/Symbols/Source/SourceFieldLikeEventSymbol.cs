@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly SynthesizedFieldLikeEventAccessorSymbol _removeMethod;
 
         internal SourceFieldLikeEventSymbol(SourceMemberContainerTypeSymbol containingType, Binder binder, SyntaxTokenList modifiers, VariableDeclaratorSyntax declaratorSyntax, DiagnosticBag diagnostics)
-            : base(containingType, declaratorSyntax, modifiers, isFieldLike:true, interfaceSpecifierSyntaxOpt:null, 
-                   nameTokenSyntax:declaratorSyntax.Identifier, diagnostics:diagnostics)
+            : base(containingType, declaratorSyntax, modifiers, isFieldLike: true, interfaceSpecifierSyntaxOpt: null,
+                   nameTokenSyntax: declaratorSyntax.Identifier, diagnostics: diagnostics)
         {
             _name = declaratorSyntax.Identifier.ValueText;
 

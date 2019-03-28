@@ -886,8 +886,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // WORKAROUND: see comment on method.
-                // PROTOTYPE(DefaultInterfaceImplementation): Is this workaround still relevant? Do we need it when we are looking
-                //                                            for implementations in interfaces?
+                // https://github.com/dotnet/roslyn/issues/34452: Is this workaround still relevant? Do we need it when we are looking
+                //                                                for implementations in interfaces?
                 if (IsExplicitlyImplementedViaAccessors(interfaceMember, currType, out Symbol currTypeExplicitImpl))
                 {
                     // NOTE: may be null.
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // update the result (i.e. implicitImpl).
             if (interfaceMember.IsAccessor())
             {
-                // PROTOTYPE(DefaultInterfaceImplementation): Do we need to adjust behavior of this function in any way?
+                // https://github.com/dotnet/roslyn/issues/34453: Do we need to adjust behavior of this function in any way?
                 CheckForImplementationOfCorrespondingPropertyOrEvent((MethodSymbol)interfaceMember, implementingType, implementingTypeIsFromSomeCompilation, ref implicitImpl);
             }
 
@@ -1006,9 +1006,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 Debug.Assert(((object)conflict2 == null));
-                // PROTOTYPE(DefaultInterfaceImplementation): We might need to do extra consistency check for events/properties and their 
-                //                                            accessors. Need to verify if what CheckForImplementationOfCorrespondingPropertyOrEvent
-                //                                            is doing should be applicable here as well.
+                // https://github.com/dotnet/roslyn/issues/34453: We might need to do extra consistency check for events/properties and their 
+                //                                                accessors. Need to verify if what CheckForImplementationOfCorrespondingPropertyOrEvent
+                //                                                is doing should be applicable here as well.
             }
 
             return implicitImpl;

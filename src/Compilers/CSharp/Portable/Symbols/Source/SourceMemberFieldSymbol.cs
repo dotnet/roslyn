@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     Binder.CheckFeatureAvailability(declarator, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, ErrorLocation);
                 }
-                else 
+                else
                 {
                     diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, ErrorLocation);
                 }

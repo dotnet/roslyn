@@ -5,10 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests</RootNamespace>
     <NoStdLib>true</NoStdLib>
-    <!-- PROTOTYPE(DefaultInterfaceImplementation): TargetFrameworks simply used to inherit $(RoslynPortableTargetFrameworks) -->
     <TargetFrameworks>net472;netcoreapp3.0</TargetFrameworks>
-    <!-- PROTOTYPE(DefaultInterfaceImplementation): Added RuntimeFrameworkVersion property below -->
-    <RuntimeFrameworkVersion Condition="'$(TargetFramework)' == 'netcoreapp3.0'">$(MicrosoftNETCoreRuntimeCoreCLRVersion)</RuntimeFrameworkVersion>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
