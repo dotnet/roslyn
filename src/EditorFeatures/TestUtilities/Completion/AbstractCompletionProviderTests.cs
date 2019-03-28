@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
             catch(XmlException)
             {
-                output = default;
+                output = null;
                 return false;
             }
         }
