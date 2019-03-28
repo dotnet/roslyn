@@ -3,13 +3,10 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.FindUsages
+namespace Microsoft.CodeAnalysis.Classification
 {
     internal static class ClassifiedSpansAndHighlightSpanFactory
     {
@@ -77,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document, TextSpan narrowSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
         {
-            var result = await EditorClassifier.GetClassifiedSpansAsync(
+            var result = await ClassifierHelper.GetClassifiedSpansAsync(
                 document, widenedSpan, cancellationToken).ConfigureAwait(false);
             if (!result.IsDefault)
             {
