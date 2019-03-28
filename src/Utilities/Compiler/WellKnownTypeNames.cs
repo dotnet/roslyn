@@ -280,5 +280,7 @@ namespace Analyzer.Utilities
         public const string SystemXmlXmlTextWriter = "System.Xml.XmlTextWriter";
         public const string SystemWindowsMarkupXamlReader = "System.Windows.Markup.XamlReader";
         public const string SystemWebConfigurationHttpRuntimeSection = "System.Web.Configuration.HttpRuntimeSection";
+        public const string SystemDataDataSet = "System.Data.DataSet";
+        public const string SystemXmlXmlReader = "System.Xml.XmlReader";
     }
 }
