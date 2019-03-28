@@ -58156,5 +58156,256 @@ public interface ITest33
             }
         }
 
+        [Fact]
+        public void LambdaCaching_01()
+        {
+            var source0 = @"
+interface I1
+{
+    static void M1()
+    {
+        M2(() => System.Console.WriteLine(""M1""));
+    }
+
+    static void M2(System.Action d)
+    {
+        d();
+    }
+}
+
+class A
+{
+    static void Main()
+    {
+        I1.M1();
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
+
+            verifier.VerifyIL("I1.M1",
+@"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""System.Action I1.<>c.<>9__0_0""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_0020
+  IL_0009:  pop
+  IL_000a:  ldsfld     ""I1.<>c I1.<>c.<>9""
+  IL_000f:  ldftn      ""void I1.<>c.<M1>b__0_0()""
+  IL_0015:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""System.Action I1.<>c.<>9__0_0""
+  IL_0020:  call       ""void I1.M2(System.Action)""
+  IL_0025:  nop
+  IL_0026:  ret
+}
+");
+        }
+
+        [Fact]
+        public void LambdaCaching_02()
+        {
+            var source0 = @"
+interface I1
+{
+    void M1()
+    {
+        M2(() => System.Console.WriteLine(""M1""));
+    }
+
+    static void M2(System.Action d)
+    {
+        d();
+    }
+}
+
+class A : I1
+{
+    static void Main()
+    {
+        ((I1)new A()).M1();
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"M1", verify: VerifyOnMonoOrCoreClr);
+
+            verifier.VerifyIL("I1.M1",
+@"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""System.Action I1.<>c.<>9__0_0""
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_0020
+  IL_0009:  pop
+  IL_000a:  ldsfld     ""I1.<>c I1.<>c.<>9""
+  IL_000f:  ldftn      ""void I1.<>c.<M1>b__0_0()""
+  IL_0015:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_001a:  dup
+  IL_001b:  stsfld     ""System.Action I1.<>c.<>9__0_0""
+  IL_0020:  call       ""void I1.M2(System.Action)""
+  IL_0025:  nop
+  IL_0026:  ret
+}
+");
+        }
+
+        [Fact]
+        public void LambdaCaching_03()
+        {
+            var source0 = @"
+interface I1
+{
+    void M1()
+    {
+        M2(() => System.Console.WriteLine(this.ToString()));
+    }
+
+    static void M2(System.Action d)
+    {
+        d();
+    }
+}
+
+class A : I1
+{
+    static void Main()
+    {
+        ((I1)new A()).M1();
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null : @"A", verify: VerifyOnMonoOrCoreClr);
+
+            verifier.VerifyIL("I1.M1",
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldftn      ""void I1.<M1>b__0_0()""
+  IL_0008:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_000d:  call       ""void I1.M2(System.Action)""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+        }
+
+        [Fact]
+        public void BaseAccessWrapper_01()
+        {
+            var source0 = @"
+interface I1
+{
+    void M1(int i)
+    {
+        System.Console.WriteLine(""I1.M1"");
+        System.Console.WriteLine(i);
+    }
+}
+
+interface I2 : I1
+{
+    void I1.M1(int i)
+    {
+        M2(() =>
+           {
+               base(I1).M1(i);
+           });
+    }
+
+    static void M2(System.Action d)
+    {
+        System.Console.WriteLine(""I2.M2"");
+        d();
+    }
+}
+
+class A : I2
+{
+    static void Main()
+    {
+        ((I1)new A()).M1(123);
+    }
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugExe, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(compilation0, expectedOutput: !ExecutionConditionUtil.IsMonoOrCoreClr ? null :
+@"I2.M2
+I1.M1
+123", verify: VerifyOnMonoOrCoreClr);
+
+            verifier.VerifyIL("I2.I1.M1",
+@"
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (I2.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""I2.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stfld      ""I2 I2.<>c__DisplayClass0_0.<>4__this""
+  IL_000d:  ldloc.0
+  IL_000e:  ldarg.1
+  IL_000f:  stfld      ""int I2.<>c__DisplayClass0_0.i""
+  IL_0014:  nop
+  IL_0015:  ldloc.0
+  IL_0016:  ldftn      ""void I2.<>c__DisplayClass0_0.<I1.M1>b__0()""
+  IL_001c:  newobj     ""System.Action..ctor(object, System.IntPtr)""
+  IL_0021:  call       ""void I2.M2(System.Action)""
+  IL_0026:  nop
+  IL_0027:  ret
+}
+");
+            verifier.VerifyIL("I2.<>c__DisplayClass0_0.<I1.M1>b__0",
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      ""I2 I2.<>c__DisplayClass0_0.<>4__this""
+  IL_0007:  ldarg.0
+  IL_0008:  ldfld      ""int I2.<>c__DisplayClass0_0.i""
+  IL_000d:  call       ""void I2.<>n__0(int)""
+  IL_0012:  nop
+  IL_0013:  ret
+}
+");
+            verifier.VerifyIL("I2.<>n__0",
+@"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       ""void I1.M1(int)""
+  IL_0007:  ret
+}
+");
+        }
+
     }
 }
