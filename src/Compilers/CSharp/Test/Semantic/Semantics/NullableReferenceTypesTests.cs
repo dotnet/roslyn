@@ -18817,7 +18817,7 @@ public class C
         }
 
         [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
-        public void NotNullWhenTrue_WithNotNullWhenFalse_UserDefinedOperator()
+        public void NotNullWhenTrue_WithNotNullWhenFalse_UserDefinedOperator1()
         {
             // When both NotNullWhenTrue and NotNullWhenFalse are applied, it's the same as EnsuresNotNull,
             // even if the method doesn't return bool.
@@ -18831,15 +18831,12 @@ public class C
         if(c == c2)
         {
          	c.ToString();   
+            c2.ToString(); // 1
         }
         else
         {
             c.ToString(); 
-        }
-
-        if (c != c2)
-        {
-            c2.ToString();
+            c2.ToString(); // 2
         }
     }
     
@@ -18848,16 +18845,71 @@ public class C
         return true;
     }
 
-    public static bool operator !=(C? c1, [NotNullWhenTrue, NotNullWhenFalse]C? c2)
+    public static bool operator !=(C? c1, C? c2)
     {
         return true;
     }
 }
 ", NotNullWhenTrueAttributeDefinition, NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
 
-            c.VerifyDiagnostics();
+            c.VerifyDiagnostics(
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
+                //             c2.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2").WithLocation(11, 13),
+                // (16,13): warning CS8602: Dereference of a possibly null reference.
+                //             c2.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c2").WithLocation(16, 13)
+                );
 
             VerifyAnnotationsAndMetadata(c, "C.op_Equality", EnsuresNotNull, None);
+        }
+
+        [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
+        public void NotNullWhenTrue_WithNotNullWhenFalse_UserDefinedOperator2()
+        {
+            // When both NotNullWhenTrue and NotNullWhenFalse are applied, it's the same as EnsuresNotNull,
+            // even if the method doesn't return bool.
+            CSharpCompilation c = CreateCompilation(new[] { @"
+#pragma warning disable CS0660, CS0661 // no equals, hashcode 
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(C? c, C? c2)
+    {
+        if(c == c2)
+        {
+         	c.ToString();  // 1 
+            c2.ToString(); 
+        }
+        else
+        {
+            c.ToString(); // 2
+            c2.ToString(); 
+        }
+    }
+    
+    public static bool operator ==(C? c1, [NotNullWhenTrue, NotNullWhenFalse]C? c2)
+    {
+        return true;
+    }
+
+    public static bool operator !=(C? c1, C? c2)
+    {
+        return true;
+    }
+}
+", NotNullWhenTrueAttributeDefinition, NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (10,11): warning CS8602: Dereference of a possibly null reference.
+                //          	c.ToString();  // 1 
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(10, 11),
+                // (15,13): warning CS8602: Dereference of a possibly null reference.
+                //             c.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(15, 13)
+                );
+
+            VerifyAnnotationsAndMetadata(c, "C.op_Equality", None, EnsuresNotNull);
         }
 
         [Fact]
