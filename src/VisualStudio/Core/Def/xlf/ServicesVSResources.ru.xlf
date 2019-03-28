@@ -223,13 +223,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Select_Dependents">
-        <source>_Select Dependents</source>
-        <target state="translated">_Выбрать зависимости</target>
+        <source>Select _Dependents</source>
+        <target state="needs-review-translation">_Выбрать зависимости</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
-        <source>_Select Public</source>
-        <target state="translated">_Выбрать открытые</target>
+        <source>Select _Public</source>
+        <target state="needs-review-translation">_Выбрать открытые</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">
