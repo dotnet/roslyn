@@ -233,6 +233,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add optional parameter to constructor.
+        /// </summary>
+        internal static string Add_optional_parameter_to_constructor {
+            get {
+                return ResourceManager.GetString("Add_optional_parameter_to_constructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add optional parameters to &apos;{0}&apos;.
         /// </summary>
         internal static string Add_optional_parameters_to_0 {
@@ -256,6 +265,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Add_parameter_to_0_and_overrides_implementations {
             get {
                 return ResourceManager.GetString("Add_parameter_to_0_and_overrides_implementations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add parameter to constructor.
+        /// </summary>
+        internal static string Add_parameter_to_constructor {
+            get {
+                return ResourceManager.GetString("Add_parameter_to_constructor", resourceCulture);
             }
         }
         
