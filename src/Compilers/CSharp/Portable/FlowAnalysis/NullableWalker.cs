@@ -1914,6 +1914,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parameters = binary.MethodOpt.Parameters;
                 ReportArgumentWarnings(binary.Left, leftType, parameters[0]);
                 ReportArgumentWarnings(binary.Right, rightType, parameters[1]);
+
+                VisitOperandsHonoringAnnotations(binary.MethodOpt, ImmutableArray.Create(binary.Left, binary.Right));
             }
 
             Debug.Assert(!IsConditionalState);
@@ -3590,7 +3592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
             TypeWithState operandType = VisitRvalueWithState(operand);
-            ResultType = ApplyConversion(
+            var convertedType = ApplyConversion(
                 node,
                 operand,
                 conversion,
@@ -3603,6 +3605,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportTopLevelWarnings: fromExplicitCast,
                 reportRemainingWarnings: true,
                 trackMembers: true);
+
+            if ((node.ConversionKind == ConversionKind.ExplicitUserDefined ||
+                 node.ConversionKind == ConversionKind.ImplicitUserDefined) &&
+                 !(conversion.Method is null))
+            {
+                VisitOperandsHonoringAnnotations(conversion.Method, ImmutableArray.Create(operand));
+            }
+
+            ResultType = convertedType;
             return null;
         }
 
@@ -4310,6 +4321,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             operandType = ClassifyAndApplyConversion(node, targetTypeWithNullability, operandType,
                 useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
             return operandType;
+        }
+
+        private void VisitOperandsHonoringAnnotations(MethodSymbol method, ImmutableArray<BoundExpression> operands)
+        {
+            Debug.Assert(!(method is null));
+            Debug.Assert(!operands.IsDefaultOrEmpty);
+
+            ImmutableArray<FlowAnalysisAnnotations> annotations = GetAnnotations(operands.Length, expanded: false, method.Parameters, argsToParamsOpt: default);
+            if (!annotations.IsDefault)
+            {
+                bool saveDisableDiagnostics = _disableDiagnostics;
+                _disableDiagnostics = true;
+                VisitArgumentsEvaluateHonoringAnnotations(operands, method.ParameterRefKinds, annotations);
+                _disableDiagnostics = saveDisableDiagnostics;
+            }
         }
 
         /// <summary>

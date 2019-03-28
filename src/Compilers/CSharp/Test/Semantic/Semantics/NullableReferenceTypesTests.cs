@@ -18670,6 +18670,129 @@ public class C
                 );
         }
 
+        [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
+        public void NotNullWhenTrue_UserDefinedOperator_Implicit()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+class C
+{
+  void M(C? c)
+  {
+    if (c)
+    {
+      c.ToString(); // ok
+    }
+    else
+    {
+      c.ToString(); // 1
+    }
+  }
+
+  void M2(C? c)
+  {
+    bool b = c;
+    if (b)
+    {
+      c.ToString(); // 2 (not tracked through assignment)
+    }
+  }
+
+  public static implicit operator bool([NotNullWhenTrue] C? c) { return true; }
+}
+", NotNullWhenTrueAttributeDefinition, NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (13,7): warning CS8602: Possible dereference of a null reference.
+                //       c.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(13, 7),
+                // (22,7): warning CS8602: Possible dereference of a null reference.
+                //       c.ToString(); // 2 (not tracked through assignment)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(22, 7)
+                );
+
+            VerifyAnnotationsAndMetadata(c, "C.op_Implicit", NotNullWhenTrue);
+        }
+
+        [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
+        public void NotNullWhenTrue_UserDefinedOperator_Explicit()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+class C
+{
+  void M(C? c)
+  {
+    if ((bool)c)
+    {
+      c.ToString(); // ok
+    }
+    else
+    {
+      c.ToString(); // 1
+    }
+  }
+
+  void M2(C? c)
+  {
+    bool b = (bool)c;
+    if (b)
+    {
+      c.ToString(); // 2 (not tracked through assignment)
+    }
+  }
+
+  public static explicit operator bool([NotNullWhenTrue] C? c) { return true; }
+}
+", NotNullWhenTrueAttributeDefinition, NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (13,7): warning CS8602: Possible dereference of a null reference.
+                //       c.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(13, 7),
+                // (22,7): warning CS8602: Possible dereference of a null reference.
+                //       c.ToString(); // 2 (not tracked through assignment)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(22, 7)
+                );
+
+            VerifyAnnotationsAndMetadata(c, "C.op_Explicit", NotNullWhenTrue);
+        }
+
+        [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
+        public void NotNullWhenTrue_UserDefinedOperator_Derived()
+        {
+            CSharpCompilation c = CreateCompilation(new[] { @"
+using System.Runtime.CompilerServices;
+class C : B
+{
+  void M(C? c)
+  {
+    if (c)
+    {
+      c.ToString(); // ok
+    }
+    else
+    {
+      c.ToString(); // 1
+    }
+  }
+}
+
+public class B
+{
+  public static implicit operator bool([NotNullWhenTrue] B? b) { return true; }
+}
+", NotNullWhenTrueAttributeDefinition, NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics(
+                // (13,7): warning CS8602: Possible dereference of a null reference.
+                //       c.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(13, 7)
+                );
+
+            VerifyAnnotationsAndMetadata(c, "B.op_Implicit", NotNullWhenTrue);
+        }
+
         [Fact]
         public void NotNullWhenTrue_WithNotNullWhenFalse_WithVoidReturn()
         {
@@ -18691,6 +18814,50 @@ public class C
             c.VerifyDiagnostics();
 
             VerifyAnnotationsAndMetadata(c, "C.M", EnsuresNotNull);
+        }
+
+        [Fact, WorkItem(32172, "https://github.com/dotnet/roslyn/issues/32172")]
+        public void NotNullWhenTrue_WithNotNullWhenFalse_UserDefinedOperator()
+        {
+            // When both NotNullWhenTrue and NotNullWhenFalse are applied, it's the same as EnsuresNotNull,
+            // even if the method doesn't return bool.
+            CSharpCompilation c = CreateCompilation(new[] { @"
+#pragma warning disable CS0660, CS0661 // no equals, hashcode 
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(C? c, C? c2)
+    {
+        if(c == c2)
+        {
+         	c.ToString();   
+        }
+        else
+        {
+            c.ToString(); 
+        }
+
+        if (c != c2)
+        {
+            c2.ToString();
+        }
+    }
+    
+    public static bool operator ==([NotNullWhenTrue, NotNullWhenFalse]C? c1, C? c2)
+    {
+        return true;
+    }
+
+    public static bool operator !=(C? c1, [NotNullWhenTrue, NotNullWhenFalse]C? c2)
+    {
+        return true;
+    }
+}
+", NotNullWhenTrueAttributeDefinition, NotNullWhenFalseAttributeDefinition }, options: WithNonNullTypesTrue());
+
+            c.VerifyDiagnostics();
+
+            VerifyAnnotationsAndMetadata(c, "C.op_Equality", EnsuresNotNull, None);
         }
 
         [Fact]
