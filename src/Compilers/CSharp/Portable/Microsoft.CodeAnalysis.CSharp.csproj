@@ -8,7 +8,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
-    <ApplyPartialNgenOptimization>true</ApplyPartialNgenOptimization>
+    <ApplyNgenOptimization>partial</ApplyNgenOptimization>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
