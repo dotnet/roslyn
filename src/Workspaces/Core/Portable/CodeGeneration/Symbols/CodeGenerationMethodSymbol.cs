@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -85,9 +86,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public override IMethodSymbol ConstructedFrom => this;
 
-        public override bool IsDeclaredReadOnly => throw new NotImplementedException();
+        public override bool IsDeclaredReadOnly => throw ExceptionUtilities.Unreachable;
 
-        public override bool IsEffectivelyReadOnly => throw new NotImplementedException();
+        public override bool IsEffectivelyReadOnly => throw ExceptionUtilities.Unreachable;
 
         public override IMethodSymbol OverriddenMethod => null;
 
