@@ -223,13 +223,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Select_Dependents">
-        <source>_Select Dependents</source>
-        <target state="translated">依存の選択(_S)</target>
+        <source>Select _Dependents</source>
+        <target state="needs-review-translation">依存の選択(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
-        <source>_Select Public</source>
-        <target state="translated">パブリックの選択(_S)</target>
+        <source>Select _Public</source>
+        <target state="needs-review-translation">パブリックの選択(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">

@@ -5305,10 +5305,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Possible null reference assignment.</value>
   </data>
   <data name="WRN_NullReferenceReceiver" xml:space="preserve">
-    <value>Possible dereference of a null reference.</value>
+    <value>Dereference of a possibly null reference.</value>
   </data>
   <data name="WRN_NullReferenceReceiver_Title" xml:space="preserve">
-    <value>Possible dereference of a null reference.</value>
+    <value>Dereference of a possibly null reference.</value>
   </data>
   <data name="WRN_NullReferenceReturn" xml:space="preserve">
     <value>Possible null reference return.</value>

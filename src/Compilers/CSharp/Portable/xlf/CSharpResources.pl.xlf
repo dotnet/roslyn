@@ -1368,13 +1368,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
-        <source>Possible dereference of a null reference.</source>
-        <target state="translated">Możliwe wyłuskanie odwołania o wartości null.</target>
+        <source>Dereference of a possibly null reference.</source>
+        <target state="needs-review-translation">Możliwe wyłuskanie odwołania o wartości null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver_Title">
-        <source>Possible dereference of a null reference.</source>
-        <target state="translated">Możliwe wyłuskanie odwołania o wartości null.</target>
+        <source>Dereference of a possibly null reference.</source>
+        <target state="needs-review-translation">Możliwe wyłuskanie odwołania o wartości null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">

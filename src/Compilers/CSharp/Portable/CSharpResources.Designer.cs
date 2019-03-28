@@ -15548,7 +15548,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Possible dereference of a null reference..
+        ///   Looks up a localized string similar to Dereference of a possibly null reference..
         /// </summary>
         internal static string WRN_NullReferenceReceiver {
             get {
@@ -15557,7 +15557,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Possible dereference of a null reference..
+        ///   Looks up a localized string similar to Dereference of a possibly null reference..
         /// </summary>
         internal static string WRN_NullReferenceReceiver_Title {
             get {

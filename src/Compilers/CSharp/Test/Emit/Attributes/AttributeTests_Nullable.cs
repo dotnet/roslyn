@@ -1524,31 +1524,31 @@ class C
 }";
             var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (5,9): warning CS8602: Possible dereference of a null reference.
+                // (5,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Nested._1.Item1.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._1.Item1").WithLocation(5, 9),
-                // (7,9): warning CS8602: Possible dereference of a null reference.
+                // (7,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Nested._2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._2").WithLocation(7, 9),
-                // (10,9): warning CS8602: Possible dereference of a null reference.
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Nested._4.Item1.Item1[0].ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._4.Item1.Item1[0]").WithLocation(10, 9),
-                // (12,9): warning CS8602: Possible dereference of a null reference.
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Nested._4.Item2.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._4.Item2").WithLocation(12, 9),
-                // (13,9): warning CS8602: Possible dereference of a null reference.
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Long._1.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._1").WithLocation(13, 9),
-                // (15,9): warning CS8602: Possible dereference of a null reference.
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Long._3.ToString(); // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._3").WithLocation(15, 9),
-                // (17,9): warning CS8602: Possible dereference of a null reference.
+                // (17,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Long._5.ToString(); // 7
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._5").WithLocation(17, 9),
-                // (19,9): warning CS8602: Possible dereference of a null reference.
+                // (19,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Long._7.ToString(); // 8
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._7").WithLocation(19, 9),
-                // (21,9): warning CS8602: Possible dereference of a null reference.
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
                 //         A.Long._9.ToString(); // 9
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._9").WithLocation(21, 9));
 
@@ -1653,13 +1653,13 @@ public class B<T> :
 }";
             var comp2 = CreateCompilation(new[] { source2 }, options: WithNonNullTypesTrue(), parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
-                // (6,9): warning CS8602: Possible dereference of a null reference.
+                // (6,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.Field._9.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Field._9").WithLocation(6, 9),
-                // (8,9): warning CS8602: Possible dereference of a null reference.
+                // (8,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.Method(default)._9.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Method(default)._9").WithLocation(8, 9),
-                // (10,9): warning CS8602: Possible dereference of a null reference.
+                // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         b.Property._9.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Property._9").WithLocation(10, 9));
 
