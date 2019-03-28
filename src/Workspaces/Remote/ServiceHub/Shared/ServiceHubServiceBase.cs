@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -46,7 +47,12 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private bool _disposed;
 
-        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream)
+        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream) :
+            this(serviceProvider, stream, SpecializedCollections.EmptyEnumerable<JsonConverter>())
+        {
+        }
+
+        protected ServiceHubServiceBase(IServiceProvider serviceProvider, Stream stream, IEnumerable<JsonConverter> jsonConverters)
         {
             InstanceId = Interlocked.Add(ref s_instanceId, 1);
             _disposed = false;
@@ -59,8 +65,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
             // all sub type must explicitly start JsonRpc once everything is
-            // setup
-            _rpc = stream.CreateStreamJsonRpc(target: this, Logger);
+            // setup. 
+            // we also wires given json converters when creating JsonRpc so that razor or SBD can register
+            // their own converter when they create their own service
+            _rpc = stream.CreateStreamJsonRpc(target: this, Logger, jsonConverters);
             _rpc.Disconnected += OnRpcDisconnected;
 
             // we do this since we want to mark Rpc as obsolete but want to set its value for

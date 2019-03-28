@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Telemetry;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -16,12 +17,16 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static partial class Extensions
     {
-        public static JsonRpc CreateStreamJsonRpc(this Stream stream, object target, TraceSource logger)
+        public static JsonRpc CreateStreamJsonRpc(
+            this Stream stream,
+            object target,
+            TraceSource logger,
+            IEnumerable<JsonConverter> jsonConverters = null)
         {
-            var jsonFormatter = new JsonMessageFormatter()
-            {
-                JsonSerializer = { Converters = { AggregateJsonConverter.Instance } }
-            };
+            jsonConverters = jsonConverters ?? SpecializedCollections.EmptyEnumerable<JsonConverter>();
+
+            var jsonFormatter = new JsonMessageFormatter();
+            jsonFormatter.JsonSerializer.Converters.AddRange(jsonConverters.Concat(AggregateJsonConverter.Instance));
 
             return new JsonRpc(new HeaderDelimitedMessageHandler(stream, jsonFormatter), target)
             {
