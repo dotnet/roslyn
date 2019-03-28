@@ -260,21 +260,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, node, delegateType, SourceEventSymbol.GetAccessorName(eventSymbol.Name, isAddition));
                 }
             }
-            else if (eventSymbol.IsWindowsRuntimeEvent)
-            {
-                // Return type is actually void because this call will be later encapsulated in a call
-                // to WindowsRuntimeMarshal.AddEventHandler or RemoveEventHandler, which has the return
-                // type of void.
-                type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            }
             else
             {
-                type = method.ReturnType;
                 if (!this.IsAccessible(method, ref useSiteDiagnostics, this.GetAccessThroughType(receiverOpt)))
                 {
                     // CONSIDER: depending on the accessibility (e.g. if it's private), dev10 might just report the whole event bogus.
                     Error(diagnostics, ErrorCode.ERR_BadAccess, node, method);
                     hasErrors = true;
+                }
+                else if (IsBadBaseAccess(node, receiverOpt, method, diagnostics, eventSymbol))
+                {
+                    hasErrors = true;
+                }
+                else
+                {
+                    CheckRuntimeSupportForSymbolAccess(node, receiverOpt, method, diagnostics);
+                }
+
+                if (eventSymbol.IsWindowsRuntimeEvent)
+                {
+                    // Return type is actually void because this call will be later encapsulated in a call
+                    // to WindowsRuntimeMarshal.AddEventHandler or RemoveEventHandler, which has the return
+                    // type of void.
+                    type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
+                }
+                else
+                {
+                    type = method.ReturnType;
                 }
             }
 
@@ -1121,15 +1133,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
-            if (possiblyBest.HasValue &&
-                (object)possiblyBest.Signature.Method != null)
+            if (possiblyBest.HasValue)
             {
-                Symbol symbol = possiblyBest.Signature.Method;
-                ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
+                ReportObsoleteAndFeatureAvailabilityDiagnostics(possiblyBest.Signature.Method, node, diagnostics);
             }
 
             result.Free();
             return possiblyBest;
+        }
+
+        private void ReportObsoleteAndFeatureAvailabilityDiagnostics(MethodSymbol operatorMethod, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        {
+            if ((object)operatorMethod != null)
+            {
+                ReportDiagnosticsIfObsolete(diagnostics, operatorMethod, node, hasBaseReceiver: false);
+
+                if (operatorMethod.ContainingType.IsInterface &&
+                    operatorMethod.ContainingModule != Compilation.SourceModule)
+                {
+                    Binder.CheckFeatureAvailability(node, MessageID.IDS_DefaultInterfaceImplementation, diagnostics);
+                }
+            }
         }
 
         private bool IsDefaultLiteralAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
@@ -1207,11 +1231,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
-            if (possiblyBest.HasValue &&
-                (object)possiblyBest.Signature.Method != null)
+            if (possiblyBest.HasValue)
             {
-                Symbol symbol = possiblyBest.Signature.Method;
-                ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
+                ReportObsoleteAndFeatureAvailabilityDiagnostics(possiblyBest.Signature.Method, node, diagnostics);
             }
 
             result.Free();
