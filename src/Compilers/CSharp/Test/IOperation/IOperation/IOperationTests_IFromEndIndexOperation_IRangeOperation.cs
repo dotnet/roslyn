@@ -34,7 +34,7 @@ IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null) (Synt
           IVariableDeclaratorOperation (Symbol: System.Index x) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'x = ^arg')
             Initializer: 
               IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= ^arg')
-                IFromEndIndexOperation (OperationKind.None, Type: System.Index) (Syntax: '^arg')
+                IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^arg')
                   Operand: 
                     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'arg')
       Initializer: 
@@ -60,7 +60,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Index, IsImplicit) (Syntax: 'x = ^arg')
               Right: 
-                IFromEndIndexOperation (OperationKind.None, Type: System.Index) (Syntax: '^arg')
+                IUnaryOperation (UnaryOperatorKind.Hat) (OperationKind.Unary, Type: System.Index) (Syntax: '^arg')
                   Operand: 
                     IParameterReferenceOperation: arg (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'arg')
 

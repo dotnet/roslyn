@@ -134,6 +134,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
             VerifyTypingSemicolon(code, expected);
         }
 
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/pull/34177")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_StringAsMethodArgument()
+        {
+            var code = CreateTestWithMethodCall(@"var test = Console.WriteLine( $$""Test"")");
+
+            var expected = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test"");$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/pull/34177")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_StringAsMethodArgument2()
+        {
+            var code = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test""$$ )");
+
+            var expected = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test"" );$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ArgumentListOfMethodInvocation_MultiLine()
         {
@@ -2952,6 +2974,29 @@ class Program
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/issues/34176")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_VerbatimStringAsMethodArgument_EndOfLine_NotEndOfString()
+        {
+            var code = @"
+            var code = Foo(@""$$
+"") ;
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/issues/34176")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_VerbatimStringAsMethodArgument_EndOfString_NotEndOfLine()
+        {
+
+            var code = @"
+            var code = Foo(@""  $$"" //comments
+);
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_InterpolatedString()
         {
@@ -3118,6 +3163,43 @@ using System.Linq$$;
         {
             var code = @"
 using System.$$Linq
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(33851, "https://github.com/dotnet/roslyn/issues/33851")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void AtEndOfLineOutsideParens()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        string s = ""Test"";
+        string t = s.Replace(""T"", ""t"")$$
+            .Trim();
+
+    }
+}
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(33851, "https://github.com/dotnet/roslyn/issues/33851")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void OutsideParensBeforeSpaceDot()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        string s = ""Test"";
+        string t = s.Replace(""T"", ""t"")$$ .Trim();
+
+    }
+}
 ";
             VerifyNoSpecialSemicolonHandling(code);
         }

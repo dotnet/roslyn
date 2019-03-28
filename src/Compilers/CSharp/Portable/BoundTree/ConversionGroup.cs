@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class ConversionGroup
     {
-        internal ConversionGroup(Conversion conversion, TypeSymbolWithAnnotations explicitType = default)
+        internal ConversionGroup(Conversion conversion, TypeWithAnnotations explicitType = default)
         {
             Conversion = conversion;
             ExplicitType = explicitType;
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The target type of the conversion specified explicitly in source,
         /// or null if not an explicit conversion.
         /// </summary>
-        internal readonly TypeSymbolWithAnnotations ExplicitType;
+        internal readonly TypeWithAnnotations ExplicitType;
 
 #if DEBUG
         private static int _nextId;

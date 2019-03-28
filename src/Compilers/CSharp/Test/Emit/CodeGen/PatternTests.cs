@@ -2298,5 +2298,91 @@ public class Program
 }
 ", sequencePoints: "Program.Main", source: source);
         }
+
+        [Fact, WorkItem(33675, "https://github.com/dotnet/roslyn/issues/33675")]
+        public void ParsingParenthesizedExpressionAsPatternOfExpressionSwitch()
+        {
+            var source = @"
+public class Class1
+{
+    static void Main()
+    {
+        System.Console.Write(M(42));
+        System.Console.Write(M(41));
+    }
+
+    static bool M(object o)
+    {
+        const int X = 42;
+        return o switch { (X) => true, _ => false };
+    }
+}";
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                var compilation = CreateCompilation(source, options: options);
+                compilation.VerifyDiagnostics();
+                var expectedOutput = @"TrueFalse";
+                var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+                if (options.OptimizationLevel == OptimizationLevel.Debug)
+                {
+                    compVerifier.VerifyIL("Class1.M",
+@"{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (bool V_0,
+                int V_1,
+                bool V_2,
+                bool V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_001b
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.s   42
+  IL_0013:  beq.s      IL_0017
+  IL_0015:  br.s       IL_001b
+  IL_0017:  ldc.i4.1
+  IL_0018:  stloc.0
+  IL_0019:  br.s       IL_001f
+  IL_001b:  ldc.i4.0
+  IL_001c:  stloc.0
+  IL_001d:  br.s       IL_001f
+  IL_001f:  ldloc.0
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.2
+  IL_0022:  stloc.3
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.3
+  IL_0026:  ret
+}");
+                }
+                else
+                {
+                    compVerifier.VerifyIL("Class1.M",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (bool V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  isinst     ""int""
+  IL_0006:  brfalse.s  IL_0016
+  IL_0008:  ldarg.0
+  IL_0009:  unbox.any  ""int""
+  IL_000e:  ldc.i4.s   42
+  IL_0010:  bne.un.s   IL_0016
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.0
+  IL_0014:  br.s       IL_0018
+  IL_0016:  ldc.i4.0
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  ret
+}");
+                }
+            }
+        }
     }
 }

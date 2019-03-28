@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NamedTypeSymbol booleanType = GetSpecialType(SpecialType.System_Boolean);
                 Debug.Assert((object)booleanType != null);
                 var transformFlags = DynamicTransformsEncoder.Encode(type, refKindOpt, customModifiersCount, booleanType);
-                var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeSymbolWithAnnotations.Create(booleanType));
+                var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, TypeWithAnnotations.Create(booleanType));
                 var arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, transformFlags));
                 return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, arguments);
             }
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!names.IsDefault, "should not need the attribute when no tuple names");
 
-            var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, TypeSymbolWithAnnotations.Create(stringType));
+            var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, TypeWithAnnotations.Create(stringType));
             var args = ImmutableArray.Create(new TypedConstant(stringArray, names));
             return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
         }
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // A possible optimization could be to emit an empty attribute
                         // if all the names are missing, but that has to be true
                         // recursively.
-                        namesBuilder.AddMany(null, type.TupleElementTypes.Length);
+                        namesBuilder.AddMany(null, type.TupleElementTypesWithAnnotations.Length);
                     }
                     else
                     {
@@ -847,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TypeKind.Array:
                         if (addCustomModifierFlags)
                         {
-                            HandleCustomModifiers(((ArrayTypeSymbol)type).ElementType.CustomModifiers.Length, transformFlagsBuilder);
+                            HandleCustomModifiers(((ArrayTypeSymbol)type).ElementTypeWithAnnotations.CustomModifiers.Length, transformFlagsBuilder);
                         }
 
                         transformFlagsBuilder.Add(false);
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TypeKind.Pointer:
                         if (addCustomModifierFlags)
                         {
-                            HandleCustomModifiers(((PointerTypeSymbol)type).PointedAtType.CustomModifiers.Length, transformFlagsBuilder);
+                            HandleCustomModifiers(((PointerTypeSymbol)type).PointedAtTypeWithAnnotations.CustomModifiers.Length, transformFlagsBuilder);
                         }
 
                         transformFlagsBuilder.Add(false);
@@ -914,17 +914,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                return array.ElementType.TypeSymbol;
+                return array.ElementType;
             }
 
             protected override TypeSymbol GetFieldType(FieldSymbol field)
             {
-                return field.Type.TypeSymbol;
+                return field.Type;
             }
 
             protected override TypeSymbol GetPropertyType(PropertySymbol property)
             {
-                return property.Type.TypeSymbol;
+                return property.Type;
             }
 
             protected override TypeSymbol GetGenericTypeArgument(TypeSymbol type, int argumentIndex)
@@ -942,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                return named.TypeArgumentsNoUseSiteDiagnostics[argumentIndex].TypeSymbol;
+                return named.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[argumentIndex].Type;
             }
 
             protected override TypeSymbol GetGenericTypeDefinition(TypeSymbol type)
@@ -975,17 +975,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override TypeSymbol GetParamType(ParameterSymbol parameter)
             {
-                return parameter.Type.TypeSymbol;
+                return parameter.Type;
             }
 
             protected override TypeSymbol GetPointedToType(TypeSymbol type)
             {
-                return type.Kind == SymbolKind.PointerType ? ((PointerTypeSymbol)type).PointedAtType.TypeSymbol : null;
+                return type.Kind == SymbolKind.PointerType ? ((PointerTypeSymbol)type).PointedAtType : null;
             }
 
             protected override TypeSymbol GetReturnType(MethodSymbol method)
             {
-                return method.ReturnType.TypeSymbol;
+                return method.ReturnType;
             }
 
             protected override TypeSymbol GetSZArrayElementType(TypeSymbol type)
@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return null;
                 }
-                return array.ElementType.TypeSymbol;
+                return array.ElementType;
             }
 
             protected override bool IsByRefParam(ParameterSymbol parameter)

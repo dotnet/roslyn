@@ -1278,6 +1278,60 @@ $$";
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task SwitchExpressionFirstBranch()
+        {
+            var content = @"i switch { $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task SwitchExpressionSecondBranch()
+        {
+            var content = @"i switch { 1 => true, $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task PositionalPatternFirstPosition()
+        {
+            var content = @"i is ($$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task PositionalPatternSecondPosition()
+        {
+            var content = @"i is (1, $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task PropertyPatternFirstPosition()
+        {
+            var content = @"i is { P: $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(33915, "https://github.com/dotnet/roslyn/issues/33915")]
+        public async Task PropertyPatternSecondPosition()
+        {
+            var content = @"i is { P1: 1, P2: $$";
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"String");
+            await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(content)), @"System");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task InitializerExpression()
         {
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", AddInsideMethod(@"var t = new [] { $$")), @"String");

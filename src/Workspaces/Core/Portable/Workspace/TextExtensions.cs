@@ -33,14 +33,18 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (Workspace.TryGetWorkspace(text.Container, out var workspace))
             {
+                var solution = workspace.CurrentSolution;
                 var id = workspace.GetDocumentIdInCurrentContext(text.Container);
-                if (id == null || !workspace.CurrentSolution.ContainsDocument(id))
+                if (id == null || !solution.ContainsDocument(id))
                 {
                     return null;
                 }
 
-                var sol = workspace.CurrentSolution.WithDocumentText(id, text, PreservationMode.PreserveIdentity);
-                return sol.GetDocument(id);
+                // We update all linked files to ensure they are all in sync. Otherwise code might try to jump from
+                // one linked file to another and be surprised if the text is entirely different.
+                var allIds = solution.GetRelatedDocumentIds(id);
+                return solution.WithDocumentText(allIds, text, PreservationMode.PreserveIdentity)
+                               .GetDocument(id);
             }
 
             return null;
