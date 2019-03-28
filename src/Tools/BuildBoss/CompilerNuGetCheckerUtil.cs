@@ -162,6 +162,13 @@ namespace BuildBoss
             var packageFilePath = FindNuGetPackage(Path.Combine(ArtifactsDirectory, "VSSetup", Configuration, "DevDivPackages"), "VS.ExternalAPIs.Roslyn");
             var allGood = true;
 
+            // This tracks the packages which are included in separate packages. Hence they don't need to
+            // be included here.
+            var excludedNameSet = new HashSet<string>(PathComparer)
+            {
+                "Microsoft.CodeAnalysis.Elfie"
+            };
+
             textWriter.WriteLine("Verifying contents of VS.ExternalAPIs.Roslyn");
             textWriter.WriteLine("\tRoot Folder");
             verifyFolder("");
@@ -175,7 +182,7 @@ namespace BuildBoss
             {
                 var foundDllNameSet = new HashSet<string>(PathComparer);
                 var neededDllNameSet = new HashSet<string>(PathComparer);
-                foreach (var part in GetPartsInFolder(packageFilePath, ""))
+                foreach (var part in GetPartsInFolder(packageFilePath, folderRelativeName))
                 {
                     var name = part.GetName();
                     if (Path.GetExtension(name) != ".dll")
@@ -209,7 +216,7 @@ namespace BuildBoss
                     .OrderBy(x => x, PathComparer);
                 foreach (var name in neededDllNames)
                 {
-                    if (!foundDllNameSet.Contains(name))
+                    if (!foundDllNameSet.Contains(name) && !excludedNameSet.Contains(name))
                     {
                         textWriter.WriteLine($"\t\tMissing dependency {name}");
                         allGood = false;
