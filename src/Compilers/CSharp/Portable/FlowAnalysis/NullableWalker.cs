@@ -1358,6 +1358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            Unsplit();
             TrackNullableStateForAssignment(initializer, type, slot, valueType, MakeSlot(initializer));
             return null;
         }
@@ -3592,7 +3593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
             TypeWithState operandType = VisitRvalueWithState(operand);
-            var convertedType = ApplyConversion(
+            ResultType = ApplyConversion(
                 node,
                 operand,
                 conversion,
@@ -3606,14 +3607,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 reportRemainingWarnings: true,
                 trackMembers: true);
 
-            if ((node.ConversionKind == ConversionKind.ExplicitUserDefined ||
-                 node.ConversionKind == ConversionKind.ImplicitUserDefined) &&
-                 !(conversion.Method is null))
-            {
-                VisitOperandsHonoringAnnotations(conversion.Method, ImmutableArray.Create(operand));
-            }
-
-            ResultType = convertedType;
             return null;
         }
 
@@ -4313,6 +4306,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // May be distinct from method return type for Nullable<T>.
             operandType = ClassifyAndApplyConversion(operandOpt ?? node, TypeWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType), operandType,
                 useLegacyWarnings, assignmentKind, target, reportWarnings: reportRemainingWarnings);
+
+            VisitOperandsHonoringAnnotations(conversion.Method, ImmutableArray.Create(operandOpt ?? node));
 
             // conversion "to" type -> final type
             // https://github.com/dotnet/roslyn/issues/29959 If the original conversion was
