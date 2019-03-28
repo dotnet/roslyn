@@ -6,10 +6,11 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Imaging;
 using System;
 using Microsoft.CodeAnalysis.LanguageServices;
+using System.ComponentModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
 {
-    class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged
+    class MoveToNamespaceDialogViewModel : AbstractNotifyPropertyChanged, IDataErrorInfo
     {
         private readonly ISyntaxFactsService _syntaxFactsService;
 
@@ -117,5 +118,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             get => _canSubmit;
             private set => SetProperty(ref _canSubmit, value);
         }
+
+        public string Error => CanSubmit ? string.Empty : Message;
+
+        public string this[string columnName] =>
+            columnName switch
+        {
+            nameof(NamespaceName) => CanSubmit ? string.Empty : Message,
+            _ => string.Empty
+        };
+
     }
 }

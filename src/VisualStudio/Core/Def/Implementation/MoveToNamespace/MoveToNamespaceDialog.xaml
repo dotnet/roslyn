@@ -39,26 +39,15 @@
                        Margin="{StaticResource verticalLabelMargin}"
                        Content="{Binding ElementName=dialog, Path=NamespaceLabelText}"
                        Target="{Binding ElementName=NamespaceTextBox}" />
-            <Border BorderThickness="1">
-                <Border.Style>
-                    <Style TargetType="{x:Type Border}">
-                        <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=CanSubmit}" Value="False">
-                                <Setter Property="BorderBrush" Value="Red" />
-                            </DataTrigger>
-                        </Style.Triggers>
-                    </Style>
-                </Border.Style>
-                <ComboBox x:Uid="NamespaceBox"
+            <ComboBox x:Uid="NamespaceBox"
                           Name="NamespaceBox"
                           IsEditable="True"
                           IsReadOnly="False"
                           AutomationProperties.LabeledBy="{Binding ElementName=NamespaceLabel}"
-                          Text="{Binding NamespaceName, Mode=TwoWay}"
+                          Text="{Binding NamespaceName, Mode=TwoWay, ValidatesOnDataErrors=True}"
                           ItemsSource="{Binding AvailableNamespaces, Mode=OneTime}"
                           BorderThickness="0" 
                           MaxDropDownHeight="200" />
-            </Border>
         </StackPanel>
 
         <StackPanel Grid.Row="1">
