@@ -33,19 +33,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public Document CreateWorkspaceAndGetDocument(XElement workspaceElement)
-        {
-            _workspace = TestWorkspace.CreateWorkspace(workspaceElement);
-            var hostDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
-            return _workspace.CurrentSolution.GetDocument(hostDocument.Id);
-        }
-
         public Document UpdateDocument(string text, SourceCodeKind sourceCodeKind, bool cleanBeforeUpdate = true)
         {
-            var hostDocument = (GetWorkspace()).Documents.Single();
-
-            // clear the document
-            if (cleanBeforeUpdate)
+            TestHostDocument hostDocument;
+            if (TryParseXElement(text, out var workspaceElement) && workspaceElement.Name == "Workspace")
             {
                 _workspace = TestWorkspace.CreateWorkspace(workspaceElement);
                 hostDocument = _workspace.Documents.First(d => d.CursorPosition.HasValue);
