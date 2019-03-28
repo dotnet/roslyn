@@ -1329,13 +1329,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
-        <source>Possible dereference of a null reference.</source>
-        <target state="translated">Déréférencement possible d'une référence null.</target>
+        <source>Dereference of a possibly null reference.</source>
+        <target state="needs-review-translation">Déréférencement possible d'une référence null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver_Title">
-        <source>Possible dereference of a null reference.</source>
-        <target state="translated">Déréférencement possible d'une référence null.</target>
+        <source>Dereference of a possibly null reference.</source>
+        <target state="needs-review-translation">Déréférencement possible d'une référence null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
