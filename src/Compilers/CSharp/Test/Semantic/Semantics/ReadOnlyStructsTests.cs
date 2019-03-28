@@ -380,6 +380,10 @@ public partial struct S
                 // (12,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i++;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(12, 9));
+
+            var method = comp.GetMember<NamedTypeSymbol>("S").GetMethod("M");
+            Assert.True(method.IsDeclaredReadOnly);
+            Assert.True(method.IsEffectivelyReadOnly);
         }
 
         [Fact]
@@ -408,6 +412,11 @@ public partial struct S
                 // (12,9): error CS1604: Cannot assign to 'i' because it is read-only
                 //         i++;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(12, 9));
+
+            var method = comp.GetMember<NamedTypeSymbol>("S").GetMethod("M");
+            // Symbol APIs always return the declaration part of the partial method.
+            Assert.False(method.IsDeclaredReadOnly);
+            Assert.False(method.IsEffectivelyReadOnly);
         }
 
         [Fact]
@@ -433,6 +442,11 @@ public partial struct S
                 // (10,18): error CS8662: Both partial method declarations must be readonly or neither may be readonly
                 //     partial void M()
                 Diagnostic(ErrorCode.ERR_PartialMethodReadOnlyDifference, "M").WithLocation(10, 18));
+
+            var method = comp.GetMember<NamedTypeSymbol>("S").GetMethod("M");
+            // Symbol APIs always return the declaration part of the partial method.
+            Assert.True(method.IsDeclaredReadOnly);
+            Assert.True(method.IsEffectivelyReadOnly);
         }
 
         [Fact]
