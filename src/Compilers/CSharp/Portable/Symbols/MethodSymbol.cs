@@ -302,6 +302,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ExplicitInterfaceImplementations.Any(); }
         }
 
+        // PROTOTYPE: this should become public API
+        /// <summary>
+        /// Indicates whether the method is declared readonly, i.e.
+        /// whether 'this' is readonly in the scope of the method.
+        /// See also <see cref="IsEffectivelyReadOnly"/>
+        /// </summary>
+        internal abstract bool IsDeclaredReadOnly { get; }
+
+        // PROTOTYPE: this should become public API
+        /// <summary>
+        /// Indicates whether the method is effectively readonly,
+        /// by either the method or the containing type being marked readonly.
+        /// </summary>
+        internal bool IsEffectivelyReadOnly => (IsDeclaredReadOnly || ContainingType?.IsReadOnly == true) && IsValidReadOnlyTarget;
+
+        protected bool IsValidReadOnlyTarget => !IsStatic && ContainingType.IsStructType() && MethodKind != MethodKind.Constructor;
+
         /// <summary>
         /// Returns interface methods explicitly implemented by this method.
         /// </summary>

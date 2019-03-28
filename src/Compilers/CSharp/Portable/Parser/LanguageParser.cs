@@ -2388,6 +2388,9 @@ parse_member_name:;
 
                     Debug.Assert(identifierOrThisOpt != null);
 
+                    // check availability of readonly members feature for indexers, properties and methods
+                    CheckForVersionSpecificModifiers(modifiers, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
+
                     if (identifierOrThisOpt.Kind == SyntaxKind.ThisKeyword)
                     {
                         return this.ParseIndexerDeclaration(attributes, modifiers, type, explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt);
@@ -3401,6 +3404,9 @@ parse_member_name:;
                 this.ParseAttributeDeclarations(accAttrs);
                 this.ParseModifiers(accMods, forAccessors: true);
 
+                // check availability of readonly members feature for accessors
+                CheckForVersionSpecificModifiers(accMods, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
+
                 if (!isEvent)
                 {
                     if (accMods != null && accMods.Count > 0)
@@ -3964,6 +3970,9 @@ tryAgain:
             TypeParameterListSyntax typeParameterList;
 
             this.ParseMemberName(out explicitInterfaceOpt, out identifierOrThisOpt, out typeParameterList, isEvent: true);
+
+            // check availability of readonly members feature for custom events
+            CheckForVersionSpecificModifiers(modifiers, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyMembers);
 
             // If we got an explicitInterfaceOpt but not an identifier, then we're in the special
             // case for ERR_ExplicitEventFieldImpl (see ParseMemberName for details).
