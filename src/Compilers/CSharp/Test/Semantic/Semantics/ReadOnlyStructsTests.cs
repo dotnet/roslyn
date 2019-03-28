@@ -378,6 +378,84 @@ public struct S
         }
 
         [Fact]
+        public void ReadOnlyMethod_Partial_01()
+        {
+            var csharp = @"
+public partial struct S
+{
+    public int i;
+    readonly partial void M();
+}
+
+public partial struct S
+{
+    readonly partial void M()
+    {
+        i++;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (12,9): error CS1604: Cannot assign to 'i' because it is read-only
+                //         i++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Partial_02()
+        {
+            var csharp = @"
+public partial struct S
+{
+    public int i;
+    partial void M();
+}
+
+public partial struct S
+{
+    readonly partial void M()
+    {
+        i++;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (10,27): error CS8662: Both partial method declarations must be readonly or neither may be readonly
+                //     readonly partial void M()
+                Diagnostic(ErrorCode.ERR_PartialMethodReadOnlyDifference, "M").WithLocation(10, 27),
+                // (12,9): error CS1604: Cannot assign to 'i' because it is read-only
+                //         i++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Partial_03()
+        {
+            var csharp = @"
+public partial struct S
+{
+    public int i;
+    readonly partial void M();
+}
+
+public partial struct S
+{
+    partial void M()
+    {
+        i++;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8662: Both partial method declarations must be readonly or neither may be readonly
+                //     partial void M()
+                Diagnostic(ErrorCode.ERR_PartialMethodReadOnlyDifference, "M").WithLocation(10, 18));
+        }
+
+        [Fact]
         public void ReadOnlyMethod_GetPinnableReference()
         {
             var csharp = @"
