@@ -365,8 +365,8 @@ interface IGoo
     </Project>
 </Workspace>";
 
-            await VerifyItemExistsAsync(markup, "Goo1()"); // https://github.com/dotnet/roslyn/issues/34456: Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
-            await VerifyItemExistsAsync(markup, "Prop1"); // https://github.com/dotnet/roslyn/issues/34456: Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
+            await VerifyItemIsAbsentAsync(markup, "Goo1()");
+            await VerifyItemIsAbsentAsync(markup, "Prop1");
             await VerifyItemExistsAsync(markup, "Goo2()");
             await VerifyItemExistsAsync(markup, "Prop2");
         }
@@ -401,8 +401,8 @@ interface IGoo
     </Project>
 </Workspace>";
 
-            await VerifyItemExistsAsync(markup, "Goo1()"); // https://github.com/dotnet/roslyn/issues/34456: Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
-            await VerifyItemExistsAsync(markup, "Prop1"); // https://github.com/dotnet/roslyn/issues/34456: Should use VerifyItemIsAbsentAsync instead after test infrastructure is changed to actually build two distinct projects from the XML 
+            await VerifyItemIsAbsentAsync(markup, "Goo1()");
+            await VerifyItemIsAbsentAsync(markup, "Prop1");
             await VerifyItemExistsAsync(markup, "Goo2()");
             await VerifyItemExistsAsync(markup, "Prop2");
         }
