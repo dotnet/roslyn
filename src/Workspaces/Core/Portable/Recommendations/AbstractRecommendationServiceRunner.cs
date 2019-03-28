@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Recommendations
         /// <param name="ordinalInInvocation">ordinal of the arguments of function: (a,b) or (a,b,c) in the example above</param>
         /// <param name="ordinalInLambda">ordinal of the lambda parameters, e.g. a, b or c.</param>
         /// <returns></returns>
-        protected ImmutableArray<ITypeSymbol> GetTypeSymbols(ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
+        private ImmutableArray<ITypeSymbol> GetTypeSymbols(ImmutableArray<ISymbol> candidateSymbols, int ordinalInInvocation, int ordinalInLambda)
         {
             var expressionSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
             var funcSymbol = _context.SemanticModel.Compilation.GetTypeByMetadataName(typeof(Func<>).FullName);
