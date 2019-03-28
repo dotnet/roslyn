@@ -4673,6 +4673,111 @@ public class Class : Interface<int>
         }
 
         [Fact]
+        public void TestExplicitImplementationAmbiguousInterfaceMethodWithDifferingConstraints()
+        {
+            var text = @"
+public interface Interface<T>
+{
+    void Method<V>(int i) where V : new();
+    void Method<V>(T i);
+}
+
+public class Class : Interface<int>
+{
+    void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+    public void Method<V>(int i) { } //this is here to avoid CS0535 - not implementing interface method
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,25): warning CS0473: Explicit interface implementation 'Class.Interface<int>.Method<V>(int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<int>.Method<V>(int)").WithLocation(10, 25));
+        }
+
+        [Fact]
+        public void TestExplicitImplementationAmbiguousInterfaceMethodWithDifferingConstraints_OppositeDeclarationOrder()
+        {
+            var text = @"
+public interface Interface<T>
+{
+    void Method<V>(T i);
+    void Method<V>(int i) where V : new();
+}
+
+public class Class : Interface<int>
+{
+    void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+    public void Method<V>(int i) { } //this is here to avoid CS0535 - not implementing interface method
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (10,25): warning CS0473: Explicit interface implementation 'Class.Interface<int>.Method<V>(int)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<int>.Method<V>(int)").WithLocation(10, 25),
+                // (10,48): error CS0304: Cannot create an instance of the variable type 'V' because it does not have the new() constraint
+                //     void Interface<int>.Method<V>(int i) { _ = new V(); } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.ERR_NoNewTyvar, "new V()").WithArguments("V").WithLocation(10, 48),
+                // (11,17): error CS0425: The constraints for type parameter 'V' of method 'Class.Method<V>(int)' must match the constraints for type parameter 'V' of interface method 'Interface<int>.Method<V>(int)'. Consider using an explicit interface implementation instead.
+                //     public void Method<V>(int i) { } //this is here to avoid CS0535 - not implementing interface method
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Method").WithArguments("V", "Class.Method<V>(int)", "V", "Interface<int>.Method<V>(int)").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void TestExplicitImplementationAmbiguousInterfaceMethod_DifferingNullabilitAnnotations1()
+        {
+            var text = @"
+#nullable enable
+public interface Interface<T> where T : class
+{
+    void Method(string i);
+    void Method(T? i);
+}
+
+public class Class : Interface<string>
+{
+    void Interface<string>.Method(string i) { } //this explicitly implements both methods in Interface<string>
+    public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
+}
+";
+            // We report ErrorCode.WRN_ExplicitImplCollision because MemberSignatureComparer.RuntimeSignatureComparer considers `void Method(string i)` and `void Method(T? i)` equal when T is string
+            // However the runtime will actually treat them differently, so this warning is unnecessary.
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,28): warning CS0473: Explicit interface implementation 'Class.Interface<string>.Method(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<string>.Method(string i) { } //this explicitly implements both methods in Interface<int>
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<string>.Method(string)").WithLocation(11, 28),
+                // (12,17): warning CS8614: Nullability of reference types in type of parameter 'i' doesn't match implicitly implemented member 'void Interface<string>.Method(string? i)'.
+                //     public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Method").WithArguments("i", "void Interface<string>.Method(string? i)").WithLocation(12, 17));
+        }
+
+        [Fact]
+        public void TestExplicitImplementationAmbiguousInterfaceMethod_DifferingNullabilitAnnotations2()
+        {
+            var text = @"
+#nullable enable
+public interface Interface<T> where T : class
+{
+    void Method(string i);
+    void Method(T? i);
+}
+
+public class Class : Interface<string>
+{
+    void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
+    public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
+}
+";
+            // We report ErrorCode.WRN_ExplicitImplCollision because MemberSignatureComparer.RuntimeSignatureComparer considers `void Method(string i)` and `void Method(T? i)` equal when T is string
+            // However the runtime will actually treat them differently, so this warning is unnecessary.
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (11,28): warning CS0473: Explicit interface implementation 'Class.Interface<string>.Method(string?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<string>.Method(string?)").WithLocation(11, 28));
+        }
+
+        [Fact]
         public void TestExplicitImplementationAmbiguousInterfaceIndexer()
         {
             var text = @"
@@ -8262,6 +8367,388 @@ public class D : C, I0<dynamic>
                 // public class D : C, I0<dynamic>
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0<dynamic>").WithArguments("D", "I0<dynamic>.M()").WithLocation(12, 21)
                 );
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableStructParameter_WithMethodTakingNullableStructParameter()
+        {
+            var source = @"
+interface I
+{
+    void Foo<T>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Foo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableClassParameter_WithMethodTakingNullableClassParameter()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T? value) where T : class;
+}
+
+class C1 : I
+{
+    public void Foo<T>(T? value) where T : class { }
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNonNullableClassParameter_WithMethodTakingNullableClassParameter()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T value) where T : class;
+}
+
+class C1 : I
+{
+    public void Foo<T>(T? value) where T : class { }
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Foo<T>(T value)'.
+                //     public void Foo<T>(T? value) where T : class { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T value)").WithLocation(10, 17),
+                // (15,12): warning CS8617: Nullability of reference types in type of parameter 'value' doesn't match implemented member 'void I.Foo<T>(T value)'.
+                //     void I.Foo<T>(T? value) { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T value)").WithLocation(15, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ImplementMethodTakingNullableClassParameter_WithMethodTakingNonNullableClassParameter()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T? value) where T : class;
+}
+
+class C1 : I
+{
+    public void Foo<T>(T value) where T : class { }
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Foo<T>(T? value)'.
+                //     public void Foo<T>(T value) where T : class { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T? value)").WithLocation(10, 17),
+                // (15,12): warning CS8617: Nullability of reference types in type of parameter 'value' doesn't match implemented member 'void I.Foo<T>(T? value)'.
+                //     void I.Foo<T>(T value) { }
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T? value)").WithLocation(15, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ExplicitImplementationOverloadAcceptingNullableT()
+        {
+            var source = @"
+interface I
+{
+    void Foo<T>(T value);
+    void Foo<T>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Foo<T>(T value) { }
+    public void Foo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T value) { }
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ExplicitImplementationOverloadAcceptingNullableT_OppositeDeclarationOrder()
+        {
+            var source = @"
+interface I
+{
+    void Foo<T>(T? value) where T : struct;
+    void Foo<T>(T value);
+}
+
+class C1 : I
+{
+    public void Foo<T>(T value) { }
+    public void Foo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T value) { }
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ExplicitImplementationOverloadAcceptingNullableT_WithClassConstraint()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T value) where T : class;
+    void Foo<T>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Foo<T>(T value) where T : class { }
+    public void Foo<T>(T? value) where T : struct { }
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T value) { }
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T? value) where T : class;
+    void Foo<T>(T? value) where T : struct;
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
+                // (11,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void I.Foo<T>(T? value) { }
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(11, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfStructMember()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T? value) where T : class;
+    void Foo<T>(T? value) where T : struct;
+}
+
+class C2 : I
+{
+    public void Foo<T>(T? value) where T : struct { }
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (12,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void I.Foo<T>(T? value) { }
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(12, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfClassMember()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T? value) where T : class;
+    void Foo<T>(T? value) where T : struct;
+}
+
+class C2 : I
+{
+    public void Foo<T>(T? value) where T : class { }
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
+                // (12,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void I.Foo<T>(T? value) { }
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(12, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfStructMember_OppositeDeclarationOrder()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T? value) where T : struct;
+    void Foo<T>(T? value) where T : class;
+}
+
+class C2 : I
+{
+    public void Foo<T>(T? value) where T : struct { }
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
+                // (12,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void I.Foo<T>(T? value) { }
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(12, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_WithImplicitOverrideOfClassMember_OppositeDeclarationOrder()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T? value) where T : struct;
+    void Foo<T>(T? value) where T : class;
+}
+
+class C2 : I
+{
+    public void Foo<T>(T? value) where T : class { }
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (12,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void I.Foo<T>(T? value) { }
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(12, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_OppositeDeclarationOrder()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    void Foo<T>(T? value) where T : struct;
+    void Foo<T>(T? value) where T : class;
+}
+
+class C2 : I
+{
+    void I.Foo<T>(T? value) { }
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
+                // (11,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     void I.Foo<T>(T? value) { }
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(11, 12));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_DifferingReturnType()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    string Foo<T>(T? value) where T : class;
+    int Foo<T>(T? value) where T : struct;
+}
+
+class C2 : I
+{
+    int I.Foo<T>(T? value) => 42;
+    string I.Foo<T>(T? value) => ""42"";
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void AmbiguousExplicitInterfaceImplementation_ReturnTypeDifferingInNullabilityAnotation()
+        {
+            var source = @"
+#nullable enable
+interface I
+{
+    object Foo<T>(T? value) where T : class;
+    object? Foo<T>(T? value) where T : struct;
+}
+
+class C2 : I
+{
+    object I.Foo<T>(T? value) => 42;
+    object? I.Foo<T>(T? value) => 42;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
         }
     }
 }
