@@ -456,6 +456,26 @@ public partial struct S
         }
 
         [Fact]
+        public void ReadOnlyMethod_ExplicitInterfaceImplementation()
+        {
+            var csharp = @"
+public interface I
+{
+    void M();
+}
+
+public struct S : I
+{
+    readonly void I.M()
+    {
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void ReadOnlyMethod_GetPinnableReference()
         {
             var csharp = @"
