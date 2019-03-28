@@ -24,7 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
     {
         private readonly ICommandHandlerServiceFactory _commandFactory;
         private readonly IFeatureServiceFactory _featureServiceFactory;
-        private readonly object _completionDisabledTokenLock = new object();
         private AbstractDebuggerIntelliSenseContext _context;
         private IOleCommandTarget _originalNextCommandFilter;
         private IFeatureDisableToken _completionDisabledToken;
@@ -46,37 +45,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
             var featureService = _featureServiceFactory.GetOrCreate(WpfTextView);
             if (!featureService.IsEnabled(PredefinedEditorFeatureNames.Completion))
             {
-                lock (_completionDisabledTokenLock)
-                {
-                    if (_completionDisabledToken == null)
-                    {
-                        return;
-                    }
-
-                    _completionDisabledToken.Dispose();
-                    _completionDisabledToken = null;
-                }
-
-                var document = _context.ContextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
+                if (_completionDisabledToken == null)
                 {
                     return;
                 }
+
+                _completionDisabledToken.Dispose();
+                _completionDisabledToken = null;
+
+                // open the document
+                _context.ContextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             }
         }
 
         internal void DisableCompletion()
         {
             var featureService = _featureServiceFactory.GetOrCreate(WpfTextView);
-            if (featureService.IsEnabled(PredefinedEditorFeatureNames.Completion))
+            if (featureService.IsEnabled(PredefinedEditorFeatureNames.Completion) && _completionDisabledToken == null)
             {
-                lock (_completionDisabledTokenLock)
-                {
-                    if (_completionDisabledToken == null)
-                    {
-                        _completionDisabledToken = featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
-                    }
-                }
+                _completionDisabledToken = featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
             }
         }
 
