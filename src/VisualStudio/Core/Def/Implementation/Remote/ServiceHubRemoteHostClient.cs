@@ -242,8 +242,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             lock (_globalNotificationsGate)
             {
-                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
-                    continuation, _shutdownCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+                _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
+                    continuation, _shutdownCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.Default);
             }
 
             async Task<GlobalNotificationState> continuation(Task<GlobalNotificationState> previousTask)
@@ -265,8 +265,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             lock (_globalNotificationsGate)
             {
-                _globalNotificationsTask = _globalNotificationsTask.ContinueWith(
-                    continuation, _shutdownCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+                _globalNotificationsTask = _globalNotificationsTask.SafeContinueWithFromAsync(
+                    continuation, _shutdownCancellationTokenSource.Token, TaskContinuationOptions.None, TaskScheduler.Default);
             }
 
             async Task<GlobalNotificationState> continuation(Task<GlobalNotificationState> previousTask)
