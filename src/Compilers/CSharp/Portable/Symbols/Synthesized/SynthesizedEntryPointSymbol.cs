@@ -302,12 +302,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {
-            /// <summary> The user-defined asynchronous main method. </summary>
+            /// <summary> The syntax for the user-defined asynchronous main method. </summary>
             private readonly CSharpSyntaxNode _userMainReturnTypeSyntax;
 
             private readonly BoundExpression _getAwaiterGetResultCall;
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
+
+            /// <summary> The user-defined asynchronous main method. </summary>
+            internal MethodSymbol UserMain { get; }
 
             internal AsyncForwardEntryPoint(CSharpCompilation compilation, NamedTypeSymbol containingType, MethodSymbol userMain) :
                 base(containingType)
@@ -316,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // parameter checks for determining entrypoint validity.
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
+                UserMain = userMain;
                 _userMainReturnTypeSyntax = userMain.ExtractReturnTypeSyntax();
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
