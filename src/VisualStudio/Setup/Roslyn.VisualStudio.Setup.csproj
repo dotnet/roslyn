@@ -235,35 +235,35 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="CSharpInteractivePackageRegistration.pkgdef" />
-    <Content Include="roslynCodeAnalysis.servicehub.service.json">
+    <Content Include="..\ServiceHubConfig\roslynRemoteHost.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="roslynRemoteHost.servicehub.service.json">
+    <Content Include="..\ServiceHubConfig\roslynRemoteHost64.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="roslynRemoteSymbolSearchUpdateEngine.servicehub.service.json">
+    <Content Include="..\ServiceHubConfig\roslynRemoteSymbolSearchUpdateEngine.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="roslynSnapshot.servicehub.service.json">
+    <Content Include="..\ServiceHubConfig\roslynRemoteSymbolSearchUpdateEngine64.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="roslynSnapshot64.servicehub.service.json">
+    <Content Include="..\ServiceHubConfig\roslynSnapshot.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="roslynCodeAnalysis64.servicehub.service.json">
+    <Content Include="..\ServiceHubConfig\roslynSnapshot64.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="roslynRemoteHost64.servicehub.service.json">
+    <Content Include="..\ServiceHubConfig\roslynCodeAnalysis.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="roslynRemoteSymbolSearchUpdateEngine64.servicehub.service.json">
+    <Content Include="..\ServiceHubConfig\roslynCodeAnalysis64.servicehub.service.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
