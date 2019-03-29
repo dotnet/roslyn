@@ -3693,25 +3693,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void TrackNullableStateOfTupleConversion(BoundConversion node)
-        {
-            Debug.Assert(node.ConversionKind == ConversionKind.ImplicitTuple || node.ConversionKind == ConversionKind.ExplicitTuple);
-
-            int valueSlot = MakeSlot(node.Operand);
-            if (valueSlot < 0)
-            {
-                return;
-            }
-
-            int slot = GetOrCreatePlaceholderSlot(node);
-            if (slot < 0)
-            {
-                return;
-            }
-
-            TrackNullableStateOfTupleConversion(node.Conversion, node.Type, node.Operand.Type, slot, valueSlot);
-        }
-
         private void TrackNullableStateOfTupleConversion(
             BoundExpression node,
             Conversion conversion,
@@ -4049,7 +4030,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     int valueSlot = MakeSlot(operand);
                                     if (valueSlot > 0)
                                     {
-                                        int containingSlot = GetOrCreateObjectCreationPlaceholderSlot(conv);
+                                        int containingSlot = GetOrCreatePlaceholderSlot(conv);
                                         Debug.Assert(containingSlot > 0);
                                         TrackNullableStateOfNullableValue(containingSlot, convertedType, operand, underlyingType.ToTypeWithState(), valueSlot);
                                     }
@@ -4104,7 +4085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 int valueSlot = MakeSlot(conv.Operand);
                                 if (valueSlot > 0)
                                 {
-                                    int slot = GetOrCreateObjectCreationPlaceholderSlot(conv);
+                                    int slot = GetOrCreatePlaceholderSlot(conv);
                                     if (slot > 0)
                                     {
                                         TrackNullableStateOfTupleConversion(conv, conv.Conversion, conv.Type, conv.Operand.Type, slot, valueSlot, assignmentKind, target, reportWarnings: reportRemainingWarnings);
