@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.Testing
     /// <summary>
     /// Structure that stores information about a <see cref="Diagnostic"/> appearing in a source.
     /// </summary>
-    public struct DiagnosticResult
+    public readonly struct DiagnosticResult
     {
         public static readonly DiagnosticResult[] EmptyDiagnosticResults = { };
 
         private static readonly object[] EmptyArguments = new object[0];
 
-        private ImmutableArray<FileLinePositionSpan> _spans;
-        private bool _suppressMessage;
-        private string _message;
+        private readonly ImmutableArray<FileLinePositionSpan> _spans;
+        private readonly bool _suppressMessage;
+        private readonly string _message;
 
         public DiagnosticResult(string id, DiagnosticSeverity severity)
             : this()
@@ -36,9 +36,27 @@ namespace Microsoft.CodeAnalysis.Testing
             MessageFormat = descriptor.MessageFormat;
         }
 
+        private DiagnosticResult(
+            ImmutableArray<FileLinePositionSpan> spans,
+            bool suppressMessage,
+            string message,
+            DiagnosticSeverity severity,
+            string id,
+            LocalizableString messageFormat,
+            object[] messageArguments)
+        {
+            _spans = spans;
+            _suppressMessage = suppressMessage;
+            _message = message;
+            Severity = severity;
+            Id = id;
+            MessageFormat = messageFormat;
+            MessageArguments = messageArguments;
+        }
+
         public ImmutableArray<FileLinePositionSpan> Spans => _spans.IsDefault ? ImmutableArray<FileLinePositionSpan>.Empty : _spans;
 
-        public DiagnosticSeverity Severity { get; private set; }
+        public DiagnosticSeverity Severity { get; }
 
         public string Id { get; }
 
@@ -65,9 +83,9 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public LocalizableString MessageFormat { get; private set; }
+        public LocalizableString MessageFormat { get; }
 
-        public object[] MessageArguments { get; private set; }
+        public object[] MessageArguments { get; }
 
         public bool HasLocation => !Spans.IsEmpty;
 
@@ -79,31 +97,50 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public DiagnosticResult WithSeverity(DiagnosticSeverity severity)
         {
-            var result = this;
-            result.Severity = severity;
-            return result;
+            return new DiagnosticResult(
+                spans: _spans,
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
         public DiagnosticResult WithArguments(params object[] arguments)
         {
-            var result = this;
-            result.MessageArguments = arguments;
-            return result;
+            return new DiagnosticResult(
+                spans: _spans,
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: arguments);
         }
 
         public DiagnosticResult WithMessage(string message)
         {
-            var result = this;
-            result._message = message;
-            result._suppressMessage = message is null;
-            return result;
+            return new DiagnosticResult(
+                spans: _spans,
+                suppressMessage: message is null,
+                message: message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
         public DiagnosticResult WithMessageFormat(LocalizableString messageFormat)
         {
-            var result = this;
-            result.MessageFormat = messageFormat;
-            return result;
+            return new DiagnosticResult(
+                spans: _spans,
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: messageFormat,
+                messageArguments: MessageArguments);
         }
 
         public DiagnosticResult WithLocation(int line, int column)
@@ -134,7 +171,6 @@ namespace Microsoft.CodeAnalysis.Testing
                 return this;
             }
 
-            var result = this;
             var spans = Spans.ToBuilder();
             for (var i = 0; i < spans.Count; i++)
             {
@@ -144,8 +180,14 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
             }
 
-            result._spans = spans.MoveToImmutable();
-            return result;
+            return new DiagnosticResult(
+                spans: spans.MoveToImmutable(),
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
         public DiagnosticResult WithLineOffset(int offset)
@@ -165,15 +207,26 @@ namespace Microsoft.CodeAnalysis.Testing
                 spansBuilder[i] = new FileLinePositionSpan(result.Spans[i].Path, newStartLinePosition, newEndLinePosition);
             }
 
-            result._spans = spansBuilder.MoveToImmutable();
-            return result;
+            return new DiagnosticResult(
+                spans: spansBuilder.MoveToImmutable(),
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
         private DiagnosticResult AppendSpan(FileLinePositionSpan span)
         {
-            var result = this;
-            result._spans = Spans.Add(span);
-            return result;
+            return new DiagnosticResult(
+                spans: Spans.Add(span),
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
         public override string ToString()
