@@ -143,6 +143,18 @@ namespace Microsoft.CodeAnalysis.Testing
                 messageArguments: MessageArguments);
         }
 
+        public DiagnosticResult WithNoLocation()
+        {
+            return new DiagnosticResult(
+                spans: ImmutableArray<DiagnosticLocation>.Empty,
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
+        }
+
         public DiagnosticResult WithLocation(int line, int column)
             => WithLocation(path: string.Empty, new LinePosition(line - 1, column - 1));
 
