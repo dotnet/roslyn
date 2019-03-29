@@ -190,6 +190,12 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
+    /// <summary>Called when the visitor visits a BaseExpressionTypeClauseSyntax node.</summary>
+    public virtual TResult VisitBaseExpressionTypeClause(BaseExpressionTypeClauseSyntax node)
+    {
+      return this.DefaultVisit(node);
+    }
+
     /// <summary>Called when the visitor visits a BaseExpressionSyntax node.</summary>
     public virtual TResult VisitBaseExpression(BaseExpressionSyntax node)
     {
@@ -1479,6 +1485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     /// <summary>Called when the visitor visits a ThisExpressionSyntax node.</summary>
     public virtual void VisitThisExpression(ThisExpressionSyntax node)
+    {
+      this.DefaultVisit(node);
+    }
+
+    /// <summary>Called when the visitor visits a BaseExpressionTypeClauseSyntax node.</summary>
+    public virtual void VisitBaseExpressionTypeClause(BaseExpressionTypeClauseSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -2815,10 +2827,19 @@ namespace Microsoft.CodeAnalysis.CSharp
       return node.Update(token);
     }
 
+    public override SyntaxNode VisitBaseExpressionTypeClause(BaseExpressionTypeClauseSyntax node)
+    {
+      var openParenToken = this.VisitToken(node.OpenParenToken);
+      var baseType = (TypeSyntax)this.Visit(node.BaseType);
+      var closeParenToken = this.VisitToken(node.CloseParenToken);
+      return node.Update(openParenToken, baseType, closeParenToken);
+    }
+
     public override SyntaxNode VisitBaseExpression(BaseExpressionSyntax node)
     {
       var token = this.VisitToken(node.Token);
-      return node.Update(token);
+      var typeClause = (BaseExpressionTypeClauseSyntax)this.Visit(node.TypeClause);
+      return node.Update(token, typeClause);
     }
 
     public override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
@@ -5397,8 +5418,37 @@ namespace Microsoft.CodeAnalysis.CSharp
       return SyntaxFactory.ThisExpression(SyntaxFactory.Token(SyntaxKind.ThisKeyword));
     }
 
+    /// <summary>Creates a new BaseExpressionTypeClauseSyntax instance.</summary>
+    public static BaseExpressionTypeClauseSyntax BaseExpressionTypeClause(SyntaxToken openParenToken, TypeSyntax baseType, SyntaxToken closeParenToken)
+    {
+      switch (openParenToken.Kind())
+      {
+        case SyntaxKind.OpenParenToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(openParenToken));
+      }
+      if (baseType == null)
+        throw new ArgumentNullException(nameof(baseType));
+      switch (closeParenToken.Kind())
+      {
+        case SyntaxKind.CloseParenToken:
+          break;
+        default:
+          throw new ArgumentException(nameof(closeParenToken));
+      }
+      return (BaseExpressionTypeClauseSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.BaseExpressionTypeClause((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node, baseType == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.TypeSyntax)baseType.Green, (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node).CreateRed();
+    }
+
+
+    /// <summary>Creates a new BaseExpressionTypeClauseSyntax instance.</summary>
+    public static BaseExpressionTypeClauseSyntax BaseExpressionTypeClause(TypeSyntax baseType)
+    {
+      return SyntaxFactory.BaseExpressionTypeClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), baseType, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+    }
+
     /// <summary>Creates a new BaseExpressionSyntax instance.</summary>
-    public static BaseExpressionSyntax BaseExpression(SyntaxToken token)
+    public static BaseExpressionSyntax BaseExpression(SyntaxToken token, BaseExpressionTypeClauseSyntax typeClause)
     {
       switch (token.Kind())
       {
@@ -5407,14 +5457,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException(nameof(token));
       }
-      return (BaseExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.BaseExpression((Syntax.InternalSyntax.SyntaxToken)token.Node).CreateRed();
+      return (BaseExpressionSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.BaseExpression((Syntax.InternalSyntax.SyntaxToken)token.Node, typeClause == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.BaseExpressionTypeClauseSyntax)typeClause.Green).CreateRed();
     }
 
 
     /// <summary>Creates a new BaseExpressionSyntax instance.</summary>
-    public static BaseExpressionSyntax BaseExpression()
+    public static BaseExpressionSyntax BaseExpression(BaseExpressionTypeClauseSyntax typeClause = default(BaseExpressionTypeClauseSyntax))
     {
-      return SyntaxFactory.BaseExpression(SyntaxFactory.Token(SyntaxKind.BaseKeyword));
+      return SyntaxFactory.BaseExpression(SyntaxFactory.Token(SyntaxKind.BaseKeyword), typeClause);
     }
 
     /// <summary>Creates a new LiteralExpressionSyntax instance.</summary>

@@ -218,7 +218,8 @@ function BuildSolution() {
     # an arcade bug
     # https://github.com/dotnet/arcade/issues/2220
     $quietRestore = !($ci -or ($bootstrapDir -ne ""))
-    $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
+    $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.0%3Bnetcoreapp2.1" } else { "" }
+    
     $ibcSourceBranchName = GetIbcSourceBranchName
     $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
 
@@ -255,7 +256,7 @@ function BuildSolution() {
             /p:TreatWarningsAsErrors=true `
             /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
             /p:VisualStudioIbcDropId=$ibcDropId `
-            /p:EnablePartialNgenOptimization=$applyOptimizationData `
+            /p:EnableNgenOptimization=$applyOptimizationData `
             /p:IbcOptimizationDataDir=$ibcDir `
             $suppressExtensionDeployment `
             @properties
