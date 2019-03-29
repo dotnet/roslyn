@@ -1709,9 +1709,9 @@ public struct S
             var verifier = CompileAndVerify(csharp, expectedOutput: "123");
 
             verifier.VerifyDiagnostics(
-                // (9,9): warning CS8655: Call to non-readonly member 'M2' from a 'readonly' member results in an implicit copy of 'this'.
+                // (9,9): warning CS8655: Call to non-readonly member 'S.M2()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         M2();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M2").WithArguments("M2", "this").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M2").WithArguments("S.M2()", "this").WithLocation(9, 9));
 
             verifier.VerifyIL("S.M1", @"
 {
@@ -2208,15 +2208,15 @@ public struct S
             var verifier = CompileAndVerify(csharp);
 
             verifier.VerifyDiagnostics(
-                // (12,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
+                // (12,9): warning CS8655: Call to non-readonly member 'S.ToString()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         ToString();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(12, 9),
-                // (13,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("S.ToString()", "this").WithLocation(12, 9),
+                // (13,9): warning CS8655: Call to non-readonly member 'S.GetHashCode()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         GetHashCode();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(13, 9),
-                // (14,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("S.GetHashCode()", "this").WithLocation(13, 9),
+                // (14,9): warning CS8655: Call to non-readonly member 'S.Equals(object)' from a 'readonly' member results in an implicit copy of 'this'.
                 //         Equals(null);
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(14, 9));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("S.Equals(object)", "this").WithLocation(14, 9));
 
             // Verify that calls to non-readonly overrides pass the address of a temp, not the address of 'this'
             verifier.VerifyIL("S.M", @"
@@ -2361,18 +2361,18 @@ public struct S
             var verifier = CompileAndVerify(csharp);
 
             verifier.VerifyDiagnostics(
-                // (12,9): warning CS8655: Call to non-readonly member 'GetType' from a 'readonly' member results in an implicit copy of 'this'.
+                // (12,9): warning CS8655: Call to non-readonly member 'S.GetType()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         GetType();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetType").WithArguments("GetType", "this").WithLocation(12, 9),
-                // (13,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetType").WithArguments("S.GetType()", "this").WithLocation(12, 9),
+                // (13,9): warning CS8655: Call to non-readonly member 'S.ToString()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         ToString();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(13, 9),
-                // (14,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("S.ToString()", "this").WithLocation(13, 9),
+                // (14,9): warning CS8655: Call to non-readonly member 'S.GetHashCode()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         GetHashCode();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(14, 9),
-                // (15,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("S.GetHashCode()", "this").WithLocation(14, 9),
+                // (15,9): warning CS8655: Call to non-readonly member 'S.Equals(object)' from a 'readonly' member results in an implicit copy of 'this'.
                 //         Equals(null);
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(15, 9));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("S.Equals(object)", "this").WithLocation(15, 9));
 
             // Verify that calls to new non-readonly members pass an address to a temp and that calls to base members use a box.
             verifier.VerifyIL("S.M", @"

@@ -508,9 +508,9 @@ public unsafe struct S2
 ";
             var comp = CreateCompilation(csharp, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
-                // (12,25): warning CS8655: Call to non-readonly member 'GetPinnableReference' from a 'readonly' member results in an implicit copy of 'this'.
+                // (12,25): warning CS8655: Call to non-readonly member 'S1.GetPinnableReference()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         fixed (int *i = this) {} // warn
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetPinnableReference", "this").WithLocation(12, 25));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S1.GetPinnableReference()", "this").WithLocation(12, 25));
         }
 
         [Fact]
@@ -614,9 +614,9 @@ public struct S
 
             var verifier = CompileAndVerify(csharp, expectedOutput: "123");
             verifier.VerifyDiagnostics(
-                // (11,13): warning CS8655: Call to non-readonly member 'M' from a 'readonly' member results in an implicit copy of 'this'.
+                // (11,13): warning CS8655: Call to non-readonly member 'S.M()' from a 'readonly' member results in an implicit copy of 'this'.
                 //             M();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M").WithArguments("M", "this").WithLocation(11, 13));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M").WithArguments("S.M()", "this").WithLocation(11, 13));
         }
 
         [Fact]
@@ -656,9 +656,9 @@ public struct S
 
             var verifier = CompileAndVerify(csharp, expectedOutput: "123");
             verifier.VerifyDiagnostics(
-                // (11,17): warning CS8655: Call to non-readonly member 'get_P2' from a 'readonly' member results in an implicit copy of 'this'.
-                //             _ = P2;
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "P2").WithArguments("get_P2", "this").WithLocation(11, 17));
+                // (11,17): warning CS8655: Call to non-readonly member 'S.P2.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //             _ = P2; // warning
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "P2").WithArguments("S.P2.get", "this").WithLocation(11, 17));
         }
 
         [Fact]
@@ -1416,9 +1416,9 @@ public struct S2
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (13,27): warning CS8655: Call to non-readonly member 'GetEnumerator' from a 'readonly' member results in an implicit copy of 'this'.
+                // (13,27): warning CS8655: Call to non-readonly member 'S1.GetEnumerator()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         foreach (var x in this) {} // warning-- implicit copy
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetEnumerator", "this").WithLocation(13, 27));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S1.GetEnumerator()", "this").WithLocation(13, 27));
         }
 
         [Fact]
@@ -1479,9 +1479,9 @@ public struct S2
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { csharp, AsyncStreamsTypes });
             comp.VerifyDiagnostics(
-                // (16,33): warning CS8655: Call to non-readonly member 'GetAsyncEnumerator' from a 'readonly' member results in an implicit copy of 'this'.
+                // (16,33): warning CS8655: Call to non-readonly member 'S1.GetAsyncEnumerator()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         await foreach (var x in this) {} // warn
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetAsyncEnumerator", "this").WithLocation(16, 33));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S1.GetAsyncEnumerator()", "this").WithLocation(16, 33));
         }
 
         [Fact]
@@ -1523,9 +1523,9 @@ public ref struct S2
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (13,16): warning CS8655: Call to non-readonly member 'Dispose' from a 'readonly' member results in an implicit copy of 'this'.
+                // (13,16): warning CS8655: Call to non-readonly member 'S1.Dispose()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         using (this) { } // should warn
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("Dispose", "this").WithLocation(13, 16));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S1.Dispose()", "this").WithLocation(13, 16));
         }
 
         [Fact]
@@ -1572,9 +1572,9 @@ public struct S2
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (11,22): warning CS8655: Call to non-readonly member 'Deconstruct' from a 'readonly' member results in an implicit copy of 'this'.
+                // (11,22): warning CS8655: Call to non-readonly member 'S1.Deconstruct(out int, out int)' from a 'readonly' member results in an implicit copy of 'this'.
                 //         var (x, y) = this; // should warn
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("Deconstruct", "this").WithLocation(11, 22));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S1.Deconstruct(out int, out int)", "this").WithLocation(11, 22));
         }
 
         [Fact]
@@ -1925,6 +1925,47 @@ public struct S
 
             comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CompoundPropertyAssignment()
+        {
+            var csharp = @"
+struct S
+{
+    int P1 { get => 123; set {} }
+    int P2 { readonly get => 123; set {} }
+    int P3 { get => 123; readonly set {} }
+    readonly int P4 { get => 123; set {} }
+
+    void M1()
+    {
+        // ok
+        P1 += 1;
+        P2 += 1;
+        P3 += 1;
+        P4 += 1;
+    }
+
+    readonly void M2()
+    {
+        P1 += 1; // error
+        P2 += 1; // error
+        P3 += 1; // warning
+        P4 += 1; // ok
+    }
+}";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (20,9): error CS1604: Cannot assign to 'P1' because it is read-only
+                //         P1 += 1; // error
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P1").WithArguments("P1").WithLocation(20, 9),
+                // (21,9): error CS1604: Cannot assign to 'P2' because it is read-only
+                //         P2 += 1; // error
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P2").WithArguments("P2").WithLocation(21, 9),
+                // (22,9): warning CS8655: Call to non-readonly member 'S.P3.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         P3 += 1; // warning
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "P3").WithArguments("S.P3.get", "this").WithLocation(22, 9));
         }
     }
 }
