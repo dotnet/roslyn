@@ -192,6 +192,11 @@
         <target state="translated">規則運算式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rename_0_to_1">
+        <source>Rename {0} to {1}</source>
+        <target state="new">Rename {0} to {1}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Report_invalid_regular_expressions">
         <source>Report invalid regular expressions</source>
         <target state="translated">回報無效的規則運算式</target>
@@ -218,13 +223,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Select_Dependents">
-        <source>_Select Dependents</source>
-        <target state="translated">選取相依項(_S)</target>
+        <source>Select _Dependents</source>
+        <target state="needs-review-translation">選取相依項(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_Public">
-        <source>_Select Public</source>
-        <target state="translated">選取公用(_S)</target>
+        <source>Select _Public</source>
+        <target state="needs-review-translation">選取公用(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_destination_and_members_to_pull_up">

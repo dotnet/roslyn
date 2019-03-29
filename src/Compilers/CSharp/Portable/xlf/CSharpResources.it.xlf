@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
-        <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</source>
-        <target state="translated">Per usare '@$' invece di '$@' per una stringa verbatim interpolata, usare la versione {0} o versioni successive del linguaggio.</target>
+        <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
+        <target state="needs-review-translation">Per usare '@$' invece di '$@' per una stringa verbatim interpolata, usare la versione {0} o versioni successive del linguaggio.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -70,6 +70,11 @@
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">Il nome '{0}' non corrisponde al parametro '{1}' di 'Deconstruct' corrispondente.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -222,14 +227,29 @@
         <target state="translated">'{0}': il tipo usato in un'istruzione using deve essere convertibile in modo implicito in 'System.IDisposable' o implementare un metodo 'Dispose' adatto. Si intendeva 'await using' invece di 'using'?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotBaseOrImplementedInterface">
+        <source>'{0}' is not base type or interface of {1}.</source>
+        <target state="new">'{0}' is not base type or interface of {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotDeclaredInBase">
+        <source>'{0}' is not an immediate member of {1}.</source>
+        <target state="new">'{0}' is not an immediate member of {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotImplementedInBase">
+        <source>'{0}' is not implemented in base interface {1}.</source>
+        <target state="new">'{0}' is not implemented in base interface {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
         <target state="translated">È previsto 'enable', 'safeonly', 'disable' o 'restore'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</source>
-        <target state="translated">Valore '{1}' di '{0}' non valido per C# {2}. Usare la versione {3} o versioni successive del linguaggio.</target>
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="needs-review-translation">Valore '{1}' di '{0}' non valido per C# {2}. Usare la versione {3} o versioni successive del linguaggio.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -270,6 +290,11 @@
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
         <target state="translated">La parte sinistra di un'assegnazione ref deve essere un parametro o una variabile locale ref.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
+        <target state="new">Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
@@ -651,6 +676,11 @@
 -modulename:&lt;stringa&gt;          Consente di specificare il nome del modulo di origine
 </target>
         <note>Visual C# Compiler Options</note>
+      </trans-unit>
+      <trans-unit id="IDS_BaseTypeInBaseExpression">
+        <source>specifying base type in base expression</source>
+        <target state="new">specifying base type in base expression</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
@@ -1323,13 +1353,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
-        <source>Possible dereference of a null reference.</source>
-        <target state="translated">Possibile dereferenziamento di un riferimento Null.</target>
+        <source>Dereference of a possibly null reference.</source>
+        <target state="needs-review-translation">Possibile dereferenziamento di un riferimento Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver_Title">
-        <source>Possible dereference of a null reference.</source>
-        <target state="translated">Possibile dereferenziamento di un riferimento Null.</target>
+        <source>Dereference of a possibly null reference.</source>
+        <target state="needs-review-translation">Possibile dereferenziamento di un riferimento Null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
@@ -1918,13 +1948,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceEventInitializer">
-        <source>'{0}': event in interface cannot have initializer</source>
-        <target state="translated">'{0}': l'evento nell'interfaccia non può avere un inizializzatore</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EventPropertyInInterface">
-        <source>An event in an interface cannot have add or remove accessors</source>
-        <target state="translated">Un evento in un'interfaccia non può avere funzioni di accesso add o remove</target>
+        <source>'{0}': instance event in interface cannot have initializer</source>
+        <target state="needs-review-translation">'{0}': l'evento nell'interfaccia non può avere un inizializzatore</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -2852,11 +2877,6 @@
         <target state="translated">Non è possibile specificare i modificatori di accessibilità per entrambe le funzioni di accesso della proprietà o dell'indicizzatore '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PropertyAccessModInInterface">
-        <source>'{0}': accessibility modifiers may not be used on accessors in an interface</source>
-        <target state="translated">'{0}': i modificatori di accessibilità non possono essere usati in funzioni di accesso in un'interfaccia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AccessModMissingAccessor">
         <source>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</source>
         <target state="translated">'{0}': i modificatori di accessibilità per le funzioni di accesso possono essere usati solo se la proprietà o l'indicizzatore ha entrambe le funzioni di accesso get e set.</target>
@@ -3511,19 +3531,14 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <target state="translated">Il membro struct '{0}' di tipo '{1}' causa un ciclo nel layout della struct</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterfacesCannotContainTypes">
-        <source>'{0}': interfaces cannot declare types</source>
-        <target state="translated">'{0}': le interfacce non possono dichiarare tipi</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainFields">
-        <source>Interfaces cannot contain fields</source>
-        <target state="translated">Le interfacce non possono contenere campi</target>
+        <source>Interfaces cannot contain instance fields</source>
+        <target state="needs-review-translation">Le interfacce non possono contenere campi</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain constructors</source>
-        <target state="translated">Le interfacce non possono contenere costruttori</target>
+        <source>Interfaces cannot contain instance constructors</source>
+        <target state="needs-review-translation">Le interfacce non possono contenere costruttori</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">
@@ -3544,11 +3559,6 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       <trans-unit id="ERR_CycleInInterfaceInheritance">
         <source>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</source>
         <target state="translated">L'interfaccia ereditata '{1}' causa un ciclo nella gerarchia delle interfacce di '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InterfaceMemberHasBody">
-        <source>'{0}': interface members cannot have a definition</source>
-        <target state="translated">'{0}': i membri di interfaccia non possono avere una definizione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HidingAbstractMethod">
@@ -3577,8 +3587,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
-        <source>'{0}' in explicit interface declaration is not a member of interface</source>
-        <target state="translated">'Nella dichiarazione esplicita dell'interfaccia '{0}' non è un membro di interfaccia</target>
+        <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</source>
+        <target state="needs-review-translation">'Nella dichiarazione esplicita dell'interfaccia '{0}' non è un membro di interfaccia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
@@ -3587,8 +3597,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class or struct</source>
-        <target state="translated">'{0}': la dichiarazione esplicita dell'interfaccia può essere dichiarata sono in una classe o in una struct</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
+        <target state="needs-review-translation">'{0}': la dichiarazione esplicita dell'interfaccia può essere dichiarata sono in una classe o in una struct</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -3694,11 +3704,6 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
         <target state="translated">Il primo operando di un operatore shift di overload deve essere dello stesso tipo del tipo che lo contiene, mentre il tipo del secondo operando deve essere int</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InterfacesCantContainOperators">
-        <source>Interfaces cannot contain operators</source>
-        <target state="translated">Le interfacce non possono contenere operatori</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructsCantContainDefaultConstructor">
@@ -4492,8 +4497,8 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class or partial struct</source>
-        <target state="translated">Un metodo parziale deve essere dichiarato in una classe o in una struttura parziale</target>
+        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
+        <target state="needs-review-translation">Un metodo parziale deve essere dichiarato in una classe o in una struttura parziale</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
@@ -5246,8 +5251,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a valid non-generic class or struct</source>
-        <target state="translated">'{0}' specificato per il metodo Main deve essere una classe o una struct non generica valida</target>
+        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
+        <target state="needs-review-translation">'{0}' specificato per il metodo Main deve essere una classe o una struct non generica valida</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -8524,8 +8529,8 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Le proprietà implementate automaticamente all'interno di interfacce non possono avere inizializzatori.</target>
+        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
+        <target state="needs-review-translation">Le proprietà implementate automaticamente all'interno di interfacce non possono avere inizializzatori.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
@@ -9516,6 +9521,46 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
         <target state="translated">L'istruzione foreach asincrona non può funzionare con variabili di tipo '{0}' perché implementa più creazioni di istanza di '{1}'. Provare a eseguire il cast su una creazione di istanza di interfaccia specifica</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
+        <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
+        <target state="new">Interfaces cannot contain conversion, equality, or inequality operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="new">default interface implementation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
+        <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
+        <target state="new">Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
         <note />
       </trans-unit>
     </body>

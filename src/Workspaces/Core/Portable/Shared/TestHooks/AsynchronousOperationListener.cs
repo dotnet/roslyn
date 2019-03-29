@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
 
         private readonly string _featureName;
         private readonly HashSet<TaskCompletionSource<bool>> _pendingTasks = new HashSet<TaskCompletionSource<bool>>();
+        private CancellationTokenSource _expeditedDelayCancellationTokenSource;
 
         private List<DiagnosticAsyncToken> _diagnosticTokenList = new List<DiagnosticAsyncToken>();
         private int _counter;
@@ -30,7 +31,26 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
         public AsynchronousOperationListener(string featureName, bool enableDiagnosticTokens)
         {
             _featureName = featureName;
+            _expeditedDelayCancellationTokenSource = new CancellationTokenSource();
             TrackActiveTokens = Debugger.IsAttached || enableDiagnosticTokens;
+        }
+
+        public async Task<bool> Delay(TimeSpan delay, CancellationToken cancellationToken)
+        {
+            var expeditedDelayCancellationToken = _expeditedDelayCancellationTokenSource.Token;
+            using (var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, expeditedDelayCancellationToken))
+            {
+                try
+                {
+                    await Task.Delay(delay, cancellationTokenSource.Token).ConfigureAwait(false);
+                    return true;
+                }
+                catch (OperationCanceledException) when (expeditedDelayCancellationToken.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+                {
+                    // The cancellation only occurred due to a request to expedite the operation
+                    return false;
+                }
+            }
         }
 
         public IAsyncToken BeginAsyncOperation(string name, object tag = null, [CallerFilePath] string filePath = "", [CallerLineNumber] int lineNumber = 0)
@@ -72,6 +92,10 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
 
                 _pendingTasks.Clear();
+
+                // Replace the cancellation source used for expediting waits.
+                var oldSource = Interlocked.Exchange(ref _expeditedDelayCancellationTokenSource, new CancellationTokenSource());
+                oldSource.Dispose();
             }
 
             if (_trackActiveTokens)
@@ -94,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             }
         }
 
-        public Task CreateWaitTask()
+        public Task CreateExpeditedWaitTask()
         {
             using (_gate.DisposableWait(CancellationToken.None))
             {
@@ -105,6 +129,9 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
                 }
                 else
                 {
+                    // Use CancelAfter to ensure cancellation callbacks are not synchronously invoked under the _gate.
+                    _expeditedDelayCancellationTokenSource.CancelAfter(TimeSpan.Zero);
+
                     // Calling SetResult on a normal TaskCompletionSource can cause continuations to run synchronously
                     // at that point. That's a problem as that may cause additional code to run while we're holding a lock. 
                     // In order to prevent that, we pass along RunContinuationsAsynchronously in order to ensure that 

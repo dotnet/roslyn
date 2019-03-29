@@ -160,17 +160,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 // all the changes under.
                 using (var transaction = workspace.OpenGlobalUndoTransaction(title))
                 {
-                    // ConfigureAwait(true) so we come back to the same thread as 
-                    // we do all application on the UI thread.
-                    ProcessOperations(
-                        workspace, operations, progressTracker,
-                        cancellationToken);
-
                     // link current file in the global undo transaction
+                    // Do this before processing operations, since that can change
+                    // documentIds.
                     if (fromDocument != null)
                     {
                         transaction.AddDocument(fromDocument.Id);
                     }
+
+                    ProcessOperations(
+                        workspace, operations, progressTracker,
+                        cancellationToken);
 
                     transaction.Commit();
                 }
@@ -229,6 +229,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             var changedDocuments = projectChange.GetChangedDocuments().ToImmutableArray();
 
             if (changedAdditionalDocuments.Length + changedDocuments.Length != 1)
+            {
+                return null;
+            }
+
+            if (changedDocuments.Any(id => newSolution.GetDocument(id).HasInfoChanged(oldSolution.GetDocument(id))) ||
+                changedAdditionalDocuments.Any(id => newSolution.GetDocument(id).HasInfoChanged(oldSolution.GetDocument(id))))
             {
                 return null;
             }

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Represents a <see cref="TextSpan"/> location in a <see cref="Document"/>.
     /// </summary>
-    internal struct DocumentSpan : IEquatable<DocumentSpan>
+    internal readonly struct DocumentSpan : IEquatable<DocumentSpan>
     {
         public Document Document { get; }
         public TextSpan SourceSpan { get; }

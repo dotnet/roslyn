@@ -1145,7 +1145,7 @@ I agree to all of the foregoing:</value>
     <value>Additional changes are needed to complete the refactoring. Review changes below.</value>
   </data>
   <data name="Select_Dependents" xml:space="preserve">
-    <value>_Select Dependents</value>
+    <value>Select _Dependents</value>
   </data>
   <data name="Select_destination_and_members_to_pull_up" xml:space="preserve">
     <value>Select destination and members to pull up.</value>
@@ -1154,7 +1154,7 @@ I agree to all of the foregoing:</value>
     <value>Select members:</value>
   </data>
   <data name="Select_Public" xml:space="preserve">
-    <value>_Select Public</value>
+    <value>Select _Public</value>
   </data>
   <data name="_0_will_be_changed_to_abstract" xml:space="preserve">
     <value>'{0}' will be changed to abstract.</value>
@@ -1200,5 +1200,8 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Use_enhanced_colors_for_C_and_Basic" xml:space="preserve">
     <value>Use enhanced colors for C# and Basic</value>
+  </data>
+  <data name="Rename_0_to_1" xml:space="preserve">
+    <value>Rename {0} to {1}</value>
   </data>
 </root>

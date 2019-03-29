@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return graph.GetProjectsThatTransitivelyDependOnThisProject(projectId).Concat(projectId);
                 }
 
-                private struct Data
+                private readonly struct Data
                 {
                     public readonly Document Document;
                     public readonly SyntaxPath ChangedMember;
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         }
                     }
 
-                    private struct Data
+                    private readonly struct Data
                     {
                         public readonly IAsyncToken AsyncToken;
                         public readonly ProjectId ProjectId;

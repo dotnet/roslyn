@@ -13,8 +13,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
-        <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</source>
-        <target state="translated">İlişkilendirilmiş tam bir dize için '$@' yerine '@$' kullanmak amacıyla lütfen {0} veya daha yüksek bir dil sürümü kullanın.</target>
+        <source>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</source>
+        <target state="needs-review-translation">İlişkilendirilmiş tam bir dize için '$@' yerine '@$' kullanmak amacıyla lütfen {0} veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnnotationDisallowedInObjectCreation">
@@ -70,6 +70,11 @@
       <trans-unit id="ERR_DeconstructParameterNameMismatch">
         <source>The name '{0}' does not match the corresponding 'Deconstruct' parameter '{1}'.</source>
         <target state="translated">'{0}' adı ilgili '{1}' 'Deconstruct' parametresiyle eşleşmiyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationInNoPIAType">
+        <source>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</source>
+        <target state="new">Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultPattern">
@@ -222,14 +227,29 @@
         <target state="translated">'{0}': Bir using deyiminde kullanılan tür örtük olarak 'System.IDisposable' arabirimine dönüştürebilir olmalı veya uygun bir 'Dispose' yöntemi uygulamalıdır. 'using' yerine 'await using' mi kullanmak istediniz?</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotBaseOrImplementedInterface">
+        <source>'{0}' is not base type or interface of {1}.</source>
+        <target state="new">'{0}' is not base type or interface of {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotDeclaredInBase">
+        <source>'{0}' is not an immediate member of {1}.</source>
+        <target state="new">'{0}' is not an immediate member of {1}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NotImplementedInBase">
+        <source>'{0}' is not implemented in base interface {1}.</source>
+        <target state="new">'{0}' is not implemented in base interface {1}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NullableDirectiveQualifierExpected">
         <source>Expected 'enable', 'safeonly', 'disable', or 'restore'</source>
         <target state="translated">'enable', 'safeonly', 'disable' veya 'restore' bekleniyordu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableOptionNotAvailable">
-        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</source>
-        <target state="translated">C# {2} için geçersiz '{0}' değeri: '{1}'. Lütfen {3} veya daha yüksek bir dil sürümü kullanın.</target>
+        <source>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</source>
+        <target state="needs-review-translation">C# {2} için geçersiz '{0}' değeri: '{1}'. Lütfen {3} veya daha yüksek bir dil sürümü kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullableUnconstrainedTypeParameter">
@@ -270,6 +290,11 @@
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
         <target state="translated">ref atamasının sol tarafı, yerel ref veya parametresi olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
+        <source>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</source>
+        <target state="new">Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
@@ -652,6 +677,11 @@
 -modulename:&lt;string&gt;          Kaynak modülün adını belirtin
 </target>
         <note>Visual C# Compiler Options</note>
+      </trans-unit>
+      <trans-unit id="IDS_BaseTypeInBaseExpression">
+        <source>specifying base type in base expression</source>
+        <target state="new">specifying base type in base expression</target>
+        <note />
       </trans-unit>
       <trans-unit id="IDS_Disposable">
         <source>disposable</source>
@@ -1324,13 +1354,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver">
-        <source>Possible dereference of a null reference.</source>
-        <target state="translated">Null başvuruya yönelik olası başvuru.</target>
+        <source>Dereference of a possibly null reference.</source>
+        <target state="needs-review-translation">Null başvuruya yönelik olası başvuru.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReceiver_Title">
-        <source>Possible dereference of a null reference.</source>
-        <target state="translated">Null başvuruya yönelik olası başvuru.</target>
+        <source>Dereference of a possibly null reference.</source>
+        <target state="needs-review-translation">Null başvuruya yönelik olası başvuru.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceReturn">
@@ -1919,13 +1949,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceEventInitializer">
-        <source>'{0}': event in interface cannot have initializer</source>
-        <target state="translated">'{0}': arabirimdeki olayın başlatıcısı olamaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EventPropertyInInterface">
-        <source>An event in an interface cannot have add or remove accessors</source>
-        <target state="translated">Arabirimdeki bir olayın ekleme veya kaldırma erişimcileri olamaz</target>
+        <source>'{0}': instance event in interface cannot have initializer</source>
+        <target state="needs-review-translation">'{0}': arabirimdeki olayın başlatıcısı olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadEventUsage">
@@ -2853,11 +2878,6 @@
         <target state="translated">Özellik veya '{0}' dizin oluşturucusunun erişenleri için erişilebilirlik değiştiricileri belirtilemiyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PropertyAccessModInInterface">
-        <source>'{0}': accessibility modifiers may not be used on accessors in an interface</source>
-        <target state="translated">'{0}': erişilebilirlik değiştiricileri bir arabirimdeki erişenler üzerinde kullanılamayabilir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_AccessModMissingAccessor">
         <source>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</source>
         <target state="translated">'{0}': erişimcilerdeki erişilebilirlik değiştiricileri yalnızca özellik veya dizin oluşturucusu hem alma hem ayarlama erişimcisine sahipse kullanılabilir.</target>
@@ -3512,19 +3532,14 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <target state="translated">{1}' türünün '{0}' yapı üyesi yapı düzeninde bir döngüye neden olur</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_InterfacesCannotContainTypes">
-        <source>'{0}': interfaces cannot declare types</source>
-        <target state="translated">'{0}': arabirimler türleri ifade edemez</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainFields">
-        <source>Interfaces cannot contain fields</source>
-        <target state="translated">Arabirimler alan içeremez</target>
+        <source>Interfaces cannot contain instance fields</source>
+        <target state="needs-review-translation">Arabirimler alan içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfacesCantContainConstructors">
-        <source>Interfaces cannot contain constructors</source>
-        <target state="translated">Arabirimler oluşturucu içeremez</target>
+        <source>Interfaces cannot contain instance constructors</source>
+        <target state="needs-review-translation">Arabirimler oluşturucu içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NonInterfaceInInterfaceList">
@@ -3545,11 +3560,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       <trans-unit id="ERR_CycleInInterfaceInheritance">
         <source>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</source>
         <target state="translated">{1}' devralınan arabirimi '{0}' arabirim hiyerarşisinde bir döngüye neden oluyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InterfaceMemberHasBody">
-        <source>'{0}': interface members cannot have a definition</source>
-        <target state="translated">'{0}': arabirim üyelerinin tanımı olamaz</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_HidingAbstractMethod">
@@ -3578,8 +3588,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceMemberNotFound">
-        <source>'{0}' in explicit interface declaration is not a member of interface</source>
-        <target state="translated">'Açık arabirim bildirimindeki '{0}' arabirimin bir üyesi değildir</target>
+        <source>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</source>
+        <target state="needs-review-translation">'Açık arabirim bildirimindeki '{0}' arabirimin bir üyesi değildir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ClassDoesntImplementInterface">
@@ -3588,8 +3598,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitInterfaceImplementationInNonClassOrStruct">
-        <source>'{0}': explicit interface declaration can only be declared in a class or struct</source>
-        <target state="translated">'{0}': açık arabirim bildirimi yalnızca bir sınıf veya yapı birimi içinde bildirilebilir</target>
+        <source>'{0}': explicit interface declaration can only be declared in a class, struct or interface</source>
+        <target state="needs-review-translation">'{0}': açık arabirim bildirimi yalnızca bir sınıf veya yapı birimi içinde bildirilebilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberNameSameAsType">
@@ -3695,11 +3705,6 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
       <trans-unit id="ERR_BadShiftOperatorSignature">
         <source>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</source>
         <target state="translated">Tekrar yüklenen kaydırma işlecinin ilk işleneninin türü kapsayan tür ile aynı, ikinci işlenenin türü de tamsayı olmalıdır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_InterfacesCantContainOperators">
-        <source>Interfaces cannot contain operators</source>
-        <target state="translated">Arabirimler işleç içeremez</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StructsCantContainDefaultConstructor">
@@ -4493,8 +4498,8 @@ Bu sınıf temel sınıf olarak kullanılırsa ve türetilen sınıf bir yıkıc
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial class or partial struct</source>
-        <target state="translated">Kısmi bir yöntemin kısmi bir sınıf veya kısmi bir yapı içinde bildirilmesi gerekir</target>
+        <source>A partial method must be declared within a partial class, partial struct, or partial interface</source>
+        <target state="needs-review-translation">Kısmi bir yöntemin kısmi bir sınıf veya kısmi bir yapı içinde bildirilmesi gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodCannotHaveOutParameters">
@@ -5247,8 +5252,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_MainClassNotClass">
-        <source>'{0}' specified for Main method must be a valid non-generic class or struct</source>
-        <target state="translated">'Main yöntemi için belirtilen '{0}' geçerli bir genel olmayan sınıf veya yapı olmalıdır</target>
+        <source>'{0}' specified for Main method must be a non-generic class, struct, or interface</source>
+        <target state="needs-review-translation">'Main yöntemi için belirtilen '{0}' geçerli bir genel olmayan sınıf veya yapı olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoMainInClass">
@@ -8525,8 +8530,8 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyInitializerInInterface">
-        <source>Auto-implemented properties inside interfaces cannot have initializers.</source>
-        <target state="translated">Arabirimlerin içine otomatik olarak uygulanan özelliklerin başlatıcıları olamaz.</target>
+        <source>Instance auto-implemented properties inside interfaces cannot have initializers.</source>
+        <target state="needs-review-translation">Arabirimlerin içine otomatik olarak uygulanan özelliklerin başlatıcıları olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerInStructWithoutExplicitConstructor">
@@ -9517,6 +9522,46 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_MultipleIAsyncEnumOfT">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because it implements multiple instantiations of '{1}'; try casting to a specific interface instantiation</source>
         <target state="translated">Zaman uyumsuz foreach deyimi, '{0}' türündeki değişkenler '{1}' arabiriminin birden çok örneklemesini uyguladığından bu türdeki değişkenlerle çalışmaz. Türü, belirli bir arabirim örneklemesine atamayı deneyin</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfacesCantContainConversionOrEqualityOperators">
+        <source>Interfaces cannot contain conversion, equality, or inequality operators</source>
+        <target state="new">Interfaces cannot contain conversion, equality, or inequality operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_DefaultInterfaceImplementation">
+        <source>default interface implementation</source>
+        <target state="new">default interface implementation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
+        <source>Target runtime doesn't support default interface implementation.</source>
+        <target state="new">Target runtime doesn't support default interface implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_DefaultInterfaceImplementationModifier">
+        <source>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</source>
+        <target state="new">The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ImplicitImplementationOfNonPublicInterfaceMember">
+        <source>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</source>
+        <target state="new">'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_MostSpecificImplementationIsNotFound">
+        <source>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</source>
+        <target state="new">Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</target>
         <note />
       </trans-unit>
     </body>

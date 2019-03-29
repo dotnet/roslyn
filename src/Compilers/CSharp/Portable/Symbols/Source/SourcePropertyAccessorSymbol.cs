@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
             bool isAutoPropertyAccessor,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration || syntax.Kind() == SyntaxKind.SetAccessorDeclaration);
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 methodKind,
                 isAutoPropertyAccessor,
+                isExplicitInterfaceImplementation,
                 diagnostics);
         }
 
@@ -69,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ArrowExpressionClauseSyntax syntax,
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
             string name;
@@ -91,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 explicitInterfaceImplementations,
                 syntax.Expression.GetLocation(),
                 syntax,
+                isExplicitInterfaceImplementation,
                 diagnostics);
         }
 
@@ -142,6 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations,
             Location location,
             ArrowExpressionClauseSyntax syntax,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location)
         {
@@ -160,9 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            CheckModifiersForBody(location, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
+            CheckModifiersForBody(syntax, location, diagnostics);
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -193,6 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax syntax,
             MethodKind methodKind,
             bool isAutoPropertyAccessor,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
@@ -208,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isExpressionBodied = !hasBody && hasExpressionBody;
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(syntax, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
 
             // Include modifiers from the containing property.
             propertyModifiers &= ~DeclarationModifiers.AccessibilityMask;
@@ -224,12 +231,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody || hasExpressionBody, diagnostics);
+
             if (hasBody || hasExpressionBody)
             {
-                CheckModifiersForBody(location, diagnostics);
+                CheckModifiersForBody(syntax, location, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -403,27 +412,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers); }
         }
 
-        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
+            bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             // No default accessibility. If unset, accessibility
             // will be inherited from the property.
             const DeclarationModifiers defaultAccess = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            const DeclarationModifiers allowedModifiers = DeclarationModifiers.AccessibilityMask;
+            var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
+            var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
+
+            if (this.ContainingType.IsInterface && !isExplicitInterfaceImplementation)
+            {
+                defaultInterfaceImplementationModifiers = DeclarationModifiers.AccessibilityMask;
+            }
+
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
-            // For interface, check there are no accessibility modifiers.
-            // (This check is handled outside of MakeAndCheckModifiers
-            // since a distinct error message is reported for interfaces.)
-            if (this.ContainingType.IsInterface)
-            {
-                if ((mods & DeclarationModifiers.AccessibilityMask) != 0)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PropertyAccessModInInterface, location, this);
-                    mods = (mods & ~DeclarationModifiers.AccessibilityMask);
-                }
-            }
+            ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
+                                                                        defaultInterfaceImplementationModifiers,
+                                                                        location, diagnostics);
 
             return mods;
         }

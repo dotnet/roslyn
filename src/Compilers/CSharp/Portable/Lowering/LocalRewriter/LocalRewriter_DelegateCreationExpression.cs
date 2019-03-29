@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
                 var receiver = (method.IsStatic && !node.IsExtensionMethod) ? _factory.Type(method.ContainingType) : VisitExpression(mg.ReceiverOpt);
                 _factory.Syntax = oldSyntax;
-                return node.Update(receiver, method, node.IsExtensionMethod, node.Type);
+                return node.Update(receiver, AdjustMethodForBaseInterfaceCall(receiver, method), node.IsExtensionMethod, node.Type);
             }
 
             return base.VisitDelegateCreationExpression(node);

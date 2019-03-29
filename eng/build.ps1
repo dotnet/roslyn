@@ -62,16 +62,6 @@ param (
 
     [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
-if ($PSVersionTable.PSVersion.Major -lt "5") {
-    Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
-    exit 1
-}
-
-$regKeyProperty = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
-if (($null -eq $regKeyProperty) -or ($regKeyProperty.LongPathsEnabled -ne 1)) {
-    Write-Warning "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with ``reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1``"
-}
-
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
 
@@ -228,7 +218,8 @@ function BuildSolution() {
     # an arcade bug
     # https://github.com/dotnet/arcade/issues/2220
     $quietRestore = !($ci -or ($bootstrapDir -ne ""))
-    $testTargetFrameworks = if ($testCoreClr) { "netcoreapp2.1" } else { "" }
+    $testTargetFrameworks = if ($testCoreClr) { "netcoreapp3.0%3Bnetcoreapp2.1" } else { "" }
+    
     $ibcSourceBranchName = GetIbcSourceBranchName
     $ibcDropId = if ($officialIbcDropId -ne "default") { $officialIbcDropId } else { "" }
 
@@ -265,7 +256,7 @@ function BuildSolution() {
             /p:TreatWarningsAsErrors=true `
             /p:VisualStudioIbcSourceBranchName=$ibcSourceBranchName `
             /p:VisualStudioIbcDropId=$ibcDropId `
-            /p:EnablePartialNgenOptimization=$applyOptimizationData `
+            /p:EnableNgenOptimization=$applyOptimizationData `
             /p:IbcOptimizationDataDir=$ibcDir `
             $suppressExtensionDeployment `
             @properties
@@ -530,6 +521,16 @@ function List-Processes() {
 }
 
 try {
+    if ($PSVersionTable.PSVersion.Major -lt "5") {
+        Write-Host "PowerShell version must be 5 or greater (version $($PSVersionTable.PSVersion) detected)"
+        exit 1
+    }
+
+    $regKeyProperty = Get-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name "LongPathsEnabled" -ErrorAction Ignore
+    if (($null -eq $regKeyProperty) -or ($regKeyProperty.LongPathsEnabled -ne 1)) {
+        Write-Host "LongPath is not enabled, you may experience build errors. You can avoid these by enabling LongPath with ``reg ADD HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1``"
+    }
+
     Process-Arguments
 
     . (Join-Path $PSScriptRoot "build-utils.ps1")
