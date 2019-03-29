@@ -124,23 +124,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static bool IsInterfacePropertyImplemented(INamedTypeSymbol classOrStructType, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
         {
             // A property is only fully implemented if both it's setter and getter is implemented.
-            if (propertySymbol.GetMethod != null)
-            {
-                if (classOrStructType.FindImplementationForInterfaceMember(propertySymbol.GetMethod) == null)
-                {
-                    return false;
-                }
-            }
 
-            if (propertySymbol.SetMethod != null)
-            {
-                if (classOrStructType.FindImplementationForInterfaceMember(propertySymbol.SetMethod) == null)
-                {
-                    return false;
-                }
-            }
+            return IsAccessorImplemented(propertySymbol.GetMethod, classOrStructType) && IsAccessorImplemented(propertySymbol.SetMethod, classOrStructType);
 
-            return true;
+            // local functions
+
+            static bool IsAccessorImplemented(IMethodSymbol accessor, INamedTypeSymbol classOrStructType)
+            {
+                return accessor == null || !IsImplementable(accessor) || classOrStructType.FindImplementationForInterfaceMember(accessor) != null;
+            }
         }
 
         private static bool IsAbstractPropertyImplemented(INamedTypeSymbol classOrStructType, IPropertySymbol propertySymbol, CancellationToken cancellationToken)
@@ -172,6 +164,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             CancellationToken cancellationToken)
         {
             var implementation = classOrStructType.FindImplementationForInterfaceMember(member);
+
+            if (implementation?.ContainingType.TypeKind == TypeKind.Interface)
+            {
+                // Treat all implementations in interfaces as explicit, even the original declaration with implementation.
+                // There are no implicit interface implementations in derived interfaces and it feels reasonable to treat
+                // original declaration with implementation as an explicit implementation as well, the implementation is
+                // explicitly provided after all. All implementations in interfaces will be treated uniformly.
+                return true;
+            }
+
             switch (implementation)
             {
                 case IEventSymbol @event: return @event.ExplicitInterfaceImplementations.Length > 0;
@@ -190,9 +192,43 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 interfacesOrAbstractClasses,
                 IsImplemented,
                 ImplementationExists,
-                GetMembers,
+                (INamedTypeSymbol type, ISymbol within) =>
+                {
+                    if (type.TypeKind == TypeKind.Interface)
+                    {
+                        return type.GetMembers().WhereAsArray(m => m.DeclaredAccessibility == Accessibility.Public &&
+                                                                   m.Kind != SymbolKind.NamedType && IsImplementable(m) &&
+                                                                   !IsPropertyWithNonPublicImplementableAccessor(m));
+                    }
+
+                    return type.GetMembers();
+                },
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
+
+            // local functions
+
+            static bool IsPropertyWithNonPublicImplementableAccessor(ISymbol member)
+            {
+                if (member.Kind != SymbolKind.Property)
+                {
+                    return false;
+                }
+
+                var property = (IPropertySymbol)member;
+
+                return IsNonPublicImplementableAccessor(property.GetMethod) || IsNonPublicImplementableAccessor(property.SetMethod);
+            }
+
+            static bool IsNonPublicImplementableAccessor(IMethodSymbol accessor)
+            {
+                return accessor != null && IsImplementable(accessor) && accessor.DeclaredAccessibility != Accessibility.Public;
+            }
+        }
+
+        private static bool IsImplementable(ISymbol m)
+        {
+            return m.IsVirtual || m.IsAbstract;
         }
 
         public static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembersInThis(
@@ -241,9 +277,38 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 interfaces,
                 IsExplicitlyImplemented,
                 ImplementationExists,
-                GetMembers,
+                (INamedTypeSymbol type, ISymbol within) =>
+                {
+                    if (type.TypeKind == TypeKind.Interface)
+                    {
+                        return type.GetMembers().WhereAsArray(m => m.Kind != SymbolKind.NamedType &&
+                                                                   IsImplementable(m) && m.IsAccessibleWithin(within) &&
+                                                                   !IsPropertyWithInaccessibleImplementableAccessor(m, within));
+                    }
+
+                    return type.GetMembers();
+                },
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
+
+            // local functions
+
+            static bool IsPropertyWithInaccessibleImplementableAccessor(ISymbol member, ISymbol within)
+            {
+                if (member.Kind != SymbolKind.Property)
+                {
+                    return false;
+                }
+
+                var property = (IPropertySymbol)member;
+
+                return IsInaccessibleImplementableAccessor(property.GetMethod, within) || IsInaccessibleImplementableAccessor(property.SetMethod, within);
+            }
+
+            static bool IsInaccessibleImplementableAccessor(IMethodSymbol accessor, ISymbol within)
+            {
+                return accessor != null && IsImplementable(accessor) && !accessor.IsAccessibleWithin(within);
+            }
         }
 
         private static ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> GetAllUnimplementedMembers(

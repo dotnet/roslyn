@@ -11,6 +11,7 @@ namespace BuildBoss
         CSharp,
         Basic,
         Shared,
+        Tool,
         Unknown
     }
 }

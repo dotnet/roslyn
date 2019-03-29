@@ -255,10 +255,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (thisTempOpt != null) ? Local(thisTempOpt) : (BoundExpression)This();
         }
 
-        public BoundBaseReference Base()
+        public BoundBaseReference Base(NamedTypeSymbol baseType)
         {
             Debug.Assert((object)CurrentFunction != null && !CurrentFunction.IsStatic);
-            return new BoundBaseReference(Syntax, CurrentFunction.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics) { WasCompilerGenerated = true };
+            return new BoundBaseReference(Syntax, explicitBaseReferenceOpt: null, baseType) { WasCompilerGenerated = true };
         }
 
         public BoundBadExpression BadExpression(TypeSymbol type)
@@ -988,8 +988,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement BaseInitialization()
         {
             // TODO: add diagnostics for when things fall apart
-            var ctor = CurrentFunction.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single(c => c.ParameterCount == 0);
-            return new BoundExpressionStatement(Syntax, Call(Base(), ctor)) { WasCompilerGenerated = true };
+            NamedTypeSymbol baseType = CurrentFunction.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics;
+            var ctor = baseType.InstanceConstructors.Single(c => c.ParameterCount == 0);
+            return new BoundExpressionStatement(Syntax, Call(Base(baseType), ctor)) { WasCompilerGenerated = true };
         }
 
         public BoundStatement SequencePoint(SyntaxNode syntax, BoundStatement statement)
