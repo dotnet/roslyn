@@ -8875,6 +8875,7 @@ tryAgain:
             Range,
             Additive,
             Mutiplicative,
+            Switch,
             Unary,
             Cast,
             PointerIndirection,
@@ -8921,8 +8922,9 @@ tryAgain:
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
                 case SyntaxKind.IsPatternExpression:
-                case SyntaxKind.SwitchExpression:
                     return Precedence.Relational;
+                case SyntaxKind.SwitchExpression:
+                    return Precedence.Switch;
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
                     return Precedence.Shift;
