@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Testing
             }.RunAsync();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn-sdk/issues/207")]
+        [Fact]
         [WorkItem(207, "https://github.com/dotnet/roslyn-sdk/issues/207")]
         public async Task TestDiagnosticDoesNotMatchIncorrectSpan()
         {

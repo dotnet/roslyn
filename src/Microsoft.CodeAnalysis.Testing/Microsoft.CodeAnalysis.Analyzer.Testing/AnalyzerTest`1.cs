@@ -280,39 +280,31 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <param name="expected">The <see cref="FileLinePositionSpan"/> describing the expected location of the
         /// diagnostic.</param>
         /// <param name="verifier">The verifier to use for test assertions.</param>
-        private void VerifyDiagnosticLocation(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic diagnostic, Location actual, FileLinePositionSpan expected, IVerifier verifier)
+        private void VerifyDiagnosticLocation(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic diagnostic, Location actual, DiagnosticLocation expected, IVerifier verifier)
         {
             var actualSpan = actual.GetLineSpan();
 
-            var assert = actualSpan.Path == expected.Path || (actualSpan.Path?.Contains("Test0.") == true && expected.Path.Contains("Test."));
-            verifier.True(assert, $"Expected diagnostic to be in file \"{expected.Path}\" was actually in file \"{actualSpan.Path}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, diagnostic)}\r\n");
+            var assert = actualSpan.Path == expected.Span.Path || (actualSpan.Path?.Contains("Test0.") == true && expected.Span.Path.Contains("Test."));
+            verifier.True(assert, $"Expected diagnostic to be in file \"{expected.Span.Path}\" was actually in file \"{actualSpan.Path}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, diagnostic)}\r\n");
 
-            VerifyLinePosition(analyzers, diagnostic, actualSpan.StartLinePosition, expected.StartLinePosition, "start", verifier);
-            if (expected.StartLinePosition < expected.EndLinePosition)
+            VerifyLinePosition(analyzers, diagnostic, actualSpan.StartLinePosition, expected.Span.StartLinePosition, "start", verifier);
+            if (!expected.Options.HasFlag(DiagnosticLocationOptions.IgnoreLength))
             {
-                VerifyLinePosition(analyzers, diagnostic, actualSpan.EndLinePosition, expected.EndLinePosition, "end", verifier);
+                VerifyLinePosition(analyzers, diagnostic, actualSpan.EndLinePosition, expected.Span.EndLinePosition, "end", verifier);
             }
         }
 
         private void VerifyLinePosition(ImmutableArray<DiagnosticAnalyzer> analyzers, Diagnostic diagnostic, LinePosition actualLinePosition, LinePosition expectedLinePosition, string positionText, IVerifier verifier)
         {
-            // Only check the line position if it matters
-            if (expectedLinePosition.Line > 0)
-            {
-                verifier.Equal(
-                    expectedLinePosition.Line,
-                    actualLinePosition.Line,
-                    $"Expected diagnostic to {positionText} on line \"{expectedLinePosition.Line + 1}\" was actually on line \"{actualLinePosition.Line + 1}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, diagnostic)}\r\n");
-            }
+            verifier.Equal(
+                expectedLinePosition.Line,
+                actualLinePosition.Line,
+                $"Expected diagnostic to {positionText} on line \"{expectedLinePosition.Line + 1}\" was actually on line \"{actualLinePosition.Line + 1}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, diagnostic)}\r\n");
 
-            // Only check the column position if it matters
-            if (expectedLinePosition.Character > 0)
-            {
-                verifier.Equal(
-                    expectedLinePosition.Character,
-                    actualLinePosition.Character,
-                    $"Expected diagnostic to {positionText} at column \"{expectedLinePosition.Character + 1}\" was actually at column \"{actualLinePosition.Character + 1}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, diagnostic)}\r\n");
-            }
+            verifier.Equal(
+                expectedLinePosition.Character,
+                actualLinePosition.Character,
+                $"Expected diagnostic to {positionText} at column \"{expectedLinePosition.Character + 1}\" was actually at column \"{actualLinePosition.Character + 1}\"\r\n\r\nDiagnostic:\r\n    {FormatDiagnostics(analyzers, diagnostic)}\r\n");
         }
 
         /// <summary>
@@ -428,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private static bool IsInSourceFile(DiagnosticResult result, (string filename, SourceText content)[] sources)
         {
-            return sources.Any(source => source.filename.Equals(result.Spans[0].Path));
+            return sources.Any(source => source.filename.Equals(result.Spans[0].Span.Path));
         }
 
         /// <summary>

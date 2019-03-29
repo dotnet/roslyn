@@ -54,7 +54,7 @@ class TestClass {
         {
             var testCode = @"
 class TestClass {
-  void TestMethod() { throw null {|CS1002:|}}
+  void TestMethod() { throw null {|CS1002:}|}
 }
 ";
 
