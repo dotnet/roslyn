@@ -789,5 +789,60 @@ class C
                 //     C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "G").WithLocation(6, 5));
         }
+
+        [Fact]
+        [WorkItem(25529, "https://github.com/dotnet/roslyn/issues/25529")]
+        public void UnassignedNonNullFieldsUnreachable()
+        {
+            var comp = CreateCompilation(@"
+using System;
+class C
+{
+    private object _f;
+    internal C()
+    {
+        throw new NotImplementedException();
+    }
+
+    internal C(object o) { }
+
+    internal C(string s)
+    {
+        return;
+        throw new NotImplementedException();
+    }
+
+    internal C(int x)
+    {
+        if (x == 0)
+        {
+            return;
+        }
+        throw new NotImplementedException();
+    }
+
+    internal C(char c)
+    {
+        return;
+    }
+}
+", options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (5,20): warning CS0169: The field 'C._f' is never used
+                //     private object _f;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "_f").WithArguments("C._f").WithLocation(5, 20),
+                // (11,14): warning CS8618: Non-nullable field '_f' is uninitialized.
+                //     internal C(object o) { }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(11, 14),
+                // (13,14): warning CS8618: Non-nullable field '_f' is uninitialized.
+                //     internal C(string s)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(13, 14),
+                // (19,14): warning CS8618: Non-nullable field '_f' is uninitialized.
+                //     internal C(int x)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(19, 14),
+                // (28,14): warning CS8618: Non-nullable field '_f' is uninitialized.
+                //     internal C(char c)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "_f").WithLocation(28, 14));
+        }
     }
 }
