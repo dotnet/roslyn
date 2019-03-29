@@ -35,7 +35,7 @@
 
   <Target Name="GenerateServiceHubConfigurationFiles"
           DependsOnTargets="CalculateServiceHubConfigurationFiles"
-          BeforeTargets="CreateVsixContainer"
+          AfterTargets="GetVsixSourceItems"
           Inputs="$(MSBuildProjectFullPath)"
           Outputs="@(_JsonFile)">
 
@@ -43,7 +43,7 @@
 
     <ItemGroup>
       <FileWrites Include="@(_JsonFile->'%(Identity)')"/>
-      <Content Include="@(_JsonFile->'%(Identity)')" IncludeInVSIX="true" />
+      <VSIXSourceItem Include="@(_JsonFile->'%(Identity)')" />
     </ItemGroup>
   </Target>
 </Project>
