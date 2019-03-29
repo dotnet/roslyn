@@ -16,8 +16,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             {
             }
 
-            internal override Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
+            public override Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync()
                 => Task.FromResult(RenameFileToMatchTypeName());
+
+            public override Task<Solution> GetModifiedSolutionAsync()
+            {
+                var oldDocument = SemanticDocument.Document;
+                var newDocumentId = DocumentId.CreateNewId(oldDocument.Project.Id, FileName);
+
+                var modifiedSolution = oldDocument.Project.Solution
+                    .RemoveDocument(oldDocument.Id)
+                    .AddDocument(newDocumentId, FileName, SemanticDocument.Text, oldDocument.Folders);
+
+                return Task.FromResult(modifiedSolution);
+            }
 
             /// <summary>
             /// Renames the file to match the type contained in it.

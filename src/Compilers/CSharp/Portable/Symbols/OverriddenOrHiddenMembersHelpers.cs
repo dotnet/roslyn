@@ -571,8 +571,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // exact and so we would already have applied the custom modifier count as a tie-breaker.
                 foreach (ParameterSymbol param in currTypeBestMatch.GetParameters())
                 {
-                    Debug.Assert(!(param.Type.CustomModifiers.Any() || param.RefCustomModifiers.Any()));
-                    Debug.Assert(!param.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
+                    Debug.Assert(!(param.TypeWithAnnotations.CustomModifiers.Any() || param.RefCustomModifiers.Any()));
+                    Debug.Assert(!param.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
                 }
 #endif
 
@@ -824,17 +824,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     MethodSymbol method = (MethodSymbol)member;
-                    var methodReturnType = method.ReturnType;
+                    var methodReturnType = method.ReturnTypeWithAnnotations;
                     return methodReturnType.CustomModifiers.Any() || method.RefCustomModifiers.Any() ||
-                           methodReturnType.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
+                           methodReturnType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
                 case SymbolKind.Property:
                     PropertySymbol property = (PropertySymbol)member;
-                    var propertyType = property.Type;
+                    var propertyType = property.TypeWithAnnotations;
                     return propertyType.CustomModifiers.Any() || property.RefCustomModifiers.Any() ||
-                           propertyType.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
+                           propertyType.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false);
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)member;
-                    return @event.Type.TypeSymbol.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false); //can't have custom modifiers on (vs in) type
+                    return @event.Type.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false); //can't have custom modifiers on (vs in) type
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return property.CustomModifierCount();
                 case SymbolKind.Event:
                     EventSymbol @event = (EventSymbol)member;
-                    return @event.Type.TypeSymbol.CustomModifierCount();
+                    return @event.Type.CustomModifierCount();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }

@@ -247,13 +247,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (type.SpecialType)
                 {
                     case SpecialType.System_Object:
-                        Debug.Assert(!type.NullableAnnotation.IsAnyNullable());
+                        Debug.Assert(!type.NullableAnnotation.IsAnnotated());
                         break;
                     case SpecialType.System_ValueType:
                         seenValueType = true;
                         break;
                 }
-                var typeRef = moduleBeingBuilt.Translate(type.TypeSymbol,
+                var typeRef = moduleBeingBuilt.Translate(type.Type,
                                                             syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                             diagnostics: context.Diagnostics);
 

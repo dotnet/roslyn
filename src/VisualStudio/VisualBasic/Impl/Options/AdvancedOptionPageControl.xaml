@@ -18,8 +18,6 @@
                 <StackPanel>
                     <CheckBox x:Name="Enable_full_solution_analysis"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_full_solution_analysis}" />
-                    <CheckBox x:Name="Perform_editor_feature_analysis_in_external_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Perform_editor_feature_analysis_in_external_process}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ImportDirectivesGroupBox"
@@ -115,6 +113,8 @@
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
                     <CheckBox x:Name="Highlight_related_components_under_cursor"
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
+                    <CheckBox x:Name="Show_completion_list"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
                 </StackPanel>
             </GroupBox>
             

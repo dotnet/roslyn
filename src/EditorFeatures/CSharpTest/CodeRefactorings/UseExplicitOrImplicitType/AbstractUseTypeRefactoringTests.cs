@@ -21,53 +21,53 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExp
         private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
 
         protected IDictionary<OptionKey, object> PreferExplicitTypeWithError() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithError),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithError),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithError));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithError),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithError),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithError));
 
         protected IDictionary<OptionKey, object> PreferImplicitTypeWithError() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithError),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithError),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithError));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithError),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithError),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithError));
 
         protected IDictionary<OptionKey, object> PreferExplicitTypeWithWarning() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithWarning),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithWarning),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithWarning));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithWarning),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithWarning),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithWarning));
 
         protected IDictionary<OptionKey, object> PreferImplicitTypeWithWarning() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithWarning),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithWarning),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithWarning));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithWarning),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithWarning),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithWarning));
 
         protected IDictionary<OptionKey, object> PreferExplicitTypeWithInfo() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithInfo));
 
         protected IDictionary<OptionKey, object> PreferImplicitTypeWithInfo() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithInfo));
 
         protected IDictionary<OptionKey, object> PreferExplicitTypeWithSilent() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithSilent));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithSilent));
 
         protected IDictionary<OptionKey, object> PreferImplicitTypeWithSilent() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithSilent),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithSilent));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent));
 
         protected IDictionary<OptionKey, object> PreferExplicitTypeWithNone() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, offWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithNone));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, offWithNone),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, offWithNone),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, offWithNone));
 
         protected IDictionary<OptionKey, object> PreferImplicitTypeWithNone() => OptionsSet(
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
-            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
+            SingleOption(CSharpCodeStyleOptions.VarElsewhere, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.VarForBuiltInTypes, onWithNone));
     }
 }

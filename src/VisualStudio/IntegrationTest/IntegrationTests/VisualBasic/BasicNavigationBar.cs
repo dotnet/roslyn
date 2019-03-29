@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.Basic
 {
@@ -26,8 +27,8 @@ End Structure";
 
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicNavigationBar(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicNavigationBar))
+        public BasicNavigationBar(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicNavigationBar))
         {
         }
 

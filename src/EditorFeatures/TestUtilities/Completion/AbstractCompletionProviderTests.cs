@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out var actualExpectedCode, out int expectedCaretPosition);
 
-            if (commitChar.HasValue && 
+            if (commitChar.HasValue &&
                 !CommitManager.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, commitChar.Value.ToString()))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);

@@ -178,8 +178,8 @@ class C
             var compilation1 = compilation0.WithSource(source);
 
             var member1 = compilation1.GetMember<MethodSymbol>("B.F");
-            Assert.Equal(((PointerTypeSymbol)member1.Parameters[0].Type.TypeSymbol).PointedAtType.CustomModifiers.Length, 1);
-            Assert.Equal(((ArrayTypeSymbol)member1.ReturnType.TypeSymbol).ElementType.CustomModifiers.Length, 1);
+            Assert.Equal(((PointerTypeSymbol)member1.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length, 1);
+            Assert.Equal(((ArrayTypeSymbol)member1.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length, 1);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
@@ -190,8 +190,8 @@ class C
                 null);
             var other = (MethodSymbol)matcher.MapDefinition((Cci.IMethodDefinition)member1);
             Assert.NotNull(other);
-            Assert.Equal(((PointerTypeSymbol)other.Parameters[0].Type.TypeSymbol).PointedAtType.CustomModifiers.Length, 1);
-            Assert.Equal(((ArrayTypeSymbol)other.ReturnType.TypeSymbol).ElementType.CustomModifiers.Length, 1);
+            Assert.Equal(((PointerTypeSymbol)other.Parameters[0].Type).PointedAtTypeWithAnnotations.CustomModifiers.Length, 1);
+            Assert.Equal(((ArrayTypeSymbol)other.ReturnType).ElementTypeWithAnnotations.CustomModifiers.Length, 1);
         }
 
         [ConditionalFact(typeof(DesktopOnly))]
@@ -377,7 +377,7 @@ class C
                 default(EmitContext),
                 null);
             var member = compilation1.GetMember<FieldSymbol>("C.y");
-            var other = matcher.MapReference((Cci.ITypeReference)member.Type.TypeSymbol);
+            var other = matcher.MapReference((Cci.ITypeReference)member.Type);
             // For a newly added type, there is no match in the previous generation.
             Assert.Null(other);
         }

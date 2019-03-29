@@ -261,8 +261,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 typeParameter.ConstraintTypesNoUseSiteDiagnostics.Any(
                                     typeConstraint => typeConstraint.NeedsNullableAttribute()));
 
-            bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnType.NeedsNullableAttribute();
-            bool parametersNeedNullableAttribute = node.Symbol.ParameterTypes.Any(parameter => parameter.NeedsNullableAttribute());
+            bool returnTypeNeedsNullableAttribute = node.Symbol.ReturnTypeWithAnnotations.NeedsNullableAttribute();
+            bool parametersNeedNullableAttribute = node.Symbol.ParameterTypesWithAnnotations.Any(parameter => parameter.NeedsNullableAttribute());
 
             if (constraintsNeedNullableAttribute || returnTypeNeedsNullableAttribute || parametersNeedNullableAttribute)
             {
@@ -539,131 +539,66 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
         {
-            // https://github.com/dotnet/roslyn/issues/30620
-            // If the array access index is of type System.Index or System.Range
-            // we need to emit code as if there were a real indexer, instead
-            // of a simple array element access.
+            // An array access expression can be indexed using any of the following types:
+            //   * an integer primitive
+            //   * a System.Index
+            //   * a System.Range
+            // The last two are only supported on SZArrays. For those cases we need to
+            // lower into the appropriate helper methods.
 
             if (node.Indices.Length != 1)
             {
                 return base.VisitArrayAccess(node);
             }
 
-            TypeSymbol rawIndexType = node.Indices[0].Type;
-            if (!(TypeSymbol.Equals(rawIndexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything) ||
-                  TypeSymbol.Equals(rawIndexType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything)))
-            {
-                return base.VisitArrayAccess(node);
-            }
-
-            var syntax = node.Syntax;
-            var F = _factory;
-            var indexLocal = F.StoreToTemp(
-                VisitExpression(node.Indices[0]),
-                out BoundAssignmentOperator indexAssign);
-            var arrayLocal = F.StoreToTemp(
-                VisitExpression(node.Expression),
-                out BoundAssignmentOperator arrayAssign);
             var indexType = VisitType(node.Indices[0].Type);
+            var F = _factory;
 
-            var indexValueSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__Value);
-            var indexFromEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Index__IsFromEnd);
-
-            BoundExpression resultExpr;
-            if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Index), TypeCompareKind.ConsiderEverything))
+            BoundNode resultExpr;
+            if (TypeSymbol.Equals(
+                indexType,
+                _compilation.GetWellKnownType(WellKnownType.System_Index),
+                TypeCompareKind.ConsiderEverything))
             {
+                // array[Index] is compiled to:
+                // array[Index.GetOffset(array.Length)]
 
-                // array[Index] is translated to:
-                // array[index.FromEnd ? array.Length - index.Value : index.Value]
-
-                var indexValueExpr = F.Property(indexLocal, indexValueSymbol);
+                var arrayLocal = F.StoreToTemp(
+                    VisitExpression(node.Expression),
+                    out BoundAssignmentOperator arrayAssign);
 
                 resultExpr = F.Sequence(
-                    ImmutableArray.Create<LocalSymbol>(
-                        indexLocal.LocalSymbol,
-                        arrayLocal.LocalSymbol),
-                    ImmutableArray.Create<BoundExpression>(
-                        indexAssign,
-                        arrayAssign),
-                    F.ArrayAccess(arrayLocal, ImmutableArray.Create(
-                        F.Conditional(
-                            F.Property(indexLocal, indexFromEndSymbol),
-                            F.Binary(
-                                BinaryOperatorKind.Subtraction,
-                                F.SpecialType(SpecialType.System_Int32),
-                                F.ArrayLength(arrayLocal),
-                                indexValueExpr),
-                            indexValueExpr,
-                            node.Type))));
+                    ImmutableArray.Create(arrayLocal.LocalSymbol),
+                    ImmutableArray.Create<BoundExpression>(arrayAssign),
+                    F.ArrayAccess(
+                        arrayLocal,
+                        ImmutableArray.Create<BoundExpression>(
+                            F.Call(
+                                VisitExpression(node.Indices[0]),
+                                WellKnownMember.System_Index__GetOffset,
+                                F.ArrayLength(arrayLocal)))));
             }
-            else if (TypeSymbol.Equals(indexType, _compilation.GetWellKnownType(WellKnownType.System_Range), TypeCompareKind.ConsiderEverything))
+            else if (TypeSymbol.Equals(
+                indexType,
+                _compilation.GetWellKnownType(WellKnownType.System_Range),
+                TypeCompareKind.ConsiderEverything))
             {
-                // array[Range] is translated to:
-                // var start = range.Start.FromEnd ? array.Length - range.Start.Value : range.Start.Value;
-                // var end = range.End.FromEnd ? array.Length - range.End.Value : range.End.Value;
-                // var length = end - start;
-                // var newArr = new T[length];
-                // Array.Copy(array, start, newArr, 0, length);
-                // push newArray
+                // array[Range] is compiled to:
+                // System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray(array, Range)
 
-                var rangeStartSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__Start);
-                var rangeEndSymbol = (PropertySymbol)F.WellKnownMember(WellKnownMember.System_Range__End);
-                var arrayCopySymbol = F.WellKnownMethod(WellKnownMember.System_Array__Copy);
+                var elementType = ((ArrayTypeSymbol)node.Expression.Type).ElementTypeWithAnnotations;
 
-                var startLocal = F.StoreToTemp(
-                    F.Conditional(
-                        F.Property(F.Property(indexLocal, rangeStartSymbol), indexFromEndSymbol),
-                        F.Binary(
-                            BinaryOperatorKind.Subtraction,
-                            F.SpecialType(SpecialType.System_Int32),
-                            F.ArrayLength(arrayLocal),
-                            F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol)),
-                        F.Property(F.Property(indexLocal, rangeStartSymbol), indexValueSymbol),
-                        F.SpecialType(SpecialType.System_Int32)),
-                    out BoundAssignmentOperator startAssign);
-                var endLocal = F.StoreToTemp(
-                    F.Conditional(
-                        F.Property(F.Property(indexLocal, rangeEndSymbol), indexFromEndSymbol),
-                        F.Binary(
-                            BinaryOperatorKind.Subtraction,
-                            F.SpecialType(SpecialType.System_Int32),
-                            F.ArrayLength(arrayLocal),
-                            F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol)),
-                        F.Property(F.Property(indexLocal, rangeEndSymbol), indexValueSymbol),
-                        F.SpecialType(SpecialType.System_Int32)),
-                    out BoundAssignmentOperator endAssign);
-                var lengthLocal = F.StoreToTemp(
-                    F.Binary(BinaryOperatorKind.Subtraction, F.SpecialType(SpecialType.System_Int32), endLocal, startLocal),
-                    out BoundAssignmentOperator lengthAssign);
-                var elementType = ((ArrayTypeSymbol)node.Type).ElementType.TypeSymbol;
-                var newArrLocal = F.StoreToTemp(F.Array(elementType, lengthLocal), out BoundAssignmentOperator newArrAssign);
-                var copyExpr = F.Call(null, arrayCopySymbol, ImmutableArray.Create<BoundExpression>(
-                    arrayLocal,
-                    startLocal,
-                    newArrLocal,
-                    F.Literal(0),
-                    lengthLocal));
-                resultExpr = F.Sequence(
+                resultExpr = F.Call(
+                    receiver: null,
+                    F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T)
+                        .Construct(ImmutableArray.Create(elementType)),
                     ImmutableArray.Create(
-                        indexLocal.LocalSymbol,
-                        arrayLocal.LocalSymbol,
-                        startLocal.LocalSymbol,
-                        endLocal.LocalSymbol,
-                        lengthLocal.LocalSymbol,
-                        newArrLocal.LocalSymbol),
-                    ImmutableArray.Create<BoundExpression>(
-                        indexAssign,
-                        arrayAssign,
-                        startAssign,
-                        endAssign,
-                        lengthAssign,
-                        newArrAssign,
-                        copyExpr),
-                    newArrLocal);
+                        VisitExpression(node.Expression),
+                        VisitExpression(node.Indices[0])));
             }
             else
             {
-                throw ExceptionUtilities.Unreachable;
+                resultExpr = base.VisitArrayAccess(node);
             }
             return resultExpr;
         }

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private DiagnosticInfo _lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state. 
 
-        private TypeSymbolWithAnnotations _lazyType;
+        private TypeWithAnnotations _lazyType;
 
         public RetargetingPropertySymbol(RetargetingModuleSymbol retargetingModule, PropertySymbol underlyingProperty)
             : base(underlyingProperty)
@@ -55,16 +55,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override TypeSymbolWithAnnotations Type
+        public override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {
-                if (_lazyType.IsNull)
+                if (_lazyType.IsDefault)
                 {
-                    var type = this.RetargetingTranslator.Retarget(_underlyingProperty.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
-                    if (type.TypeSymbol.TryAsDynamicIfNoPia(this.ContainingType, out TypeSymbol asDynamic))
+                    var type = this.RetargetingTranslator.Retarget(_underlyingProperty.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                    if (type.Type.TryAsDynamicIfNoPia(this.ContainingType, out TypeSymbol asDynamic))
                     {
-                        type = TypeSymbolWithAnnotations.Create(asDynamic);
+                        type = TypeWithAnnotations.Create(asDynamic);
                     }
                     _lazyType = type;
                 }

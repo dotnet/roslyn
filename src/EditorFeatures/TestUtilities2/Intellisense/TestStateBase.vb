@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -24,6 +25,36 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Protected ReadOnly SignatureHelpAfterCompletionCommandHandler As SignatureHelpAfterCompletionCommandHandler
         Private ReadOnly FormatCommandHandler As FormatCommandHandler
 
+        Private Shared s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of ComposableCatalog) =
+            New Lazy(Of ComposableCatalog)(Function()
+                                               Return TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.
+                                               WithoutPartsOfTypes({
+                                                                   GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession)),
+                                                                   GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
+                                                                   GetType(FormatCommandHandler)}).
+                                               WithParts({
+                                                         GetType(TestCompletionPresenter),
+                                                         GetType(TestSignatureHelpPresenter),
+                                                         GetType(IntelliSenseTestState)})
+                                           End Function)
+
+        Private Shared ReadOnly Property EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts As ComposableCatalog
+            Get
+                Return s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts.Value
+            End Get
+        End Property
+
+        Private Shared s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As Lazy(Of IExportProviderFactory) =
+            New Lazy(Of IExportProviderFactory)(Function()
+                                                    Return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasicWithoutCompletionTestParts)
+                                                End Function)
+
+        Private Shared ReadOnly Property ExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts As IExportProviderFactory
+            Get
+                Return s_lazyExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts.Value
+            End Get
+        End Property
+
         Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
             Get
                 Return SessionTestState.CurrentSignatureHelpPresenterSession
@@ -36,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                        extraExportedTypes As List(Of Type),
                        includeFormatCommandHandler As Boolean,
                        workspaceKind As String)
-            MyBase.New(workspaceElement, CombineExcludedTypes(excludedTypes, includeFormatCommandHandler), ExportProviderCache.CreateTypeCatalog(CombineExtraTypes(If(extraExportedTypes, New List(Of Type)))), workspaceKind:=workspaceKind)
+            MyBase.New(workspaceElement, GetExportProvider(excludedTypes, extraExportedTypes, includeFormatCommandHandler), workspaceKind:=workspaceKind)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
@@ -57,6 +88,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler, GetExportedValue(Of FormatCommandHandler)(), Nothing)
         End Sub
+
+        Private Overloads Shared Function GetExportProvider(excludedTypes As List(Of Type),
+                                                  extraExportedTypes As List(Of Type),
+                                                  includeFormatCommandHandler As Boolean) As ExportProvider
+            If (excludedTypes Is Nothing OrElse excludedTypes.Count = 0) AndAlso
+               (extraExportedTypes Is Nothing OrElse extraExportedTypes.Count = 0) AndAlso
+               Not includeFormatCommandHandler Then
+                Return ExportProviderFactoryWithCSharpAndVisualBasicWithoutCompletionTestParts.CreateExportProvider()
+            End If
+
+            Dim combinedExcludedTypes = CombineExcludedTypes(excludedTypes, includeFormatCommandHandler)
+            Dim extraParts = ExportProviderCache.CreateTypeCatalog(CombineExtraTypes(If(extraExportedTypes, New List(Of Type))))
+            Return GetExportProvider(combinedExcludedTypes, extraParts)
+        End Function
 
 #Region "Editor Related Operations"
 
@@ -140,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Function GetSelectedItem() As CompletionItem
 
-        Public MustOverride Function GetSelectedItemOpt() As CompletionItem
+        Public MustOverride Sub CalculateItemsIfSessionExists()
 
         Public MustOverride Function GetCompletionItems() As IList(Of CompletionItem)
 
@@ -166,11 +211,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public MustOverride Overloads Function AssertCompletionSession(Optional projectionsView As ITextView = Nothing) As Task
 
-        Public MustOverride Overloads Function CompletionItemsContainsAll(displayText As String()) As Boolean
+        Public Sub AssertCompletionItemsContainAll(displayText As String())
+            AssertNoAsynchronousOperationsRunning()
+            Dim items = GetCompletionItems()
+            Assert.True(displayText.All(Function(v) items.Any(Function(i) i.DisplayText = v)))
+        End Sub
 
-        Public MustOverride Overloads Function CompletionItemsContainsAny(displayText As String()) As Boolean
-
-        Public MustOverride Overloads Function CompletionItemsContainsAny(displayText As String, displayTextSuffix As String) As Boolean
+        Public Sub AssertCompletionItemsDoNotContainAny(displayText As String())
+            AssertNoAsynchronousOperationsRunning()
+            Dim items = GetCompletionItems()
+            Assert.False(displayText.Any(Function(v) items.Any(Function(i) i.DisplayText = v)))
+        End Sub
 
         Public MustOverride Overloads Sub AssertItemsInOrder(expectedOrder As String())
 
@@ -201,6 +252,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional isSoftSelected As Boolean? = Nothing,
                                Optional isHardSelected As Boolean? = Nothing,
                                Optional shouldFormatOnCommit As Boolean? = Nothing,
+                               Optional inlineDescription As String = Nothing,
                                Optional projectionsView As ITextView = Nothing) As Task
 
 #End Region
@@ -229,11 +281,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Return CurrentSignatureHelpPresenterSession.SignatureHelpItems
         End Function
 
-        Public Function SignatureHelpItemsContainsAll(displayText As String()) As Boolean
+        Public Sub AssertSignatureHelpItemsContainAll(displayText As String())
             AssertNoAsynchronousOperationsRunning()
-            Return displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
-                                       Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v))
-        End Function
+            Assert.True(displayText.All(Function(v) CurrentSignatureHelpPresenterSession.SignatureHelpItems.Any(
+                                            Function(i) GetDisplayText(i, CurrentSignatureHelpPresenterSession.SelectedParameter.Value) = v)))
+        End Sub
 
         Public Async Function AssertSelectedSignatureHelpItem(Optional displayText As String = Nothing,
                                Optional documentation As String = Nothing,

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             public Indenter(
                 ISyntaxFactsService syntaxFacts,
                 SyntaxTree syntaxTree,
-                IEnumerable<IFormattingRule> rules,
+                IEnumerable<AbstractFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine line,
                 CancellationToken cancellationToken) :
@@ -222,8 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                                 return GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), OptionSet.GetOption(FormattingOptions.IndentationSize, token.Language));
                             }
 
-                            // default case
-                            return GetDefaultIndentationFromToken(token);
+                            goto default;
                         }
 
                     case SyntaxKind.CloseBracketToken:
@@ -237,8 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                                 return GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart));
                             }
 
-                            // default case
-                            return GetDefaultIndentationFromToken(token);
+                            goto default;
                         }
 
                     case SyntaxKind.XmlTextLiteralToken:
@@ -249,6 +247,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                     case SyntaxKind.CommaToken:
                         {
                             return GetIndentationFromCommaSeparatedList(token);
+                        }
+
+                    case SyntaxKind.CloseParenToken:
+                        {
+                            if (token.Parent.IsKind(SyntaxKind.ArgumentList))
+                            {
+                                return GetDefaultIndentationFromToken(token.Parent.GetFirstToken(includeZeroWidth: true));
+                            }
+
+                            goto default;
                         }
 
                     default:

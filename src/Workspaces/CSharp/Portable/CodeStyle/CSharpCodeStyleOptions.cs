@@ -17,22 +17,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         private static Option<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, params OptionStorageLocation[] storageLocations)
             => CodeStyleHelpers.CreateOption(group, nameof(CSharpCodeStyleOptions), name, defaultValue, s_allOptionsBuilder, storageLocations);
 
-        public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeForIntrinsicTypes = CreateOption(
-            CSharpCodeStyleOptionGroups.VarPreferences, nameof(UseImplicitTypeForIntrinsicTypes),
+        public static readonly Option<CodeStyleOption<bool>> VarForBuiltInTypes = CreateOption(
+            CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarForBuiltInTypes),
             defaultValue: CodeStyleOption<bool>.Default,
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_var_for_built_in_types"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeForIntrinsicTypes")});
 
-        public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeWhereApparent = CreateOption(
-            CSharpCodeStyleOptionGroups.VarPreferences, nameof(UseImplicitTypeWhereApparent),
+        public static readonly Option<CodeStyleOption<bool>> VarWhenTypeIsApparent = CreateOption(
+            CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarWhenTypeIsApparent),
             defaultValue: CodeStyleOption<bool>.Default,
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_var_when_type_is_apparent"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.UseImplicitTypeWhereApparent")});
 
-        public static readonly Option<CodeStyleOption<bool>> UseImplicitTypeWherePossible = CreateOption(
-            CSharpCodeStyleOptionGroups.VarPreferences, nameof(UseImplicitTypeWherePossible),
+        public static readonly Option<CodeStyleOption<bool>> VarElsewhere = CreateOption(
+            CSharpCodeStyleOptionGroups.VarPreferences, nameof(VarElsewhere),
             defaultValue: CodeStyleOption<bool>.Default,
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_style_var_elsewhere"),
@@ -206,6 +206,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForStringCodeStyleOption("csharp_preferred_modifier_order"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredModifierOrder)}")});
 
+        public static readonly Option<CodeStyleOption<bool>> PreferStaticLocalFunction = CreateOption(
+            CSharpCodeStyleOptionGroups.Modifier, nameof(PreferStaticLocalFunction),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_static_local_function"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferStaticLocalFunction)}")});
+
+        public static readonly Option<CodeStyleOption<bool>> PreferSimpleUsingStatement = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences, nameof(PreferSimpleUsingStatement),
+            defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_simple_using_statement"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferSimpleUsingStatement)}")});
+
         public static readonly Option<CodeStyleOption<bool>> PreferLocalOverAnonymousFunction = CreateOption(
             CSharpCodeStyleOptionGroups.ExpressionLevelPreferences, nameof(PreferLocalOverAnonymousFunction),
             defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
@@ -240,9 +254,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static IEnumerable<Option<CodeStyleOption<bool>>> GetCodeStyleOptions()
         {
-            yield return UseImplicitTypeForIntrinsicTypes;
-            yield return UseImplicitTypeWhereApparent;
-            yield return UseImplicitTypeWherePossible;
+            yield return VarForBuiltInTypes;
+            yield return VarWhenTypeIsApparent;
+            yield return VarElsewhere;
             yield return PreferConditionalDelegateCall;
             yield return PreferPatternMatchingOverAsWithNullCheck;
             yield return PreferPatternMatchingOverIsWithCastCheck;
