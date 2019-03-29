@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal struct ClassifiedSpansAndHighlightSpan
+    internal readonly struct ClassifiedSpansAndHighlightSpan
     {
         public const string Key = nameof(ClassifiedSpansAndHighlightSpan);
 

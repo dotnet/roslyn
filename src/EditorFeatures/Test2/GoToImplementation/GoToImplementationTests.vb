@@ -211,13 +211,81 @@ interface $$I { }
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
-        Public Async Function TestWithOneMethodImplementation() As Task
+        Public Async Function TestWithOneMethodImplementation_01() As Task
             Dim workspace =
 <Workspace>
     <Project Language="C#" CommonReferences="true">
         <Document>
 class C : I { public void [|M|]() { } }
 interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_02() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { public void [|M|]() { } }
+interface I { void [|$$M|]() {} }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_03() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class C : I { void I.[|M|]() { } }
+interface I { void [|$$M|]() {} }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_04() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface C : I 
+{
+    void I.[|M|]() { }
+    void M();
+}
+interface I { void $$M(); }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        Public Async Function TestWithOneMethodImplementation_05() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+interface C : I
+{
+    void I.[|M|]() { }
+    void M();
+}
+interface I { void [|$$M|]() {} }
         </Document>
     </Project>
 </Workspace>

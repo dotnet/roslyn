@@ -1114,12 +1114,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDelegateCall = (object)delegateTypeOpt != null;
             if (!isDelegateCall)
             {
-                if ((object)receiver != null && receiver.Kind == BoundKind.BaseReference && method.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, method);
-                    gotError = true;
-                }
-
                 if (!method.IsStatic)
                 {
                     WarnOnAccessOfOffDefault(node.Kind() == SyntaxKind.InvocationExpression ?
