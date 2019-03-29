@@ -60,7 +60,7 @@
       UploadTimeoutInMinutes="$(MaxUploadTimeoutInMinutes)"
       AssetManifestPath="%(ManifestFiles.Identity)"
       BlobAssetsBasePath="$(BlobBasePath)"
-      PackageAssetsBasePath="$(PackageBasePath)" />
+      PackageAssetsBasePath="$(PackageBasePath)"/>
   </Target>
 
   <ItemGroup>
