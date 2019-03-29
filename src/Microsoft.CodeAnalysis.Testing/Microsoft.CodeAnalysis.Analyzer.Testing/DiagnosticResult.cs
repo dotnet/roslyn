@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private static readonly object[] EmptyArguments = new object[0];
 
-        private readonly ImmutableArray<FileLinePositionSpan> _spans;
+        private readonly ImmutableArray<DiagnosticLocation> _spans;
         private readonly bool _suppressMessage;
         private readonly string _message;
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         private DiagnosticResult(
-            ImmutableArray<FileLinePositionSpan> spans,
+            ImmutableArray<DiagnosticLocation> spans,
             bool suppressMessage,
             string message,
             DiagnosticSeverity severity,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Testing
             MessageArguments = messageArguments;
         }
 
-        public ImmutableArray<FileLinePositionSpan> Spans => _spans.IsDefault ? ImmutableArray<FileLinePositionSpan>.Empty : _spans;
+        public ImmutableArray<DiagnosticLocation> Spans => _spans.IsDefault ? ImmutableArray<DiagnosticLocation>.Empty : _spans;
 
         public DiagnosticSeverity Severity { get; }
 
@@ -153,16 +153,16 @@ namespace Microsoft.CodeAnalysis.Testing
             => WithLocation(path, new LinePosition(line - 1, column - 1));
 
         public DiagnosticResult WithLocation(string path, LinePosition location)
-            => AppendSpan(new FileLinePositionSpan(path, location, location));
+            => AppendSpan(new FileLinePositionSpan(path, location, location), DiagnosticLocationOptions.IgnoreLength);
 
         public DiagnosticResult WithSpan(int startLine, int startColumn, int endLine, int endColumn)
             => WithSpan(path: string.Empty, startLine, startColumn, endLine, endColumn);
 
         public DiagnosticResult WithSpan(string path, int startLine, int startColumn, int endLine, int endColumn)
-            => AppendSpan(new FileLinePositionSpan(path, new LinePosition(startLine - 1, startColumn - 1), new LinePosition(endLine - 1, endColumn - 1)));
+            => AppendSpan(new FileLinePositionSpan(path, new LinePosition(startLine - 1, startColumn - 1), new LinePosition(endLine - 1, endColumn - 1)), DiagnosticLocationOptions.None);
 
         public DiagnosticResult WithSpan(FileLinePositionSpan span)
-            => AppendSpan(span);
+            => AppendSpan(span, DiagnosticLocationOptions.None);
 
         public DiagnosticResult WithDefaultPath(string path)
         {
@@ -174,9 +174,9 @@ namespace Microsoft.CodeAnalysis.Testing
             var spans = Spans.ToBuilder();
             for (var i = 0; i < spans.Count; i++)
             {
-                if (spans[i].Path == string.Empty)
+                if (spans[i].Span.Path == string.Empty)
                 {
-                    spans[i] = new FileLinePositionSpan(path, spans[i].Span);
+                    spans[i] = new DiagnosticLocation(new FileLinePositionSpan(path, spans[i].Span.Span), spans[i].Options);
                 }
             }
 
@@ -201,10 +201,10 @@ namespace Microsoft.CodeAnalysis.Testing
             var spansBuilder = result.Spans.ToBuilder();
             for (var i = 0; i < result.Spans.Length; i++)
             {
-                var newStartLinePosition = new LinePosition(result.Spans[i].StartLinePosition.Line + offset, result.Spans[i].StartLinePosition.Character);
-                var newEndLinePosition = new LinePosition(result.Spans[i].EndLinePosition.Line + offset, result.Spans[i].EndLinePosition.Character);
+                var newStartLinePosition = new LinePosition(result.Spans[i].Span.StartLinePosition.Line + offset, result.Spans[i].Span.StartLinePosition.Character);
+                var newEndLinePosition = new LinePosition(result.Spans[i].Span.EndLinePosition.Line + offset, result.Spans[i].Span.EndLinePosition.Character);
 
-                spansBuilder[i] = new FileLinePositionSpan(result.Spans[i].Path, newStartLinePosition, newEndLinePosition);
+                spansBuilder[i] = new DiagnosticLocation(new FileLinePositionSpan(result.Spans[i].Span.Path, newStartLinePosition, newEndLinePosition), result.Spans[i].Options);
             }
 
             return new DiagnosticResult(
@@ -217,10 +217,10 @@ namespace Microsoft.CodeAnalysis.Testing
                 messageArguments: MessageArguments);
         }
 
-        private DiagnosticResult AppendSpan(FileLinePositionSpan span)
+        private DiagnosticResult AppendSpan(FileLinePositionSpan span, DiagnosticLocationOptions options)
         {
             return new DiagnosticResult(
-                spans: Spans.Add(span),
+                spans: Spans.Add(new DiagnosticLocation(span, options)),
                 suppressMessage: _suppressMessage,
                 message: _message,
                 severity: Severity,
@@ -235,17 +235,17 @@ namespace Microsoft.CodeAnalysis.Testing
             if (HasLocation)
             {
                 var location = Spans[0];
-                builder.Append(location.Path == string.Empty ? "?" : location.Path);
+                builder.Append(location.Span.Path == string.Empty ? "?" : location.Span.Path);
                 builder.Append("(");
-                builder.Append(location.StartLinePosition.Line + 1);
+                builder.Append(location.Span.StartLinePosition.Line + 1);
                 builder.Append(",");
-                builder.Append(location.StartLinePosition.Character + 1);
-                if (location.EndLinePosition != location.StartLinePosition)
+                builder.Append(location.Span.StartLinePosition.Character + 1);
+                if (!location.Options.HasFlag(DiagnosticLocationOptions.IgnoreLength))
                 {
                     builder.Append(",");
-                    builder.Append(location.EndLinePosition.Line + 1);
+                    builder.Append(location.Span.EndLinePosition.Line + 1);
                     builder.Append(",");
-                    builder.Append(location.EndLinePosition.Character + 1);
+                    builder.Append(location.Span.EndLinePosition.Character + 1);
                 }
 
                 builder.Append("): ");
