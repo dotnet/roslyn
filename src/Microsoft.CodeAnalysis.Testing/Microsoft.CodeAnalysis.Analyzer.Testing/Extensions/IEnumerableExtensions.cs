@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.Testing
         public static DiagnosticResult[] ToOrderedArray(this IEnumerable<DiagnosticResult> diagnosticResults)
         {
             return diagnosticResults
-                .OrderBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Path, StringComparer.Ordinal)
-                .ThenBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.Start.Line)
-                .ThenBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.Start.Character)
-                .ThenBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.End.Line)
-                .ThenBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.End.Character)
+                .OrderBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.Path, StringComparer.Ordinal)
+                .ThenBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.Span.Start.Line)
+                .ThenBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.Span.Start.Character)
+                .ThenBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.Span.End.Line)
+                .ThenBy(diagnosticResult => diagnosticResult.Spans.FirstOrDefault().Span.Span.End.Character)
                 .ThenBy(diagnosticResult => diagnosticResult.Id, StringComparer.Ordinal)
                 .ToArray();
         }

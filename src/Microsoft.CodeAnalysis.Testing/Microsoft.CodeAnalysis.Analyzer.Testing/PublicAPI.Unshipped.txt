@@ -36,6 +36,13 @@ Microsoft.CodeAnalysis.Testing.DefaultVerifier.NotEmpty<T>(string collectionName
 Microsoft.CodeAnalysis.Testing.DefaultVerifier.PushContext(string context) -> Microsoft.CodeAnalysis.Testing.IVerifier
 Microsoft.CodeAnalysis.Testing.DefaultVerifier.SequenceEqual<T>(System.Collections.Generic.IEnumerable<T> expected, System.Collections.Generic.IEnumerable<T> actual, System.Collections.Generic.IEqualityComparer<T> equalityComparer = null, string message = null) -> void
 Microsoft.CodeAnalysis.Testing.DefaultVerifier.True(bool assert, string message = null) -> void
+Microsoft.CodeAnalysis.Testing.DiagnosticLocation
+Microsoft.CodeAnalysis.Testing.DiagnosticLocation.DiagnosticLocation(Microsoft.CodeAnalysis.FileLinePositionSpan span, Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions options) -> void
+Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Options.get -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Span.get -> Microsoft.CodeAnalysis.FileLinePositionSpan
+Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.IgnoreLength = 1 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
+Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.None = 0 -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
 Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.DiagnosticResult(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor) -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.DiagnosticResult(string id, Microsoft.CodeAnalysis.DiagnosticSeverity severity) -> void
@@ -45,7 +52,7 @@ Microsoft.CodeAnalysis.Testing.DiagnosticResult.Message.get -> string
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.MessageArguments.get -> object[]
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.MessageFormat.get -> Microsoft.CodeAnalysis.LocalizableString
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.Severity.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
-Microsoft.CodeAnalysis.Testing.DiagnosticResult.Spans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FileLinePositionSpan>
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.Spans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.DiagnosticLocation>
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithArguments(params object[] arguments) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithDefaultPath(string path) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLineOffset(int offset) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
@@ -55,6 +62,7 @@ Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, Micros
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithLocation(string path, int line, int column) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithMessage(string message) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithMessageFormat(Microsoft.CodeAnalysis.LocalizableString messageFormat) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithNoLocation() -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity severity) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(Microsoft.CodeAnalysis.FileLinePositionSpan span) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 Microsoft.CodeAnalysis.Testing.DiagnosticResult.WithSpan(int startLine, int startColumn, int endLine, int endColumn) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult

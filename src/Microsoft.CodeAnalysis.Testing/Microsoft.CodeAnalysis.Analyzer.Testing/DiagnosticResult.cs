@@ -11,15 +11,15 @@ namespace Microsoft.CodeAnalysis.Testing
     /// <summary>
     /// Structure that stores information about a <see cref="Diagnostic"/> appearing in a source.
     /// </summary>
-    public struct DiagnosticResult
+    public readonly struct DiagnosticResult
     {
         public static readonly DiagnosticResult[] EmptyDiagnosticResults = { };
 
         private static readonly object[] EmptyArguments = new object[0];
 
-        private ImmutableArray<FileLinePositionSpan> _spans;
-        private bool _suppressMessage;
-        private string _message;
+        private readonly ImmutableArray<DiagnosticLocation> _spans;
+        private readonly bool _suppressMessage;
+        private readonly string _message;
 
         public DiagnosticResult(string id, DiagnosticSeverity severity)
             : this()
@@ -36,9 +36,27 @@ namespace Microsoft.CodeAnalysis.Testing
             MessageFormat = descriptor.MessageFormat;
         }
 
-        public ImmutableArray<FileLinePositionSpan> Spans => _spans.IsDefault ? ImmutableArray<FileLinePositionSpan>.Empty : _spans;
+        private DiagnosticResult(
+            ImmutableArray<DiagnosticLocation> spans,
+            bool suppressMessage,
+            string message,
+            DiagnosticSeverity severity,
+            string id,
+            LocalizableString messageFormat,
+            object[] messageArguments)
+        {
+            _spans = spans;
+            _suppressMessage = suppressMessage;
+            _message = message;
+            Severity = severity;
+            Id = id;
+            MessageFormat = messageFormat;
+            MessageArguments = messageArguments;
+        }
 
-        public DiagnosticSeverity Severity { get; private set; }
+        public ImmutableArray<DiagnosticLocation> Spans => _spans.IsDefault ? ImmutableArray<DiagnosticLocation>.Empty : _spans;
+
+        public DiagnosticSeverity Severity { get; }
 
         public string Id { get; }
 
@@ -65,9 +83,9 @@ namespace Microsoft.CodeAnalysis.Testing
             }
         }
 
-        public LocalizableString MessageFormat { get; private set; }
+        public LocalizableString MessageFormat { get; }
 
-        public object[] MessageArguments { get; private set; }
+        public object[] MessageArguments { get; }
 
         public bool HasLocation => !Spans.IsEmpty;
 
@@ -79,31 +97,62 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public DiagnosticResult WithSeverity(DiagnosticSeverity severity)
         {
-            var result = this;
-            result.Severity = severity;
-            return result;
+            return new DiagnosticResult(
+                spans: _spans,
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
         public DiagnosticResult WithArguments(params object[] arguments)
         {
-            var result = this;
-            result.MessageArguments = arguments;
-            return result;
+            return new DiagnosticResult(
+                spans: _spans,
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: arguments);
         }
 
         public DiagnosticResult WithMessage(string message)
         {
-            var result = this;
-            result._message = message;
-            result._suppressMessage = message is null;
-            return result;
+            return new DiagnosticResult(
+                spans: _spans,
+                suppressMessage: message is null,
+                message: message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
         public DiagnosticResult WithMessageFormat(LocalizableString messageFormat)
         {
-            var result = this;
-            result.MessageFormat = messageFormat;
-            return result;
+            return new DiagnosticResult(
+                spans: _spans,
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: messageFormat,
+                messageArguments: MessageArguments);
+        }
+
+        public DiagnosticResult WithNoLocation()
+        {
+            return new DiagnosticResult(
+                spans: ImmutableArray<DiagnosticLocation>.Empty,
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
         public DiagnosticResult WithLocation(int line, int column)
@@ -116,16 +165,16 @@ namespace Microsoft.CodeAnalysis.Testing
             => WithLocation(path, new LinePosition(line - 1, column - 1));
 
         public DiagnosticResult WithLocation(string path, LinePosition location)
-            => AppendSpan(new FileLinePositionSpan(path, location, location));
+            => AppendSpan(new FileLinePositionSpan(path, location, location), DiagnosticLocationOptions.IgnoreLength);
 
         public DiagnosticResult WithSpan(int startLine, int startColumn, int endLine, int endColumn)
             => WithSpan(path: string.Empty, startLine, startColumn, endLine, endColumn);
 
         public DiagnosticResult WithSpan(string path, int startLine, int startColumn, int endLine, int endColumn)
-            => AppendSpan(new FileLinePositionSpan(path, new LinePosition(startLine - 1, startColumn - 1), new LinePosition(endLine - 1, endColumn - 1)));
+            => AppendSpan(new FileLinePositionSpan(path, new LinePosition(startLine - 1, startColumn - 1), new LinePosition(endLine - 1, endColumn - 1)), DiagnosticLocationOptions.None);
 
         public DiagnosticResult WithSpan(FileLinePositionSpan span)
-            => AppendSpan(span);
+            => AppendSpan(span, DiagnosticLocationOptions.None);
 
         public DiagnosticResult WithDefaultPath(string path)
         {
@@ -134,18 +183,23 @@ namespace Microsoft.CodeAnalysis.Testing
                 return this;
             }
 
-            var result = this;
             var spans = Spans.ToBuilder();
             for (var i = 0; i < spans.Count; i++)
             {
-                if (spans[i].Path == string.Empty)
+                if (spans[i].Span.Path == string.Empty)
                 {
-                    spans[i] = new FileLinePositionSpan(path, spans[i].Span);
+                    spans[i] = new DiagnosticLocation(new FileLinePositionSpan(path, spans[i].Span.Span), spans[i].Options);
                 }
             }
 
-            result._spans = spans.MoveToImmutable();
-            return result;
+            return new DiagnosticResult(
+                spans: spans.MoveToImmutable(),
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
         public DiagnosticResult WithLineOffset(int offset)
@@ -159,21 +213,32 @@ namespace Microsoft.CodeAnalysis.Testing
             var spansBuilder = result.Spans.ToBuilder();
             for (var i = 0; i < result.Spans.Length; i++)
             {
-                var newStartLinePosition = new LinePosition(result.Spans[i].StartLinePosition.Line + offset, result.Spans[i].StartLinePosition.Character);
-                var newEndLinePosition = new LinePosition(result.Spans[i].EndLinePosition.Line + offset, result.Spans[i].EndLinePosition.Character);
+                var newStartLinePosition = new LinePosition(result.Spans[i].Span.StartLinePosition.Line + offset, result.Spans[i].Span.StartLinePosition.Character);
+                var newEndLinePosition = new LinePosition(result.Spans[i].Span.EndLinePosition.Line + offset, result.Spans[i].Span.EndLinePosition.Character);
 
-                spansBuilder[i] = new FileLinePositionSpan(result.Spans[i].Path, newStartLinePosition, newEndLinePosition);
+                spansBuilder[i] = new DiagnosticLocation(new FileLinePositionSpan(result.Spans[i].Span.Path, newStartLinePosition, newEndLinePosition), result.Spans[i].Options);
             }
 
-            result._spans = spansBuilder.MoveToImmutable();
-            return result;
+            return new DiagnosticResult(
+                spans: spansBuilder.MoveToImmutable(),
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
-        private DiagnosticResult AppendSpan(FileLinePositionSpan span)
+        private DiagnosticResult AppendSpan(FileLinePositionSpan span, DiagnosticLocationOptions options)
         {
-            var result = this;
-            result._spans = Spans.Add(span);
-            return result;
+            return new DiagnosticResult(
+                spans: Spans.Add(new DiagnosticLocation(span, options)),
+                suppressMessage: _suppressMessage,
+                message: _message,
+                severity: Severity,
+                id: Id,
+                messageFormat: MessageFormat,
+                messageArguments: MessageArguments);
         }
 
         public override string ToString()
@@ -182,17 +247,17 @@ namespace Microsoft.CodeAnalysis.Testing
             if (HasLocation)
             {
                 var location = Spans[0];
-                builder.Append(location.Path == string.Empty ? "?" : location.Path);
+                builder.Append(location.Span.Path == string.Empty ? "?" : location.Span.Path);
                 builder.Append("(");
-                builder.Append(location.StartLinePosition.Line + 1);
+                builder.Append(location.Span.StartLinePosition.Line + 1);
                 builder.Append(",");
-                builder.Append(location.StartLinePosition.Character + 1);
-                if (location.EndLinePosition != location.StartLinePosition)
+                builder.Append(location.Span.StartLinePosition.Character + 1);
+                if (!location.Options.HasFlag(DiagnosticLocationOptions.IgnoreLength))
                 {
                     builder.Append(",");
-                    builder.Append(location.EndLinePosition.Line + 1);
+                    builder.Append(location.Span.EndLinePosition.Line + 1);
                     builder.Append(",");
-                    builder.Append(location.EndLinePosition.Character + 1);
+                    builder.Append(location.Span.EndLinePosition.Character + 1);
                 }
 
                 builder.Append("): ");
