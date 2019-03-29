@@ -178,12 +178,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var memberLocation = implementingMember.Locations[0];
             var containingType = implementingMember.ContainingType;
-            var containingTypeKind = containingType.TypeKind;
 
-            if (containingTypeKind != TypeKind.Class && containingTypeKind != TypeKind.Struct)
+            switch (containingType.TypeKind)
             {
-                diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, memberLocation, implementingMember);
-                return null;
+                case TypeKind.Class:
+                case TypeKind.Struct:
+                case TypeKind.Interface:
+                    break;
+
+                default:
+                    diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, memberLocation, implementingMember);
+                    return null;
             }
 
             if (!explicitInterfaceType.IsInterfaceType())
@@ -286,7 +291,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             findMatchingMembersDiagnostics.Free();
             diagnostics.AddRangeAndFree(findRuntimeCollisionsDiagnostics);
 
-            return implementedMember;
+			// Make sure implemented member is accessible
+			if ((object)implementedMember != null)
+			{
+				HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+				if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
+				{
+					diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, implementedMember);
+				}
+				else
+				{
+					switch (implementedMember.Kind)
+					{
+						case SymbolKind.Property:
+							var propertySymbol = (PropertySymbol)implementedMember;
+							checkAccessorIsAccessibleIfImplementable(propertySymbol.GetMethod);
+							checkAccessorIsAccessibleIfImplementable(propertySymbol.SetMethod);
+							break;
+
+						case SymbolKind.Event:
+							var eventSymbol = (EventSymbol)implementedMember;
+							checkAccessorIsAccessibleIfImplementable(eventSymbol.AddMethod);
+							checkAccessorIsAccessibleIfImplementable(eventSymbol.RemoveMethod);
+							break;
+					}
+
+					void checkAccessorIsAccessibleIfImplementable(MethodSymbol accessor)
+					{
+						if (accessor.IsImplementable() &&
+							!AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
+						{
+							diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, accessor);
+						}
+					}
+				}
+
+				diagnostics.Add(memberLocation, useSiteDiagnostics);
+			}
+
+			return implementedMember;
         }
 
         /// <summary>
@@ -299,10 +343,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (Symbol interfaceMember in interfaceMembers)
             {
-                // At this point, we know that explicitInterfaceNamedType is an interface, so candidate must be public
-                // and, therefore, accessible.  So we don't need to check that.
+                // At this point, we know that explicitInterfaceNamedType is an interface.
                 // However, metadata interface members can be static - we ignore them, as does Dev10.
-                if (interfaceMember.Kind != implementingMember.Kind || interfaceMember.IsStatic)
+                if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
                 {
                     continue;
                 }
