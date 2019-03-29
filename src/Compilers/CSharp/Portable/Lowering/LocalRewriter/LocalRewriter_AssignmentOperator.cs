@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression setterCall = BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
-                    setMethod,
+                    AdjustMethodForBaseInterfaceCall(rewrittenReceiver, setMethod),
                     AppendToPossibleNull(rewrittenArguments, rhsAssignment));
 
                 return new BoundSequence(
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundCall setterCall = BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
-                    setMethod,
+                    AdjustMethodForBaseInterfaceCall(rewrittenReceiver, setMethod),
                     AppendToPossibleNull(rewrittenArguments, rewrittenRight));
 
                 if (argTemps.IsDefaultOrEmpty)

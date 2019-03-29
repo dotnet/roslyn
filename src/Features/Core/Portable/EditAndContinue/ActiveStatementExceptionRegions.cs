@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal struct ActiveStatementExceptionRegions
+    internal readonly struct ActiveStatementExceptionRegions
     {
         /// <summary>
         /// Exception region spans corresponding to an active statement.

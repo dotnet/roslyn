@@ -761,7 +761,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             updatedTrackingSpans.Free();
         }
 
-        internal struct ActiveNode
+        internal readonly struct ActiveNode
         {
             public readonly SyntaxNode OldNode;
             public readonly SyntaxNode NewTrackedNodeOpt;
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal struct LambdaInfo
+        internal readonly struct LambdaInfo
         {
             public readonly List<int> ActiveNodeIndices;
             public readonly Match<SyntaxNode> Match;
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal struct UpdatedMemberInfo
+        internal readonly struct UpdatedMemberInfo
         {
             // Index in top edit script.
             public readonly int EditOrdinal;
@@ -2062,7 +2062,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        private struct ConstructorEdit
+        private readonly struct ConstructorEdit
         {
             public readonly INamedTypeSymbol OldType;
 
