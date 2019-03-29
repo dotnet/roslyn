@@ -4739,9 +4739,6 @@ public class Class : Interface<string>
     public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
 }
 ";
-            // We report ErrorCode.WRN_ExplicitImplCollision because MemberSignatureComparer.RuntimeSignatureComparer considers `void Method(string i)` and `void Method(T? i)` equal when T is string
-            // However the runtime will actually treat them differently, so this warning is unnecessary.
-
             CreateCompilation(text).VerifyDiagnostics(
                 // (11,28): warning CS0473: Explicit interface implementation 'Class.Interface<string>.Method(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
                 //     void Interface<string>.Method(string i) { } //this explicitly implements both methods in Interface<int>
@@ -4768,9 +4765,6 @@ public class Class : Interface<string>
     public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
 }
 ";
-            // We report ErrorCode.WRN_ExplicitImplCollision because MemberSignatureComparer.RuntimeSignatureComparer considers `void Method(string i)` and `void Method(T? i)` equal when T is string
-            // However the runtime will actually treat them differently, so this warning is unnecessary.
-
             CreateCompilation(text).VerifyDiagnostics(
                 // (11,28): warning CS0473: Explicit interface implementation 'Class.Interface<string>.Method(string?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
                 //     void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
