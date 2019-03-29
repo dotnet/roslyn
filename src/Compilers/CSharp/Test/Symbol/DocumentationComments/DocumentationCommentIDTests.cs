@@ -41,7 +41,7 @@ class C
 ";
             var comp = CreateCompilation(source);
             var field = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("f");
-            var symbol = field.Type.TypeSymbol;
+            var symbol = field.Type;
             Assert.Equal(SymbolKind.ArrayType, symbol.Kind);
             Assert.Null(symbol.GetDocumentationCommentId());
         }
@@ -71,7 +71,7 @@ class C
 ";
             var comp = CreateCompilation(source);
             var field = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("f");
-            var symbol = field.Type.TypeSymbol;
+            var symbol = field.Type;
             Assert.Equal(SymbolKind.DynamicType, symbol.Kind);
             Assert.Null(symbol.GetDocumentationCommentId());
         }
@@ -265,7 +265,7 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
             var field = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<FieldSymbol>("f");
-            var symbol = field.Type.TypeSymbol;
+            var symbol = field.Type;
             Assert.Equal(SymbolKind.PointerType, symbol.Kind);
             Assert.Null(symbol.GetDocumentationCommentId());
         }

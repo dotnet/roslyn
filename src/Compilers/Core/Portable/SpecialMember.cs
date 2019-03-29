@@ -144,6 +144,8 @@ namespace Microsoft.CodeAnalysis
         System_Nullable_T__op_Implicit_FromT,
         System_Nullable_T__op_Explicit_ToT,
 
+        System_Runtime_CompilerServices_RuntimeFeature__DefaultImplementationsOfInterfaces,
+
         Count
     }
 }

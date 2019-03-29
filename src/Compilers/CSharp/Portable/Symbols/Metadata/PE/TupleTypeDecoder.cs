@@ -91,8 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute);
         }
 
-        public static TypeSymbolWithAnnotations DecodeTupleTypesIfApplicable(
-            TypeSymbolWithAnnotations metadataType,
+        public static TypeWithAnnotations DecodeTupleTypesIfApplicable(
+            TypeWithAnnotations metadataType,
             EntityHandle targetHandle,
             PEModuleSymbol containingModule)
         {
@@ -105,14 +105,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // bad metadata
             if (hasTupleElementNamesAttribute && elementNames.IsDefaultOrEmpty)
             {
-                return TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
+                return TypeWithAnnotations.Create(new UnsupportedMetadataTypeSymbol());
             }
 
-            TypeSymbol type = metadataType.TypeSymbol;
+            TypeSymbol type = metadataType.Type;
             TypeSymbol decoded = DecodeTupleTypesInternal(type, elementNames, hasTupleElementNamesAttribute);
             return (object)decoded == (object)type ?
                 metadataType :
-                TypeSymbolWithAnnotations.Create(decoded, metadataType.NullableAnnotation, metadataType.CustomModifiers);
+                TypeWithAnnotations.Create(decoded, metadataType.NullableAnnotation, metadataType.CustomModifiers);
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private NamedTypeSymbol DecodeNamedType(NamedTypeSymbol type)
         {
             // First decode the type arguments
-            var typeArgs = type.TypeArgumentsNoUseSiteDiagnostics;
+            var typeArgs = type.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
             var decodedArgs = DecodeTypeArguments(typeArgs);
 
             NamedTypeSymbol decodedType = type;
@@ -246,20 +246,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return decodedType;
         }
 
-        private ImmutableArray<TypeSymbolWithAnnotations> DecodeTypeArguments(ImmutableArray<TypeSymbolWithAnnotations> typeArgs)
+        private ImmutableArray<TypeWithAnnotations> DecodeTypeArguments(ImmutableArray<TypeWithAnnotations> typeArgs)
         {
             if (typeArgs.IsEmpty)
             {
                 return typeArgs;
             }
 
-            var decodedArgs = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance(typeArgs.Length);
+            var decodedArgs = ArrayBuilder<TypeWithAnnotations>.GetInstance(typeArgs.Length);
             var anyDecoded = false;
             // Visit the type arguments in reverse
             for (int i = typeArgs.Length - 1; i >= 0; i--)
             {
-                TypeSymbolWithAnnotations typeArg = typeArgs[i];
-                TypeSymbolWithAnnotations decoded = DecodeTypeInternal(typeArg);
+                TypeWithAnnotations typeArg = typeArgs[i];
+                TypeWithAnnotations decoded = DecodeTypeInternal(typeArg);
                 anyDecoded |= !decoded.IsSameAs(typeArg);
                 decodedArgs.Add(decoded);
             }
@@ -276,17 +276,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ArrayTypeSymbol DecodeArrayType(ArrayTypeSymbol type)
         {
-            TypeSymbolWithAnnotations decodedElementType = DecodeTypeInternal(type.ElementType);
+            TypeWithAnnotations decodedElementType = DecodeTypeInternal(type.ElementTypeWithAnnotations);
             return type.WithElementType(decodedElementType);
         }
 
-        private TypeSymbolWithAnnotations DecodeTypeInternal(TypeSymbolWithAnnotations typeWithAnnotations)
+        private TypeWithAnnotations DecodeTypeInternal(TypeWithAnnotations typeWithAnnotations)
         {
-            TypeSymbol type = typeWithAnnotations.TypeSymbol;
+            TypeSymbol type = typeWithAnnotations.Type;
             TypeSymbol decoded = DecodeType(type);
             return ReferenceEquals(decoded, type) ?
                 typeWithAnnotations :
-                TypeSymbolWithAnnotations.Create(decoded, typeWithAnnotations.NullableAnnotation, typeWithAnnotations.CustomModifiers);
+                TypeWithAnnotations.Create(decoded, typeWithAnnotations.NullableAnnotation, typeWithAnnotations.CustomModifiers);
         }
 
         private ImmutableArray<string> EatElementNamesIfAvailable(int numberOfElements)

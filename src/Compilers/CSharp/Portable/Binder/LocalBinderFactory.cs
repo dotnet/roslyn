@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// The LocalBinderFactory is used to build up the map of all Binders within a method body, and the associated
     /// CSharpSyntaxNode. To do so it traverses all the statements, handling blocks and other
-    /// statements that create scopes. For efficiency reasons, it does not traverse into
+    /// statements that create scopes. For efficiency reasons, it does not traverse into all
     /// expressions. This means that blocks within lambdas and queries are not created. 
     /// Blocks within lambdas are bound by their own LocalBinderFactory when they are 
     /// analyzed.
@@ -45,6 +45,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Visit(syntax);
                 _enclosing = oldEnclosing;
             }
+        }
+
+        private void VisitRankSpecifiers(TypeSyntax type, Binder enclosing)
+        {
+            type.VisitRankSpecifiers((rankSpecifier, args) =>
+            {
+                foreach (var size in rankSpecifier.Sizes)
+                {
+                    if (size.Kind() != SyntaxKind.OmittedArraySizeExpression)
+                    {
+                        args.localBinderFactory.Visit(size, args.binder);
+                    }
+                }
+            }, (localBinderFactory: this, binder: enclosing));
         }
 
         // methodsWithYields will contain all function-declaration-like CSharpSyntaxNodes with yield statements contained within them.
@@ -366,6 +380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                VisitRankSpecifiers(declarationSyntax.Type, usingBinder);
+
                 foreach (VariableDeclaratorSyntax declarator in declarationSyntax.Variables)
                 {
                     Visit(declarator, usingBinder);
@@ -404,6 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableDeclarationSyntax declaration = node.Declaration;
             if (declaration != null)
             {
+                VisitRankSpecifiers(declaration.Type, binder);
+
                 foreach (VariableDeclaratorSyntax variable in declaration.Variables)
                 {
                     Visit(variable, binder);
@@ -487,6 +505,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Declaration != null)
             {
+                VisitRankSpecifiers(node.Declaration.Type, binder);
+
                 foreach (VariableDeclaratorSyntax declarator in node.Declaration.Variables)
                 {
                     Visit(declarator, binder);
@@ -687,6 +707,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
+            VisitRankSpecifiers(node.Declaration.Type, _enclosing);
+
             foreach (VariableDeclaratorSyntax decl in node.Declaration.Variables)
             {
                 Visit(decl);

@@ -331,7 +331,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conv = (BoundConversion)node;
             if (conv.ExplicitCastInCode) return false;
             NamedTypeSymbol nt = conv.Operand.Type as NamedTypeSymbol;
-            if ((object)nt == null || !nt.IsReferenceType) return false;
+            if ((object)nt == null || !nt.IsReferenceType || nt.IsInterface)
+            {
+                return false;
+            }
+
             string opName = (oldOperatorKind == BinaryOperatorKind.ObjectEqual) ? WellKnownMemberNames.EqualityOperatorName : WellKnownMemberNames.InequalityOperatorName;
             for (var t = nt; (object)t != null; t = t.BaseTypeNoUseSiteDiagnostics)
             {
@@ -340,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MethodSymbol op = sym as MethodSymbol;
                     if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator) continue;
                     var parameters = op.GetParameters();
-                    if (parameters.Length == 2 && TypeSymbol.Equals(parameters[0].Type.TypeSymbol, t, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(parameters[1].Type.TypeSymbol, t, TypeCompareKind.ConsiderEverything2))
+                    if (parameters.Length == 2 && TypeSymbol.Equals(parameters[0].Type, t, TypeCompareKind.ConsiderEverything2) && TypeSymbol.Equals(parameters[1].Type, t, TypeCompareKind.ConsiderEverything2))
                     {
                         type = t;
                         return true;

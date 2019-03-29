@@ -86,7 +86,7 @@
       </trans-unit>
       <trans-unit id="Delegate1">
         <source>delegate</source>
-        <target state="translated">delegate</target>
+        <target state="translated">delegar</target>
         <note />
       </trans-unit>
       <trans-unit id="Enum1">
@@ -161,7 +161,7 @@
       </trans-unit>
       <trans-unit id="InMemoryModule">
         <source>&lt;in-memory module&gt;</source>
-        <target state="translated">&lt;in-memory module&gt;</target>
+        <target state="translated">&lt;módulo na memória&gt;</target>
         <note />
       </trans-unit>
       <trans-unit id="SizeHasToBePositive">

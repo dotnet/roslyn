@@ -131,12 +131,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _openFileTrackerOpt = openFileTracker;
             }
 
-            openFileTracker.CheckForOpenDocumentsByEnumeratingTheRunningDocumentTable();
+            openFileTracker.ProcessQueuedWorkOnUIThread();
         }
 
-        public void CheckForOpenDocuments(ImmutableArray<string> newFileNames)
+        public void QueueCheckForFilesBeingOpen(ImmutableArray<string> newFileNames)
         {
-            _openFileTrackerOpt?.CheckForFilesBeingOpen(newFileNames);
+            _openFileTrackerOpt?.QueueCheckForFilesBeingOpen(newFileNames);
+        }
+
+        public void ProcessQueuedWorkOnUIThread()
+        {
+            _openFileTrackerOpt?.ProcessQueuedWorkOnUIThread();
         }
 
         internal void AddProjectToInternalMaps(VisualStudioProject project, IVsHierarchy hierarchy, Guid guid, string projectSystemName)
@@ -383,7 +388,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
-                // Currently renaming files in CPS projects (i.e. .Net Core) doesn't work proprey.
+                // Currently renaming files in CPS projects (i.e. .NET Core) doesn't work proprey.
                 // This is because the remove/add of the documents in CPS is not synchronous
                 // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
                 // expecting the changes to happen immediately.  Because they are deferred in CPS
@@ -427,6 +432,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 case ApplyChangesKind.ChangeAdditionalDocument:
                 case ApplyChangesKind.ChangeCompilationOptions:
                 case ApplyChangesKind.ChangeParseOptions:
+                case ApplyChangesKind.ChangeDocumentInfo:
                     return true;
 
                 default:
@@ -1078,6 +1084,84 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 {
                     TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
                 }
+            }
+        }
+
+        protected override void ApplyDocumentInfoChanged(DocumentId documentId, DocumentInfo updatedInfo)
+        {
+            var document = CurrentSolution.GetDocument(documentId);
+
+            FailIfDocumentInfoChangesNotSupported(document, updatedInfo);
+
+            if (document.Name != updatedInfo.Name)
+            {
+                GetProjectData(updatedInfo.Id.ProjectId, out var _, out var dteProject);
+
+                var projectItemForDocument = dteProject.FindItemByPath(document.FilePath, StringComparer.OrdinalIgnoreCase);
+
+                if (projectItemForDocument == null)
+                {
+                    // TODO(https://github.com/dotnet/roslyn/issues/34276):
+                    Debug.Assert(false, "Attempting to change the name of a file in a Shared Project");
+                    return;
+                }
+
+                // Must save the document first for things like Breakpoints to be preserved.
+                projectItemForDocument.Save();
+
+                var uniqueName = projectItemForDocument.Collection.GetUniqueName(
+                    Path.GetFileNameWithoutExtension(updatedInfo.Name),
+                    Path.GetExtension(updatedInfo.Name));
+
+                // Get the current undoManager before any file renames/documentId changes happen
+                var undoManager = TryGetUndoManager();
+
+                // By setting this property, Visual Studio will perform the file rename, which 
+                // will cause the workspace's current solution to update and will fire the 
+                // necessary workspace changed events.
+                projectItemForDocument.Name = uniqueName;
+
+                if (projectItemForDocument.TryGetFullPath(out var newPath))
+                {
+                    undoManager?.Add(new RenameDocumentUndoUnit(this, uniqueName, document.Name, newPath));
+                }
+            }
+        }
+
+        /// <summary>
+        /// The <see cref="VisualStudioWorkspace"/> currently supports only a subset of <see cref="DocumentInfo"/> 
+        /// changes.
+        /// </summary>
+        private void FailIfDocumentInfoChangesNotSupported(CodeAnalysis.Document document, DocumentInfo updatedInfo)
+        {
+            if (document.SourceCodeKind != updatedInfo.SourceCodeKind)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.SourceCodeKind)}.");
+            }
+
+            if (document.FilePath != updatedInfo.FilePath)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.FilePath)}.");
+            }
+
+            if (document.Id != updatedInfo.Id)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.Id)}.");
+            }
+
+            if (document.Folders != updatedInfo.Folders)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.Folders)}.");
+            }
+
+            if (document.State.Attributes.IsGenerated != updatedInfo.IsGenerated)
+            {
+                throw new InvalidOperationException(
+                    $"This Workspace does not support changing a document's {nameof(document.State.Attributes.IsGenerated)} state.");
             }
         }
 

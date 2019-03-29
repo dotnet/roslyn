@@ -1300,15 +1300,6 @@ namespace Microsoft.CodeAnalysis
             var oldDoc = projectChanges.OldProject.GetDocument(documentId);
             var newDoc = projectChanges.NewProject.GetDocument(documentId);
 
-            // update info if changed
-            if (newDoc.HasInfoChanged(oldDoc))
-            {
-                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
-                ApplyDocumentInfoChanged(
-                    documentId,
-                    new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
-            }
-
             // update text if changed
             if (newDoc.HasTextChanged(oldDoc))
             {
@@ -1336,6 +1327,16 @@ namespace Microsoft.CodeAnalysis
                     // So either the new text already knows the individual changes or we do not have a way to compute them.
                     this.ApplyDocumentTextChanged(documentId, newText);
                 }
+            }
+
+            // Update document info if changed. Updating the info can cause files to move on disk (or have other side effects),
+            // so we do this after any text changes have been applied.
+            if (newDoc.HasInfoChanged(oldDoc))
+            {
+                // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
+                ApplyDocumentInfoChanged(
+                    documentId,
+                    new DocumentInfo(newDoc.State.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
             }
         }
 

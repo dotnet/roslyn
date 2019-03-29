@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     StateManager.VerifyDiagnosticStates(hostStates.Concat(stateSets));
                 }
 
-                private struct Entry
+                private readonly struct Entry
                 {
                     public readonly IReadOnlyList<AnalyzerReference> AnalyzerReferences;
                     public readonly ImmutableDictionary<object, ImmutableArray<DiagnosticAnalyzer>> MapPerReferences;

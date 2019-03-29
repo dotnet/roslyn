@@ -541,10 +541,7 @@
     <value>Event is never used</value>
   </data>
   <data name="ERR_InterfaceEventInitializer" xml:space="preserve">
-    <value>'{0}': event in interface cannot have initializer</value>
-  </data>
-  <data name="ERR_EventPropertyInInterface" xml:space="preserve">
-    <value>An event in an interface cannot have add or remove accessors</value>
+    <value>'{0}': instance event in interface cannot have initializer</value>
   </data>
   <data name="ERR_BadEventUsage" xml:space="preserve">
     <value>The event '{0}' can only appear on the left hand side of += or -= (except when used from within the type '{1}')</value>
@@ -1107,9 +1104,6 @@
   <data name="ERR_DuplicatePropertyAccessMods" xml:space="preserve">
     <value>Cannot specify accessibility modifiers for both accessors of the property or indexer '{0}'</value>
   </data>
-  <data name="ERR_PropertyAccessModInInterface" xml:space="preserve">
-    <value>'{0}': accessibility modifiers may not be used on accessors in an interface</value>
-  </data>
   <data name="ERR_AccessModMissingAccessor" xml:space="preserve">
     <value>'{0}': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor</value>
   </data>
@@ -1505,14 +1499,11 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_StructLayoutCycle" xml:space="preserve">
     <value>Struct member '{0}' of type '{1}' causes a cycle in the struct layout</value>
   </data>
-  <data name="ERR_InterfacesCannotContainTypes" xml:space="preserve">
-    <value>'{0}': interfaces cannot declare types</value>
-  </data>
   <data name="ERR_InterfacesCantContainFields" xml:space="preserve">
-    <value>Interfaces cannot contain fields</value>
+    <value>Interfaces cannot contain instance fields</value>
   </data>
   <data name="ERR_InterfacesCantContainConstructors" xml:space="preserve">
-    <value>Interfaces cannot contain constructors</value>
+    <value>Interfaces cannot contain instance constructors</value>
   </data>
   <data name="ERR_NonInterfaceInInterfaceList" xml:space="preserve">
     <value>Type '{0}' in interface list is not an interface</value>
@@ -1525,9 +1516,6 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_CycleInInterfaceInheritance" xml:space="preserve">
     <value>Inherited interface '{1}' causes a cycle in the interface hierarchy of '{0}'</value>
-  </data>
-  <data name="ERR_InterfaceMemberHasBody" xml:space="preserve">
-    <value>'{0}': interface members cannot have a definition</value>
   </data>
   <data name="ERR_HidingAbstractMethod" xml:space="preserve">
     <value>'{0}' hides inherited abstract member '{1}'</value>
@@ -1545,13 +1533,13 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>'{0}' in explicit interface declaration is not an interface</value>
   </data>
   <data name="ERR_InterfaceMemberNotFound" xml:space="preserve">
-    <value>'{0}' in explicit interface declaration is not a member of interface</value>
+    <value>'{0}' in explicit interface declaration is not found among members of the interface that can be implemented</value>
   </data>
   <data name="ERR_ClassDoesntImplementInterface" xml:space="preserve">
     <value>'{0}': containing type does not implement interface '{1}'</value>
   </data>
   <data name="ERR_ExplicitInterfaceImplementationInNonClassOrStruct" xml:space="preserve">
-    <value>'{0}': explicit interface declaration can only be declared in a class or struct</value>
+    <value>'{0}': explicit interface declaration can only be declared in a class, struct or interface</value>
   </data>
   <data name="ERR_MemberNameSameAsType" xml:space="preserve">
     <value>'{0}': member names cannot be the same as their enclosing type</value>
@@ -1619,8 +1607,8 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_BadShiftOperatorSignature" xml:space="preserve">
     <value>The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int</value>
   </data>
-  <data name="ERR_InterfacesCantContainOperators" xml:space="preserve">
-    <value>Interfaces cannot contain operators</value>
+  <data name="ERR_InterfacesCantContainConversionOrEqualityOperators" xml:space="preserve">
+    <value>Interfaces cannot contain conversion, equality, or inequality operators</value>
   </data>
   <data name="ERR_StructsCantContainDefaultConstructor" xml:space="preserve">
     <value>Structs cannot contain explicit parameterless constructors</value>
@@ -2106,7 +2094,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers</value>
   </data>
   <data name="ERR_PartialMethodOnlyInPartialClass" xml:space="preserve">
-    <value>A partial method must be declared within a partial class or partial struct</value>
+    <value>A partial method must be declared within a partial class, partial struct, or partial interface</value>
   </data>
   <data name="ERR_PartialMethodCannotHaveOutParameters" xml:space="preserve">
     <value>A partial method cannot have out parameters</value>
@@ -2561,7 +2549,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Could not find '{0}' specified for Main method</value>
   </data>
   <data name="ERR_MainClassNotClass" xml:space="preserve">
-    <value>'{0}' specified for Main method must be a valid non-generic class or struct</value>
+    <value>'{0}' specified for Main method must be a non-generic class, struct, or interface</value>
   </data>
   <data name="ERR_NoMainInClass" xml:space="preserve">
     <value>'{0}' does not have a suitable static 'Main' method</value>
@@ -4746,7 +4734,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Auto-implemented properties must override all accessors of the overridden property.</value>
   </data>
   <data name="ERR_AutoPropertyInitializerInInterface" xml:space="preserve">
-    <value>Auto-implemented properties inside interfaces cannot have initializers.</value>
+    <value>Instance auto-implemented properties inside interfaces cannot have initializers.</value>
   </data>
   <data name="ERR_InitializerInStructWithoutExplicitConstructor" xml:space="preserve">
     <value>Structs without explicit constructors cannot contain members with initializers.</value>
@@ -5269,7 +5257,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Tuple element name '{0}' is inferred. Please use language version {1} or greater to access an element by its inferred name.</value>
   </data>
   <data name="ERR_AltInterpolatedVerbatimStringsNotAvailable" xml:space="preserve">
-    <value>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version {0} or greater.</value>
+    <value>To use '@$' instead of '$@' for an interpolated verbatim string, please use language version '{0}' or greater.</value>
   </data>
   <data name="WRN_AttributesOnBackingFieldsNotAvailable" xml:space="preserve">
     <value>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</value>
@@ -5302,10 +5290,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Possible null reference assignment.</value>
   </data>
   <data name="WRN_NullReferenceReceiver" xml:space="preserve">
-    <value>Possible dereference of a null reference.</value>
+    <value>Dereference of a possibly null reference.</value>
   </data>
   <data name="WRN_NullReferenceReceiver_Title" xml:space="preserve">
-    <value>Possible dereference of a null reference.</value>
+    <value>Dereference of a possibly null reference.</value>
   </data>
   <data name="WRN_NullReferenceReturn" xml:space="preserve">
     <value>Possible null reference return.</value>
@@ -5479,7 +5467,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.</value>
   </data>
   <data name="ERR_NullableOptionNotAvailable" xml:space="preserve">
-    <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version {3} or greater.</value>
+    <value>Invalid '{0}' value: '{1}' for C# {2}. Please use language version '{3}' or greater.</value>
   </data>
   <data name="ERR_NonTaskMainCantBeAsync" xml:space="preserve">
     <value>A void or int returning entry point cannot be async</value>
@@ -5795,5 +5783,44 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureInPreview" xml:space="preserve">
     <value>The feature '{0}' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.</value>
+  </data>
+  <data name="IDS_DefaultInterfaceImplementation" xml:space="preserve">
+    <value>default interface implementation</value>
+  </data>
+  <data name="IDS_BaseTypeInBaseExpression" xml:space="preserve">
+    <value>specifying base type in base expression</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation" xml:space="preserve">
+    <value>Target runtime doesn't support default interface implementation.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
+    <value>'{0}' cannot implement interface member '{1}' in type '{2}' because the target runtime doesn't support default interface implementation.</value>
+  </data>
+  <data name="ERR_DefaultInterfaceImplementationModifier" xml:space="preserve">
+    <value>The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.</value>
+  </data>
+  <data name="ERR_ImplicitImplementationOfNonPublicInterfaceMember" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</value>
+  </data>
+  <data name="ERR_MostSpecificImplementationIsNotFound" xml:space="preserve">
+    <value>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</value>
+  </data>
+  <data name="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
+    <value>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater.</value>
+  </data>
+  <data name="ERR_NotBaseOrImplementedInterface" xml:space="preserve">
+    <value>'{0}' is not base type or interface of {1}.</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember" xml:space="preserve">
+    <value>Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.</value>
+  </data>
+  <data name="ERR_NotImplementedInBase" xml:space="preserve">
+    <value>'{0}' is not implemented in base interface {1}.</value>
+  </data>
+  <data name="ERR_NotDeclaredInBase" xml:space="preserve">
+    <value>'{0}' is not an immediate member of {1}.</value>
+  </data>
+  <data name="ERR_DefaultInterfaceImplementationInNoPIAType" xml:space="preserve">
+    <value>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</value>
   </data>
 </root>

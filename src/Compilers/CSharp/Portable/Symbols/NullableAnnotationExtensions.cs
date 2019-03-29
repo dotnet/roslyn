@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class NullableAnnotationExtensions
@@ -43,6 +45,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (b.IsOblivious())
                 return a;
             return (a < b) ? a : b;
+        }
+
+        /// <summary>
+        /// Merges nullability.
+        /// </summary>
+        public static NullableAnnotation MergeNullableAnnotation(this NullableAnnotation a, NullableAnnotation b, VarianceKind variance)
+        {
+            return variance switch
+            {
+                VarianceKind.In => a.Meet(b),
+                VarianceKind.Out => a.Join(b),
+                VarianceKind.None => a.EnsureCompatible(b),
+                _ => throw ExceptionUtilities.UnexpectedValue(variance)
+            };
         }
     }
 }

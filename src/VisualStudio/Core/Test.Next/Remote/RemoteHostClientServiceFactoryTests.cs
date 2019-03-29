@@ -136,10 +136,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             // wait for listener
             var workspaceListener = listenerProvider.GetWaiter(FeatureAttribute.Workspace);
-            await workspaceListener.CreateWaitTask();
+            await workspaceListener.CreateExpeditedWaitTask();
 
             var listener = listenerProvider.GetWaiter(FeatureAttribute.RemoteHostClient);
-            await listener.CreateWaitTask();
+            await listener.CreateExpeditedWaitTask();
 
             // checksum should already exist
             Assert.True(workspace.CurrentSolution.State.TryGetStateChecksums(out var checksums));
@@ -188,7 +188,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var session = await client.TryCreateKeepAliveSessionAsync("Test", CancellationToken.None);
 
             // mimic unfortunate call that happens to be in the middle of communication.
-            var task = session.TryInvokeAsync("TestMethodAsync", SpecializedCollections.EmptyReadOnlyList<object>(), CancellationToken.None);
+            var task = session.TryInvokeAsync("TestMethodAsync", arguments: null, CancellationToken.None);
 
             // make client to go away
             service.Disable();

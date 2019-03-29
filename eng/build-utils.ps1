@@ -278,7 +278,7 @@ function Make-BootstrapBuild() {
     $packageName = "Microsoft.Net.Compilers.Toolset"
     $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
 
-    Run-MSBuild $projectPath "/restore /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:ApplyPartialNgenOptimization=false" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
+    Run-MSBuild $projectPath "/restore /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
     $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
     Unzip "$dir\$packageFile" $dir
 
@@ -286,4 +286,31 @@ function Make-BootstrapBuild() {
     Run-MSBuild $projectPath "/t:Clean" -logFileName "BootstrapClean"
 
     return $dir
+}
+
+Add-Type -AssemblyName 'System.Drawing'
+Add-Type -AssemblyName 'System.Windows.Forms'
+function Capture-Screenshot($path) {
+    $width = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Width
+    $height = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Height
+
+    $bitmap = New-Object System.Drawing.Bitmap $width, $height
+    try {
+        $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+        try {
+            $graphics.CopyFromScreen( `
+                [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.X, `
+                [System.Windows.Forms.Screen]::PrimaryScreen.Bounds.Y, `
+                0, `
+                0, `
+                $bitmap.Size, `
+                [System.Drawing.CopyPixelOperation]::SourceCopy)
+        } finally {
+            $graphics.Dispose()
+        }
+
+        $bitmap.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
+    } finally {
+        $bitmap.Dispose()
+    }
 }

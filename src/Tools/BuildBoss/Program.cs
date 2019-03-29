@@ -96,9 +96,9 @@ namespace BuildBoss
 
             var artifactsDirectory = Path.Combine(repositoryDirectory, "artifacts");
 
-            allGood &= ProcessStructuredLog(artifactsDirectory, configuration);
             allGood &= ProcessTargets(repositoryDirectory);
             allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration);
+            allGood &= ProcessStructuredLog(artifactsDirectory, configuration);
 
             if (!allGood)
             {
