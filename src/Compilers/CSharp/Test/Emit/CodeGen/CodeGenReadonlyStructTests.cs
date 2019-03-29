@@ -1546,59 +1546,43 @@ public readonly struct S2
             void verify(CSharpCompilation comp)
             {
                 var s1 = comp.GetMember<NamedTypeSymbol>("S1");
-                Assert.False(s1.GetMethod("M1").IsDeclaredReadOnly);
-                Assert.False(s1.GetMethod("M1").IsEffectivelyReadOnly);
 
-                Assert.True(s1.GetMethod("M2").IsDeclaredReadOnly);
-                Assert.True(s1.GetMethod("M2").IsEffectivelyReadOnly);
+                verifyReadOnly(s1.GetMethod("M1"), false, false, RefKind.Ref);
+                verifyReadOnly(s1.GetMethod("M2"), true, true, RefKind.RefReadOnly);
 
-                Assert.True(s1.GetProperty("P1").GetMethod.IsDeclaredReadOnly);
-                Assert.True(s1.GetProperty("P1").GetMethod.IsEffectivelyReadOnly);
-                Assert.False(s1.GetProperty("P1").SetMethod.IsDeclaredReadOnly);
-                Assert.False(s1.GetProperty("P1").SetMethod.IsEffectivelyReadOnly);
+                verifyReadOnly(s1.GetProperty("P1").GetMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P1").SetMethod, false, false, RefKind.Ref);
 
-                Assert.True(s1.GetProperty("P2").GetMethod.IsDeclaredReadOnly);
-                Assert.True(s1.GetProperty("P2").GetMethod.IsEffectivelyReadOnly);
+                verifyReadOnly(s1.GetProperty("P2").GetMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P3").GetMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P4").SetMethod, true, true, RefKind.RefReadOnly);
 
-                Assert.True(s1.GetProperty("P3").GetMethod.IsDeclaredReadOnly);
-                Assert.True(s1.GetProperty("P3").GetMethod.IsEffectivelyReadOnly);
+                verifyReadOnly(s1.GetProperty("P5").GetMethod, false, false, null);
+                verifyReadOnly(s1.GetProperty("P5").SetMethod, false, false, null);
 
-                Assert.True(s1.GetProperty("P4").SetMethod.IsDeclaredReadOnly);
-                Assert.True(s1.GetProperty("P4").SetMethod.IsEffectivelyReadOnly);
-
-                Assert.False(s1.GetProperty("P5").GetMethod.IsDeclaredReadOnly);
-                Assert.False(s1.GetProperty("P5").GetMethod.IsEffectivelyReadOnly);
-                Assert.False(s1.GetProperty("P5").SetMethod.IsDeclaredReadOnly);
-                Assert.False(s1.GetProperty("P5").SetMethod.IsEffectivelyReadOnly);
-
-                Assert.True(s1.GetEvent("E").AddMethod.IsDeclaredReadOnly);
-                Assert.True(s1.GetEvent("E").AddMethod.IsEffectivelyReadOnly);
-
-                Assert.True(s1.GetEvent("E").RemoveMethod.IsDeclaredReadOnly);
-                Assert.True(s1.GetEvent("E").RemoveMethod.IsEffectivelyReadOnly);
+                verifyReadOnly(s1.GetEvent("E").AddMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetEvent("E").RemoveMethod, true, true, RefKind.RefReadOnly);
 
                 var s2 = comp.GetMember<NamedTypeSymbol>("S2");
-                Assert.False(s2.GetMethod("M1").IsDeclaredReadOnly);
-                Assert.True(s2.GetMethod("M1").IsEffectivelyReadOnly);
 
-                Assert.True(s2.GetProperty("P1").GetMethod.IsDeclaredReadOnly);
-                Assert.True(s2.GetProperty("P1").GetMethod.IsEffectivelyReadOnly);
+                verifyReadOnly(s2.GetMethod("M1"), false, true, RefKind.RefReadOnly);
 
-                Assert.False(s2.GetProperty("P2").GetMethod.IsDeclaredReadOnly);
-                Assert.True(s2.GetProperty("P2").GetMethod.IsEffectivelyReadOnly);
+                verifyReadOnly(s2.GetProperty("P1").GetMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetProperty("P2").GetMethod, false, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetProperty("P3").SetMethod, false, true, RefKind.RefReadOnly);
 
-                Assert.False(s2.GetProperty("P3").SetMethod.IsDeclaredReadOnly);
-                Assert.True(s2.GetProperty("P3").SetMethod.IsEffectivelyReadOnly);
+                verifyReadOnly(s2.GetProperty("P4").GetMethod, false, false, null);
+                verifyReadOnly(s2.GetProperty("P4").SetMethod, false, false, null);
 
-                Assert.False(s2.GetProperty("P4").GetMethod.IsDeclaredReadOnly);
-                Assert.False(s2.GetProperty("P4").GetMethod.IsEffectivelyReadOnly);
-                Assert.False(s2.GetProperty("P4").SetMethod.IsDeclaredReadOnly);
-                Assert.False(s2.GetProperty("P4").SetMethod.IsEffectivelyReadOnly);
+                verifyReadOnly(s2.GetEvent("E").AddMethod, false, true, RefKind.RefReadOnly);
+                verifyReadOnly(s2.GetEvent("E").RemoveMethod, false, true, RefKind.RefReadOnly);
 
-                Assert.False(s2.GetEvent("E").AddMethod.IsDeclaredReadOnly);
-                Assert.True(s2.GetEvent("E").AddMethod.IsEffectivelyReadOnly);
-                Assert.False(s2.GetEvent("E").RemoveMethod.IsDeclaredReadOnly);
-                Assert.True(s2.GetEvent("E").RemoveMethod.IsEffectivelyReadOnly);
+                void verifyReadOnly(MethodSymbol method, bool declared, bool effective, RefKind? refKind)
+                {
+                    Assert.Equal(declared, method.IsDeclaredReadOnly);
+                    Assert.Equal(effective, method.IsEffectivelyReadOnly);
+                    Assert.Equal(refKind, method.ThisParameter?.RefKind);
+                }
             }
         }
 
@@ -2135,6 +2119,401 @@ public struct S2
 
             // should warn about calling s2.M2 in warning wave (see https://github.com/dotnet/roslyn/issues/33968)
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CallBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    readonly void M()
+    {
+        // no warnings for calls to base members
+        GetType();
+        ToString();
+        GetHashCode();
+        Equals(null);
+    }
+}
+";
+            var comp = CompileAndVerify(csharp);
+            comp.VerifyDiagnostics();
+
+            // ToString/GetHashCode/Equals should pass the address of 'this' (not a temp). GetType should box 'this'.
+            comp.VerifyIL("S.M", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  box        ""S""
+  IL_000b:  call       ""System.Type object.GetType()""
+  IL_0010:  pop
+  IL_0011:  ldarg.0
+  IL_0012:  constrained. ""S""
+  IL_0018:  callvirt   ""string object.ToString()""
+  IL_001d:  pop
+  IL_001e:  ldarg.0
+  IL_001f:  constrained. ""S""
+  IL_0025:  callvirt   ""int object.GetHashCode()""
+  IL_002a:  pop
+  IL_002b:  ldarg.0
+  IL_002c:  ldnull
+  IL_002d:  constrained. ""S""
+  IL_0033:  callvirt   ""bool object.Equals(object)""
+  IL_0038:  pop
+  IL_0039:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_OverrideBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    // note: GetType can't be overridden
+    public override string ToString() => throw null;
+    public override int GetHashCode() => throw null;
+    public override bool Equals(object o) => throw null;
+
+    readonly void M()
+    {
+        // should warn--non-readonly invocation
+        ToString();
+        GetHashCode();
+        Equals(null);
+
+        // ok
+        base.ToString();
+        base.GetHashCode();
+        base.Equals(null);
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp);
+
+            verifier.VerifyDiagnostics(
+                // (12,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
+                //         ToString();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(12, 9),
+                // (13,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
+                //         GetHashCode();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(13, 9),
+                // (14,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
+                //         Equals(null);
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(14, 9));
+
+            // Verify that calls to non-readonly overrides pass the address of a temp, not the address of 'this'
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size      117 (0x75)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""S""
+  IL_000f:  callvirt   ""string object.ToString()""
+  IL_0014:  pop
+  IL_0015:  ldarg.0
+  IL_0016:  ldobj      ""S""
+  IL_001b:  stloc.0
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  constrained. ""S""
+  IL_0024:  callvirt   ""int object.GetHashCode()""
+  IL_0029:  pop
+  IL_002a:  ldarg.0
+  IL_002b:  ldobj      ""S""
+  IL_0030:  stloc.0
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  ldnull
+  IL_0034:  constrained. ""S""
+  IL_003a:  callvirt   ""bool object.Equals(object)""
+  IL_003f:  pop
+  IL_0040:  ldarg.0
+  IL_0041:  ldobj      ""S""
+  IL_0046:  box        ""S""
+  IL_004b:  call       ""string System.ValueType.ToString()""
+  IL_0050:  pop
+  IL_0051:  ldarg.0
+  IL_0052:  ldobj      ""S""
+  IL_0057:  box        ""S""
+  IL_005c:  call       ""int System.ValueType.GetHashCode()""
+  IL_0061:  pop
+  IL_0062:  ldarg.0
+  IL_0063:  ldobj      ""S""
+  IL_0068:  box        ""S""
+  IL_006d:  ldnull
+  IL_006e:  call       ""bool System.ValueType.Equals(object)""
+  IL_0073:  pop
+  IL_0074:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_ReadOnlyOverrideBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    // note: GetType can't be overridden
+    public readonly override string ToString() => throw null;
+    public readonly override int GetHashCode() => throw null;
+    public readonly override bool Equals(object o) => throw null;
+
+    readonly void M()
+    {
+        // no warnings
+        ToString();
+        GetHashCode();
+        Equals(null);
+
+        base.ToString();
+        base.GetHashCode();
+        base.Equals(null);
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp);
+            verifier.VerifyDiagnostics();
+
+            // Verify that calls to readonly override members pass the address of 'this' (not a temp)
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size       93 (0x5d)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""S""
+  IL_0007:  callvirt   ""string object.ToString()""
+  IL_000c:  pop
+  IL_000d:  ldarg.0
+  IL_000e:  constrained. ""S""
+  IL_0014:  callvirt   ""int object.GetHashCode()""
+  IL_0019:  pop
+  IL_001a:  ldarg.0
+  IL_001b:  ldnull
+  IL_001c:  constrained. ""S""
+  IL_0022:  callvirt   ""bool object.Equals(object)""
+  IL_0027:  pop
+  IL_0028:  ldarg.0
+  IL_0029:  ldobj      ""S""
+  IL_002e:  box        ""S""
+  IL_0033:  call       ""string System.ValueType.ToString()""
+  IL_0038:  pop
+  IL_0039:  ldarg.0
+  IL_003a:  ldobj      ""S""
+  IL_003f:  box        ""S""
+  IL_0044:  call       ""int System.ValueType.GetHashCode()""
+  IL_0049:  pop
+  IL_004a:  ldarg.0
+  IL_004b:  ldobj      ""S""
+  IL_0050:  box        ""S""
+  IL_0055:  ldnull
+  IL_0056:  call       ""bool System.ValueType.Equals(object)""
+  IL_005b:  pop
+  IL_005c:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_NewBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public new System.Type GetType() => throw null;
+    public new string ToString() => throw null;
+    public new int GetHashCode() => throw null;
+    public new bool Equals(object o) => throw null;
+
+    readonly void M()
+    {
+        // should warn--non-readonly invocation
+        GetType();
+        ToString();
+        GetHashCode();
+        Equals(null);
+
+        // ok
+        base.GetType();
+        base.ToString();
+        base.GetHashCode();
+        base.Equals(null);
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp);
+
+            verifier.VerifyDiagnostics(
+                // (12,9): warning CS8655: Call to non-readonly member 'GetType' from a 'readonly' member results in an implicit copy of 'this'.
+                //         GetType();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetType").WithArguments("GetType", "this").WithLocation(12, 9),
+                // (13,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
+                //         ToString();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(13, 9),
+                // (14,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
+                //         GetHashCode();
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(14, 9),
+                // (15,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
+                //         Equals(null);
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(15, 9));
+
+            // Verify that calls to new non-readonly members pass an address to a temp and that calls to base members use a box.
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size      131 (0x83)
+  .maxstack  2
+  .locals init (S V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""S""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Type S.GetType()""
+  IL_000e:  pop
+  IL_000f:  ldarg.0
+  IL_0010:  ldobj      ""S""
+  IL_0015:  stloc.0
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  call       ""string S.ToString()""
+  IL_001d:  pop
+  IL_001e:  ldarg.0
+  IL_001f:  ldobj      ""S""
+  IL_0024:  stloc.0
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""int S.GetHashCode()""
+  IL_002c:  pop
+  IL_002d:  ldarg.0
+  IL_002e:  ldobj      ""S""
+  IL_0033:  stloc.0
+  IL_0034:  ldloca.s   V_0
+  IL_0036:  ldnull
+  IL_0037:  call       ""bool S.Equals(object)""
+  IL_003c:  pop
+  IL_003d:  ldarg.0
+  IL_003e:  ldobj      ""S""
+  IL_0043:  box        ""S""
+  IL_0048:  call       ""System.Type object.GetType()""
+  IL_004d:  pop
+  IL_004e:  ldarg.0
+  IL_004f:  ldobj      ""S""
+  IL_0054:  box        ""S""
+  IL_0059:  call       ""string System.ValueType.ToString()""
+  IL_005e:  pop
+  IL_005f:  ldarg.0
+  IL_0060:  ldobj      ""S""
+  IL_0065:  box        ""S""
+  IL_006a:  call       ""int System.ValueType.GetHashCode()""
+  IL_006f:  pop
+  IL_0070:  ldarg.0
+  IL_0071:  ldobj      ""S""
+  IL_0076:  box        ""S""
+  IL_007b:  ldnull
+  IL_007c:  call       ""bool System.ValueType.Equals(object)""
+  IL_0081:  pop
+  IL_0082:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_ReadOnlyNewBaseMethod()
+        {
+            var csharp = @"
+public struct S
+{
+    public readonly new System.Type GetType() => throw null;
+    public readonly new string ToString() => throw null;
+    public readonly new int GetHashCode() => throw null;
+    public readonly new bool Equals(object o) => throw null;
+
+    readonly void M()
+    {
+        // no warnings
+        GetType();
+        ToString();
+        GetHashCode();
+        Equals(null);
+
+        base.GetType();
+        base.ToString();
+        base.GetHashCode();
+        base.Equals(null);
+    }
+}
+";
+            var verifier = CompileAndVerify(csharp);
+            verifier.VerifyDiagnostics();
+
+            // Verify that calls to readonly new members pass the address of 'this' (not a temp) and that calls to base members use a box.
+            verifier.VerifyIL("S.M", @"
+{
+  // Code size       99 (0x63)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""System.Type S.GetType()""
+  IL_0006:  pop
+  IL_0007:  ldarg.0
+  IL_0008:  call       ""string S.ToString()""
+  IL_000d:  pop
+  IL_000e:  ldarg.0
+  IL_000f:  call       ""int S.GetHashCode()""
+  IL_0014:  pop
+  IL_0015:  ldarg.0
+  IL_0016:  ldnull
+  IL_0017:  call       ""bool S.Equals(object)""
+  IL_001c:  pop
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      ""S""
+  IL_0023:  box        ""S""
+  IL_0028:  call       ""System.Type object.GetType()""
+  IL_002d:  pop
+  IL_002e:  ldarg.0
+  IL_002f:  ldobj      ""S""
+  IL_0034:  box        ""S""
+  IL_0039:  call       ""string System.ValueType.ToString()""
+  IL_003e:  pop
+  IL_003f:  ldarg.0
+  IL_0040:  ldobj      ""S""
+  IL_0045:  box        ""S""
+  IL_004a:  call       ""int System.ValueType.GetHashCode()""
+  IL_004f:  pop
+  IL_0050:  ldarg.0
+  IL_0051:  ldobj      ""S""
+  IL_0056:  box        ""S""
+  IL_005b:  ldnull
+  IL_005c:  call       ""bool System.ValueType.Equals(object)""
+  IL_0061:  pop
+  IL_0062:  ret
+}");
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_FixedThis()
+        {
+            var csharp = @"
+struct S
+{
+    int i;
+
+    readonly unsafe void M()
+    {
+        fixed (S* sp = &this)
+        {
+			sp->i = 42;
+        }
+    }
+
+    static void Main()
+    {
+        var s = new S();
+        s.M();
+        System.Console.Write(s.i);
+    }
+}
+";
+            CompileAndVerify(csharp, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "42");
         }
     }
 }

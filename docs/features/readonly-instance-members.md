@@ -176,6 +176,11 @@ The compiler would emit the instance member, as usual, and would additionally em
 
 This would allow the user to safely call said instance method without the compiler needing to make a copy.
 
+Some more "edge" cases that are explicitly permitted:
+
+* Explicit interface implementations are allowed to be `readonly`.
+* Partial methods are allowed to be `readonly`. Both signatures or neither must have the `readonly` keyword.
+
 The restrictions would include:
 
 * The `readonly` modifier cannot be applied to static methods, constructors or destructors.

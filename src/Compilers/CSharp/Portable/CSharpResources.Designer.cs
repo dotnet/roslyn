@@ -8197,6 +8197,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Both partial method declarations must be readonly or neither may be readonly.
+        /// </summary>
+        internal static string ERR_PartialMethodReadOnlyDifference {
+            get {
+                return ResourceManager.GetString("ERR_PartialMethodReadOnlyDifference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Both partial method declarations must be static or neither may be static.
         /// </summary>
         internal static string ERR_PartialMethodStaticDifference {

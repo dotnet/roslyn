@@ -50,9 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return RefKind.Out;
                 }
 
-                // PROTOTYPE: examine remaining locations where TypeSymbol.IsReadOnly is tested on 'this'.
-                // Determine whether it needs to be replaced with e.g. ContainingMethod.IsEffectivelyReadOnly.
-                if (ContainingType.IsReadOnly)
+                if (_containingMethod?.IsEffectivelyReadOnly == true)
                 {
                     return RefKind.In;
                 }

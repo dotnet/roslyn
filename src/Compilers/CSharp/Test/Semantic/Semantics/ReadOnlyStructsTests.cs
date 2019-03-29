@@ -331,84 +331,6 @@ public struct S
         }
 
         [Fact]
-        public void ReadOnlyMethod_CallBaseMethod()
-        {
-            var csharp = @"
-public struct S
-{
-    readonly void M()
-    {
-        // no warnings for calls to base members
-        GetType();
-        ToString();
-        GetHashCode();
-        Equals(null);
-    }
-}
-";
-            var comp = CreateCompilation(csharp);
-            comp.VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void ReadOnlyMethod_OverrideBaseMethod()
-        {
-            var csharp = @"
-public struct S1
-{
-    // note: GetType can't be overridden
-    public override string ToString() => throw null;
-    public override int GetHashCode() => throw null;
-    public override bool Equals(object o) => throw null;
-
-    readonly void M()
-    {
-        // should warn--non-readonly invocation
-        ToString();
-        GetHashCode();
-        Equals(null);
-
-        // ok
-        base.ToString();
-        base.GetHashCode();
-        base.Equals(null);
-    }
-}
-
-public struct S2
-{
-    public readonly override string ToString() => throw null;
-    public readonly override int GetHashCode() => throw null;
-    public readonly override bool Equals(object o) => throw null;
-
-    readonly void M()
-    {
-        // no warnings
-        ToString();
-        GetHashCode();
-        Equals(null);
-
-        base.ToString();
-        base.GetHashCode();
-        base.Equals(null);
-    }
-}
-";
-            var comp = CreateCompilation(csharp);
-            comp.VerifyDiagnostics(
-
-                // (12,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
-                //         ToString();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(12, 9),
-                // (13,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
-                //         GetHashCode();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(13, 9),
-                // (14,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
-                //         Equals(null);
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(14, 9));
-        }
-
-        [Fact]
         public void ReadOnlyMethod_Override_AssignThis()
         {
             var csharp = @"
@@ -433,6 +355,123 @@ public struct S
                 // (9,56): error CS1604: Cannot assign to 'i' because it is read-only
                 //     public readonly override bool Equals(object o) => (i++).Equals(o);
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(9, 56));
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Partial_01()
+        {
+            var csharp = @"
+public partial struct S
+{
+    public int i;
+    readonly partial void M();
+}
+
+public partial struct S
+{
+    readonly partial void M()
+    {
+        i++;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (12,9): error CS1604: Cannot assign to 'i' because it is read-only
+                //         i++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(12, 9));
+
+            var method = comp.GetMember<NamedTypeSymbol>("S").GetMethod("M");
+            Assert.True(method.IsDeclaredReadOnly);
+            Assert.True(method.IsEffectivelyReadOnly);
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Partial_02()
+        {
+            var csharp = @"
+public partial struct S
+{
+    public int i;
+    partial void M();
+}
+
+public partial struct S
+{
+    readonly partial void M()
+    {
+        i++;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (10,27): error CS8662: Both partial method declarations must be readonly or neither may be readonly
+                //     readonly partial void M()
+                Diagnostic(ErrorCode.ERR_PartialMethodReadOnlyDifference, "M").WithLocation(10, 27),
+                // (12,9): error CS1604: Cannot assign to 'i' because it is read-only
+                //         i++;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(12, 9));
+
+            var method = comp.GetMember<NamedTypeSymbol>("S").GetMethod("M");
+            // Symbol APIs always return the declaration part of the partial method.
+            Assert.False(method.IsDeclaredReadOnly);
+            Assert.False(method.IsEffectivelyReadOnly);
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_Partial_03()
+        {
+            var csharp = @"
+public partial struct S
+{
+    public int i;
+    readonly partial void M();
+}
+
+public partial struct S
+{
+    partial void M()
+    {
+        i++;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8662: Both partial method declarations must be readonly or neither may be readonly
+                //     partial void M()
+                Diagnostic(ErrorCode.ERR_PartialMethodReadOnlyDifference, "M").WithLocation(10, 18));
+
+            var method = comp.GetMember<NamedTypeSymbol>("S").GetMethod("M");
+            // Symbol APIs always return the declaration part of the partial method.
+            Assert.True(method.IsDeclaredReadOnly);
+            Assert.True(method.IsEffectivelyReadOnly);
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_ExplicitInterfaceImplementation()
+        {
+            var csharp = @"
+public interface I
+{
+    void M();
+}
+
+public struct S : I
+{
+    int i;
+    readonly void I.M()
+    {
+        i = 0;
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (12,9): error CS1604: Cannot assign to 'i' because it is read-only
+                //         i = 0;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(12, 9));
         }
 
         [Fact]
@@ -1634,6 +1673,56 @@ public struct S
                 // (12,9): error CS0106: The modifier 'readonly' is not valid for this item
                 //         readonly void local() {}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void ReadOnlyLambda()
+        {
+            var csharp = @"
+public struct S
+{
+    void M1()
+    {
+        M2(readonly () => 42);
+    }
+    void M2(System.Func<int> a)
+    {
+        _ = a();
+    }
+}
+";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'S.M2(Func<int>)'
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M2").WithArguments("a", "S.M2(System.Func<int>)").WithLocation(6, 9),
+                // (6,12): error CS1026: ) expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "readonly").WithLocation(6, 12),
+                // (6,12): error CS1002: ; expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "readonly").WithLocation(6, 12),
+                // (6,12): error CS0106: The modifier 'readonly' is not valid for this item
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(6, 12),
+                // (6,22): error CS8124: Tuple must contain at least two elements.
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(6, 22),
+                // (6,24): error CS1001: Identifier expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(6, 24),
+                // (6,24): error CS1003: Syntax error, ',' expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",", "=>").WithLocation(6, 24),
+                // (6,27): error CS1002: ; expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "42").WithLocation(6, 27),
+                // (6,29): error CS1002: ; expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 29),
+                // (6,29): error CS1513: } expected
+                //         M2(readonly () => 42);
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 29));
         }
 
         [Fact]
