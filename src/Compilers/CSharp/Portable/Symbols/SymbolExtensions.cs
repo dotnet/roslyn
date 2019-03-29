@@ -418,5 +418,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
+
+        internal static bool IsImplementableInterfaceMember(this Symbol symbol)
+        {
+            return !symbol.IsStatic && (symbol.IsAbstract || symbol.IsVirtual) && (symbol.ContainingType?.IsInterface ?? false);
+        }
     }
 }

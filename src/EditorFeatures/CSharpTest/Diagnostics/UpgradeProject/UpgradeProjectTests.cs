@@ -330,7 +330,7 @@ class Program
         var x = [|@$""hello""|];
     }
 }",
-                expected: LanguageVersion.CSharp8,
+                expected: LanguageVersion.Preview,
                 new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
         #endregion
@@ -451,7 +451,7 @@ class C
         [Fact]
         public async Task ListAllSuggestions_CSharp8()
         {
-            var version8 = LanguageVersion.CSharp8.ToDisplayString();
+            var versionPreview = LanguageVersion.Preview.ToDisplayString();
             await TestExactActionSetOfferedAsync(
 
 @"<Workspace>
@@ -472,8 +472,8 @@ class C
     </Project>
 </Workspace>",
                 new[] {
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, version8),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, version8)
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, versionPreview),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, versionPreview)
     });
         }
 
@@ -732,6 +732,49 @@ class Test
     </Project>
 </Workspace>",
                 expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForDefaultInterfaceImplementation_CS8703()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+public interface I1
+{
+    public void [|M01|]();
+}
+",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectForDefaultInterfaceImplementation_CS8706()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <ProjectReference>Assembly2</ProjectReference>
+        <Document FilePath=""Test1.cs"">
+class Test1 : [|I1|]
+{}
+        </Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" LanguageVersion=""Preview"">
+        <Document FilePath=""Test2.cs"">
+public interface I1
+{
+    void M1() 
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+",
+                expected: LanguageVersion.Preview,
+                new CSharpParseOptions(LanguageVersion.CSharp7_3));
         }
     }
 }

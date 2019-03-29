@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             }
         }
 
-        private struct ReanalyzeScope
+        private readonly struct ReanalyzeScope
         {
             private readonly SolutionId _solutionId;
             private readonly ISet<object> _projectOrDocumentIds;

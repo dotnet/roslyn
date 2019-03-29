@@ -107,6 +107,11 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     }
                 }
 
+                if (!symbol.IsInterfaceType() && !symbol.IsAbstract)
+                {
+                    implementationsAndOverrides.Add(symbol);
+                }
+
                 return implementationsAndOverrides.ToImmutableArray();
             }
             else if ((symbol as INamedTypeSymbol)?.TypeKind == TypeKind.Class)
