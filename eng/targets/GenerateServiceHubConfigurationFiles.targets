@@ -6,7 +6,7 @@
     should configure our services in servicehub process
   -->
     <Target Name="CalculateServiceHubConfigurationFiles"
-          DependsOnTargets="GetAssemblyVersion">
+            DependsOnTargets="GetAssemblyVersion">
     <ItemGroup>
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
@@ -28,7 +28,6 @@
 }
 ]]>
         </Content>
-        <SwrEntry>file source="..\ServiceHubConfig\roslynRemoteHost.servicehub.service.json"</SwrEntry>
       </_JsonFile>
     </ItemGroup>
   </Target>
