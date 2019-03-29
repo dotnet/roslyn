@@ -8557,6 +8557,105 @@ class C2 : I
 
         [Fact]
         [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ExplicitImplementationOverloadAcceptingNullableT_ReturnTypesDoNotMatchNullabilityModifiers()
+        {
+            var source = @"
+#nullable enable
+interface I<U> where U : class
+{
+    U Foo<T>(T value);
+    U Foo<T>(T? value) where T : struct;
+}
+
+class C1<U> : I<U> where U : class
+{
+    public U? Foo<T>(T value) => default;
+    public U? Foo<T>(T? value) where T : struct => default;
+}
+
+class C2<U> : I<U> where U : class
+{
+    U? I<U>.Foo<T>(T value) => default;
+    U? I<U>.Foo<T>(T? value) => default;
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (11,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T value)'.
+                //     public U? Foo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(11, 15),
+                // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T? value)'.
+                //     public U? Foo<T>(T? value) where T : struct => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(12, 15),
+                // (15,7): error CS8646: 'I<U>.Foo<T>(T)' is explicitly implemented more than once.
+                // class C2<U> : I<U> where U : class
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I<U>.Foo<T>(T)").WithLocation(15, 7),
+                // (15,15): error CS0535: 'C2<U>' does not implement interface member 'I<U>.Foo<T>(T?)'
+                // class C2<U> : I<U> where U : class
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<U>").WithArguments("C2<U>", "I<U>.Foo<T>(T?)").WithLocation(15, 15),
+                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T value)'.
+                //     U? I<U>.Foo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(17, 13),
+                // (18,13): warning CS0473: Explicit interface implementation 'C2<U>.I<U>.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     U? I<U>.Foo<T>(T? value) => default;
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2<U>.I<U>.Foo<T>(T?)").WithLocation(18, 13),
+                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T value)'.
+                //     U? I<U>.Foo<T>(T? value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(18, 13),
+                // (18,13): error CS0111: Type 'C2<U>' already defines a member called 'I<U>.Foo' with the same parameter types
+                //     U? I<U>.Foo<T>(T? value) => default;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("I<U>.Foo", "C2<U>").WithLocation(18, 13),
+                // (18,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
+                //     U? I<U>.Foo<T>(T? value) => default;
+                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(18, 20));
+        }
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
+        public void ExplicitImplementationOverloadAcceptingNullableT_ReturnTypesDoNotMatchNullabilityModifiers_OppositeDeclarationOrder()
+        {
+            var source = @"
+#nullable enable
+interface I<U> where U : class
+{
+    U Foo<T>(T? value) where T : struct;
+    U Foo<T>(T value);
+}
+
+class C1<U> : I<U> where U : class
+{
+    public U? Foo<T>(T value) => default;
+    public U? Foo<T>(T? value) where T : struct => default;
+}
+
+class C2<U> : I<U> where U : class
+{
+    U? I<U>.Foo<T>(T value) => default;
+    U? I<U>.Foo<T>(T? value) => default;
+}
+";
+            //As a result of https://github.com/dotnet/roslyn/issues/34583 these don't test anything useful at the moment
+
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (11,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T value)'.
+                //     public U? Foo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(11, 15),
+                // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T? value)'.
+                //     public U? Foo<T>(T? value) where T : struct => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(12, 15),
+                // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T value)'.
+                //     U? I<U>.Foo<T>(T value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(17, 13),
+                // (18,13): warning CS0473: Explicit interface implementation 'C2<U>.I<U>.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                //     U? I<U>.Foo<T>(T? value) => default;
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2<U>.I<U>.Foo<T>(T?)").WithLocation(18, 13),
+                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T? value)'.
+                //     U? I<U>.Foo<T>(T? value) => default;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(18, 13));
+        }
+
+
+        [Fact]
+        [WorkItem(34508, "https://github.com/dotnet/roslyn/issues/34508")]
         public void AmbiguousExplicitInterfaceImplementation()
         {
             var source = @"
