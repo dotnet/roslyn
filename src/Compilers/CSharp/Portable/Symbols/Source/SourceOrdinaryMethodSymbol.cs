@@ -43,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private SourceOrdinaryMethodSymbol _otherPartOfPartial;
 
+        internal const string AsyncIteratorCancellationTokenLocal = "cancellationToken";
+
         public static SourceOrdinaryMethodSymbol CreateMethodSymbol(
             NamedTypeSymbol containingType,
             Binder bodyBinder,
@@ -375,6 +377,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckModifiers(_hasAnyBody, location, diagnostics);
+
+            if (GetCancellationTokenLocal() is { })
+            {
+                // Note: we check conflicts with the 'cancellationToken' pseudo-local after we've finished initializing the return type
+                CheckCancellationTokenConflict(this.Parameters, this.TypeParameters, diagnostics);
+            }
+        }
+
+        internal static void CheckCancellationTokenConflict(ImmutableArray<ParameterSymbol> parameters, ImmutableArray<TypeParameterSymbol> typeParameters, DiagnosticBag diagnostics)
+        {
+            if (parameters.IsEmpty && typeParameters.IsEmpty)
+            {
+                return;
+            }
+
+            foreach (var parameter in parameters)
+            {
+                if (parameter.Name == SourceOrdinaryMethodSymbol.AsyncIteratorCancellationTokenLocal)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, Binder.GetLocation(parameter));
+                }
+            }
+
+            foreach (var typeParameter in typeParameters)
+            {
+                if (typeParameter.Name == SourceOrdinaryMethodSymbol.AsyncIteratorCancellationTokenLocal)
+                {
+                    diagnostics.Add(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, Binder.GetLocation(typeParameter));
+                }
+            }
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?

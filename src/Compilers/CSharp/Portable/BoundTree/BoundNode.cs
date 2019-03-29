@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void CheckDeclared(LocalSymbol local)
             {
-                if (!DeclaredLocals.Contains(local))
+                if (!DeclaredLocals.Contains(local) && local.SynthesizedKind != SynthesizedLocalKind.AsyncIteratorCancellationToken)
                 {
                     Debug.Assert(false, "undeclared local " + local.GetDebuggerDisplay());
                 }

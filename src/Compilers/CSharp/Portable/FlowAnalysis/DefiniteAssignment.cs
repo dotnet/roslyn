@@ -202,6 +202,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (MethodCancellationTokenLocal is { } cancellationTokenLocal)
+            {
+                int slot = base.GetOrCreateSlot(MethodCancellationTokenLocal);
+                SetSlotState(slot, true);
+                NoteWrite(cancellationTokenLocal, value: null, read: false);
+            }
+
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
 
             // check that each out parameter is definitely assigned at the end of the method.  If

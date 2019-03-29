@@ -402,5 +402,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override SynthesizedLocal GetCancellationTokenLocal()
+            => null;
     }
 }

@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             MakeSlots(MethodParameters);
             if ((object)MethodThisParameter != null) GetOrCreateSlot(MethodThisParameter);
+            if (MethodCancellationTokenLocal is { } cancellationTokenLocal) GetOrCreateSlot(cancellationTokenLocal);
             var result = base.Scan(ref badRegion);
             return result;
         }

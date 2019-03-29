@@ -117,7 +117,8 @@ But it contains additional state:
 - a promise of a value-or-end,
 - a current yielded value of type `T`,
 - an `int` capturing the id of the thread that created it,
-- a `bool` flag indicating "dispose mode".
+- a `bool` flag indicating "dispose mode",
+- a `CancellationToken` field.
 
 The central method of the state machine is `MoveNext()`. It gets run by `MoveNextAsync()`, or as a background continuation initiated from these from an `await` in the method.
 
@@ -195,6 +196,11 @@ Similarly, the kick-off method is much like those of regular iterator methods:
     return result;
 }
 ```
+
+#### `cancellationToken` pseudo-local
+
+A variable named `cancellationToken` and of type `System.Threading.CancellationToken` exists in the body of an async-iterator method that returns `IAsyncEnumerable`.
+That variable is initialized with the token received by `GetAsyncEnumerator`. The compiler treats this variable as a local that is implicitly declared and is hoisted into a field.
 
 #### Disposal
 

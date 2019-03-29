@@ -336,5 +336,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
         }
+
+        internal static SynthesizedLocal CreateCancellationTokenLocalIfNeeded(this MethodSymbol method, SyntaxNode syntax)
+        {
+            // Note: checking the return type and IsIterator is functionally equivalent because it is an error if they don't match (for async methods)
+            // It is easier to check the return type because we have not yet bound the method (thus figured out if it is an iterator) by the time we need
+            // the 'cancellationToken' local.
+            if (method.IsIAsyncEnumerableReturningAsync(method.DeclaringCompilation) && syntax is { })
+            {
+                NamedTypeSymbol cancellationTokenType = method.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+
+                return new SynthesizedLocal(method, TypeWithAnnotations.Create(cancellationTokenType),
+                    SynthesizedLocalKind.AsyncIteratorCancellationToken, syntaxOpt: syntax, name: SourceOrdinaryMethodSymbol.AsyncIteratorCancellationTokenLocal);
+            }
+
+            return null;
+        }
     }
 }

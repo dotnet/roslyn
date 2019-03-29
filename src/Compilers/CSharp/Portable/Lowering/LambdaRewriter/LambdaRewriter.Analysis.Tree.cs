@@ -330,6 +330,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         DeclareLocals(_currentScope, ImmutableArray.Create<Symbol>(thisParam));
                     }
+                    if (((SourceMethodSymbol)_topLevelMethod).GetCancellationTokenLocal() is { } cancellationToken)
+                    {
+                        // TODO2 need to confirm this
+                        DeclareLocals(_currentScope, ImmutableArray.Create<Symbol>(cancellationToken));
+                    }
 
                     Visit(_currentScope.BoundNode);
                 }

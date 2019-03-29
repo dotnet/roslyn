@@ -1561,6 +1561,10 @@ moreArguments:
             {
                 cause = MessageID.IDS_FIXEDLOCAL;
             }
+            else if (local.SynthesizedKind == SynthesizedLocalKind.AsyncIteratorCancellationToken)
+            {
+                cause = MessageID.IDS_CANCELLATIONTOKENLOCAL;
+            }
             else
             {
                 Error(diagnostics, GetStandardLvalueError(kind), node);

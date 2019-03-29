@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string MakeHoistedLocalFieldName(SynthesizedLocalKind kind, int slotIndex, string localNameOpt = null)
         {
-            Debug.Assert((localNameOpt != null) == (kind == SynthesizedLocalKind.UserDefined));
+            Debug.Assert((localNameOpt != null) == (kind == SynthesizedLocalKind.UserDefined) || kind == SynthesizedLocalKind.AsyncIteratorCancellationToken);
             Debug.Assert(slotIndex >= 0);
             Debug.Assert(kind.IsLongLived());
 

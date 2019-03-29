@@ -33,6 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // diagnostics get added to the store exactly once
         private readonly DiagnosticBag _declarationDiagnostics;
 
+        /// <summary>
+        /// Async-iterator methods that return an IAsyncEnumerable (therefore had a GetAsyncEnumerator)
+        /// introduce a 'cancellationToken' local.
+        /// </summary>
+        private LocalSymbol _lazyCancellationTokenLocal = SentinenlLocalSymbol.Instance;
+
         public LocalFunctionSymbol(
             Binder binder,
             Symbol containingSymbol,
@@ -102,6 +108,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal Binder ScopeBinder { get; }
 
         public Binder ParameterBinder => _binder;
+
+        internal override SynthesizedLocal GetCancellationTokenLocal()
+        {
+            if (ReferenceEquals( _lazyCancellationTokenLocal, SentinenlLocalSymbol.Instance))
+            {
+                var syntax = (SyntaxNode)this._syntax.Body ?? this._syntax.ExpressionBody;
+                Interlocked.CompareExchange(ref _lazyCancellationTokenLocal, this.CreateCancellationTokenLocalIfNeeded(syntax), SentinenlLocalSymbol.Instance);
+            }
+            return _lazyCancellationTokenLocal as SynthesizedLocal;
+        }
 
         internal void GetDeclarationDiagnostics(DiagnosticBag addTo)
         {
@@ -179,6 +195,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsAsync)
             {
                 SourceOrdinaryMethodSymbol.ReportAsyncParameterErrors(parameters, diagnostics, this.Locations[0]);
+
+                if (GetCancellationTokenLocal() is { })
+                {
+                    SourceOrdinaryMethodSymbol.CheckCancellationTokenConflict(parameters, this.TypeParameters, diagnostics);
+                }
             }
 
             lock (_declarationDiagnostics)

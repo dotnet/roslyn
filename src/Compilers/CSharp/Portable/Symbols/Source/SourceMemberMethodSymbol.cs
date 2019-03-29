@@ -166,6 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
 
+        /// <summary>
+        /// Async-iterator methods that return an IAsyncEnumerable (therefore had a GetAsyncEnumerator)
+        /// introduce a 'cancellationToken' local.
+        /// </summary>
+        private LocalSymbol _lazyCancellationTokenLocal = SentinenlLocalSymbol.Instance;
+
         // some symbols may not have a syntax (e.g. lambdas, synthesized event accessors)
         protected readonly SyntaxReference syntaxReferenceOpt;
 
@@ -201,6 +207,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingType = containingType;
             this.syntaxReferenceOpt = syntaxReferenceOpt;
             this.locations = locations;
+        }
+
+        internal override SynthesizedLocal GetCancellationTokenLocal()
+        {
+            if (ReferenceEquals(_lazyCancellationTokenLocal, SentinenlLocalSymbol.Instance))
+            {
+                (SyntaxNode blockBody, SyntaxNode arrowBody) = Bodies;
+                var syntax = blockBody ?? arrowBody;
+                Interlocked.CompareExchange(ref _lazyCancellationTokenLocal, this.CreateCancellationTokenLocalIfNeeded(syntax), SentinenlLocalSymbol.Instance);
+            }
+            return _lazyCancellationTokenLocal as SynthesizedLocal;
         }
 
         protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)

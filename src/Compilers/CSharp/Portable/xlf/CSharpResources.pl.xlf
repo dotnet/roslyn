@@ -217,6 +217,11 @@
         <target state="translated">Ograniczenie „new()” nie może być używane z ograniczeniem „unmanaged”</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoCancellationTokenParameterInAsyncIterator">
+        <source>Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.</source>
+        <target state="new">Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
         <target state="translated">„{0}”: Typ użyty w asynchronicznej instrukcji using musi być jawnie konwertowalny na typ „System.IAsyncDisposable” lub musi implementować odpowiednią metodę „DisposeAsync”. Czy chodziło Ci o użycie instrukcji „using”, a nie „await using”?</target>
@@ -380,6 +385,11 @@
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
         <target state="translated">Nazwa pliku „{0}” jest pusta, zawiera nieprawidłowe znaki, zawiera specyfikację dysku bez bezwzględnej ścieżki lub jest za długa</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_CANCELLATIONTOKENLOCAL">
+        <source>cancellation token variable</source>
+        <target state="new">cancellation token variable</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_CSCHelp">

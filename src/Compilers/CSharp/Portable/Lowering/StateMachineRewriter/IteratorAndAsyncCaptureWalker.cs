@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool badRegion = false;
             walker.Analyze(ref badRegion);
+
             Debug.Assert(!badRegion);
 
             if (!method.IsStatic && method.ContainingType.TypeKind == TypeKind.Struct)
@@ -60,6 +61,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // It is possible that the enclosing method only *writes* to the enclosing struct, but in that
                 // case it should be considered captured anyway so that we have a proxy for it to write to.
                 walker.CaptureVariable(method.ThisParameter, node.Syntax);
+            }
+
+            if (method is SourceMethodSymbol sourceMethod)
+            {
+                // We capture the variable and create a field regardless of usage
+                if (sourceMethod.GetCancellationTokenLocal() is { } local)
+                {
+                    walker.CaptureVariable(local, node.Syntax);
+                }
             }
 
             var variablesToHoist = walker._variablesToHoist;

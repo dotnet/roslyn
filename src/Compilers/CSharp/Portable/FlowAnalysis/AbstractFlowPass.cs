@@ -429,6 +429,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        protected LocalSymbol MethodCancellationTokenLocal
+        {
+            get
+            {
+                if (_symbol is SourceMethodSymbol method)
+                {
+                    return method.GetCancellationTokenLocal();
+                }
+                return null;
+            }
+        }
+
         /// <summary>
         /// Specifies whether or not method's out parameters should be analyzed. If there's more
         /// than one location in the method being analyzed, then the method is partial and we prefer

@@ -315,6 +315,9 @@
   <data name="IDS_FOREACHLOCAL" xml:space="preserve">
     <value>foreach iteration variable</value>
   </data>
+  <data name="IDS_CANCELLATIONTOKENLOCAL" xml:space="preserve">
+    <value>cancellation token variable</value>
+  </data>
   <data name="IDS_FIXEDLOCAL" xml:space="preserve">
     <value>fixed variable</value>
   </data>
@@ -5822,5 +5825,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_DefaultInterfaceImplementationInNoPIAType" xml:space="preserve">
     <value>Type '{0}' cannot be embedded because it has a non-abstract member. Consider setting the 'Embed Interop Types' property to false.</value>
+  </data>
+  <data name="ERR_NoCancellationTokenParameterInAsyncIterator" xml:space="preserve">
+    <value>Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.</value>
   </data>
 </root>

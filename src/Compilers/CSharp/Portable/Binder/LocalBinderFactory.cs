@@ -234,6 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 binder = binder.WithUnsafeRegionIfNecessary(node.Modifiers);
                 binder = new InMethodBinder(match, binder);
+
+                if (match.IsAsync)
+                {
+                    binder = new CancellationTokenLocalScopeBinder(match, binder);
+                }
             }
 
             BlockSyntax blockBody = node.Body;

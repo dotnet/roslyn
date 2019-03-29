@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_PathList = MessageBase + 12686,
         IDS_Text = MessageBase + 12687,
 
+        IDS_CANCELLATIONTOKENLOCAL = MessageBase + 12688,
         // available
 
         IDS_FeatureNullPropagatingOperator = MessageBase + 12690,

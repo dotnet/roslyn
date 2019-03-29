@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ValidateNameConflictsInScope(symbol, location, symbol.Name, diagnostics);
         }
 
-        private static Location GetLocation(Symbol symbol)
+        internal static Location GetLocation(Symbol symbol)
         {
             var locations = symbol.Locations;
             return locations.Length != 0 ? locations[0] : symbol.ContainingSymbol.Locations[0];

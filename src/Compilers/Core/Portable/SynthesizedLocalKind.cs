@@ -230,6 +230,13 @@ namespace Microsoft.CodeAnalysis
         /// TODO: Avoid using lambdas and display classes for implementation of relaxation stubs and remove this kind.
         /// </summary>
         DelegateRelaxationReceiver = 0x101,
+
+        /// <summary>
+        /// The variable used in async-iterator methods to refer to the CancellationToken
+        /// from `GetAsyncEnumerator(CancellationToken)`.
+        /// Never actually created as a local variable. Its usages are lowered to refer to that parameter instead.
+        /// </summary>
+        AsyncIteratorCancellationToken = 0x102,
     }
 
     internal static class SynthesizedLocalKindExtensions
@@ -276,6 +283,10 @@ namespace Microsoft.CodeAnalysis
                 case SynthesizedLocalKind.UserDefined:
                 case SynthesizedLocalKind.LambdaDisplayClass:
                 case SynthesizedLocalKind.With:
+                    return false;
+
+                // The cancellationToken variable needs a dedicated slot/field
+                case SynthesizedLocalKind.AsyncIteratorCancellationToken:
                     return false;
 
                 default:

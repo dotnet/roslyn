@@ -20,6 +20,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         #region "Expressions"
 
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void DataFlowsInAndNullable_CancellationTokenLocal()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowStatements(@"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerable<int> M(int i)
+    {
+/*<bind>*/
+        var c = cancellationToken;
+        var j = i;
+/*</bind>*/
+        yield return await Task.FromResult(2);
+        await Task.Yield();
+    }
+}
+namespace System.Collections.Generic
+{
+    public interface IAsyncEnumerable<out T>
+    {
+        IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken token = default);
+    }
+
+    public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask<bool> MoveNextAsync();
+        T Current { get; }
+    }
+}
+namespace System
+{
+    public interface IAsyncDisposable
+    {
+        System.Threading.Tasks.ValueTask DisposeAsync();
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+    public sealed class AsyncIteratorStateMachineAttribute : StateMachineAttribute
+    {
+        public AsyncIteratorStateMachineAttribute(Type stateMachineType) : base(stateMachineType)
+        {
+        }
+    }
+}
+");
+            Assert.Equal("c, j", GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("c, j", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("cancellationToken, i", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("cancellationToken, i", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("c, j", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("cancellationToken, i", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+        }
+
         [WorkItem(545047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545047")]
         [Fact]
         public void DataFlowsInAndNullable_Field()

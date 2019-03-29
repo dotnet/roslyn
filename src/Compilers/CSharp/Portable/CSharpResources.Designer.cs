@@ -7225,6 +7225,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameters and type parameters of async iterator methods cannot be named &apos;cancellationToken&apos;..
+        /// </summary>
+        internal static string ERR_NoCancellationTokenParameterInAsyncIterator {
+            get {
+                return ResourceManager.GetString("ERR_NoCancellationTokenParameterInAsyncIterator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot find the interop type that matches the embedded interop type &apos;{0}&apos;. Are you missing an assembly reference?.
         /// </summary>
         internal static string ERR_NoCanonicalView {
@@ -10857,6 +10866,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_BaseTypeInBaseExpression {
             get {
                 return ResourceManager.GetString("IDS_BaseTypeInBaseExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to cancellation token variable.
+        /// </summary>
+        internal static string IDS_CANCELLATIONTOKENLOCAL {
+            get {
+                return ResourceManager.GetString("IDS_CANCELLATIONTOKENLOCAL", resourceCulture);
             }
         }
         

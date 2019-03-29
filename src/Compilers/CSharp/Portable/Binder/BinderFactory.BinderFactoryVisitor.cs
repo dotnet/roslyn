@@ -145,6 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         method = method ?? GetMethodSymbol(methodDecl, resultBinder);
                         resultBinder = new InMethodBinder(method, resultBinder);
+                        if (method.IsAsync)
+                        {
+                            resultBinder = new CancellationTokenLocalScopeBinder(method, resultBinder);
+                        }
                     }
 
                     resultBinder = resultBinder.WithUnsafeRegionIfNecessary(methodDecl.Modifiers);

@@ -294,6 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 EnterParameter(methodThisParameter, methodThisParameter.TypeWithAnnotations);
             }
+            // Note: no need to analyze the 'cancellationToken' local in async-iterator methods
 
             ImmutableArray<PendingBranch> pendingReturns = base.Scan(ref badRegion);
             return pendingReturns;

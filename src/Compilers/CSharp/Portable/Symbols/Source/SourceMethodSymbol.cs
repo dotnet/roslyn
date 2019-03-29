@@ -21,6 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early);
 
+        /// <summary>
+        /// Async-iterator methods and local functions introduce a pseudo-local called 'cancellationToken'.
+        /// </summary>
+        internal abstract SynthesizedLocal GetCancellationTokenLocal();
+
         protected static void ReportBadRefToken(TypeSyntax returnTypeSyntax, DiagnosticBag diagnostics)
         {
             if (!returnTypeSyntax.HasErrors)

@@ -327,6 +327,14 @@ namespace Roslyn.Test.Utilities
                         TypeDefinition type = reader.GetTypeDefinition((TypeDefinitionHandle)handle);
                         return getQualifiedName(type.Namespace, type.Name);
                     }
+                case HandleKind.FieldDefinition:
+                    {
+                        FieldDefinition field = reader.GetFieldDefinition((FieldDefinitionHandle)handle);
+                        var blob = reader.GetBlobReader(field.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var signature = decoder.DecodeFieldSignature(ref blob);
+                        return $"{signature} {reader.GetString(field.Name)}";
+                    }
                 case HandleKind.MethodDefinition:
                     {
                         MethodDefinition method = reader.GetMethodDefinition((MethodDefinitionHandle)handle);

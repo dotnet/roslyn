@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -149,7 +153,7 @@ class C
             CompileAndVerify(comp);
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait1()
         {
@@ -178,7 +182,7 @@ class C
 8");
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [Fact]
         [WorkItem(30566, "https://github.com/dotnet/roslyn/issues/30566")]
         public void YieldReturnAwait2()
         {
@@ -253,7 +257,7 @@ class C
 }";
             var expected = new[]
             {
-                
+
                 // (4,45): error CS0234: The type or namespace name 'IAsyncEnumerable<>' does not exist in the namespace 'System.Collections.Generic' (are you missing an assembly reference?)
                 //     static async System.Collections.Generic.IAsyncEnumerable<int> M()
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInNS, "IAsyncEnumerable<int>").WithArguments("IAsyncEnumerable<>", "System.Collections.Generic").WithLocation(4, 45),
@@ -406,6 +410,19 @@ public class C
                 Assert.Equal("System.Type", argument.Type.ToTestDisplayString());
                 Assert.Equal("C.<M>d__0", ((ITypeSymbol)argument.Value).ToTestDisplayString());
             });
+
+            // Field for CancellationToken is generated even if it's not used
+            var expectedFields = new[] {
+                "FieldDefinition:Int32 <>1__state",
+                "FieldDefinition:System.Runtime.CompilerServices.AsyncIteratorMethodBuilder <>t__builder",
+                "FieldDefinition:System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1{Boolean} <>v__promiseOfValueOrEnd",
+                "FieldDefinition:Int32 <>2__current",
+                "FieldDefinition:Boolean <>w__disposeMode",
+                "FieldDefinition:Int32 <>l__initialThreadId",
+                "FieldDefinition:System.Threading.CancellationToken <cancellationToken>s__1",
+                "FieldDefinition:System.Runtime.CompilerServices.TaskAwaiter <>u__1" };
+
+            VerifyFieldMembers(comp, "<M>d__0", expectedFields);
         }
 
         [Fact]
@@ -798,6 +815,17 @@ namespace System
                 //     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Collections.Generic.IAsyncEnumerator`1", "get_Current").WithLocation(5, 64)
                 );
+
+            VerifyMissingType(_enumerator, WellKnownType.System_Threading_CancellationToken); // TODO2 missing diaggnostic
+
+            string enumerableWithCancellationToken = @"
+using System.Threading.Tasks;
+class C
+{
+    async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; cancellationToken.ToString(); }
+}
+";
+            VerifyMissingType(enumerableWithCancellationToken, WellKnownType.System_Threading_CancellationToken); // TODO2 missing diagnostic
         }
 
         [Fact]
@@ -1987,7 +2015,7 @@ class C
 ");
                 verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
 {
-  // Code size       52 (0x34)
+  // Code size       59 (0x3b)
   .maxstack  2
   .locals init (C.<M>d__0 V_0)
   IL_0000:  ldarg.0
@@ -2011,7 +2039,10 @@ class C
   IL_002c:  newobj     ""C.<M>d__0..ctor(int)""
   IL_0031:  stloc.0
   IL_0032:  ldloc.0
-  IL_0033:  ret
+  IL_0033:  ldarg.1
+  IL_0034:  stfld      ""System.Threading.CancellationToken C.<M>d__0.<cancellationToken>s__1""
+  IL_0039:  ldloc.0
+  IL_003a:  ret
 }");
                 verifier.VerifyIL("C.<M>d__0.System.Threading.Tasks.Sources.IValueTaskSource<bool>.GetResult(short)", @"
 {
@@ -2576,7 +2607,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 Done");
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 2 END DISPOSAL DONE")]
         [InlineData(10, "1 2 END DISPOSAL DONE")]
@@ -2778,7 +2809,7 @@ class C
             CompileAndVerify(comp, expectedOutput: "0 1 2 3 4 Done");
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "0 DISPOSAL DONE")]
         [InlineData(2, "0 1 DISPOSAL Finally DONE")]
         [InlineData(3, "0 1 Finally 2 DISPOSAL DONE")]
@@ -2813,7 +2844,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(2, "1 Break Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_DisposeIAsyncEnumeratorMethod(int iterations, string expectedOutput)
         {
@@ -2861,7 +2892,7 @@ public class C : System.Collections.Generic.IAsyncEnumerable<int>
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(2, "1 Break Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInDisposeMode(int iterations, string expectedOutput)
         {
@@ -2902,7 +2933,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 2 DISPOSAL Dispose Finally Throw Dispose CAUGHT2 DONE")]
         [InlineData(3, "1 2 Try Dispose Finally Throw Dispose CAUGHT DISPOSAL DONE")]
@@ -2948,7 +2979,7 @@ public class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "Try 1 DISPOSAL Finally Item1 Item2 Throw CAUGHT2 DONE")]
         [InlineData(2, "Try 1 2 DISPOSAL Finally Item1 Item2 Throw CAUGHT2 DONE")]
         [InlineData(3, "Try 1 2 Finally Item1 Item2 Throw CAUGHT DISPOSAL DONE")]
@@ -2997,7 +3028,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(2, "1 Throw Caught Throw2 Dispose CAUGHT DISPOSAL DONE")]
         public void TryFinally_AwaitUsingInCatch(int iterations, string expectedOutput)
         {
@@ -3041,7 +3072,7 @@ public class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "Try Item1 Item2 Throw1 Finally Item1 Item2 Throw2 CAUGHT DISPOSAL DONE")]
         public void TryFinally_AwaitForeachInCatch(int iterations, string expectedOutput)
         {
@@ -3095,7 +3126,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInCatch(int iterations, string expectedOutput)
@@ -3139,7 +3170,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught Finally END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInCatch_WithAwaits(int iterations, string expectedOutput)
@@ -3185,7 +3216,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL Finally2 DONE")]
         [InlineData(2, "1 Throw Caught Break Finally Finally2 END DISPOSAL DONE")]
         public void TryFinally_YieldBreakInCatch_Nested(int iterations, string expectedOutput)
@@ -3238,7 +3269,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 Break Finally END DISPOSAL DONE")]
@@ -3271,7 +3302,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 2 DISPOSAL Finally DONE")]
@@ -3302,7 +3333,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally1 Finally2 Finally5 Finally6 DONE")]
         [InlineData(2, "1 2 DISPOSAL Finally1 Finally2 Finally5 Finally6 DONE")]
@@ -3368,7 +3399,7 @@ public class C
         }
 
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 Throw Finally CAUGHT DISPOSAL DONE")]
@@ -3402,7 +3433,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 2 DISPOSAL Finally DONE")]
@@ -3433,7 +3464,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(10, "1 Throw Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithYieldsOnly_WithThrow(int iterations, string expectedOutput)
@@ -3465,7 +3496,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Try Finally 2 DISPOSAL DONE")]
         [InlineData(3, "1 Try Finally 2 END DISPOSAL DONE")]
@@ -3500,7 +3531,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithAwaitsOnly_WithThrow(int iterations, string expectedOutput)
@@ -3534,7 +3565,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw1 Throw2 Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithAwaitsOnly_WithSlowThrowInAwait(int iterations, string expectedOutput)
@@ -3573,7 +3604,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Finally CAUGHT DISPOSAL DONE")]
         public void TryFinally_WithAwaitsOnly_WithFastThrowInAwait(int iterations, string expectedOutput)
@@ -3613,7 +3644,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 Throw Finally1 Caught")]
         [InlineData(2, "1 2 Throw Finally2 Finally1 Caught")]
         [InlineData(3, "1 2 Finally2 3 Throw Finally3 Finally1 Caught")]
@@ -3691,7 +3722,7 @@ class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "100 1 Throw Finally1 Caught")]
         [InlineData(2, "100 1 Throw Finally1 Caught")]
         [InlineData(3, "100 1 2 Throw Finally2 Finally1 Caught")]
@@ -3784,7 +3815,7 @@ class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Try Caught1 Caught2 After END DISPOSAL DONE")]
         public void TryFinally_AwaitAndCatch(int iterations, string expectedOutput)
@@ -3819,7 +3850,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught END DISPOSAL DONE")]
         public void TryFinally_AwaitInCatch(int iterations, string expectedOutput)
@@ -3849,7 +3880,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Throw Caught END DISPOSAL DONE")]
         public void TryFinally_AwaitAndYieldBreakInCatch(int iterations, string expectedOutput)
@@ -3880,7 +3911,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally DONE")]
         [InlineData(2, "1 Try 2 DISPOSAL Finally DONE")]
@@ -4265,7 +4296,7 @@ class C
                 );
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "0 DISPOSAL Finally1 DONE")]
         [InlineData(2, "0 Finally1 Again 2 DISPOSAL Finally3 DONE")]
@@ -4305,7 +4336,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally CAUGHT2 DONE")]
         [InlineData(2, "1 Finally CAUGHT DISPOSAL DONE")]
@@ -4339,7 +4370,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL Finally1 Finally2 CAUGHT2 DONE")]
         [InlineData(2, "1 Finally1 Finally2 CAUGHT DISPOSAL DONE")]
@@ -4380,7 +4411,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "1 DISPOSAL DONE")]
         [InlineData(2, "1 Try1 Try2 Caught Finally1 Finally2 END DISPOSAL DONE")]
@@ -4419,7 +4450,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(1, "Try1 1 DISPOSAL Finally1 Finally2 DONE")]
         [InlineData(2, "Try1 1 Throw Finally1 Finally2 CAUGHT DISPOSAL DONE")]
         [InlineData(10, "Try1 1 Throw Finally1 Finally2 CAUGHT DISPOSAL DONE")]
@@ -4455,7 +4486,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
-        [ConditionalTheory(typeof(WindowsDesktopOnly))]
+        [Theory]
         [InlineData(0, "DISPOSAL DONE")]
         [InlineData(1, "Try1 1 DISPOSAL Finally1 Finally2 DONE")]
         [InlineData(2, "Try1 1 Try2 Finally1 Finally2 END DISPOSAL DONE")]
@@ -5009,6 +5040,717 @@ public class MyEnumerable
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "42 43 Long Cancelled");
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_Exists()
+        {
+            var comp = CreateCompilationWithAsyncIterator(@"
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerable<int> M()
+    /*<bind>*/{
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(2);
+        await Task.Yield();
+    }/*</bind>*/
+    public static async Task Main(string[] args)
+    {
+        await foreach (var i in M())
+        {
+            Console.Write(i);
+        }
+    }
+}", TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "2");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var cancellationToken = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().First().Expression;
+            Assert.Equal("cancellationToken", cancellationToken.ToString());
+            var type = model.GetTypeInfo(cancellationToken);
+            Assert.Equal("System.Threading.CancellationToken", type.Type.ToTestDisplayString());
+            Assert.Equal("System.Threading.CancellationToken", type.ConvertedType.ToTestDisplayString());
+
+            Assert.Null(model.GetDeclaredSymbol(cancellationToken));
+
+            var symbol = (ILocalSymbol)model.GetSemanticInfoSummary(cancellationToken).Symbol;
+            Assert.Equal(SymbolKind.Local, symbol.Kind);
+            Assert.Equal(new[] { SyntaxKind.Block }, symbol.DeclaringSyntaxReferences.Select(dsr => dsr.GetSyntax().Kind()));
+            Assert.Equal(new[] { "[160..304)" }, symbol.Locations.Select(l => l.SourceSpan.ToString()));
+            Assert.False(symbol.HasConstantValue);
+            Assert.Equal(RefKind.None, symbol.RefKind);
+            Assert.False(symbol.IsFixed);
+            Assert.False(symbol.IsFunctionValue);
+            Assert.True(symbol.IsDefinition);
+            Assert.True(symbol.IsImplicitlyDeclared);
+            Assert.True(symbol.CanBeReferencedByName);
+            Assert.Equal("cancellationToken", symbol.Name);
+            AssertEx.Equal("System.Collections.Generic.IAsyncEnumerable<System.Int32> C.M()", symbol.ContainingSymbol.ToTestDisplayString());
+
+            // We currently produce a single synthesized local (rather than one per semantic model)
+            var symbol2 = comp.GetSemanticModel(tree, ignoreAccessibility: false).GetSemanticInfoSummary(cancellationToken).Symbol;
+            Assert.True(ReferenceEquals(symbol, symbol2));
+
+            var foundLocals = model.LookupSymbols(cancellationToken.SpanStart).Where(s => s.Kind == SymbolKind.Local);
+            AssertEx.Equal("System.Threading.CancellationToken cancellationToken", foundLocals.Single().ToTestDisplayString());
+
+            // Field for CancellationToken is generated if it's used
+            var expectedFields = new[] {
+                "FieldDefinition:Int32 <>1__state",
+                "FieldDefinition:System.Runtime.CompilerServices.AsyncIteratorMethodBuilder <>t__builder",
+                "FieldDefinition:System.Threading.Tasks.Sources.ManualResetValueTaskSourceCore`1{Boolean} <>v__promiseOfValueOrEnd",
+                "FieldDefinition:Int32 <>2__current",
+                "FieldDefinition:Boolean <>w__disposeMode",
+                "FieldDefinition:Int32 <>l__initialThreadId",
+                "FieldDefinition:System.Threading.CancellationToken <cancellationToken>s__1",
+                "FieldDefinition:System.Runtime.CompilerServices.TaskAwaiter`1{Int32} <>u__1",
+                "FieldDefinition:YieldAwaiter <>u__2" };
+
+            VerifyFieldMembers(comp, "<M>d__0", expectedFields);
+
+            // CancellationToken field is assigned from parameter
+            verifier.VerifyIL("C.<M>d__0.System.Collections.Generic.IAsyncEnumerable<int>.GetAsyncEnumerator(System.Threading.CancellationToken)", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (C.<M>d__0 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
+  IL_0006:  ldc.i4.s   -2
+  IL_0008:  bne.un.s   IL_002a
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""int C.<M>d__0.<>l__initialThreadId""
+  IL_0010:  call       ""int System.Environment.CurrentManagedThreadId.get""
+  IL_0015:  bne.un.s   IL_002a
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.s   -3
+  IL_001a:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_001f:  ldarg.0
+  IL_0020:  stloc.0
+  IL_0021:  ldarg.0
+  IL_0022:  ldc.i4.0
+  IL_0023:  stfld      ""bool C.<M>d__0.<>w__disposeMode""
+  IL_0028:  br.s       IL_0032
+  IL_002a:  ldc.i4.s   -3
+  IL_002c:  newobj     ""C.<M>d__0..ctor(int)""
+  IL_0031:  stloc.0
+  IL_0032:  ldloc.0
+  IL_0033:  ldarg.1
+  IL_0034:  stfld      ""System.Threading.CancellationToken C.<M>d__0.<cancellationToken>s__1""
+  IL_0039:  ldloc.0
+  IL_003a:  ret
+}");
+
+            // The cancellationToken "local" currently has no declaration in IOperation
+            var expectedOperationTree = @"
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'cancellatio ... equested();')
+    Expression:
+      IInvocationOperation ( void System.Threading.CancellationToken.ThrowIfCancellationRequested()) (OperationKind.Invocation, Type: System.Void) (Syntax: 'cancellatio ... Requested()')
+        Instance Receiver:
+          ILocalReferenceOperation: cancellationToken (OperationKind.LocalReference, Type: System.Threading.CancellationToken) (Syntax: 'cancellationToken')
+        Arguments(0)
+  IReturnOperation (OperationKind.YieldReturn, Type: null) (Syntax: 'yield retur ... mResult(2);')
+    ReturnedValue:
+      IAwaitOperation (OperationKind.Await, Type: System.Int32) (Syntax: 'await Task.FromResult(2)')
+        Expression:
+          IInvocationOperation (System.Threading.Tasks.Task<System.Int32> System.Threading.Tasks.Task.FromResult<System.Int32>(System.Int32 result)) (OperationKind.Invocation, Type: System.Threading.Tasks.Task<System.Int32>) (Syntax: 'Task.FromResult(2)')
+            Instance Receiver:
+              null
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument, Type: null) (Syntax: '2')
+                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'await Task.Yield();')
+    Expression:
+      IAwaitOperation (OperationKind.Await, Type: System.Void) (Syntax: 'await Task.Yield()')
+        Expression:
+          IInvocationOperation (System.Runtime.CompilerServices.YieldAwaitable System.Threading.Tasks.Task.Yield()) (OperationKind.Invocation, Type: System.Runtime.CompilerServices.YieldAwaitable) (Syntax: 'Task.Yield()')
+            Instance Receiver:
+              null
+            Arguments(0)
+";
+            var diagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(comp, expectedOperationTree, diagnostics);
+        }
+
+        private static void VerifyFieldMembers(CSharpCompilation comp, string typeName, string[] expected)
+        {
+            var image = comp.EmitToArray();
+            using var peReader = new PEReader(image);
+            var reader = peReader.GetMetadataReader();
+            var unspeakable = reader.TypeDefinitions.Where(th => getTypeName(th) == typeName).Single();
+            var fields = reader.GetTypeDefinition(unspeakable).GetFields();
+            AssertEx.Equal(expected, fields.Select(h => reader.Dump(h)));
+
+            string getTypeName(TypeDefinitionHandle handle)
+               => reader.GetString(reader.GetTypeDefinition(handle).Name);
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_DoesntExistWhenReturningIAsyncEnumerator()
+        {
+            var comp = CreateCompilationWithAsyncIterator(@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerator<int> M()
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(2);
+        await Task.Yield();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,9): error CS0103: The name 'cancellationToken' does not exist in the current context
+                //         cancellationToken.ThrowIfCancellationRequested();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "cancellationToken").WithArguments("cancellationToken").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_DoesntExistWhenReturningIAsyncEnumerator_ParametersAllowed()
+        {
+            var comp = CreateCompilationWithAsyncIterator(@"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerator<int> M(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(2);
+    }
+    public static async IAsyncEnumerator<int> M<cancellationToken>()
+    {
+        cancellationToken.ThrowIfCancellationRequested(); // 1
+        yield return await Task.FromResult(2);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (14,9): error CS0119: 'cancellationToken' is a type parameter, which is not valid in the given context
+                //         cancellationToken.ThrowIfCancellationRequested(); // 1
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "cancellationToken").WithArguments("cancellationToken", "type parameter").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_NotWriteableAndNotType()
+        {
+            var comp = CreateCompilationWithAsyncIterator(@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerable<int> M()
+    {
+        cancellationToken = default; // 1
+        await Task.Yield();
+        yield return await Task.FromResult(8);
+        System.Console.Write(typeof(cancellationToken).ToString()); // 2
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1656: Cannot assign to 'cancellationToken' because it is a 'cancellation token variable'
+                //         cancellationToken = default; // 1
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "cancellationToken").WithArguments("cancellationToken", "cancellation token variable").WithLocation(8, 9),
+                // (11,37): error CS0118: 'cancellationToken' is a variable but is used like a type
+                //         System.Console.Write(typeof(cancellationToken).ToString()); // 2
+                Diagnostic(ErrorCode.ERR_BadSKknown, "cancellationToken").WithArguments("cancellationToken", "variable", "type").WithLocation(11, 37)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_MethodWithThrow()
+        {
+            var comp = CreateCompilationWithAsyncIterator(@"
+using System.Collections.Generic;
+class C
+{
+    public static async IAsyncEnumerable<int> M()
+    {
+        cancellationToken.ToString();
+        throw new System.Exception();
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (5,47): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(5, 47)
+                );
+            comp.VerifyEmitDiagnostics(
+                // (5,47): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "M").WithLocation(5, 47),
+                // (5,47): error CS8420: The body of an async-iterator method must contain a 'yield' statement. Consider removing 'async' from the method declaration or adding a 'yield' statement.
+                //     public static async IAsyncEnumerable<int> M()
+                Diagnostic(ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait, "M").WithArguments("System.Collections.Generic.IAsyncEnumerable<int>").WithLocation(5, 47)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_ParametersAndTypeParametersConflicts()
+        {
+            var comp = CreateCompilationWithAsyncIterator(@"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerable<int> M1<cancellationToken>() // 1
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(8);
+    }
+    public static async IAsyncEnumerable<int> M2(int cancellationToken) // 2
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(8);
+    }
+    public static async IAsyncEnumerable<int> M3(out CancellationToken cancellationToken) // 3, 4, 5
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(8);
+    }
+    public static async IAsyncEnumerable<int> M4(out int cancellationToken) // 6, 7, 8
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(8);
+    }
+    public void M5()
+    {
+        _ = local1<int>();
+        _ = local2(1);
+        static async IAsyncEnumerable<int> local1<cancellationToken>() // 9
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return await Task.FromResult(8);
+        }
+        static async IAsyncEnumerable<int> local2(int cancellationToken) // 10
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return await Task.FromResult(8);
+        }
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (7,50): error CS8404: Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.
+                //     public static async IAsyncEnumerable<int> M1<cancellationToken>() // 1
+                Diagnostic(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, "cancellationToken").WithLocation(7, 50),
+                // (12,54): error CS8404: Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.
+                //     public static async IAsyncEnumerable<int> M2(int cancellationToken) // 2
+                Diagnostic(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, "cancellationToken").WithLocation(12, 54),
+                // (17,72): error CS1988: Async methods cannot have ref, in or out parameters
+                //     public static async IAsyncEnumerable<int> M3(out CancellationToken cancellationToken) // 3, 4, 5
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "cancellationToken").WithLocation(17, 72),
+                // (17,72): error CS8404: Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.
+                //     public static async IAsyncEnumerable<int> M3(out CancellationToken cancellationToken) // 3, 4, 5
+                Diagnostic(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, "cancellationToken").WithLocation(17, 72),
+                // (17,72): error CS1623: Iterators cannot have ref, in or out parameters
+                //     public static async IAsyncEnumerable<int> M3(out CancellationToken cancellationToken) // 3, 4, 5
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "cancellationToken").WithLocation(17, 72),
+                // (22,58): error CS1988: Async methods cannot have ref, in or out parameters
+                //     public static async IAsyncEnumerable<int> M4(out int cancellationToken) // 6, 7, 8
+                Diagnostic(ErrorCode.ERR_BadAsyncArgType, "cancellationToken").WithLocation(22, 58),
+                // (22,58): error CS8404: Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.
+                //     public static async IAsyncEnumerable<int> M4(out int cancellationToken) // 6, 7, 8
+                Diagnostic(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, "cancellationToken").WithLocation(22, 58),
+                // (22,58): error CS1623: Iterators cannot have ref, in or out parameters
+                //     public static async IAsyncEnumerable<int> M4(out int cancellationToken) // 6, 7, 8
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "cancellationToken").WithLocation(22, 58),
+                // (31,51): error CS8404: Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.
+                //         static async IAsyncEnumerable<int> local1<cancellationToken>() // 9
+                Diagnostic(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, "cancellationToken").WithLocation(31, 51),
+                // (36,55): error CS8404: Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.
+                //         static async IAsyncEnumerable<int> local2(int cancellationToken) // 10
+                Diagnostic(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, "cancellationToken").WithLocation(36, 55)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_LocalConflicts()
+        {
+            var comp = CreateCompilationWithAsyncIterator(@"
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerable<int> M1()
+    {
+        _ = 1 is {} cancellationToken; // 1
+        cancellationToken.ThrowIfCancellationRequested(); // 2
+        yield return await Task.FromResult(8);
+    }
+    public static async IAsyncEnumerable<int> M4()
+    {
+        int cancellationToken = 1; // 3
+        cancellationToken.ThrowIfCancellationRequested(); // 4
+        yield return await Task.FromResult(cancellationToken);
+    }
+    public static async IAsyncEnumerable<int> M5()
+    {
+        var (cancellationToken, i) = (1, 2); // 5
+        cancellationToken.ThrowIfCancellationRequested(); // 6
+        yield return await Task.FromResult(8);
+    }
+    public static async IAsyncEnumerable<int> M6()
+    {
+        (CancellationToken cancellationToken, int i) = (default, 2); // 7
+        cancellationToken.ThrowIfCancellationRequested(); // 8
+        yield return await Task.FromResult(8);
+    }
+    public static async IAsyncEnumerable<int> M7()
+    {
+        cancellationToken();
+        cancellationToken.ThrowIfCancellationRequested(); // 8
+        yield return await Task.FromResult(8);
+        void cancellationToken() { } // 9
+    }
+    public static async IAsyncEnumerable<int> M8()
+    {
+        foreach (int cancellationToken in new[] { 0 }) // 10
+        {
+            cancellationToken.ThrowIfCancellationRequested(); // 11
+        }
+        yield return await Task.FromResult(8);
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (9,21): error CS0136: A local or parameter named 'cancellationToken' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         _ = 1 is {} cancellationToken; // 1
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "cancellationToken").WithArguments("cancellationToken").WithLocation(9, 21),
+                // (10,27): error CS1061: 'int' does not contain a definition for 'ThrowIfCancellationRequested' and no accessible extension method 'ThrowIfCancellationRequested' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         cancellationToken.ThrowIfCancellationRequested(); // 2
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ThrowIfCancellationRequested").WithArguments("int", "ThrowIfCancellationRequested").WithLocation(10, 27),
+                // (15,13): error CS0136: A local or parameter named 'cancellationToken' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         int cancellationToken = 1; // 3
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "cancellationToken").WithArguments("cancellationToken").WithLocation(15, 13),
+                // (16,27): error CS1061: 'int' does not contain a definition for 'ThrowIfCancellationRequested' and no accessible extension method 'ThrowIfCancellationRequested' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         cancellationToken.ThrowIfCancellationRequested(); // 4
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ThrowIfCancellationRequested").WithArguments("int", "ThrowIfCancellationRequested").WithLocation(16, 27),
+                // (21,14): error CS0136: A local or parameter named 'cancellationToken' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         var (cancellationToken, i) = (1, 2); // 5
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "cancellationToken").WithArguments("cancellationToken").WithLocation(21, 14),
+                // (22,27): error CS1061: 'int' does not contain a definition for 'ThrowIfCancellationRequested' and no accessible extension method 'ThrowIfCancellationRequested' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         cancellationToken.ThrowIfCancellationRequested(); // 6
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ThrowIfCancellationRequested").WithArguments("int", "ThrowIfCancellationRequested").WithLocation(22, 27),
+                // (27,28): error CS0136: A local or parameter named 'cancellationToken' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         (CancellationToken cancellationToken, int i) = (default, 2); // 7
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "cancellationToken").WithArguments("cancellationToken").WithLocation(27, 28),
+                // (34,9): error CS0119: 'cancellationToken()' is a method, which is not valid in the given context
+                //         cancellationToken.ThrowIfCancellationRequested(); // 8
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "cancellationToken").WithArguments("cancellationToken()", "method").WithLocation(34, 9),
+                // (36,14): error CS0136: A local or parameter named 'cancellationToken' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         void cancellationToken() { } // 9
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "cancellationToken").WithArguments("cancellationToken").WithLocation(36, 14),
+                // (40,22): error CS0136: A local or parameter named 'cancellationToken' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         foreach (int cancellationToken in new[] { 0 }) // 10
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "cancellationToken").WithArguments("cancellationToken").WithLocation(40, 22),
+                // (42,31): error CS1061: 'int' does not contain a definition for 'ThrowIfCancellationRequested' and no accessible extension method 'ThrowIfCancellationRequested' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //             cancellationToken.ThrowIfCancellationRequested(); // 11
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ThrowIfCancellationRequested").WithArguments("int", "ThrowIfCancellationRequested").WithLocation(42, 31)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_MiscShadowing()
+        {
+            var comp = CreateCompilationWithAsyncIterator(@"
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class C<cancellationToken>
+{
+    public static async IAsyncEnumerable<int> M()
+    {
+        // cancellationToken shadows type parameter
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(8);
+    }
+}
+class C2
+{
+    public static async IAsyncEnumerable<int> M2()
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(8);
+        local(0);
+
+        // local function parameter shadows local from enclosing method
+        void local(int cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested(); // 1
+        }
+    }
+    public static async IAsyncEnumerable<int> M3()
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(8);
+        local();
+
+        static void local()
+        {
+            // static local function cannot capture local from enclosing async-iterator method
+            cancellationToken.ThrowIfCancellationRequested(); // 2
+        }
+    }
+    public static async IAsyncEnumerable<int> M4()
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        yield return await Task.FromResult(8);
+        local();
+
+        void local()
+        {
+            // local in local function shadows local from enclosing method
+            int cancellationToken = 0;
+            cancellationToken.ThrowIfCancellationRequested(); // 3
+        }
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (25,31): error CS1061: 'int' does not contain a definition for 'ThrowIfCancellationRequested' and no accessible extension method 'ThrowIfCancellationRequested' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //             cancellationToken.ThrowIfCancellationRequested(); // 1
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ThrowIfCancellationRequested").WithArguments("int", "ThrowIfCancellationRequested").WithLocation(25, 31),
+                // (37,13): error CS8421: A static local function cannot contain a reference to 'cancellationToken'.
+                //             cancellationToken.ThrowIfCancellationRequested(); // 2
+                Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "cancellationToken").WithArguments("cancellationToken").WithLocation(37, 13),
+                // (50,31): error CS1061: 'int' does not contain a definition for 'ThrowIfCancellationRequested' and no accessible extension method 'ThrowIfCancellationRequested' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //             cancellationToken.ThrowIfCancellationRequested(); // 3
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ThrowIfCancellationRequested").WithArguments("int", "ThrowIfCancellationRequested").WithLocation(50, 31)
+                );
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_AsyncIteratorLocalFunctionHasOwnCancellationToken()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public static async IAsyncEnumerable<int> M()
+    {
+        yield return await Task.FromResult(1);
+        await foreach (var x in local())
+        {
+            yield return x;
+        }
+
+        async IAsyncEnumerable<int> local()
+        {
+            // async-iterator local function introduces its own cancellationToken variable (ie. not cancelled)
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return await Task.FromResult(2);
+            yield return 3;
+        }
+    }
+
+    public static async Task Main(string[] args)
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await foreach (var i in M().WithCancellation(cts.Token))
+        {
+            Console.Write(i);
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, AsyncEnumerableWithCancellation }, TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "123");
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_LocalFunctionCapturesCancellationToken()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public static async IAsyncEnumerable<int> M()
+    {
+        yield return await Task.FromResult(42);
+        local();
+        Console.Write(""END"");
+
+        void local()
+        {
+            // local function captures cancellationToken from enclosing async-iterator method
+            cancellationToken.ThrowIfCancellationRequested();
+            Console.Write("" LOCAL "");
+        }
+    }
+
+    public static async Task Main(string[] args)
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        try
+        {
+            await foreach (var i in M().WithCancellation(cts.Token))
+            {
+                Console.Write(i);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Write($"" {e.Message} "");
+        }
+    }
+}
+";
+
+            // TODO2 The cancellationToken variable should be shared
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, AsyncEnumerableWithCancellation }, TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "42 LOCAL END");
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_Execution()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerable<int> M()
+    {
+        await Task.Yield();
+        yield return 1;
+        cancellationToken.ThrowIfCancellationRequested();
+        await Task.Yield();
+        yield return 2;
+        cancellationToken.ThrowIfCancellationRequested(); // cancels
+        yield return 3;
+        await Task.Yield();
+        yield return 4;
+    }
+    public static async Task Main(string[] args)
+    {
+        using var cts = new CancellationTokenSource();
+        var enumerable = M();
+        try
+        {
+            await foreach (var i in enumerable.WithCancellation(cts.Token))
+            {
+                Console.Write(i);
+                if (i > 1)
+                {
+                    cts.Cancel();
+                }
+                if (i > 2)
+                    Console.Write(""BAD"");
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Write($"" {e.Message} "");
+        }
+
+        await foreach (var i in enumerable)
+        {
+            Console.Write(i);
+        }
+    }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, AsyncEnumerableWithCancellation }, TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "12 The operation was canceled. 1234");
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_CancelInDisposal()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+class C
+{
+    public static async IAsyncEnumerable<int> M()
+    {
+        try
+        {
+            await Task.Yield();
+            yield return 1;
+            await Task.Yield();
+            yield return 1;
+        }
+        finally
+        {
+            Console.Write("" FINALLY "");
+            cancellationToken.ThrowIfCancellationRequested();
+            Console.Write(""FINALLY2"");
+        }
+    }
+    public static async Task Main(string[] args)
+    {
+        using var cts = new CancellationTokenSource();
+        var enumerable = M();
+        try
+        {
+            await foreach (var i in enumerable.WithCancellation(cts.Token))
+            {
+                Console.Write(i);
+                cts.Cancel();
+                break;
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Write($"" {e.Message} "");
+        }
+
+        await foreach (var i in enumerable)
+        {
+            Console.Write(i);
+            break;
+        }
+     }
+}";
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, AsyncEnumerableWithCancellation }, TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "1 FINALLY  The operation was canceled. 1 FINALLY FINALLY2");
         }
     }
 }

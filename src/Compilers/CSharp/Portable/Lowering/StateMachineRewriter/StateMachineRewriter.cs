@@ -203,7 +203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         string fieldName = GeneratedNames.MakeHoistedLocalFieldName(synthesizedKind, slotIndex, local.Name);
-                        field = F.StateMachineField(fieldType, fieldName, new LocalSlotDebugInfo(synthesizedKind, id), slotIndex);
+                        var slotDebugInfo = synthesizedKind == SynthesizedLocalKind.AsyncIteratorCancellationToken ? default : new LocalSlotDebugInfo(synthesizedKind, id);
+                        field = F.StateMachineField(fieldType, fieldName, slotDebugInfo, slotIndex);
                     }
 
                     if (field != null)
@@ -375,6 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //        result = new {StateMachineType}({initialState});
             //    }
             //    result.parameter = this.parameterProxy; // copy all of the parameter proxies
+            //    this.cancellationToken = cancellationTokenParameter;
 
             // The implementation doesn't depend on the method body of the iterator method.
             // Only on its parameters and staticness.
@@ -390,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var thisInitialized = F.GenerateLabel("thisInitialized");
 
+            ParameterSymbol thisParameter = method.ThisParameter;
             if ((object)initialThreadIdField != null)
             {
                 managedThreadId = MakeCurrentThreadId();
@@ -409,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     thenBuilder.Add(extraReset);
                 }
 
-                if (method.IsStatic || method.ThisParameter.Type.IsReferenceType)
+                if (method.IsStatic || thisParameter.Type.IsReferenceType)
                 {
                     // if this is a reference type, no need to copy it since it is not assignable
                     thenBuilder.Add(
@@ -434,33 +437,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!method.IsStatic)
             {
                 // starting with "this"
-                CapturedSymbolReplacement proxy;
-                if (copyDest.TryGetValue(method.ThisParameter, out proxy))
-                {
-                    bodyBuilder.Add(
-                        F.Assignment(
-                            proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable)),
-                            copySrc[method.ThisParameter].Replacement(F.Syntax, stateMachineType => F.This())));
-                }
+                initializeProxiedParameter(thisParameter);
             }
 
             bodyBuilder.Add(F.Label(thisInitialized));
 
             foreach (var parameter in method.Parameters)
             {
-                CapturedSymbolReplacement proxy;
-                if (copyDest.TryGetValue(parameter, out proxy))
+                initializeProxiedParameter(parameter);
+            }
+
+            // Initialize the cancellationToken field
+            if (method is SourceMethodSymbol sourceMethod)
+            {
+                if (sourceMethod.GetCancellationTokenLocal() is { } cancellationTokenLocal)
                 {
+                    _ = copyDest.TryGetValue(cancellationTokenLocal, out CapturedSymbolReplacement proxy);
+                    Debug.Assert(proxy is { });
+
+                    // this.cancellationToken = cancellationTokenParameter
                     bodyBuilder.Add(
                         F.Assignment(
                             proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable)),
-                            copySrc[parameter].Replacement(F.Syntax, stateMachineType => F.This())));
+                            F.Parameter(getEnumeratorMethod.Parameters[0])));
                 }
             }
 
             bodyBuilder.Add(F.Return(F.Local(resultVariable)));
             F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
             return getEnumerator;
+
+            void initializeProxiedParameter(ParameterSymbol srcSymbol)
+            {
+                if (copyDest.TryGetValue(srcSymbol, out CapturedSymbolReplacement proxy))
+                {
+                    bodyBuilder.Add(
+                        F.Assignment(
+                            proxy.Replacement(F.Syntax, stateMachineType => F.Local(resultVariable)),
+                            copySrc[srcSymbol].Replacement(F.Syntax, stateMachineType => F.This())));
+                }
+            }
         }
 
         /// <summary>
