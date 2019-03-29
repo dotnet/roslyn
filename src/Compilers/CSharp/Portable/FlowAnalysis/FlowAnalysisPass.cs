@@ -36,15 +36,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
             var compilation = method.DeclaringCompilation;
 
+            bool analysisResult = Analyze(compilation, method, block, diagnostics);
+
             if (method.ReturnsVoid || method.IsIterator || method.IsTaskReturningAsync(compilation))
             {
-                // we don't analyze synthesized void methods.
-                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
+                if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || analysisResult)
                 {
                     block = AppendImplicitReturn(block, method, originalBodyNested);
                 }
             }
-            else if (Analyze(compilation, method, block, diagnostics))
+            else if (analysisResult)
             {
                 // If the method is a lambda expression being converted to a non-void delegate type
                 // and the end point is reachable then suppress the error here; a special error
