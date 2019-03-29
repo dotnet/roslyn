@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Testing
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}content of 'File1.txt' did not match. Diff shown with expected as baseline:{Environment.NewLine} File text{Environment.NewLine}", exception.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}content of 'File1.txt' did not match. Diff shown with expected as baseline:{Environment.NewLine}-  File text{Environment.NewLine}+File text{Environment.NewLine}", exception.Message);
         }
 
         [Fact]

@@ -20,6 +20,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Composition" Version="15.6.36" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <!-- Use PrivateAssets=compile to avoid exposing our DiffPlex dependency downstream as public API. -->
-    <PackageReference Include="DiffPlex" Version="1.4.2" PrivateAssets="compile" />
+    <PackageReference Include="DiffPlex" Version="1.4.4" PrivateAssets="compile" />
   </ItemGroup>
 </Project>

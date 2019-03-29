@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Text;
 using DiffPlex;
 using DiffPlex.DiffBuilder;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Testing
             if (expected != actual)
             {
                 var diffBuilder = new InlineDiffBuilder(new Differ());
-                var diff = diffBuilder.BuildDiffModel(expected, actual);
+                var diff = diffBuilder.BuildDiffModel(expected, actual, ignoreWhitespace: false);
                 var messageBuilder = new StringBuilder();
                 messageBuilder.AppendLine(
                     string.IsNullOrEmpty(message)
