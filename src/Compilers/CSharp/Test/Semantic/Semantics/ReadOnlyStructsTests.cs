@@ -460,13 +460,18 @@ public interface I
 
 public struct S : I
 {
+    int i;
     readonly void I.M()
     {
+        i = 0;
     }
 }
 ";
             var comp = CreateCompilation(csharp);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,9): error CS1604: Cannot assign to 'i' because it is read-only
+                //         i = 0;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "i").WithArguments("i").WithLocation(12, 9));
         }
 
         [Fact]
