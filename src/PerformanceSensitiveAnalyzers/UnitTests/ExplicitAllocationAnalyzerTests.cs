@@ -294,5 +294,138 @@ public class MyClass
 }";
             await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
         }
+
+        [Fact]
+        public async Task ExplicitAllocation_NoParamsArrayCreation()
+        {
+            var sampleProgram =
+@"using System.Collections.Generic;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing(params int[] values)
+    {
+        Testing();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ExplicitDelegateCreation()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing(object sender, EventArgs e)
+    {
+        var handler = new EventHandler(Testing);
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 23));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ImplicitDelegateCreation()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing(object sender, EventArgs e)
+    {
+        EventHandler handler = Testing;
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_ListInitializerCreation()
+        {
+            var sampleProgram =
+@"using System.Collections.Generic;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing()
+    {
+        var intData = new List<int> { 3, 4 };
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(9, 23));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_GenericObjectCreation()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing<T>()
+        where T : class, new()
+    {
+        var allocation = new T();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 26));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_GenericObjectCreation2()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing<T>()
+        where T : struct
+    {
+        object allocation = new T();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram,
+                VerifyCS.Diagnostic(ExplicitAllocationAnalyzer.ObjectCreationRule).WithLocation(10, 29));
+        }
+
+        [Fact]
+        public async Task ExplicitAllocation_GenericObjectCreation3()
+        {
+            var sampleProgram =
+@"using System;
+using Roslyn.Utilities;
+
+public class MyClass
+{
+    [PerformanceSensitive(""uri"")]
+    public void Testing<T>()
+        where T : struct
+    {
+        T value = new T();
+    }
+}";
+            await VerifyCS.VerifyAnalyzerAsync(sampleProgram);
+        }
     }
 }

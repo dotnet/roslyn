@@ -65,17 +65,24 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
         protected override ImmutableArray<OperationKind> Operations => ImmutableArray.Create(
             OperationKind.ArrayCreation,
             OperationKind.ObjectCreation,
-            OperationKind.AnonymousObjectCreation);
+            OperationKind.AnonymousObjectCreation,
+            OperationKind.DelegateCreation,
+            OperationKind.TypeParameterObjectCreation);
 
         protected override void AnalyzeNode(OperationAnalysisContext context, in PerformanceSensitiveInfo info)
         {
-            if (context.Operation is IArrayCreationOperation)
+            if (context.Operation is IArrayCreationOperation arrayCreation)
             {
-                context.ReportDiagnostic(Diagnostic.Create(ArrayCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                // The implicit case is handled by HAA0101
+                if (!arrayCreation.IsImplicit)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(ArrayCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                }
+
                 return;
             }
 
-            if (context.Operation is IObjectCreationOperation)
+            if (context.Operation is IObjectCreationOperation || context.Operation is ITypeParameterObjectCreationOperation)
             {
                 if (context.Operation.Type.IsReferenceType)
                 {
@@ -103,6 +110,17 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
                 else
                 {
                     context.ReportDiagnostic(Diagnostic.Create(AnonymousObjectCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
+                }
+
+                return;
+            }
+
+            if (context.Operation is IDelegateCreationOperation delegateCreationOperation)
+            {
+                // The implicit case is handled by HAA0603
+                if (!delegateCreationOperation.IsImplicit)
+                {
+                    context.ReportDiagnostic(Diagnostic.Create(ObjectCreationRule, context.Operation.Syntax.GetLocation(), EmptyMessageArgs));
                 }
 
                 return;
