@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 boundDeclType = null;
                 // remove the nullable part of the input's type; e.g. a nullable int becomes an int in a recursive pattern
-                return new TypeWithState(inputType.StrippedType(), NullableFlowState.MaybeNull).ToTypeWithAnnotations();
+                return TypeWithAnnotations.Create(inputType.StrippedType(), NullableAnnotation.NotAnnotated);
             }
         }
 
