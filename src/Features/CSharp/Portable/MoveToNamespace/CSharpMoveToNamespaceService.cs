@@ -12,14 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
     internal class CSharpMoveToNamespaceService :
         AbstractMoveToNamespaceService<NamespaceDeclarationSyntax, TypeDeclarationSyntax>
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpMoveToNamespaceService(
-            [Import(AllowDefault = true)] IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
-            : base(moveToNamespaceOptionsService)
-        {
-        }
-
         protected override string GetNamespaceName(NamespaceDeclarationSyntax syntax)
             => syntax.Name.ToString();
 

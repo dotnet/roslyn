@@ -29,15 +29,8 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         where TNamedTypeDeclarationSyntax : SyntaxNode
 
     {
-        private IMoveToNamespaceOptionsService _moveToNamespaceOptionsService;
-
         protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax syntax);
         protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax syntax);
-
-        public AbstractMoveToNamespaceService(IMoveToNamespaceOptionsService moveToNamespaceOptionsService)
-        {
-            _moveToNamespaceOptionsService = moveToNamespaceOptionsService;
-        }
 
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
             Document document,
@@ -214,8 +207,14 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             ImmutableArray<string> namespaces)
         {
             var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+            var moveToNamespaceOptionsService = document.Project.Solution.Workspace.Services.GetService<IMoveToNamespaceOptionsService>();
 
-            return _moveToNamespaceOptionsService.GetChangeNamespaceOptions(
+            if (moveToNamespaceOptionsService == null)
+            {
+                return MoveToNamespaceOptionsResult.Cancelled;
+            }
+
+            return moveToNamespaceOptionsService.GetChangeNamespaceOptions(
                 defaultNamespace,
                 namespaces,
                 syntaxFactsService);
