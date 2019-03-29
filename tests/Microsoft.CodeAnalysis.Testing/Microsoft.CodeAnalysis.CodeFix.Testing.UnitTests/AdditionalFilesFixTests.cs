@@ -81,6 +81,30 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         [Fact]
+        public async Task TestMarkupDiagnosticFixedByAddingAdditionalFileFailsIfTextIndentedIncorrectly()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpTest(SuppressDiagnosticIf.AdditionalFileExists)
+                {
+                    TestState =
+                    {
+                        Sources = { "namespace MyNamespace {|Brace:{|} }" },
+                    },
+                    FixedState =
+                    {
+                        AdditionalFiles =
+                        {
+                            ("File1.txt", "  File text"),
+                        },
+                    },
+                }.RunAsync();
+            });
+
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}content of 'File1.txt' did not match. Diff shown with expected as baseline:{Environment.NewLine} File text{Environment.NewLine}", exception.Message);
+        }
+
+        [Fact]
         public async Task TestDiagnosticFixedByRemovingAdditionalFile()
         {
             await new CSharpTest(SuppressDiagnosticIf.AdditionalFileMissing)
