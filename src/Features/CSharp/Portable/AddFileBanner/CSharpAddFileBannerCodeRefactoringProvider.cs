@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddFileBanner
             {
                 case SyntaxKind.SingleLineCommentTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
+                case SyntaxKind.SingleLineDocumentationCommentTrivia:
+                case SyntaxKind.MultiLineDocumentationCommentTrivia:
                     return SyntaxFactory.Comment(text);
             }
 
