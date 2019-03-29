@@ -385,6 +385,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 diagnostics.Add(ErrorCode.ERR_AccessModMissingAccessor, location, this);
                             }
+
+                            // Check that 'readonly' is not set on the one accessor.
+                            if (accessor.LocalDeclaredReadOnly)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ReadOnlyModMissingAccessor, location, this);
+                            }
                         }
                     }
                 }

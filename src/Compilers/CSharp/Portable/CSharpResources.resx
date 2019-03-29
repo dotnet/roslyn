@@ -5451,6 +5451,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialMethodReadOnlyDifference" xml:space="preserve">
     <value>Both partial method declarations must be readonly or neither may be readonly</value>
   </data>
+  <data name="ERR_ReadOnlyModMissingAccessor" xml:space="preserve">
+    <value>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</value>
+  </data>
   <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
     <value>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</value>
   </data>

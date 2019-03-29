@@ -582,9 +582,9 @@ public struct S
 {
     public int i;
 
-    public int P
+    public readonly int P
     {
-        readonly get
+        get
         {
             // should create local copy
             M();
@@ -627,9 +627,9 @@ public struct S
 {
     public int i;
 
-    public int P1
+    public readonly int P1
     {
-        readonly get
+        get
         {
             // should create local copy
             _ = P2; // warning
@@ -1139,9 +1139,9 @@ public struct S
 public struct S
 {
     public int i;
-    public int P
+    public readonly int P
     {
-        readonly get
+        get
         {
             return i;
         }
@@ -1164,6 +1164,10 @@ public struct S
         readonly get
         {
             return i;
+        }
+        set
+        {
+            i = value;
         }
     }
 }
@@ -1238,6 +1242,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
+                // (4,16): error CS8663: 'S.P1': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                //     public int P1 { readonly get; }
+                Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P1").WithArguments("S.P1").WithLocation(4, 16),
                 // (7,16): error CS8660: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.P4'. Instead, put a 'readonly' modifier on the property itself.
                 //     public int P4 { readonly get; readonly set; }
                 Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "P4").WithArguments("S.P4").WithLocation(7, 16),
@@ -1247,6 +1254,9 @@ public struct S
                 // (8,25): error CS8658: Auto-implemented property 'S.P5' cannot be marked 'readonly' because it has a 'set' accessor.
                 //     public readonly int P5 { get; set; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P5").WithArguments("S.P5").WithLocation(8, 25),
+                // (9,25): error CS8663: 'S.P6': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                //     public readonly int P6 { readonly get; }
+                Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P6").WithArguments("S.P6").WithLocation(9, 25),
                 // (9,39): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P6' and its accessor. Remove one of them.
                 //     public readonly int P6 { readonly get; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S.P6").WithLocation(9, 39),
@@ -1267,7 +1277,7 @@ public struct S
             var csharp = @"
 public struct S
 {
-    public readonly int P { readonly get => 42; }
+    public readonly int P { readonly get => 42; set {} }
 }
 ";
             var comp = CreateCompilation(csharp);
@@ -1284,7 +1294,7 @@ public struct S
 public struct S
 {
     public static readonly int P1 { get; set; }
-    public static int P2 { readonly get; }
+    public static int P2 { readonly get; set; }
 }
 ";
             var comp = CreateCompilation(csharp);
@@ -1761,6 +1771,7 @@ public struct S4
     public readonly int this[int i]
     {
         readonly get { return i; }
+        set { }
     }
 }
 
@@ -1778,9 +1789,9 @@ public struct S5
                 // (33,18): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S4.this[int]' and its accessor. Remove one of them.
                 //         readonly get { return i; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S4.this[int]").WithLocation(33, 18),
-                // (40,32): error CS0106: The modifier 'static' is not valid for this item
+                // (41,32): error CS0106: The modifier 'static' is not valid for this item
                 //     public static readonly int this[int i] => i;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(40, 32));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(41, 32));
         }
 
         [Fact]
@@ -1879,11 +1890,11 @@ public struct S
     public readonly void M() {}
 
     public readonly int P1 => 42;
-    public int P2 { readonly get => 123; }
-    public int P3 { readonly set {} }
+    public int P2 { readonly get => 123; set {} }
+    public int P3 { get => 123; readonly set {} }
 
     public readonly int this[int i] => i;
-    public int this[int i, int j] { readonly get => i + j; }
+    public int this[int i, int j] { readonly get => i + j; set {} }
 
     public readonly event Action<EventArgs> E { add {} remove {} }
 }
@@ -1891,22 +1902,22 @@ public struct S
             var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
                 // (6,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public readonly void M1() {}
+                //     public readonly void M() {}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(6, 12),
                 // (8,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public readonly int P1 => 42;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(8, 12),
                 // (9,21): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public int P2 { readonly get => 123; }
+                //     public int P2 { readonly get => 123; set {} }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(9, 21),
-                // (10,21): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public int P3 { readonly set {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(10, 21),
+                // (10,33): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int P3 { get => 123; readonly set {} }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(10, 33),
                 // (12,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public readonly int this[int i] => i;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(12, 12),
                 // (13,37): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public int this[int i, int j] { readonly get => i + j; }
+                //     public int this[int i, int j] { readonly get => i + j; set {} }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(13, 37),
                 // (15,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public readonly event Action<EventArgs> E { add {} remove {} }

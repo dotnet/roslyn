@@ -8764,6 +8764,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: &apos;readonly&apos; can only be used on accessors if the property or indexer has both a get and a set accessor.
+        /// </summary>
+        internal static string ERR_ReadOnlyModMissingAccessor {
+            get {
+                return ResourceManager.GetString("ERR_ReadOnlyModMissingAccessor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Members of readonly field &apos;{0}&apos; of type &apos;{1}&apos; cannot be assigned with an object initializer because it is of a value type.
         /// </summary>
         internal static string ERR_ReadonlyValueTypeInObjectInitializer {
