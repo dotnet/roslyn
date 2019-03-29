@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
                 if (!expected.HasLocation)
                 {
-                    verifier.Equal(Location.None, actual.Location, $"Expected:\nA project diagnostic with No location\nActual:\n{FormatDiagnostics(analyzers, actual)}");
+                    verifier.Equal(Location.None, actual.Location, $"Expected:\r\nA project diagnostic with No location\r\nActual:\r\n{FormatDiagnostics(analyzers, actual)}");
                 }
                 else
                 {
