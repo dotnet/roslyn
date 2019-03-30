@@ -1436,6 +1436,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return !source.NullableAnnotation.IsAnnotated();
         }
 
+        /// <summary>
+        /// Returns false if the source does not have an implicit conversion to the destination
+        /// because of either incompatible top level or nested nullability.
+        /// </summary>
+        public bool HasAnyNullabilityImplicitConversion(TypeWithAnnotations source, TypeWithAnnotations destination)
+        {
+            Debug.Assert(IncludeNullability);
+            HashSet<DiagnosticInfo> discardedDiagnostics = null;
+            return HasTopLevelNullabilityImplicitConversion(source, destination) &&
+                ClassifyImplicitConversionFromType(source.Type, destination.Type, ref discardedDiagnostics).Kind != ConversionKind.NoConversion;
+        }
+
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
             where T : TypeSymbol
         {
