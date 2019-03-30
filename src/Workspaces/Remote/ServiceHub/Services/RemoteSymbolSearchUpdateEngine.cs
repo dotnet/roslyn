@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
         {
-            return RunServiceAsync(_ =>
+            return RunServiceAsync(() =>
             {
                 return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
             }, CancellationToken.None);
@@ -34,10 +34,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task<IList<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 var results = await _updateEngine.FindPackagesWithTypeAsync(
-                    source, name, arity, token).ConfigureAwait(false);
+                    source, name, arity, cancellationToken).ConfigureAwait(false);
 
                 return (IList<PackageWithTypeResult>)results;
             }, cancellationToken);
@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task<IList<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 var results = await _updateEngine.FindPackagesWithAssemblyAsync(
-                    source, assemblyName, token).ConfigureAwait(false);
+                    source, assemblyName, cancellationToken).ConfigureAwait(false);
 
                 return (IList<PackageWithAssemblyResult>)results;
             }, cancellationToken);
@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public Task<IList<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async token =>
+            return RunServiceAsync(async () =>
             {
                 var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
-                    name, arity, token).ConfigureAwait(false);
+                    name, arity, cancellationToken).ConfigureAwait(false);
 
                 return (IList<ReferenceAssemblyWithTypeResult>)results;
             }, cancellationToken);
