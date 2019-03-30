@@ -109,14 +109,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 {
                     var externalNavigationService = lazyExternalNavigationService.Value;
 
-                    var foundSymbol = externalNavigationService.TryNavigateToSymbol(symbol, cancellationToken)
+                    var navigatingExternally = externalNavigationService.TryNavigateToSymbol(RQNameInternal.From(symbol), symbol, cancellationToken)
                         .WaitAndGetResult(cancellationToken);
-                    if (foundSymbol)
-                        return true;
-                    
-                    var foundMetaData = externalNavigationService.TryNavigateToSymbol(RQNameInternal.From(symbol), cancellationToken) // TODO what if RQNameInternal.From(symbol) returns null?
-                        .WaitAndGetResult(cancellationToken);
-                    if (foundMetaData)
+                    if (navigatingExternally)
                         return true;
                 }
             }

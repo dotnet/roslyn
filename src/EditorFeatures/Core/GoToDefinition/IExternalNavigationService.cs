@@ -11,13 +11,9 @@ namespace Microsoft.CodeAnalysis.Editor
     internal interface IExternalNavigationService
     {
         /// <summary>
-        /// Is this a symbol of your language? If it is, tell us and you can take over the navigation however you would like.
+        /// Finds the symbol in the host language and navigates to it, or returns false if it doesn't recognize this symbol.
+        /// ISymbol is nullable.
         /// </summary>
-        Task<bool> TryNavigateToSymbol(ISymbol symbol, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Is this a metadata name of your language? If it is, tell us and you can take over the navigation however you would like.
-        /// </summary>
-        Task<bool> TryNavigateToSymbol(string rqName, CancellationToken cancellationToken);
+        Task<bool> TryNavigateToSymbol(string rqName, ISymbol symbol, CancellationToken cancellationToken);
     }
 }
