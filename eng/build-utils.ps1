@@ -278,7 +278,7 @@ function Make-BootstrapBuild() {
     $packageName = "Microsoft.Net.Compilers.Toolset"
     $projectPath = "src\NuGet\$packageName\$packageName.Package.csproj"
 
-    Run-MSBuild $projectPath "/restore /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:ApplyPartialNgenOptimization=false" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
+    Run-MSBuild $projectPath "/restore /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath=`"$dir`" /p:EnableNgenOptimization=false" -logFileName "Bootstrap" -configuration $bootstrapConfiguration
     $packageFile = Get-ChildItem -Path $dir -Filter "$packageName.*.nupkg"
     Unzip "$dir\$packageFile" $dir
 
