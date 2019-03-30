@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool _seenYieldInCurrentTry;
 
-        private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, NeverEmptyStructTypeCache emptyStructCache, HashSet<Symbol> initiallyAssignedVariables)
+        private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, HashSet<Symbol> initiallyAssignedVariables)
             : base(compilation,
                   method,
                   node,
-                  emptyStructCache,
+                  EmptyStructTypeCache.CreateNeverEmpty(),
                   trackUnassignments: true,
                   initiallyAssignedVariables: initiallyAssignedVariables)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OrderedSet<Symbol> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
         {
             var initiallyAssignedVariables = UnassignedVariablesWalker.Analyze(compilation, method, node, convertInsufficientExecutionStackExceptionToCancelledByStackGuardException: true);
-            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, new NeverEmptyStructTypeCache(), initiallyAssignedVariables);
+            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, initiallyAssignedVariables);
 
             walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
 
