@@ -84,17 +84,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void InvokeCompletionList()
         {
             _instance.ExecuteCommand(WellKnownCommandNames.Edit_ListMembers);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.CompletionSet);
         }
 
         public void InvokeCodeActionList()
         {
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.DiagnosticService);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.SolutionCrawler);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.DiagnosticService);
 
             ShowLightBulb();
             WaitForLightBulbSession();
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.LightBulb);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.LightBulb);
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void InvokeQuickInfo()
         {
             _instance.ExecuteCommand(WellKnownCommandNames.Edit_QuickInfo);
-            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.QuickInfo);
+            _instance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, FeatureAttribute.QuickInfo);
         }
     }
 }

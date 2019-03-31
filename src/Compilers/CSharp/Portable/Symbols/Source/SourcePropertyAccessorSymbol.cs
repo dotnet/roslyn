@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly SourcePropertySymbol _property;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
-        private TypeSymbolWithAnnotations _lazyReturnType;
+        private TypeWithAnnotations _lazyReturnType;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
         private readonly ImmutableArray<MethodSymbol> _explicitInterfaceImplementations;
         private readonly string _name;
@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
             bool isAutoPropertyAccessor,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration || syntax.Kind() == SyntaxKind.SetAccessorDeclaration);
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 methodKind,
                 isAutoPropertyAccessor,
+                isExplicitInterfaceImplementation,
                 diagnostics);
         }
 
@@ -69,6 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ArrowExpressionClauseSyntax syntax,
             PropertySymbol explicitlyImplementedPropertyOpt,
             string aliasQualifierOpt,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
         {
             string name;
@@ -91,6 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 explicitInterfaceImplementations,
                 syntax.Expression.GetLocation(),
                 syntax,
+                isExplicitInterfaceImplementation,
                 diagnostics);
         }
 
@@ -142,6 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations,
             Location location,
             ArrowExpressionClauseSyntax syntax,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location)
         {
@@ -160,9 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(MethodKind.PropertyGet, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            CheckModifiersForBody(location, diagnostics);
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody: true, diagnostics: diagnostics);
+            CheckModifiersForBody(syntax, location, diagnostics);
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -193,6 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax syntax,
             MethodKind methodKind,
             bool isAutoPropertyAccessor,
+            bool isExplicitInterfaceImplementation,
             DiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
@@ -208,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _isExpressionBodied = !hasBody && hasExpressionBody;
 
             bool modifierErrors;
-            var declarationModifiers = this.MakeModifiers(syntax, location, diagnostics, out modifierErrors);
+            var declarationModifiers = this.MakeModifiers(syntax, isExplicitInterfaceImplementation, hasBody || hasExpressionBody, location, diagnostics, out modifierErrors);
 
             // Include modifiers from the containing property.
             propertyModifiers &= ~DeclarationModifiers.AccessibilityMask;
@@ -224,12 +231,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody || hasExpressionBody, diagnostics);
+
             if (hasBody || hasExpressionBody)
             {
-                CheckModifiersForBody(location, diagnostics);
+                CheckModifiersForBody(syntax, location, diagnostics);
             }
 
-            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
+            var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, isExplicitInterfaceImplementation);
             if (info != null)
             {
                 diagnostics.Add(info, location);
@@ -287,9 +296,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (_lazyReturnType.SpecialType != SpecialType.System_Void)
             {
                 PropertySymbol associatedProperty = _property;
-                var type = associatedProperty.Type;
+                var type = associatedProperty.TypeWithAnnotations;
                 _lazyReturnType = _lazyReturnType.WithTypeAndModifiers(
-                    CustomModifierUtils.CopyTypeCustomModifiers(type.TypeSymbol, _lazyReturnType.TypeSymbol, this.ContainingAssembly),
+                    CustomModifierUtils.CopyTypeCustomModifiers(type.Type, _lazyReturnType.Type, this.ContainingAssembly),
                     type.CustomModifiers);
                 _lazyRefCustomModifiers = associatedProperty.RefCustomModifiers;
             }
@@ -348,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _property.RefKind; }
         }
 
-        public override TypeSymbolWithAnnotations ReturnType
+        public override TypeWithAnnotations ReturnTypeWithAnnotations
         {
             get
             {
@@ -357,15 +366,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private TypeSymbolWithAnnotations ComputeReturnType(DiagnosticBag diagnostics)
+        private TypeWithAnnotations ComputeReturnType(DiagnosticBag diagnostics)
         {
             if (this.MethodKind == MethodKind.PropertyGet)
             {
-                var type = _property.Type;
-                if (!ContainingType.IsInterfaceType() && type.TypeSymbol.IsStatic)
+                var type = _property.TypeWithAnnotations;
+                if (!ContainingType.IsInterfaceType() && type.Type.IsStatic)
                 {
                     // '{0}': static types cannot be used as return types
-                    diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, this.locations[0], type.TypeSymbol);
+                    diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, this.locations[0], type.Type);
                 }
 
                 return type;
@@ -373,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 var binder = GetBinder();
-                return TypeSymbolWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
+                return TypeWithAnnotations.Create(binder.GetSpecialType(SpecialType.System_Void, diagnostics, this.GetSyntax()));
             }
         }
 
@@ -403,27 +412,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers); }
         }
 
-        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
+            bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             // No default accessibility. If unset, accessibility
             // will be inherited from the property.
             const DeclarationModifiers defaultAccess = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-            const DeclarationModifiers allowedModifiers = DeclarationModifiers.AccessibilityMask;
+            var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
+            var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
+
+            if (this.ContainingType.IsInterface && !isExplicitInterfaceImplementation)
+            {
+                defaultInterfaceImplementationModifiers = DeclarationModifiers.AccessibilityMask;
+            }
+
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
-            // For interface, check there are no accessibility modifiers.
-            // (This check is handled outside of MakeAndCheckModifiers
-            // since a distinct error message is reported for interfaces.)
-            if (this.ContainingType.IsInterface)
-            {
-                if ((mods & DeclarationModifiers.AccessibilityMask) != 0)
-                {
-                    diagnostics.Add(ErrorCode.ERR_PropertyAccessModInInterface, location, this);
-                    mods = (mods & ~DeclarationModifiers.AccessibilityMask);
-                }
-            }
+            ModifierUtils.ReportDefaultInterfaceImplementationModifiers(hasBody, mods,
+                                                                        defaultInterfaceImplementationModifiers,
+                                                                        location, diagnostics);
 
             return mods;
         }
@@ -542,11 +551,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isGetMethod)
             {
-                var propertyType = _property.Type;
+                var propertyType = _property.TypeWithAnnotations;
                 if (!ContainingType.IsInterfaceType() && propertyType.IsStatic)
                 {
                     // '{0}': static types cannot be used as parameters
-                    diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, this.locations[0], propertyType.TypeSymbol);
+                    diagnostics.Add(ErrorCode.ERR_ParameterIsStaticClass, this.locations[0], propertyType.Type);
                 }
 
                 parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, propertyType, parameters.Count));

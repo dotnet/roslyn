@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<LocalSymbol> assignLocals)
         {
             Debug.Assert((object)thisType != null);
-            Debug.Assert(((object)thisParameter == null) || (TypeSymbol.Equals(thisParameter.Type.TypeSymbol, thisType, TypeCompareKind.ConsiderEverything2)));
+            Debug.Assert(((object)thisParameter == null) || (TypeSymbol.Equals(thisParameter.Type, thisType, TypeCompareKind.ConsiderEverything2)));
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
 
             var analysis = Analysis.Analyze(
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(frameClass.IsDefinition);
 
             // If in an instance method of the right type, we can just return the "this" pointer.
-            if ((object)_currentFrameThis != null && TypeSymbol.Equals(_currentFrameThis.Type.TypeSymbol, frameClass, TypeCompareKind.ConsiderEverything2))
+            if ((object)_currentFrameThis != null && TypeSymbol.Equals(_currentFrameThis.Type, frameClass, TypeCompareKind.ConsiderEverything2))
             {
                 return new BoundThisReference(syntax, frameClass);
             }
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (var i = start; i < lambda.ParameterCount; i++)
                 {
                     var potentialParameter = lambda.Parameters[i];
-                    if (TypeSymbol.Equals(potentialParameter.Type.TypeSymbol.OriginalDefinition, frameClass, TypeCompareKind.ConsiderEverything2))
+                    if (TypeSymbol.Equals(potentialParameter.Type.OriginalDefinition, frameClass, TypeCompareKind.ConsiderEverything2))
                     {
                         return new BoundParameter(syntax, potentialParameter);
                     }
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var localFrame = (LocalSymbol)framePointer;
-            return new BoundLocal(syntax, localFrame, null, localFrame.Type.TypeSymbol);
+            return new BoundLocal(syntax, localFrame, null, localFrame.Type);
         }
 
         private static void InsertAndFreePrologue<T>(ArrayBuilder<BoundStatement> result, ArrayBuilder<T> prologue) where T : BoundNode
@@ -633,11 +633,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode IntroduceFrame(BoundNode node, Analysis.ClosureEnvironment env, Func<ArrayBuilder<BoundExpression>, ArrayBuilder<LocalSymbol>, BoundNode> F)
         {
             var frame = env.SynthesizedEnvironment;
-            var frameTypeParameters = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)), 0, frame.Arity);
+            var frameTypeParameters = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)), 0, frame.Arity);
             NamedTypeSymbol frameType = frame.ConstructIfGeneric(frameTypeParameters);
 
             Debug.Assert(frame.ScopeSyntaxOpt != null);
-            LocalSymbol framePointer = new SynthesizedLocal(_topLevelMethod, TypeSymbolWithAnnotations.Create(frameType), SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntaxOpt);
+            LocalSymbol framePointer = new SynthesizedLocal(_topLevelMethod, TypeWithAnnotations.Create(frameType), SynthesizedLocalKind.LambdaDisplayClass, frame.ScopeSyntaxOpt);
 
             SyntaxNode syntax = node.Syntax;
 
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var capturedFrame = LambdaCapturedVariable.Create(frame, _innermostFramePointer, ref _synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
                     BoundExpression left = new BoundFieldAccess(syntax, new BoundLocal(syntax, framePointer, null, frameType), frameParent, null);
-                    BoundExpression right = FrameOfType(syntax, frameParent.Type.TypeSymbol as NamedTypeSymbol);
+                    BoundExpression right = FrameOfType(syntax, frameParent.Type as NamedTypeSymbol);
                     BoundExpression assignment = new BoundAssignmentOperator(syntax, left, right, left.Type);
                     prologue.Add(assignment);
 
@@ -747,14 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             localToUse = local;
                         }
 
-                        value = new BoundLocal(syntax, localToUse, null, localToUse.Type.TypeSymbol);
+                        value = new BoundLocal(syntax, localToUse, null, localToUse.Type);
                         break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
                 }
 
-                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type.TypeSymbol));
+                var left = proxy.Replacement(syntax, frameType1 => new BoundLocal(syntax, framePointer, null, framePointer.Type));
                 var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
                 if (_currentMethod.MethodKind == MethodKind.Constructor &&
                     symbol == _currentMethod.ThisParameter &&
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = start; i < loweredSymbol.ParameterCount; i++)
                 {
                     // will always be a LambdaFrame, it's always a capture frame
-                    var frameType = (NamedTypeSymbol)loweredSymbol.Parameters[i].Type.TypeSymbol.OriginalDefinition;
+                    var frameType = (NamedTypeSymbol)loweredSymbol.Parameters[i].Type.OriginalDefinition;
 
                     Debug.Assert(frameType is SynthesizedClosureEnvironment);
 
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RemapLambdaOrLocalFunction(syntax,
                                        localFunc,
-                                       SubstituteTypeArguments(localFunc.TypeArguments),
+                                       SubstituteTypeArguments(localFunc.TypeArgumentsWithAnnotations),
                                        loweredSymbol.ClosureKind,
                                        ref method,
                                        out receiver,
@@ -906,7 +906,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// all references to the original type parameter T in L must be
         /// rewritten to the renamed parameter, T'.
         /// </example>
-        private ImmutableArray<TypeSymbolWithAnnotations> SubstituteTypeArguments(ImmutableArray<TypeSymbolWithAnnotations> typeArguments)
+        private ImmutableArray<TypeWithAnnotations> SubstituteTypeArguments(ImmutableArray<TypeWithAnnotations> typeArguments)
         {
             Debug.Assert(!typeArguments.IsDefault);
 
@@ -930,17 +930,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // only one substitution happens per lowering, but we need to do
             // N substitutions all at once, where N is the number of lowerings.
 
-            var builder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
             foreach (var typeArg in typeArguments)
             {
-                TypeSymbolWithAnnotations oldTypeArg;
-                TypeSymbolWithAnnotations newTypeArg = typeArg;
+                TypeWithAnnotations oldTypeArg;
+                TypeWithAnnotations newTypeArg = typeArg;
                 do
                 {
                     oldTypeArg = newTypeArg;
                     newTypeArg = this.TypeMap.SubstituteType(typeArg);
                 }
-                while (!TypeSymbol.Equals(oldTypeArg.TypeSymbol, newTypeArg.TypeSymbol, TypeCompareKind.ConsiderEverything2));
+                while (!TypeSymbol.Equals(oldTypeArg.Type, newTypeArg.Type, TypeCompareKind.ConsiderEverything2));
 
                 // https://github.com/dotnet/roslyn/issues/30069 Is this weaker assert sufficient?
                 //Debug.Assert((object)oldTypeArg == newTypeArg);
@@ -955,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void RemapLambdaOrLocalFunction(
             SyntaxNode syntax,
             MethodSymbol originalMethod,
-            ImmutableArray<TypeSymbolWithAnnotations> typeArgumentsOpt,
+            ImmutableArray<TypeWithAnnotations> typeArgumentsOpt,
             ClosureKind closureKind,
             ref MethodSymbol synthesizedMethod,
             out BoundExpression receiver,
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // All of _currentTypeParameters might not be preserved here due to recursively calling upwards in the chain of local functions/lambdas
             Debug.Assert((typeArgumentsOpt.IsDefault && !originalMethod.IsGenericMethod) || (typeArgumentsOpt.Length == originalMethod.Arity));
             var totalTypeArgumentCount = (containerAsFrame?.Arity ?? 0) + synthesizedMethod.Arity;
-            var realTypeArguments = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(t => TypeSymbolWithAnnotations.Create(t)), 0, totalTypeArgumentCount - originalMethod.Arity);
+            var realTypeArguments = ImmutableArray.Create(_currentTypeParameters.SelectAsArray(t => TypeWithAnnotations.Create(t)), 0, totalTypeArgumentCount - originalMethod.Arity);
             if (!typeArgumentsOpt.IsDefault)
             {
                 realTypeArguments = realTypeArguments.Concat(typeArgumentsOpt);
@@ -1524,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol referencedMethod = synthesizedMethod;
             BoundExpression receiver;
             NamedTypeSymbol constructedFrame;
-            RemapLambdaOrLocalFunction(node.Syntax, node.Symbol, default(ImmutableArray<TypeSymbolWithAnnotations>), closureKind, ref referencedMethod, out receiver, out constructedFrame);
+            RemapLambdaOrLocalFunction(node.Syntax, node.Symbol, default(ImmutableArray<TypeWithAnnotations>), closureKind, ref referencedMethod, out receiver, out constructedFrame);
 
             // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
 
@@ -1566,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Since the cache variable will be in a container with possibly alpha-rewritten generic parameters, we need to
                         // substitute the original type according to the type map for that container. That substituted type may be
                         // different from the local variable `type`, which has the node's type substituted for the current container.
-                        var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).TypeSymbol;
+                        var cacheVariableType = containerAsFrame.TypeMap.SubstituteType(node.Type).Type;
 
                         var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
                             // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 

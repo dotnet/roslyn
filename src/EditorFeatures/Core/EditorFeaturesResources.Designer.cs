@@ -1314,6 +1314,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Operation is not ready for &quot;{0}&quot; yet. See bottom left corner for more details..
+        /// </summary>
+        internal static string Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail {
+            get {
+                return ResourceManager.GetString("Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Operator - Overloaded.
         /// </summary>
         internal static string Operator_Overloaded {

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class SourceParameterSymbol : SourceParameterSymbolBase
     {
         protected SymbolCompletionState state;
-        protected readonly TypeSymbolWithAnnotations parameterType;
+        protected readonly TypeWithAnnotations parameterType;
         private readonly string _name;
         private readonly ImmutableArray<Location> _locations;
         private readonly RefKind _refKind;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static SourceParameterSymbol Create(
             Binder context,
             Symbol owner,
-            TypeSymbolWithAnnotations parameterType,
+            TypeWithAnnotations parameterType,
             ParameterSyntax syntax,
             RefKind refKind,
             SyntaxToken identifier,
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected SourceParameterSymbol(
             Symbol owner,
-            TypeSymbolWithAnnotations parameterType,
+            TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
             string name,
@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SourceParameterSymbol WithCustomModifiersAndParamsCore(TypeSymbol newType, ImmutableArray<CustomModifier> newCustomModifiers, ImmutableArray<CustomModifier> newRefCustomModifiers, bool newIsParams)
         {
-            newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type.TypeSymbol, this.ContainingAssembly);
+            newType = CustomModifierUtils.CopyTypeCustomModifiers(newType, this.Type, this.ContainingAssembly);
 
-            TypeSymbolWithAnnotations newTypeWithModifiers = this.Type.WithTypeAndModifiers(newType, newCustomModifiers);
+            TypeWithAnnotations newTypeWithModifiers = this.TypeWithAnnotations.WithTypeAndModifiers(newType, newCustomModifiers);
 
             if (newRefCustomModifiers.IsEmpty)
             {
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override TypeSymbolWithAnnotations Type
+        public sealed override TypeWithAnnotations TypeWithAnnotations
         {
             get
             {

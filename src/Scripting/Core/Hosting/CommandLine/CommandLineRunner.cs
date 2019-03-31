@@ -159,7 +159,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 optimizationLevel: OptimizationLevel.Debug,
                 allowUnsafe: true,
                 checkOverflow: false,
-                warningLevel: 4);
+                warningLevel: 4,
+                parseOptions: null);
         }
 
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
@@ -239,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                     input.AppendLine(line);
 
-                    var tree = _scriptCompiler.ParseSubmission(SourceText.From(input.ToString()), cancellationToken);
+                    var tree = _scriptCompiler.ParseSubmission(SourceText.From(input.ToString()), options.ParseOptions, cancellationToken);
                     if (_scriptCompiler.IsCompleteSubmission(tree))
                     {
                         break;

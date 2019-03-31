@@ -886,4 +886,7 @@ Do you want to proceed?</value>
   <data name="Operator_Overloaded" xml:space="preserve">
     <value>Operator - Overloaded</value>
   </data>
+  <data name="Operation_is_not_ready_for_0_yet_see_task_center_for_more_detail" xml:space="preserve">
+    <value>Operation is not ready for "{0}" yet. See bottom left corner for more details.</value>
+  </data>
 </root>

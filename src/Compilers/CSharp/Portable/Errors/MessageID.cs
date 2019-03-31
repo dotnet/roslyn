@@ -175,6 +175,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureStaticLocalFunctions = MessageBase + 12755,
         IDS_FeatureNameShadowingInNestedFunctions = MessageBase + 12756,
         IDS_FeatureUnmanagedConstructedTypes = MessageBase + 12757,
+
+        IDS_DefaultInterfaceImplementation = MessageBase + 12800,
+        IDS_BaseTypeInBaseExpression = MessageBase + 12801,
         IDS_FeatureObsoleteOnPropertyAccessor = MessageBase + 12758,
     }
 
@@ -280,6 +283,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureStaticLocalFunctions:
                 case MessageID.IDS_FeatureNameShadowingInNestedFunctions:
                 case MessageID.IDS_FeatureUnmanagedConstructedTypes: // semantic check
+                case MessageID.IDS_DefaultInterfaceImplementation: // semantic check
+                case MessageID.IDS_BaseTypeInBaseExpression:
                 case MessageID.IDS_FeatureObsoleteOnPropertyAccessor:
                     return LanguageVersion.CSharp8;
 

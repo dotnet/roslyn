@@ -79,8 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_inExpressionLambda && rewrittenArguments.IsEmpty)
             {
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, property, LookupResultKind.Viable, property.Type.TypeSymbol) :
-                    new BoundPropertyAccess(syntax, rewrittenReceiver, property, LookupResultKind.Viable, property.Type.TypeSymbol);
+                    oldNodeOpt.Update(rewrittenReceiver, property, LookupResultKind.Viable, property.Type) :
+                    new BoundPropertyAccess(syntax, rewrittenReceiver, property, LookupResultKind.Viable, property.Type);
             }
             else
             {
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BoundCall.Synthesized(
                     syntax,
                     rewrittenReceiver,
-                    getMethod,
+                    AdjustMethodForBaseInterfaceCall(rewrittenReceiver, getMethod),
                     rewrittenArguments);
             }
         }

@@ -96,6 +96,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Do not consider symbols that are method type parameters.
         /// </summary>
         MustNotBeMethodTypeParameter = 1 << 14,
+
+        /// <summary>
+        /// Do not consider System.Object members when looking for members in an interface.
+        /// </summary>
+        NoObjectMembersOnInterfaces = 1 << 15,
     }
 
     internal static class LookupOptionExtensions
