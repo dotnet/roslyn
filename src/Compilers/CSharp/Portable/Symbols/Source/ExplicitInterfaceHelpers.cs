@@ -226,7 +226,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var interfaceMembers = explicitInterfaceNamedType.GetMembers(interfaceMemberName);
-            var findMatchingMembersDiagnostics = DiagnosticBag.GetInstance();
 
             // As a result of Nullable Reference Types, `void I.Foo<T>(T? value)` is a valid implementation of both 
             // `void Foo<T>(T? value) where T : struct;` 
@@ -240,11 +239,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Setting foundMatchingMember to true does not imply that an interface member has been successfully implemented.
             // It just indicates that a corresponding interface member has been found (there may still be errors).
-            var (foundMatchingMember, implementedMember) = FindMatchingInterfaceMember(MemberSignatureComparer.ExplicitImplementationLookupComparerConsideringNullabilityModifiers, implementingMember, interfaceMembers, findMatchingMembersDiagnostics);
+            var (foundMatchingMember, implementedMember) = FindMatchingInterfaceMember(MemberSignatureComparer.ExplicitImplementationLookupComparerConsideringNullabilityModifiers, implementingMember, interfaceMembers, diagnostics);
 
             if (!foundMatchingMember)
             {
-                (foundMatchingMember, implementedMember) = FindMatchingInterfaceMember(MemberSignatureComparer.ExplicitImplementationLookupComparerIgnoringNullabilityModifiers, implementingMember, interfaceMembers, findMatchingMembersDiagnostics);
+                (foundMatchingMember, implementedMember) = FindMatchingInterfaceMember(MemberSignatureComparer.ExplicitImplementationLookupComparerIgnoringNullabilityModifiers, implementingMember, interfaceMembers, diagnostics);
             }
 
             if (!foundMatchingMember)
@@ -254,83 +253,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
             }
 
-            var findRuntimeCollisionsDiagnostics = DiagnosticBag.GetInstance();
-
-            // In constructed types, it is possible that two method signatures could differ by only ref/out
-            // after substitution.  We look for this as part of explicit implementation because, if someone
-            // tried to implement the ambiguous interface implicitly, we would separately raise an error about
-            // the implicit implementation methods differing by only ref/out.
-            FindExplicitImplementationRuntimeCollisions(implementingMember, implementedMember, findRuntimeCollisionsDiagnostics);
-
-            // It is possible for a member to cause both Runtime Collisions and Compile Time Collisions.
-            // We remove the duplicated WRN_ExplicitImplCollision warning in such a case.
-            // Since this diagnostic is extremely rare, and there should never be more than a handful of such diagnostics
-            // It is probably more performant to iterate through both collections rather than allocating a set.
-            foreach (var diagnostic in findMatchingMembersDiagnostics.AsEnumerableWithoutResolution())
+            // Make sure implemented member is accessible
+            if ((object)implementedMember != null)
             {
-                bool foundDuplicate = false;
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-                if (diagnostic.Code == (int)ErrorCode.WRN_ExplicitImplCollision)
+                if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
                 {
-                    foreach (var potentialDuplicate in findRuntimeCollisionsDiagnostics.AsEnumerableWithoutResolution())
+                    diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, implementedMember);
+                }
+                else
+                {
+                    switch (implementedMember.Kind)
                     {
-                        if (CommonDiagnosticComparer.Instance.Equals(diagnostic, potentialDuplicate))
-                        {
-                            foundDuplicate = true;
+                        case SymbolKind.Property:
+                            var propertySymbol = (PropertySymbol)implementedMember;
+                            checkAccessorIsAccessibleIfImplementable(propertySymbol.GetMethod);
+                            checkAccessorIsAccessibleIfImplementable(propertySymbol.SetMethod);
                             break;
+
+                        case SymbolKind.Event:
+                            var eventSymbol = (EventSymbol)implementedMember;
+                            checkAccessorIsAccessibleIfImplementable(eventSymbol.AddMethod);
+                            checkAccessorIsAccessibleIfImplementable(eventSymbol.RemoveMethod);
+                            break;
+                    }
+
+                    void checkAccessorIsAccessibleIfImplementable(MethodSymbol accessor)
+                    {
+                        if (accessor.IsImplementable() &&
+                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, accessor);
                         }
                     }
                 }
 
-                if (!foundDuplicate)
-                {
-                    diagnostics.Add(diagnostic);
-                }
+                diagnostics.Add(memberLocation, useSiteDiagnostics);
             }
 
-            findMatchingMembersDiagnostics.Free();
-            diagnostics.AddRangeAndFree(findRuntimeCollisionsDiagnostics);
-
-			// Make sure implemented member is accessible
-			if ((object)implementedMember != null)
-			{
-				HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-
-				if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
-				{
-					diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, implementedMember);
-				}
-				else
-				{
-					switch (implementedMember.Kind)
-					{
-						case SymbolKind.Property:
-							var propertySymbol = (PropertySymbol)implementedMember;
-							checkAccessorIsAccessibleIfImplementable(propertySymbol.GetMethod);
-							checkAccessorIsAccessibleIfImplementable(propertySymbol.SetMethod);
-							break;
-
-						case SymbolKind.Event:
-							var eventSymbol = (EventSymbol)implementedMember;
-							checkAccessorIsAccessibleIfImplementable(eventSymbol.AddMethod);
-							checkAccessorIsAccessibleIfImplementable(eventSymbol.RemoveMethod);
-							break;
-					}
-
-					void checkAccessorIsAccessibleIfImplementable(MethodSymbol accessor)
-					{
-						if (accessor.IsImplementable() &&
-							!AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: null))
-						{
-							diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, accessor);
-						}
-					}
-				}
-
-				diagnostics.Add(memberLocation, useSiteDiagnostics);
-			}
-
-			return implementedMember;
+            return implementedMember;
         }
 
         /// <summary>
@@ -343,6 +305,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (Symbol interfaceMember in interfaceMembers)
             {
+                var isRuntimeCollision = false;
+                if (matchingMember != null)
+                {
+                    // In constructed types, it is possible that two method signatures could differ by only ref/out
+                    // after substitution. We look for this as part of explicit implementation because, if someone
+                    // tried to implement the ambiguous interface implicitly, we would separately raise an error about
+                    // the implicit implementation methods differing by only ref/out.
+                    // The runtime also sometimes may match an explicit interface implementation to the wrong interface member.
+                    // We warn if that can occur. See https://blogs.msdn.microsoft.com/ericlippert/2006/04/06/odious-ambiguous-overloads-part-two/
+                    isRuntimeCollision = CheckExplicitImplementationRuntimeCollision(implementingMember, matchingMember, interfaceMember, diagnostics);
+                }
+
                 // At this point, we know that explicitInterfaceNamedType is an interface.
                 // However, metadata interface members can be static - we ignore them, as does Dev10.
                 if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
@@ -374,13 +348,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (matchingMember != null)
                         {
-                            diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.Locations[0], implementingMember);
+                            // Warn that the correct matching interface member is ambiguous to the compiler.
+                            // To avoid duplicated diagnostics, we don't report this if we've already reported that it's ambiguous to the runtime.
+                            if (!isRuntimeCollision)
+                            {
+                                diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.Locations[0], implementingMember);
+                            }
                         }
                         else
                         {
                             matchingMember = interfaceMember;
                         }
                     }
+                }
+            }
+
+            // Above we warned about runtime collisions for members that appeared in the interfaceMembers list after the matchingMember was found.
+            // Now we warn about runtime collisions for members that appear in the interfaceMembers list before the matchingMember.
+            // We have to do this in two stages because we can't check this till we know the matchingMember,
+            // but have to know if we report a runtime collision before we report a compiler collision to avoid duplicate diagnostics.
+            if (matchingMember != null)
+            {
+                foreach (Symbol interfaceMember in interfaceMembers)
+                {
+                    if (interfaceMember == matchingMember)
+                        break;
+
+                    // In constructed types, it is possible that two method signatures could differ by only ref/out
+                    // after substitution. We look for this as part of explicit implementation because, if someone
+                    // tried to implement the ambiguous interface implicitly, we would separately raise an error about
+                    // the implicit implementation methods differing by only ref/out.
+                    // The runtime also sometimes may match an explicit interface implementation to the wrong interface member.
+                    // We warn if that can occur. See https://blogs.msdn.microsoft.com/ericlippert/2006/04/06/odious-ambiguous-overloads-part-two/
+                    CheckExplicitImplementationRuntimeCollision(implementingMember, matchingMember, interfaceMember, diagnostics);
                 }
             }
 
@@ -406,55 +406,53 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Given a member, look for other members contained in the same type with signatures that will
-        /// not be distinguishable by the runtime.
+        /// Given two members on an interface, check if they will not be distinguishable by the runtime.
+        /// Returns true if they won't be distinguished, false otherwise.
         /// </summary>
-        private static void FindExplicitImplementationRuntimeCollisions(Symbol implementingMember, Symbol implementedMember, DiagnosticBag diagnostics)
+        private static bool CheckExplicitImplementationRuntimeCollision(Symbol implementingMember, Symbol implementedMember, Symbol collisionCandidateMember, DiagnosticBag diagnostics)
         {
-            if ((object)implementedMember == null)
-            {
-                return;
-            }
+            Debug.Assert(implementedMember != null);
+            Debug.Assert(collisionCandidateMember != null);
+            Debug.Assert(implementedMember != collisionCandidateMember);
 
             NamedTypeSymbol explicitInterfaceType = implementedMember.ContainingType;
-            bool explicitInterfaceTypeIsDefinition = explicitInterfaceType.IsDefinition; //no runtime ref/out ambiguities if this is true
-            if (explicitInterfaceTypeIsDefinition)
-                return;
 
-            foreach (Symbol collisionCandidateMember in explicitInterfaceType.GetMembers(implementedMember.Name))
+            //no runtime ref/out ambiguities if this is true
+            if (explicitInterfaceType.IsDefinition)
+                return false;
+
+            if (collisionCandidateMember.Kind != implementingMember.Kind)
+                return false;
+
+            // NOTE: we are more precise than Dev10 - we will not generate a diagnostic if the return types differ 
+            // because that is enough to distinguish them in the runtime.
+            if (!MemberSignatureComparer.RuntimeSignatureComparer.Equals(implementedMember, collisionCandidateMember))
+                return false;
+
+            bool foundMismatchedRefKind = false;
+            ImmutableArray<ParameterSymbol> implementedMemberParameters = implementedMember.GetParameters();
+            ImmutableArray<ParameterSymbol> collisionCandidateParameters = collisionCandidateMember.GetParameters();
+            int numParams = implementedMemberParameters.Length;
+            for (int i = 0; i < numParams; i++)
             {
-                if (collisionCandidateMember.Kind == implementingMember.Kind && implementedMember != collisionCandidateMember)
+                if (implementedMemberParameters[i].RefKind != collisionCandidateParameters[i].RefKind)
                 {
-                    // NOTE: we are more precise than Dev10 - we will not generate a diagnostic if the return types differ 
-                    // because that is enough to distinguish them in the runtime.
-                    if (MemberSignatureComparer.RuntimeSignatureComparer.Equals(implementedMember, collisionCandidateMember))
-                    {
-                        bool foundMismatchedRefKind = false;
-                        ImmutableArray<ParameterSymbol> implementedMemberParameters = implementedMember.GetParameters();
-                        ImmutableArray<ParameterSymbol> collisionCandidateParameters = collisionCandidateMember.GetParameters();
-                        int numParams = implementedMemberParameters.Length;
-                        for (int i = 0; i < numParams; i++)
-                        {
-                            if (implementedMemberParameters[i].RefKind != collisionCandidateParameters[i].RefKind)
-                            {
-                                foundMismatchedRefKind = true;
-                                break;
-                            }
-                        }
-
-                        if (foundMismatchedRefKind)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_ExplicitImplCollisionOnRefOut, explicitInterfaceType.Locations[0], explicitInterfaceType, implementedMember);
-                        }
-                        else
-                        {
-                            //UNDONE: related locations for conflicting members - keep iterating to find others?
-                            diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.Locations[0], implementingMember);
-                        }
-                        break;
-                    }
+                    foundMismatchedRefKind = true;
+                    break;
                 }
             }
+
+            if (foundMismatchedRefKind)
+            {
+                diagnostics.Add(ErrorCode.ERR_ExplicitImplCollisionOnRefOut, explicitInterfaceType.Locations[0], explicitInterfaceType, implementedMember);
+            }
+            else
+            {
+                //UNDONE: related locations for conflicting members - keep iterating to find others?
+                diagnostics.Add(ErrorCode.WRN_ExplicitImplCollision, implementingMember.Locations[0], implementingMember);
+            }
+
+            return true;
         }
     }
 }
