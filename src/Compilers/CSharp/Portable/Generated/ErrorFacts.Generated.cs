@@ -222,6 +222,7 @@
                 case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
                 case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
                 case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                     return true;
                 default:
                     return false;
