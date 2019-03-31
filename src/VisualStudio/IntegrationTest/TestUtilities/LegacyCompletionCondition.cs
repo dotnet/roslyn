@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     {
         public static LegacyCompletionCondition Instance { get; } = new LegacyCompletionCondition();
 
-        public override bool ShouldSkip => string.Equals(Environment.GetEnvironmentVariable("ROSLYN_TEST_LEGACY_COMPLETION"), "true", StringComparison.OrdinalIgnoreCase);
+        public override bool ShouldSkip => !string.Equals(Environment.GetEnvironmentVariable("ROSLYN_TEST_LEGACY_COMPLETION"), "true", StringComparison.OrdinalIgnoreCase);
         public override string SkipReason => "The test only runs when legacy completion is enabled.";
     }
 }
