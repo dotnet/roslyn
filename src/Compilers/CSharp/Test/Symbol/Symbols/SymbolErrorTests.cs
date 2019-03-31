@@ -373,7 +373,7 @@ internal class C
                 Diagnostic(ErrorCode.ERR_BadVisPropertyType, "W").WithArguments("C.D.W", "C.PrivateClass").WithLocation(48, 31));
         }
 
-        [Fact]
+        [ClrOnlyFact]
         public void CS0054ERR_BadVisIndexerReturn()
         {
             var text =
