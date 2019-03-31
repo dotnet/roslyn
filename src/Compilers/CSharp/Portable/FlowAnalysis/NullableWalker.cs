@@ -1797,7 +1797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (operatorKind.IsLifted())
+            if (operatorKind.IsLifted() && !operatorKind.IsComparison())
             {
                 resultState = leftType.State.Join(rightType.State);
             }
@@ -2230,13 +2230,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var accessExpressionType = VisitRvalueWithState(node.AccessExpression);
             Join(ref this.State, ref receiverState);
-            // Per LDM 2019-02-13 decision, the result of a conditional access might be null even if
-            // both the receiver and right-hand-side are believed not to be null.
-            NullableFlowState resultState = NullableFlowState.MaybeNull;
 
             // https://github.com/dotnet/roslyn/issues/29956 Use flow analysis type rather than node.Type
             // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
             TypeSymbol type = node.Type;
+
+            // Per LDM 2019-02-13 decision, the result of a conditional access might be null even if
+            // both the receiver and right-hand-side are believed not to be null.
+            NullableFlowState resultState = type.CanContainNull() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
 
             // If the result type does not allow annotations, then we produce a warning because
             // the result may be null.
@@ -3955,13 +3956,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.Unboxing:
                 case ConversionKind.Boxing:
-                    resultState = operandType.State;
+                    resultState = getTargetStateFromOperand(operandType, targetType);
                     break;
 
                 case ConversionKind.ImplicitThrow:
                     break;
 
                 case ConversionKind.NoConversion:
+                    resultState = getTargetStateFromOperand(operandType, targetType);
+                    break;
+
                 case ConversionKind.DefaultOrNullLiteral:
                     checkConversion = false;
                     goto case ConversionKind.Identity;
@@ -4035,7 +4039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         canConvertNestedNullability = conversion.Exists;
                     }
 
-                    resultState = operandType.State;
+                    resultState = getTargetStateFromOperand(operandType, targetType);
                     break;
 
                 case ConversionKind.ExplicitNullable:
@@ -4149,6 +4153,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return resultType;
+
+            static NullableFlowState getTargetStateFromOperand(TypeWithState operandType, TypeSymbol targetType) =>
+                (operandType.State == NullableFlowState.MaybeNull && (!targetType.IsValueType || targetType.IsNullableTypeOrTypeParameter())) ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
         }
 
         private TypeWithState ApplyUserDefinedConversion(
@@ -5714,7 +5721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
         {
             var result = TypeWithAnnotations.Create(node.Type);
-            var rValueType = new TypeWithState(node.Type, NullableFlowState.MaybeNull);
+            var rValueType = TypeWithState.ForType(node.Type);
             SetResult(rValueType, result);
             return null;
         }
