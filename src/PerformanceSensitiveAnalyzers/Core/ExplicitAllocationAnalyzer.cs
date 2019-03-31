@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
         public const string ArrayCreationRuleId = "HAA0501";
         public const string ObjectCreationRuleId = "HAA0502";
         public const string AnonymousObjectCreationRuleId = "HAA0503";
+        // HAA0504 is retired and should not be reused 
+        // HAA0505 is retired and should not be reused  
         public const string LetCauseRuleId = "HAA0506";
 
         private static readonly LocalizableString s_localizableArrayCreationRuleTitleAndMessage = new LocalizableResourceString(nameof(PerformanceSensitiveAnalyzersResources.NewArrayRuleTitleAndMessage), PerformanceSensitiveAnalyzersResources.ResourceManager, typeof(PerformanceSensitiveAnalyzersResources));
