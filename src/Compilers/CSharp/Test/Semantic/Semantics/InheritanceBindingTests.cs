@@ -8843,5 +8843,28 @@ class C2 : I
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(34583, "https://github.com/dotnet/roslyn/issues/34583")]
+        public void ExplicitImplementationOfNullableStructWithMultipleTypeParameters()
+        {
+            var source = @"
+interface I
+{
+    void Foo<T, U>(T? value) where T : struct;
+}
+
+class C1 : I
+{
+    public void Foo<T, U>(T? value) where T : struct {}
+}
+
+class C2 : I
+{
+    void I.Foo<T, U>(T? value) {}
+}
+";
+            var comp = CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }
