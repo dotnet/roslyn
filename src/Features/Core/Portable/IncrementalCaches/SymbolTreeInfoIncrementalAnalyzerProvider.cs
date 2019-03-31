@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {
-        private struct MetadataInfo
+        private readonly struct MetadataInfo
         {
             /// <summary>
             /// Can't be null.  Even if we weren't able to read in metadata, we'll still create an empty

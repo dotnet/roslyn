@@ -249,7 +249,7 @@ function BuildSolution {
     mono_tool="/p:MonoTool=\"$mono_path\""
   elif [[ "$test_core_clr" == true ]]; then
     test=true
-    test_runtime="/p:TestRuntime=Core"
+    test_runtime="/p:TestRuntime=Core /p:TestTargetFrameworks=netcoreapp3.0%3Bnetcoreapp2.1"
     mono_tool=""
   fi
 

@@ -342,7 +342,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Edit
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnalyzerRunner", "src\Tools\AnalyzerRunner\AnalyzerRunner.csproj", "{60166C60-813C-46C4-911D-2411B4ABBC0F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IlAsmDeploy", "src\Tools\ILAsm\IlAsmDeploy.csproj", "{DA8522ED-02BC-499C-AC71-1DF884F63987}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ILTools", "src\Tools\ILTools\ILTools.proj", "{DA8522ED-02BC-499C-AC71-1DF884F63987}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Debugging.Package", "src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.Package.csproj", "{FC2AE90B-2E4B-4045-9FDD-73D4F5ED6C89}"
 EndProject
@@ -401,6 +401,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests", "src\Features\Protocol\LanguageServicesTest\Microsoft.CodeAnalysis.Protocol.LanguageServices.UnitTests.csproj", "{1DDE89EE-5819-441F-A060-2FF4A986F372}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Debugger", "src\Tools\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj", "{655A5B07-39B8-48CD-8590-8AC0C2B708D8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting", "src\Tools\ExternalAccess\UnitTesting\Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.csproj", "{FA51A3CB-5174-4D99-B76E-DC31C5361DF3}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -1063,6 +1065,10 @@ Global
 		{655A5B07-39B8-48CD-8590-8AC0C2B708D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{655A5B07-39B8-48CD-8590-8AC0C2B708D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{655A5B07-39B8-48CD-8590-8AC0C2B708D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA51A3CB-5174-4D99-B76E-DC31C5361DF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA51A3CB-5174-4D99-B76E-DC31C5361DF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA51A3CB-5174-4D99-B76E-DC31C5361DF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA51A3CB-5174-4D99-B76E-DC31C5361DF3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1251,6 +1257,7 @@ Global
 		{686BF57E-A6FF-467B-AAB3-44DE916A9772} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{1DDE89EE-5819-441F-A060-2FF4A986F372} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{655A5B07-39B8-48CD-8590-8AC0C2B708D8} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{FA51A3CB-5174-4D99-B76E-DC31C5361DF3} = {8977A560-45C2-4EC2-A849-97335B382C74}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

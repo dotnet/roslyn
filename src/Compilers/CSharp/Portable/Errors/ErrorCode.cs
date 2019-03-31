@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EventNotDelegate = 66,
         WRN_UnreferencedEvent = 67,
         ERR_InterfaceEventInitializer = 68,
-        ERR_EventPropertyInInterface = 69,
+        //ERR_EventPropertyInInterface = 69,
         ERR_BadEventUsage = 70,
         ERR_ExplicitEventFieldImpl = 71,
         ERR_CantOverrideNonEvent = 72,
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InaccessibleSetter = 272,
         ERR_InvalidPropertyAccessMod = 273,
         ERR_DuplicatePropertyAccessMods = 274,
-        ERR_PropertyAccessModInInterface = 275,
+        //ERR_PropertyAccessModInInterface = 275,
         ERR_AccessModMissingAccessor = 276,
         ERR_UnimplementedInterfaceAccessor = 277,
         WRN_PatternIsAmbiguous = 278,
@@ -345,13 +345,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_PredefinedTypeBadType = 520,
         ERR_StructWithBaseConstructorCall = 522,
         ERR_StructLayoutCycle = 523,
-        ERR_InterfacesCannotContainTypes = 524,
+        //ERR_InterfacesCannotContainTypes = 524,
         ERR_InterfacesCantContainFields = 525,
         ERR_InterfacesCantContainConstructors = 526,
         ERR_NonInterfaceInInterfaceList = 527,
         ERR_DuplicateInterfaceInBaseList = 528,
         ERR_CycleInInterfaceInheritance = 529,
-        ERR_InterfaceMemberHasBody = 531,
+        //ERR_InterfaceMemberHasBody = 531,
         ERR_HidingAbstractMethod = 533,
         ERR_UnimplementedAbstractMethod = 534,
         ERR_UnimplementedInterfaceMember = 535,
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadUnaryOperatorSignature = 562,
         ERR_BadBinaryOperatorSignature = 563,
         ERR_BadShiftOperatorSignature = 564,
-        ERR_InterfacesCantContainOperators = 567,
+        ERR_InterfacesCantContainConversionOrEqualityOperators = 567,
         ERR_StructsCantContainDefaultConstructor = 568,
         ERR_CantOverrideBogusMethod = 569,
         ERR_BindToBogus = 570,
@@ -1683,6 +1683,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureInPreview = 8652,
         WRN_DefaultExpressionMayIntroduceNullT = 8653,
         WRN_NullLiteralMayIntroduceNullT = 8654,
+
+
+
+        ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,
+        ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8702,
+        ERR_DefaultInterfaceImplementationModifier = 8703,
+        ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8704,
+        ERR_MostSpecificImplementationIsNotFound = 8705,
+        ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8706,
+
+        ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember = 8707,
+        ERR_NotBaseOrImplementedInterface = 8708,
+        ERR_NotImplementedInBase = 8709,
+        ERR_NotDeclaredInBase = 8710,
+
+        ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
 
         #endregion diagnostics introduced for C# 8.0
 

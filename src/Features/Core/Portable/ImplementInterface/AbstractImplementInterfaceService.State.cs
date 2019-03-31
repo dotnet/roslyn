@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     var allMembersImplemented = state.UnimplementedMembers.Length == 0;
                     var allMembersImplementedExplicitly = state.UnimplementedExplicitMembers.Length == 0;
 
-                    return !allMembersImplementedExplicitly && !allMembersImplemented ? state : null;
+                    return !allMembersImplementedExplicitly || !allMembersImplemented ? state : null;
                 }
                 else
                 {

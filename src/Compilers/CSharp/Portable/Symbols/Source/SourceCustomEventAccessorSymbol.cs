@@ -61,25 +61,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            if (@event.ContainingType.IsInterface)
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, this.Location, hasBody: true, diagnostics: diagnostics);
+
+            if (syntax.Body != null || syntax.ExpressionBody != null)
             {
-                diagnostics.Add(ErrorCode.ERR_EventPropertyInInterface, this.Location);
-            }
-            else
-            {
-                if (syntax.Body != null || syntax.ExpressionBody != null)
+                if (IsExtern && !IsAbstract)
                 {
-                    if (IsExtern && !IsAbstract)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ExternHasBody, this.Location, this);
-                    }
-                    else if (IsAbstract && !IsExtern)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_AbstractHasBody, this.Location, this);
-                    }
-                    // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
-                    // in that case ("member cannot be both extern and abstract").
+                    diagnostics.Add(ErrorCode.ERR_ExternHasBody, this.Location, this);
                 }
+                else if (IsAbstract && !IsExtern)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AbstractHasBody, this.Location, this);
+                }
+                // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
+                // in that case ("member cannot be both extern and abstract").
             }
 
             _name = GetOverriddenAccessorName(@event, isAdder) ?? _name;
@@ -101,7 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override Accessibility DeclaredAccessibility
         {
-            get { return this.AssociatedSymbol.DeclaredAccessibility; }
+            get
+            {
+                return this.AssociatedSymbol.DeclaredAccessibility;
+            }
         }
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
