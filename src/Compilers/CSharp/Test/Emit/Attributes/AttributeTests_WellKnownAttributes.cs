@@ -6697,6 +6697,94 @@ public class Test
         }
 
         [Fact]
+        public void TestOverridenObsoleteSetterOnAttributes()
+        {
+            var source = @"
+using System;
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class BaseAtt : Attribute
+{
+    public virtual int Prop
+    {
+        get { return 1; }
+        [Obsolete(""setter"", true)] set { }
+    }
+
+    public virtual int Prop1
+    {
+        get { return 1; }
+        [Obsolete(""setter"", true)] set { }
+    }
+
+    public virtual int Prop2
+    {
+        get { return 1; }
+        [Obsolete(""base setter"", true)] set { }
+    }
+
+    public virtual int Prop3
+    {
+        get { return 1; }
+        set { }
+    }
+}
+
+[AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+public class DerivedAtt : BaseAtt
+{
+    public override int Prop
+    {
+        get { return 1; }
+    }
+
+    public override int Prop1
+    {
+        get { return 1; }
+        set { }
+    }
+
+    public override int Prop2
+    {
+        get { return 1; }
+        [Obsolete(""derived setter"", true)] set { }
+    }
+
+    public override int Prop3
+    {
+        get { return 1; }
+        [Obsolete(""setter"", true)] set { }
+    }
+}
+
+[DerivedAtt(Prop = 1)]
+[DerivedAtt(Prop1 = 1)]
+[DerivedAtt(Prop2 = 1)]
+[DerivedAtt(Prop3 = 1)]
+public class Test
+{
+    public static void Main() { }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (43,9): warning CS0672: Member 'DerivedAtt.Prop1.set' overrides obsolete member 'BaseAtt.Prop1.set'. Add the Obsolete attribute to 'DerivedAtt.Prop1.set'.
+                //         set { }
+                Diagnostic(ErrorCode.WRN_NonObsoleteOverridingObsolete, "set").WithArguments("DerivedAtt.Prop1.set", "BaseAtt.Prop1.set").WithLocation(43, 9),
+                // (55,36): warning CS0809: Obsolete member 'DerivedAtt.Prop3.set' overrides non-obsolete member 'BaseAtt.Prop3.set'
+                //         [Obsolete("setter", true)] set { }
+                Diagnostic(ErrorCode.WRN_ObsoleteOverridingNonObsolete, "set").WithArguments("DerivedAtt.Prop3.set", "BaseAtt.Prop3.set").WithLocation(55, 36),
+                // (59,13): error CS0619: 'BaseAtt.Prop.set' is obsolete: 'setter'
+                // [DerivedAtt(Prop = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop = 1").WithArguments("BaseAtt.Prop.set", "setter").WithLocation(59, 13),
+                // (60,13): error CS0619: 'BaseAtt.Prop1.set' is obsolete: 'setter'
+                // [DerivedAtt(Prop1 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop1 = 1").WithArguments("BaseAtt.Prop1.set", "setter").WithLocation(60, 13),
+                // (61,13): error CS0619: 'BaseAtt.Prop2.set' is obsolete: 'base setter'
+                // [DerivedAtt(Prop2 = 1)]
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Prop2 = 1").WithArguments("BaseAtt.Prop2.set", "base setter").WithLocation(61, 13));
+        }
+
+        [Fact]
         public void TestObsoleteAttributeOnIndexerAccessors()
         {
             var source = @"

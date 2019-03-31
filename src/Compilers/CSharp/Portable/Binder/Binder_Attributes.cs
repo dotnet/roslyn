@@ -356,9 +356,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (namedArgumentNameSymbol.Kind == SymbolKind.Property)
             {
                 var propertySymbol = (PropertySymbol)namedArgumentNameSymbol;
-                if (propertySymbol.SetMethod != null)
+                var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
+                if (setMethod != null)
                 {
-                    ReportDiagnosticsIfObsolete(diagnostics, propertySymbol.SetMethod, namedArgument, hasBaseReceiver: false);
+                    ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
                 }
             }
 
