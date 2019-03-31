@@ -507,6 +507,39 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        public async Task VariableWritten()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        var array = new[] { 1 };
+        foreach [||] (var a in array)
+        {
+            a = 1;
+        }
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    void Method()
+    {
+        var array = new[] { 1 };
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
+        {
+            {|Warning:int a = array[i];|}
+            a = 1;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
         public async Task IndexConflict()
         {
             var text = @"
@@ -540,22 +573,89 @@ class Test
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
-        public async Task VariableWritten()
+        public async Task StructPropertyReadFromAndDiscarded()
         {
             var text = @"
 class Test
 {
+    struct Struct
+    {
+        public string Property { get; }
+    }
+
     void Method()
     {
-        var array = new int[] { 1, 3, 4 };
+        var array = new[] { new Struct() };
         foreach [||] (var a in array)
         {
-            a = 1;
+            _ = a.Property;
         }
     }
 }
 ";
-            await TestMissingInRegularAndScriptAsync(text);
+            var expected = @"
+class Test
+{
+    struct Struct
+    {
+        public string Property { get; }
+    }
+
+    void Method()
+    {
+        var array = new[] { new Struct() };
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
+        {
+            {|Warning:Struct a = array[i];|}
+            _ = a.Property;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        public async Task StructPropertyReadFromAndAssignedToLocal()
+        {
+            var text = @"
+class Test
+{
+    struct Struct
+    {
+        public string Property { get; }
+    }
+
+    void Method()
+    {
+        var array = new[] { new Struct() };
+        foreach [||] (var a in array)
+        {
+            var b = a.Property;
+        }
+    }
+}
+";
+            var expected = @"
+class Test
+{
+    struct Struct
+    {
+        public string Property { get; }
+    }
+
+    void Method()
+    {
+        var array = new[] { new Struct() };
+        for (int {|Rename:i|} = 0; i < array.Length; i++)
+        {
+            {|Warning:Struct a = array[i];|}
+            var b = a.Property;
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]

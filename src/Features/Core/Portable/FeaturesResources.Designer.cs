@@ -4643,6 +4643,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Semantics may change when converting statement..
+        /// </summary>
+        internal static string Warning_colon_semantics_may_change_when_converting_statement {
+            get {
+                return ResourceManager.GetString("Warning_colon_semantics_may_change_when_converting_statement", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Method overrides symbol from metadata.
         /// </summary>
         internal static string Warning_Method_overrides_symbol_from_metadata {
