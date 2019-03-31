@@ -162,9 +162,6 @@
   </Node>
 
   <Node Name="BoundTypeExpression" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
     <Field Name="AliasOpt" Type="AliasSymbol" Null="allow"/>
 
     <!-- 
@@ -206,6 +203,9 @@
 
     <!-- The provided dimensions in an array type expression where dimensions were provided in error. -->
     <Field Name="BoundDimensionsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
+
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="TypeWithAnnotations" Type="TypeWithAnnotations" Null="allow"/>
   </Node>
 
   <!-- 
@@ -1232,10 +1232,10 @@
     <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
   </Node>
   <Node Name="BoundDagNonNullTest" Base="BoundDagTest">
-    <!--Check that the input is not null.-->
+    <!--Check that the input is not null. Used as part of a type test.-->
   </Node>
-  <Node Name="BoundDagNullTest" Base="BoundDagTest">
-    <!--Check that the input is null.-->
+  <Node Name="BoundDagExplicitNullTest" Base="BoundDagTest">
+    <!--Check that the input is null. Used when an explicit null test appears in source.-->
   </Node>
   <Node Name="BoundDagValueTest" Base="BoundDagTest">
     <!--Check that the input is the same as the given constant value (other than null).-->
