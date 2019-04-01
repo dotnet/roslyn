@@ -2908,6 +2908,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void TestStructBadExpressionProperty()
+        {
+            var text =
+@"public struct S
+{
+    public int P readonly => 0;
+}
+";
+            var file = this.ParseFile(text, TestOptions.Regular);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(text, file.ToString());
+
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal(ErrorCode.ERR_SemicolonExpected, (ErrorCode)file.Errors()[0].Code);
+            Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[1].Code);
+            Assert.Equal(ErrorCode.ERR_InvalidMemberDecl, (ErrorCode)file.Errors()[2].Code);
+        }
+
+        [Fact]
         public void TestClassMethodWithParameter()
         {
             var text = "class a { b X(c d) { } }";

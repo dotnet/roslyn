@@ -1147,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !method.IsEffectivelyReadOnly &&
                 !method.IsStatic)
             {
-                Error(diagnostics, ErrorCode.WRN_ImplicitCopyInReadOnlyMember, receiver.Syntax, method.Name, ThisParameterSymbol.SymbolName);
+                Error(diagnostics, ErrorCode.WRN_ImplicitCopyInReadOnlyMember, receiver.Syntax, method, ThisParameterSymbol.SymbolName);
                 return false;
             }
 

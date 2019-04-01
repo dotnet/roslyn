@@ -351,6 +351,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 diagnostics.Add(ErrorCode.ERR_AccessModMissingAccessor, location, this);
                             }
+
+                            // Check that 'readonly' is not set on the one accessor.
+                            if (accessor.LocalDeclaredReadOnly)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_ReadOnlyModMissingAccessor, location, this);
+                            }
                         }
                     }
                 }
@@ -951,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsStatic && HasReadOnlyModifier)
             {
-                // Static member '{0}' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // Static member '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
             }
             else if (IsOverride && (IsNew || IsVirtual))

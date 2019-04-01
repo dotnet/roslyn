@@ -312,6 +312,11 @@
         <target state="translated">El subpatrón de una propiedad requiere una referencia a la propiedad o al campo que debe coincidir; por ejemplo, "{{ Name: {0} }}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ReadOnlyModMissingAccessor">
+        <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
+        <target state="new">'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
         <target state="translated">No se puede asignar referencia "{1}" a "{0}" porque "{1}" tiene un ámbito de escape más limitado que "{0}".</target>
@@ -343,8 +348,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticMemberCantBeReadOnly">
-        <source>Static member '{0}' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.</source>
-        <target state="new">Static member '{0}' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.</target>
+        <source>Static member '{0}' cannot be marked 'readonly'.</source>
+        <target state="new">Static member '{0}' cannot be marked 'readonly'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">

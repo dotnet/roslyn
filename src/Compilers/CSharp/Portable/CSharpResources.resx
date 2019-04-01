@@ -5419,7 +5419,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Call to non-readonly member from a 'readonly' member results in an implicit copy.</value>
   </data>
   <data name="ERR_StaticMemberCantBeReadOnly" xml:space="preserve">
-    <value>Static member '{0}' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.</value>
+    <value>Static member '{0}' cannot be marked 'readonly'.</value>
   </data>
   <data name="ERR_AutoSetterCantBeReadOnly" xml:space="preserve">
     <value>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</value>
@@ -5438,6 +5438,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialMethodReadOnlyDifference" xml:space="preserve">
     <value>Both partial method declarations must be readonly or neither may be readonly</value>
+  </data>
+  <data name="ERR_ReadOnlyModMissingAccessor" xml:space="preserve">
+    <value>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</value>
   </data>
   <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
     <value>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</value>
