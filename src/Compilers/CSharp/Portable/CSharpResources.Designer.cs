@@ -9673,7 +9673,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Static member &apos;{0}&apos; cannot be marked &apos;readonly&apos; because readonly members cannot modify &apos;this&apos; and static members do not have a &apos;this&apos; parameter..
+        ///   Looks up a localized string similar to Static member &apos;{0}&apos; cannot be marked &apos;readonly&apos;..
         /// </summary>
         internal static string ERR_StaticMemberCantBeReadOnly {
             get {

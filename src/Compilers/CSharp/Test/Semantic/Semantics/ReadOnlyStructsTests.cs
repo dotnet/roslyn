@@ -1123,7 +1123,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (5,32): error CS8656: Static member 'S.M()' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (5,32): error CS8656: Static member 'S.M()' cannot be marked 'readonly'.
                 //     public static readonly int M()
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "M").WithArguments("S.M()").WithLocation(5, 32));
 
@@ -1174,7 +1174,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,18): error CS8656: Static member 'S.P.get' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (7,18): error CS8656: Static member 'S.P.get' cannot be marked 'readonly'.
                 //         readonly get
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P.get").WithLocation(7, 18));
         }
@@ -1191,7 +1191,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (5,32): error CS8656: Static member 'S.P' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (5,32): error CS8656: Static member 'S.P' cannot be marked 'readonly'.
                 //     public static readonly int P => i;
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P").WithArguments("S.P").WithLocation(5, 32));
         }
@@ -1299,10 +1299,10 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (4,32): error CS8656: Static member 'S.P1' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (4,32): error CS8656: Static member 'S.P1' cannot be marked 'readonly'.
                 //     public static readonly int P1 { get; set; }
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P1").WithArguments("S.P1").WithLocation(4, 32),
-                // (5,37): error CS8656: Static member 'S.P2.get' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (5,37): error CS8656: Static member 'S.P2.get' cannot be marked 'readonly'.
                 //     public static int P2 { readonly get; }
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P2.get").WithLocation(5, 37));
         }
@@ -1861,7 +1861,7 @@ public struct S1
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,52): error CS8656: Static member 'S1.E' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (6,52): error CS8656: Static member 'S1.E' cannot be marked 'readonly'.
                 //     public static readonly event Action<EventArgs> E
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "E").WithArguments("S1.E").WithLocation(6, 52));
         }

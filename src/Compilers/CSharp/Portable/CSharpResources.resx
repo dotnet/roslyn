@@ -5431,7 +5431,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Call to non-readonly member from a 'readonly' member results in an implicit copy.</value>
   </data>
   <data name="ERR_StaticMemberCantBeReadOnly" xml:space="preserve">
-    <value>Static member '{0}' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.</value>
+    <value>Static member '{0}' cannot be marked 'readonly'.</value>
   </data>
   <data name="ERR_AutoSetterCantBeReadOnly" xml:space="preserve">
     <value>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</value>

@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsReadOnly && IsStatic)
             {
-                // Static member '{0}' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // Static member '{0}' cannot be marked 'readonly'.
                 diagnostics.Add(ErrorCode.ERR_StaticMemberCantBeReadOnly, location, this);
             }
             else if (IsReadOnly && HasAssociatedField)
