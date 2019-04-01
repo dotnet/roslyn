@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
             private readonly ImmutableArray<DefinitionItem> _definitions;
             private readonly SnapshotSpan _span;
             private readonly Document _document;
-            private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _presenters;
+            private readonly Lazy<IStreamingFindUsagesPresenter> _presenterOpt;
             private readonly IWaitIndicator _waitIndicator;
 
             public NavigableSymbol(
                 ImmutableArray<DefinitionItem> definitions,
                 SnapshotSpan span,
                 Document document,
-                IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+                Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt,
                 IWaitIndicator waitIndicator)
             {
                 Contract.ThrowIfFalse(definitions.Length > 0);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 _definitions = definitions;
                 _span = span;
                 _document = document;
-                _presenters = streamingPresenters;
+                _presenterOpt = streamingPresenterOpt;
                 _waitIndicator = waitIndicator;
             }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                         _definitions,
                         _document.Project,
                         _definitions[0].NameDisplayParts.GetFullText(),
-                        _presenters,
+                        _presenterOpt,
                         context.CancellationToken)
                     );
         }

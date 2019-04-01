@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -18,22 +17,22 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
     internal partial class NavigableSymbolService : INavigableSymbolSourceProvider
     {
         private static readonly object s_key = new object();
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenterOpt;
         private readonly IWaitIndicator _waitIndicator;
 
         [ImportingConstructor]
         public NavigableSymbolService(
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+            [Import(AllowDefault = true)] Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt)
         {
             _waitIndicator = waitIndicator;
-            _streamingPresenters = streamingPresenters;
+            _streamingPresenterOpt = streamingPresenterOpt;
         }
 
         public INavigableSymbolSource TryCreateNavigableSymbolSource(ITextView textView, ITextBuffer buffer)
         {
             return textView.GetOrCreatePerSubjectBufferProperty(buffer, s_key,
-                (v, b) => new NavigableSymbolSource(_streamingPresenters, _waitIndicator));
+                (v, b) => new NavigableSymbolSource(_streamingPresenterOpt, _waitIndicator));
         }
     }
 }

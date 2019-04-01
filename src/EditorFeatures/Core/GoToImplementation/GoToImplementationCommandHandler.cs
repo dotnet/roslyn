@@ -1,20 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -26,13 +24,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
     [Name(PredefinedCommandHandlerNames.GoToImplementation)]
     internal partial class GoToImplementationCommandHandler : VSCommanding.ICommandHandler<GoToImplementationCommandArgs>
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenterOpt;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public GoToImplementationCommandHandler(
-            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+            [Import(AllowDefault = true)] Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt)
         {
-            _streamingPresenters = streamingPresenters;
+            _streamingPresenterOpt = streamingPresenterOpt;
         }
 
         public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
@@ -144,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         {
             try
             {
-                return _streamingPresenters.FirstOrDefault()?.Value;
+                return _streamingPresenterOpt?.Value;
             }
             catch
             {

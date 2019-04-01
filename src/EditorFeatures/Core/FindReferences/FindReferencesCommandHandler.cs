@@ -1,21 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -30,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
     [Name(PredefinedCommandHandlerNames.FindReferences)]
     internal class FindReferencesCommandHandler : VSCommanding.ICommandHandler<FindReferencesCommandArgs>
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenterOpt;
 
         private readonly IAsynchronousOperationListener _asyncListener;
 
@@ -38,13 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
         [ImportingConstructor]
         public FindReferencesCommandHandler(
-            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            [Import(AllowDefault = true)] Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
-            Contract.ThrowIfNull(streamingPresenters);
             Contract.ThrowIfNull(listenerProvider);
 
-            _streamingPresenters = streamingPresenters;
+            _streamingPresenterOpt = streamingPresenterOpt;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
@@ -102,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         {
             try
             {
-                return _streamingPresenters.FirstOrDefault()?.Value;
+                return _streamingPresenterOpt?.Value;
             }
             catch
             {

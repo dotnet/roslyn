@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -42,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         private AbstractListItemFactory _listItemFactory;
         private object _classMemberGate = new object();
 
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenterOpt;
         private readonly IThreadingContext _threadingContext;
 
         protected AbstractObjectBrowserLibraryManager(
@@ -62,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
             Workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _libraryService = new Lazy<ILibraryService>(() => Workspace.Services.GetLanguageServices(_languageName).GetService<ILibraryService>());
-            _streamingPresenters = componentModel.DefaultExportProvider.GetExports<IStreamingFindUsagesPresenter>();
+            _streamingPresenterOpt = componentModel.DefaultExportProvider.GetExports<IStreamingFindUsagesPresenter>().SingleOrDefault();
             _threadingContext = componentModel.DefaultExportProvider.GetExportedValue<IThreadingContext>();
         }
 
@@ -502,7 +501,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                 switch (commandId)
                 {
                     case (uint)VSConstants.VSStd97CmdID.FindReferences:
-                        var streamingPresenter = _streamingPresenters.FirstOrDefault()?.Value;
+                        var streamingPresenter = _streamingPresenterOpt?.Value;
                         var symbolListItem = _activeListItem as SymbolListItem;
 
                         if (streamingPresenter != null && symbolListItem?.ProjectId != null)

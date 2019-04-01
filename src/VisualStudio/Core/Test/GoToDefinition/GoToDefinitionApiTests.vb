@@ -42,7 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
                 WpfTestRunner.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinition)} assumes it's on the UI thread with a {NameOf(TaskExtensions.WaitAndGetResult)} call")
                 Dim success = GoToDefinitionHelpers.TryGoToDefinition(
                     symbolInfo.Symbol, document.Project,
-                    {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)},
+                    New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter),
                     thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False,
                     cancellationToken:=CancellationToken.None)
 

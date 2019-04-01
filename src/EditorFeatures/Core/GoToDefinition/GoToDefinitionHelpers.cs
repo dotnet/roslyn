@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -96,14 +95,14 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         public static bool TryGoToDefinition(
             ISymbol symbol,
             Project project,
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true,
             bool throwOnHiddenDefinition = false)
         {
             var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
 
-            var presenter = streamingPresenters.FirstOrDefault()?.Value;
+            var presenter = streamingPresenterOpt?.Value;
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
@@ -115,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             ImmutableArray<DefinitionItem> definitions,
             Project project,
             string title,
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt,
             CancellationToken cancellationToken)
         {
             if (definitions.IsDefaultOrEmpty)
@@ -123,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 return false;
             }
 
-            var presenter = streamingPresenters.FirstOrDefault()?.Value;
+            var presenter = streamingPresenterOpt?.Value;
 
             return presenter.TryNavigateToOrPresentItemsAsync(
                 project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -14,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
     {
         [ImportingConstructor]
         public CSharpGoToDefinitionService(
-            [ImportMany]IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
-            : base(streamingPresenters)
+            [Import(AllowDefault = true)] Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt)
+            : base(streamingPresenterOpt)
         {
         }
     }

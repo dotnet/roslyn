@@ -96,7 +96,7 @@ class C
 
                 Dim navigatedTo = False
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() navigatedTo = True)
-                Dim presenters = {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)}
+                Dim presenters = New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)
 
                 Dim cursorBuffer = cursorDocument.TextBuffer
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)

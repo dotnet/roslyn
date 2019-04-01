@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Composition;
@@ -18,7 +19,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
 
@@ -28,17 +28,18 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
-        private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenterOpt;
 
         [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
-            [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            [Import(AllowDefault = true)] Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
             : base(exportProvider, asyncServiceProvider)
         {
-            _streamingPresenters = streamingPresenters;
+            _streamingPresenterOpt = streamingPresenterOpt;
 
             foreach (var providerFactory in documentOptionsProviderFactories)
             {
@@ -107,7 +108,7 @@ namespace Microsoft.VisualStudio.LanguageServices
         public override bool TryGoToDefinition(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_streamingPresenters.Any())
+            if (_streamingPresenterOpt == null)
             {
                 return false;
             }
@@ -120,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return GoToDefinitionHelpers.TryGoToDefinition(
                 searchSymbol, searchProject,
-                _streamingPresenters, cancellationToken);
+                _streamingPresenterOpt, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
