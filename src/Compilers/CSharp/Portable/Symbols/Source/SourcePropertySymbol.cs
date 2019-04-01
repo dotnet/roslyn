@@ -141,13 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isAutoProperty || hasInitializer)
             {
                 var hasGetSyntax = getSyntax != null;
-<<<<<<< HEAD
-                _isAutoProperty = notRegularProperty && hasGetSyntax;
-                bool isGetterOnly = hasGetSyntax && setSyntax == null;
-=======
                 _isAutoProperty = isAutoProperty && hasGetSyntax;
-                bool isReadOnly = hasGetSyntax && setSyntax == null;
->>>>>>> upstream/master
+                bool isGetterOnly = hasGetSyntax && setSyntax == null;
 
                 if (_isAutoProperty && !IsStatic && !isGetterOnly)
                 {
@@ -872,20 +867,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-<<<<<<< HEAD
             if (ContainingType.IsStructType())
             {
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
-            if (!isInterface)
-            {
-                allowedModifiers |=
-                    DeclarationModifiers.Extern;
-            }
-=======
             allowedModifiers |= DeclarationModifiers.Extern;
->>>>>>> upstream/master
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 

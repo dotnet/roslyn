@@ -405,11 +405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                 case ErrorCode.WRN_ConditionalAccessMayReturnNull:
                 case ErrorCode.WRN_AsOperatorMayReturnNull:
-<<<<<<< HEAD
-                case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
-=======
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
->>>>>>> upstream/master
+                case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                     return 1;
                 default:
                     return 0;

@@ -414,7 +414,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers); }
         }
 
-<<<<<<< HEAD
         /// <summary>
         /// Indicates whether this accessor itself has a 'readonly' modifier.
         /// </summary>
@@ -427,29 +426,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsReadOnlyAutoGetter => ContainingType.IsStructType() && !_property.IsStatic && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertyGet;
 
-        private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
-=======
         private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
             bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
->>>>>>> upstream/master
         {
             // No default accessibility. If unset, accessibility
             // will be inherited from the property.
             const DeclarationModifiers defaultAccess = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
-<<<<<<< HEAD
-            DeclarationModifiers allowedModifiers = DeclarationModifiers.AccessibilityMask;
+            var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
             if (this.ContainingType.IsStructType())
             {
                 allowedModifiers |= DeclarationModifiers.ReadOnly;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
-=======
-            var allowedModifiers = isExplicitInterfaceImplementation ? DeclarationModifiers.None : DeclarationModifiers.AccessibilityMask;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
->>>>>>> upstream/master
 
             if (this.ContainingType.IsInterface && !isExplicitInterfaceImplementation)
             {

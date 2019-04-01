@@ -1681,17 +1681,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureInPreview = 8652,
         WRN_DefaultExpressionMayIntroduceNullT = 8653,
         WRN_NullLiteralMayIntroduceNullT = 8654,
-<<<<<<< HEAD
-        WRN_ImplicitCopyInReadOnlyMember = 8655,
-        ERR_StaticMemberCantBeReadOnly = 8656,
-        ERR_AutoSetterCantBeReadOnly = 8657,
-        ERR_AutoPropertyWithSetterCantBeReadOnly = 8658,
-        ERR_InvalidPropertyReadOnlyMods = 8659,
-        ERR_DuplicatePropertyReadOnlyMods = 8660,
-        ERR_FieldLikeEventCantBeReadOnly = 8661,
-        ERR_PartialMethodReadOnlyDifference = 8662,
-=======
         WRN_SwitchExpressionNotExhaustiveForNull = 8655,
+        WRN_ImplicitCopyInReadOnlyMember = 8656,
+        ERR_StaticMemberCantBeReadOnly = 8657,
+        ERR_AutoSetterCantBeReadOnly = 8658,
+        ERR_AutoPropertyWithSetterCantBeReadOnly = 8659,
+        ERR_InvalidPropertyReadOnlyMods = 8660,
+        ERR_DuplicatePropertyReadOnlyMods = 8661,
+        ERR_FieldLikeEventCantBeReadOnly = 8662,
+        ERR_PartialMethodReadOnlyDifference = 8663,
 
 
 
@@ -1708,7 +1706,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NotDeclaredInBase = 8710,
 
         ERR_DefaultInterfaceImplementationInNoPIAType = 8711,
->>>>>>> upstream/master
 
         #endregion diagnostics introduced for C# 8.0
 
