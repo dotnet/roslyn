@@ -1319,8 +1319,8 @@ public struct S
 
     public int P1 { get; set; }
     public readonly int P2 => 42;
-    public int P3 { readonly get => 123; }
-    public int P4 { readonly set {} }
+    public int P3 { readonly get => 123; set {} }
+    public int P4 { get => 123; readonly set {} }
     public static int P5 { get; set; }
 }
 ";
@@ -1358,8 +1358,12 @@ public struct S
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Signature.ReturnParam.Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p4).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Signature.ReturnParam.Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Signature.ReturnParam.Handle));
 
@@ -1453,8 +1457,8 @@ public readonly struct S
 
     public int P1 { get; }
     public readonly int P2 => 42;
-    public int P3 { readonly get => 123; }
-    public int P4 { readonly set {} }
+    public int P3 { readonly get => 123; set {} }
+    public int P4 { get => 123; readonly set {} }
     public static int P5 { get; set; }
 }
 ";
@@ -1490,8 +1494,12 @@ public readonly struct S
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p3).Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.GetMethod).Signature.ReturnParam.Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p3.SetMethod).Signature.ReturnParam.Handle));
 
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEPropertySymbol)p4).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Handle));
+                Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.GetMethod).Signature.ReturnParam.Handle));
                 Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Handle));
                 Assert.False(peModule.Module.HasIsReadOnlyAttribute(((PEMethodSymbol)p4.SetMethod).Signature.ReturnParam.Handle));
 
@@ -1518,8 +1526,8 @@ public struct S1
 
     public int P1 { get; set; }
     public readonly int P2 => 42;
-    public int P3 { readonly get => 123; }
-    public int P4 { readonly set {} }
+    public int P3 { readonly get => 123; set {} }
+    public int P4 { get => 123; readonly set {} }
     public static int P5 { get; set; }
     public readonly event Action<EventArgs> E { add {} remove {} }
 }
@@ -1535,6 +1543,7 @@ public readonly struct S2
 }
 ";
             var externalComp = CreateCompilation(external);
+            externalComp.VerifyDiagnostics();
             verify(externalComp);
 
             var comp = CreateCompilation("", references: new[] { externalComp.EmitToImageReference() });
@@ -1554,7 +1563,11 @@ public readonly struct S2
                 verifyReadOnly(s1.GetProperty("P1").SetMethod, false, false, RefKind.Ref);
 
                 verifyReadOnly(s1.GetProperty("P2").GetMethod, true, true, RefKind.RefReadOnly);
+
                 verifyReadOnly(s1.GetProperty("P3").GetMethod, true, true, RefKind.RefReadOnly);
+                verifyReadOnly(s1.GetProperty("P3").SetMethod, false, false, RefKind.Ref);
+
+                verifyReadOnly(s1.GetProperty("P4").GetMethod, false, false, RefKind.Ref);
                 verifyReadOnly(s1.GetProperty("P4").SetMethod, true, true, RefKind.RefReadOnly);
 
                 verifyReadOnly(s1.GetProperty("P5").GetMethod, false, false, null);
@@ -1696,9 +1709,9 @@ public struct S
             var verifier = CompileAndVerify(csharp, expectedOutput: "123");
 
             verifier.VerifyDiagnostics(
-                // (9,9): warning CS8655: Call to non-readonly member 'M2' from a 'readonly' member results in an implicit copy of 'this'.
+                // (9,9): warning CS8655: Call to non-readonly member 'S.M2()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         M2();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M2").WithArguments("M2", "this").WithLocation(9, 9));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M2").WithArguments("S.M2()", "this").WithLocation(9, 9));
 
             verifier.VerifyIL("S.M1", @"
 {
@@ -2195,15 +2208,15 @@ public struct S
             var verifier = CompileAndVerify(csharp);
 
             verifier.VerifyDiagnostics(
-                // (12,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
+                // (12,9): warning CS8655: Call to non-readonly member 'S.ToString()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         ToString();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(12, 9),
-                // (13,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("S.ToString()", "this").WithLocation(12, 9),
+                // (13,9): warning CS8655: Call to non-readonly member 'S.GetHashCode()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         GetHashCode();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(13, 9),
-                // (14,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("S.GetHashCode()", "this").WithLocation(13, 9),
+                // (14,9): warning CS8655: Call to non-readonly member 'S.Equals(object)' from a 'readonly' member results in an implicit copy of 'this'.
                 //         Equals(null);
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(14, 9));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("S.Equals(object)", "this").WithLocation(14, 9));
 
             // Verify that calls to non-readonly overrides pass the address of a temp, not the address of 'this'
             verifier.VerifyIL("S.M", @"
@@ -2348,18 +2361,18 @@ public struct S
             var verifier = CompileAndVerify(csharp);
 
             verifier.VerifyDiagnostics(
-                // (12,9): warning CS8655: Call to non-readonly member 'GetType' from a 'readonly' member results in an implicit copy of 'this'.
+                // (12,9): warning CS8655: Call to non-readonly member 'S.GetType()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         GetType();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetType").WithArguments("GetType", "this").WithLocation(12, 9),
-                // (13,9): warning CS8655: Call to non-readonly member 'ToString' from a 'readonly' member results in an implicit copy of 'this'.
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetType").WithArguments("S.GetType()", "this").WithLocation(12, 9),
+                // (13,9): warning CS8655: Call to non-readonly member 'S.ToString()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         ToString();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("ToString", "this").WithLocation(13, 9),
-                // (14,9): warning CS8655: Call to non-readonly member 'GetHashCode' from a 'readonly' member results in an implicit copy of 'this'.
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "ToString").WithArguments("S.ToString()", "this").WithLocation(13, 9),
+                // (14,9): warning CS8655: Call to non-readonly member 'S.GetHashCode()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         GetHashCode();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("GetHashCode", "this").WithLocation(14, 9),
-                // (15,9): warning CS8655: Call to non-readonly member 'Equals' from a 'readonly' member results in an implicit copy of 'this'.
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "GetHashCode").WithArguments("S.GetHashCode()", "this").WithLocation(14, 9),
+                // (15,9): warning CS8655: Call to non-readonly member 'S.Equals(object)' from a 'readonly' member results in an implicit copy of 'this'.
                 //         Equals(null);
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("Equals", "this").WithLocation(15, 9));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "Equals").WithArguments("S.Equals(object)", "this").WithLocation(15, 9));
 
             // Verify that calls to new non-readonly members pass an address to a temp and that calls to base members use a box.
             verifier.VerifyIL("S.M", @"

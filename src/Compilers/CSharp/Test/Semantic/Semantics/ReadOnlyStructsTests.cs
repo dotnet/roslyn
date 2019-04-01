@@ -508,9 +508,9 @@ public unsafe struct S2
 ";
             var comp = CreateCompilation(csharp, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
-                // (12,25): warning CS8655: Call to non-readonly member 'GetPinnableReference' from a 'readonly' member results in an implicit copy of 'this'.
+                // (12,25): warning CS8655: Call to non-readonly member 'S1.GetPinnableReference()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         fixed (int *i = this) {} // warn
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetPinnableReference", "this").WithLocation(12, 25));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S1.GetPinnableReference()", "this").WithLocation(12, 25));
         }
 
         [Fact]
@@ -582,9 +582,9 @@ public struct S
 {
     public int i;
 
-    public int P
+    public readonly int P
     {
-        readonly get
+        get
         {
             // should create local copy
             M();
@@ -614,9 +614,9 @@ public struct S
 
             var verifier = CompileAndVerify(csharp, expectedOutput: "123");
             verifier.VerifyDiagnostics(
-                // (11,13): warning CS8655: Call to non-readonly member 'M' from a 'readonly' member results in an implicit copy of 'this'.
+                // (11,13): warning CS8655: Call to non-readonly member 'S.M()' from a 'readonly' member results in an implicit copy of 'this'.
                 //             M();
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M").WithArguments("M", "this").WithLocation(11, 13));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "M").WithArguments("S.M()", "this").WithLocation(11, 13));
         }
 
         [Fact]
@@ -627,9 +627,9 @@ public struct S
 {
     public int i;
 
-    public int P1
+    public readonly int P1
     {
-        readonly get
+        get
         {
             // should create local copy
             _ = P2; // warning
@@ -656,9 +656,9 @@ public struct S
 
             var verifier = CompileAndVerify(csharp, expectedOutput: "123");
             verifier.VerifyDiagnostics(
-                // (11,17): warning CS8655: Call to non-readonly member 'get_P2' from a 'readonly' member results in an implicit copy of 'this'.
-                //             _ = P2;
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "P2").WithArguments("get_P2", "this").WithLocation(11, 17));
+                // (11,17): warning CS8655: Call to non-readonly member 'S.P2.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //             _ = P2; // warning
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "P2").WithArguments("S.P2.get", "this").WithLocation(11, 17));
         }
 
         [Fact]
@@ -1123,7 +1123,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (5,32): error CS8656: Static member 'S.M()' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (5,32): error CS8656: Static member 'S.M()' cannot be marked 'readonly'.
                 //     public static readonly int M()
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "M").WithArguments("S.M()").WithLocation(5, 32));
 
@@ -1139,9 +1139,9 @@ public struct S
 public struct S
 {
     public int i;
-    public int P
+    public readonly int P
     {
-        readonly get
+        get
         {
             return i;
         }
@@ -1165,12 +1165,16 @@ public struct S
         {
             return i;
         }
+        set
+        {
+            i = value;
+        }
     }
 }
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (7,18): error CS8656: Static member 'S.P.get' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (7,18): error CS8656: Static member 'S.P.get' cannot be marked 'readonly'.
                 //         readonly get
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P.get").WithLocation(7, 18));
         }
@@ -1187,7 +1191,7 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (5,32): error CS8656: Static member 'S.P' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (5,32): error CS8656: Static member 'S.P' cannot be marked 'readonly'.
                 //     public static readonly int P => i;
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P").WithArguments("S.P").WithLocation(5, 32));
         }
@@ -1238,6 +1242,9 @@ public struct S
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
+                // (4,16): error CS8663: 'S.P1': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                //     public int P1 { readonly get; }
+                Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P1").WithArguments("S.P1").WithLocation(4, 16),
                 // (7,16): error CS8660: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.P4'. Instead, put a 'readonly' modifier on the property itself.
                 //     public int P4 { readonly get; readonly set; }
                 Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "P4").WithArguments("S.P4").WithLocation(7, 16),
@@ -1247,6 +1254,9 @@ public struct S
                 // (8,25): error CS8658: Auto-implemented property 'S.P5' cannot be marked 'readonly' because it has a 'set' accessor.
                 //     public readonly int P5 { get; set; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P5").WithArguments("S.P5").WithLocation(8, 25),
+                // (9,25): error CS8663: 'S.P6': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                //     public readonly int P6 { readonly get; }
+                Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P6").WithArguments("S.P6").WithLocation(9, 25),
                 // (9,39): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S.P6' and its accessor. Remove one of them.
                 //     public readonly int P6 { readonly get; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S.P6").WithLocation(9, 39),
@@ -1267,7 +1277,7 @@ public struct S
             var csharp = @"
 public struct S
 {
-    public readonly int P { readonly get => 42; }
+    public readonly int P { readonly get => 42; set {} }
 }
 ";
             var comp = CreateCompilation(csharp);
@@ -1284,15 +1294,15 @@ public struct S
 public struct S
 {
     public static readonly int P1 { get; set; }
-    public static int P2 { readonly get; }
+    public static int P2 { readonly get; set; }
 }
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (4,32): error CS8656: Static member 'S.P1' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (4,32): error CS8656: Static member 'S.P1' cannot be marked 'readonly'.
                 //     public static readonly int P1 { get; set; }
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P1").WithArguments("S.P1").WithLocation(4, 32),
-                // (5,37): error CS8656: Static member 'S.P2.get' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (5,37): error CS8656: Static member 'S.P2.get' cannot be marked 'readonly'.
                 //     public static int P2 { readonly get; }
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P2.get").WithLocation(5, 37));
         }
@@ -1406,9 +1416,9 @@ public struct S2
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (13,27): warning CS8655: Call to non-readonly member 'GetEnumerator' from a 'readonly' member results in an implicit copy of 'this'.
+                // (13,27): warning CS8655: Call to non-readonly member 'S1.GetEnumerator()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         foreach (var x in this) {} // warning-- implicit copy
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetEnumerator", "this").WithLocation(13, 27));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S1.GetEnumerator()", "this").WithLocation(13, 27));
         }
 
         [Fact]
@@ -1469,9 +1479,9 @@ public struct S2
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { csharp, AsyncStreamsTypes });
             comp.VerifyDiagnostics(
-                // (16,33): warning CS8655: Call to non-readonly member 'GetAsyncEnumerator' from a 'readonly' member results in an implicit copy of 'this'.
+                // (16,33): warning CS8655: Call to non-readonly member 'S1.GetAsyncEnumerator()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         await foreach (var x in this) {} // warn
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("GetAsyncEnumerator", "this").WithLocation(16, 33));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S1.GetAsyncEnumerator()", "this").WithLocation(16, 33));
         }
 
         [Fact]
@@ -1513,9 +1523,9 @@ public ref struct S2
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (13,16): warning CS8655: Call to non-readonly member 'Dispose' from a 'readonly' member results in an implicit copy of 'this'.
+                // (13,16): warning CS8655: Call to non-readonly member 'S1.Dispose()' from a 'readonly' member results in an implicit copy of 'this'.
                 //         using (this) { } // should warn
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("Dispose", "this").WithLocation(13, 16));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S1.Dispose()", "this").WithLocation(13, 16));
         }
 
         [Fact]
@@ -1562,9 +1572,9 @@ public struct S2
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (11,22): warning CS8655: Call to non-readonly member 'Deconstruct' from a 'readonly' member results in an implicit copy of 'this'.
+                // (11,22): warning CS8655: Call to non-readonly member 'S1.Deconstruct(out int, out int)' from a 'readonly' member results in an implicit copy of 'this'.
                 //         var (x, y) = this; // should warn
-                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("Deconstruct", "this").WithLocation(11, 22));
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "this").WithArguments("S1.Deconstruct(out int, out int)", "this").WithLocation(11, 22));
         }
 
         [Fact]
@@ -1758,13 +1768,23 @@ public struct S3
 public struct S4
 {
     // error
-    public readonly int this[int i]
+    public int this[int i]
     {
         readonly get { return i; }
     }
 }
 
 public struct S5
+{
+    // error
+    public readonly int this[int i]
+    {
+        readonly get { return i; }
+        set { }
+    }
+}
+
+public struct S6
 {
     // error
     public static readonly int this[int i] => i;
@@ -1775,12 +1795,15 @@ public struct S5
                 // (21,16): error CS8660: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S3.this[int]'. Instead, put a 'readonly' modifier on the property itself.
                 //     public int this[int i]
                 Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "this").WithArguments("S3.this[int]").WithLocation(21, 16),
-                // (33,18): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S4.this[int]' and its accessor. Remove one of them.
+                // (31,16): error CS8663: 'S4.this[int]': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                //     public int this[int i]
+                Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "this").WithArguments("S4.this[int]").WithLocation(31, 16),
+                // (42,18): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S5.this[int]' and its accessor. Remove one of them.
                 //         readonly get { return i; }
-                Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S4.this[int]").WithLocation(33, 18),
-                // (40,32): error CS0106: The modifier 'static' is not valid for this item
+                Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S5.this[int]").WithLocation(42, 18),
+                // (50,32): error CS0106: The modifier 'static' is not valid for this item
                 //     public static readonly int this[int i] => i;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(40, 32));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(50, 32));
         }
 
         [Fact]
@@ -1838,7 +1861,7 @@ public struct S1
 ";
             var comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics(
-                // (6,52): error CS8656: Static member 'S1.E' cannot be marked 'readonly' because readonly members cannot modify 'this' and static members do not have a 'this' parameter.
+                // (6,52): error CS8656: Static member 'S1.E' cannot be marked 'readonly'.
                 //     public static readonly event Action<EventArgs> E
                 Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "E").WithArguments("S1.E").WithLocation(6, 52));
         }
@@ -1879,11 +1902,11 @@ public struct S
     public readonly void M() {}
 
     public readonly int P1 => 42;
-    public int P2 { readonly get => 123; }
-    public int P3 { readonly set {} }
+    public int P2 { readonly get => 123; set {} }
+    public int P3 { get => 123; readonly set {} }
 
     public readonly int this[int i] => i;
-    public int this[int i, int j] { readonly get => i + j; }
+    public int this[int i, int j] { readonly get => i + j; set {} }
 
     public readonly event Action<EventArgs> E { add {} remove {} }
 }
@@ -1891,22 +1914,22 @@ public struct S
             var comp = CreateCompilation(csharp, parseOptions: TestOptions.Regular7_3);
             comp.VerifyDiagnostics(
                 // (6,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public readonly void M1() {}
+                //     public readonly void M() {}
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(6, 12),
                 // (8,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public readonly int P1 => 42;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(8, 12),
                 // (9,21): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public int P2 { readonly get => 123; }
+                //     public int P2 { readonly get => 123; set {} }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(9, 21),
-                // (10,21): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public int P3 { readonly set {} }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(10, 21),
+                // (10,33): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int P3 { get => 123; readonly set {} }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(10, 33),
                 // (12,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public readonly int this[int i] => i;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(12, 12),
                 // (13,37): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //     public int this[int i, int j] { readonly get => i + j; }
+                //     public int this[int i, int j] { readonly get => i + j; set {} }
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "readonly").WithArguments("readonly members").WithLocation(13, 37),
                 // (15,12): error CS8652: The feature 'readonly members' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //     public readonly event Action<EventArgs> E { add {} remove {} }
@@ -1914,6 +1937,47 @@ public struct S
 
             comp = CreateCompilation(csharp);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ReadOnlyMethod_CompoundPropertyAssignment()
+        {
+            var csharp = @"
+struct S
+{
+    int P1 { get => 123; set {} }
+    int P2 { readonly get => 123; set {} }
+    int P3 { get => 123; readonly set {} }
+    readonly int P4 { get => 123; set {} }
+
+    void M1()
+    {
+        // ok
+        P1 += 1;
+        P2 += 1;
+        P3 += 1;
+        P4 += 1;
+    }
+
+    readonly void M2()
+    {
+        P1 += 1; // error
+        P2 += 1; // error
+        P3 += 1; // warning
+        P4 += 1; // ok
+    }
+}";
+            var comp = CreateCompilation(csharp);
+            comp.VerifyDiagnostics(
+                // (20,9): error CS1604: Cannot assign to 'P1' because it is read-only
+                //         P1 += 1; // error
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P1").WithArguments("P1").WithLocation(20, 9),
+                // (21,9): error CS1604: Cannot assign to 'P2' because it is read-only
+                //         P2 += 1; // error
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "P2").WithArguments("P2").WithLocation(21, 9),
+                // (22,9): warning CS8655: Call to non-readonly member 'S.P3.get' from a 'readonly' member results in an implicit copy of 'this'.
+                //         P3 += 1; // warning
+                Diagnostic(ErrorCode.WRN_ImplicitCopyInReadOnlyMember, "P3").WithArguments("S.P3.get", "this").WithLocation(22, 9));
         }
     }
 }
