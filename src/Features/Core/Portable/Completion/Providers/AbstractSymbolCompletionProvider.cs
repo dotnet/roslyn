@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (symbolGroup.Any(s => ShouldIncludeInTargetTypedCompletionList(s, inferredTypes, context.SemanticModel, context.Position)))
                 {
-                    item = item.AddTag("MatchingType");
+                    item = item.AddTag(WellKnownTags.MatchingType);
                 }
 
                 itemListBuilder.Add(item);
