@@ -9010,7 +9010,7 @@ class C1
 }
 ";
             CreateCompilation(text).
-                VerifyDiagnostics(                
+                VerifyDiagnostics(
                     // (7,30): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
                     //         int[] arr4 = new int[x];// Invalid
                     Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("double", "int").WithLocation(7, 30),
