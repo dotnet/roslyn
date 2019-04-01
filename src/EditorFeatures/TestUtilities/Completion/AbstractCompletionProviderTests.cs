@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <summary>
         /// Override this to change parameters or return without verifying anything, e.g. for script sources. Or to test in other code contexts.
         /// </summary>
-        /// <param name="codeBeforeCommit">The source code or markup.</param>
+        /// <param name="codeBeforeCommit">The source code (not markup).</param>
         /// <param name="position">Position where intellisense is invoked.</param>
         /// <param name="itemToCommit">The item to commit from the completion provider.</param>
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         /// <summary>
         /// Override this to change parameters or return without verifying anything, e.g. for script sources. Or to test in other code contexts.
         /// </summary>
-        /// <param name="codeBeforeCommit">The source code or markup.</param>
+        /// <param name="codeBeforeCommit">The source code (not markup).</param>
         /// <param name="position">Position where intellisense is invoked.</param>
         /// <param name="itemToCommit">The item to commit from the completion provider.</param>
         /// <param name="expectedCodeAfterCommit">The expected code after commit.</param>
