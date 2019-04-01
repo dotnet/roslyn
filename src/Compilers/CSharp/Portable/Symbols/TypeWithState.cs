@@ -16,14 +16,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool MayBeNull => State == NullableFlowState.MaybeNull;
         public bool IsNotNull => State == NullableFlowState.NotNull;
 
-        public static bool CanContainNull(TypeSymbol type)
+        private static bool CanContainNull(TypeSymbol type)
         {
             return type is null || !type.IsValueType || type.IsNullableTypeOrTypeParameter();
         }
 
-        public static TypeWithState ForType(TypeSymbol type) => new TypeWithState(type, CanContainNull(type) ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
+        public static TypeWithState ForType(TypeSymbol type)
+        {
+            var state = CanContainNull(type) ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+            return new TypeWithState(type, state);
+        }
 
-        public TypeWithState(TypeSymbol type, NullableFlowState state)
+        public static TypeWithState Create(TypeSymbol type, NullableFlowState defaultState)
+        {
+            var state = defaultState == NullableFlowState.MaybeNull && CanContainNull(type) ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+            return new TypeWithState(type, state);
+        }
+
+        private TypeWithState(TypeSymbol type, NullableFlowState state)
         {
             Debug.Assert(state == NullableFlowState.NotNull || CanContainNull(type));
             Type = type;
