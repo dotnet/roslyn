@@ -21,28 +21,30 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
 {
-    public abstract class AbstractToggleBlockCommentTestBase
+    public abstract class AbstractToggleCommentTestBase
     {
-        abstract internal ToggleBlockCommentCommandHandler GetToggleBlockCommentCommandHandler(TestWorkspace workspace);
+        abstract internal AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace);
 
-        protected void ToggleBlockComment(string markup, string expected)
+        protected void ToggleComment(string markup, string expected, bool vbWorkspace = false)
         {
-            ToggleBlockCommentMultiple(markup, new string[] { expected });
+            ToggleCommentMultiple(markup, new string[] { expected }, vbWorkspace);
         }
 
-        protected void ToggleBlockCommentMultiple(string markup, string[] expectedText)
+        protected void ToggleCommentMultiple(string markup, string[] expectedText, bool vbWorkspace = false)
         {
             var exportProvider = ExportProviderCache
-                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(MockToggleBlockCommentExperimentationService)))
+                .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithPart(typeof(MockToggleCommentExperimentationService)))
                 .CreateExportProvider();
 
-            using (var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider))
+            using (var workspace = vbWorkspace
+                ? TestWorkspace.CreateVisualBasic(markup, exportProvider: exportProvider)
+                : TestWorkspace.CreateCSharp(markup, exportProvider: exportProvider))
             {
 
                 var doc = workspace.Documents.First();
                 SetupSelection(doc.GetTextView(), doc.SelectedSpans.Select(s => Span.FromBounds(s.Start, s.End)));
 
-                var commandHandler = GetToggleBlockCommentCommandHandler(workspace);
+                var commandHandler = GetToggleCommentCommandHandler(workspace);
                 var textView = doc.GetTextView();
                 var textBuffer = doc.GetTextBuffer();
 
@@ -84,11 +86,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
         }
 
         [ExportWorkspaceService(typeof(IExperimentationService), WorkspaceKind.Test), Shared]
-        private class MockToggleBlockCommentExperimentationService : IExperimentationService
+        private class MockToggleCommentExperimentationService : IExperimentationService
         {
             public bool IsExperimentEnabled(string experimentName)
             {
-                return WellKnownExperimentNames.RoslynToggleBlockComment.Equals(experimentName);
+                return WellKnownExperimentNames.RoslynToggleBlockComment.Equals(experimentName)
+                    || WellKnownExperimentNames.RoslynToggleLineComment.Equals(experimentName);
             }
         }
     }

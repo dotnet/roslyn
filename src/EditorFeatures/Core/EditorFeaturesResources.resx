@@ -895,4 +895,10 @@ Do you want to proceed?</value>
   <data name="Toggling_block_comment" xml:space="preserve">
     <value>Toggling block comment...</value>
   </data>
+  <data name="Toggle_Line_Comment" xml:space="preserve">
+    <value>Toggle Line Comment</value>
+  </data>
+  <data name="Toggling_line_comment" xml:space="preserve">
+    <value>Toggling line comment...</value>
+  </data>
 </root>

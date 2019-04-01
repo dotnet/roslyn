@@ -8,11 +8,12 @@ using Roslyn.Test.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 using Xunit;
 using System.Linq;
+using System;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
 {
     [UseExportProvider]
-    public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleBlockCommentTestBase
+    public class CSharpToggleBlockCommentCommandHandlerTests : AbstractToggleCommentTestBase
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
         public void AddComment_CommentMarkerStringBeforeSelection()
@@ -40,7 +41,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -73,7 +74,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -102,7 +103,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -131,7 +132,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -160,7 +161,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -191,7 +192,7 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ToggleBlockComment)]
@@ -216,12 +217,12 @@ class C
     }
 }";
 
-            ToggleBlockComment(markup, expected);
+            ToggleComment(markup, expected);
         }
 
-        internal override ToggleBlockCommentCommandHandler GetToggleBlockCommentCommandHandler(TestWorkspace workspace)
+        internal override AbstractCommentSelectionBase<ValueTuple> GetToggleCommentCommandHandler(TestWorkspace workspace)
         {
-            return (ToggleBlockCommentCommandHandler)workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>()
+            return (AbstractCommentSelectionBase<ValueTuple>)workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>()
                 .First(export => typeof(CSharpToggleBlockCommentCommandHandler).Equals(export.GetType()));
         }
     }
