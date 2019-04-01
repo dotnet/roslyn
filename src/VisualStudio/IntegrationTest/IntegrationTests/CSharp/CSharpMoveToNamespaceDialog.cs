@@ -55,6 +55,39 @@ namespace A
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
+        public void VerifyCancellationWithChange()
+        {
+            SetUpEditor(
+@"
+namespace A
+{
+    class C$$
+    {
+    }
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Move to namespace...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            MoveToNamespaceDialog.VerifyOpen();
+            MoveToNamespaceDialog.SetNamespace("B");
+            MoveToNamespaceDialog.ClickCancel();
+            MoveToNamespaceDialog.VerifyClosed();
+
+            VisualStudio.Editor.Verify.TextContains(
+@"
+namespace A
+{
+    class C
+    {
+    }
+}
+");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
         public void VerifyOkNoChange()
         {
             SetUpEditor(
@@ -85,4 +118,36 @@ namespace A
 }
 ");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveToNamespace)]
+        public void VerifyOkWithChange()
+        {
+            SetUpEditor(
+@"namespace A
+{
+    class C$$
+    {
+    }
+}
+");
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeAction("Move to namespace...",
+                applyFix: true,
+                blockUntilComplete: false);
+
+            MoveToNamespaceDialog.VerifyOpen();
+            MoveToNamespaceDialog.SetNamespace("B");
+            MoveToNamespaceDialog.ClickOK();
+            MoveToNamespaceDialog.VerifyClosed();
+
+            VisualStudio.Editor.Verify.TextContains(
+@"namespace B
+{
+    class C
+    {
+    }
+}
+");
+        }
+    }
 }

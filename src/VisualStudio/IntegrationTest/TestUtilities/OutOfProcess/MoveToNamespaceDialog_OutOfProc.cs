@@ -56,6 +56,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             return true;
         }
 
+        public void SetNamespace(string @namespace)
+        {
+            DialogHelpers.SetElementValue(GetMainWindowHWnd(), MoveToNamespaceDialogId, "NamespaceBox", @namespace);
+        }
+
         /// <summary>
         /// Clicks the "OK" button and waits for the Move To Namespace operation to complete.
         /// </summary>
