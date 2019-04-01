@@ -285,5 +285,6 @@ namespace Analyzer.Utilities
         public const string SystemDataDataSet = "System.Data.DataSet";
         public const string SystemXmlXmlReader = "System.Xml.XmlReader";
         public const string SystemXmlSerializationXmlSerializer = "System.Xml.Serialization.XmlSerializer";
+        public const string SystemXmlXmlValidatingReader = "System.Xml.XmlValidatingReader";
     }
 }
