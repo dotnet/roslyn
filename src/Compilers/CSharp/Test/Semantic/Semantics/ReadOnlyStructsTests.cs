@@ -1768,6 +1768,15 @@ public struct S3
 public struct S4
 {
     // error
+    public int this[int i]
+    {
+        readonly get { return i; }
+    }
+}
+
+public struct S5
+{
+    // error
     public readonly int this[int i]
     {
         readonly get { return i; }
@@ -1775,7 +1784,7 @@ public struct S4
     }
 }
 
-public struct S5
+public struct S6
 {
     // error
     public static readonly int this[int i] => i;
@@ -1786,12 +1795,15 @@ public struct S5
                 // (21,16): error CS8660: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S3.this[int]'. Instead, put a 'readonly' modifier on the property itself.
                 //     public int this[int i]
                 Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "this").WithArguments("S3.this[int]").WithLocation(21, 16),
-                // (33,18): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S4.this[int]' and its accessor. Remove one of them.
+                // (31,16): error CS8663: 'S4.this[int]': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                //     public int this[int i]
+                Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "this").WithArguments("S4.this[int]").WithLocation(31, 16),
+                // (42,18): error CS8659: Cannot specify 'readonly' modifiers on both property or indexer 'S5.this[int]' and its accessor. Remove one of them.
                 //         readonly get { return i; }
-                Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S4.this[int]").WithLocation(33, 18),
-                // (41,32): error CS0106: The modifier 'static' is not valid for this item
+                Diagnostic(ErrorCode.ERR_InvalidPropertyReadOnlyMods, "get").WithArguments("S5.this[int]").WithLocation(42, 18),
+                // (50,32): error CS0106: The modifier 'static' is not valid for this item
                 //     public static readonly int this[int i] => i;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(41, 32));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(50, 32));
         }
 
         [Fact]
