@@ -4155,7 +4155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return resultType;
 
             static NullableFlowState getTargetStateFromOperand(TypeWithState operandType, TypeSymbol targetType) =>
-                (operandType.State == NullableFlowState.MaybeNull && (!targetType.IsValueType || targetType.IsNullableTypeOrTypeParameter())) ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
+                (operandType.State == NullableFlowState.MaybeNull && TypeWithState.CanContainNull(targetType)) ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
         }
 
         private TypeWithState ApplyUserDefinedConversion(

@@ -15,17 +15,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool HasNullType => Type is null;
         public bool MayBeNull => State == NullableFlowState.MaybeNull;
         public bool IsNotNull => State == NullableFlowState.NotNull;
-        public static TypeWithState ForType(TypeSymbol type) => new TypeWithState(type, type?.CanContainNull() == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
+
+        public static bool CanContainNull(TypeSymbol type)
+        {
+            return type is null || !type.IsValueType || type.IsNullableTypeOrTypeParameter();
+        }
+
+        public static TypeWithState ForType(TypeSymbol type) => new TypeWithState(type, CanContainNull(type) ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
+
         public TypeWithState(TypeSymbol type, NullableFlowState state)
         {
-            Debug.Assert(state == NullableFlowState.NotNull || type is null || !type.IsValueType || type.IsNullableTypeOrTypeParameter());
+            Debug.Assert(state == NullableFlowState.NotNull || CanContainNull(type));
             Type = type;
             State = state;
         }
+
         public void Deconstruct(out TypeSymbol type, out NullableFlowState state) => (type, state) = (Type, State);
+
         public string GetDebuggerDisplay() => $"{{Type:{Type?.GetDebuggerDisplay()}, State:{State}{"}"}";
+
         public override string ToString() => GetDebuggerDisplay();
+
         public TypeWithState WithNotNullState() => new TypeWithState(Type, NullableFlowState.NotNull);
+
         public TypeWithAnnotations ToTypeWithAnnotations()
         {
             NullableAnnotation annotation = this.State.IsNotNull() || Type?.CanContainNull() == false || Type?.IsTypeParameterDisallowingAnnotation() == true
