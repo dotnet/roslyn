@@ -49,6 +49,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         public VSCommanding.CommandState GetCommandState(ToggleBlockCommentCommandArgs args)
         {
+            if (Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out var workspace))
+            {
+                var experimentationService = workspace.Services.GetRequiredService<IExperimentationService>();
+                if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynToggleBlockComment))
+                {
+                    return VSCommanding.CommandState.Unspecified;
+                }
+            }
             return GetCommandState(args.SubjectBuffer);
         }
 
