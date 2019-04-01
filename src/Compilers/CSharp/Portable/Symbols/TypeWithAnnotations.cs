@@ -678,20 +678,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Type.GetHashCode();
         }
 
-#pragma warning disable CS0809
-        [Obsolete("Unsupported", error: true)]
+        /// <summary>
+        /// Used by the generated <see cref="BoundTypeExpression.Update"/>.
+        /// </summary>
         public static bool operator ==(TypeWithAnnotations? x, TypeWithAnnotations? y)
-#pragma warning restore CS0809
         {
-            throw ExceptionUtilities.Unreachable;
+            return x.HasValue == y.HasValue && (!x.HasValue || x.GetValueOrDefault().IsSameAs(y.GetValueOrDefault()));
         }
 
-#pragma warning disable CS0809
-        [Obsolete("Unsupported", error: true)]
+        /// <summary>
+        /// Used by the generated <see cref="BoundTypeExpression.Update"/>.
+        /// </summary>
         public static bool operator !=(TypeWithAnnotations? x, TypeWithAnnotations? y)
-#pragma warning restore CS0809
         {
-            throw ExceptionUtilities.Unreachable;
+            return !(x == y);
         }
 
         // Field-wise ReferenceEquals.

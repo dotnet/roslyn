@@ -8892,6 +8892,7 @@ tryAgain:
             Range,
             Additive,
             Mutiplicative,
+            Switch,
             Unary,
             Cast,
             PointerIndirection,
@@ -8938,8 +8939,9 @@ tryAgain:
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
                 case SyntaxKind.IsPatternExpression:
-                case SyntaxKind.SwitchExpression:
                     return Precedence.Relational;
+                case SyntaxKind.SwitchExpression:
+                    return Precedence.Switch;
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
                     return Precedence.Shift;
@@ -9409,7 +9411,7 @@ tryAgain:
                     expr = _syntaxFactory.ThisExpression(this.EatToken());
                     break;
                 case SyntaxKind.BaseKeyword:
-                    expr = _syntaxFactory.BaseExpression(this.EatToken());
+                    expr = ParseBaseExpression();
                     break;
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.FalseKeyword:
@@ -9467,6 +9469,24 @@ tryAgain:
             }
 
             return this.ParsePostFixExpression(expr);
+        }
+
+        private ExpressionSyntax ParseBaseExpression()
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.BaseKeyword);
+
+            SyntaxToken baseKeyword = this.EatToken();
+            BaseExpressionTypeClauseSyntax typeClause = null;
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                var openParen = CheckFeatureAvailability(this.EatToken(SyntaxKind.OpenParenToken), MessageID.IDS_BaseTypeInBaseExpression);
+                var type = this.ParseType();
+                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+                typeClause = _syntaxFactory.BaseExpressionTypeClause(openParen, type, closeParen);
+            }
+
+            return _syntaxFactory.BaseExpression(baseKeyword, typeClause);
         }
 
         /// <summary>
