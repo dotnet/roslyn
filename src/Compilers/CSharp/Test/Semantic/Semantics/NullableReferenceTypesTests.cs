@@ -46584,6 +46584,60 @@ class Program
                 );
         }
 
+        [Fact]
+        [WorkItem(31395, "https://github.com/dotnet/roslyn/issues/31395")]
+        public void NestedAssignment()
+        {
+            var source =
+@"class C
+{
+    internal C? F;
+    internal C G = null!;
+}
+class Program
+{
+    static void F1()
+    {
+        var x1 = new C() { F = new C(), G = null }; // 1
+        var y1 = new C() { F = x1, G = (x1 = new C()) };
+        y1.F.F.ToString();
+        y1.F.G.ToString(); // 1
+        y1.G.F.ToString(); // 2
+        y1.G.G.ToString();
+    }
+    static void F2()
+    {
+        var x2 = new C() { F = new C(), G = null }; // 3
+        var y2 = new C() { G = x2, F = (x2 = new C()) };
+        y2.F.F.ToString(); // 4
+        y2.F.G.ToString();
+        y2.G.F.ToString();
+        y2.G.G.ToString(); // 5
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            // https://github.com/dotnet/roslyn/issues/31395: Nullability of class members should be copied on assignment.
+            comp.VerifyDiagnostics(
+                // (10,45): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         var x1 = new C() { F = new C(), G = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 45),
+                // (12,9): warning CS8602: Dereference of a possibly null reference.
+                //         y1.F.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1.F.F").WithLocation(12, 9),
+                // (14,9): warning CS8602: Dereference of a possibly null reference.
+                //         y1.G.F.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y1.G.F").WithLocation(14, 9),
+                // (19,45): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         var x2 = new C() { F = new C(), G = null }; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(19, 45),
+                // (21,9): warning CS8602: Dereference of a possibly null reference.
+                //         y2.F.F.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2.F.F").WithLocation(21, 9),
+                // (23,9): warning CS8602: Dereference of a possibly null reference.
+                //         y2.G.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2.G.F").WithLocation(23, 9));
+        }
+
         [Fact, WorkItem(33526, "https://github.com/dotnet/roslyn/issues/33526")]
         public void ConditionalAccessIsAPureTest()
         {
@@ -53550,6 +53604,48 @@ class Program
                 // (15,9): warning CS8602: Dereference of a possibly null reference.
                 //         ((S)u.Value.Item2).G.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((S)u.Value.Item2).G").WithLocation(15, 9));
+        }
+
+        [Fact]
+        public void Conversions_NullableConversions_04()
+        {
+            var source =
+@"struct S
+{
+    internal object? F;
+    internal object G;
+}
+class Program
+{
+    static void F1(string x1)
+    {
+        S y1 = new S() { F = 1, G = null }; // 1
+        (object, S)? t1 = (x1, y1);
+        t1.Value.Item2.F.ToString();
+        t1.Value.Item2.G.ToString(); // 2
+    }
+    static void F2(string x2)
+    {
+        S y2 = new S() { F = 1, G = null }; // 3
+        var t2 = ((object, S)?)(x2, y2);
+        t2.Value.Item2.F.ToString();
+        t2.Value.Item2.G.ToString(); // 4
+    }
+}";
+            var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
+            comp.VerifyDiagnostics(
+                // (10,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         S y1 = new S() { F = 1, G = null }; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 37),
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         t1.Value.Item2.G.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1.Value.Item2.G").WithLocation(13, 9),
+                // (17,37): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         S y2 = new S() { F = 1, G = null }; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(17, 37),
+                // (20,9): warning CS8602: Dereference of a possibly null reference.
+                //         t2.Value.Item2.G.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t2.Value.Item2.G").WithLocation(20, 9));
         }
 
         [Fact]
@@ -82150,7 +82246,6 @@ class Program
         y.Value.F.ToString(); // ok
     }
 }
-
 ";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
@@ -82190,7 +82285,6 @@ class Program
         z.Value.F.ToString(); // warning 2
     }
 }
-
 ";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
@@ -82236,7 +82330,6 @@ class Program
         z.Value.F.ToString(); // warning 2
     }
 }
-
 ";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics(
@@ -82248,8 +82341,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Value.F").WithLocation(17, 9),
                 // (20,9): warning CS8602: Dereference of a possibly null reference.
                 //         z.Value.F.ToString(); // warning 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.Value.F").WithLocation(20, 9)
-);
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z.Value.F").WithLocation(20, 9));
         }
 
         [Fact]
