@@ -354,7 +354,7 @@ class Bar : IGoo
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" LanguageVersion=""Preview"">
         <Document FilePath=""Test2.cs"">
-interface IGoo
+public interface IGoo
 {
     internal void Goo1() {}
     internal int Prop1 { get => 0; }
@@ -390,7 +390,7 @@ interface IBar : IGoo
     </Project>
     <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"" LanguageVersion=""Preview"">
         <Document FilePath=""Test2.cs"">
-interface IGoo
+public interface IGoo
 {
     internal void Goo1() {}
     internal int Prop1 { get => 0; }
