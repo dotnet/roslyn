@@ -161,6 +161,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             }
 
             // The move service expects a single position, not a full selection
+            // See https://github.com/dotnet/roslyn/issues/34643
             var moveSpan = new TextSpan(container.FullSpan.Start, 0);
 
             var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(
@@ -172,7 +173,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             var modifiedDocument = modifiedSolution.GetDocument(document.Id);
             var syntaxRoot = await modifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).FirstOrDefault();
+            var syntaxNode = syntaxRoot.GetAnnotatedNodes(AbstractMoveTypeService.NamespaceScopeMovedAnnotation).SingleOrDefault();
             if (syntaxNode == null)
             {
                 syntaxNode = container.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
