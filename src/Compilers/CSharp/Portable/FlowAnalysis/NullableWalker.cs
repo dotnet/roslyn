@@ -4013,7 +4013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         canConvertNestedNullability = conversion.Exists;
                     }
 
-                    resultState = operandType.State;
+                    resultState = getTargetStateFromOperand(operandType, targetType);
                     break;
 
                 case ConversionKind.ImplicitNullable:
