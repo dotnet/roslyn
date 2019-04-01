@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAltInterpolatedVerbatimString_CSharp73()
         {
             UsingExpression(@"@$""hello""", TestOptions.Regular7_3,
-                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version 8.0 or greater.
+                // (1,1): error CS8401: To use '@$' instead of '$@' for an interpolated verbatim string, please use language version 'preview' or greater.
                 // @$"hello"
-                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("8.0").WithLocation(1, 1)
+                Diagnostic(ErrorCode.ERR_AltInterpolatedVerbatimStringsNotAvailable, @"@$""").WithArguments("preview").WithLocation(1, 1)
                 );
 
             N(SyntaxKind.InterpolatedStringExpression);
@@ -4379,6 +4379,156 @@ select t";
                 // (1,6): error CS1733: Expected expression
                 // c?..b
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 6));
+        }
+
+        [Fact]
+        public void BaseExpression_01()
+        {
+            UsingExpression("base");
+            N(SyntaxKind.BaseExpression);
+            {
+                N(SyntaxKind.BaseKeyword);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BaseExpression_02()
+        {
+            UsingExpression("base(",
+                // (1,6): error CS1031: Type expected
+                // base(
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 6),
+                // (1,6): error CS1026: ) expected
+                // base(
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 6)
+                );
+            N(SyntaxKind.BaseExpression);
+            {
+                N(SyntaxKind.BaseKeyword);
+                N(SyntaxKind.BaseExpressionTypeClause);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BaseExpression_03()
+        {
+            UsingExpression("base()",
+                // (1,6): error CS1031: Type expected
+                // base()
+                Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(1, 6)
+                );
+            N(SyntaxKind.BaseExpression);
+            {
+                N(SyntaxKind.BaseKeyword);
+                N(SyntaxKind.BaseExpressionTypeClause);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BaseExpression_04()
+        {
+            UsingExpression("base(SomeType",
+                // (1,14): error CS1026: ) expected
+                // base(SomeType
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 14)
+                );
+            N(SyntaxKind.BaseExpression);
+            {
+                N(SyntaxKind.BaseKeyword);
+                N(SyntaxKind.BaseExpressionTypeClause);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "SomeType");
+                    }
+                    M(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BaseExpression_05()
+        {
+            UsingExpression("base(SomeType)");
+            N(SyntaxKind.BaseExpression);
+            {
+                N(SyntaxKind.BaseKeyword);
+                N(SyntaxKind.BaseExpressionTypeClause);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "SomeType");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BaseExpression_06()
+        {
+            UsingExpression("base(object)");
+            N(SyntaxKind.BaseExpression);
+            {
+                N(SyntaxKind.BaseKeyword);
+                N(SyntaxKind.BaseExpressionTypeClause);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.PredefinedType);
+                    {
+                        N(SyntaxKind.ObjectKeyword);
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void BaseExpression_07()
+        {
+            UsingExpression("base(SomeType)", TestOptions.Regular7_3,
+                // (1,5): error CS8652: The feature 'specifying base type in base expression' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // base(SomeType)
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(").WithArguments("specifying base type in base expression").WithLocation(1, 5)
+                );
+            N(SyntaxKind.BaseExpression);
+            {
+                N(SyntaxKind.BaseKeyword);
+                N(SyntaxKind.BaseExpressionTypeClause);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "SomeType");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+            }
+            EOF();
         }
     }
 }

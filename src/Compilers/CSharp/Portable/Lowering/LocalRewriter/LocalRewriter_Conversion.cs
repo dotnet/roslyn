@@ -353,7 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Syntax = (mg.ReceiverOpt ?? mg).Syntax;
                         var receiver = (method.IsStatic && !oldNode.IsExtensionMethod) ? _factory.Type(method.ContainingType) : mg.ReceiverOpt;
                         _factory.Syntax = oldSyntax;
-                        return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method, isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
+                        return new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: AdjustMethodForBaseInterfaceCall(receiver, method),
+                                                                   isExtensionMethod: oldNode.IsExtensionMethod, type: rewrittenType);
                     }
                 default:
                     break;

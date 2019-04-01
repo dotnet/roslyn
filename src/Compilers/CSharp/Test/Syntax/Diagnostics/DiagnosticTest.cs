@@ -301,7 +301,11 @@ class X
                         case ErrorCode.WRN_AsOperatorMayReturnNull:
                         case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
                         case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
+<<<<<<< HEAD
                         case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
+=======
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+>>>>>>> upstream/master
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

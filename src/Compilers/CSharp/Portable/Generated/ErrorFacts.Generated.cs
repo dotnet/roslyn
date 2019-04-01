@@ -222,7 +222,11 @@
                 case ErrorCode.WRN_DuplicateInterfaceWithNullabilityMismatchInBaseList:
                 case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
                 case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
+<<<<<<< HEAD
                 case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
+=======
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+>>>>>>> upstream/master
                     return true;
                 default:
                     return false;
