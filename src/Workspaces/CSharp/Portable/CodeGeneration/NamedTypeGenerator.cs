@@ -235,6 +235,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
+            if (namedType.IsReadOnly)
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
+            }
+
+            if (namedType.IsRefLikeType)
+            {
+                tokens.Add(SyntaxFactory.Token(SyntaxKind.RefKeyword));
+            }
+
             return tokens.ToSyntaxTokenList();
         }
 

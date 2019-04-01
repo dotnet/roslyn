@@ -1627,5 +1627,100 @@ End Class";
 
             await GenerateAndVerifySourceLineAsync(source, LanguageNames.VisualBasic, expected);
         }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestReadOnlyStruct()
+        {
+            var metadataSource = @"
+public readonly struct S
+{
+    public readonly int i;
+}
+";
+            var symbolName = "S";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public readonly struct [|S|]
+{{
+    public readonly int i;
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System.Runtime.CompilerServices
+
+<IsReadOnlyAttribute>
+Public Structure [|S|]
+    Public ReadOnly i As Integer
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestRefStruct()
+        {
+            var metadataSource = @"
+public ref struct S
+{
+}
+";
+            var symbolName = "S";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public ref struct [|S|]
+{{
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System
+Imports System.Runtime.CompilerServices
+
+<IsByRefLikeAttribute> <Obsolete(""Types with embedded references are not supported in this version of your compiler."", True)>
+Public Structure [|S|]
+End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestReadOnlyRefStruct()
+        {
+            var metadataSource = @"
+public readonly ref struct S
+{
+}
+";
+            var symbolName = "S";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public readonly ref struct [|S|]
+{{
+}}");
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic, $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+' {CodeAnalysisResources.InMemoryAssembly}
+#End Region
+
+Imports System
+Imports System.Runtime.CompilerServices
+
+<IsByRefLikeAttribute> <IsReadOnlyAttribute> <Obsolete(""Types with embedded references are not supported in this version of your compiler."", True)>
+Public Structure [|S|]
+End Structure");
+        }
     }
 }
