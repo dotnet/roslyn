@@ -284,5 +284,6 @@ namespace Analyzer.Utilities
         public const string SystemXmlSchemaXmlSchemaCollection = "System.Xml.Schema.XmlSchemaCollection";
         public const string SystemDataDataSet = "System.Data.DataSet";
         public const string SystemXmlXmlReader = "System.Xml.XmlReader";
+        public const string SystemXmlSerializationXmlSerializer = "System.Xml.Serialization.XmlSerializer";
     }
 }
