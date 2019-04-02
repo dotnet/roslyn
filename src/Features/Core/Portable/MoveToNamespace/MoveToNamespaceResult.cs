@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 {
     internal class MoveToNamespaceResult
     {
-        public static MoveToNamespaceResult Failed = new MoveToNamespaceResult(succeeded: false);
+        public static readonly MoveToNamespaceResult Failed = new MoveToNamespaceResult();
 
         public bool Succeeded { get; }
         public Solution UpdatedSolution { get; }
@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             Succeeded = true;
         }
 
-        private MoveToNamespaceResult(bool succeeded)
+        private MoveToNamespaceResult()
         {
-            Succeeded = succeeded;
+            Succeeded = false;
         }
     }
 }

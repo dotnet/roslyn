@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
 {
+    [UseExportProvider]
     public class MoveToNamespaceTests : AbstractMoveToNamespaceTests
     {
         private static readonly IExportProviderFactory CSharpExportProviderFactory =
