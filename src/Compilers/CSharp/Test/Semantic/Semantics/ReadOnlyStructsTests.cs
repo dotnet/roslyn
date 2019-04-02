@@ -1030,29 +1030,6 @@ public readonly struct S2
     public static int P4 { get; set; }
     public event Action<EventArgs> E { add {} remove {} }
 }
-
-public static class C
-{
-    static void M1(this S1 s1) {}
-    static void M2(this ref S1 s1) {}
-    static void M3(this in S1 s1) {}
-    static void M4(this S2 s2) {}
-    static void M5(this ref S2 s2) {}
-    static void M6(this in S2 s2) {}
-
-    static void Test()
-    {
-        var s1 = new S1();
-        s1.M1();
-        s1.M2();
-        s1.M3();
-
-        var s2 = new S2();
-        s2.M4();
-        s2.M5();
-        s2.M6();
-    }
-}
 ";
             Compilation comp = CreateCompilation(csharp);
             var s1 = (INamedTypeSymbol)comp.GetSymbolsWithName("S1").Single();
