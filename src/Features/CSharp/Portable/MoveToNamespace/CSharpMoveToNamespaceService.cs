@@ -25,5 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
 
             return GetNamespaceName(namespaceDecl);
         }
+
+        protected override bool IsContainedInNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration, int position)
+        {
+            var namespaceDeclarationStart = namespaceDeclaration.NamespaceKeyword.SpanStart;
+            var namespaceDeclarationEnd = namespaceDeclaration.OpenBraceToken.SpanStart;
+
+            return position >= namespaceDeclarationStart &&
+                position <= namespaceDeclarationEnd;
+        }
     }
 }

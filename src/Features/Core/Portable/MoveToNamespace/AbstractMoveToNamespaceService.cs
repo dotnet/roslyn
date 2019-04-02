@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
     {
         protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax syntax);
         protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax syntax);
+        protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceDeclaration, int position);
 
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
             Document document,
@@ -53,51 +54,62 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var token = root.FindToken(position);
             var node = token.Parent;
 
-            var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken: cancellationToken);
-            var symbol = symbolInfo.Symbol;
-            string @namespace = null;
+            var moveToNamespaceAnalysisResult = await TryAnalyzeNamespaceAsync(document, node, position, cancellationToken).ConfigureAwait(false);
 
-            if (symbol is INamespaceSymbol namespaceSymbol && !(node is TNamespaceDeclarationSyntax))
+            if (moveToNamespaceAnalysisResult != null)
             {
-                node = node.FirstAncestorOrSelf<SyntaxNode>(a => a is TNamespaceDeclarationSyntax);
+                return moveToNamespaceAnalysisResult;
             }
 
-            if (node is TNamespaceDeclarationSyntax declarationSyntax)
-            {
-                if (ContainsNamespaceDeclaration(node) || ContainsMultipleNamespaceInSpine(node))
-                {
-                    return MoveToNamespaceAnalysisResult.Invalid;
-                }
+            moveToNamespaceAnalysisResult = await TryAnalyzeNamedTypeAsync(document, node, cancellationToken).ConfigureAwait(false);
+            return moveToNamespaceAnalysisResult ?? MoveToNamespaceAnalysisResult.Invalid;
+        }
 
-                @namespace = GetNamespaceName(declarationSyntax);
+        private async Task<MoveToNamespaceAnalysisResult> TryAnalyzeNamespaceAsync(
+            Document document, SyntaxNode node, int position, CancellationToken cancellationToken)
+        {
+            var declarationSyntax = node.FirstAncestorOrSelf<TNamespaceDeclarationSyntax>();
+            if (declarationSyntax == default || !IsContainedInNamespaceDeclaration(declarationSyntax, position))
+            {
+                return null;
+            }
+
+            if (ContainsNamespaceDeclaration(declarationSyntax) || ContainsMultipleNamespaceInSpine(declarationSyntax))
+            {
+                return MoveToNamespaceAnalysisResult.Invalid;
+            }
+            else
+            {
+                var namespaceName = GetNamespaceName(declarationSyntax);
                 var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
-                return new MoveToNamespaceAnalysisResult(document, node, @namespace, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.Namespace);
+                return new MoveToNamespaceAnalysisResult(document, declarationSyntax, namespaceName, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.Namespace);
             }
+        }
 
-            if (symbol is INamedTypeSymbol namedTypeSymbol)
+        private async Task<MoveToNamespaceAnalysisResult> TryAnalyzeNamedTypeAsync(
+            Document document, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            // Multiple nested namespaces are currently not supported
+            if (ContainsMultipleNamespaceInSpine(node) || ContainsMultipleTypesInSpine(node))
             {
-                node = node.FirstAncestorOrSelf<SyntaxNode>(a => a is TNamedTypeDeclarationSyntax);
-                @namespace = GetQualifiedName(namedTypeSymbol.ContainingNamespace);
+                return MoveToNamespaceAnalysisResult.Invalid;
             }
 
-            if (node is TNamedTypeDeclarationSyntax namedTypeDeclarationSyntax)
+            // Get the first node of the correct type
+            var namedTypeDeclarationSyntax = node.FirstAncestorOrSelf<TNamedTypeDeclarationSyntax>();
+
+            if (namedTypeDeclarationSyntax == default)
             {
-                if (ContainsMultipleNamespaceInSpine(node))
-                {
-                    return MoveToNamespaceAnalysisResult.Invalid;
-                }
-
-                @namespace = @namespace ?? GetNamespaceName(namedTypeDeclarationSyntax);
-                var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
-                return new MoveToNamespaceAnalysisResult(document, node, @namespace, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.NamedType);
+                return null;
             }
 
-            return MoveToNamespaceAnalysisResult.Invalid;
+            var namespaceName = GetNamespaceName(namedTypeDeclarationSyntax);
+            var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
+            return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, namespaceName, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.NamedType);
         }
 
         private bool ContainsNamespaceDeclaration(SyntaxNode node)
@@ -105,6 +117,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
 
         private static bool ContainsMultipleNamespaceInSpine(SyntaxNode node)
             => node.AncestorsAndSelf().OfType<TNamespaceDeclarationSyntax>().Count() > 1;
+
+        private static bool ContainsMultipleTypesInSpine(SyntaxNode node)
+            => node.AncestorsAndSelf().OfType<TNamedTypeDeclarationSyntax>().Count() > 1;
 
         public Task<MoveToNamespaceResult> MoveToNamespaceAsync(
             MoveToNamespaceAnalysisResult analysisResult,
@@ -121,7 +136,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 case MoveToNamespaceAnalysisResult.ContainerType.Namespace:
                     return MoveItemsInNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken);
                 case MoveToNamespaceAnalysisResult.ContainerType.NamedType:
-                    return MoveTypeToNamespace(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken);
+                    return MoveTypeToNamespaceAsync(analysisResult.Document, analysisResult.SyntaxNode, targetNamespace, cancellationToken);
                 default:
                     throw new InvalidOperationException();
             }
@@ -148,7 +163,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
             return new MoveToNamespaceResult(changedSolution, document.Id);
         }
 
-        private static async Task<MoveToNamespaceResult> MoveTypeToNamespace(
+        private static async Task<MoveToNamespaceResult> MoveTypeToNamespaceAsync(
             Document document,
             SyntaxNode container,
             string targetNamespace,
