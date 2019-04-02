@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol declType = boundDeclType.Type;
             inputValEscape = GetValEscape(declType, inputValEscape);
             BindPatternDesignation(
-                node.Designation, boundDeclType.Type, inputValEscape, typeSyntax, diagnostics,
+                node.Designation, boundDeclType.TypeWithAnnotations, inputValEscape, typeSyntax, diagnostics,
                 ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar: false, inputType, hasErrors);
         }
@@ -379,14 +379,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations declType = BindType(typeSyntax, diagnostics, out AliasSymbol aliasOpt);
             Debug.Assert(declType.HasType);
             Debug.Assert(typeSyntax.Kind() != SyntaxKind.NullableType); // the syntax does not permit nullable annotations
-            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, type: declType.Type);
+            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, typeWithAnnotations: declType);
             hasErrors |= CheckValidPatternType(typeSyntax, inputType, declType.Type, patternTypeWasInSource: true, diagnostics: diagnostics);
             return boundDeclType;
         }
 
         private void BindPatternDesignation(
             VariableDesignationSyntax designation,
-            TypeSymbol declType,
+            TypeWithAnnotations declType,
             uint inputValEscape,
             TypeSyntax typeSyntax,
             DiagnosticBag diagnostics,
@@ -405,18 +405,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((InConstructorInitializer || InFieldInitializer) && ContainingMemberOrLambda.ContainingSymbol.Kind == SymbolKind.NamedType)
                             CheckFeatureAvailability(designation, MessageID.IDS_FeatureExpressionVariablesInQueriesAndInitializers, diagnostics);
 
-                        localSymbol.SetTypeWithAnnotations(TypeWithAnnotations.Create(declType));
-                        localSymbol.SetValEscape(GetValEscape(declType, inputValEscape));
+                        localSymbol.SetTypeWithAnnotations(declType);
+                        localSymbol.SetValEscape(GetValEscape(declType.Type, inputValEscape));
 
                         // Check for variable declaration errors.
                         hasErrors |= localSymbol.ScopeBinder.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
                         if (!hasErrors)
-                            hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType, diagnostics, typeSyntax ?? (SyntaxNode)designation);
+                            hasErrors = CheckRestrictedTypeInAsync(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax ?? (SyntaxNode)designation);
 
                         variableSymbol = localSymbol;
                         variableAccess = new BoundLocal(
-                            syntax: designation, localSymbol: localSymbol, constantValueOpt: null, type: declType);
+                            syntax: designation, localSymbol: localSymbol, constantValueOpt: null, type: declType.Type);
                         return;
                     }
                     else
@@ -425,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(designation.SyntaxTree.Options.Kind != SourceCodeKind.Regular);
                         GlobalExpressionVariable expressionVariableField = LookupDeclaredField(singleVariableDesignation);
                         DiagnosticBag tempDiagnostics = DiagnosticBag.GetInstance();
-                        expressionVariableField.SetTypeWithAnnotations(TypeWithAnnotations.Create(declType), tempDiagnostics);
+                        expressionVariableField.SetTypeWithAnnotations(declType, tempDiagnostics);
                         tempDiagnostics.Free();
                         BoundExpression receiver = SynthesizeReceiver(designation, expressionVariableField, diagnostics);
 
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return type.IsRefLikeType ? possibleValEscape : Binder.ExternalScope;
         }
 
-        TypeSymbol BindRecursivePatternType(
+        TypeWithAnnotations BindRecursivePatternType(
             TypeSyntax typeSyntax,
             TypeSymbol inputType,
             DiagnosticBag diagnostics,
@@ -464,12 +464,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (typeSyntax != null)
             {
                 boundDeclType = BindPatternType(typeSyntax, inputType, diagnostics, ref hasErrors);
-                return boundDeclType.Type;
+                return boundDeclType.TypeWithAnnotations;
             }
             else
             {
                 boundDeclType = null;
-                return inputType.StrippedType(); // remove the nullable part of the input's type
+                // remove the nullable part of the input's type; e.g. a nullable int becomes an int in a recursive pattern
+                return TypeWithAnnotations.Create(inputType.StrippedType(), NullableAnnotation.NotAnnotated);
             }
         }
 
@@ -493,7 +494,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSyntax typeSyntax = node.Type;
-            TypeSymbol declType = BindRecursivePatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
+            TypeWithAnnotations declTypeWithAnnotations = BindRecursivePatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
+            TypeSymbol declType = declTypeWithAnnotations.Type;
             inputValEscape = GetValEscape(declType, inputValEscape);
 
             MethodSymbol deconstructMethod = null;
@@ -553,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BindPatternDesignation(
-                node.Designation, declType, inputValEscape, typeSyntax, diagnostics,
+                node.Designation, declTypeWithAnnotations, inputValEscape, typeSyntax, diagnostics,
                 ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
             return new BoundRecursivePattern(
                 syntax: node, declaredType: boundDeclType, inputType: inputType, deconstructMethod: deconstructMethod,
@@ -839,10 +841,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     {
+                        var declType = TypeWithState.ForType(inputType).ToTypeWithAnnotations();
                         BindPatternDesignation(
-                            designation: node, declType: inputType, inputValEscape: inputValEscape, typeSyntax: null, diagnostics: diagnostics, hasErrors: ref hasErrors,
+                            designation: node, declType: declType, inputValEscape: inputValEscape, typeSyntax: null, diagnostics: diagnostics, hasErrors: ref hasErrors,
                             variableSymbol: out Symbol variableSymbol, variableAccess: out BoundExpression variableAccess);
-                        var boundOperandType = new BoundTypeExpression(syntax: node, aliasOpt: null, type: inputType); // fake a type expression for the variable's type
+                        var boundOperandType = new BoundTypeExpression(syntax: node, aliasOpt: null, typeWithAnnotations: declType); // fake a type expression for the variable's type
                         // We continue to use a BoundDeclarationPattern for the var pattern, as they have more in common.
                         return new BoundDeclarationPattern(
                             node.Parent.Kind() == SyntaxKind.VarPattern ? node.Parent : node, // for `var x` use whole pattern, otherwise use designation for the syntax

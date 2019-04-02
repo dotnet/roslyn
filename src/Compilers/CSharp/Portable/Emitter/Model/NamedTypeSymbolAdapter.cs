@@ -318,11 +318,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            if (this.IsInterface)
-            {
-                yield break;
-            }
-
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
 
             foreach (var member in this.GetMembers())
@@ -339,6 +334,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             yield return new Microsoft.Cci.MethodImplementation(method, moduleBeingBuilt.TranslateOverriddenMethodReference(implemented, (CSharpSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics));
                         }
+                    }
+
+                    if (this.IsInterface)
+                    {
+                        continue;
                     }
 
                     if (method.RequiresExplicitOverride())
@@ -368,6 +368,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                     }
                 }
+            }
+
+            if (this.IsInterface)
+            {
+                yield break;
             }
 
             var syntheticMethods = moduleBeingBuilt.GetSynthesizedMethods(this);

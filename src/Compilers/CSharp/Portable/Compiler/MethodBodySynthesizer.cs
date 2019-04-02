@@ -533,6 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         new BoundBaseReference(
                             syntax,
+                            explicitBaseReferenceOpt: null,
                             method.ContainingType)
                         { WasCompilerGenerated = true },
                         baseTypeFinalize))
