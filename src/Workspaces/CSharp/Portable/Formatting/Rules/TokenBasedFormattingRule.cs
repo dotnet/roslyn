@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // empty {} in pattern
             if (previousToken.Kind() == SyntaxKind.OpenBraceToken &&
                 currentToken.Kind() == SyntaxKind.CloseBraceToken &&
-                !currentToken.Parent.IsKind(SyntaxKind.Block, SyntaxKind.ArrayInitializerExpression, SyntaxKind.NamespaceDeclaration, SyntaxKind.ClassDeclaration, SyntaxKind.StructDeclaration, SyntaxKind.InterfaceDeclaration))
+                currentToken.Parent.IsKind(SyntaxKindEx.PropertyPatternClause))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
