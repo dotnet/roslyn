@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool IsDeclaredReadOnly
+        internal override bool IsDeclaredReadOnly
         {
             get
             {

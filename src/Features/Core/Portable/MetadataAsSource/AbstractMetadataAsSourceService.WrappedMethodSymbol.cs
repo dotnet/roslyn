@@ -25,9 +25,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public IMethodSymbol ConstructedFrom => _symbol.ConstructedFrom;
 
-            public bool IsDeclaredReadOnly => _symbol.IsDeclaredReadOnly;
-
-            public bool IsEffectivelyReadOnly => _symbol.IsEffectivelyReadOnly;
+            public bool IsReadOnly => _symbol.IsReadOnly;
 
             public ImmutableArray<IMethodSymbol> ExplicitInterfaceImplementations
             {

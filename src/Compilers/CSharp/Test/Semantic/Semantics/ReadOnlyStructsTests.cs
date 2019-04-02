@@ -1032,59 +1032,40 @@ public readonly struct S2
             Compilation comp = CreateCompilation(csharp);
             var s1 = (INamedTypeSymbol)comp.GetSymbolsWithName("S1").Single();
 
-            Assert.False(getMethod(s1, "M1").IsDeclaredReadOnly);
-            Assert.False(getMethod(s1, "M1").IsEffectivelyReadOnly);
+            Assert.False(getMethod(s1, "M1").IsReadOnly);
 
-            Assert.True(getMethod(s1, "M2").IsDeclaredReadOnly);
-            Assert.True(getMethod(s1, "M2").IsEffectivelyReadOnly);
+            Assert.True(getMethod(s1, "M2").IsReadOnly);
 
-            Assert.True(getProperty(s1, "P1").GetMethod.IsDeclaredReadOnly);
-            Assert.True(getProperty(s1, "P1").GetMethod.IsEffectivelyReadOnly);
-            Assert.False(getProperty(s1, "P1").SetMethod.IsDeclaredReadOnly);
-            Assert.False(getProperty(s1, "P1").SetMethod.IsEffectivelyReadOnly);
+            Assert.True(getProperty(s1, "P1").GetMethod.IsReadOnly);
+            Assert.False(getProperty(s1, "P1").SetMethod.IsReadOnly);
 
-            Assert.True(getProperty(s1, "P2").GetMethod.IsDeclaredReadOnly);
-            Assert.True(getProperty(s1, "P2").GetMethod.IsEffectivelyReadOnly);
+            Assert.True(getProperty(s1, "P2").GetMethod.IsReadOnly);
 
-            Assert.True(getProperty(s1, "P3").GetMethod.IsDeclaredReadOnly);
-            Assert.True(getProperty(s1, "P3").GetMethod.IsEffectivelyReadOnly);
+            Assert.True(getProperty(s1, "P3").GetMethod.IsReadOnly);
 
-            Assert.True(getProperty(s1, "P4").SetMethod.IsDeclaredReadOnly);
-            Assert.True(getProperty(s1, "P4").SetMethod.IsEffectivelyReadOnly);
+            Assert.True(getProperty(s1, "P4").SetMethod.IsReadOnly);
 
-            Assert.False(getProperty(s1, "P5").GetMethod.IsDeclaredReadOnly);
-            Assert.False(getProperty(s1, "P5").GetMethod.IsEffectivelyReadOnly);
-            Assert.False(getProperty(s1, "P5").SetMethod.IsDeclaredReadOnly);
-            Assert.False(getProperty(s1, "P5").SetMethod.IsEffectivelyReadOnly);
+            Assert.False(getProperty(s1, "P5").GetMethod.IsReadOnly);
+            Assert.False(getProperty(s1, "P5").SetMethod.IsReadOnly);
 
-            Assert.True(getEvent(s1, "E").AddMethod.IsDeclaredReadOnly);
-            Assert.True(getEvent(s1, "E").AddMethod.IsEffectivelyReadOnly);
+            Assert.True(getEvent(s1, "E").AddMethod.IsReadOnly);
 
-            Assert.True(getEvent(s1, "E").RemoveMethod.IsDeclaredReadOnly);
-            Assert.True(getEvent(s1, "E").RemoveMethod.IsEffectivelyReadOnly);
+            Assert.True(getEvent(s1, "E").RemoveMethod.IsReadOnly);
 
             var s2 = comp.GetMember<NamedTypeSymbol>("S2");
-            Assert.False(getMethod(s2, "M1").IsDeclaredReadOnly);
-            Assert.True(getMethod(s2, "M1").IsEffectivelyReadOnly);
+            Assert.True(getMethod(s2, "M1").IsReadOnly);
 
-            Assert.True(getProperty(s2, "P1").GetMethod.IsDeclaredReadOnly);
-            Assert.True(getProperty(s2, "P1").GetMethod.IsEffectivelyReadOnly);
+            Assert.True(getProperty(s2, "P1").GetMethod.IsReadOnly);
 
-            Assert.False(getProperty(s2, "P2").GetMethod.IsDeclaredReadOnly);
-            Assert.True(getProperty(s2, "P2").GetMethod.IsEffectivelyReadOnly);
+            Assert.True(getProperty(s2, "P2").GetMethod.IsReadOnly);
 
-            Assert.False(getProperty(s2, "P3").SetMethod.IsDeclaredReadOnly);
-            Assert.True(getProperty(s2, "P3").SetMethod.IsEffectivelyReadOnly);
+            Assert.True(getProperty(s2, "P3").SetMethod.IsReadOnly);
 
-            Assert.False(getProperty(s2, "P4").GetMethod.IsDeclaredReadOnly);
-            Assert.False(getProperty(s2, "P4").GetMethod.IsEffectivelyReadOnly);
-            Assert.False(getProperty(s2, "P4").SetMethod.IsDeclaredReadOnly);
-            Assert.False(getProperty(s2, "P4").SetMethod.IsEffectivelyReadOnly);
+            Assert.False(getProperty(s2, "P4").GetMethod.IsReadOnly);
+            Assert.False(getProperty(s2, "P4").SetMethod.IsReadOnly);
 
-            Assert.False(getEvent(s2, "E").AddMethod.IsDeclaredReadOnly);
-            Assert.True(getEvent(s2, "E").AddMethod.IsEffectivelyReadOnly);
-            Assert.False(getEvent(s2, "E").RemoveMethod.IsDeclaredReadOnly);
-            Assert.True(getEvent(s2, "E").RemoveMethod.IsEffectivelyReadOnly);
+            Assert.True(getEvent(s2, "E").AddMethod.IsReadOnly);
+            Assert.True(getEvent(s2, "E").RemoveMethod.IsReadOnly);
 
             static IMethodSymbol getMethod(INamedTypeSymbol symbol, string name) => (IMethodSymbol)symbol.GetMembers(name).Single();
             static IPropertySymbol getProperty(INamedTypeSymbol symbol, string name) => (IPropertySymbol)symbol.GetMembers(name).Single();

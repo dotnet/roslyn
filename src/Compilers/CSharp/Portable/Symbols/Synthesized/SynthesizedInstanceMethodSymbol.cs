@@ -57,6 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public override bool IsDeclaredReadOnly => false;
+        internal override bool IsDeclaredReadOnly => false;
     }
 }

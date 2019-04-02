@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsExpressionBodied => _syntax.Body == null && _syntax.ExpressionBody != null;
 
-        public override bool IsDeclaredReadOnly => false;
+        internal override bool IsDeclaredReadOnly => false;
 
         public override DllImportData GetDllImportData() => null;
 

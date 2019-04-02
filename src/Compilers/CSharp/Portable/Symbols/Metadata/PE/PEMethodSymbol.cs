@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool IsDeclaredReadOnly
+        internal override bool IsDeclaredReadOnly
         {
             get
             {

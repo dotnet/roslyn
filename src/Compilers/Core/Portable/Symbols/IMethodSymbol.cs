@@ -118,17 +118,10 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol ConstructedFrom { get; }
 
         /// <summary>
-        /// Indicates whether the method is declared readonly, i.e.
-        /// whether 'this' is readonly in the scope of the method.
-        /// See also <see cref="IsEffectivelyReadOnly"/>
+        /// Indicates whether the method is readonly, i.e.
+        /// whether 'this' is 'ref readonly' in the scope of the method.
         /// </summary>
-        bool IsDeclaredReadOnly { get; }
-
-        /// <summary>
-        /// Indicates whether the method is effectively readonly,
-        /// by either the method or the containing type being marked readonly.
-        /// </summary>
-        bool IsEffectivelyReadOnly { get; }
+        bool IsReadOnly { get; }
 
         /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another
