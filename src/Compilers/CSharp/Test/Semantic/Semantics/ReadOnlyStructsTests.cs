@@ -1149,9 +1149,15 @@ public static class C
                 var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
 
                 var symbol = (MethodSymbol)semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol;
+                var reducedFrom = symbol.ReducedFrom;
+
                 Assert.Equal(expected, symbol.IsDeclaredReadOnly);
                 Assert.Equal(expected, symbol.IsEffectivelyReadOnly);
                 Assert.Equal(expected, ((IMethodSymbol)symbol).IsReadOnly);
+
+                Assert.False(reducedFrom.IsDeclaredReadOnly);
+                Assert.False(reducedFrom.IsEffectivelyReadOnly);
+                Assert.False(((IMethodSymbol)reducedFrom).IsReadOnly);
             }
         }
 
