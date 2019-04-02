@@ -576,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Given a variable designation (typically in the left-hand-side of a deconstruction declaration statement),
         /// figure out its type by looking at the declared symbol of the corresponding variable.
         /// </summary>
-        private (ITypeSymbol Type, CodeAnalysis.NullableAnnotation annotation) TypeFromVariable(SingleVariableDesignationSyntax variableDesignation, CancellationToken cancellationToken)
+        private (ITypeSymbol Type, CodeAnalysis.NullableAnnotation Annotation) TypeFromVariable(SingleVariableDesignationSyntax variableDesignation, CancellationToken cancellationToken)
         {
             var variable = GetDeclaredSymbol(variableDesignation, cancellationToken);
 
@@ -2078,7 +2078,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return CSharpTypeInfo.None;
 
-            (TypeSymbol, NullabilityInfo) getTypeAndNullability(BoundExpression expr) => (expr.Type, expr.TopLevelNullability);
+            static (TypeSymbol, NullabilityInfo) getTypeAndNullability(BoundExpression expr) => (expr.Type, expr.TopLevelNullability);
         }
 
         // Gets the method or property group from a specific bound node.

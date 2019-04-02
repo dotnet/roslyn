@@ -22,20 +22,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static NullableFlowState Meet(this NullableFlowState a, NullableFlowState b) => (a < b) ? a : b;
 
-        internal static CodeAnalysis.NullableFlowState ToPublicFlowState(this NullableFlowState nullableFlowState) => nullableFlowState switch
-        {
-            NullableFlowState.NotNull => CodeAnalysis.NullableFlowState.NotNull,
-            NullableFlowState.MaybeNull => CodeAnalysis.NullableFlowState.MaybeNull,
-            _ => throw ExceptionUtilities.UnexpectedValue(nullableFlowState)
-        };
+#pragma warning disable IDE0055 // Fix formatting. This formatting is correct, need 16.1 for the updated formatter to not flag
+        internal static CodeAnalysis.NullableFlowState ToPublicFlowState(this CSharp.NullableFlowState nullableFlowState) =>
+            nullableFlowState switch
+            {
+                CSharp.NullableFlowState.NotNull => CodeAnalysis.NullableFlowState.NotNull,
+                CSharp.NullableFlowState.MaybeNull => CodeAnalysis.NullableFlowState.MaybeNull,
+                _ => throw ExceptionUtilities.UnexpectedValue(nullableFlowState)
+            };
 
         // PROTOTYPE(nullable-api): remove if possible
-        public static NullableFlowState ToInternalFlowState(this CodeAnalysis.NullableFlowState flowState) => flowState switch
-        {
-            CodeAnalysis.NullableFlowState.NotApplicable => NullableFlowState.NotNull,
-            CodeAnalysis.NullableFlowState.NotNull => NullableFlowState.NotNull,
-            CodeAnalysis.NullableFlowState.MaybeNull => NullableFlowState.MaybeNull,
-            _ => throw ExceptionUtilities.UnexpectedValue(flowState)
-        };
+        public static CSharp.NullableFlowState ToInternalFlowState(this CodeAnalysis.NullableFlowState flowState) =>
+            flowState switch
+            {
+                CodeAnalysis.NullableFlowState.NotApplicable => CSharp.NullableFlowState.NotNull,
+                CodeAnalysis.NullableFlowState.NotNull => CSharp.NullableFlowState.NotNull,
+                CodeAnalysis.NullableFlowState.MaybeNull => CSharp.NullableFlowState.MaybeNull,
+                _ => throw ExceptionUtilities.UnexpectedValue(flowState)
+            };
+#pragma warning restore IDE0055 // Fix formatting
     }
 }

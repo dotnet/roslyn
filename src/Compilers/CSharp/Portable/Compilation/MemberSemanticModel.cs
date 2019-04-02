@@ -1384,6 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
         {
+            // PROTOTYPE(nullable-api): Audit consumers to add rewriting. It seems that the only consumer is MethodCompiler.CompileMethod
             using (_nodeMapLock.DisposableWrite())
             {
                 GuardedAddBoundTreeForStandaloneSyntax(syntax, bound);
@@ -1435,22 +1436,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 #endif
 
-            if (EnableNullableAnalysis)
-            {
-                // PROTOTYPE(nullable-api): This doesn't work for speculative models: the root is just the statement
-                // or expression being speculated on.
-                return Root;
-            }
-
             for (CSharpSyntaxNode current = node; current != this.Root; current = current.ParentOrStructuredTriviaParent)
             {
-                switch (current)
+                if (current is StatementSyntax)
                 {
-                    case StatementSyntax _:
-                    case ConstructorInitializerSyntax _:
-                        return current;
+                    return current;
+                }
 
-                    case ArrowExpressionClauseSyntax _:
+                switch (current.Kind())
+                {
+                    case SyntaxKind.ThisConstructorInitializer:
+                    case SyntaxKind.BaseConstructorInitializer:
+                        return current;
+                    case SyntaxKind.ArrowExpressionClause:
                         // If this is an arrow expression on a local function statement, then our bindable root is actually our parent syntax as it's
                         // a statement in a function. If this is returned directly in IOperation, we'll end up with a separate tree.
                         if (current.Parent == null || current.Parent.Kind() != SyntaxKind.LocalFunctionStatement)
@@ -1533,6 +1531,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If not, bind the outermost expression containing the lambda and then fill in the map.
             ImmutableArray<BoundNode> nodes;
 
+            EnsureRootBoundForNullabilityIfNecessary();
+
             using (_nodeMapLock.DisposableRead())
             {
                 nodes = GuardedGetBoundNodesFromMap(lambdaOrQuery);
@@ -1591,6 +1591,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
+
+                // If we're here, nullable analysis must be off, or we're in an error scenario and didn't find any
+                // nodes from this binding.
+                Debug.Assert(!EnableNullableAnalysis || nodes.IsDefaultOrEmpty);
             }
 
             if (!nodes.IsDefaultOrEmpty)
@@ -1618,6 +1622,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (_nodeMapLock.DisposableWrite())
             {
                 BoundNode boundOuterExpression = this.Bind(incrementalBinder, lambdaOrQuery, _ignoredDiagnostics);
+
+                if (EnableNullableAnalysis)
+                {
+                    boundOuterExpression = RewriteNullableBoundNodes(boundOuterExpression, incrementalBinder.Conversions, _ignoredDiagnostics);
+                }
+#if DEBUG
+                else
+                {
+                    var diagnostics = new DiagnosticBag();
+                    _ = RewriteNullableBoundNodes(boundOuterExpression, incrementalBinder.Conversions, diagnostics);
+                    diagnostics.Free();
+                }
+#endif
+
                 nodes = GuardedAddBoundTreeAndGetBoundNodeFromMap(lambdaOrQuery, boundOuterExpression);
             }
 
@@ -1792,6 +1810,73 @@ done:
         }
 
         /// <summary>
+        /// If we're doing nullable analysis, we need to fully bind this member, and then run
+        /// nullable analysis on the resulting nodes before putting them in the map. Nullable
+        /// analysis does not run a subset of code, so we need to fully bind the entire member
+        /// first
+        /// </summary>
+        private void EnsureRootBoundForNullabilityIfNecessary()
+        {
+            // In DEBUG without nullable analysis enabled, we want to use a temp diagnosticbag
+            // that can't produce any observable side effects
+            DiagnosticBag diagnostics = _ignoredDiagnostics;
+
+            // If we're in DEBUG mode, always enable the analysis, but throw away the results
+            if (!EnableNullableAnalysis)
+            {
+#if DEBUG
+                diagnostics = new DiagnosticBag();
+#else
+                return;
+#endif
+            }
+
+            using var upgradeableLock = _nodeMapLock.DisposableUpgradeableRead();
+
+            if (_guardedNodeMap.ContainsKey(Root)
+#if DEBUG
+                // In DEBUG mode, we don't want to increase test run times by an insane length of
+                // time, so if nullable analysis isn't enabled and some node has already been bound
+                // we assume we've already done this test binding and just return
+                || (!EnableNullableAnalysis && _guardedNodeMap.Count > 0)
+#endif
+                )
+            {
+#if DEBUG
+                if (!EnableNullableAnalysis) diagnostics.Free();
+#endif
+
+                return;
+            }
+
+            upgradeableLock.EnterWrite();
+
+            Debug.Assert(Root == GetBindableSyntaxNode(Root));
+
+            // PROTOTYPE(nullable-api): Speculative models are going to have to do something more advanced
+            // here. They will need to run nullable analysis up to the point that is being speculated on, and
+            // then take that state and run analysis on the statement or expression being speculated on.
+            // Currently, it will return incorrect info because it's just running analysis on the speculated
+            // part.
+            var binder = GetEnclosingBinder(GetAdjustedNodePosition(Root));
+            var boundRoot = Bind(binder, Root, diagnostics);
+            boundRoot = RewriteNullableBoundNodes(boundRoot, binder.Conversions, diagnostics);
+
+            if (EnableNullableAnalysis)
+            {
+                GuardedAddBoundTreeForStandaloneSyntax(Root, boundRoot);
+            }
+#if DEBUG
+            else
+            {
+                diagnostics.Free();
+            }
+#endif
+        }
+
+        protected abstract BoundNode RewriteNullableBoundNodes(BoundNode boundRoot, Conversions conversions, DiagnosticBag diagnostics);
+
+        /// <summary>
         /// Get all bounds nodes associated with a node, ordered from highest to lowest in the bound tree.
         /// Strictly speaking, the order is that of a pre-order traversal of the bound tree.
         /// </summary>
@@ -1804,6 +1889,8 @@ done:
                 node = GetBindableSyntaxNode(Root);
             }
             Debug.Assert(node == GetBindableSyntaxNode(node));
+
+            EnsureRootBoundForNullabilityIfNecessary();
 
             // We have one SemanticModel for each method.
             //
@@ -1836,41 +1923,10 @@ done:
             var statementBinder = GetEnclosingBinder(GetAdjustedNodePosition(nodeToBind));
             Binder incrementalBinder = new IncrementalBinder(this, statementBinder);
 
-            // PROTOTYPE(nullable-api): Speculative models are going to have to do something more advanced
-            // here. They will need to run nullable analysis up to the point that is being speculated on, and
-            // then take that state and run analysis on the statement or expression being speculated on.
-            // Currently, it will return incorrect info because it's just running analysis on the speculated
-            // part.
-
-            BoundNode root;
             using (_nodeMapLock.DisposableWrite())
             {
-                root = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
-            }
-
-            if (EnableNullableAnalysis)
-            {
-                // PROTOTYPE(nullable-api): Handle other symbol types
-                if (MemberSymbol is MethodSymbol method)
-                {
-                    root = NullableWalker.AnalyzeAndRewrite(Compilation, method, root, RootBinder.Conversions, _ignoredDiagnostics);
-                }
-            }
-#if DEBUG
-            else
-            {
-                // Always rewrite in DEBUG mode and just throw the results away.
-                if (MemberSymbol is MethodSymbol method)
-                {
-                    _ = NullableWalker.AnalyzeAndRewrite(Compilation, method, Bind(incrementalBinder, Root, _ignoredDiagnostics), RootBinder.Conversions, _ignoredDiagnostics);
-                }
-            }
-#endif
-
-            using (_nodeMapLock.DisposableWrite())
-            {
-
-                results = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, root);
+                BoundNode boundStatement = this.Bind(incrementalBinder, nodeToBind, _ignoredDiagnostics);
+                results = GuardedAddBoundTreeAndGetBoundNodeFromMap(node, boundStatement);
             }
 
             if (!results.IsDefaultOrEmpty)

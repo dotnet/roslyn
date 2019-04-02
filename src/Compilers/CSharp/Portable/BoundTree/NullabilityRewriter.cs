@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -16,65 +17,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
-            return VisitBinaryOperatorBase(node, (binary, left, right, type) => node.Update(node.OperatorKind, node.ConstantValueOpt, node.MethodOpt, node.ResultKind, left, right, type));
+            return VisitBinaryOperatorBase(node);
         }
 
         public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
         {
-            return VisitBinaryOperatorBase(node, (binary, left, right, type) => node.Update(node.OperatorKind, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, left, right, type));
+            return VisitBinaryOperatorBase(node);
         }
 
-        private BoundNode VisitBinaryOperatorBase(BoundBinaryOperatorBase binaryOperator, Func<BoundBinaryOperatorBase, BoundExpression, BoundExpression, TypeSymbol, BoundBinaryOperatorBase> nodeUpdater)
+        private BoundNode VisitBinaryOperatorBase(BoundBinaryOperatorBase binaryOperator)
         {
             // Use an explicit stack to avoid blowing the managed stack when visiting deeply-recursive
             // binary nodes
             var stack = ArrayBuilder<BoundBinaryOperatorBase>.GetInstance();
-            BoundBinaryOperatorBase currentBinary;
-            BoundExpression child = binaryOperator;
+            BoundBinaryOperatorBase currentBinary = binaryOperator;
 
-            while (true)
+            do
             {
-                if (child is BoundBinaryOperatorBase childBinary)
-                {
-                    currentBinary = childBinary;
-                    child = childBinary.Left;
-                    stack.Push(currentBinary);
-                }
-                else
-                {
-                    break;
-                }
-            }
+                stack.Push(currentBinary);
+                currentBinary = currentBinary.Left as BoundBinaryOperatorBase;
+            } while (currentBinary != null);
 
             Debug.Assert(stack.Count > 0);
-            currentBinary = null;
+            var leftChild = (BoundExpression)Visit(stack.Peek().Left);
 
-            while (stack.Count > 0)
+            do
             {
-                var left = currentBinary;
                 currentBinary = stack.Pop();
-                currentBinary = updateNode(currentBinary, left, this, nodeUpdater);
-            }
 
-            Debug.Assert(currentBinary != null);
-            return currentBinary;
+                bool foundInfo = _updatedNullabilities.TryGetValue(currentBinary, out (NullabilityInfo Info, TypeSymbol Type) infoAndType);
+                var right = (BoundExpression)Visit(currentBinary.Right);
+                var type = foundInfo ? infoAndType.Type : currentBinary.Type;
 
-            static BoundBinaryOperatorBase updateNode(BoundBinaryOperatorBase node, BoundExpression leftOpt, NullabilityRewriter rewriter, Func<BoundBinaryOperatorBase, BoundExpression, BoundExpression, TypeSymbol, BoundBinaryOperatorBase> nodeUpdater)
-            {
-                var foundInfo = rewriter._updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol Type) infoAndType);
-
-                leftOpt ??= (BoundExpression)rewriter.Visit(node.Left);
-                Debug.Assert(leftOpt != null);
-                var right = (BoundExpression)rewriter.Visit(node.Right);
-                node = nodeUpdater(node, leftOpt, right, foundInfo ? infoAndType.Type : node.Type);
+                currentBinary = currentBinary switch
+                {
+                    BoundBinaryOperator binary => (BoundBinaryOperatorBase)binary.Update(binary.OperatorKind, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, leftChild, right, type),
+                    BoundUserDefinedConditionalLogicalOperator logical => logical.Update(logical.OperatorKind, logical.LogicalOperator, logical.TrueOperator, logical.FalseOperator, logical.ResultKind, leftChild, right, type),
+                    _ => throw ExceptionUtilities.UnexpectedValue(currentBinary.Kind),
+                };
 
                 if (foundInfo)
                 {
-                    node.TopLevelNullability = infoAndType.Info;
+                    currentBinary.TopLevelNullability = infoAndType.Info;
                 }
 
-                return node;
-            }
+                leftChild = currentBinary;
+            } while (stack.Count > 0);
+
+            Debug.Assert(currentBinary != null);
+            return currentBinary;
         }
     }
 }

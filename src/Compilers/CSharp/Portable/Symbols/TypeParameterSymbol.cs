@@ -690,13 +690,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region ITypeParameterTypeSymbol Members
 
-        CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation => ReferenceTypeConstraintIsNullable switch
-        {
-            false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.NotApplicable,
-            false => CodeAnalysis.NullableAnnotation.NotAnnotated,
-            true => CodeAnalysis.NullableAnnotation.Annotated,
-            null => CodeAnalysis.NullableAnnotation.Disabled,
-        };
+#pragma warning disable IDE0055 // Fix formatting. This formatting is correct, need 16.1 for the updated formatter to not flag
+        CodeAnalysis.NullableAnnotation ITypeParameterSymbol.ReferenceTypeConstraintNullableAnnotation =>
+            ReferenceTypeConstraintIsNullable switch
+            {
+                false when !HasReferenceTypeConstraint => CodeAnalysis.NullableAnnotation.NotApplicable,
+                false => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                true => CodeAnalysis.NullableAnnotation.Annotated,
+                null => CodeAnalysis.NullableAnnotation.Disabled,
+            };
+#pragma warning restore IDE0055 // Fix formatting
 
         TypeParameterKind ITypeParameterSymbol.TypeParameterKind
         {

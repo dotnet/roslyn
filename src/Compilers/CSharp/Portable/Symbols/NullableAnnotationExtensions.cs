@@ -48,14 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (a < b) ? a : b;
         }
 
-        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(this NullableAnnotation annotation) => annotation switch
-        {
-            NullableAnnotation.Annotated => CodeAnalysis.NullableAnnotation.Annotated,
-            NullableAnnotation.NotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
-            NullableAnnotation.Oblivious => CodeAnalysis.NullableAnnotation.Disabled,
-            _ => throw ExceptionUtilities.UnexpectedValue(annotation)
-        };
-
         internal static NullabilityInfo ToNullabilityInfo(this CodeAnalysis.NullableAnnotation annotation, TypeSymbol type)
         {
             if (annotation == CodeAnalysis.NullableAnnotation.NotApplicable)
@@ -63,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return default;
             }
 
-            NullableAnnotation internalAnnotation = annotation.ToInternalAnnotation();
+            CSharp.NullableAnnotation internalAnnotation = annotation.ToInternalAnnotation();
             return internalAnnotation.ToNullabilityInfo(type);
         }
 
@@ -73,13 +65,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new NullabilityInfo(annotation.ToPublicAnnotation(), flowState.ToPublicFlowState());
         }
 
-        internal static NullableAnnotation ToInternalAnnotation(this CodeAnalysis.NullableAnnotation annotation) => annotation switch
-        {
-            CodeAnalysis.NullableAnnotation.NotApplicable => NullableAnnotation.Oblivious,
-            CodeAnalysis.NullableAnnotation.Disabled => NullableAnnotation.Oblivious,
-            CodeAnalysis.NullableAnnotation.NotAnnotated => NullableAnnotation.NotAnnotated,
-            CodeAnalysis.NullableAnnotation.Annotated => NullableAnnotation.Annotated,
-            _ => throw ExceptionUtilities.UnexpectedValue(annotation)
-        };
+#pragma warning disable IDE0055 // Fix formatting
+        internal static CodeAnalysis.NullableAnnotation ToPublicAnnotation(this CSharp.NullableAnnotation annotation) =>
+            annotation switch
+            {
+                CSharp.NullableAnnotation.Annotated => CodeAnalysis.NullableAnnotation.Annotated,
+                CSharp.NullableAnnotation.NotAnnotated => CodeAnalysis.NullableAnnotation.NotAnnotated,
+                CSharp.NullableAnnotation.Oblivious => CodeAnalysis.NullableAnnotation.Disabled,
+                _ => throw ExceptionUtilities.UnexpectedValue(annotation)
+            };
+
+        internal static CSharp.NullableAnnotation ToInternalAnnotation(this CodeAnalysis.NullableAnnotation annotation) =>
+            annotation switch
+            {
+                CodeAnalysis.NullableAnnotation.NotApplicable => CSharp.NullableAnnotation.Oblivious,
+                CodeAnalysis.NullableAnnotation.Disabled => CSharp.NullableAnnotation.Oblivious,
+                CodeAnalysis.NullableAnnotation.NotAnnotated => CSharp.NullableAnnotation.NotAnnotated,
+                CodeAnalysis.NullableAnnotation.Annotated => CSharp.NullableAnnotation.Annotated,
+                _ => throw ExceptionUtilities.UnexpectedValue(annotation)
+            };
+#pragma warning restore IDE0055 // Fix formatting
     }
 }

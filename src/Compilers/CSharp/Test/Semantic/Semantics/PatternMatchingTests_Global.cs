@@ -5546,7 +5546,7 @@ class H
             }
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(nullable-api)")]
         public void GlobalCode_DeclaratorArguments_02()
         {
             string source =

@@ -311,13 +311,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation =>
-                {
-                    var typeInfo = model.GetTypeInfo(annotation.Expression);
-                    Assert.NotEqual(CodeAnalysis.NullableAnnotation.NotApplicable, typeInfo.Nullability.Annotation);
-                    Assert.NotEqual(CodeAnalysis.NullableFlowState.NotApplicable, typeInfo.Nullability.FlowState);
-                    // PROTOTYPE(nullable-api): After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
-                    return new TypeWithState((TypeSymbol)typeInfo.Type, (NullableFlowState)(typeInfo.Nullability.FlowState - 1)).ToTypeWithAnnotations().ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
-                });
+                    {
+                        var typeInfo = model.GetTypeInfo(annotation.Expression);
+                        Assert.NotEqual(CodeAnalysis.NullableAnnotation.NotApplicable, typeInfo.Nullability.Annotation);
+                        Assert.NotEqual(CodeAnalysis.NullableFlowState.NotApplicable, typeInfo.Nullability.FlowState);
+                        // PROTOTYPE(nullable-api): After refactoring symboldisplay, we should be able to just call something like typeInfo.Type.ToDisplayString(typeInfo.Nullability.FlowState, TypeWithState.TestDisplayFormat)
+                        return new TypeWithState((TypeSymbol)typeInfo.Type, typeInfo.Nullability.FlowState.ToInternalFlowState()).ToTypeWithAnnotations().ToDisplayString(TypeWithAnnotations.TestDisplayFormat);
+                    });
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
             }
