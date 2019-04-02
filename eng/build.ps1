@@ -626,5 +626,8 @@ catch {
   ExitWithExitCode 1
 }
 finally {
+  if ($ci) {
+    Stop-Processes
+  }
   Pop-Location
 }
