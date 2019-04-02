@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static int s_cachedPosition;
         private static readonly object s_cacheGate = new object();
 
-        private bool? _shouldCreateTargetTypeCompletionFilter = null;
+        private bool? _isTargetTypeCompletionFilterExperimentEnabled = null;
 
         protected AbstractSymbolCompletionProvider()
         {
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool preselect,
             ImmutableArray<ITypeSymbol> inferredTypes = default)
         {
-            if (ShouldCreateTargetTypeCompletionFilter(context.Workspace))
+            if (IsTargetTypeCompletionFilterExperimentEnabled(context.Workspace))
             {
                 var symbolGroups = from symbol in symbols
                                    let texts = GetDisplayAndSuffixAndInsertionText(symbol, context)
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(), context,
                             invalidProjectMap: null, totalProjects: null, preselect: preselect);
 
-                    if (ShouldCreateTargetTypeCompletionFilter(context.Workspace))
+                    if (IsTargetTypeCompletionFilterExperimentEnabled(context.Workspace))
                     {
                         if (symbolGroup.Any(s => ShouldIncludeInTargetTypedCompletionList(s, inferredTypes, context.SemanticModel, context.Position)))
                         {
@@ -90,19 +90,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             g.Key.displayText, g.Key.suffix, g.Key.insertionText, g.ToList(), context,
                             invalidProjectMap: null, totalProjects: null, preselect: preselect);
 
-                return q.ToImmutableArray()
+                return q.ToImmutableArray();
             }
         }
 
-        private bool ShouldCreateTargetTypeCompletionFilter(Workspace workspace)
+        private bool IsTargetTypeCompletionFilterExperimentEnabled(Workspace workspace)
         {
-            if (!_shouldCreateTargetTypeCompletionFilter.HasValue)
+            if (!_isTargetTypeCompletionFilterExperimentEnabled.HasValue)
             {
                 var experimentationService = workspace.Services.GetService<IExperimentationService>();
-                _shouldCreateTargetTypeCompletionFilter = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
+                _isTargetTypeCompletionFilterExperimentEnabled = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
             }
 
-            return _shouldCreateTargetTypeCompletionFilter == true;
+            return _isTargetTypeCompletionFilterExperimentEnabled == true;
         }
 
         private bool ShouldIncludeInTargetTypedCompletionList(ISymbol symbol, ImmutableArray<ITypeSymbol> inferredTypes, SemanticModel semanticModel, int position)
