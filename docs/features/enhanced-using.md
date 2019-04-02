@@ -278,6 +278,8 @@ Extension methods may **not** be used to implement asynchronous disposal. The me
 
 ### Nullable value type behavior
 
+_Note_: This is currently not working as spec'd and is tracked by [#34701](https://github.com/dotnet/roslyn/issues/34701)
+
 For nullable value types in a `using` statement, the behavior today is to call ```Dispose``` on the _underlying_ type if and only if the type has a value (i.e. ```if(t.HasValue){ t.GetValueOrDefault().Dispose() }``` ). This allows lifted types to be used as if they were the underlying type, and dispose is only called in the case they are not null. This behavior is extended to pattern based ```DisposeAsync``` methods in `await using` statements.
 
 ```c#
@@ -300,7 +302,6 @@ public struct StructDisposer
 }
 ```
 
-//TODO: File a bug on this as it currently doesn't work. 
 
 ## Pattern based disposal for ref structs
 
