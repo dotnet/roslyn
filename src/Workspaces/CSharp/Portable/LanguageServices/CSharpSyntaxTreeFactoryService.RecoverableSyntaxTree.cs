@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class CSharpSyntaxTreeFactoryServiceFactory
     {
-        // internal for testing
-        internal partial class CSharpSyntaxTreeFactoryService
+        private partial class CSharpSyntaxTreeFactoryService
         {
             /// <summary>
             /// Represents a syntax tree that only has a weak reference to its 

@@ -266,6 +266,7 @@ function BuildSolution {
     /p:Build=$build \
     /p:Rebuild=$rebuild \
     /p:Test=$test \
+    /p:TestRunnerAdditionalArguments="-verbose" \
     /p:Pack=$pack \
     /p:Publish=$publish \
     /p:UseRoslynAnalyzers=$enable_analyzers \

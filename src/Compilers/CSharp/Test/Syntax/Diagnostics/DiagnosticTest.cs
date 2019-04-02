@@ -301,6 +301,7 @@ class X
                         case ErrorCode.WRN_AsOperatorMayReturnNull:
                         case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
                         case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
+                        case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

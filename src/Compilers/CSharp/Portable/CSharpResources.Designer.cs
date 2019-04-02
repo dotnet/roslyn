@@ -763,6 +763,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is not valid on event accessors. It is only valid on &apos;{1}&apos; declarations..
+        /// </summary>
+        internal static string ERR_AttributeNotOnEventAccessor {
+            get {
+                return ResourceManager.GetString("ERR_AttributeNotOnEventAccessor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is not valid on this declaration type. It is only valid on &apos;{1}&apos; declarations..
         /// </summary>
         internal static string ERR_AttributeOnBadSymbolType {
@@ -11402,6 +11411,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to obsolete on property accessor.
+        /// </summary>
+        internal static string IDS_FeatureObsoleteOnPropertyAccessor {
+            get {
+                return ResourceManager.GetString("IDS_FeatureObsoleteOnPropertyAccessor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to optional parameter.
         /// </summary>
         internal static string IDS_FeatureOptionalParameter {
@@ -15879,6 +15897,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_SwitchExpressionNotExhaustive_Title {
             get {
                 return ResourceManager.GetString("WRN_SwitchExpressionNotExhaustive_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch expression does not handle some null inputs (it is not exhaustive)..
+        /// </summary>
+        internal static string WRN_SwitchExpressionNotExhaustiveForNull {
+            get {
+                return ResourceManager.GetString("WRN_SwitchExpressionNotExhaustiveForNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch expression does not handle some null inputs..
+        /// </summary>
+        internal static string WRN_SwitchExpressionNotExhaustiveForNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_SwitchExpressionNotExhaustiveForNull_Title", resourceCulture);
             }
         }
         

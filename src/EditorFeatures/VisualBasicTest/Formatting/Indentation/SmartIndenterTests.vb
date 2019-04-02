@@ -112,7 +112,7 @@ $$WriteLine()|]|}
 End Module
 </code>.NormalizedValue
 
-            ' Again, it doesn't matter where Console _is_ in this case - we format based on 
+            ' Again, it doesn't matter where Console _is_ in this case - we format based on
             ' where we think it _should_ be.  So the position is one indent level past the base
             ' for the nugget (where we think the statement should be), plus one more since it is
             ' a continuation
@@ -1263,6 +1263,7 @@ End Class</Code>.Value
                 expectedIndentation:=14)
         End Sub
 
+        <WpfFact>
         Public Sub TestQueryExpressionExplicitLineContinued()
             ' This should still follow indent of 'From', as in Dev10
 
@@ -1277,6 +1278,21 @@ End Class</Code>.Value
                 expectedIndentation:=26)
         End Sub
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestQueryExpressionExplicitLineContinuedCommentsAfterLineContinuation()
+            ' This should still follow indent of 'From', as in Dev10
+
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim q = From c In From c2 in b _ ' Test
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=26)
+        End Sub
 #End Region
 
 #Region "Implicit line-continuation"
@@ -1357,7 +1373,7 @@ End Class</Code>.Value
         Public Sub TestImplicitLineContinuationExpression()
             Dim code = <Code>Class C
     Sub Method()
-        Dim a = 
+        Dim a =
 </Code>.Value
 
             AssertSmartIndent(
@@ -1422,12 +1438,42 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationInExpressionCommentsAfterLineContinuation()
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim q = 1 + _ ' Test
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=12)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestMultipleExplicitLineContinuationsInExpression()
             Dim code = <Code>Class C
     Sub Method()
         Dim q = 1 + _
                     2 + _
                         3 + _
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=5,
+                expectedIndentation:=24)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestMultipleExplicitLineContinuationsInExpressionCommentsAfterLineContinuation()
+            Dim code = <Code>Class C
+    Sub Method()
+        Dim q = 1 + _ ' Test
+                    2 + _ ' Test
+                        3 + _ ' Test
 </Code>.Value
 
             AssertSmartIndent(
@@ -1451,9 +1497,35 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationInFieldDeclarationCommentsAfterLineContinuation()
+            Dim code = <Code>Class C
+    Dim q _ ' Test
+</Code>.Value
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=2,
+                expectedIndentation:=8)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestExplicitLineContinuationAfterAttributeInNamespace()
             Dim code = "Namespace goo" & vbCrLf &
                        "    <SomeAttribute()> _" & vbCrLf &
+                       ""
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=2,
+                expectedIndentation:=4)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationAfterAttributeInNamespaceCommentsAfterLineContinuation()
+            Dim code = "Namespace goo" & vbCrLf &
+                       "    <SomeAttribute()> _ ' Test" & vbCrLf &
                        ""
 
             AssertSmartIndent(
@@ -1478,6 +1550,20 @@ End Module
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationWithMultipleAttributesCommentsAfterLineContinuation()
+            Dim code = "Namespace goo" & vbCrLf &
+                       "    <SomeAttribute1()> _ ' Test" & vbCrLf &
+                       "    <SomeAttribute2()> _ ' Test 1" & vbCrLf &
+                       ""
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=4)
+        End Sub
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestExplicitLineContinuationAfterAttributeInClass()
             Dim code = "Namespace goo" & vbCrLf &
                        "    Class C" & vbCrLf &
@@ -1490,6 +1576,19 @@ End Module
                 expectedIndentation:=8)
         End Sub
 
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestExplicitLineContinuationAfterAttributeInClassCommentsAfterLineContinuation()
+            Dim code = "Namespace goo" & vbCrLf &
+                       "    Class C" & vbCrLf &
+                       "        <SomeAttribute()> _ ' Test" & vbCrLf &
+                       ""
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=3,
+                expectedIndentation:=8)
+        End Sub
 #End Region
 
 #Region "Statement Separators"
@@ -1967,7 +2066,7 @@ Imports System.Linq
 
 Module Program
     Sub Main(args As String())
-        : 'comment   
+        : 'comment
         : Console.WriteLine("TEST")
 
     End Sub
@@ -2041,7 +2140,7 @@ End Class</code>.Value
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestParameter_LineContinuation()
             Dim code = <code>Class CL
-    Sub Method(Arg1 _ 
+    Sub Method(Arg1 _
 As Integer, Arg2 As Integer)
     End Sub
 End Class</code>.Value
@@ -2056,7 +2155,7 @@ End Class</code>.Value
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestParameter_LineContinuation2()
             Dim code = <code>Class CL
-    Sub Method(Arg1 As _ 
+    Sub Method(Arg1 As _
 Integer, Arg2 As Integer)
     End Sub
 End Class</code>.Value
@@ -2086,7 +2185,7 @@ End Class</code>.Value
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestTypeParameter()
             Dim code = <code>Class CL
-    Sub Method(Of 
+    Sub Method(Of
 T, T2)()
     End Sub
 End Class</code>.Value
@@ -2133,7 +2232,7 @@ End Class</code>.Value
         Public Sub TestTypeArgument2()
             Dim code = <code>Class CL
     Sub Method(Of T, T2)()
-        Method(Of Integer, 
+        Method(Of Integer,
 Integer)()
     End Sub
 End Class</code>.Value
@@ -2344,7 +2443,7 @@ End Module
         Public Sub GetNextTokenForFormattingSpanCalculationIncludesZeroWidthToken_VB()
             Dim markup = <code>Option Strict Off
 Option Explicit On
- 
+
 Imports System
 Imports System.Collections.Generic
 Imports System.IO
@@ -2362,7 +2461,7 @@ Imports System.Web.UI
 Imports System.Web.WebPages
 Imports Szs.IssueTracking.Web
 Imports Zyxat.Util.Web.Mvc
- 
+
 Namespace ASP
 Public Class _Page_Views_Shared__DeleteModel_vbhtml
 Inherits System.Web.Mvc.WebViewPage(Of Zyxat.Util.Web.Mvc.IModelViewModel)
@@ -2376,54 +2475,54 @@ Return CType(Context.ApplicationInstance,System.Web.HttpApplication)
 End Get
 End Property
 Private Sub __RazorDesignTimeHelpers__()
- 
- 
+
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",1)
 Dim __inheritsHelper As Zyxat.Util.Web.Mvc.IModelViewModel = Nothing
- 
- 
+
+
 #End ExternalSource
- 
+
 End Sub
 Public Overrides Sub Execute()
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",2)
 If (Me.Model.ID > 0) Then
-  
- 
+
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",3)
 __o = US.CS("Delete")
- 
- 
+
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",4)
-      
+
 Else
-  
- 
+
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",5)
 __o = US.CS("Delete")
- 
- 
+
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",6)
-      
+
 End If
- 
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",7)
      __o = US.CS("Delete")
- 
- 
+
+
 #End ExternalSource
- 
+
 #ExternalSource("C:\Users\fettinma\OneDrive\Entwicklung\Projekte\Szs.IssueTracking\Szs.IssueTracking.Web\Views\Shared\_DeleteModel.vbhtml",8)
    __o = {|S1:[|US.CS("ReallyDelete)
         @Me.Model.DisplayName
@@ -2439,8 +2538,8 @@ End If
     &lt;/div&gt;&lt;!-- /.modal-content --&gt;
   &lt;/div&gt;&lt;!-- /.modal-dialog --&gt;
 &lt;/div&gt;&lt;!-- /.modal --&gt;
- 
- 
+
+
 #End ExternalSource
 End Sub
 End Class
@@ -2506,7 +2605,7 @@ End Namespace
     B
     C
 End Enum
- 
+
 Module Module1
     Function F(value As E) As Integer
         Select Case value

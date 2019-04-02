@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Options
         /// <see cref="Workspace"/> this is connected to.  i.e. instead of synchronously just passing
         /// along the underlying events, these will be enqueued onto the workspace's eventing queue.
         /// </summary>
-        // Internal for testing purposes.
         internal class OptionService : IWorkspaceOptionService
         {
             private readonly IGlobalOptionService _globalOptionService;
