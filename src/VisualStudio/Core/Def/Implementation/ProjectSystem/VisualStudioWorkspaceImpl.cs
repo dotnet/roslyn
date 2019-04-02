@@ -1436,22 +1436,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// </summary>
         /// <remarks>This is needed to synchronize with <see cref="ApplyChangeToWorkspace(Action{Workspace})" /> to avoid any races. This
         /// method could be moved down to the core Workspace layer and then could use the synchronization lock there.</remarks>
-        /// <param name="projectId">The <see cref="ProjectId" /> to change.</param>
-        /// <param name="mutation">A function that, given the old <see cref="CodeAnalysis.Project"/> will produce a new one.</param>
-        public void ApplyBatchChangeToProject(ProjectId projectId, Func<CodeAnalysis.Solution, CodeAnalysis.Solution> mutation)
+        public void ApplyBatchChangeToWorkspace(Func<CodeAnalysis.Solution, SolutionChangeAccumulator> mutation)
         {
             lock (_gate)
             {
                 var oldSolution = this.CurrentSolution;
-                var newSolution = mutation(oldSolution);
+                var solutionChangeAccumulator = mutation(oldSolution);
 
-                if (oldSolution == newSolution)
+                if (!solutionChangeAccumulator.HasChange)
                 {
                     return;
                 }
 
-                SetCurrentSolution(newSolution);
-                RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+                SetCurrentSolution(solutionChangeAccumulator.Solution);
+                RaiseWorkspaceChangedEventAsync(
+                    solutionChangeAccumulator.WorkspaceChangeKind,
+                    oldSolution,
+                    solutionChangeAccumulator.Solution,
+                    solutionChangeAccumulator.WorkspaceChangeProjectId,
+                    solutionChangeAccumulator.WorkspaceChangeDocumentId);
             }
         }
 

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
         void RemoveSetMethod(SyntaxEditor editor, SyntaxNode setMethodDeclaration);
     }
 
-    internal struct GetAndSetMethods
+    internal readonly struct GetAndSetMethods
     {
         public readonly IMethodSymbol GetMethod;
         public readonly IMethodSymbol SetMethod;

@@ -852,6 +852,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(projectReferences));
             }
 
+            if (!projectReferences.Any())
+            {
+                return this;
+            }
+
             CheckContainsProject(projectId);
 
             foreach (var referencedProject in projectReferences)
@@ -1065,6 +1070,11 @@ namespace Microsoft.CodeAnalysis
             if (analyzerReferences == null)
             {
                 throw new ArgumentNullException(nameof(analyzerReferences));
+            }
+
+            if (!analyzerReferences.Any())
+            {
+                return this;
             }
 
             CheckContainsProject(projectId);
