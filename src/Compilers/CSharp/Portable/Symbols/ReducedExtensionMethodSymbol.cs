@@ -373,8 +373,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        // extension methods are static and therefore not readonly
-        internal override bool IsDeclaredReadOnly => false;
+        internal override bool IsDeclaredReadOnly => _reducedFrom.Parameters[0].RefKind == RefKind.In;
+
+        protected override bool IsValidReadOnlyTarget => true;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {

@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Indicates whether the method is readonly, i.e.
-        /// whether 'this' is 'ref readonly' in the scope of the method.
+        /// i.e. whether the 'this' receiver parameter is 'ref readonly'.
         /// </summary>
         bool IsReadOnly { get; }
 

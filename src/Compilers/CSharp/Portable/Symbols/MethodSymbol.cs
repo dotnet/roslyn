@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Indicates whether the method is declared readonly, i.e.
-        /// whether 'this' is readonly in the scope of the method.
+        /// whether the 'this' receiver parameter is 'ref readonly'.
         /// See also <see cref="IsEffectivelyReadOnly"/>
         /// </summary>
         internal abstract bool IsDeclaredReadOnly { get; }
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal bool IsEffectivelyReadOnly => (IsDeclaredReadOnly || ContainingType?.IsReadOnly == true) && IsValidReadOnlyTarget;
 
-        protected bool IsValidReadOnlyTarget => !IsStatic && ContainingType.IsStructType() && MethodKind != MethodKind.Constructor;
+        protected virtual bool IsValidReadOnlyTarget => !IsStatic && ContainingType.IsStructType() && MethodKind != MethodKind.Constructor;
 
         /// <summary>
         /// Returns interface methods explicitly implemented by this method.
