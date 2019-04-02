@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -30,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ConditionalWeakTable<Document, Task<SyntaxContext>> s_cachedDocuments = new ConditionalWeakTable<Document, Task<SyntaxContext>>();
         private static int s_cachedPosition;
         private static readonly object s_cacheGate = new object();
+
+        private bool? _shouldCreateTargetTypeCompletionFilter = null;
 
         protected AbstractSymbolCompletionProvider()
         {
@@ -63,15 +66,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(), context,
                         invalidProjectMap: null, totalProjects: null, preselect: preselect);
 
-                if (symbolGroup.Any(s => ShouldIncludeInTargetTypedCompletionList(s, inferredTypes, context.SemanticModel, context.Position)))
+                if (ShouldCreateTargetTypeCompletionFilter(context.Workspace))
                 {
-                    item = item.AddTag(WellKnownTags.MatchingType);
+                    if (symbolGroup.Any(s => ShouldIncludeInTargetTypedCompletionList(s, inferredTypes, context.SemanticModel, context.Position)))
+                    {
+                        item = item.AddTag(WellKnownTags.MatchingType);
+                    }
                 }
 
                 itemListBuilder.Add(item);
             }
 
             return itemListBuilder.ToImmutable();
+        }
+
+        private bool ShouldCreateTargetTypeCompletionFilter(Workspace workspace)
+        {
+            if (!_shouldCreateTargetTypeCompletionFilter.HasValue)
+            {
+                var experimentationService = workspace.Services.GetService<IExperimentationService>();
+                _shouldCreateTargetTypeCompletionFilter = experimentationService.IsExperimentEnabled(WellKnownExperimentNames.TargetTypedCompletionFilter);
+            }
+
+            return _shouldCreateTargetTypeCompletionFilter == true;
         }
 
         private bool ShouldIncludeInTargetTypedCompletionList(ISymbol symbol, ImmutableArray<ITypeSymbol> inferredTypes, SemanticModel semanticModel, int position)
