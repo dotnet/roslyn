@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// <summary>
         /// Gets block comments by parsing the text for comment markers.
         /// </summary>
-        protected override Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
+        protected override Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocumentAsync(Document document, ITextSnapshot snapshot,
             TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
             var allText = snapshot.AsText();

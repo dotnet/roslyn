@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
         /// Retrieves block comments near the selection in the document.
         /// Uses the CSharp syntax tree to find the commented spans.
         /// </summary>
-        protected override async Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
+        protected override async Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocumentAsync(Document document, ITextSnapshot snapshot,
             TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

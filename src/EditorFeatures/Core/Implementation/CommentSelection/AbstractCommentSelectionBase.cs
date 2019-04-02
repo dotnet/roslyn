@@ -142,11 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
                         var formattedDocument = Format(service, subjectBuffer.CurrentSnapshot, trackingSnapshotSpans, CancellationToken.None);
-                        if (formattedDocument == null)
-                        {
-                            transaction.Cancel();
-                        }
-                        else
+                        if (formattedDocument != null)
                         {
                             formattedDocument.Project.Solution.Workspace.ApplyDocumentChanges(formattedDocument, CancellationToken.None);
                             transaction.Complete();

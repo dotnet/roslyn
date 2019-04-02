@@ -115,7 +115,7 @@ class C
     void M()
     {
         [|var i = 1;
-        string s = '/*';
+        string s = '*/';
         var k = 3;|]
     }
 }";
@@ -126,7 +126,7 @@ class C
     void M()
     {
         [|/*var i = 1;
-        string s = '/*';
+        string s = '*/';
         var k = 3;*/|]
     }
 }";
