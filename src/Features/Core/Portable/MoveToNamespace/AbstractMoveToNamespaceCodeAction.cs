@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         private readonly IMoveToNamespaceService _moveToNamespaceService;
         private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult;
 
-        public AbstractMoveToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+        public AbstractMoveToNamespaceCodeAction(IMoveToNamespaceService moveToNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
         {
-            _moveToNamespaceService = changeNamespaceService;
+            _moveToNamespaceService = moveToNamespaceService;
             _moveToNamespaceAnalysisResult = analysisResult;
         }
 

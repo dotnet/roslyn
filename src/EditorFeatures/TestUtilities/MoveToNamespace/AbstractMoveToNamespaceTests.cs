@@ -1,5 +1,6 @@
 ﻿// Copyright(c) Microsoft.All Rights Reserved.Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             string expectedMarkup = null,
             TestParameters? testParameters = null,
             string targetNamespace = null,
-            bool optionCancelled = false
+            bool optionCancelled = false,
+            bool testAnalysis = false
             )
         {
             testParameters ??= new TestParameters();
@@ -71,6 +73,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             {
                 await TestMissingInRegularAndScriptAsync(markup, parameters: testParameters.Value);
             }
+        }
+
+        public async Task TestMoveToNamespaceAnalysisAsync(string markup, string expectedNamespaceName)
+        {
+            var workspace = CreateWorkspaceFromFile(markup, new TestParameters());
+            using var testState = new TestState(workspace);
+
+            var analysis = await testState.MoveToNamespaceService.AnalyzeTypeAtPositionAsync(
+                testState.InvocationDocument,
+                testState.TestInvocationDocument.SelectedSpans.Single().Start,
+                CancellationToken.None);
+
+            Assert.True(analysis.CanPerform);
+            Assert.Equal(expectedNamespaceName, analysis.OriginalNamespace);
+            Assert.NotEmpty(analysis.Namespaces);
         }
 
         public Task TestCancelledOption(string markup) => TestMoveToNamespaceAsync(markup, expectedMarkup: markup, optionCancelled: true);

@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
     internal class CSharpMoveToNamespaceService :
         AbstractMoveToNamespaceService<NamespaceDeclarationSyntax, TypeDeclarationSyntax>
     {
-        protected override string GetNamespaceName(NamespaceDeclarationSyntax syntax)
-            => syntax.Name.ToString();
+        protected override string GetNamespaceName(NamespaceDeclarationSyntax namespaceSyntax)
+            => namespaceSyntax.Name.ToString();
 
-        protected override string GetNamespaceName(TypeDeclarationSyntax syntax)
+        protected override string GetNamespaceName(TypeDeclarationSyntax typeDeclarationSyntax)
         {
-            var namespaceDecl = syntax.FirstAncestorOrSelf<NamespaceDeclarationSyntax>();
+            var namespaceDecl = typeDeclarationSyntax.FirstAncestorOrSelf<NamespaceDeclarationSyntax>();
             if (namespaceDecl == null)
             {
                 return string.Empty;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MoveToNamespace
             var namespaceDeclarationEnd = namespaceDeclaration.OpenBraceToken.SpanStart;
 
             return position >= namespaceDeclarationStart &&
-                position <= namespaceDeclarationEnd;
+                position < namespaceDeclarationEnd;
         }
     }
 }

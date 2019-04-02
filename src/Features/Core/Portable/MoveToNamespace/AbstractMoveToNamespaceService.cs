@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
         where TNamedTypeDeclarationSyntax : SyntaxNode
 
     {
-        protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax syntax);
-        protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax syntax);
-        protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceDeclaration, int position);
+        protected abstract string GetNamespaceName(TNamespaceDeclarationSyntax namespaceSyntax);
+        protected abstract string GetNamespaceName(TNamedTypeDeclarationSyntax namedTypeSyntax);
+        protected abstract bool IsContainedInNamespaceDeclaration(TNamespaceDeclarationSyntax namespaceSyntax, int position);
 
         public async Task<ImmutableArray<AbstractMoveToNamespaceCodeAction>> GetCodeActionsAsync(
             Document document,

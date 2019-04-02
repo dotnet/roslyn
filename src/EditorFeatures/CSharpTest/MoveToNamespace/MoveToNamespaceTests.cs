@@ -27,6 +27,49 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
         protected override string GetLanguage() => LanguageNames.CSharp;
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveItems_CaretAboveNamespace()
+            => TestMoveToNamespaceAsync(
+@"using System;
+[||]
+namespace A
+{
+    class MyClass
+    {
+    }
+}",
+expectedSuccess: false);
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveItems_CaretAboveNamespace2()
+            => TestMoveToNamespaceAsync(
+@"using System;[||]
+
+namespace A
+{
+    class MyClass
+    {
+    }
+}",
+expectedSuccess: false);
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveItems_WeirdNamespace()
+            => TestMoveToNamespaceAsync(
+@"namespace A  [||].    B   .   C
+{
+    class MyClass
+    {
+    }
+}",
+expectedMarkup: @"namespace {|Warning:A|}
+{
+    class MyClass
+    {
+    }
+}",
+targetNamespace: "A");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceName()
             => TestMoveToNamespaceAsync(
 @"namespace A[||] 
@@ -101,6 +144,30 @@ expectedMarkup: @"namespace {|Warning:B|}
     }
 }",
 targetNamespace: "B");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveItems_CaretOnNamespaceBrace()
+        => TestMoveToNamespaceAsync(
+@"namespace A
+[||]{
+    class MyClass
+    {
+        void Method() { }
+    }
+}",
+expectedSuccess: false);
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveItems_CaretOnNamespaceBrace2()
+        => TestMoveToNamespaceAsync(
+@"namespace A
+{[||]
+    class MyClass
+    {
+        void Method() { }
+    }
+}",
+expectedSuccess: false);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_MultipleDeclarations()
@@ -375,6 +442,123 @@ targetNamespace: "B");
     }
 
     class MyClass2[||]
+    {
+    }
+
+    class MyClass3
+    {
+    }
+}",
+expectedMarkup: @"namespace A
+{
+    class MyClass
+    {
+    }
+}
+
+namespace {|Warning:B|}
+{
+    class MyClass2
+    {
+    }
+}
+
+namespace A
+{
+    class MyClass3
+    {
+    }
+}",
+targetNamespace: "B");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_Middle_CaretBeforeClass()
+        => TestMoveToNamespaceAsync(
+@"namespace A
+{
+    class MyClass
+    {
+    }
+
+    [||]class MyClass2
+    {
+    }
+
+    class MyClass3
+    {
+    }
+}",
+expectedMarkup: @"namespace A
+{
+    class MyClass
+    {
+    }
+}
+
+namespace {|Warning:B|}
+{
+    class MyClass2
+    {
+    }
+}
+
+namespace A
+{
+    class MyClass3
+    {
+    }
+}",
+targetNamespace: "B");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_Middle_CaretAfterClass()
+        => TestMoveToNamespaceAsync(
+@"namespace A
+{
+    class MyClass
+    {
+    }
+
+    class[||] MyClass2
+    {
+    }
+
+    class MyClass3
+    {
+    }
+}",
+expectedMarkup: @"namespace A
+{
+    class MyClass
+    {
+    }
+}
+
+namespace {|Warning:B|}
+{
+    class MyClass2
+    {
+    }
+}
+
+namespace A
+{
+    class MyClass3
+    {
+    }
+}",
+targetNamespace: "B");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_Middle_CaretBeforeClassName()
+        => TestMoveToNamespaceAsync(
+@"namespace A
+{
+    class MyClass
+    {
+    }
+
+    class [||]MyClass2
     {
     }
 
@@ -696,5 +880,49 @@ namespace A.B.C
     }
 }",
 targetNamespace: "B");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_Analysis_MoveItems_ComplexNamespace()
+           => TestMoveToNamespaceAnalysisAsync(
+@"namespace [||]A.Complex.Namespace
+{
+    class MyClass
+    {
+    }
+}",
+expectedNamespaceName: "A.Complex.Namespace");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_Analysis_MoveType_ComplexNamespace()
+           => TestMoveToNamespaceAnalysisAsync(
+@"namespace A.Complex.Namespace
+{
+    class [||]MyClass
+    {
+    }
+}",
+expectedNamespaceName: "A.Complex.Namespace");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_Analysis_MoveItems_WeirdNamespace()
+           => TestMoveToNamespaceAnalysisAsync(
+@"namespace A  [||].    B   .   C
+{
+    class MyClass
+    {
+    }
+}",
+expectedNamespaceName: "A  .    B   .   C");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_Analysis_MoveType_WeirdNamespace()
+           => TestMoveToNamespaceAnalysisAsync(
+@"namespace A  .    B   .   C
+{
+    class MyClass[||]
+    {
+    }
+}",
+expectedNamespaceName: "A  .    B   .   C");
     }
 }

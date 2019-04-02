@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 : base(changeNamespaceService, analysisResult)
             {
             }
-
         }
     }
 }
