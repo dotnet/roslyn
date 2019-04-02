@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             bool expectedSuccess = true,
             string expectedMarkup = null,
             TestParameters? testParameters = null,
-            string expectedNamespace = null,
+            string targetNamespace = null,
             bool optionCancelled = false
             )
         {
@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             {
                 moveToNamespaceOptions = MoveToNamespaceOptionsResult.Cancelled;
             }
-            else if (!string.IsNullOrEmpty(expectedNamespace))
+            else if (!string.IsNullOrEmpty(targetNamespace))
             {
-                moveToNamespaceOptions = new MoveToNamespaceOptionsResult(expectedNamespace);
+                moveToNamespaceOptions = new MoveToNamespaceOptionsResult(targetNamespace);
             }
 
             var workspace = CreateWorkspaceFromFile(markup, testParameters.Value);

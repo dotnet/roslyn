@@ -43,7 +43,7 @@ expectedMarkup: @"namespace {|Warning:B|}
         void Method() { }
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword()
@@ -62,7 +62,7 @@ expectedMarkup: @"namespace {|Warning:B|}
         void Method() { }
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_MultipleDeclarations()
@@ -91,7 +91,7 @@ expectedMarkup: @"namespace {|Warning:B|}
         void Method() { }
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_WithVariousSymbols()
@@ -150,7 +150,7 @@ expectedMarkup: @"namespace {|Warning:B|}
         void Method() { }
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_NestedNamespace()
@@ -197,7 +197,7 @@ expectedMarkup: @"namespace {|Warning:B|}
     {
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_SingleTop()
@@ -225,7 +225,7 @@ namespace A
     {
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_TopWithReference()
@@ -255,7 +255,7 @@ namespace A
     {
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Bottom()
@@ -283,7 +283,7 @@ namespace {|Warning:B|}
     {
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_BottomReference()
@@ -311,7 +311,7 @@ namespace {|Warning:B|}
     {
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Middle()
@@ -350,7 +350,7 @@ namespace A
     {
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference()
@@ -389,7 +389,7 @@ namespace A
     {
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference2()
@@ -438,7 +438,7 @@ namespace A
     {
     }
 }",
-expectedNamespace: "B");
+targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_NestedInNamespace()
@@ -545,6 +545,6 @@ namespace A.B.C
     {
     }
 }",
-expectedNamespace: "My.New.Namespace");
+targetNamespace: "My.New.Namespace");
     }
 }
