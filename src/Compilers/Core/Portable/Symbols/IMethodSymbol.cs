@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Indicates whether the method is readonly, i.e.
         /// i.e. whether the 'this' receiver parameter is 'ref readonly'.
+        /// Returns true for readonly instance methods and accessors
+        /// and for reduced extension methods with a 'this in' parameter.
         /// </summary>
         bool IsReadOnly { get; }
 
