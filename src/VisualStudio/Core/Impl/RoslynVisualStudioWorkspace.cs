@@ -28,18 +28,18 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenterOpt;
+        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
-            [Import(AllowDefault = true)] Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt,
+            Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories,
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
             : base(exportProvider, asyncServiceProvider)
         {
-            _streamingPresenterOpt = streamingPresenterOpt;
+            _streamingPresenter = streamingPresenter;
 
             foreach (var providerFactory in documentOptionsProviderFactories)
             {
@@ -108,11 +108,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         public override bool TryGoToDefinition(
             ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (_streamingPresenterOpt == null)
-            {
-                return false;
-            }
-
             if (!TryResolveSymbol(symbol, project, cancellationToken,
                     out var searchSymbol, out var searchProject))
             {
@@ -121,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return GoToDefinitionHelpers.TryGoToDefinition(
                 searchSymbol, searchProject,
-                _streamingPresenterOpt, cancellationToken);
+                _streamingPresenter, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)

@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             ImmutableArray<DefinitionItem> definitions,
             Project project,
             string title,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt,
+            IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken)
         {
             if (definitions.IsDefaultOrEmpty)
@@ -122,9 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 return false;
             }
 
-            var presenter = streamingPresenterOpt?.Value;
-
-            return presenter.TryNavigateToOrPresentItemsAsync(
+            return streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
     }

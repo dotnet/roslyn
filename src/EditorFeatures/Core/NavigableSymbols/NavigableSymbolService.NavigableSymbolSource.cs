@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,16 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
     {
         private partial class NavigableSymbolSource : INavigableSymbolSource
         {
-            private readonly Lazy<IStreamingFindUsagesPresenter> _presenterOpt;
+            private readonly IStreamingFindUsagesPresenter _presenter;
             private readonly IWaitIndicator _waitIndicator;
 
             private bool _disposed;
 
             public NavigableSymbolSource(
-                Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt,
+                IStreamingFindUsagesPresenter streamingPresenter,
                 IWaitIndicator waitIndicator)
             {
-                _presenterOpt = streamingPresenterOpt;
+                _presenter = streamingPresenter;
                 _waitIndicator = waitIndicator;
             }
 
@@ -67,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                 }
 
                 var snapshotSpan = new SnapshotSpan(snapshot, context.Span.ToSpan());
-                return new NavigableSymbol(definitions.ToImmutableArray(), snapshotSpan, document, _presenterOpt, _waitIndicator);
+                return new NavigableSymbol(definitions.ToImmutableArray(), snapshotSpan, document, _presenter, _waitIndicator);
             }
         }
     }

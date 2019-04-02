@@ -24,14 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
     [Name(PredefinedCommandHandlerNames.GoToImplementation)]
     internal partial class GoToImplementationCommandHandler : VSCommanding.ICommandHandler<GoToImplementationCommandArgs>
     {
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenterOpt;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GoToImplementationCommandHandler(
-            [Import(AllowDefault = true)] Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt)
+        public GoToImplementationCommandHandler(IStreamingFindUsagesPresenter streamingPresenter)
         {
-            _streamingPresenterOpt = streamingPresenterOpt;
+            _streamingPresenter = streamingPresenter;
         }
 
         public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
@@ -81,8 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             IFindUsagesService streamingService,
             CommandExecutionContext context)
         {
-            var streamingPresenter = GetStreamingPresenter();
-
             if (streamingService != null)
             {
                 // We have all the cheap stuff, so let's do expensive stuff now
@@ -93,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                 {
                     StreamingGoToImplementation(
                         document, caretPosition,
-                        streamingService, streamingPresenter,
+                        streamingService, _streamingPresenter,
                         userCancellationToken, out messageToShow);
                 }
 
@@ -137,18 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
 
             streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 document.Project.Solution.Workspace, goToImplContext.SearchTitle, definitionItems).Wait(cancellationToken);
-        }
-
-        private IStreamingFindUsagesPresenter GetStreamingPresenter()
-        {
-            try
-            {
-                return _streamingPresenterOpt?.Value;
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }

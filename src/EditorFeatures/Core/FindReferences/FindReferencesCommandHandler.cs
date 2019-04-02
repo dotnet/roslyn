@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
     [Name(PredefinedCommandHandlerNames.FindReferences)]
     internal class FindReferencesCommandHandler : VSCommanding.ICommandHandler<FindReferencesCommandArgs>
     {
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenterOpt;
+        private readonly IStreamingFindUsagesPresenter _streamingPresenter;
 
         private readonly IAsynchronousOperationListener _asyncListener;
 
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
 
         [ImportingConstructor]
         public FindReferencesCommandHandler(
-            [Import(AllowDefault = true)] Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt,
+            IStreamingFindUsagesPresenter streamingPresenter,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             Contract.ThrowIfNull(listenerProvider);
 
-            _streamingPresenterOpt = streamingPresenterOpt;
+            _streamingPresenter = streamingPresenter;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.FindReferences);
         }
 
@@ -77,30 +77,17 @@ namespace Microsoft.CodeAnalysis.Editor.FindReferences
         private bool TryExecuteCommand(int caretPosition, Document document, CommandExecutionContext context)
         {
             var streamingService = document.GetLanguageService<IFindUsagesService>();
-            var streamingPresenter = GetStreamingPresenter();
 
             // See if we're running on a host that can provide streaming results.
             // We'll both need a FAR service that can stream results to us, and 
             // a presenter that can accept streamed results.
-            if (streamingService != null && streamingPresenter != null)
+            if (streamingService != null && _streamingPresenter != null)
             {
-                _ = StreamingFindReferencesAsync(document, caretPosition, streamingService, streamingPresenter);
+                _ = StreamingFindReferencesAsync(document, caretPosition, streamingService, _streamingPresenter);
                 return true;
             }
 
             return false;
-        }
-
-        private IStreamingFindUsagesPresenter GetStreamingPresenter()
-        {
-            try
-            {
-                return _streamingPresenterOpt?.Value;
-            }
-            catch
-            {
-                return null;
-            }
         }
 
         private async Task StreamingFindReferencesAsync(

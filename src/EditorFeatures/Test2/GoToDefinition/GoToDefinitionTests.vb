@@ -38,8 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 Dim presenterCalled As Boolean = False
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
-                Dim presenters = New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)
-                Dim actualResult = executeOnDocument(document, cursorPosition, presenters)
+                Dim actualResult = executeOnDocument(document, cursorPosition, New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter))
 
                 Assert.Equal(expectedResult, actualResult)
 
@@ -104,10 +103,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
         Private Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
-                Function(document As Document, cursorPosition As Integer, presenterOpt As Lazy(Of IStreamingFindUsagesPresenter))
+                Function(document As Document, cursorPosition As Integer, presenter As Lazy(Of IStreamingFindUsagesPresenter))
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
-                        DirectCast(New CSharpGoToDefinitionService(presenterOpt), IGoToDefinitionService),
-                        New VisualBasicGoToDefinitionService(presenterOpt))
+                        DirectCast(New CSharpGoToDefinitionService(presenter), IGoToDefinitionService),
+                        New VisualBasicGoToDefinitionService(presenter))
 
                     Return goToDefService.TryGoToDefinition(document, cursorPosition, CancellationToken.None)
                 End Function)
