@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class CSharpSyntaxTreeFactoryServiceFactory
     {
-        internal partial class CSharpSyntaxTreeFactoryService
+        private partial class CSharpSyntaxTreeFactoryService
         {
             /// <summary>
             /// Represents a syntax reference that doesn't actually hold onto the 

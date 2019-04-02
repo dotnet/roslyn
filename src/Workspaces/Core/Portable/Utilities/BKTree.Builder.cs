@@ -192,8 +192,8 @@ namespace Roslyn.Utilities
                     // a threshold here as we need the actual edit distance so we can actually
                     // determine what edge to make or walk.
                     var editDistance = EditDistance.GetEditDistance(
-                        new ArraySlice<char>(_concatenatedLowerCaseWords, currentNode.CharacterSpan),
-                        new ArraySlice<char>(_concatenatedLowerCaseWords, characterSpan));
+                        _concatenatedLowerCaseWords.AsSpan(currentNode.CharacterSpan.Start, currentNode.CharacterSpan.Length),
+                        _concatenatedLowerCaseWords.AsSpan(characterSpan.Start, characterSpan.Length));
 
                     if (editDistance == 0)
                     {
