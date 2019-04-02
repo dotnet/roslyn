@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new MoveToNamespaceCodeActionProvider();
 
-        public async Task TestMoveToNamespaceViaCommandAsync(
+        public async Task TestMoveToNamespaceAsync(
             string markup,
             bool expectedSuccess = true,
             string expectedMarkup = null,
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             bool optionCancelled = false
             )
         {
-            testParameters = testParameters ?? new TestParameters();
+            testParameters ??= new TestParameters();
 
             var moveToNamespaceOptions = TestMoveToNamespaceOptionsService.DefaultOptions;
 
@@ -38,14 +38,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             }
 
             var workspace = CreateWorkspaceFromFile(markup, testParameters.Value);
-            using (var testState = new TestState(workspace))
+            using var testState = new TestState(workspace);
+
+            testState.TestMoveToNamespaceOptionsService.SetOptions(moveToNamespaceOptions);
+            if (expectedSuccess)
             {
-                testState.TestMoveToNamespaceOptionsService.SetOptions(moveToNamespaceOptions);
-                if (expectedSuccess && !optionCancelled)
-                {
-                    await TestInRegularAndScriptAsync(markup, expectedMarkup);
-                }
-                else if (optionCancelled)
+                if (optionCancelled)
                 {
                     var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
                         testState.InvocationDocument,
@@ -61,14 +59,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                         var operations = await task;
                         Assert.Empty(operations);
                     }
+
                 }
                 else
                 {
-                    await TestMissingInRegularAndScriptAsync(markup, parameters: testParameters.Value);
+                    await TestInRegularAndScriptAsync(markup, expectedMarkup);
+
                 }
+            }
+            else
+            {
+                await TestMissingInRegularAndScriptAsync(markup, parameters: testParameters.Value);
             }
         }
 
-        public Task TestCancelledOption(string markup) => TestMoveToNamespaceViaCommandAsync(markup, expectedMarkup: markup, optionCancelled: true);
+        public Task TestCancelledOption(string markup) => TestMoveToNamespaceAsync(markup, expectedMarkup: markup, optionCancelled: true);
     }
 }

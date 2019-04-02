@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceName()
-            => TestMoveToNamespaceViaCommandAsync(
+            => TestMoveToNamespaceAsync(
 @"namespace A[||] 
 {
     class MyClass
@@ -46,8 +46,27 @@ expectedMarkup: @"namespace {|Warning:B|}
 targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveItems_CaretOnNamespaceName2()
+            => TestMoveToNamespaceAsync(
+@"namespace A[||].B.C
+{
+    class MyClass
+    {
+        void Method() { }
+    }
+}",
+expectedMarkup: @"namespace {|Warning:B|}
+{
+    class MyClass
+    {
+        void Method() { }
+    }
+}",
+targetNamespace: "B");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace[||] A
 {
     class MyClass
@@ -65,8 +84,27 @@ expectedMarkup: @"namespace {|Warning:B|}
 targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveItems_CaretOnNamespaceKeyword2()
+        => TestMoveToNamespaceAsync(
+@"[||]namespace A
+{
+    class MyClass
+    {
+        void Method() { }
+    }
+}",
+expectedMarkup: @"namespace {|Warning:B|}
+{
+    class MyClass
+    {
+        void Method() { }
+    }
+}",
+targetNamespace: "B");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_MultipleDeclarations()
-            => TestMoveToNamespaceViaCommandAsync(
+            => TestMoveToNamespaceAsync(
 @"namespace A[||] 
 {
     class MyClass
@@ -95,7 +133,7 @@ targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_WithVariousSymbols()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A[||] 
 {
     public delegate void MyDelegate();
@@ -154,7 +192,7 @@ targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_NestedNamespace()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A[||]
 {
     namespace C 
@@ -169,7 +207,7 @@ expectedSuccess: false);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveItems_NestedNamespace2()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A
 {
     namespace C[||]
@@ -183,8 +221,22 @@ expectedSuccess: false);
 expectedSuccess: false);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_Nested()
+        => TestMoveToNamespaceAsync(
+@"namespace A
+{
+    class MyClass
+    {
+        class NestedClass[||]
+        {
+        }
+    }
+}",
+expectedSuccess: false);
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Single()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A
 {
     class MyClass[||]
@@ -201,7 +253,7 @@ targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_SingleTop()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A
 {
     class MyClass[||]
@@ -229,7 +281,7 @@ targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_TopWithReference()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A
 {
     class MyClass[||] : IMyClass
@@ -259,7 +311,7 @@ targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Bottom()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A
 {
     class MyClass
@@ -287,7 +339,7 @@ targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_BottomReference()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A
 {
     class MyClass : IMyClass
@@ -315,7 +367,7 @@ targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_Middle()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A
 {
     class MyClass
@@ -354,7 +406,7 @@ targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A
 {
     class MyClass : IMyClass
@@ -393,7 +445,7 @@ targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference2()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A
 {
     class MyClass : IMyClass
@@ -442,7 +494,7 @@ targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_NestedInNamespace()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A
 {
     class MyClass
@@ -500,7 +552,7 @@ expectedSuccess: false);
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference_ComplexName()
-        => TestMoveToNamespaceViaCommandAsync(
+        => TestMoveToNamespaceAsync(
 @"namespace A.B.C
 {
     class MyClass : IMyClass
@@ -546,5 +598,103 @@ namespace A.B.C
     }
 }",
 targetNamespace: "My.New.Namespace");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_MiddleReference_ComplexName2()
+       => TestMoveToNamespaceAsync(
+@"namespace A
+{
+    class MyClass : IMyClass
+    {
+    }
+
+    interface IMyClass
+    {
+    }
+
+    class [||]MyClass3 : IMyClass
+    {
+    }
+
+    class MyClass4
+    {
+    }
+}",
+expectedMarkup: @"using A;
+
+namespace A
+{
+    class MyClass : IMyClass
+    {
+    }
+
+    interface IMyClass
+    {
+    }
+}
+
+namespace {|Warning:My.New.Namespace|}
+{
+    class MyClass3 : IMyClass
+    {
+    }
+}
+
+namespace A
+{
+    class MyClass4
+    {
+    }
+}",
+targetNamespace: "My.New.Namespace");
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_MiddleReference_ComplexName3()
+       => TestMoveToNamespaceAsync(
+@"namespace A.B.C
+{
+    class MyClass : IMyClass
+    {
+    }
+
+    interface IMyClass
+    {
+    }
+
+    class [||]MyClass3 : IMyClass
+    {
+    }
+
+    class MyClass4
+    {
+    }
+}",
+expectedMarkup: @"using A.B.C;
+
+namespace A.B.C
+{
+    class MyClass : IMyClass
+    {
+    }
+
+    interface IMyClass
+    {
+    }
+}
+
+namespace {|Warning:B|}
+{
+    class MyClass3 : IMyClass
+    {
+    }
+}
+
+namespace A.B.C
+{
+    class MyClass4
+    {
+    }
+}",
+targetNamespace: "B");
     }
 }

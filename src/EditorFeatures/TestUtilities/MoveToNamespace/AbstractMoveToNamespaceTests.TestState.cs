@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             public TestHostDocument TestInvocationDocument => Workspace.Documents.Single();
             public Document InvocationDocument => Workspace.CurrentSolution.GetDocument(TestInvocationDocument.Id);
 
-
             public TestMoveToNamespaceOptionsService TestMoveToNamespaceOptionsService
                 => (TestMoveToNamespaceOptionsService)Workspace.Services.GetService<IMoveToNamespaceOptionsService>();
 
