@@ -100,7 +100,7 @@ class C
                 Dim cursorBuffer = cursorDocument.TextBuffer
                 Dim document = workspace.CurrentSolution.GetDocument(cursorDocument.Id)
 
-                Dim goToDefService = New CSharpGoToDefinitionService(New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter))
+                Dim goToDefService = New CSharpGoToDefinitionService(presenter)
 
                 Dim waitContext = New TestUIThreadOperationContext(updatesBeforeCancel)
                 Dim commandHandler = New GoToDefinitionCommandHandler()

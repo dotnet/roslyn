@@ -28,6 +28,10 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
+        /// <remarks>
+        /// Must be lazily constructed since the <see cref="IStreamingFindUsagesPresenter"/> implementation imports a
+        /// backreference to <see cref="VisualStudioWorkspace"/>.
+        /// </remarks>
         private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter;
 
         [ImportingConstructor]
@@ -116,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             return GoToDefinitionHelpers.TryGoToDefinition(
                 searchSymbol, searchProject,
-                _streamingPresenter, cancellationToken);
+                _streamingPresenter.Value, cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)

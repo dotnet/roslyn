@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
     Public Class GoToDefinitionTests
         Friend Sub Test(workspaceDefinition As XElement,
                                         expectedResult As Boolean,
-                                        executeOnDocument As Func(Of Document, Integer, Lazy(Of IStreamingFindUsagesPresenter), Boolean))
+                                        executeOnDocument As Func(Of Document, Integer, IStreamingFindUsagesPresenter, Boolean))
             Using workspace = TestWorkspace.Create(
                     workspaceDefinition, exportProvider:=GoToTestHelpers.ExportProviderFactory.CreateExportProvider())
                 Dim solution = workspace.CurrentSolution
@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
                 Dim presenterCalled As Boolean = False
                 Dim presenter = New MockStreamingFindUsagesPresenter(Sub() presenterCalled = True)
-                Dim actualResult = executeOnDocument(document, cursorPosition, New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter))
+                Dim actualResult = executeOnDocument(document, cursorPosition, presenter)
 
                 Assert.Equal(expectedResult, actualResult)
 
@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToDefinition
 
         Private Sub Test(workspaceDefinition As XElement, Optional expectedResult As Boolean = True)
             Test(workspaceDefinition, expectedResult,
-                Function(document As Document, cursorPosition As Integer, presenter As Lazy(Of IStreamingFindUsagesPresenter))
+                Function(document As Document, cursorPosition As Integer, presenter As IStreamingFindUsagesPresenter)
                     Dim goToDefService = If(document.Project.Language = LanguageNames.CSharp,
                         DirectCast(New CSharpGoToDefinitionService(presenter), IGoToDefinitionService),
                         New VisualBasicGoToDefinitionService(presenter))

@@ -95,18 +95,17 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         public static bool TryGoToDefinition(
             ISymbol symbol,
             Project project,
-            Lazy<IStreamingFindUsagesPresenter> streamingPresenterOpt,
+            IStreamingFindUsagesPresenter streamingPresenter,
             CancellationToken cancellationToken,
             bool thirdPartyNavigationAllowed = true,
             bool throwOnHiddenDefinition = false)
         {
             var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
 
-            var presenter = streamingPresenterOpt?.Value;
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
-            return presenter.TryNavigateToOrPresentItemsAsync(
+            return streamingPresenter.TryNavigateToOrPresentItemsAsync(
                 project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
 

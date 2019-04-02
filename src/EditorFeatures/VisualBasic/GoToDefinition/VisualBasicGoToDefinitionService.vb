@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
         Inherits AbstractGoToDefinitionService
 
         <ImportingConstructor>
-        Public Sub New(<Import(AllowDefault:=True)> streamingPresenterOpt As Lazy(Of IStreamingFindUsagesPresenter))
-            MyBase.New(streamingPresenterOpt)
+        Public Sub New(streamingPresenter As IStreamingFindUsagesPresenter)
+            MyBase.New(streamingPresenter)
         End Sub
     End Class
 End Namespace
