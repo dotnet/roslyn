@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         protected abstract string GetMessage(TCommand command);
 
         // Internal as tests currently rely on this method.
-        internal abstract Task<CommentSelectionResult> CollectEdits(
+        internal abstract Task<CommentSelectionResult> CollectEditsAsync(
             Document document, ICommentSelectionService service, ITextBuffer textBuffer, NormalizedSnapshotSpanCollection selectedSpans,
             TCommand command, CancellationToken cancellationToken);
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     return true;
                 }
 
-                var edits = CollectEdits(document, service, subjectBuffer, selectedSpans, command, cancellationToken).WaitAndGetResult(cancellationToken);
+                var edits = CollectEditsAsync(document, service, subjectBuffer, selectedSpans, command, cancellationToken).WaitAndGetResult(cancellationToken);
 
                 ApplyEdits(document, textView, subjectBuffer, service, title, edits);
             }
@@ -169,7 +169,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// <summary>
         /// Retrieves the snapshot span from a post edited tracking span.
         /// Additionally applies any extra modifications to the tracking span post edit.
-        /// Internal for tests.
         /// </summary>
         private static SnapshotSpan CreateSnapshotSpan(ITextSnapshot snapshot, ITrackingSpan trackingSpan, CommentTrackingSpan originalSpan)
         {

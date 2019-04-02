@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 
         protected override string GetMessage(ValueTuple command) => EditorFeaturesResources.Toggling_block_comment;
 
-        internal async override Task<CommentSelectionResult> CollectEdits(Document document, ICommentSelectionService service,
+        internal async override Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
             ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
         {
             var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();

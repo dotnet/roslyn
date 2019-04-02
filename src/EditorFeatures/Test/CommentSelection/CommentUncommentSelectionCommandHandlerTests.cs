@@ -767,7 +767,7 @@ class A
             var commandHandler = new CommentUncommentSelectionCommandHandler(textUndoHistoryRegistry, editorOperationsFactory);
             var service = new MockCommentSelectionService(supportBlockComments);
 
-            var edits = commandHandler.CollectEdits(
+            var edits = commandHandler.CollectEditsAsync(
                 null, service, textView.TextBuffer, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), operation, CancellationToken.None).GetAwaiter().GetResult();
 
             Roslyn.Test.Utilities.AssertEx.SetEqual(expectedChanges, edits.TextChanges);

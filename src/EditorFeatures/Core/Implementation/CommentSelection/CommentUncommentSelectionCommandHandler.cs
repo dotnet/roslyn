@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         ///
         /// Internal so that it can be called by unit tests.
         /// </summary>
-        internal override Task<CommentSelectionResult> CollectEdits(
+        internal override Task<CommentSelectionResult> CollectEditsAsync(
             Document document, ICommentSelectionService service, ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans,
             Operation operation, CancellationToken cancellationToken)
         {
