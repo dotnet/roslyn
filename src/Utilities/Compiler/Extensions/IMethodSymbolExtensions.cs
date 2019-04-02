@@ -512,10 +512,11 @@ namespace Analyzer.Utilities.Extensions
 
         /// <summary>
         /// Find out if the method overrides from target virtual method of a certain type
+        /// or it is the virtual method itself.
         /// </summary>
         /// <param name="methodSymbol">The method</param>
         /// <param name="typeSymbol">The type has virtual method</param>
-        public static bool IsOverrides(this IMethodSymbol methodSymbol, INamedTypeSymbol typeSymbol)
+        public static bool IsOverrideOrVirtualMethodOf(this IMethodSymbol methodSymbol, INamedTypeSymbol typeSymbol)
         {
             if (methodSymbol == null)
             {
@@ -529,7 +530,7 @@ namespace Analyzer.Utilities.Extensions
                 }
                 else
                 {
-                    return IsOverrides(methodSymbol.OverriddenMethod, typeSymbol);
+                    return IsOverrideOrVirtualMethodOf(methodSymbol.OverriddenMethod, typeSymbol);
                 }
             }
         }

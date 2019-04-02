@@ -286,5 +286,7 @@ namespace Analyzer.Utilities
         public const string SystemXmlXmlReader = "System.Xml.XmlReader";
         public const string SystemXmlSerializationXmlSerializer = "System.Xml.Serialization.XmlSerializer";
         public const string SystemXmlXmlValidatingReader = "System.Xml.XmlValidatingReader";
+        public const string SystemXmlSchemaXmlSchema = "System.Xml.Schema.XmlSchema";
+        public const string SystemXmlXPathXPathDocument = "System.Xml.XPath.XPathDocument";
     }
 }
