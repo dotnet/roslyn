@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 });
         }
 
-        [ConditionalFact(typeof(DotNetSdkAvailable))]
+        [ConditionalFact(typeof(DotNetSdkAvailable), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/34688")]
         public void TestDiscoverEditorConfigFiles()
         {
             var srcFile = ProjectDir.CreateFile("lib1.cs").WriteAllText("class C { }");
