@@ -121,8 +121,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 
         public string AssemblyName => VisualStudioProject.AssemblyName;
 
+        public CompilationOutputFiles CompilationOutputFiles
+            => (CompilationOutputFiles)VisualStudioProject.CompilationOutputs;
+
         public string GetOutputFileName()
-            => VisualStudioProject.IntermediateOutputFilePath;
+            => CompilationOutputFiles.OutputAssemblyPath;
 
         public virtual void Disconnect()
         {

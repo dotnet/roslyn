@@ -164,11 +164,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _project.AssemblyName = _commandLineArgumentsForCommandLine.CompilationName ?? _project.AssemblyName;
             _project.CompilationOptions = compilationOptions;
 
-            string fullIntermediateOutputPath = _commandLineArgumentsForCommandLine.OutputDirectory != null && _commandLineArgumentsForCommandLine.OutputFileName != null
-                                                    ? Path.Combine(_commandLineArgumentsForCommandLine.OutputDirectory, _commandLineArgumentsForCommandLine.OutputFileName)
-                                                    : _commandLineArgumentsForCommandLine.OutputFileName;
+            string outputDirectory = _commandLineArgumentsForCommandLine.OutputDirectory;
 
-            _project.IntermediateOutputFilePath = fullIntermediateOutputPath ?? _project.IntermediateOutputFilePath;
+            string getAbsolutePath(string path)
+                => (outputDirectory != null && path != null) ? Path.Combine(outputDirectory, path) : path;
+
+            // TODO: calculate default paths if not specified
+
+            _project.CompilationOutputs = new CompilationOutputFiles(
+                getAbsolutePath(_commandLineArgumentsForCommandLine.OutputFileName),
+                getAbsolutePath(_commandLineArgumentsForCommandLine.OutputRefFilePath),
+                getAbsolutePath(_commandLineArgumentsForCommandLine.PdbPath),
+                getAbsolutePath(_commandLineArgumentsForCommandLine.DocumentationPath));
+
             _project.ParseOptions = parseOptions;
         }
 

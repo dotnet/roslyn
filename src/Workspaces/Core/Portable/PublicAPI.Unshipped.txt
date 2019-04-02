@@ -1,5 +1,26 @@
+Microsoft.CodeAnalysis.CompilationOutputFiles
+Microsoft.CodeAnalysis.CompilationOutputFiles.CompilationOutputFiles(string outputAssemblyPath = null, string outputRefAssemblyPath = null, string pdbFilePath = null, string documentationFilePath = null) -> void
+Microsoft.CodeAnalysis.CompilationOutputFiles.DocumentationFilePath.get -> string
+Microsoft.CodeAnalysis.CompilationOutputFiles.Equals(Microsoft.CodeAnalysis.CompilationOutputFiles other) -> bool
+Microsoft.CodeAnalysis.CompilationOutputFiles.OutputAssemblyPath.get -> string
+Microsoft.CodeAnalysis.CompilationOutputFiles.OutputRefAssemblyPath.get -> string
+Microsoft.CodeAnalysis.CompilationOutputFiles.PdbFilePath.get -> string
+Microsoft.CodeAnalysis.CompilationOutputFiles.WithDocumentationFilePath(string path) -> Microsoft.CodeAnalysis.CompilationOutputFiles
+Microsoft.CodeAnalysis.CompilationOutputFiles.WithOutputAssemblyPath(string path) -> Microsoft.CodeAnalysis.CompilationOutputFiles
+Microsoft.CodeAnalysis.CompilationOutputFiles.WithOutputRefAssemblyPath(string path) -> Microsoft.CodeAnalysis.CompilationOutputFiles
+Microsoft.CodeAnalysis.CompilationOutputFiles.WithPdbFilePath(string path) -> Microsoft.CodeAnalysis.CompilationOutputFiles
+Microsoft.CodeAnalysis.CompilationOutputs
+Microsoft.CodeAnalysis.CompilationOutputs.CompilationOutputs() -> void
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsRef(bool isRef) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 *REMOVED*Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool isSolutionClosing = false) -> void
+Microsoft.CodeAnalysis.ProjectInfo.CompilationOutputs.get -> Microsoft.CodeAnalysis.CompilationOutputs
+Microsoft.CodeAnalysis.ProjectInfo.WithCompilationOutputs(Microsoft.CodeAnalysis.CompilationOutputs compilationOutputs) -> Microsoft.CodeAnalysis.ProjectInfo
+Microsoft.CodeAnalysis.Solution.WithProjectCompilationOutputs(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.CompilationOutputs outputs) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Workspace.OnCompilationOutputsChanged(Microsoft.CodeAnalysis.ProjectId projectId, Microsoft.CodeAnalysis.CompilationOutputs outputs) -> void
+abstract Microsoft.CodeAnalysis.CompilationOutputs.OpenDocumentationFile() -> System.IO.Stream
+abstract Microsoft.CodeAnalysis.CompilationOutputs.OpenOutputAssembly() -> System.IO.Stream
+abstract Microsoft.CodeAnalysis.CompilationOutputs.OpenOutputRefAssembly() -> System.IO.Stream
+abstract Microsoft.CodeAnalysis.CompilationOutputs.OpenPdbFile() -> System.IO.Stream
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ControlKeyword = "keyword - control" -> string
@@ -32,13 +53,23 @@ Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.Docume
 Microsoft.CodeAnalysis.Workspace.ClearOpenDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool isSolutionClosing) -> void
 Microsoft.CodeAnalysis.Workspace.OnDocumentsAdded(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentInfos) -> void
 Microsoft.CodeAnalysis.Workspace.OnOutputRefFilePathChanged(Microsoft.CodeAnalysis.ProjectId projectId, string outputFilePath) -> void
+override Microsoft.CodeAnalysis.CompilationOutputFiles.Equals(object other) -> bool
+override Microsoft.CodeAnalysis.CompilationOutputFiles.GetHashCode() -> int
+override Microsoft.CodeAnalysis.CompilationOutputFiles.OpenDocumentationFile() -> System.IO.Stream
+override Microsoft.CodeAnalysis.CompilationOutputFiles.OpenOutputAssembly() -> System.IO.Stream
+override Microsoft.CodeAnalysis.CompilationOutputFiles.OpenOutputRefAssembly() -> System.IO.Stream
+override Microsoft.CodeAnalysis.CompilationOutputFiles.OpenPdbFile() -> System.IO.Stream
 override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 override Microsoft.CodeAnalysis.Options.OptionKey.ToString() -> string
+override abstract Microsoft.CodeAnalysis.CompilationOutputs.Equals(object other) -> bool
+override abstract Microsoft.CodeAnalysis.CompilationOutputs.GetHashCode() -> int
 static Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.AdditiveTypeNames.get -> System.Collections.Immutable.ImmutableArray<string>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Project project, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, Microsoft.CodeAnalysis.SymbolFilter filter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
 static Microsoft.CodeAnalysis.FindSymbols.SymbolFinder.FindSourceDeclarationsWithPatternAsync(Microsoft.CodeAnalysis.Solution solution, string pattern, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ISymbol>>
+static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath = null, string outputFilePath = null, Microsoft.CodeAnalysis.CompilationOptions compilationOptions = null, Microsoft.CodeAnalysis.ParseOptions parseOptions = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments = null, bool isSubmission = false, System.Type hostObjectType = null, string outputRefFilePath = null, Microsoft.CodeAnalysis.CompilationOutputs compilationOutputs = null) -> Microsoft.CodeAnalysis.ProjectInfo
+static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath, string outputFilePath, Microsoft.CodeAnalysis.CompilationOptions compilationOptions, Microsoft.CodeAnalysis.ParseOptions parseOptions, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments, bool isSubmission, System.Type hostObjectType, string outputRefFilePath) -> Microsoft.CodeAnalysis.ProjectInfo
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Silent -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Text.SourceText
 virtual Microsoft.CodeAnalysis.Workspace.CanApplyCompilationOptionChange(Microsoft.CodeAnalysis.CompilationOptions oldOptions, Microsoft.CodeAnalysis.CompilationOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool

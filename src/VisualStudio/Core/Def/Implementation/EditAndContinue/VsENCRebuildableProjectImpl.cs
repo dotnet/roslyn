@@ -236,37 +236,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_threadingContext, _encService, _editorAdaptersFactoryService);
                 }
 
-                string outputPath = _project.IntermediateOutputFilePath;
+                _mvid = Guid.Empty;
 
-                // The project doesn't produce a debuggable binary or we can't read it.
-                // Continue on since the debugger ignores HResults and we need to handle subsequent calls.
-                if (outputPath != null)
+                if (_project.CompilationOutputs is CompilationOutputFiles outputFiles)
                 {
+                    // The project doesn't produce a debuggable binary, we can't read it or it's not stored in a file on disk.
+                    // Continue on since the debugger ignores HResults and we need to handle subsequent calls.
                     try
                     {
-                        _mvid = ReadMvid(outputPath);
+                        using (var outputAssemblyStream = outputFiles.OpenOutputAssembly())
+                        {
+                            if (outputAssemblyStream != null)
+                            {
+                                _mvid = ReadMvid(outputAssemblyStream);
+                            }
+                        }
                     }
                     catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
                     {
                         // If the project isn't referenced by the project being debugged it might not be built.
                         // In that case EnC is never allowed for the project, and thus we can assume the project hasn't entered debug state.
-                        log.Write("StartDebuggingPE: '{0}' metadata file not found: '{1}'", _project.Id.ToString(), outputPath);
-                        _mvid = Guid.Empty;
+                        log.Write("StartDebuggingPE: '{0}' metadata file not found: '{1}'", _project.Id.ToString(), outputFiles.OutputAssemblyPath);
                     }
                     catch (Exception e)
                     {
-                        log.Write("StartDebuggingPE: error reading MVID of '{0}' ('{1}'): {2}", _project.Id.ToString(), outputPath, e.Message);
-                        _mvid = Guid.Empty;
-                        ReportInternalError(InternalErrorCode.ErrorReadingFile, new[] { outputPath, e.Message });
+                        log.Write("StartDebuggingPE: error reading MVID of '{0}' ('{1}'): {2}", _project.Id.ToString(), outputFiles.OutputAssemblyPath, e.Message);
+                        ReportInternalError(InternalErrorCode.ErrorReadingFile, new[] { outputFiles.OutputAssemblyPath, e.Message });
                     }
                 }
-                else
+
+                if (_mvid == Guid.Empty)
                 {
                     log.Write("StartDebuggingPE: project has no output path '{0}'", _project.Id.ToString());
-                    _mvid = Guid.Empty;
                 }
-
-                if (_mvid != Guid.Empty)
+                else
                 {
                     // The debugger doesn't call EnterBreakStateOnPE for projects that don't have MVID.
                     // However a project that's initially not loaded (but it might be in future) enters 
@@ -287,14 +290,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         /// Given a path to an assembly, returns its MVID (Module Version ID).
         /// May throw.
         /// </summary>
-        /// <exception cref="IOException">If the file at <paramref name="filePath"/> does not exist or cannot be accessed.</exception>
+        /// <exception cref="IOException">On IO error.</exception>
         /// <exception cref="BadImageFormatException">If the file is not an assembly or is somehow corrupted.</exception>
-        private static Guid ReadMvid(string filePath)
+        private static Guid ReadMvid(Stream stream)
         {
-            Debug.Assert(filePath != null);
-            Debug.Assert(PathUtilities.IsAbsolute(filePath));
-
-            using (var reader = new PEReader(FileUtilities.OpenRead(filePath)))
+            using (var reader = new PEReader(stream))
             {
                 var metadataReader = reader.GetMetadataReader();
                 var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
@@ -412,7 +412,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
             if (pbstrPEName != null && pbstrPEName.Length != 0)
             {
-                var outputPath = _project.IntermediateOutputFilePath;
+                var outputPath = ((CompilationOutputFiles)_project.CompilationOutputs).OutputAssemblyPath;
                 Debug.Assert(outputPath != null);
 
                 pbstrPEName[0] = Path.GetFileName(outputPath);
@@ -952,7 +952,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
             if (baseline == null || baseline.OriginalMetadata.IsDisposed)
             {
-                var moduleName = PathUtilities.GetFileName(_project.IntermediateOutputFilePath);
+                var moduleName = PathUtilities.GetFileName(((CompilationOutputFiles)_project.CompilationOutputs).OutputAssemblyPath);
 
                 // The metadata blob is guaranteed to not be disposed while BuildForEnc is being executed. 
                 // If it is disposed it means it had been disposed when entering BuildForEnc.

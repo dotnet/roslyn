@@ -376,6 +376,17 @@ namespace Microsoft.CodeAnalysis
             return new Solution(newState);
         }
 
+        public Solution WithProjectCompilationOutputs(ProjectId projectId, CompilationOutputs outputs)
+        {
+            var newState = _state.WithProjectCompilationOutputs(projectId, outputs);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
         /// <summary>
         /// Update a project as a result of option changes.
         /// 

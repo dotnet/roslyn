@@ -305,6 +305,9 @@ namespace Microsoft.CodeAnalysis
         public ParseOptions ParseOptions => this.ProjectInfo.ParseOptions;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public CompilationOutputs CompilationOutputs => this.ProjectInfo.CompilationOutputs;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public IReadOnlyList<MetadataReference> MetadataReferences => this.ProjectInfo.MetadataReferences;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -467,6 +470,16 @@ namespace Microsoft.CodeAnalysis
             return this.With(
                 projectInfo: this.ProjectInfo.WithParseOptions(options).WithVersion(this.Version.GetNewerVersion()),
                 documentStates: docMap);
+        }
+
+        public ProjectState UpdateCompilationOutputs(CompilationOutputs outputs)
+        {
+            if (outputs == CompilationOutputs)
+            {
+                return this;
+            }
+
+            return With(projectInfo: ProjectInfo.WithCompilationOutputs(outputs).WithVersion(Version.GetNewerVersion()));
         }
 
         public ProjectState UpdateHasAllInformation(bool hasAllInformation)

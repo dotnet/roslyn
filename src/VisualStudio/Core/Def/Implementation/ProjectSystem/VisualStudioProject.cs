@@ -53,8 +53,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private string _filePath;
         private CompilationOptions _compilationOptions;
         private ParseOptions _parseOptions;
+        private CompilationOutputs _compilationOutputs;
         private bool _hasAllInformation = true;
-        private string _intermediateOutputFilePath;
         private string _outputFilePath;
         private string _outputRefFilePath;
         private string _defaultNamespace;
@@ -216,21 +216,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                        w => w.OnParseOptionsChanged(Id, value));
         }
 
-        /// <summary>
-        /// The path to the output in obj.
-        /// </summary>
-        /// <remarks>This is internal for now, as it's only consumed by <see cref="EditAndContinue.VsENCRebuildableProjectImpl"/>
-        /// which directly takes a <see cref="VisualStudioProject"/>.</remarks>
-        internal string IntermediateOutputFilePath
+        public CompilationOutputs CompilationOutputs
         {
-            get => _intermediateOutputFilePath;
-            set
-            {
-                // Unlike OutputFilePath and OutputRefFilePath, the intermediate output path isn't represented in the workspace anywhere;
-                // thus, we won't mutate the solution. We'll still call ChangeProjectOutputPath so we have the rest of the output path tracking
-                // for any P2P reference conversion.
-                ChangeProjectOutputPath(ref _intermediateOutputFilePath, value, s => s, w => { });
-            }
+            get => _compilationOutputs;
+            set => ChangeProjectProperty(
+                ref _compilationOutputs,
+                value,
+                s => s.WithProjectCompilationOutputs(Id, value),
+                w => w.OnCompilationOutputsChanged(Id, value));
         }
 
         public string OutputFilePath

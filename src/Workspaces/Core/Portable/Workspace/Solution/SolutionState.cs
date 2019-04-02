@@ -780,6 +780,26 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public SolutionState WithProjectCompilationOutputs(ProjectId projectId, CompilationOutputs outputs)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            Debug.Assert(ContainsProject(projectId));
+
+            var oldProject = GetProjectState(projectId);
+            var newProject = oldProject.UpdateCompilationOutputs(outputs);
+
+            if (oldProject == newProject)
+            {
+                return this;
+            }
+
+            return this.ForkProject(newProject);
+        }
+
         /// <summary>
         /// Update a new solution instance with a fork of the specified project.
         /// 

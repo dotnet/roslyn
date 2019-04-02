@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
@@ -43,9 +44,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             // This file is used only during emit. Since we no longer use our in-proc workspace to emit, we can ignore this value.
         }
 
+        public CompilationOutputFiles CompilationOutputFiles
+            => (CompilationOutputFiles)VisualStudioProject.CompilationOutputs;
+
         public void SetOutputFileName(string filename)
         {
-            VisualStudioProject.IntermediateOutputFilePath = filename;
+            // TODO: normalize filename?
+
+            VisualStudioProject.CompilationOutputs = CompilationOutputFiles.WithOutputAssemblyPath(filename);
 
             if (filename != null)
             {

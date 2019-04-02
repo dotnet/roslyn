@@ -493,6 +493,14 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when a project's compilation options are changed in the host environment.
+        /// </summary>
+        protected internal void OnCompilationOutputsChanged(ProjectId projectId, CompilationOutputs outputs)
+        {
+            this.HandleProjectChange(projectId, oldSolution => oldSolution.WithProjectCompilationOutputs(projectId, outputs));
+        }
+
+        /// <summary>
         /// Call this method when a project's parse options are changed in the host environment.
         /// </summary>
         protected internal void OnParseOptionsChanged(ProjectId projectId, ParseOptions options)

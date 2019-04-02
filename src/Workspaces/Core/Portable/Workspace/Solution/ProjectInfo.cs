@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The name of the assembly that this project will create, without file extension.
-        /// </summary>,
+        /// </summary>
         public string AssemblyName => Attributes.AssemblyName;
 
         /// <summary>
@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public ParseOptions ParseOptions { get; }
 
+        public CompilationOutputs CompilationOutputs { get; }
+
         /// <summary>
         /// The list of source documents initially associated with the project.
         /// </summary>
@@ -132,7 +134,8 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<MetadataReference> metadataReferences,
             IEnumerable<AnalyzerReference> analyzerReferences,
             IEnumerable<DocumentInfo> additionalDocuments,
-            Type hostObjectType)
+            Type hostObjectType,
+            CompilationOutputs compilationOutputs)
         {
             Attributes = attributes;
             CompilationOptions = compilationOptions;
@@ -143,6 +146,7 @@ namespace Microsoft.CodeAnalysis
             AnalyzerReferences = analyzerReferences.ToImmutableReadOnlyListOrEmpty();
             AdditionalDocuments = additionalDocuments.ToImmutableReadOnlyListOrEmpty();
             HostObjectType = hostObjectType;
+            CompilationOutputs = compilationOutputs;
         }
 
         /// <summary>
@@ -167,7 +171,8 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo> additionalDocuments,
             bool isSubmission,
             Type hostObjectType,
-            bool hasAllInformation)
+            bool hasAllInformation,
+            CompilationOutputs compilationOutputs)
         {
             return new ProjectInfo(
                 new ProjectAttributes(
@@ -189,7 +194,8 @@ namespace Microsoft.CodeAnalysis
                 metadataReferences,
                 analyzerReferences,
                 additionalDocuments,
-                hostObjectType);
+                hostObjectType,
+                compilationOutputs);
         }
 
         // 2.7.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
@@ -218,7 +224,37 @@ namespace Microsoft.CodeAnalysis
                 id, version, name, assemblyName, language,
                 filePath, outputFilePath, outputRefFilePath: null, defaultNamespace: null, compilationOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
-                isSubmission, hostObjectType, hasAllInformation: true);
+                isSubmission, hostObjectType, hasAllInformation: true, CompilationOutputFiles.None);
+        }
+
+        // 3.0.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        /// <summary>
+        /// Create a new instance of a ProjectInfo.
+        /// </summary>
+        public static ProjectInfo Create(
+            ProjectId id,
+            VersionStamp version,
+            string name,
+            string assemblyName,
+            string language,
+            string filePath,
+            string outputFilePath,
+            CompilationOptions compilationOptions,
+            ParseOptions parseOptions,
+            IEnumerable<DocumentInfo> documents,
+            IEnumerable<ProjectReference> projectReferences,
+            IEnumerable<MetadataReference> metadataReferences,
+            IEnumerable<AnalyzerReference> analyzerReferences,
+            IEnumerable<DocumentInfo> additionalDocuments,
+            bool isSubmission,
+            Type hostObjectType,
+            string outputRefFilePath)
+        {
+            return Create(
+                id, version, name, assemblyName, language,
+                filePath, outputFilePath, outputRefFilePath, defaultNamespace: null, compilationOptions, parseOptions,
+                documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
+                isSubmission, hostObjectType, hasAllInformation: true, CompilationOutputFiles.None);
         }
 
         /// <summary>
@@ -241,13 +277,14 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<DocumentInfo> additionalDocuments = null,
             bool isSubmission = false,
             Type hostObjectType = null,
-            string outputRefFilePath = null)
+            string outputRefFilePath = null,
+            CompilationOutputs compilationOutputs = null)
         {
             return Create(
                 id, version, name, assemblyName, language,
                 filePath, outputFilePath, outputRefFilePath, defaultNamespace: null, compilationOptions, parseOptions,
                 documents, projectReferences, metadataReferences, analyzerReferences, additionalDocuments,
-                isSubmission, hostObjectType, hasAllInformation: true);
+                isSubmission, hostObjectType, hasAllInformation: true, compilationOutputs);
         }
 
         private ProjectInfo With(
@@ -259,7 +296,8 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<MetadataReference> metadataReferences = null,
             IEnumerable<AnalyzerReference> analyzerReferences = null,
             IEnumerable<DocumentInfo> additionalDocuments = null,
-            Optional<Type> hostObjectType = default)
+            Optional<Type> hostObjectType = default,
+            CompilationOutputs compilationOutputs = null)
         {
             var newAttributes = attributes ?? Attributes;
             var newCompilationOptions = compilationOptions ?? CompilationOptions;
@@ -270,6 +308,7 @@ namespace Microsoft.CodeAnalysis
             var newAnalyzerReferences = analyzerReferences ?? AnalyzerReferences;
             var newAdditionalDocuments = additionalDocuments ?? AdditionalDocuments;
             var newHostObjectType = hostObjectType.HasValue ? hostObjectType.Value : HostObjectType;
+            var newCompilationOutputs = compilationOutputs ?? CompilationOutputs;
 
             if (newAttributes == Attributes &&
                 newCompilationOptions == CompilationOptions &&
@@ -279,7 +318,8 @@ namespace Microsoft.CodeAnalysis
                 newMetadataReferences == MetadataReferences &&
                 newAnalyzerReferences == AnalyzerReferences &&
                 newAdditionalDocuments == AdditionalDocuments &&
-                newHostObjectType == HostObjectType)
+                newHostObjectType == HostObjectType &&
+                newCompilationOutputs == CompilationOutputs)
             {
                 return this;
             }
@@ -293,7 +333,8 @@ namespace Microsoft.CodeAnalysis
                 newMetadataReferences,
                 newAnalyzerReferences,
                 newAdditionalDocuments,
-                newHostObjectType);
+                newHostObjectType,
+                newCompilationOutputs);
         }
 
         public ProjectInfo WithDocuments(IEnumerable<DocumentInfo> documents)
@@ -349,6 +390,11 @@ namespace Microsoft.CodeAnalysis
         public ProjectInfo WithParseOptions(ParseOptions parseOptions)
         {
             return With(parseOptions: parseOptions);
+        }
+
+        public ProjectInfo WithCompilationOutputs(CompilationOutputs compilationOutputs)
+        {
+            return With(compilationOutputs: compilationOutputs);
         }
 
         public ProjectInfo WithProjectReferences(IEnumerable<ProjectReference> projectReferences)
