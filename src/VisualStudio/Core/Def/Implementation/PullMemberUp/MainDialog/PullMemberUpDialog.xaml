@@ -15,7 +15,7 @@
     Height="498"
     Width="500"
     MinHeight="498"
-    MinWidth="500"
+    MinWidth="510"
     HasDialogFrame="True"
     ShowInTaskbar="False"
     ResizeMode="CanResizeWithGrip"
@@ -100,7 +100,7 @@
             Header="{Binding ElementName=dialog, Path=SelectMembers}"
             Grid.Row="2"
             MinHeight="200"
-            MinWidth="240"
+            MinWidth="250"
             BorderThickness="0">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -111,7 +111,7 @@
                     x:Uid="MemberSelection"
                     x:Name="MemberSelection"
                     Grid.Column="0"
-                    Margin="2, 5, 2, 2"
+                    Margin="2, 5, 12, 2"
                     SelectionMode="Extended"
                     AutoGenerateColumns="False"
                     HeadersVisibility="Column"
@@ -225,8 +225,7 @@
                     VerticalAlignment="Top"
                     HorizontalAlignment="Center"
                     Margin="0, 4, 0, 0"
-                    Width="Auto"
-                    MaxWidth="130">
+                    Width="Auto">
                     <vs:DialogButton
                         x:Name="SelecDependentsButton"
                         x:Uid="SelecDependentsButton"
@@ -250,7 +249,7 @@
         </GroupBox>
         <StackPanel
             Grid.Row="3"
-            Margin="0, 11, 0, 0"
+            Margin="0, 5, 8, 0"
             HorizontalAlignment="Right"
             Orientation="Horizontal">
             <vs:DialogButton
