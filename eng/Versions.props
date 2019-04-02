@@ -117,7 +117,7 @@
     <MicrosoftVisualStudioSDKAnalyzersVersion>15.7.7</MicrosoftVisualStudioSDKAnalyzersVersion>
     <MicrosoftVisualStudioSetupConfigurationInteropVersion>1.15.103</MicrosoftVisualStudioSetupConfigurationInteropVersion>
     <MicrosoftVisualStudioShell150Version>16.0.28226-pre</MicrosoftVisualStudioShell150Version>
-    <MicrosoftVisualStudioShellFrameworkVersion>16.0.28226-pre</MicrosoftVisualStudioShellFrameworkVersion>
+    <MicrosoftVisualStudioShellFrameworkVersion>16.1.28728.124</MicrosoftVisualStudioShellFrameworkVersion>
     <MicrosoftVisualStudioShellDesignVersion>15.7.27703</MicrosoftVisualStudioShellDesignVersion>
     <MicrosoftVisualStudioShellImmutable100Version>15.0.25415</MicrosoftVisualStudioShellImmutable100Version>
     <MicrosoftVisualStudioShellImmutable110Version>15.0.25415</MicrosoftVisualStudioShellImmutable110Version>
@@ -300,6 +300,7 @@
       https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
       https://dotnet.myget.org/F/dotnet-corefxtestdata/api/v3/index.json;
       https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json;
+      https://dotnet.myget.org/F/experimental-vs-packages/api/v3/index.json;
       https://dotnet.myget.org/F/symreader/api/v3/index.json;
       https://dotnet.myget.org/F/symreader-portable/api/v3/index.json;
       https://dotnet.myget.org/F/symreader-converter/api/v3/index.json;
