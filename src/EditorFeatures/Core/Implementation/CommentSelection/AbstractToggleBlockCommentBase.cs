@@ -42,10 +42,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 
         /// <summary>
-        /// Retrieves data about the commented selection that can be optionally overriden by subclasses.
+        /// Retrieves data about the commented spans near the selection.
         /// </summary>
+        /// <param name="document">the current document.</param>
+        /// <param name="snapshot">the current text snapshot.</param>
+        /// <param name="linesContainingSelections">
+        ///     a span that contains text from the first character of the first line in the selection(s)
+        ///     until the last character of the last line in the selection(s)
+        /// </param>
+        /// <param name="commentInfo">the comment information for the document.</param>
+        /// <param name="cancellationToken">a cancellation token.</param>
+        /// <returns>any commented spans relevant to the selection in the document.</returns>
         protected abstract Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
-            CommentSelectionInfo commentInfo, CancellationToken cancellationToken);
+            TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken);
 
         public VSCommanding.CommandState GetCommandState(ToggleBlockCommentCommandArgs args)
         {
@@ -94,8 +103,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         private async Task<CommentSelectionResult> ToggleBlockComments(Document document, CommentSelectionInfo commentInfo,
             ITextStructureNavigator navigator, NormalizedSnapshotSpanCollection selectedSpans, CancellationToken cancellationToken)
         {
+            var firstLineAroundSelection = selectedSpans.First().Start.GetContainingLine().Start;
+            var lastLineAroundSelection = selectedSpans.Last().End.GetContainingLine().End;
+            var linesContainingSelection = TextSpan.FromBounds(firstLineAroundSelection, lastLineAroundSelection);
             var blockCommentedSpans = await GetBlockCommentsInDocument(
-                document, selectedSpans.First().Snapshot, commentInfo, cancellationToken).ConfigureAwait(false);
+                document, selectedSpans.First().Snapshot, linesContainingSelection, commentInfo, cancellationToken).ConfigureAwait(false);
 
             var blockCommentSelections = selectedSpans.SelectAsArray(span => new BlockCommentSelectionHelper(blockCommentedSpans, span));
 

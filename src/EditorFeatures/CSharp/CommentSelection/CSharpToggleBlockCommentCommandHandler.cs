@@ -36,13 +36,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CommentSelection
         }
 
         /// <summary>
-        /// Retrieves block comments in document using the CSharp syntax tree.
+        /// Retrieves block comments near the selection in the document.
+        /// Uses the CSharp syntax tree to find the commented spans.
         /// </summary>
         protected override async Task<ImmutableArray<TextSpan>> GetBlockCommentsInDocument(Document document, ITextSnapshot snapshot,
-            CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
+            TextSpan linesContainingSelections, CommentSelectionInfo commentInfo, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return root.DescendantTrivia()
+            // Only search for block comments intersecting the lines in the selections.
+            return root.DescendantTrivia(linesContainingSelections)
                 .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
                 .SelectAsArray(blockCommentTrivia => blockCommentTrivia.Span);
         }
