@@ -373,9 +373,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override bool IsDeclaredReadOnly => _reducedFrom.Parameters[0].RefKind == RefKind.In;
+        internal override bool IsDeclaredReadOnly => false;
 
-        protected override bool IsValidReadOnlyTarget => true;
+        internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0].RefKind == RefKind.In;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {

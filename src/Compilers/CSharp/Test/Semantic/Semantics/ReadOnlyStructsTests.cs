@@ -1143,7 +1143,7 @@ public static class C
             testStatement(statements[6], false);
             testStatement(statements[7], true);
 
-            void testStatement(StatementSyntax statementSyntax, bool expected)
+            void testStatement(StatementSyntax statementSyntax, bool isEffectivelyReadOnly)
             {
                 var expressionStatement = (ExpressionStatementSyntax)statementSyntax;
                 var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
@@ -1151,10 +1151,10 @@ public static class C
                 var symbol = (MethodSymbol)semanticModel.GetSymbolInfo(invocationExpression.Expression).Symbol;
                 var reducedFrom = symbol.ReducedFrom;
 
-                Assert.Equal(expected, symbol.IsDeclaredReadOnly);
-                Assert.Equal(expected, symbol.IsEffectivelyReadOnly);
-                Assert.Equal(expected, ((IMethodSymbol)symbol).IsReadOnly);
+                Assert.Equal(isEffectivelyReadOnly, symbol.IsEffectivelyReadOnly);
+                Assert.Equal(isEffectivelyReadOnly, ((IMethodSymbol)symbol).IsReadOnly);
 
+                Assert.False(symbol.IsDeclaredReadOnly);
                 Assert.False(reducedFrom.IsDeclaredReadOnly);
                 Assert.False(reducedFrom.IsEffectivelyReadOnly);
                 Assert.False(((IMethodSymbol)reducedFrom).IsReadOnly);
