@@ -58407,5 +58407,46 @@ I1.M1
 ");
         }
 
+        [Fact]
+        public void MemberwiseClone_01()
+        {
+            var source0 = @"
+interface I1
+{
+    object M1(I2 x, I3 y)
+    {
+        x.MemberwiseClone();
+        y.MemberwiseClone();
+        this.MemberwiseClone();
+        return ((I1)this).MemberwiseClone();
+    }
+}
+
+interface I2
+{
+}
+
+interface I3 : I1
+{
+}
+";
+
+            var compilation0 = CreateCompilation(source0, options: TestOptions.DebugDll, targetFramework: TargetFramework.NetStandardLatest);
+            compilation0.VerifyDiagnostics(
+                // (6,11): error CS0122: 'object.MemberwiseClone()' is inaccessible due to its protection level
+                //         x.MemberwiseClone();
+                Diagnostic(ErrorCode.ERR_BadAccess, "MemberwiseClone").WithArguments("object.MemberwiseClone()").WithLocation(6, 11),
+                // (7,11): error CS0122: 'object.MemberwiseClone()' is inaccessible due to its protection level
+                //         y.MemberwiseClone();
+                Diagnostic(ErrorCode.ERR_BadAccess, "MemberwiseClone").WithArguments("object.MemberwiseClone()").WithLocation(7, 11),
+                // (8,14): error CS0122: 'object.MemberwiseClone()' is inaccessible due to its protection level
+                //         this.MemberwiseClone();
+                Diagnostic(ErrorCode.ERR_BadAccess, "MemberwiseClone").WithArguments("object.MemberwiseClone()").WithLocation(8, 14),
+                // (9,27): error CS0122: 'object.MemberwiseClone()' is inaccessible due to its protection level
+                //         return ((I1)this).MemberwiseClone();
+                Diagnostic(ErrorCode.ERR_BadAccess, "MemberwiseClone").WithArguments("object.MemberwiseClone()").WithLocation(9, 27)
+                );
+        }
+
     }
 }
