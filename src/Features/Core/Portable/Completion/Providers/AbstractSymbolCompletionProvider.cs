@@ -53,31 +53,45 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             bool preselect,
             ImmutableArray<ITypeSymbol> inferredTypes = default)
         {
-            var symbolGroups = from symbol in symbols
-                               let texts = GetDisplayAndSuffixAndInsertionText(symbol, context)
-                               group symbol by texts into g
-                               select g;
-
-            var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
-
-            foreach (var symbolGroup in symbolGroups)
+            if (ShouldCreateTargetTypeCompletionFilter(context.Workspace))
             {
-                var item = this.CreateItem(
-                        symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(), context,
-                        invalidProjectMap: null, totalProjects: null, preselect: preselect);
+                var symbolGroups = from symbol in symbols
+                                   let texts = GetDisplayAndSuffixAndInsertionText(symbol, context)
+                                   group symbol by texts into g
+                                   select g;
 
-                if (ShouldCreateTargetTypeCompletionFilter(context.Workspace))
+                var itemListBuilder = ImmutableArray.CreateBuilder<CompletionItem>();
+
+                foreach (var symbolGroup in symbolGroups)
                 {
-                    if (symbolGroup.Any(s => ShouldIncludeInTargetTypedCompletionList(s, inferredTypes, context.SemanticModel, context.Position)))
+                    var item = this.CreateItem(
+                            symbolGroup.Key.displayText, symbolGroup.Key.suffix, symbolGroup.Key.insertionText, symbolGroup.ToList(), context,
+                            invalidProjectMap: null, totalProjects: null, preselect: preselect);
+
+                    if (ShouldCreateTargetTypeCompletionFilter(context.Workspace))
                     {
-                        item = item.AddTag(WellKnownTags.MatchingType);
+                        if (symbolGroup.Any(s => ShouldIncludeInTargetTypedCompletionList(s, inferredTypes, context.SemanticModel, context.Position)))
+                        {
+                            item = item.AddTag(WellKnownTags.MatchingType);
+                        }
                     }
+
+                    itemListBuilder.Add(item);
                 }
 
-                itemListBuilder.Add(item);
+                return itemListBuilder.ToImmutable();
             }
+            else
+            {
+                var q = from symbol in symbols
+                        let texts = GetDisplayAndSuffixAndInsertionText(symbol, context)
+                        group symbol by texts into g
+                        select this.CreateItem(
+                            g.Key.displayText, g.Key.suffix, g.Key.insertionText, g.ToList(), context,
+                            invalidProjectMap: null, totalProjects: null, preselect: preselect);
 
-            return itemListBuilder.ToImmutable();
+                return q.ToImmutableArray()
+            }
         }
 
         private bool ShouldCreateTargetTypeCompletionFilter(Workspace workspace)
