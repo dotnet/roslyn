@@ -2231,13 +2231,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var accessExpressionType = VisitRvalueWithState(node.AccessExpression);
             Join(ref this.State, ref receiverState);
 
+            // Per LDM 2019-02-13 decision, the result of a conditional access might be null even if
+            // both the receiver and right-hand-side are believed not to be null.
+            NullableFlowState resultState = NullableFlowState.MaybeNull;
+
             // https://github.com/dotnet/roslyn/issues/29956 Use flow analysis type rather than node.Type
             // so that nested nullability is inferred from flow analysis. See VisitConditionalOperator.
             TypeSymbol type = node.Type;
-
-            // Per LDM 2019-02-13 decision, the result of a conditional access might be null even if
-            // both the receiver and right-hand-side are believed not to be null.
-            NullableFlowState resultState = type.CanContainNull() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull;
 
             // If the result type does not allow annotations, then we produce a warning because
             // the result may be null.
