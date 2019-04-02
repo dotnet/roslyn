@@ -431,21 +431,63 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSafetyDiagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, ((SwitchExpressionSyntax)node.Syntax).SwitchKeyword.GetLocation());
             }
 
+            // collect expressions, conversions and result types
+            int n = node.SwitchArms.Length;
+            var conversions = ArrayBuilder<Conversion>.GetInstance(n);
+            var resultTypes = ArrayBuilder<TypeWithState>.GetInstance(n);
+            var expressions = ArrayBuilder<BoundExpression>.GetInstance(n);
+
             foreach (var arm in node.SwitchArms)
             {
                 SetState(!arm.Pattern.HasErrors && labelStateMap.TryGetValue(arm.Label, out var labelState) ? labelState.state : UnreachableState());
-                VisitRvalue(arm.Value);
+                (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
+                expressions.Add(expression);
+                conversions.Add(conversion);
+                resultTypes.Add(VisitRvalueWithState(expression));
                 Join(ref endState, ref this.State);
             }
 
+            // Build placeholders for inference in order to preserve annotations.
+            TypeSymbol inferredType = null;
+            var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressions[i], resultTypes[i].ToTypeWithAnnotations()));
+            var placeholders = placeholderBuilder.ToImmutableAndFree();
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            inferredType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics);
+            if (inferredType is null)
+                inferredType = node.Type.SetUnknownNullabilityForReferenceTypes();
+            var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
+
+            // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
+            var inferredState = NullableFlowState.NotNull;
+            for (int i = 0; i < n; i++)
+            {
+                var placeholder = placeholders[i];
+                var oneResultType = ApplyConversion(placeholder, placeholder, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
+                    fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
+                resultTypes[i] = oneResultType;
+                inferredState = inferredState.Join(oneResultType.State);
+            }
+
+            var resultType = TypeWithState.Create(inferredType, inferredState);
+            inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations();
+
+            for (int i = 0; i < n; i++)
+            {
+                var nodeForSyntax = expressions[i];
+                // Report top-level warnings
+                _ = ApplyConversion(nodeForSyntax, operandOpt: nodeForSyntax, Conversion.Identity, targetTypeWithNullability: inferredTypeWithAnnotations, operandType: resultTypes[i],
+                    checkConversion: true, fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: false);
+            }
+
+            conversions.Free();
+            resultTypes.Free();
+            expressions.Free();
             labelStateMap.Free();
             SetState(endState);
-
-            // https://github.com/dotnet/roslyn/issues/34233
-            // We need to recompute the result type and state of the switch expression based on
-            // the result type and state of all of the arms. This can be done in a way similar
-            // to how it is done for an implicit array creation expression.
-            this.ResultType = TypeWithAnnotations.Create(node.Type).ToTypeWithState();
+            SetResult(resultType, inferredTypeWithAnnotations);
             return null;
         }
 

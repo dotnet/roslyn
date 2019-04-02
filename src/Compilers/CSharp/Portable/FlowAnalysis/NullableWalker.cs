@@ -1614,15 +1614,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     bestType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics);
                 }
 
-                TypeWithAnnotations inferredType;
-                if (bestType is null)
-                {
-                    inferredType = elementType.SetUnknownNullabilityForReferenceTypes();
-                }
-                else
-                {
-                    inferredType = TypeWithAnnotations.Create(bestType);
-                }
+                TypeWithAnnotations inferredType = (bestType is null)
+                    ? elementType.SetUnknownNullabilityForReferenceTypes()
+                    : TypeWithAnnotations.Create(bestType);
 
                 if ((object)bestType != null)
                 {
@@ -1635,7 +1629,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // Set top-level nullability on inferred element type
-                    inferredType = TypeWithAnnotations.Create(inferredType.Type, BestTypeInferrer.GetNullableAnnotation(resultTypes));
+                    var elementState = BestTypeInferrer.GetNullableState(resultTypes);
+                    inferredType = TypeWithState.Create(inferredType.Type, elementState).ToTypeWithAnnotations();
 
                     for (int i = 0; i < n; i++)
                     {
