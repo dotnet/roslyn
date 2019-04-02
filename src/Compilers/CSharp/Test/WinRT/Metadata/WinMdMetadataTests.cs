@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// System.Runtime.WindowsRuntime assembly.
         /// </summary> 
         [Fact]
-        public void FunctionPrototypeForwarded()
+        public void FunctionSignatureForwarded()
         {
             var text = "public class A{};";
             var comp = CreateCompilationWithWinRT(text);
