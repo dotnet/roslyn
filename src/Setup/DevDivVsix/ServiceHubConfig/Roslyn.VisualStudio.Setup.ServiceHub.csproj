@@ -22,8 +22,9 @@
           Outputs="$(_SwrFilePath)">
 
     <ItemGroup>
-      <_ServiceHubConfigFiles Include="$(IntermediateOutputPath)*.servicehub.service.json" />
-      <_FileEntries Include='file source="%(_ServiceHubConfigFiles.Identity)"'/>
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="" />
+      <_ServiceHubConfigFiles Include="@(ServiceHubService)" FileSuffix="64" />
+      <_FileEntries Include='file source="$(IntermediateOutputPath)%(_ServiceHubConfigFiles.FileName)%(_ServiceHubConfigFiles.FileSuffix).servicehub.service.json"'/>
     </ItemGroup>
 
     <PropertyGroup>
@@ -47,11 +48,5 @@ folder InstallDir:\Common7\ServiceHub\Services\RoslynCodeAnalysisService
     </ItemGroup>
   </Target>
   
-  <ItemGroup>
-    <ServiceHubService Include="roslynCodeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.CodeAnalysisService" />
-    <ServiceHubService Include="roslynRemoteHost" ClassName="Microsoft.CodeAnalysis.Remote.RemoteHostService" />
-    <ServiceHubService Include="roslynSnapshot" ClassName="Microsoft.CodeAnalysis.Remote.SnapshotService" />
-    <ServiceHubService Include="roslynRemoteSymbolSearchUpdateEngine" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolSearchUpdateEngine" />
-  </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\GenerateServiceHubConfigurationFiles.targets" />
 </Project>
