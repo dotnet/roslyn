@@ -71,7 +71,8 @@
                     HorizontalAlignment="Right" 
                     VerticalAlignment="Bottom"
                     Orientation="Horizontal">
-            <Button x:Uid="OkButton" 
+            <Button x:Uid="OKButton" 
+                    Name="OKButton"
                     Content="{Binding ElementName=dialog, Path=OK}" 
                     Click="OK_Click" 
                     IsDefault="True"
@@ -79,6 +80,7 @@
                     MinHeight="{StaticResource ResourceKey=buttonHeight}" 
                     IsEnabled="{Binding CanSubmit}" />
             <Button x:Uid="CancelButton" 
+                    Name="CancelButton"
                     Content="{Binding ElementName=dialog, Path=Cancel}"
                     Margin="{StaticResource submitButtonSpacingMargin}"
                     Click="Cancel_Click"

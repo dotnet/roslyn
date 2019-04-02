@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 
@@ -35,12 +37,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.MoveToNamespace
             DialogResult = false;
         }
 
+        internal TestAccessor GetTestAccessor() => new TestAccessor(this);
+
         private void OK_Click(object sender, RoutedEventArgs e)
         {
             if (_viewModel.CanSubmit)
             {
                 DialogResult = true;
             }
+        }
+
+        internal readonly struct TestAccessor
+        {
+            private readonly MoveToNamespaceDialog _dialog;
+            public TestAccessor(MoveToNamespaceDialog dialog)
+            {
+                _dialog = dialog;
+            }
+
+            public Button OKButton => _dialog.OKButton;
+            public Button CancelButton => _dialog.CancelButton;
+            public ComboBox NamespaceBox => _dialog.NamespaceBox;
+
         }
     }
 }
