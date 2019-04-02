@@ -42,20 +42,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
 
         internal void EnableCompletion()
         {
-            var featureService = _featureServiceFactory.GetOrCreate(WpfTextView);
-            if (!featureService.IsEnabled(PredefinedEditorFeatureNames.Completion))
+            if (_completionDisabledToken == null)
             {
-                if (_completionDisabledToken == null)
-                {
-                    return;
-                }
-
-                _completionDisabledToken.Dispose();
-                _completionDisabledToken = null;
-
-                // open the document
-                _context.ContextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                return;
             }
+
+            _completionDisabledToken.Dispose();
+            _completionDisabledToken = null;
         }
 
         internal void DisableCompletion()
