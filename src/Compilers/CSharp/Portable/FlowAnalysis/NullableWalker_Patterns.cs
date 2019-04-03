@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 break;
                                         }
                                         State[outputSlot] = NullableFlowState.NotNull;
-                                        var outputType = new TypeWithState(e.Type, inputState);
+                                        var outputType = TypeWithState.Create(e.Type, inputState);
                                         addToTempMap(output, outputSlot, outputType.Type);
                                         break;
                                     }
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var tempState = this.State[tempSlot];
                             if (variableAccess is BoundLocal { LocalSymbol: SourceLocalSymbol { IsVar: true } local })
                             {
-                                var inferredType = new TypeWithState(tempType, tempState).ToTypeWithAnnotations();
+                                var inferredType = TypeWithState.Create(tempType, tempState).ToTypeWithAnnotations();
                                 if (_variableTypes.TryGetValue(local, out var existingType))
                                 {
                                     // merge inferred nullable annotation from different branches of the decision tree
