@@ -19,7 +19,7 @@
     <!--
       ⚠ ONLY VISUAL STUDIO DEBUGGER ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.Debugger.VsDebugPresentationPackage" Key="$(VisualStudioDebuggerKey)" />
+    <InternalsVisibleTo Include="VsDebugPresentationPackage" Key="$(VisualStudioDebuggerKey)" />
   </ItemGroup>
 
   <ItemGroup>
