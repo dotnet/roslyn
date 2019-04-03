@@ -763,6 +763,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is not valid on event accessors. It is only valid on &apos;{1}&apos; declarations..
+        /// </summary>
+        internal static string ERR_AttributeNotOnEventAccessor {
+            get {
+                return ResourceManager.GetString("ERR_AttributeNotOnEventAccessor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is not valid on this declaration type. It is only valid on &apos;{1}&apos; declarations..
         /// </summary>
         internal static string ERR_AttributeOnBadSymbolType {
@@ -11407,6 +11416,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureObjectInitializer {
             get {
                 return ResourceManager.GetString("IDS_FeatureObjectInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to obsolete on property accessor.
+        /// </summary>
+        internal static string IDS_FeatureObsoleteOnPropertyAccessor {
+            get {
+                return ResourceManager.GetString("IDS_FeatureObsoleteOnPropertyAccessor", resourceCulture);
             }
         }
         

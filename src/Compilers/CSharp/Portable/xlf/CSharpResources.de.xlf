@@ -32,6 +32,11 @@
         <target state="translated">Es ist unzulässig, den Nullable-Verweistyp "{0}?" in einem as-Ausdruck zu verwenden. Verwenden Sie stattdessen den zugrunde liegenden Typ "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="new">Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
         <target state="translated">Eine asynchrone foreach-Anweisung kann nicht für Variablen vom Typ "{0}" verwendet werden, weil "{0}" keine geeignete öffentliche Instanzdefinition für "{1}" enthält.</target>
@@ -745,6 +750,11 @@
       <trans-unit id="IDS_FeatureObjectGenericTypeConstraint">
         <source>object generic type constraint</source>
         <target state="translated">Einschränkung eines generischen Objekttyps</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
+        <source>obsolete on property accessor</source>
+        <target state="new">obsolete on property accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">

@@ -555,8 +555,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        // internal for testing
-        internal static void GetActiveStatementAndExceptionRegionSpans(
+        private static void GetActiveStatementAndExceptionRegionSpans(
             Guid moduleId,
             ActiveStatementsMap baseActiveStatements,
             ImmutableArray<ActiveStatementExceptionRegions> baseActiveExceptionRegions,
@@ -722,6 +721,40 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 Debug.Assert(_encEditSessionInfo != null);
                 encDebuggingSessionInfo.EndEditSession(_encEditSessionInfo);
                 _encEditSessionInfo = null;
+            }
+        }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly EditSession _editSession;
+
+            public TestAccessor(EditSession editSession)
+            {
+                _editSession = editSession;
+            }
+
+            internal static void GetActiveStatementAndExceptionRegionSpans(
+                Guid moduleId,
+                ActiveStatementsMap baseActiveStatements,
+                ImmutableArray<ActiveStatementExceptionRegions> baseActiveExceptionRegions,
+                int[] updatedMethodTokens,
+                ImmutableDictionary<ActiveMethodId, ImmutableArray<NonRemappableRegion>> previousNonRemappableRegions,
+                ImmutableArray<(DocumentId DocumentId, ImmutableArray<ActiveStatement> ActiveStatements, ImmutableArray<ImmutableArray<LinePositionSpan>> ExceptionRegions)> newActiveStatementsInChangedDocuments,
+                out ImmutableArray<(Guid ThreadId, ActiveInstructionId OldInstructionId, LinePositionSpan NewSpan)> activeStatementsInUpdatedMethods,
+                out ImmutableArray<(ActiveMethodId Method, NonRemappableRegion Region)> nonRemappableRegions)
+            {
+                EditSession.GetActiveStatementAndExceptionRegionSpans(
+                    moduleId,
+                    baseActiveStatements,
+                    baseActiveExceptionRegions,
+                    updatedMethodTokens,
+                    previousNonRemappableRegions,
+                    newActiveStatementsInChangedDocuments,
+                    out activeStatementsInUpdatedMethods,
+                    out nonRemappableRegions);
             }
         }
     }

@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     {
-                        var declType = new TypeWithState(inputType, NullableFlowState.MaybeNull).ToTypeWithAnnotations();
+                        var declType = TypeWithState.ForType(inputType).ToTypeWithAnnotations();
                         BindPatternDesignation(
                             designation: node, declType: declType, inputValEscape: inputValEscape, typeSyntax: null, diagnostics: diagnostics, hasErrors: ref hasErrors,
                             variableSymbol: out Symbol variableSymbol, variableAccess: out BoundExpression variableAccess);
