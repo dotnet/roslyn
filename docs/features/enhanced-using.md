@@ -119,7 +119,7 @@ await using (var x = ...) { }
 The initializer expression must result in a type that is considered to be asynchronously disposable. That is, the expression must also be valid when used directly in an `await using` statement:
 
 ```csharp
-using var x = <expression> 
+await using var x = <expression> 
 
 await using (<expression>) { } // expression must also be valid in a standard await using statement
 ```
