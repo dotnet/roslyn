@@ -1682,7 +1682,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_DefaultExpressionMayIntroduceNullT = 8653,
         WRN_NullLiteralMayIntroduceNullT = 8654,
         WRN_SwitchExpressionNotExhaustiveForNull = 8655,
-
+        WRN_ImplicitCopyInReadOnlyMember = 8656,
+        ERR_StaticMemberCantBeReadOnly = 8657,
+        ERR_AutoSetterCantBeReadOnly = 8658,
+        ERR_AutoPropertyWithSetterCantBeReadOnly = 8659,
+        ERR_InvalidPropertyReadOnlyMods = 8660,
+        ERR_DuplicatePropertyReadOnlyMods = 8661,
+        ERR_FieldLikeEventCantBeReadOnly = 8662,
+        ERR_PartialMethodReadOnlyDifference = 8663,
+        ERR_ReadOnlyModMissingAccessor = 8664,
 
 
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8701,

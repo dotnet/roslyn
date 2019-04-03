@@ -515,6 +515,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsDeclaredReadOnly
+        {
+            get
+            {
+                return (this.DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
+            }
+        }
+
         internal sealed override Cci.CallingConvention CallingConvention
         {
             get
@@ -1622,6 +1630,11 @@ done:
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
+
+            if (IsDeclaredReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
 
             bool isAsync = this.IsAsync;
             bool isIterator = this.IsIterator;
