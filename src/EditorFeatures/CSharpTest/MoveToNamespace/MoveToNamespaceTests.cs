@@ -589,6 +589,22 @@ namespace A
 targetNamespace: "B");
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
+        public Task MoveToNamespace_MoveType_CaretInMethod()
+        => TestMoveToNamespaceAsync(
+@"namespace A
+{
+    class MyClass
+    {
+        public string [||]MyMethod
+        {
+            return "";
+        }
+    }
+
+}",
+expectedSuccess: false);
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.MoveToNamespace)]
         public Task MoveToNamespace_MoveType_MiddleReference()
         => TestMoveToNamespaceAsync(
 @"namespace A

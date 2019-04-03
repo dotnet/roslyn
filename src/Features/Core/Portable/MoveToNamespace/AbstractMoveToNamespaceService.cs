@@ -99,17 +99,14 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
                 return MoveToNamespaceAnalysisResult.Invalid;
             }
 
-            // Get the first node of the correct type
-            var namedTypeDeclarationSyntax = node.FirstAncestorOrSelf<TNamedTypeDeclarationSyntax>();
-
-            if (namedTypeDeclarationSyntax == default)
+            if (node is TNamedTypeDeclarationSyntax namedTypeDeclarationSyntax)
             {
-                return null;
+                var namespaceName = GetNamespaceName(namedTypeDeclarationSyntax);
+                var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
+                return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, namespaceName, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.NamedType);
             }
 
-            var namespaceName = GetNamespaceName(namedTypeDeclarationSyntax);
-            var namespaces = await GetNamespacesAsync(document, cancellationToken).ConfigureAwait(false);
-            return new MoveToNamespaceAnalysisResult(document, namedTypeDeclarationSyntax, namespaceName, namespaces.ToImmutableArray(), MoveToNamespaceAnalysisResult.ContainerType.NamedType);
+            return null;
         }
 
         private bool ContainsNamespaceDeclaration(SyntaxNode node)
