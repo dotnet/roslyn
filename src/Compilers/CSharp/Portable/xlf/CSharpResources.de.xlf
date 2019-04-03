@@ -57,6 +57,11 @@
         <target state="translated">Ungültiger Operand für die Musterübereinstimmung. Ein Wert ist erforderlich, gefunden wurde aber "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseOrCaptureCancellationToken ">
+        <source>Local functions and lambdas may not use or capture the 'cancellationToken' variable.</source>
+        <target state="new">Local functions and lambdas may not use or capture the 'cancellationToken' variable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">"__arglist" darf kein über "in" oder "out" übergebenes Argument umfassen.</target>

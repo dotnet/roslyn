@@ -57,6 +57,11 @@
         <target state="translated">Nieprawidłowy operand dla dopasowania wzorca; wymagana jest wartość, a znaleziono „{0}”.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseOrCaptureCancellationToken ">
+        <source>Local functions and lambdas may not use or capture the 'cancellationToken' variable.</source>
+        <target state="new">Local functions and lambdas may not use or capture the 'cancellationToken' variable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">Element __arglist nie może mieć argumentu przekazywanego przez parametr „in” ani „out”</target>

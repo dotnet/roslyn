@@ -57,6 +57,11 @@
         <target state="translated">用于模式匹配的操作数无效；需要值，但找到的是“{0}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseOrCaptureCancellationToken ">
+        <source>Local functions and lambdas may not use or capture the 'cancellationToken' variable.</source>
+        <target state="new">Local functions and lambdas may not use or capture the 'cancellationToken' variable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist 不能有 "in" 或 "out" 传递的参数</target>

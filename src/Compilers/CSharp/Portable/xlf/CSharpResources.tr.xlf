@@ -57,6 +57,11 @@
         <target state="translated">Desen eşleşmesi için işlenen geçersiz. Değer gerekiyordu ancak '{0}' bulundu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseOrCaptureCancellationToken ">
+        <source>Local functions and lambdas may not use or capture the 'cancellationToken' variable.</source>
+        <target state="new">Local functions and lambdas may not use or capture the 'cancellationToken' variable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist, 'in' veya 'out' tarafından geçirilen bir bağımsız değişkene sahip olamaz</target>

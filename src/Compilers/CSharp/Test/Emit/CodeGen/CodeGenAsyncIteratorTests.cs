@@ -780,7 +780,7 @@ namespace System
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(34709, "https://github.com/dotnet/roslyn/issues/34709")]
         public void MissingTypeAndMembers_IAsyncEnumerator()
         {
             VerifyMissingMember(WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__MoveNextAsync,
@@ -816,7 +816,9 @@ namespace System
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ await Task.CompletedTask; yield return 3; }").WithArguments("System.Collections.Generic.IAsyncEnumerator`1", "get_Current").WithLocation(5, 64)
                 );
 
-            VerifyMissingType(_enumerator, WellKnownType.System_Threading_CancellationToken); // TODO2 missing diaggnostic
+            // We're missing a diagnostic for missing CancellationToken type
+            // See https://github.com/dotnet/roslyn/issues/34709
+            //VerifyMissingType(_enumerator, WellKnownType.System_Threading_CancellationToken);
 
             string enumerableWithCancellationToken = @"
 using System.Threading.Tasks;
@@ -825,7 +827,9 @@ class C
     async System.Collections.Generic.IAsyncEnumerable<int> M() { await Task.CompletedTask; yield return 3; cancellationToken.ToString(); }
 }
 ";
-            VerifyMissingType(enumerableWithCancellationToken, WellKnownType.System_Threading_CancellationToken); // TODO2 missing diagnostic
+            // We're missing a diagnostic for missing CancellationToken type
+            // See https://github.com/dotnet/roslyn/issues/34709
+            //VerifyMissingType(enumerableWithCancellationToken, WellKnownType.System_Threading_CancellationToken);
         }
 
         [Fact]
@@ -5348,6 +5352,8 @@ class C
     }
 }
 ");
+            // usage in local function is temporarily blocked
+            // See https://github.com/dotnet/roslyn/issues/34708
             comp.VerifyDiagnostics(
                 // (7,50): error CS8404: Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.
                 //     public static async IAsyncEnumerable<int> M1<cancellationToken>() // 1
@@ -5376,9 +5382,15 @@ class C
                 // (31,51): error CS8404: Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.
                 //         static async IAsyncEnumerable<int> local1<cancellationToken>() // 9
                 Diagnostic(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, "cancellationToken").WithLocation(31, 51),
+                // (33,13): error CS8405: Local functions and lambdas may not capture the 'cancellationToken' variable.
+                //             cancellationToken.ThrowIfCancellationRequested();
+                Diagnostic(ErrorCode.ERR_CannotUseOrCaptureCancellationToken , "cancellationToken").WithLocation(33, 13),
                 // (36,55): error CS8404: Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.
                 //         static async IAsyncEnumerable<int> local2(int cancellationToken) // 10
-                Diagnostic(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, "cancellationToken").WithLocation(36, 55)
+                Diagnostic(ErrorCode.ERR_NoCancellationTokenParameterInAsyncIterator, "cancellationToken").WithLocation(36, 55),
+                // (38,13): error CS8405: Local functions and lambdas may not capture the 'cancellationToken' variable.
+                //             cancellationToken.ThrowIfCancellationRequested();
+                Diagnostic(ErrorCode.ERR_CannotUseOrCaptureCancellationToken , "cancellationToken").WithLocation(38, 13)
                 );
         }
 
@@ -5528,10 +5540,15 @@ class C2
     }
 }
 ");
+            // usage in local function is temporarily blocked
+            // See https://github.com/dotnet/roslyn/issues/34708
             comp.VerifyDiagnostics(
                 // (25,31): error CS1061: 'int' does not contain a definition for 'ThrowIfCancellationRequested' and no accessible extension method 'ThrowIfCancellationRequested' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //             cancellationToken.ThrowIfCancellationRequested(); // 1
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "ThrowIfCancellationRequested").WithArguments("int", "ThrowIfCancellationRequested").WithLocation(25, 31),
+                // (37,13): error CS8405: Local functions and lambdas may not capture the 'cancellationToken' variable.
+                //             cancellationToken.ThrowIfCancellationRequested(); // 2
+                Diagnostic(ErrorCode.ERR_CannotUseOrCaptureCancellationToken , "cancellationToken").WithLocation(37, 13),
                 // (37,13): error CS8421: A static local function cannot contain a reference to 'cancellationToken'.
                 //             cancellationToken.ThrowIfCancellationRequested(); // 2
                 Diagnostic(ErrorCode.ERR_StaticLocalFunctionCannotCaptureVariable, "cancellationToken").WithArguments("cancellationToken").WithLocation(37, 13),
@@ -5583,9 +5600,15 @@ class C
 }
 ";
 
+            // temporarily blocked
+            // See https://github.com/dotnet/roslyn/issues/34708
             var comp = CreateCompilationWithAsyncIterator(new[] { source, AsyncEnumerableWithCancellation }, TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123");
+            comp.VerifyDiagnostics(
+                // (20,13): error CS8405: Local functions and lambdas may not capture the 'cancellationToken' variable.
+                //             cancellationToken.ThrowIfCancellationRequested();
+                Diagnostic(ErrorCode.ERR_CannotUseOrCaptureCancellationToken , "cancellationToken").WithLocation(20, 13)
+                );
+            //CompileAndVerify(comp, expectedOutput: "123");
         }
 
         [Fact]
@@ -5605,11 +5628,12 @@ class C
         yield return await Task.FromResult(42);
         local();
         Console.Write(""END"");
+        cancellationToken.ThrowIfCancellationRequested();
 
         void local()
         {
             // local function captures cancellationToken from enclosing async-iterator method
-            cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested(); // 1
             Console.Write("" LOCAL "");
         }
     }
@@ -5633,11 +5657,137 @@ class C
     }
 }
 ";
-
-            // TODO2 The cancellationToken variable should be shared
+            // temporarily blocked
+            // See https://github.com/dotnet/roslyn/issues/34708
             var comp = CreateCompilationWithAsyncIterator(new[] { source, AsyncEnumerableWithCancellation }, TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42 LOCAL END");
+            comp.VerifyDiagnostics(
+                // (19,13): error CS8405: Local functions and lambdas may not use or capture the 'cancellationToken' variable.
+                //             cancellationToken.ThrowIfCancellationRequested(); // 1
+                Diagnostic(ErrorCode.ERR_CannotUseOrCaptureCancellationToken , "cancellationToken").WithLocation(19, 13)
+                );
+            //CompileAndVerify(comp, expectedOutput: "42 END");
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_LocalFunctionCapturesCancellationToken_Nested()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public static async IAsyncEnumerable<int> M()
+    {
+        yield return await Task.FromResult(42);
+        local();
+        Console.Write(""END"");
+        cancellationToken.ThrowIfCancellationRequested();
+
+        void local()
+        {
+            local2();
+            cancellationToken.ThrowIfCancellationRequested(); // 1
+            Console.Write("" LOCAL "");
+
+            void local2()
+            {
+                cancellationToken.ThrowIfCancellationRequested(); // 2
+                Console.Write("" LOCAL2 "");
+            }
+        }
+    }
+
+    public static async Task Main(string[] args)
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        try
+        {
+            await foreach (var i in M().WithCancellation(cts.Token))
+            {
+                Console.Write(i);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Write($"" {e.Message} "");
+        }
+    }
+}
+";
+            // temporarily blocked
+            // See https://github.com/dotnet/roslyn/issues/34708
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, AsyncEnumerableWithCancellation }, TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (19,13): error CS8405: Local functions and lambdas may not use or capture the 'cancellationToken' variable.
+                //             cancellationToken.ThrowIfCancellationRequested(); // 1
+                Diagnostic(ErrorCode.ERR_CannotUseOrCaptureCancellationToken , "cancellationToken").WithLocation(19, 13),
+                // (24,17): error CS8405: Local functions and lambdas may not use or capture the 'cancellationToken' variable.
+                //                 cancellationToken.ThrowIfCancellationRequested(); // 2
+                Diagnostic(ErrorCode.ERR_CannotUseOrCaptureCancellationToken , "cancellationToken").WithLocation(24, 17)
+                );
+            //CompileAndVerify(comp, expectedOutput: "42 END");
+        }
+
+        [Fact]
+        [WorkItem(34407, "https://github.com/dotnet/roslyn/issues/34407")]
+        public void CancellationTokenLocal_LambdaCapture()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    public static async IAsyncEnumerable<int> M()
+    {
+        Action action = () =>
+        {
+            cancellationToken.ThrowIfCancellationRequested(); // 1
+            Console.Write("" LAMBDA "");
+        };
+
+        yield return await Task.FromResult(42);
+        action();
+        Console.Write(""END"");
+        cancellationToken.ThrowIfCancellationRequested();
+    }
+
+    public static async Task Main(string[] args)
+    {
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        try
+        {
+            await foreach (var i in M().WithCancellation(cts.Token))
+            {
+                Console.Write(i);
+            }
+        }
+        catch (Exception e)
+        {
+            Console.Write($"" {e.Message} "");
+        }
+    }
+}
+";
+            // temporarily blocked
+            // See https://github.com/dotnet/roslyn/issues/34708
+            var comp = CreateCompilationWithAsyncIterator(new[] { source, AsyncEnumerableWithCancellation }, TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (13,13): error CS8405: Local functions and lambdas may not use or capture the 'cancellationToken' variable.
+                //             cancellationToken.ThrowIfCancellationRequested(); // 1
+                Diagnostic(ErrorCode.ERR_CannotUseOrCaptureCancellationToken , "cancellationToken").WithLocation(13, 13)
+                );
+            //CompileAndVerify(comp, expectedOutput: "42 END");
         }
 
         [Fact]

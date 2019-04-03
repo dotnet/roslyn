@@ -1585,6 +1585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_DefaultLiteralConvertedToNullIsNotIntended = 8402,
         ERR_IteratorMustBeAsync = 8403,
         ERR_NoCancellationTokenParameterInAsyncIterator = 8404,
+        ERR_CannotUseOrCaptureCancellationToken = 8405,
 
         ERR_NoConvToIAsyncDisp = 8410,
         ERR_AwaitForEachMissingMember = 8411,

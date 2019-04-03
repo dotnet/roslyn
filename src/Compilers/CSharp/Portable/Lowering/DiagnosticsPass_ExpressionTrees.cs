@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpCompilation _compilation;
         private bool _inExpressionLambda;
         private LocalFunctionSymbol _staticLocalFunction;
+        private bool _inLocalFunctionOrLambda;
         private bool _reportedUnsafe;
         private readonly MethodSymbol _containingSymbol;
 
@@ -90,12 +91,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             var outerLocalFunction = _staticLocalFunction;
+            var saved = _inLocalFunctionOrLambda;
+            _inLocalFunctionOrLambda = true;
             if (node.Symbol.IsStaticLocalFunction)
             {
                 _staticLocalFunction = node.Symbol;
             }
             var result = base.VisitLocalFunctionStatement(node);
             _staticLocalFunction = outerLocalFunction;
+            _inLocalFunctionOrLambda = saved;
             return result;
         }
 
@@ -117,6 +121,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocal(BoundLocal node)
         {
+            if (_inLocalFunctionOrLambda && node.LocalSymbol.SynthesizedKind == SynthesizedLocalKind.AsyncIteratorCancellationToken)
+            {
+                // Temporarily blocked usage and capture of cancellationToken variable in lambdas and local functions
+                // When that is fixed, we can remove _inLocalFunctionOrLambda and ERR_CannotUseOrCaptureCancellationToken
+                // See https://github.com/dotnet/roslyn/issues/34708
+
+                Error(ErrorCode.ERR_CannotUseOrCaptureCancellationToken, node);
+            }
+
             CheckReferenceToVariable(node, node.LocalSymbol);
             return base.VisitLocal(node);
         }
@@ -432,6 +445,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
+            var saved = _inLocalFunctionOrLambda;
+            _inLocalFunctionOrLambda = true;
+
             if (_inExpressionLambda)
             {
                 var lambda = node.Symbol;
@@ -495,7 +511,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return base.VisitLambda(node);
+            var result = base.VisitLambda(node);
+            _inLocalFunctionOrLambda = saved;
+            return result;
         }
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)

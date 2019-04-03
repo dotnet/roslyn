@@ -2536,6 +2536,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Local functions and lambdas may not use or capture the &apos;cancellationToken&apos; variable..
+        /// </summary>
+        internal static string ERR_CannotUseOrCaptureCancellationToken_ {
+            get {
+                return ResourceManager.GetString("ERR_CannotUseOrCaptureCancellationToken ", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: cannot explicitly call operator or accessor.
         /// </summary>
         internal static string ERR_CantCallSpecialMethod {

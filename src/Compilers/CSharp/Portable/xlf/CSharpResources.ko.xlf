@@ -57,6 +57,11 @@
         <target state="translated">패턴 일치에 대한 피연산자가 잘못되었습니다. 값이 필요하지만 '{0}'을(를) 찾았습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotUseOrCaptureCancellationToken ">
+        <source>Local functions and lambdas may not use or capture the 'cancellationToken' variable.</source>
+        <target state="new">Local functions and lambdas may not use or capture the 'cancellationToken' variable.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist는 'in' 또는 'out'으로 전달되는 인수를 가질 수 없습니다.</target>

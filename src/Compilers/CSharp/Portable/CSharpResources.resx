@@ -5829,4 +5829,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NoCancellationTokenParameterInAsyncIterator" xml:space="preserve">
     <value>Parameters and type parameters of async iterator methods cannot be named 'cancellationToken'.</value>
   </data>
+  <data name="ERR_CannotUseOrCaptureCancellationToken " xml:space="preserve">
+    <value>Local functions and lambdas may not use or capture the 'cancellationToken' variable.</value>
+  </data>
 </root>

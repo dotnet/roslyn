@@ -332,7 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     if (((SourceMethodSymbol)_topLevelMethod).GetCancellationTokenLocal() is { } cancellationToken)
                     {
-                        // TODO2 need to confirm this
+                        // need to confirm this
+                        // See https://github.com/dotnet/roslyn/issues/34708
+
                         DeclareLocals(_currentScope, ImmutableArray.Create<Symbol>(cancellationToken));
                     }
 
