@@ -406,7 +406,6 @@ Y");
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-
   // Code size       97 (0x61)
   .maxstack  2
   IL_0000:  ldsfld     ""object Test.C""
@@ -436,6 +435,50 @@ Y");
   IL_0056:  ldstr      ""Y""
   IL_005b:  call       ""void System.Console.WriteLine(string)""
   IL_0060:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ConcatOneArgWithExplicitConcatCall()
+        {
+            var source = @"
+using System;
+
+public class Test
+{
+    private static object O = ""O"";
+
+    static void Main()
+    {
+        Console.WriteLine(string.Concat(O) + null);
+        Console.WriteLine(string.Concat(O) + null + null);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: @"O
+O");
+
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Test.Main", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  IL_0000:  ldsfld     ""object Test.O""
+  IL_0005:  call       ""string string.Concat(object)""
+  IL_000a:  dup
+  IL_000b:  brtrue.s   IL_0013
+  IL_000d:  pop
+  IL_000e:  ldstr      """"
+  IL_0013:  call       ""void System.Console.WriteLine(string)""
+  IL_0018:  ldsfld     ""object Test.O""
+  IL_001d:  call       ""string string.Concat(object)""
+  IL_0022:  dup
+  IL_0023:  brtrue.s   IL_002b
+  IL_0025:  pop
+  IL_0026:  ldstr      """"
+  IL_002b:  call       ""void System.Console.WriteLine(string)""
+  IL_0030:  ret
 }
 ");
         }

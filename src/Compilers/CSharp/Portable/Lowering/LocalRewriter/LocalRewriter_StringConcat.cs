@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void FlattenConcatArg(BoundExpression lowered, ArrayBuilder<BoundExpression> flattened)
         {
-            if (TryExtractStringConcatArgs(lowered, out var arguments))
+            if (TryExtractStringConcatArgs(lowered, out var arguments, out _))
             {
                 flattened.AddRange(arguments);
             }
@@ -130,12 +130,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool TryExtractStringConcatArgs(BoundExpression lowered, out ImmutableArray<BoundExpression> arguments)
+        /// <summary>
+        /// Determines whether an expression is a known string concat operator (with or without a subsequent ?? ""), and extracts
+        /// its args if so.
+        /// </summary>
+        /// <param name="loweredCanReturnNull">
+        /// True if this method returns true, and the expression can return null (string.Concat(object) can return null if
+        /// the object's ToString method returns null)
+        /// </param>
+        /// <returns>True if this is a call to a known string concat operator, false otherwise</returns>
+        private bool TryExtractStringConcatArgs(BoundExpression lowered, out ImmutableArray<BoundExpression> arguments, out bool loweredCanReturnNull)
         {
             switch (lowered.Kind)
             {
                 case BoundKind.Call:
-                    return TryExtractStringConcatArgsFromBoundCall((BoundCall)lowered, out arguments);
+                    return TryExtractStringConcatArgsFromBoundCall((BoundCall)lowered, out arguments, out loweredCanReturnNull);
 
                 case BoundKind.NullCoalescingOperator:
                     var boundCoalesce = (BoundNullCoalescingOperator)lowered;
@@ -150,9 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var rightConstant = boundCoalesce.RightOperand.ConstantValue;
                         if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
                         {
+                            // If lowered ends in '?? ""', it can never return null.
+                            loweredCanReturnNull = false;
+
                             // The left operand might be a call to string.Concat(object)
                             if (boundCoalesce.LeftOperand.Kind == BoundKind.Call &&
-                                TryExtractStringConcatArgsFromBoundCall((BoundCall)boundCoalesce.LeftOperand, out arguments))
+                                TryExtractStringConcatArgsFromBoundCall((BoundCall)boundCoalesce.LeftOperand, out arguments, out _))
                             {
                                 return true;
                             }
@@ -165,18 +177,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             arguments = default;
+            loweredCanReturnNull = default;
             return false;
         }
 
-        private bool TryExtractStringConcatArgsFromBoundCall(BoundCall boundCall, out ImmutableArray<BoundExpression> arguments)
+        /// <summary>
+        /// Attempts to extract the args from a call to string.Concat
+        /// </summary>
+        /// <param name="callCanReturnNull">
+        /// True if this method returns true, and boundCall is a call to a string.Concat overload which can return null
+        /// (i.e. string.Concat(object))
+        /// </param>
+        /// <returns>True if this was a call to string.Concat, false otherwise</returns>
+        private bool TryExtractStringConcatArgsFromBoundCall(BoundCall boundCall, out ImmutableArray<BoundExpression> arguments, out bool callCanReturnNull)
         {
             var method = boundCall.Method;
             if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
             {
+                if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObject))
+                {
+                    callCanReturnNull = true; // string.Concat(object) can return null
+                    arguments = boundCall.Arguments;
+                    return true;
+                }
+
+                callCanReturnNull = false; // other string.Concat overloads cannot return null
+
                 if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
                     (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringString) ||
                     (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringStringStringString) ||
-                    (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObject) ||
                     (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObject) ||
                     (object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatObjectObjectObject))
                 {
@@ -282,8 +311,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (loweredOperand.Type.SpecialType == SpecialType.System_String)
             {
-                // It it's a call to string.Concat, we already know the result is not null. Otherwise return loweredOperand ?? ""
-                if (TryExtractStringConcatArgs(loweredOperand, out _))
+                // If it's a call to 'string.Concat(object) ?? ""' or another overload of 'string.Concat', we know the result cannot
+                // be null. Otherwise if it's 'string.Concat(object)' or something which isn't 'string.Concat', return loweredOperand ?? ""
+                if (TryExtractStringConcatArgs(loweredOperand, out _, out bool loweredCanReturnNull) && !loweredCanReturnNull)
                 {
                     return loweredOperand;
                 }
