@@ -146,9 +146,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override void Disconnected(JsonRpcDisconnectedEventArgs e)
         {
-            // we don't expect OOP side to disconnect the connection. 
-            // Host (VS) always initiate or disconnect the connection.
-            if (e.Reason != DisconnectedReason.LocallyDisposed)
+            if (e.Reason != DisconnectedReason.Disposed)
             {
                 // log when this happens
                 LogDisconnectInfo(e, new StackTrace().ToString());

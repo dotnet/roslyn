@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 var connectionManager = new ConnectionManager(primary, hostGroup, enableConnectionPool, maxConnection, timeout, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc));
 
-                client = new ServiceHubRemoteHostClient(workspace, primary.Logger, connectionManager, remoteHostStream);
+                client = new ServiceHubRemoteHostClient(workspace, connectionManager, remoteHostStream);
 
                 var uiCultureLCID = CultureInfo.CurrentUICulture.LCID;
                 var cultureLCID = CultureInfo.CurrentCulture.LCID;
@@ -125,7 +125,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private ServiceHubRemoteHostClient(
             Workspace workspace,
-            TraceSource logger,
             ConnectionManager connectionManager,
             Stream stream)
             : base(workspace)
@@ -134,7 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             _connectionManager = connectionManager;
 
-            _rpc = stream.CreateStreamJsonRpc(target: this, logger);
+            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
+            _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             // handle disconnected situation
             _rpc.Disconnected += OnRpcDisconnected;
