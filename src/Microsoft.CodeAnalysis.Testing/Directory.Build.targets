@@ -1,4 +1,16 @@
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project>
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
+
+  <!--
+    Microsoft.CodeAnalysis.Workspaces.Desktop is part of Roslyn prior to the 3.0.0 release, but is not included starting
+    with 3.0.0. This target ensures that even though we compile against an early build of Roslyn (1.0.1), we do not pick
+    up this dependency in a way that breaks 3.0+ consumers.
+  -->
+  <Target Name="RemoveWorkspacesDesktop" AfterTargets="ResolvePackageAssets">
+    <ItemGroup>
+      <RuntimeCopyLocalItems Remove="@(RuntimeCopyLocalItems)" Condition="'%(Filename)' == 'Microsoft.CodeAnalysis.Workspaces.Desktop'" />
+      <ResolvedCompileFileDefinitions Remove="@(ResolvedCompileFileDefinitions)" Condition="'%(Filename)' == 'Microsoft.CodeAnalysis.Workspaces.Desktop'" />
+    </ItemGroup>
+  </Target>
 </Project>

@@ -680,14 +680,8 @@ namespace Microsoft.CodeAnalysis.Testing
         public virtual AdhocWorkspace CreateWorkspace()
         {
             var exportProvider = ExportProviderFactory.Value.CreateExportProvider();
-
-#if NETSTANDARD1_5 || NETSTANDARD2_0
             var host = MefHostServices.Create(exportProvider.AsCompositionContext());
             return new AdhocWorkspace(host);
-#else
-            var host = MefV1HostServices.Create(exportProvider.AsExportProvider());
-            return new AdhocWorkspace(host);
-#endif
         }
 
         protected abstract CompilationOptions CreateCompilationOptions();
