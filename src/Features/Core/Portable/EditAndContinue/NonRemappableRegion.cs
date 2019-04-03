@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
-    internal struct NonRemappableRegion
+    internal readonly struct NonRemappableRegion
     {
         /// <summary>
         /// Pre-remap span.

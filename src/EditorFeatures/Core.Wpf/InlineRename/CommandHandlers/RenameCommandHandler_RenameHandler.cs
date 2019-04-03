@@ -24,20 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return VSCommanding.CommandState.Unspecified;
             }
 
-            var textContainer = args.SubjectBuffer.AsTextContainer();
-            if (!Workspace.TryGetWorkspace(textContainer, out var workspace))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            if (!workspace.CanApplyChange(ApplyChangesKind.ChangeDocument))
-            {
-                return VSCommanding.CommandState.Unspecified;
-            }
-
-            var documents = textContainer.GetRelatedDocuments();
-            var supportsFeatureService = workspace.Services.GetService<IDocumentSupportsFeatureService>();
-            if (!documents.All(d => supportsFeatureService.SupportsRename(d)))
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace) ||
+                !workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) ||
+                !args.SubjectBuffer.SupportsRename())
             {
                 return VSCommanding.CommandState.Unspecified;
             }
@@ -49,16 +38,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Finding_token_to_rename))
             {
-                ExecuteRenameWorker(args, context.OperationContext.UserCancellationToken);
+                ExecuteRenameWorker(args, context);
             }
 
             return true;
         }
 
-        private void ExecuteRenameWorker(RenameCommandArgs args, CancellationToken cancellationToken)
+        private void ExecuteRenameWorker(RenameCommandArgs args, CommandExecutionContext context)
         {
-            var snapshot = args.SubjectBuffer.CurrentSnapshot;
-            if (!Workspace.TryGetWorkspace(snapshot.AsText().Container, out var workspace))
+            if (!args.SubjectBuffer.TryGetWorkspace(out var workspace))
             {
                 return;
             }
@@ -88,8 +76,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
-            var position = caretPoint.Value;
-            var document = args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var cancellationToken = context.OperationContext.UserCancellationToken;
+            var document = args.SubjectBuffer.CurrentSnapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+                context.OperationContext).WaitAndGetResult(cancellationToken);
             if (document == null)
             {
                 ShowErrorDialog(workspace, EditorFeaturesResources.You_must_rename_an_identifier);

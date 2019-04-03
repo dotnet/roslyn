@@ -2125,6 +2125,40 @@ else
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(33458, "https://github.com/dotnet/roslyn/issues/33458")]
+        public async Task NoNewLineForElseChecksBraceOwner()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { NewLineForElse, false },
+                { NewLinesForBracesInControlBlocks, false },
+            };
+
+            await AssertFormatAsync(@"class Class
+{
+    void Method()
+    {
+        if (true)
+            for (int i = 0; i < 10; i++) {
+                Method();
+            }
+        else
+            return;
+    }
+}", @"class Class
+{
+    void Method()
+    {
+        if (true)
+            for (int i = 0; i < 10; i++) {
+                Method();
+            } else
+            return;
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task NewLineForExpressionDefault()
         {
             await AssertFormatAsync(@"class f00
@@ -5108,7 +5142,7 @@ _ = this is  C( 1 , 2 ){}  ; }
 {
     void M()
     {
-        _ = this is C(1, 2) { };
+        _ = this is C(1, 2) {};
     }
 }";
             // no space separates the type and the positional pattern
@@ -5131,7 +5165,7 @@ _ = this is  C( 1 , 2 ){}  ; }
 {
     void M()
     {
-        _ = this is C (1, 2) { };
+        _ = this is C (1, 2) {};
     }
 }";
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
@@ -5154,8 +5188,8 @@ _ = this is  C(  ){}  ; }
 {
     void M()
     {
-        _ = this is C( 1, 2 ) { };
-        _ = this is C() { };
+        _ = this is C( 1, 2 ) {};
+        _ = this is C() {};
     }
 }";
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
@@ -5178,8 +5212,8 @@ _ = this is  C(  ){}  ; }
 {
     void M()
     {
-        _ = this is C(1, 2) { };
-        _ = this is C( ) { };
+        _ = this is C(1, 2) {};
+        _ = this is C( ) {};
     }
 }";
             await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
@@ -5256,7 +5290,7 @@ M();
 {
     void M()
     {
-        _ = this is { }
+        _ = this is {}
         M();
     }
 }";
@@ -5279,7 +5313,7 @@ M();
 {
     void M()
     {
-        _ = this is (1, 2) { }
+        _ = this is (1, 2) {}
         M();
     }
 }";
@@ -5475,6 +5509,36 @@ _ = this switch
 
     }
 }";
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(33839, "https://github.com/dotnet/roslyn/issues/33839")]
+        public async Task FormatSwitchExpression_ExpressionBody()
+        {
+            var code = @"
+public class Test
+{
+    public object Method(int i)
+        => i switch
+{
+1 => 'a',
+2 => 'b',
+_ => null,
+};
+}";
+            var expectedCode = @"
+public class Test
+{
+    public object Method(int i)
+        => i switch
+        {
+            1 => 'a',
+            2 => 'b',
+            _ => null,
+        };
+}";
+
             await AssertFormatAsync(expectedCode, code);
         }
 
@@ -9071,6 +9135,117 @@ public class Test
         );
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task EmptyIsPropertyPattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = x is { }
+    }
+}
+";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        _ = x is {}
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task EmptySwitchCasePropertyPattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        switch (x)
+        {
+            case { }
+        }
+    }
+}
+";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        switch (x)
+        {
+            case {}
+        }
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task EmptySwitchExpressionCasePropertyPattern()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        _ = x switch
+        {
+            { } =>
+    }
+}
+";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        _ = x switch
+        {
+            {} =>
+    }
+}
+";
+
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.Formatting)]
+        [WorkItem(31571, "https://github.com/dotnet/roslyn/issues/31571")]
+        [WorkItem(33910, "https://github.com/dotnet/roslyn/issues/33910")]
+        [CombinatorialData]
+        public async Task ConversionOperator_CorrectlySpaceArgumentList(
+            [CombinatorialValues("implicit", "explicit")] string operatorType,
+            [CombinatorialValues("string", "string[]", "System.Action<int>", "int?", "int*", "(int, int)")] string targetType,
+            bool spacingAfterMethodDeclarationName)
+        {
+            var expectedSpacing = spacingAfterMethodDeclarationName ? " " : "";
+            var initialSpacing = spacingAfterMethodDeclarationName ? "" : " ";
+            var changedOptionSet = new Dictionary<OptionKey, object> { { SpacingAfterMethodDeclarationName, spacingAfterMethodDeclarationName } };
+            await AssertFormatAsync(
+                $@"
+public unsafe class Test
+{{
+    public static {operatorType} operator {targetType}{expectedSpacing}() => throw null;
+}}",
+                $@"
+public unsafe class Test
+{{
+    public static {operatorType} operator {targetType}{initialSpacing}() => throw null;
+}}",
+                changedOptionSet: changedOptionSet);
         }
     }
 }

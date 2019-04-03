@@ -44,7 +44,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         object ConstantValue { get; }
 
-        // TODO: Add XML doc comment.
+        /// <summary>
+        /// Returns true if this local variable is function return variable whose name is the function's name, 
+        /// whose type is the return type of the function and whose initial value is the default of its type. 
+        /// </summary>
+        /// <remarks>
+        /// Is always false for the C# local variable
+        /// </remarks>
         bool IsFunctionValue { get; }
 
         /// <summary>

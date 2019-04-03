@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (BaseTypeSyntax baseTypeSyntax in inheritedTypeDecls)
                 {
                     TypeSyntax t = baseTypeSyntax.Type;
-                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics).TypeSymbol;
+                    TypeSymbol bt = baseBinder.BindType(t, unusedDiagnostics).Type;
 
                     if (TypeSymbol.Equals(bt, @base, TypeCompareKind.ConsiderEverything2))
                     {
@@ -351,7 +351,7 @@ next:;
                 return true;
             }
 
-            var comparer = TypeSymbolWithAnnotations.EqualsComparer.Instance;
+            var comparer = TypeWithAnnotations.EqualsComparer.Instance;
             var constraintTypes1 = clause1.ConstraintTypes.ToImmutableHashSet(comparer);
             var constraintTypes2 = clause2.ConstraintTypes.ToImmutableHashSet(comparer);
 
@@ -374,7 +374,7 @@ next:;
             return true;
         }
 
-        internal sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
@@ -1213,7 +1213,7 @@ next:;
 
                 if (baseType.NeedsNullableAttribute())
                 {
-                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeSymbolWithAnnotations.Create(baseType)));
+                    AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttribute(this, TypeWithAnnotations.Create(baseType)));
                 }
             }
         }

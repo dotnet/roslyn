@@ -14,6 +14,15 @@ parameters:
   # Optional: Enable publishing to the build asset registry
   enablePublishBuildAssets: false
 
+  # Optional: Enable publishing using release pipelines
+  enablePublishUsingPipelines: false
+  
+  graphFileGeneration:
+    # Optional: Enable generating the graph files at the end of the build
+    enabled: false
+    # Optional: Include toolset dependencies in the generated graph files
+    includeToolset: false
+    
   # Optional: Include PublishTestResults task
   enablePublishTestResults: false
 
@@ -67,5 +76,15 @@ jobs:
       pool:
         vmImage: vs2017-win2016
       runAsPublic: ${{ parameters.runAsPublic }}
+      publishUsingPipelines: ${{ parameters.enablePublishUsingPipelines }}
       enablePublishBuildArtifacts: ${{ parameters.enablePublishBuildArtifacts }}
-
+      
+- ${{ if and(eq(parameters.graphFileGeneration.enabled, true), eq(parameters.runAsPublic, 'false'), ne(variables['System.TeamProject'], 'public'), notin(variables['Build.Reason'], 'PullRequest')) }}:
+  - template: ../job/generate-graph-files.yml
+    parameters:
+      continueOnError: ${{ parameters.continueOnError }}
+      includeToolset: ${{ parameters.graphFileGeneration.includeToolset }}
+      dependsOn:
+        - Asset_Registry_Publish
+      pool:
+        vmImage: vs2017-win2016

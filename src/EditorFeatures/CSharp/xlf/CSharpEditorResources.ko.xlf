@@ -9,7 +9,7 @@
       </trans-unit>
       <trans-unit id="Fix_interpolated_verbatim_string">
         <source>Fix interpolated verbatim string</source>
-        <target state="new">Fix interpolated verbatim string</target>
+        <target state="translated">보간된 축자 문자열 수정</target>
         <note />
       </trans-unit>
       <trans-unit id="Press_TAB_to_insert">
