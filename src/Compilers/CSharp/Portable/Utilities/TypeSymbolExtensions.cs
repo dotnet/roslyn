@@ -252,8 +252,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypeKind.Class:
                 case TypeKind.Error:
-                case TypeKind.Interface:
                     return compilation.Assembly.GetSpecialType(SpecialType.System_Object);
+                case TypeKind.Interface:
+                    return null;
                 case TypeKind.Struct:
                     return compilation.Assembly.GetSpecialType(SpecialType.System_ValueType);
                 default:

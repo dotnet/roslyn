@@ -1598,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PossibleAsyncIteratorWithoutYieldOrAwait = 8420,
         ERR_StaticLocalFunctionCannotCaptureVariable = 8421,
         ERR_StaticLocalFunctionCannotCaptureThis = 8422,
-
+        ERR_AttributeNotOnEventAccessor = 8423,
         #region diagnostics introduced for recursive patterns
         // 8501, // available
         ERR_WrongNumberOfSubpatterns = 8502,

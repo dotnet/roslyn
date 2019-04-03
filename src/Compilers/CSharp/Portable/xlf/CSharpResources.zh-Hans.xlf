@@ -32,6 +32,11 @@
         <target state="translated">在 as 表达式中使用可以为 null 的引用类型“{0}?”是非法的；请改用基础类型“{0}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AttributeNotOnEventAccessor">
+        <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
+        <target state="new">Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AwaitForEachMissingMember">
         <source>Asynchronous foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a suitable public instance definition for '{1}'</source>
         <target state="translated">“{0}”不包含“{1}”的适当公共实例定义，因此异步 foreach 语句不能作用于“{0}”类型的变量</target>
@@ -781,6 +786,11 @@
       <trans-unit id="IDS_FeatureObjectGenericTypeConstraint">
         <source>object generic type constraint</source>
         <target state="translated">对象泛型类型约束</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureObsoleteOnPropertyAccessor">
+        <source>obsolete on property accessor</source>
+        <target state="new">obsolete on property accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePragmaWarningEnableOrSafeOnly">

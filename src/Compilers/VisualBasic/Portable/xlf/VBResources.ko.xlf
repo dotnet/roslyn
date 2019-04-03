@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
+        <source>Please use language version {0} or greater to use comments after line continuation character.</source>
+        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CommentsAfterLineContinuation">
+        <source>comments after line continuation</source>
+        <target state="new">comments after line continuation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">이진 조건식의 비제한 형식 매개 변수</target>
@@ -3219,8 +3229,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
-        <source>Line continuation character '_' must be preceded by at least one white space and must be the last character on the line.</source>
-        <target state="translated">줄 연속 문자 '_'은 하나 이상의 공백 뒤에 와야 하며 해당 줄에서 마지막 문자여야 합니다.</target>
+        <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
+        <target state="needs-review-translation">줄 연속 문자 '_'은 하나 이상의 공백 뒤에 와야 하며 해당 줄에서 마지막 문자여야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">
