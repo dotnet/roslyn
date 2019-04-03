@@ -228,8 +228,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Move_to_namespace">
-        <source>Move contents namespace...</source>
-        <target state="new">Move contents namespace...</target>
+        <source>Move to namespace...</source>
+        <target state="new">Move to namespace...</target>
         <note />
       </trans-unit>
       <trans-unit id="Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read">

@@ -1413,7 +1413,7 @@ This version used in: {2}</value>
     <value>Move file to project root folder</value>
   </data>
   <data name="Move_to_namespace" xml:space="preserve">
-    <value>Move contents namespace...</value>
+    <value>Move to namespace...</value>
   </data>
   <data name="Change_to_global_namespace" xml:space="preserve">
     <value>Change to global namespace</value>
