@@ -18,6 +18,7 @@ namespace Test.Utilities
             {
                 SolutionTransforms.Add((solution, projectId) =>
                 {
+                    solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.Netstandard);
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemXmlReference);
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemRuntimeFacadeRef);
                     solution = solution.AddMetadataReference(projectId, AdditionalMetadataReferences.SystemThreadingFacadeRef);
