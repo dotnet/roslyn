@@ -367,10 +367,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return False
         End Function
-
-        Public Function GetDeclarationRoot(compilation As VisualBasicCompilation) As INamespaceDeclaration
-            Return GetMergedRoot(compilation)
-        End Function
     End Class
-
 End Namespace

@@ -20,12 +20,14 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets a <see cref="Accessibility"/> indicating the declared accessibility for this declaration.
-        /// Returns NotApplicable if no accessibility is declared.
+        /// Returns NotApplicable if no accessibility is declared.  
+        /// </summary>
         Accessibility DeclaredAccessibility { get; }
 
         /// <summary>
         /// Returns the arity of this type declaration, or the number of type parameters it takes.
-        /// A non-generic type has zero arity.
+        /// A non-generic type has zero arity.  
+        /// </summary>
         int Arity { get; }
 
         /// <summary>

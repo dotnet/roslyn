@@ -366,8 +366,5 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
-
-        public INamespaceDeclaration GetDeclarationRoot(CSharpCompilation compilation)
-            => GetMergedRoot(compilation);
     }
 }

@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides ReadOnly Property DeclarationRoot As INamespaceDeclaration
             Get
-                Return Declarations.GetDeclarationRoot(Me)
+                Return Declarations.GetMergedRoot(Me)
             End Get
         End Property
 

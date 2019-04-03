@@ -3248,7 +3248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override INamespaceDeclaration DeclarationRoot
-            => Declarations.GetDeclarationRoot(this);
+            => Declarations.GetMergedRoot(this);
 
         private abstract class AbstractSymbolSearcher
         {
