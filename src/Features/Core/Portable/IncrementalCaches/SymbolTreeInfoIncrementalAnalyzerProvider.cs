@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -206,8 +208,10 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33172", AllowCaptures = false)]
             private Task[] UpdateSymbolTreeInfoInCurrentProcessAsync(Project project, CancellationToken cancellationToken)
             {
+                // When running in the current process, we try to reduce allocations by processing items without explicitly running them concurrently.
                 return new Task[]
                 {
                     UpdateSourceSymbolTreeInfoAsync(project, cancellationToken),
@@ -217,6 +221,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
             private Task[] UpdateSymbolTreeInfoInServiceProcessAsync(Project project, CancellationToken cancellationToken)
             {
+                // We can process more work in parallel when using a remote client.
                 return new Task[]
                 {
                     Task.Run(() => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
@@ -246,11 +251,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             private Task UpdateReferencesAsync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references. If it remote workspace, do this in parallel.
-                var tasks = new List<Task>(project.MetadataReferences.Count);
+                var tasks = ArrayBuilder<Task>.GetInstance(project.MetadataReferences.Count);
                 var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
 
-                // MetadataReferences is stored as ImmutableArray, but exposed as IReadOnlyList
-                // so cast cheaply to avoid boxed enumerator.
+                Debug.Assert(project.MetadataReferences is ImmutableArray<MetadataReference>, "We rely on specific collection types to ensure allocations are avoided.");
+
                 foreach (var metadataReference in project.MetadataReferences.ToImmutableArrayOrEmpty())
                 {
                     if (metadataReference is PortableExecutableReference portableExecutableReference)
@@ -263,16 +268,19 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     }
                 }
 
-                return Task.WhenAll(tasks);
+                return Task.WhenAll(tasks.ToArrayAndFree());
             }
 
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33172", AllowCaptures = false)]
             private Task UpdateReferenceInCurrentProcessAsync(Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
+                // When running in the current process, we try to reduce allocations by processing items without explicitly running them concurrently.
                 return UpdateReferenceAsync(project, reference, cancellationToken);
             }
 
             private Task UpdateReferenceInServiceProcessAsync(Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
+                // We can process more work in parallel when using a remote client.
                 return Task.Run(() => UpdateReferenceAsync(project, reference, cancellationToken), cancellationToken);
             }
 
