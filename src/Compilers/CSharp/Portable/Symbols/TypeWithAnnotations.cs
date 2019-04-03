@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Reading from a variable of a type parameter (that could be substituted with a nullable type), but which
             // cannot itself be annotated (because it isn't known to be a reference type), may yield a null value
             // even though the type parameter isn't annotated.
-            return new TypeWithState(
+            return TypeWithState.Create(
                 Type,
                 IsPossiblyNullableTypeTypeParameter() || NullableAnnotation.IsAnnotated() ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
         }

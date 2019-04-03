@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var actualNewActiveStatements = new ActiveStatement[oldActiveStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[oldActiveStatements.Length];
 
-            Analyzer.AnalyzeUnchangedDocument(
+            Analyzer.GetTestAccessor().AnalyzeUnchangedDocument(
                 oldActiveStatements.AsImmutable(),
                 text,
                 root,
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 trackingService = null;
             }
 
-            Analyzer.AnalyzeSyntax(
+            Analyzer.GetTestAccessor().AnalyzeSyntax(
                 editScript,
                 editMap,
                 oldText,
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var triviaEdits = new List<KeyValuePair<SyntaxNode, SyntaxNode>>();
             var actualLineEdits = new List<LineChange>();
 
-            Analyzer.AnalyzeTrivia(
+            Analyzer.GetTestAccessor().AnalyzeTrivia(
                 oldText,
                 newText,
                 editScript.Match,
@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var actualNewActiveStatements = new ActiveStatement[activeStatements.OldStatements.Length];
             var actualNewExceptionRegions = new ImmutableArray<LinePositionSpan>[activeStatements.OldStatements.Length];
 
-            Analyzer.AnalyzeSyntax(
+            Analyzer.GetTestAccessor().AnalyzeSyntax(
                 editScript,
                 editMap,
                 oldText,
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             diagnostics.Verify(newSource);
 
-            Analyzer.AnalyzeTrivia(
+            Analyzer.GetTestAccessor().AnalyzeTrivia(
                 oldText,
                 newText,
                 editScript.Match,
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             diagnostics.Verify(newSource);
 
-            Analyzer.AnalyzeSemantics(
+            Analyzer.GetTestAccessor().AnalyzeSemantics(
                 editScript,
                 editMap,
                 oldText,
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         internal static IEnumerable<KeyValuePair<SyntaxNode, SyntaxNode>> GetMethodMatches(AbstractEditAndContinueAnalyzer analyzer, Match<SyntaxNode> bodyMatch)
         {
             Dictionary<SyntaxNode, AbstractEditAndContinueAnalyzer.LambdaInfo> lazyActiveOrMatchedLambdas = null;
-            var map = analyzer.ComputeMap(bodyMatch, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
+            var map = analyzer.GetTestAccessor().ComputeMap(bodyMatch, Array.Empty<AbstractEditAndContinueAnalyzer.ActiveNode>(), ref lazyActiveOrMatchedLambdas, new List<RudeEditDiagnostic>());
 
             var result = new Dictionary<SyntaxNode, SyntaxNode>();
             foreach (var pair in map.Forward)
