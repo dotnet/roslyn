@@ -72,13 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                 DocumentNameWithoutExtension = Path.GetFileNameWithoutExtension(this.SemanticDocument.Document.Name);
                 IsDocumentNameAValidIdentifier = syntaxFacts.IsValidIdentifier(DocumentNameWithoutExtension);
 
-                // if type name matches document name, per style conventions, we have nothing to do.
-                return !TypeMatchesDocumentName(
-                    TypeNode,
-                    TypeName,
-                    DocumentNameWithoutExtension,
-                    SemanticDocument.SemanticModel,
-                    cancellationToken);
+                return true;
             }
         }
     }

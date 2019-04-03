@@ -46,8 +46,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             }
 
             var actions = CreateActions(state, cancellationToken);
-
-            Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
             return actions;
         }
 
@@ -97,6 +95,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
 
         private ImmutableArray<CodeAction> CreateActions(State state, CancellationToken cancellationToken)
         {
+            var typeMatchesDocumentName = TypeMatchesDocumentName(
+                state.TypeNode,
+                state.TypeName,
+                state.DocumentNameWithoutExtension,
+                state.SemanticDocument.SemanticModel,
+                cancellationToken);
+
+            if (typeMatchesDocumentName)
+            {
+                // if type name matches document name, per style conventions, we have nothing to do.
+                return ImmutableArray<CodeAction>.Empty;
+            }
+
             var actions = new List<CodeAction>();
             var manyTypes = MultipleTopLevelTypeDeclarationInSourceDocument(state.SemanticDocument.Root);
             var isNestedType = IsNestedType(state.TypeNode);
@@ -140,6 +151,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
                         operationKind: MoveTypeOperationKind.RenameType));
                 }
             }
+
+            Debug.Assert(actions.Count() != 0, "No code actions found for MoveType Refactoring");
 
             return actions.ToImmutableArray();
         }
