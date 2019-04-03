@@ -6024,7 +6024,7 @@ tryAgain:
                 }
             }
 
-done:;
+done:
             return result;
         }
 
@@ -6279,7 +6279,7 @@ done:;
                         case ParseTypeMode.NewExpression:
                             // A nullable qualifier is permitted as part of the type in a `new` expression.
                             // e.g. `new int?()` is allowed.  It creates a null value of type `Nullable<int>`.
-                            // But the object initializer syntax `new int? {}` is not permitted.
+                            // Similarly `new int? {}` is allowed.
                             return
                                 this.CurrentToken.Kind == SyntaxKind.OpenParenToken ||   // ctor parameters
                                 this.CurrentToken.Kind == SyntaxKind.OpenBracketToken ||   // array type
@@ -8875,6 +8875,7 @@ tryAgain:
             Range,
             Additive,
             Mutiplicative,
+            Switch,
             Unary,
             Cast,
             PointerIndirection,
@@ -8921,8 +8922,9 @@ tryAgain:
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
                 case SyntaxKind.IsPatternExpression:
-                case SyntaxKind.SwitchExpression:
                     return Precedence.Relational;
+                case SyntaxKind.SwitchExpression:
+                    return Precedence.Switch;
                 case SyntaxKind.LeftShiftExpression:
                 case SyntaxKind.RightShiftExpression:
                     return Precedence.Shift;
@@ -9392,7 +9394,7 @@ tryAgain:
                     expr = _syntaxFactory.ThisExpression(this.EatToken());
                     break;
                 case SyntaxKind.BaseKeyword:
-                    expr = _syntaxFactory.BaseExpression(this.EatToken());
+                    expr = ParseBaseExpression();
                     break;
                 case SyntaxKind.ArgListKeyword:
                 case SyntaxKind.FalseKeyword:
@@ -9450,6 +9452,24 @@ tryAgain:
             }
 
             return this.ParsePostFixExpression(expr);
+        }
+
+        private ExpressionSyntax ParseBaseExpression()
+        {
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.BaseKeyword);
+
+            SyntaxToken baseKeyword = this.EatToken();
+            BaseExpressionTypeClauseSyntax typeClause = null;
+
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                var openParen = CheckFeatureAvailability(this.EatToken(SyntaxKind.OpenParenToken), MessageID.IDS_BaseTypeInBaseExpression);
+                var type = this.ParseType();
+                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+                typeClause = _syntaxFactory.BaseExpressionTypeClause(openParen, type, closeParen);
+            }
+
+            return _syntaxFactory.BaseExpression(baseKeyword, typeClause);
         }
 
         /// <summary>
@@ -10389,6 +10409,7 @@ tryAgain:
                 case SyntaxKind.QuestionQuestionToken:
                 case SyntaxKind.EndOfFileToken:
                 case SyntaxKind.SwitchKeyword:
+                case SyntaxKind.EqualsGreaterThanToken:
                     return false;
                 default:
                     return true;

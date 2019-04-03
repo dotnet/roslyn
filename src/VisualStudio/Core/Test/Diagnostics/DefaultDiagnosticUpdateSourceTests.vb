@@ -46,8 +46,8 @@ class 123 { }
                     Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
                     Await analyzer.AnalyzeSyntaxAsync(workspace.CurrentSolution.Projects.First().Documents.First(), InvocationReasons.Empty, CancellationToken.None)
 
-                    Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
-                    Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateExpeditedWaitTask()
 
                     Dim snapshot = buffer.CurrentSnapshot
                     Dim spans = tagger.GetTags(snapshot.GetSnapshotSpanCollection()).ToImmutableArray()
@@ -85,7 +85,7 @@ class A
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
-                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
@@ -118,7 +118,7 @@ class A
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
-                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
@@ -151,7 +151,7 @@ class A
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
-                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 2)
@@ -186,7 +186,7 @@ class A
                 analyzer.RemoveDocument(document.Id)
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
-                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 0)
@@ -272,7 +272,7 @@ End Class
                 Await analyzer.AnalyzeDocumentAsync(document, Nothing, InvocationReasons.Empty, CancellationToken.None)
 
                 Dim listenerProvider = workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)
-                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask()
+                Await listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateExpeditedWaitTask()
 
                 Assert.True(
                     diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)

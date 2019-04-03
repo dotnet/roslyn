@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
                 context.AddIfMissing($@"\k<  {Regex_name_or_number}  >", Regex_named_backreference_short, Regex_named_backreference_long, parentOpt, @"\k<".Length, insertionText: @"\k<>");
 
                 // Note: we intentionally do not add `\<>` to the list.  While supported by the 
-                // .net regex engine, it is effectively deprecated and discouraged from use.  
+                // .NET regex engine, it is effectively deprecated and discouraged from use.  
                 // Instead, it is recommended that `\k<>` is used instead.
                 // 
                 // context.AddIfMissing(@"\<>", "", "", parentOpt, @"\<".Length));

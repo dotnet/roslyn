@@ -455,7 +455,7 @@ namespace Roslyn.Utilities
 
                 // The computation is complete, so get all requests to complete and null out the list. We'll create another one
                 // later if it's needed
-                requestsToComplete = _requests ?? SpecializedCollections.EmptyEnumerable<Request>();
+                requestsToComplete = _requests ?? (IEnumerable<Request>)Array.Empty<Request>();
                 _requests = null;
 
                 // The computations are done

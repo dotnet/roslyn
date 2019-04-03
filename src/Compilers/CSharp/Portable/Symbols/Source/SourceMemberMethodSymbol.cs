@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private readonly NamedTypeSymbol _containingType;
         private ParameterSymbol _lazyThisParameter;
-        private TypeSymbol _iteratorElementType;
+        private TypeWithAnnotations.Builder _lazyIteratorElementType;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private CustomAttributesBag<CSharpAttributeData> _lazyReturnTypeCustomAttributesBag;
@@ -203,9 +203,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.locations = locations;
         }
 
-        protected void CheckEffectiveAccessibility(TypeSymbolWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
+        protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, DiagnosticBag diagnostics)
         {
-            if (this.DeclaredAccessibility <= Accessibility.Private)
+            if (this.DeclaredAccessibility <= Accessibility.Private || MethodKind == MethodKind.ExplicitInterfaceImplementation)
             {
                 return;
             }
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!this.IsNoMoreVisibleThan(returnType, ref useSiteDiagnostics))
             {
                 // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
-                diagnostics.Add(code, Locations[0], this, returnType.TypeSymbol);
+                diagnostics.Add(code, Locations[0], this, returnType.Type);
             }
 
             code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
@@ -227,10 +227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var parameter in parameters)
             {
-                if (!parameter.Type.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
+                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteDiagnostics))
                 {
                     // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, Locations[0], this, parameter.Type.TypeSymbol);
+                    diagnostics.Add(code, Locations[0], this, parameter.Type);
                 }
             }
 
@@ -391,6 +391,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // TODO (tomat): sealed
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
+            if (IsExplicitInterfaceImplementation && _containingType.IsInterface)
+            {
+                // All implementations of methods from base interfaces should omit the newslot bit to ensure no new vtable slot is allocated.
+                return false;
+            }
+
             // If C# and the runtime don't agree on the overridden method,
             // then we will mark the method as newslot and specify the
             // override explicitly (see GetExplicitImplementationOverrides
@@ -677,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public sealed override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments
+        public sealed override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations
         {
             get
             {
@@ -706,16 +712,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override TypeSymbol IteratorElementType
+        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations
         {
             get
             {
-                return _iteratorElementType;
+                return _lazyIteratorElementType.ToType();
             }
             set
             {
-                Debug.Assert((object)_iteratorElementType == null || TypeSymbol.Equals(_iteratorElementType, value, TypeCompareKind.ConsiderEverything2));
-                Interlocked.CompareExchange(ref _iteratorElementType, value, null);
+                Debug.Assert(_lazyIteratorElementType.IsDefault || TypeSymbol.Equals(_lazyIteratorElementType.ToType().Type, value.Type, TypeCompareKind.ConsiderEverything2));
+                _lazyIteratorElementType.InterlockedInitialize(value);
             }
         }
 
@@ -769,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case CompletionPart.Type:
-                        var unusedType = this.ReturnType;
+                        var unusedType = this.ReturnTypeWithAnnotations;
                         state.NotePartComplete(CompletionPart.Type);
                         break;
 
@@ -1661,13 +1667,9 @@ done:
         /// Checks to see if a body is legal given the current modifiers.
         /// If it is not, a diagnostic is added with the current type.
         /// </summary>
-        protected void CheckModifiersForBody(Location location, DiagnosticBag diagnostics)
+        protected void CheckModifiersForBody(SyntaxNode declarationSyntax, Location location, DiagnosticBag diagnostics)
         {
-            if (_containingType.IsInterface)
-            {
-                diagnostics.Add(ErrorCode.ERR_InterfaceMemberHasBody, location, this);
-            }
-            else if (IsExtern && !IsAbstract)
+            if (IsExtern && !IsAbstract)
             {
                 diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
             }
@@ -1677,6 +1679,22 @@ done:
             }
             // Do not report error for IsAbstract && IsExtern. Dev10 reports CS0180 only
             // in that case ("member cannot be both extern and abstract").
+        }
+
+        protected void CheckFeatureAvailabilityAndRuntimeSupport(SyntaxNode declarationSyntax, Location location, bool hasBody, DiagnosticBag diagnostics)
+        {
+            if (_containingType.IsInterface)
+            {
+                if (hasBody || IsExplicitInterfaceImplementation)
+                {
+                    Binder.CheckFeatureAvailability(declarationSyntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, location);
+                }
+
+                if ((hasBody || IsExtern) && !IsStatic && !ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, location);
+                }
+            }
         }
 
         /// <summary>

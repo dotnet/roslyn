@@ -85,10 +85,10 @@ class TestClass
                 Assert.NotSame(oldMsCorLib_debuggerTypeProxyAttributeType, newMsCorLib_debuggerTypeProxyAttributeType);
 
                 oldMsCorLib_debuggerTypeProxyAttributeCtor = (MethodSymbol)oldMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").Single(
-                    m => ((MethodSymbol)m).ParameterCount == 1 && TypeSymbol.Equals(((MethodSymbol)m).ParameterTypes[0].TypeSymbol, oldMsCorLib_systemType, TypeCompareKind.ConsiderEverything2));
+                    m => ((MethodSymbol)m).ParameterCount == 1 && TypeSymbol.Equals(((MethodSymbol)m).GetParameterType(0), oldMsCorLib_systemType, TypeCompareKind.ConsiderEverything2));
 
                 newMsCorLib_debuggerTypeProxyAttributeCtor = (MethodSymbol)newMsCorLib_debuggerTypeProxyAttributeType.GetMembers(".ctor").Single(
-                    m => ((MethodSymbol)m).ParameterCount == 1 && TypeSymbol.Equals(((MethodSymbol)m).ParameterTypes[0].TypeSymbol, newMsCorLib_systemType, TypeCompareKind.ConsiderEverything2));
+                    m => ((MethodSymbol)m).ParameterCount == 1 && TypeSymbol.Equals(((MethodSymbol)m).GetParameterType(0), newMsCorLib_systemType, TypeCompareKind.ConsiderEverything2));
 
                 Assert.NotSame(oldMsCorLib_debuggerTypeProxyAttributeCtor, newMsCorLib_debuggerTypeProxyAttributeCtor);
             }
@@ -141,7 +141,7 @@ class TestClass
 
                 Assert.Same(newMsCorLib_debuggerTypeProxyAttributeType, attribute.AttributeClass);
                 Assert.Same(newMsCorLib_debuggerTypeProxyAttributeCtor, attribute.AttributeConstructor);
-                Assert.Same(newMsCorLib_systemType, attribute.AttributeConstructor.ParameterTypes[0].TypeSymbol);
+                Assert.Same(newMsCorLib_systemType, attribute.AttributeConstructor.GetParameterType(0));
 
                 Assert.Equal(1, attribute.CommonConstructorArguments.Length);
                 attribute.VerifyValue(0, TypedConstantKind.Type, newMsCorLib_systemType);

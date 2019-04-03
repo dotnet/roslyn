@@ -21,7 +21,7 @@
   <ItemGroup>
     <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netcoreapp2.1'" />
     <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)"/>
+    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="$(MicrosoftDiaSymReaderNativeVersion)" Condition="'$(DotNetBuildFromSource)' != 'true'" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Shared\RuntimeHostInfo.cs" />

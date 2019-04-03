@@ -805,7 +805,7 @@ namespace Comments.XmlComments.UndocumentedKeywords
         void Params(ref dynamic a, out dynamic b, params dynamic[] c) {}
         void Params(out dynamic a = 2, ref dynamic c = default(dynamic), params dynamic[][] c) {}
 
-        public override string ToString() { return base.ToString(); } 
+        public override string ToString() { return base(object).ToString() + base.ToString(); } 
 
         public partial void OnError();
 
@@ -1190,7 +1190,7 @@ CaseLabel2:
             End Set
         End Property
 
-        'vb.net can't support abstract member variable
+        'VB.NET can't support abstract member variable
         Public ReadOnly Property P2() As String
             Get
             End Get
@@ -2234,7 +2234,7 @@ CaseLabel2:
             End Set
         End Property
 
-        'vb.net can't support abstract member variable
+        'VB.NET can't support abstract member variable
         Public ReadOnly Property P2() As String
             Get
             End Get

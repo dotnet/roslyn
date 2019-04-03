@@ -284,23 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsLegalSuppressionValueKind(BindValueKind valueKind)
-        {
-            // Need to review allowed uses of the suppression operator
-            // Tracked by https://github.com/dotnet/roslyn/issues/31297
-
-            switch (valueKind)
-            {
-                case BindValueKind.RValue:
-                case BindValueKind.RValueOrMethodGroup:
-                case BindValueKind.RefOrOut:
-                    return true;
-            }
-
-            // all others are illegal
-            return false;
-        }
-
         /// <summary>
         /// The purpose of this method is to determine if the expression satisfies desired capabilities. 
         /// If it is not then this code gives an appropriate error message.
@@ -320,12 +303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (expr.HasAnyErrors)
             {
-                return false;
-            }
-
-            if (expr.IsSuppressed && !IsLegalSuppressionValueKind(valueKind))
-            {
-                Error(diagnostics, ErrorCode.ERR_IllegalSuppression, node);
                 return false;
             }
 
@@ -804,12 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE: availability of well-known members is checked in BindEventAssignment because
                 // we don't have the context to determine whether addition or subtraction is being performed.
 
-                if (receiver?.Kind == BoundKind.BaseReference && eventSymbol.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, boundEvent.Syntax, eventSymbol);
-                    return false;
-                }
-                else if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
+                if (ReportUseSiteDiagnostics(eventSymbol, diagnostics, eventSyntax))
                 {
                     // NOTE: BindEventAssignment checks use site errors on the specific accessor 
                     // (since we don't know which is being used).
@@ -954,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // change from Dev10 which reports this error for struct types only,
                     // not for type parameters constrained to "struct".
 
-                    Debug.Assert(propertySymbol.Type.HasType);
+                    Debug.Assert(propertySymbol.TypeWithAnnotations.HasType);
                     Error(diagnostics, ErrorCode.ERR_ReturnNotLValue, expr.Syntax, propertySymbol);
                 }
                 else
@@ -985,15 +957,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
                 }
-                else if (receiver?.Kind == BoundKind.BaseReference && setMethod.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertySymbol);
-                    return false;
-                }
-                else if (!object.Equals(setMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(setMethod, diagnostics, propertySyntax))
-                {
-                    return false;
-                }
                 else
                 {
                     var accessThroughType = this.GetAccessThroughType(receiver);
@@ -1021,6 +984,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return false;
                     }
+
+                    if (IsBadBaseAccess(node, receiver, setMethod, diagnostics, propertySymbol) ||
+                        (!object.Equals(setMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(setMethod, diagnostics, propertySyntax)))
+                    {
+                        return false;
+                    }
+
+                    CheckRuntimeSupportForSymbolAccess(node, receiver, setMethod, diagnostics);
                 }
             }
 
@@ -1032,15 +1003,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)getMethod == null)
                 {
                     Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, node, propertySymbol);
-                    return false;
-                }
-                else if (receiver?.Kind == BoundKind.BaseReference && getMethod.IsAbstract)
-                {
-                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertySymbol);
-                    return false;
-                }
-                else if (!object.Equals(getMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(getMethod, diagnostics, propertySyntax))
-                {
                     return false;
                 }
                 else
@@ -1065,6 +1027,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     ReportDiagnosticsIfObsolete(diagnostics, getMethod, node, receiver?.Kind == BoundKind.BaseReference);
+
+                    if (IsBadBaseAccess(node, receiver, getMethod, diagnostics, propertySymbol) ||
+                        (!object.Equals(getMethod.GetUseSiteDiagnostic(), propertySymbol.GetUseSiteDiagnostic()) && ReportUseSiteDiagnostics(getMethod, diagnostics, propertySyntax)))
+                    {
+                        return false;
+                    }
+
+                    CheckRuntimeSupportForSymbolAccess(node, receiver, getMethod, diagnostics);
                 }
             }
 
@@ -1075,6 +1045,76 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return true;
+        }
+
+        private bool IsBadBaseAccess(SyntaxNode node, BoundExpression receiverOpt, Symbol member, DiagnosticBag diagnostics,
+                                     Symbol propertyOrEventSymbolOpt = null)
+        {
+            Debug.Assert(member.Kind != SymbolKind.Property);
+            Debug.Assert(member.Kind != SymbolKind.Event);
+
+            if (receiverOpt?.Kind == BoundKind.BaseReference)
+            {
+                var baseReference = (BoundBaseReference)receiverOpt;
+
+                if (baseReference.ExplicitBaseReferenceOpt != null)
+                {
+                    if (baseReference.HasErrors)
+                    {
+                        return true;
+                    }
+
+                    TypeSymbol baseType = baseReference.ExplicitBaseReferenceOpt.Type;
+
+                    if (baseType.IsInterfaceType() && (member as MethodSymbol)?.IsImplementable() == true)
+                    {
+                        MultiDictionary<Symbol, Symbol>.ValueSet set = TypeSymbol.FindImplementationInInterface(member, (NamedTypeSymbol)baseType);
+
+                        if (set.Count == 1)
+                        {
+                            member = set.Single();
+
+                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                            if (!IsAccessible(member, ref useSiteDiagnostics, accessThroughType: null))
+                            {
+                                diagnostics.Add(node, useSiteDiagnostics);
+                                Error(diagnostics, ErrorCode.ERR_BadAccess, node, member);
+                                return true;
+                            }
+                            else if (member.IsAbstract)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, member);
+                                return true;
+                            }
+                        }
+                        else if (!member.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
+                        {
+                            Error(diagnostics, ErrorCode.ERR_NotImplementedInBase, node, member, baseType);
+                            return true;
+                        }
+                        else
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, member);
+                            return true;
+                        }
+
+                        return false;
+                    }
+                    else if (!member.ContainingType.Equals(baseType, TypeCompareKind.AllIgnoreOptions))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_NotDeclaredInBase, node, member, baseType);
+                        return true;
+                    }
+                }
+
+                if (member.IsAbstract)
+                {
+                    Error(diagnostics, ErrorCode.ERR_AbstractBaseCall, node, propertyOrEventSymbolOpt ?? member);
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -1481,7 +1521,7 @@ moreArguments:
 
                         if (parameter.RefKind == RefKind.In &&
                             inParametersMatchedWithArgs?[i] != true &&
-                            parameter.Type.TypeSymbol.IsRefLikeType == false)
+                            parameter.Type.IsRefLikeType == false)
                         {
                             return parameter;
                         }
@@ -1665,7 +1705,7 @@ moreArguments:
         {
             Debug.Assert((object)field != null);
             Debug.Assert(RequiresAssignableVariable(kind));
-            Debug.Assert(field.Type.HasType);
+            Debug.Assert(field.Type != (object)null);
 
             // It's clearer to say that the address can't be taken than to say that the field can't be modified
             // (even though the latter message gives more explanation of why).
