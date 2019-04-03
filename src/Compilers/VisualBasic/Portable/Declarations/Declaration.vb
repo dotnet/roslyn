@@ -32,8 +32,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' source files, is represented by a tree of merged declarations.'''
     '''</summary> 
     Friend MustInherit Class Declaration
+        Implements INamespaceOrTypeDeclaration
+
         Public MustOverride ReadOnly Property Kind As DeclarationKind
-        Public Property Name As String
+
+        Public Property Name As String Implements INamespaceOrTypeDeclaration.Name
 
         Protected Sub New(name As String)
             Me.Name = name
@@ -46,5 +49,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Protected MustOverride Function GetDeclarationChildren() As ImmutableArray(Of Declaration)
+
+        Private ReadOnly Property IsNamespace As Boolean Implements INamespaceOrTypeDeclaration.IsNamespace
+            Get
+                Return Kind = DeclarationKind.Namespace
+            End Get
+        End Property
+
+        Private ReadOnly Property IsType As Boolean Implements INamespaceOrTypeDeclaration.IsType
+            Get
+                Return Not IsNamespace
+            End Get
+        End Property
+
+        Private ReadOnly Property INamespaceOrTypeDeclaration_Children As ImmutableArray(Of INamespaceOrTypeDeclaration) Implements INamespaceOrTypeDeclaration.Children
+            Get
+                Return ImmutableArray(Of INamespaceOrTypeDeclaration).CastUp(Children)
+            End Get
+        End Property
     End Class
 End Namespace

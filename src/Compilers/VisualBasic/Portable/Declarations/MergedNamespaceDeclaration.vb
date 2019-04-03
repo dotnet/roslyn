@@ -8,6 +8,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ' are also merged declarations.
     Friend NotInheritable Class MergedNamespaceDeclaration
         Inherits MergedNamespaceOrTypeDeclaration
+        Implements INamespaceDeclaration
 
         Private ReadOnly _declarations As ImmutableArray(Of SingleNamespaceDeclaration)
         Private ReadOnly _multipleSpellings As Boolean  ' true if the namespace is spelling with multiple different case-insensitive spellings ("Namespace GOO" and "Namespace goo")

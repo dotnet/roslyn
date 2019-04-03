@@ -11,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ' Note: Namespace Global has empty string as a name, as well as namespaces with errors
     Friend Class SingleNamespaceDeclaration
         Inherits SingleNamespaceOrTypeDeclaration
+        Implements INamespaceDeclaration
 
         Private ReadOnly _children As ImmutableArray(Of SingleNamespaceOrTypeDeclaration)
         Public Property HasImports As Boolean

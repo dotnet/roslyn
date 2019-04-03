@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -365,5 +366,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        public INamespaceDeclaration GetDeclarationRoot(CSharpCompilation compilation)
+            => GetMergedRoot(compilation);
     }
 }

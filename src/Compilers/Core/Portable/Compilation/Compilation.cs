@@ -3189,5 +3189,11 @@ namespace Microsoft.CodeAnalysis
 
             return foundVersion;
         }
+
+        /// <summary>
+        /// Gets The root namespace declaration that contains all namespaces and types declared in this compilation, 
+        /// merged into a single namespace hierarchy.
+        /// </summary>
+        public abstract INamespaceDeclaration DeclarationRoot { get; }
     }
 }

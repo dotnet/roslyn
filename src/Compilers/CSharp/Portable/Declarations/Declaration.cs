@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// declaration.  The whole program, consisting of the set of all declarations in all of the
     /// source files, is represented by a tree of merged declarations.
     /// </summary>
-    internal abstract class Declaration
+    internal abstract class Declaration : INamespaceOrTypeDeclaration
     {
         protected readonly string name;
 
@@ -61,6 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public abstract DeclarationKind Kind { get; }
+
         protected abstract ImmutableArray<Declaration> GetDeclarationChildren();
+
+        public bool IsNamespace => Kind == DeclarationKind.Namespace;
+
+        public bool IsType => !IsNamespace;
+
+        ImmutableArray<INamespaceOrTypeDeclaration> INamespaceOrTypeDeclaration.Children
+            => ImmutableArray<INamespaceOrTypeDeclaration>.CastUp(Children);
     }
 }

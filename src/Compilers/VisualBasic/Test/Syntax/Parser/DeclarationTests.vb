@@ -215,4 +215,93 @@ End Class
         Assert.Equal("C2", childs(1).Name)
     End Sub
 
+    <Fact>
+    Public Sub TestDeclarationAPI()
+
+        Dim assertNamespace As Action(Of INamespaceOrTypeDeclaration, String, Integer) = Sub(declaration As INamespaceOrTypeDeclaration, name As String, childernCount As Integer)
+                                                                                             Assert.True(declaration.IsNamespace)
+                                                                                             Assert.Equal(name, declaration.Name)
+                                                                                             Assert.Equal(childernCount, declaration.Children.Length)
+                                                                                         End Sub
+
+        Dim assertType As Action(Of INamespaceOrTypeDeclaration, String, TypeKind, Integer, Accessibility, Integer) = Sub(declaration As INamespaceOrTypeDeclaration, name As String, typeKind As TypeKind, arity As Integer, declaredAccessibility As Accessibility, childernCount As Integer)
+                                                                                                                          Assert.True(declaration.IsType)
+                                                                                                                          Dim type = CType(declaration, ITypeDeclaration)
+                                                                                                                          Assert.Equal(name, type.Name)
+                                                                                                                          Assert.Equal(typeKind, type.TypeKind)
+                                                                                                                          Assert.Equal(arity, type.Arity)
+                                                                                                                          Assert.Equal(declaredAccessibility, type.DeclaredAccessibility)
+                                                                                                                          Assert.Equal(childernCount, type.Children.Length)
+                                                                                                                      End Sub
+        Dim text1 = <literal>
+namespace NA.NB
+  friend partial class C(Of T)
+    partial class D
+    end class
+  end class
+  public structure C 
+  end structure
+end namespace
+</literal>.Value
+
+        Dim text2 = <literal>
+namespace Na
+  namespace nB
+    friend partial class C(Of T)
+      partial class d
+      end class
+    end class
+    interface e
+    end interface
+  end namespace
+end namespace
+</literal>.Value
+
+        Dim listSyntaxTree = New List(Of SyntaxTree)()
+
+        listSyntaxTree.Add(ParseFile(text1))
+        listSyntaxTree.Add(ParseFile(text2))
+
+        Dim comp = VisualBasicCompilation.Create("Compilation", listSyntaxTree)
+        Assert.Equal(2, comp.SyntaxTrees.Length)
+
+        Dim root = comp.DeclarationRoot
+
+        ' global namespace
+        assertNamespace(root, "", 1)
+
+        ' namespace NA 
+        Dim c1 = root.Children.Single()
+        assertNamespace(c1, "NA", 1)
+
+        ' namespace NB 
+        Dim c2 = c1.Children.Single()
+        assertNamespace(c2, "NB", 3)
+
+        Assert.All(c2.Children, Sub(d As INamespaceOrTypeDeclaration)
+                                    Assert.True(d.IsType)
+                                End Sub)
+        Dim c3 = c2.Children.Cast(Of ITypeDeclaration)().OrderBy(Function(d As ITypeDeclaration)
+                                                                     Return d.Name
+                                                                 End Function) _
+                                                        .ThenBy(Function(d As ITypeDeclaration)
+                                                                    Return d.Arity
+                                                                End Function).ToArray()
+
+        ' structure C
+        Dim c3_1 = c3(0)
+        assertType(c3_1, "C", TypeKind.Structure, 0, Accessibility.Public, 0)
+
+        ' class C(of T)
+        Dim c3_2 = c3(1)
+        assertType(c3_2, "C", TypeKind.Class, 1, Accessibility.Friend, 1)
+
+        ' interface E
+        Dim c3_3 = c3(2)
+        assertType(c3_3, "e", TypeKind.Interface, 0, Accessibility.NotApplicable, 0)
+
+        ' class D
+        Dim c4 = c3_2.Children.Single()
+        assertType(c4, "D", TypeKind.Class, 0, Accessibility.NotApplicable, 0)
+    End Sub
 End Class

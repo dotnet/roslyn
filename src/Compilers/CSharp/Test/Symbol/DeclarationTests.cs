@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -264,6 +265,119 @@ namespace NA
                 options: TestOptions.ReleaseDll);
 
             Assert.Equal(SymbolKind.NamedType, comp.GlobalNamespace.GetMembers()[0].Kind);
+        }
+
+        [Fact]
+        public void TestDeclarationAPI()
+        {
+            var listSyntaxTree = new List<SyntaxTree>();
+            var listRef = new List<MetadataReference>();
+
+            var s1 = @" 
+namespace A.B 
+{ 
+    public partial class C 
+    { 
+        private struct D 
+        {
+        }
+    }
+
+    class E<T> 
+    {
+        class F<S1,S2> { }
+    }
+
+    internal class E<T1,T2> { }
+}";
+
+            var s2 = @"
+namespace A.B
+{
+    public interface G {}
+
+    public partial class C
+    {
+        
+    }
+}";
+
+            SyntaxTree t1 = SyntaxFactory.ParseSyntaxTree(s1);
+            SyntaxTree t2 = SyntaxFactory.ParseSyntaxTree(s2);
+            listSyntaxTree.Add(t1);
+            listSyntaxTree.Add(t2);
+
+            // System.dll
+            listRef.Add(TestReferences.NetFx.v4_0_30319.System.WithEmbedInteropTypes(true));
+            var ops = TestOptions.ReleaseDll;
+            // Create Compilation with Option is not null
+            var comp = CSharpCompilation.Create("Compilation", listSyntaxTree, listRef);
+            Assert.NotNull(comp.SyntaxTrees);
+            Assert.Equal(2, comp.SyntaxTrees.Length);
+
+            var root = comp.DeclarationRoot;
+
+            // root namespace
+            assertNamespace(root, name: "", childernCount: 1);
+
+            // namespace A
+            var c1 = root.Children.Single();
+            assertNamespace(c1, name: "A", childernCount: 1);
+
+            // namespace B
+            var c2 = c1.Children.Single();
+            assertNamespace(c2, name: "B", childernCount: 4);
+
+            Assert.All(c2.Children, d => Assert.True(d.IsType));
+            var c3 = c2.Children.Cast<ITypeDeclaration>().OrderBy(d => d.Name).ThenBy(d => d.Arity).ToArray();
+
+            // class C
+            var c3_1 = c3[0];
+            assertType(c3_1, name: "C", TypeKind.Class, arity: 0, Accessibility.Public, childernCount: 1);
+
+            // struct D
+            var c4_1 = c3_1.Children.Single();
+            assertType(c4_1, name: "D", TypeKind.Struct, arity: 0, Accessibility.Private, childernCount: 0);
+
+            // class E<T>
+            var c3_2 = c3[1];
+            assertType(c3_2, name: "E", TypeKind.Class, arity: 1, Accessibility.NotApplicable, childernCount: 1);
+
+            // class F<S1, S2>
+            var c4_2 = c3_2.Children.Single();
+            assertType(c4_2, name: "F", TypeKind.Class, arity: 2, Accessibility.NotApplicable, childernCount: 0);
+
+            // class E<T1, T2>
+            var c3_3 = c3[2];
+            assertType(c3_3, name: "E", TypeKind.Class, arity: 2, Accessibility.Internal, childernCount: 0);
+
+            // interface G
+            var c3_4 = c3[3];
+            assertType(c3_4, name: "G", TypeKind.Interface, arity: 0, Accessibility.Public, childernCount: 0);
+
+            static void assertNamespace(INamespaceOrTypeDeclaration declaration, string name, int childernCount)
+            {
+                Assert.True(declaration.IsNamespace);
+                Assert.Equal(name, declaration.Name);
+                Assert.Equal(childernCount, declaration.Children.Length);
+            }
+
+            static void assertType(
+                INamespaceOrTypeDeclaration declaration,
+                string name,
+                TypeKind typeKind,
+                int arity,
+                Accessibility declaredAccessibility,
+                int childernCount)
+            {
+                Assert.True(declaration.IsType);
+                var type = (ITypeDeclaration)declaration;
+                Assert.Equal(name, type.Name);
+                Assert.Equal(typeKind, type.TypeKind);
+                Assert.Equal(arity, type.Arity);
+                Assert.Equal(declaredAccessibility, type.DeclaredAccessibility);
+                Assert.Equal(childernCount, type.Children.Length);
+            }
         }
 
         [ConditionalFact(typeof(NoIOperationValidation))]

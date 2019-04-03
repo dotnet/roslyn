@@ -1,14 +1,8 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Linq
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -17,6 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ' declarations.
     Friend NotInheritable Class MergedTypeDeclaration
         Inherits MergedNamespaceOrTypeDeclaration
+        Implements ITypeDeclaration
 
         Private _declarations As ImmutableArray(Of SingleTypeDeclaration)
         Private _children As MergedTypeDeclaration()
@@ -56,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public ReadOnly Property Arity As Integer
+        Public ReadOnly Property Arity As Integer Implements ITypeDeclaration.Arity
             Get
                 Return Me.Declarations(0).Arity
             End Get
@@ -185,5 +180,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private ReadOnly Property ITypeDeclaration_TypeKind As TypeKind Implements ITypeDeclaration.TypeKind
+            Get
+                Return Me.Kind.ToTypeKind()
+            End Get
+        End Property
+
+        Private ReadOnly Property DeclaredAccessibility As Accessibility Implements ITypeDeclaration.DeclaredAccessibility
+            Get
+                Dim aggregateModifiers = DeclarationModifiers.None
+                For Each declaration In Me.Declarations
+                    aggregateModifiers = aggregateModifiers Or declaration.Modifiers
+                Next
+
+                Return aggregateModifiers.ToAccessibility()
+            End Get
+        End Property
+
+        Private ReadOnly Property ITypeDeclaration_Children As ImmutableArray(Of ITypeDeclaration) Implements ITypeDeclaration.Children
+            Get
+                Return ImmutableArray(Of ITypeDeclaration).CastUp(Me.Children)
+            End Get
+        End Property
     End Class
 End Namespace
