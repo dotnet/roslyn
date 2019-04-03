@@ -448,7 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if ((object)declaredBase != null)
                 {
                     declaredBase = (NamedTypeSymbol)NullableTypeDecoder.TransformType(
-                        TypeSymbolWithAnnotations.Create(declaredBase), _handle, ContainingPEModule).TypeSymbol;
+                        TypeWithAnnotations.Create(declaredBase), _handle, ContainingPEModule).Type;
                 }
                 Interlocked.CompareExchange(ref _lazyDeclaredBaseTypeWithNullability, declaredBase, ErrorTypeSymbol.UnknownResultType);
             }
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
-                        typeSymbol = NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol).TypeSymbol;
+                        typeSymbol = NullableTypeDecoder.TransformType(TypeWithAnnotations.Create(typeSymbol), interfaceImpl, moduleSymbol).Type;
 
                         var namedTypeSymbol = typeSymbol as NamedTypeSymbol ?? new UnsupportedMetadataTypeSymbol(); // interface list contains a bad type
                         symbols.Add(namedTypeSymbol);
@@ -1489,11 +1489,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+        internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
         {
             get
             {
-                return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+                return ImmutableArray<TypeWithAnnotations>.Empty;
             }
         }
 
@@ -2069,7 +2069,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool IsReadOnly
+        public override bool IsReadOnly
         {
             get
             {
@@ -2349,7 +2349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
-            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
             {
                 get
                 {

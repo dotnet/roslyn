@@ -2524,5 +2524,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static NamespaceDeclarationSyntax NamespaceDeclaration(SyntaxToken namespaceKeyword, NameSyntax name, SyntaxToken openBraceToken, SyntaxList<ExternAliasDirectiveSyntax> externs, SyntaxList<UsingDirectiveSyntax> usings, SyntaxList<MemberDeclarationSyntax> members, SyntaxToken closeBraceToken, SyntaxToken semicolonToken)
             => NamespaceDeclaration(attributeLists: default, modifiers: default,
                 namespaceKeyword, name, openBraceToken, externs, usings, members, closeBraceToken, semicolonToken);
+
+        /// <summary>Creates a new BaseExpressionSyntax instance.</summary>
+        public static BaseExpressionSyntax BaseExpression()
+        {
+            return BaseExpression(null);
+        }
+
+        /// <summary>Creates a new BaseExpressionSyntax instance.</summary>
+        public static BaseExpressionSyntax BaseExpression(SyntaxToken token)
+        {
+            return BaseExpression(token, null);
+        }
     }
 }

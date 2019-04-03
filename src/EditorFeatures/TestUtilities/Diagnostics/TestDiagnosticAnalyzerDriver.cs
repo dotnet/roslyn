@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 projectDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(dxs.Where(d => !d.HasTextSpan), project, CancellationToken.None);
             }
 
-            var exceptionDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(_exceptionDiagnosticsSource.TestOnly_GetReportedDiagnostics(), project, CancellationToken.None);
+            var exceptionDiagnostics = await CodeAnalysis.Diagnostics.Extensions.ToDiagnosticsAsync(_exceptionDiagnosticsSource.GetTestAccessor().GetReportedDiagnostics(), project, CancellationToken.None);
             var allDiagnostics = documentDiagnostics.Concat(projectDiagnostics).Concat(exceptionDiagnostics);
 
             if (!_includeSuppressedDiagnostics)

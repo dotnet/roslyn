@@ -29,7 +29,10 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         IChainedCommandHandler<AutomaticLineEnderCommandArgs>,
         IChainedCommandHandler<SaveCommandArgs>,
         IChainedCommandHandler<DeleteKeyCommandArgs>,
-        IChainedCommandHandler<SelectAllCommandArgs>
+        IChainedCommandHandler<SelectAllCommandArgs>,
+        IChainedCommandHandler<EscapeKeyCommandArgs>,
+        IChainedCommandHandler<UpKeyCommandArgs>,
+        IChainedCommandHandler<DownKeyCommandArgs>
     {
         private readonly IAsyncCompletionService _completionService;
 
@@ -258,36 +261,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             ExecuteCommandWorker(args, nextHandler, context);
         }
 
-        internal bool TryHandleEscapeKey(EscapeKeyCommandArgs commandArgs)
-        {
-            if (!TryGetController(commandArgs, out var controller))
-            {
-                return false;
-            }
-
-            return controller.TryHandleEscapeKey();
-        }
-
-        internal bool TryHandleUpKey(UpKeyCommandArgs commandArgs)
-        {
-            if (!TryGetController(commandArgs, out var controller))
-            {
-                return false;
-            }
-
-            return controller.TryHandleUpKey();
-        }
-
-        internal bool TryHandleDownKey(DownKeyCommandArgs commandArgs)
-        {
-            if (!TryGetController(commandArgs, out var controller))
-            {
-                return false;
-            }
-
-            return controller.TryHandleDownKey();
-        }
-
         public VSCommanding.CommandState GetCommandState(SaveCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
@@ -322,6 +295,54 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             AssertIsForeground();
             ExecuteCommandWorker(args, nextHandler, context);
+        }
+
+        public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        {
+            return nextHandler();
+        }
+
+        public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        {
+            AssertIsForeground();
+            if (TryGetController(args, out var controller) && controller.TryHandleEscapeKey())
+            {
+                return;
+            }
+
+            nextHandler();
+        }
+
+        public VSCommanding.CommandState GetCommandState(UpKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        {
+            return nextHandler();
+        }
+
+        public void ExecuteCommand(UpKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        {
+            AssertIsForeground();
+            if (TryGetController(args, out var controller) && controller.TryHandleUpKey())
+            {
+                return;
+            }
+
+            nextHandler();
+        }
+
+        public VSCommanding.CommandState GetCommandState(DownKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
+        {
+            return nextHandler();
+        }
+
+        public void ExecuteCommand(DownKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        {
+            AssertIsForeground();
+            if (TryGetController(args, out var controller) && controller.TryHandleDownKey())
+            {
+                return;
+            }
+
+            nextHandler();
         }
     }
 }

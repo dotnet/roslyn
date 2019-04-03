@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private new HashSet<Symbol> Analyze(ref bool badRegion)
+        private HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
             return _dataFlowsIn;

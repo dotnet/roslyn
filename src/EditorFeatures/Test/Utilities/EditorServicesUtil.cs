@@ -1,10 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 {
@@ -16,10 +14,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
         private static IExportProviderFactory CreateExportProviderFactory()
         {
-            var assemblies = TestExportProvider
-                .GetCSharpAndVisualBasicAssemblies()
-                .Concat(new[] { typeof(EditorServicesUtil).Assembly });
-            return ExportProviderCache.GetOrCreateExportProviderFactory(ExportProviderCache.GetOrCreateAssemblyCatalog(assemblies, ExportProviderCache.CreateResolver()));
+            var catalog = TestExportProvider.GetCSharpAndVisualBasicAssemblyCatalog()
+                .WithParts(ExportProviderCache.GetOrCreateAssemblyCatalog(new[] { typeof(EditorServicesUtil).Assembly }, ExportProviderCache.CreateResolver()));
+            return ExportProviderCache.GetOrCreateExportProviderFactory(catalog);
         }
     }
 }

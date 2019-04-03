@@ -2395,6 +2395,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename {0} to {1}.
+        /// </summary>
+        internal static string Rename_0_to_1 {
+            get {
+                return ResourceManager.GetString("Rename_0_to_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reorder.
         /// </summary>
         internal static string Reorder {
@@ -2530,7 +2539,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Select Dependents.
+        ///   Looks up a localized string similar to Select _Dependents.
         /// </summary>
         internal static string Select_Dependents {
             get {
@@ -2584,7 +2593,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Select Public.
+        ///   Looks up a localized string similar to Select _Public.
         /// </summary>
         internal static string Select_Public {
             get {

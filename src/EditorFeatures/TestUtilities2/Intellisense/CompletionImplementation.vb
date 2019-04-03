@@ -3,5 +3,6 @@
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Enum CompletionImplementation
         Legacy = 1
+        Modern = 2
     End Enum
 End Namespace

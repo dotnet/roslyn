@@ -4,14 +4,15 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveFormsAndWpf : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 

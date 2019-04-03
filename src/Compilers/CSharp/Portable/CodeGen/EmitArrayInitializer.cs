@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitArrayInitializers(ArrayTypeSymbol arrayType, BoundArrayInitialization inits)
         {
             var initExprs = inits.Initializers;
-            var initializationStyle = ShouldEmitBlockInitializer(arrayType.ElementType.TypeSymbol, initExprs);
+            var initializationStyle = ShouldEmitBlockInitializer(arrayType.ElementType, initExprs);
 
             if (initializationStyle == ArrayInitializerStyle.Element)
             {
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else
                 {
                     // NOTE: default values do not need to be initialized. 
-                    //       .Net arrays are always zero-inited.
+                    //       .NET arrays are always zero-inited.
                     if (!init.IsDefaultValue())
                     {
                         initCount += 1;
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (wrappedExpression is BoundArrayCreation ac)
             {
                 var arrayType = (ArrayTypeSymbol)ac.Type;
-                elementType = arrayType.ElementType.TypeSymbol.EnumUnderlyingType();
+                elementType = arrayType.ElementType.EnumUnderlyingType();
 
                 // NB: we cannot use this approach for element types larger than one byte
                 //     the issue is that metadata stores blobs in little-endian format

@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
                 "CS8400", // error CS8400: Feature is not available in C# 8.0. Please use language version X or greater.
                 "CS8401", // error CS8401: To use '@$' instead of '$@" for a verbatim interpolated string, please use language version 8.0 or greater.
                 "CS8652", // error CS8652: The feature '' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                "CS8703", // error CS8703: The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.
+                "CS8706", // error CS8706: '{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater. 
             });
 
         public override string UpgradeThisProjectResource => CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0;

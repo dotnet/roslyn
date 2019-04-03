@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool _seenYieldInCurrentTry;
 
-        private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, NeverEmptyStructTypeCache emptyStructCache, HashSet<Symbol> initiallyAssignedVariables)
+        private IteratorAndAsyncCaptureWalker(CSharpCompilation compilation, MethodSymbol method, BoundNode node, HashSet<Symbol> initiallyAssignedVariables)
             : base(compilation,
                   method,
                   node,
-                  emptyStructCache,
+                  EmptyStructTypeCache.CreateNeverEmpty(),
                   trackUnassignments: true,
                   initiallyAssignedVariables: initiallyAssignedVariables)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static OrderedSet<Symbol> Analyze(CSharpCompilation compilation, MethodSymbol method, BoundNode node, DiagnosticBag diagnostics)
         {
             var initiallyAssignedVariables = UnassignedVariablesWalker.Analyze(compilation, method, node, convertInsufficientExecutionStackExceptionToCancelledByStackGuardException: true);
-            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, new NeverEmptyStructTypeCache(), initiallyAssignedVariables);
+            var walker = new IteratorAndAsyncCaptureWalker(compilation, method, node, initiallyAssignedVariables);
 
             walker._convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = true;
 
@@ -73,12 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var kvp in lazyDisallowedCaptures)
                 {
                     var variable = kvp.Key;
-                    var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type.TypeSymbol : ((ParameterSymbol)variable).Type.TypeSymbol;
+                    var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
 
                     if (variable is SynthesizedLocal local && local.SynthesizedKind == SynthesizedLocalKind.Spill)
                     {
-                        Debug.Assert(local.Type.IsRestrictedType());
-                        diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type);
+                        Debug.Assert(local.TypeWithAnnotations.IsRestrictedType());
+                        diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.TypeWithAnnotations);
                     }
                     else
                     {
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind == SymbolKind.Parameter)
             {
                 var parameter = (ParameterSymbol)symbol;
-                return !parameter.Type.IsRestrictedType();
+                return !parameter.TypeWithAnnotations.IsRestrictedType();
             }
 
             if (symbol.Kind == SymbolKind.Local)
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // hoist all user-defined locals that can be hoisted:
                 if (local.SynthesizedKind == SynthesizedLocalKind.UserDefined)
                 {
-                    return !local.Type.IsRestrictedType();
+                    return !local.TypeWithAnnotations.IsRestrictedType();
                 }
 
                 // hoist all synthesized variables that have to survive state machine suspension:
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CaptureVariable(Symbol variable, SyntaxNode syntax)
         {
-            var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type.TypeSymbol : ((ParameterSymbol)variable).Type.TypeSymbol;
+            var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
             if (type.IsRestrictedType())
             {
                 // error has already been reported.

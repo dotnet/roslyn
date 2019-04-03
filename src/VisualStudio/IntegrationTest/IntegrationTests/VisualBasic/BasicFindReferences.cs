@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
@@ -17,8 +18,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
-        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory, nameof(BasicFindReferences))
+        public BasicFindReferences(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper, nameof(BasicFindReferences))
         {
         }
 

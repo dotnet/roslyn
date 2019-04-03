@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="Never">
         <source>Never</source>
-        <target state="new">Never</target>
+        <target state="translated">Nigdy</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_for_reference_equality_checks">
@@ -264,7 +264,7 @@
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
-        <target state="new">Unused local</target>
+        <target state="translated">Nieużywane zmienne lokalne</target>
         <note />
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
