@@ -694,7 +694,7 @@ class A
                 Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
-        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [Fact]
         public void MainCanReturnTask()
         {
             var source = @"
@@ -726,8 +726,12 @@ class A
                 => metadataReader.GetMethodDefinition(handle).GetCustomAttributes()
                     .Select(a => metadataReader.Dump(metadataReader.GetCustomAttribute(a).Constructor));
 
-            // Verify asyncInfo.catchHandler
-            compilation.VerifyPdb("A+<Main>d__0.MoveNext",
+            if (ExecutionConditionUtil.IsWindows)
+            {
+                _ = ConditionalSkipReason.NativePdbRequiresDesktop;
+
+                // Verify asyncInfo.catchHandler
+                compilation.VerifyPdb("A+<Main>d__0.MoveNext",
 @"<symbols>
   <files>
     <file id=""1"" name="""" language=""C#"" />
@@ -762,6 +766,7 @@ class A
     </method>
   </methods>
 </symbols>", options: PdbValidationOptions.SkipConversionValidation);
+            }
             // The PDB conversion from portable to windows drops the entryPoint node
             // Tracked by https://github.com/dotnet/roslyn/issues/34561
         }
