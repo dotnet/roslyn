@@ -4,11 +4,11 @@ Enhanced using consists of several related features that aim to make the disposa
 
  - _[Using declarations](#Using-declarations)_ aim to make consuming a disposable type simpler by allowing ```using``` to be added to a local declaration. 
 
- - _[Pattern based asynchronous disposal](#Pattern-based-asynchronous-disposal)_ allows a type to opt into asynchronous disposal without needing to implement the `IAsyncDisposable` interface.
+ - _[Pattern-based asynchronous disposal](#Pattern-based-asynchronous-disposal)_ allows a type to opt into asynchronous disposal without needing to implement the `IAsyncDisposable` interface.
 
- - _[Pattern based disposal for ref structs](#Pattern-based-disposal-for-ref-structs)_ allows `ref struct`s to opt into disposal without needing to implement the `IDisposable` interface.
+ - _[Pattern-based disposal for ref structs](#Pattern-based-disposal-for-ref-structs)_ allows `ref struct`s to opt into disposal without needing to implement the `IDisposable` interface.
 
-__See__: the [corresponding proposal](https://github.com/dotnet/csharplang/blob/d2ce4cc3e17708e7e1d062bf40da0901a744fa3b/proposals/using.md) in CSharpLang.
+__See__: the [corresponding proposal](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-8.0/using.md) in CSharpLang.
 
 ## Using Declarations
 
@@ -91,7 +91,7 @@ if (...)
 y.Dispose(); // undefined. ObjectDisposedException in most cases
 ```
 
-It is possible to use an existing reference as the initializer of a using local declaration. As above, the reference will be disposed when the declared local is going out of scope, but the existing reference will still be available for use via it's previous declaration.
+It is possible to use an existing reference as the initializer of a using local declaration. As above, the reference will be disposed when the declared local is going out of scope, but the existing reference will still be available for use via its previous declaration.
 
 ```c#
 IDisposable y = ...;
@@ -105,7 +105,7 @@ y.Dispose(); // undefined. ObjectDisposedException in most cases
 
 ### Asynchronous disposal 
 
-When in an a method marked `async`, a user may optionally specify an additional `await` keyword prior to the `using` keyword, to indicate asynchronous disposal:
+When inside a method marked `async`, a user may optionally specify an additional `await` keyword prior to the `using` keyword, to indicate asynchronous disposal:
 
 ```c#
 await using var x = ...
@@ -204,7 +204,7 @@ label2:
 
 ### Other restrictions on use
 
-A using declaration may **not** appear directly inside of a case label. It may instead be used within a block inside of a case label
+A using declaration may **not** appear directly inside of a case label. It may instead be used within a block inside of a case label:
 
 ```c#
 switch (...)
@@ -233,11 +233,11 @@ if(TryGetDisposable(out var x))
 }
 ```
 
-## Pattern based asynchronous disposal 
+## Pattern-based asynchronous disposal 
 
-With pattern based asynchronous disposal a type can be used in an `await using` statement without needing to explicitly implement `IAsyncDisposable` if it meets certain structural requirements. Specifically: 
+With pattern-based asynchronous disposal a type can be used in an `await using` statement without needing to explicitly implement `IAsyncDisposable` if it meets certain structural requirements. Specifically: 
 
-    "A reachable, Task-like returning instance method called DisposeAsync, that can be called with zero explicit arguments"
+    "A reachable, non-generic Task-like returning instance method called DisposeAsync, that can be called with zero explicit arguments"
 
 Where reachable means legal to call from the site of the ```await using(...)``` under normal accessibility rules.
 
@@ -262,7 +262,7 @@ In the situation where a type can both be implicitly converted to `IAsyncDisposa
 
 ### Optional arguments and params
 
-Pattern based asynchronous disposal methods may contain optional or `params` parameters and still meet the requirements of the pattern. In general if you could write `c.DisposeAsync()` at the site of the `await using` syntax and have it be a valid call under normal language rules, then the type is considered to be asynchronously disposable.
+Pattern-based asynchronous disposal methods may contain optional or `params` parameters and still meet the requirements of the pattern. In general if you could write `c.DisposeAsync()` at the site of the `await using` syntax and have it be a valid call under normal language rules, then the type is considered to be asynchronously disposable.
 
 ```c#
 
@@ -280,7 +280,7 @@ Extension methods may **not** be used to implement asynchronous disposal. The me
 
 _Note_: This is currently not working as spec'd and is tracked by [#34701](https://github.com/dotnet/roslyn/issues/34701)
 
-For nullable value types in a `using` statement, the behavior today is to call ```Dispose``` on the _underlying_ type if and only if the type has a value (i.e. ```if(t.HasValue){ t.GetValueOrDefault().Dispose() }``` ). This allows lifted types to be used as if they were the underlying type, and dispose is only called in the case they are not null. This behavior is extended to pattern based ```DisposeAsync``` methods in `await using` statements.
+For nullable value types in a `using` statement, the behavior today is to call ```Dispose``` on the _underlying_ type if and only if the type has a value (i.e. ```if(t.HasValue){ t.GetValueOrDefault().Dispose() }``` ). This allows lifted types to be used as if they were the underlying type, and dispose is only called in the case they are not null. This behavior is extended to pattern-based ```DisposeAsync``` methods in `await using` statements.
 
 ```c#
 public class C 
@@ -298,12 +298,11 @@ public class C
 public struct StructDisposer
 {
     public async ValueTask DisposeAsync() => Console.WriteLine("DisposeAsync");
-    
 }
 ```
 
 
-## Pattern based disposal for ref structs
+## Pattern-based disposal for ref structs
 
 Today `ref struct`s can not participate in the `IDisposable` pattern as they can not implement an interface. This feature allows a `ref struct` to be considered disposable if it meets certain structural requirements. Specifically:
 
@@ -331,7 +330,7 @@ _Note:_ `ref struct`s can not be used in an `async` method and therefore can not
 
 ### Optional arguments and params
 
-Pattern based disposal methods may contain optional or `params` parameters and still meet the requirements of the pattern. In general if you could write `s.Dispose()` at the site of the `using` syntax and have it be a valid call under normal language rules, then the `ref struct` is considered to be disposable.
+Pattern-based disposal methods may contain optional or `params` parameters and still meet the requirements of the pattern. In general if you could write `s.Dispose()` at the site of the `using` syntax and have it be a valid call under normal language rules, then the `ref struct` is considered to be disposable.
 
 ```c#
 public ref struct Disposer
