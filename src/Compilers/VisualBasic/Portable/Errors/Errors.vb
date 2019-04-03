@@ -1742,6 +1742,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_ValueTupleResolutionAmbiguous3 = 37305
 
+        ERR_CommentsAfterLineContinuationNotAvailable1 = 37306
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001
@@ -2021,5 +2023,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_PrivateProtected
         FEATURE_InterpolatedStrings
         FEATURE_UnconstrainedTypeParameterInConditional
+        FEATURE_CommentsAfterLineContinuation
     End Enum
 End Namespace

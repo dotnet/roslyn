@@ -366,6 +366,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ReportDiagnosticsIfObsolete(diagnostics, namedArgumentNameSymbol, namedArgument, hasBaseReceiver: false);
 
+            if (namedArgumentNameSymbol.Kind == SymbolKind.Property)
+            {
+                var propertySymbol = (PropertySymbol)namedArgumentNameSymbol;
+                var setMethod = propertySymbol.GetOwnOrInheritedSetMethod();
+                if (setMethod != null)
+                {
+                    ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
+                }
+            }
+
             Debug.Assert(resultKind == LookupResultKind.Viable || wasError);
 
             TypeSymbol namedArgumentType;

@@ -79998,7 +79998,7 @@ class Program
         }
         else
         {
-            _ = (S)ni; // 1
+            _ = (S)ni; // 3
         }
     }
 }";
@@ -80011,7 +80011,7 @@ class Program
                 //             _ = s4.Value; // 2
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s4").WithLocation(33, 17),
                 // (45,20): warning CS8629: Nullable value type may be null.
-                //             _ = (S)ni; // 1
+                //             _ = (S)ni; // 3
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "ni").WithLocation(45, 20)
                 );
         }
@@ -81721,9 +81721,8 @@ class B2 : A<int?>
                 //         o.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(11, 9),
                 // (21,9): warning CS8602: Dereference of a possibly null reference.
-                //         o.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(21, 9)
-                );
+                //         o.ToString(); // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "o").WithLocation(21, 9));
         }
 
         [Fact]

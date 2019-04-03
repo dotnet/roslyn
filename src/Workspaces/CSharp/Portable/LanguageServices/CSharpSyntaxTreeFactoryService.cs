@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpSyntaxTreeFactoryService(provider);
         }
 
-        internal partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
+        private partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
         {
             public CSharpSyntaxTreeFactoryService(HostLanguageServices languageServices) : base(languageServices)
             {
