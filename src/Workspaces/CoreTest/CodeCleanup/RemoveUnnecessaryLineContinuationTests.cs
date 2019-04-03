@@ -278,9 +278,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
 
             var expected = @"
         Console.WriteLine() _ ' test
-          Console.WriteLine()";
+        Console.WriteLine()";
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected), LanguageVersion.VisualBasic15);
+        }
 
-            await VerifyAsync(CreateMethod(code), CreateMethod(expected));
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
+        public async Task ColonToken_LineContinuation_Comment_BeforeColonTokenV16()
+        {
+            var code = @"[|
+         Console.WriteLine() _ ' test
+         : Console.WriteLine()|]";
+
+            var expected = @"
+        Console.WriteLine() _ ' test
+        Console.WriteLine()";
+            await VerifyAsync(CreateMethod(code), CreateMethod(expected), LanguageVersion.VisualBasic16);
         }
 
         [Fact]
@@ -1460,7 +1473,8 @@ End Class";
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 
-            Assert.Equal(expectedResult, (await cleanDocument.GetSyntaxRootAsync()).ToFullString());
+            var actualResult = (await cleanDocument.GetSyntaxRootAsync()).ToFullString();
+            Assert.Equal(expectedResult, actualResult);
         }
 
         private static Document CreateDocument(string code, string language, LanguageVersion langVersion)
