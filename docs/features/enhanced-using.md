@@ -14,14 +14,14 @@ __See__: the [corresponding proposal](https://github.com/dotnet/csharplang/blob/
 
 Using declarations allow a user to specify a `using` keyword as part of a local declaration statement:
 
-```c#
+```csharp
 using var x = ...
 // other statements
 ```
 
 This is equivalent to declaring the local inside of a `using` statement at the same location:
 
-```c#
+```csharp
 using (var x = ...) 
 {
     // other statements
@@ -30,14 +30,14 @@ using (var x = ...)
 
 It is not valid to declare a using declaration without an initializer expression:
 
-```c#
+```csharp
 using IDisposable x; //error CS0210: You must provide an initializer in a fixed or using statement declaration
 
 ```
 
 The initializer expression must result in a type that is considered to be Disposable. That is, the expression must also be valid when used directly inside a `using` statement:
 
-```C#
+```csharp
 using var x = <expression> 
 
 using (<expression>) { } // expression must also be valid in a standard using statement
@@ -47,7 +47,7 @@ using (<expression>) { } // expression must also be valid in a standard using st
 
 The lifetime of the local extends to the scope in which it is declared; immediately prior to the variable going out of scope, it will be disposed.
 
-```c#
+```csharp
 if (...)
 {
     using var x = ...;
@@ -60,7 +60,7 @@ if (...)
 
 Using declarations in the same scope are disposed in the reverse order to which they are declared
 
-```c#
+```csharp
 {
     using var x = ...;
     using var y = ...,  z = ...;
@@ -73,14 +73,14 @@ Using declarations in the same scope are disposed in the reverse order to which 
 
 As with a local declared as part of a `using` statement, a using local is `readonly` and may not be re-assigned after declaration. 
 
-```c#
+```csharp
 using var x = ...;
 x = ...; // error CS1656: Cannot assign to 'x' because it is a 'using variable'
 ```
 
 A using local may be used in the right hand side of an assignment or declaration. This means it is possible to capture a reference that will exist for longer than the lifetime of the using local. The reference will still be disposed when the using local is going out of scope. Interacting with the reference after disposal is undefined, but in most cases it is expected that it would result in an `ObjectDisposedException` being thrown.
 
-```c#
+```csharp
 IDisposable y = null;
 if (...)
 {
@@ -93,7 +93,7 @@ y.Dispose(); // undefined. ObjectDisposedException in most cases
 
 It is possible to use an existing reference as the initializer of a using local declaration. As above, the reference will be disposed when the declared local is going out of scope, but the existing reference will still be available for use via its previous declaration.
 
-```c#
+```csharp
 IDisposable y = ...;
 if (...)
 {
@@ -107,18 +107,18 @@ y.Dispose(); // undefined. ObjectDisposedException in most cases
 
 When inside a method marked `async`, a user may optionally specify an additional `await` keyword prior to the `using` keyword, to indicate asynchronous disposal:
 
-```c#
+```csharp
 await using var x = ...
 ```
 
 Which is equivalent to
-```c#
+```csharp
 await using (var x = ...) { }
 ```
 
 The initializer expression must result in a type that is considered to be asynchronously disposable. That is, the expression must also be valid when used directly in an `await using` statement:
 
-```C#
+```csharp
 using var x = <expression> 
 
 await using (<expression>) { } // expression must also be valid in a standard await using statement
@@ -126,7 +126,7 @@ await using (<expression>) { } // expression must also be valid in a standard aw
 
 Attempting to specify the `await` keyword on a using declaration in a method not marked with the `async` keyword results in a compiler error:
 
-```c#
+```csharp
 public void M()
 {
     await using var x = ...; //error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
@@ -138,14 +138,14 @@ public void M()
 In general, control flow is unaffected by the presence of a using declaration. However, there are some restrictions around the use of the `goto` statement when the statement and its target `label` lie either side of a using declaration.
 
 It is forbidden to jump 'forward' to a location after a using declaration, when the `goto` or the target `label` are in the same or lower scope as the declaration.
-```c#
+```csharp
     goto label1; // error CS8648: A goto cannot jump to a location after a using declaration.
     using var x = ...;
 label1:
     return;
 ```
 
-```c#
+```csharp
     goto label1; // ok. using declaration is in a lower scope than goto and label
     {
         using var x = ...;
@@ -154,7 +154,7 @@ label1:
     return;
 ```
 
-```c#
+```csharp
     {
         {
             goto label1; // error CS8648: A goto cannot jump to a location after a using declaration.          
@@ -166,7 +166,7 @@ label1:
 ```
 
 It is forbidden to jump 'backwards' to a location before a using declaration, when the label is in the same scope as the using declaration. 
-```c#
+```csharp
 label1:
         using var x = ...; //error CS8649: A goto cannot jump to a location before a using declaration within the same block.
         goto label1;
@@ -174,7 +174,7 @@ label1:
 
 Jumping 'backwards' to a label at a higher scope is specifically permitted.
 
-```c#
+```csharp
 label1:
     {
         using var x = ...;
@@ -183,7 +183,7 @@ label1:
 ```
 
 When jumping to a higher scope, any declared using variables will be disposed at the site of the `goto`. Variables not yet declared will **not** be disposed.
-```c#
+```csharp
 label1:
     {
         using var x = ...;
@@ -193,7 +193,7 @@ label1:
 ```
 
 It is always permissible to jump to the same scope, when the `goto` and target `label` do not lie either side of a using declaration.
-```c#
+```csharp
     goto label1; // ok, not jumping over a using declaration
 label1:
     using var x = ...;
@@ -206,7 +206,7 @@ label2:
 
 A using declaration may **not** appear directly inside of a case label. It may instead be used within a block inside of a case label:
 
-```c#
+```csharp
 switch (...)
 {
     case ...: 
@@ -224,7 +224,7 @@ switch (...)
 ```
 
 A using declaration may **not** appear directly as part of an `out` variable declaration. It is easy to emulate this behavior however, by adding a using declaration immediately after the `out` variable:
-```c#
+```csharp
 if(TryGetDisposable(out var x))
 {
     using var y = x;
@@ -241,7 +241,7 @@ With pattern-based asynchronous disposal a type can be used in an `await using` 
 
 Where reachable means legal to call from the site of the ```await using(...)``` under normal accessibility rules.
 
-```c#
+```csharp
 public class C 
 {
     public static async Task M()
@@ -264,7 +264,7 @@ In the situation where a type can both be implicitly converted to `IAsyncDisposa
 
 Pattern-based asynchronous disposal methods may contain optional or `params` parameters and still meet the requirements of the pattern. In general if you could write `c.DisposeAsync()` at the site of the `await using` syntax and have it be a valid call under normal language rules, then the type is considered to be asynchronously disposable.
 
-```c#
+```csharp
 
 public class AsyncDisposer
 {
@@ -282,7 +282,7 @@ _Note_: This is currently not working as spec'd and is tracked by [#34701](https
 
 For nullable value types in a `using` statement, the behavior today is to call ```Dispose``` on the _underlying_ type if and only if the type has a value (i.e. ```if(t.HasValue){ t.GetValueOrDefault().Dispose() }``` ). This allows lifted types to be used as if they were the underlying type, and dispose is only called in the case they are not null. This behavior is extended to pattern-based ```DisposeAsync``` methods in `await using` statements.
 
-```c#
+```csharp
 public class C 
 {
     public static async Task M()
@@ -310,7 +310,7 @@ Today `ref struct`s can not participate in the `IDisposable` pattern as they can
 
 Where reachable means legal to call from the site of the `using(...)` under normal accessibility rules.
 
-```c#
+```csharp
 using System;
 public class C 
 {
@@ -332,7 +332,7 @@ _Note:_ `ref struct`s can not be used in an `async` method and therefore can not
 
 Pattern-based disposal methods may contain optional or `params` parameters and still meet the requirements of the pattern. In general if you could write `s.Dispose()` at the site of the `using` syntax and have it be a valid call under normal language rules, then the `ref struct` is considered to be disposable.
 
-```c#
+```csharp
 public ref struct Disposer
 {
     public void Dispose(int x = 0, params object[] args) => Console.WriteLine("Disposed"); // valid pattern candidate
