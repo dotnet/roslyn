@@ -46,7 +46,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Verification helper.
         /// </summary>
-        /// <param name="source">C# source code, with /*&lt;bind&gt;*/ and /*&lt;/bind&gt*/ around the method block to be analyzed.</param>
+        /// <param name="source">C# source code, with /*&lt;bind&gt;*/ and /*&lt;/bind&gt;*/ around the method block to be analyzed.</param>
         /// <param name="propertySetAnalysisParameters">PropertySetAnalysis parameters.</param>
         /// <param name="expectedResults">Expected hazardous usages.</param>
         private void VerifyCSharp(
