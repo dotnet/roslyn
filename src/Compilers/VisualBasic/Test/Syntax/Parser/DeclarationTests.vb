@@ -217,22 +217,6 @@ End Class
 
     <Fact>
     Public Sub TestDeclarationAPI()
-
-        Dim assertNamespace As Action(Of INamespaceOrTypeDeclaration, String, Integer) = Sub(declaration As INamespaceOrTypeDeclaration, name As String, childernCount As Integer)
-                                                                                             Assert.True(declaration.IsNamespace)
-                                                                                             Assert.Equal(name, declaration.Name)
-                                                                                             Assert.Equal(childernCount, declaration.Children.Length)
-                                                                                         End Sub
-
-        Dim assertType As Action(Of INamespaceOrTypeDeclaration, String, TypeKind, Integer, Accessibility, Integer) = Sub(declaration As INamespaceOrTypeDeclaration, name As String, typeKind As TypeKind, arity As Integer, declaredAccessibility As Accessibility, childernCount As Integer)
-                                                                                                                          Assert.True(declaration.IsType)
-                                                                                                                          Dim type = CType(declaration, ITypeDeclaration)
-                                                                                                                          Assert.Equal(name, type.Name)
-                                                                                                                          Assert.Equal(typeKind, type.TypeKind)
-                                                                                                                          Assert.Equal(arity, type.Arity)
-                                                                                                                          Assert.Equal(declaredAccessibility, type.DeclaredAccessibility)
-                                                                                                                          Assert.Equal(childernCount, type.Children.Length)
-                                                                                                                      End Sub
         Dim text1 = <literal>
 namespace NA.NB
   friend partial class C(Of T)
@@ -268,15 +252,15 @@ end namespace
         Dim root = comp.DeclarationRoot
 
         ' global namespace
-        assertNamespace(root, "", 1)
+        AssertNamespaceDeclaration(root, "", 1)
 
         ' namespace NA 
         Dim c1 = root.Children.Single()
-        assertNamespace(c1, "NA", 1)
+        AssertNamespaceDeclaration(c1, "NA", 1)
 
         ' namespace NB 
         Dim c2 = c1.Children.Single()
-        assertNamespace(c2, "NB", 3)
+        AssertNamespaceDeclaration(c2, "NB", 3)
 
         Assert.All(c2.Children, Sub(d As INamespaceOrTypeDeclaration)
                                     Assert.True(d.IsType)
@@ -290,18 +274,94 @@ end namespace
 
         ' structure C
         Dim c3_1 = c3(0)
-        assertType(c3_1, "C", TypeKind.Structure, 0, Accessibility.Public, 0)
+        AssertTypeDeclaration(c3_1, "C", TypeKind.Structure, 0, Accessibility.Public, 0)
 
         ' class C(of T)
         Dim c3_2 = c3(1)
-        assertType(c3_2, "C", TypeKind.Class, 1, Accessibility.Friend, 1)
+        AssertTypeDeclaration(c3_2, "C", TypeKind.Class, 1, Accessibility.Friend, 1)
 
         ' interface E
         Dim c3_3 = c3(2)
-        assertType(c3_3, "e", TypeKind.Interface, 0, Accessibility.NotApplicable, 0)
+        AssertTypeDeclaration(c3_3, "e", TypeKind.Interface, 0, Accessibility.NotApplicable, 0)
 
         ' class D
         Dim c4 = c3_2.Children.Single()
-        assertType(c4, "D", TypeKind.Class, 0, Accessibility.NotApplicable, 0)
+        AssertTypeDeclaration(c4, "D", TypeKind.Class, 0, Accessibility.NotApplicable, 0)
+    End Sub
+
+    <Fact>
+    Public Sub TestRootNamespaceDeclarationAPI()
+        Dim text1 = <literal>
+namespace NB
+    public partial class C
+    end class
+end namespace
+</literal>.Value
+
+        Dim text2 = <literal>
+namespace Global.Na
+    public class D
+    end class
+end namespace
+</literal>.Value
+
+        Dim text3 = <literal>
+namespace Global.Na.Nb
+    public partial class C
+    end class
+end namespace
+</literal>.Value
+
+        Dim listSyntaxTree = New List(Of SyntaxTree)()
+
+        listSyntaxTree.Add(ParseFile(text1))
+        listSyntaxTree.Add(ParseFile(text2))
+        listSyntaxTree.Add(ParseFile(text3))
+
+        Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:="NA")
+
+        Dim comp = VisualBasicCompilation.Create("Compilation", listSyntaxTree, options:=options)
+        Assert.Equal(3, comp.SyntaxTrees.Length)
+
+        Dim root = comp.DeclarationRoot
+
+        ' global namespace
+        AssertNamespaceDeclaration(root, "", 1)
+
+        ' namespace NA 
+        Dim c1 = root.Children.Single()
+        AssertNamespaceDeclaration(c1, "NA", 2)
+
+        Dim c2 = c1.Children.OrderBy(Function(d As INamespaceOrTypeDeclaration)
+                                         Return d.Name
+                                     End Function)
+
+        ' class NA.D
+        Dim c2_1 = c2(0)
+        AssertTypeDeclaration(c2_1, "D", TypeKind.Class, 0, Accessibility.Public, 0)
+
+        ' namespace NA.NB
+        Dim c2_2 = c2(1)
+        AssertNamespaceDeclaration(c2_2, "NB", 1)
+
+        ' class NA.NB.C
+        Dim c3 = c2_2.Children.Single()
+        AssertTypeDeclaration(c3, "C", TypeKind.Class, 0, Accessibility.Public, 0)
+    End Sub
+
+    Private Shared Sub AssertNamespaceDeclaration(declaration As INamespaceOrTypeDeclaration, name As String, childernCount As Integer)
+        Assert.True(declaration.IsNamespace)
+        Assert.Equal(name, declaration.Name)
+        Assert.Equal(childernCount, declaration.Children.Length)
+    End Sub
+
+    Private Shared Sub AssertTypeDeclaration(declaration As INamespaceOrTypeDeclaration, name As String, typeKind As TypeKind, arity As Integer, declaredAccessibility As Accessibility, childernCount As Integer)
+        Assert.True(declaration.IsType)
+        Dim type = CType(declaration, ITypeDeclaration)
+        Assert.Equal(name, type.Name)
+        Assert.Equal(typeKind, type.TypeKind)
+        Assert.Equal(arity, type.Arity)
+        Assert.Equal(declaredAccessibility, type.DeclaredAccessibility)
+        Assert.Equal(childernCount, type.Children.Length)
     End Sub
 End Class
