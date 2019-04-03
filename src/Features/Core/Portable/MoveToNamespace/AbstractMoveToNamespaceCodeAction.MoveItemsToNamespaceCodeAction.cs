@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace
     {
         private class MoveItemsToNamespaceCodeAction : AbstractMoveToNamespaceCodeAction
         {
-            public override string Title => FeaturesResources.Move_items_to_namespace;
+            public override string Title => FeaturesResources.Move_contents_to_namespace;
 
             public MoveItemsToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
                 : base(changeNamespaceService, analysisResult)
