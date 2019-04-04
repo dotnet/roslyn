@@ -81,7 +81,6 @@ string[] Oblivious1; // string~[]~
 int Int; // int
 Nullable<int> NullableInt1; // Nullable<int>
 ```
-
 ## Declaration warnings
 _Describe warnings reported for declarations in initial binding._
 
