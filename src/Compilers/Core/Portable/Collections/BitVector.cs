@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
-using Word = System.UInt32;
+using Word = System.UInt64;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     internal struct BitVector : IEquatable<BitVector>
     {
         private const Word ZeroWord = 0;
-        private const int Log2BitsPerWord = 5;
+        private const int Log2BitsPerWord = 6;
 
         public const int BitsPerWord = 1 << Log2BitsPerWord;
 
