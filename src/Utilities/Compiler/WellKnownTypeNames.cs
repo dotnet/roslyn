@@ -288,5 +288,7 @@ namespace Analyzer.Utilities
         public const string SystemXmlXmlValidatingReader = "System.Xml.XmlValidatingReader";
         public const string SystemXmlSchemaXmlSchema = "System.Xml.Schema.XmlSchema";
         public const string SystemXmlXPathXPathDocument = "System.Xml.XPath.XPathDocument";
+        public const string SystemIODirectoryInfo = "System.IO.DirectoryInfo";
+        public const string SystemIOLogLogStore = "System.IO.Log.LogStore";
     }
 }
