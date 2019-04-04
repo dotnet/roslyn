@@ -340,13 +340,6 @@ RoOt = TruE");
         }
 
         [Fact]
-        public void BadEscapeMatch()
-        {
-            SectionNameMatcher? matcher = TryCreateSectionNameMatcher("abc\\d.cs");
-            Assert.Null(matcher);
-        }
-
-        [Fact]
         public void EndBackslashMatch()
         {
             SectionNameMatcher? matcher = TryCreateSectionNameMatcher("abc\\");
@@ -407,7 +400,7 @@ RoOt = TruE");
         public void LiteralBraces()
         {
             SectionNameMatcher matcher = TryCreateSectionNameMatcher("abc\\{\\}def").Value;
-            Assert.Equal("^.*/abc\\{\\}def$", matcher.Regex.ToString());
+            Assert.Equal(@"^.*/abc\{}def$", matcher.Regex.ToString());
 
             Assert.True(matcher.IsMatch("/abc{}def"));
             Assert.True(matcher.IsMatch("/subdir/abc{}def"));
@@ -662,6 +655,194 @@ RoOt = TruE");
             matcherOpt = TryCreateSectionNameMatcher($"{{0..{UInt32.MaxValue}}}");
 
             Assert.Null(matcherOpt);
+        }
+
+        [Fact]
+        public void CharacterClassSimple()
+        {
+            var matcher = TryCreateSectionNameMatcher("*.[cf]s").Value;
+            Assert.Equal(@"^.*/[^/]*\.[cf]s$", matcher.Regex.ToString());
+
+            Assert.True(matcher.IsMatch("/abc.cs"));
+            Assert.True(matcher.IsMatch("/abc.fs"));
+            Assert.False(matcher.IsMatch("/abc.vs"));
+        }
+
+        [Fact]
+        public void CharacterClassNegative()
+        {
+            var matcher = TryCreateSectionNameMatcher("*.[!cf]s").Value;
+            Assert.Equal(@"^.*/[^/]*\.[^cf]s$", matcher.Regex.ToString());
+
+            Assert.False(matcher.IsMatch("/abc.cs"));
+            Assert.False(matcher.IsMatch("/abc.fs"));
+            Assert.True(matcher.IsMatch("/abc.vs"));
+            Assert.True(matcher.IsMatch("/abc.xs"));
+            Assert.False(matcher.IsMatch("/abc.vxs"));
+        }
+
+        [Fact]
+        public void CharacterClassCaret()
+        {
+            var matcher = TryCreateSectionNameMatcher("*.[^cf]s").Value;
+            Assert.Equal(@"^.*/[^/]*\.[\^cf]s$", matcher.Regex.ToString());
+
+            Assert.True(matcher.IsMatch("/abc.cs"));
+            Assert.True(matcher.IsMatch("/abc.fs"));
+            Assert.True(matcher.IsMatch("/abc.^s"));
+            Assert.False(matcher.IsMatch("/abc.vs"));
+            Assert.False(matcher.IsMatch("/abc.xs"));
+            Assert.False(matcher.IsMatch("/abc.vxs"));
+        }
+
+        [Fact]
+        public void CharacterClassRange()
+        {
+            var matcher = TryCreateSectionNameMatcher("[0-9]x").Value;
+            Assert.Equal("^.*/[0-9]x$", matcher.Regex.ToString());
+
+            Assert.True(matcher.IsMatch("/0x"));
+            Assert.True(matcher.IsMatch("/1x"));
+            Assert.True(matcher.IsMatch("/9x"));
+            Assert.False(matcher.IsMatch("/yx"));
+            Assert.False(matcher.IsMatch("/00x"));
+        }
+
+        [Fact]
+        public void CharacterClassNegativeRange()
+        {
+            var matcher = TryCreateSectionNameMatcher("[!0-9]x").Value;
+            Assert.Equal("^.*/[^0-9]x$", matcher.Regex.ToString());
+
+            Assert.False(matcher.IsMatch("/0x"));
+            Assert.False(matcher.IsMatch("/1x"));
+            Assert.False(matcher.IsMatch("/9x"));
+            Assert.True(matcher.IsMatch("/yx"));
+            Assert.False(matcher.IsMatch("/00x"));
+        }
+
+        [Fact]
+        public void CharacterClassRangeAndChoice()
+        {
+            var matcher = TryCreateSectionNameMatcher("[ab0-9]x").Value;
+            Assert.Equal("^.*/[ab0-9]x$", matcher.Regex.ToString());
+
+            Assert.True(matcher.IsMatch("/ax"));
+            Assert.True(matcher.IsMatch("/bx"));
+            Assert.True(matcher.IsMatch("/0x"));
+            Assert.True(matcher.IsMatch("/1x"));
+            Assert.True(matcher.IsMatch("/9x"));
+            Assert.False(matcher.IsMatch("/yx"));
+            Assert.False(matcher.IsMatch("/0ax"));
+        }
+
+        [Fact]
+        public void CharacterClassOpenEnded()
+        {
+            var matcher = TryCreateSectionNameMatcher("[");
+            Assert.Null(matcher);
+        }
+
+        [Fact]
+        public void CharacterClassEscapedOpenEnded()
+        {
+            var matcher = TryCreateSectionNameMatcher(@"[\]");
+            Assert.Null(matcher);
+        }
+
+        [Fact]
+        public void CharacterClassEscapeAtEnd()
+        {
+            var matcher = TryCreateSectionNameMatcher(@"[\");
+            Assert.Null(matcher);
+        }
+
+        [Fact]
+        public void CharacterClassOpenBracketInside()
+        {
+            var matcher = TryCreateSectionNameMatcher(@"[[a]bc").Value;
+
+            Assert.True(matcher.IsMatch("/abc"));
+            Assert.True(matcher.IsMatch("/[bc"));
+            Assert.False(matcher.IsMatch("/ab"));
+            Assert.False(matcher.IsMatch("/[b"));
+            Assert.False(matcher.IsMatch("/bc"));
+            Assert.False(matcher.IsMatch("/ac"));
+            Assert.False(matcher.IsMatch("/[c"));
+
+            Assert.Equal(@"^.*/[\[a]bc$", matcher.Regex.ToString());
+        }
+
+        [Fact]
+        public void CharacterClassStartingDash()
+        {
+            var matcher = TryCreateSectionNameMatcher(@"[-ac]bd").Value;
+
+            Assert.True(matcher.IsMatch("/abd"));
+            Assert.True(matcher.IsMatch("/cbd"));
+            Assert.True(matcher.IsMatch("/-bd"));
+            Assert.False(matcher.IsMatch("/bbd"));
+            Assert.False(matcher.IsMatch("/-cd"));
+            Assert.False(matcher.IsMatch("/bcd"));
+
+            Assert.Equal(@"^.*/[-ac]bd$", matcher.Regex.ToString());
+        }
+
+        [Fact]
+        public void CharacterClassEndingDash()
+        {
+            var matcher = TryCreateSectionNameMatcher(@"[ac-]bd").Value;
+
+            Assert.True(matcher.IsMatch("/abd"));
+            Assert.True(matcher.IsMatch("/cbd"));
+            Assert.True(matcher.IsMatch("/-bd"));
+            Assert.False(matcher.IsMatch("/bbd"));
+            Assert.False(matcher.IsMatch("/-cd"));
+            Assert.False(matcher.IsMatch("/bcd"));
+
+            Assert.Equal(@"^.*/[ac-]bd$", matcher.Regex.ToString());
+        }
+
+        [Fact]
+        public void CharacterClassEndBracketAfter()
+        {
+            var matcher = TryCreateSectionNameMatcher(@"[ab]]cd").Value;
+
+            Assert.True(matcher.IsMatch("/a]cd"));
+            Assert.True(matcher.IsMatch("/b]cd"));
+            Assert.False(matcher.IsMatch("/acd"));
+            Assert.False(matcher.IsMatch("/bcd"));
+            Assert.False(matcher.IsMatch("/acd"));
+
+            Assert.Equal(@"^.*/[ab]]cd$", matcher.Regex.ToString());
+        }
+
+        [Fact]
+        public void CharacterClassEscapeBackslash()
+        {
+            var matcher = TryCreateSectionNameMatcher(@"[ab\\]cd").Value;
+
+            Assert.True(matcher.IsMatch("/acd"));
+            Assert.True(matcher.IsMatch("/bcd"));
+            Assert.True(matcher.IsMatch("/\\cd"));
+            Assert.False(matcher.IsMatch("/dcd"));
+            Assert.False(matcher.IsMatch("/\\\\cd"));
+            Assert.False(matcher.IsMatch("/cd"));
+
+            Assert.Equal(@"^.*/[ab\\]cd$", matcher.Regex.ToString());
+        }
+
+        [Fact]
+        public void EscapeOpenBracket()
+        {
+            var matcher = TryCreateSectionNameMatcher(@"ab\[cd").Value;
+
+            Assert.True(matcher.IsMatch("/ab[cd"));
+            Assert.False(matcher.IsMatch("/ab[[cd"));
+            Assert.False(matcher.IsMatch("/abc"));
+            Assert.False(matcher.IsMatch("/abd"));
+
+            Assert.Equal(@"^.*/ab\[cd$", matcher.Regex.ToString());
         }
 
         #endregion

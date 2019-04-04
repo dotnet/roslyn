@@ -183,25 +183,12 @@ namespace Microsoft.CodeAnalysis
                     case TokenKind.Comma:
                         // The end of a choice section, or a failed parse
                         return parsingChoice;
-                    case TokenKind.LiteralStar:
-                        // Match a literal '*'
-                        sb.Append("\\*");
-                        break;
-                    case TokenKind.LiteralQuestion:
-                        sb.Append("\\?");
-                        break;
-                    case TokenKind.LiteralOpenBrace:
-                        sb.Append("\\{");
-                        break;
-                    case TokenKind.LiteralCloseBrace:
-                        sb.Append("\\}");
-                        break;
-                    case TokenKind.LiteralComma:
-                        sb.Append(",");
-                        break;
-                    case TokenKind.Backslash:
-                        // Literal backslash
-                        sb.Append("\\\\");
+                    case TokenKind.OpenBracket:
+                        sb.Append('[');
+                        if (!TryCompileCharacterClass(ref lexer, sb))
+                        {
+                            return false;
+                        }
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(tokenKind);
@@ -209,6 +196,57 @@ namespace Microsoft.CodeAnalysis
             }
             // If we're parsing a choice we should not exit without a closing '}'
             return !parsingChoice;
+        }
+
+        /// <summary>
+        /// Compile a globbing character class of the form [...]. Returns true if
+        /// the character class was succesfully compiled. False if there was a syntax
+        /// error. The starting character is expected to be directly after the '['.
+        /// </summary>
+        private static bool TryCompileCharacterClass(ref SectionNameLexer lexer, StringBuilder sb)
+        {
+            // [...] should match any of the characters in the brackets, with special
+            // behavior for four characters: '!' immediately after the opening bracket
+            // implies the negation of the character class, '-' implies matching
+            // between the locale-dependent range of the previous and next characters,
+            // '\' escapes the following character, and ']' ends the range
+            if (!lexer.IsDone && lexer.CurrentCharacter == '!')
+            {
+                sb.Append('^');
+                lexer.Position++;
+            }
+            while (!lexer.IsDone)
+            {
+                var currentChar = lexer.EatCurrentCharacter();
+                switch (currentChar)
+                {
+                    case '-':
+                        // '-' means the same thing in regex as it does in the glob, so
+                        // put it in verbatim
+                        sb.Append(currentChar);
+                        break;
+
+                    case '\\':
+                        // Escape the next char
+                        if (lexer.IsDone)
+                        {
+                            return false;
+                        }
+                        sb.Append('\\');
+                        sb.Append(lexer.EatCurrentCharacter());
+                        break;
+
+                    case ']':
+                        sb.Append(currentChar);
+                        return true;
+
+                    default:
+                        sb.Append(Regex.Escape(currentChar.ToString()));
+                        break;
+                }
+            }
+            // Stream ended without a closing bracket
+            return false;
         }
 
         /// <summary>
@@ -356,45 +394,20 @@ namespace Microsoft.CodeAnalysis
                         Position++;
                         return TokenKind.CloseCurly;
 
+                    case '[':
+                        Position++;
+                        return TokenKind.OpenBracket;
+
                     case '\\':
                         {
                             // Backslash escapes the next character
                             Position++;
-                            if (Position >= _sectionName.Length)
+                            if (IsDone)
                             {
                                 return TokenKind.BadToken;
                             }
 
-                            // Check for all of the possible escapes
-                            switch (_sectionName[Position++])
-                            {
-                                case '\\':
-                                    // "\\" -> "\"
-                                    return TokenKind.Backslash;
-
-                                case '*':
-                                    // "\*" -> "\*"
-                                    return TokenKind.LiteralStar;
-
-                                case '?':
-                                    // "\?" -> "\?"
-                                    return TokenKind.LiteralQuestion;
-
-                                case '{':
-                                    // "\{" -> "{"
-                                    return TokenKind.LiteralOpenBrace;
-
-                                case ',':
-                                    // "\," -> ","
-                                    return TokenKind.LiteralComma;
-
-                                case '}':
-                                    // "\}" -> "}"
-                                    return TokenKind.LiteralCloseBrace;
-
-                                default:
-                                    return TokenKind.BadToken;
-                            }
+                            return TokenKind.SimpleCharacter;
                         }
 
                     default:
@@ -477,12 +490,7 @@ namespace Microsoft.CodeAnalysis
             CloseCurly,
             Comma,
             DoubleDot,
-            Backslash,
-            LiteralStar,
-            LiteralQuestion,
-            LiteralOpenBrace,
-            LiteralCloseBrace,
-            LiteralComma
+            OpenBracket,
         }
     }
 }
