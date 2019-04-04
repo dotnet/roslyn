@@ -227,24 +227,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var interfaceMembers = explicitInterfaceNamedType.GetMembers(interfaceMemberName);
 
-            // As a result of Nullable Reference Types, `void I.Foo<T>(T? value)` is a valid implementation of both 
-            // `void Foo<T>(T? value) where T : struct;` 
-            // and 
-            // `void Foo<T>(T value);`
-            //
-            // However pre C# 8, it was only valid on the former, not the latter.
-            // In order to maintain backwards compatability we must make sure to prefer the former over the latter.
-            // To do so, we first look for a matching interface member that has the same nullablity modifiers
-            // Only if that fails do we look for ones with different nullability modifiers
 
-            // Setting foundMatchingMember to true does not imply that an interface member has been successfully implemented.
-            // It just indicates that a corresponding interface member has been found (there may still be errors).
-            var (foundMatchingMember, implementedMember) = FindMatchingInterfaceMember(MemberSignatureComparer.ExplicitImplementationLookupComparerConsideringNullabilityModifiers, implementingMember, interfaceMembers, diagnostics);
-
-            if (!foundMatchingMember)
-            {
-                (foundMatchingMember, implementedMember) = FindMatchingInterfaceMember(MemberSignatureComparer.ExplicitImplementationLookupComparerIgnoringNullabilityModifiers, implementingMember, interfaceMembers, diagnostics);
-            }
+            var (foundMatchingMember, implementedMember) = FindMatchingInterfaceMember(implementingMember, interfaceMembers, diagnostics);
 
             if (!foundMatchingMember)
             {
@@ -296,10 +280,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Given a comparer, finds the member of an interface that an implementing member matches, and warns if there are multiple such members.
+        /// Finds the member of an interface that an implementing member matches, and warns if there are multiple such members.
         /// </summary>
-        private static (bool foundMatchingMember, Symbol implementedMember) FindMatchingInterfaceMember(MemberSignatureComparer comparer, Symbol implementingMember, ImmutableArray<Symbol> interfaceMembers, DiagnosticBag diagnostics)
+        private static (bool foundMatchingMember, Symbol implementedMember) FindMatchingInterfaceMember(Symbol implementingMember, ImmutableArray<Symbol> interfaceMembers, DiagnosticBag diagnostics)
         {
+            var comparer = MemberSignatureComparer.ExplicitImplementationLookupComparer;
             var foundMatchingMember = false;
             Symbol matchingMember = null;
 

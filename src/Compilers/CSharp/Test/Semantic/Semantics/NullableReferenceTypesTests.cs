@@ -10362,7 +10362,7 @@ class B : A
             Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29846 : Override matches other M3<T>.")]
+        [Fact]
         [WorkItem(29846, "https://github.com/dotnet/roslyn/issues/29846")]
         public void Overriding_04()
         {

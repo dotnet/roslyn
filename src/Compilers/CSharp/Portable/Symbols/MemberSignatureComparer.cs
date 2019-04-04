@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Same as <see cref="ExplicitImplementationComparer"/> except that it specially treats nullable types.  
         /// </summary>
-        public static readonly MemberSignatureComparer ExplicitImplementationLookupComparerIgnoringNullabilityModifiers = new MemberSignatureComparer(
+        public static readonly MemberSignatureComparer ExplicitImplementationLookupComparer = new MemberSignatureComparer(
             considerName: false,
             considerExplicitlyImplementedInterfaces: false,
             considerReturnType: true,
@@ -59,19 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes | TypeCompareKind.IgnoreDynamicAndTupleNames,
             useSpecialHandlingForNullableTypes: true);
 
-        /// <summary>
-        /// Same as <see cref="ExplicitImplementationLookupComparerIgnoringNullabilityModifiers"/> 
-        /// except that it does not consider reference types equal if they have different nullability modifiers.  
-        /// </summary>
-        public static readonly MemberSignatureComparer ExplicitImplementationLookupComparerConsideringNullabilityModifiers = new MemberSignatureComparer(
-            considerName: false,
-            considerExplicitlyImplementedInterfaces: false,
-            considerReturnType: true,
-            considerTypeConstraints: false,
-            considerRefKindDifferences: true,
-            considerCallingConvention: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames,
-            useSpecialHandlingForNullableTypes: true);
+
 
         /// <summary>
         /// This instance is used when trying to determine if one member implicitly implements another,
