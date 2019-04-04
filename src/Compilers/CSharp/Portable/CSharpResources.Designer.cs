@@ -862,11 +862,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Auto-implemented property &apos;{0}&apos; cannot be marked &apos;readonly&apos; because it has a &apos;set&apos; accessor..
+        /// </summary>
+        internal static string ERR_AutoPropertyWithSetterCantBeReadOnly {
+            get {
+                return ResourceManager.GetString("ERR_AutoPropertyWithSetterCantBeReadOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Auto-implemented instance properties in readonly structs must be readonly..
         /// </summary>
         internal static string ERR_AutoPropsInRoStruct {
             get {
                 return ResourceManager.GetString("ERR_AutoPropsInRoStruct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Auto-implemented &apos;set&apos; accessor &apos;{0}&apos; cannot be marked &apos;readonly&apos;..
+        /// </summary>
+        internal static string ERR_AutoSetterCantBeReadOnly {
+            get {
+                return ResourceManager.GetString("ERR_AutoSetterCantBeReadOnly", resourceCulture);
             }
         }
         
@@ -3940,6 +3958,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot specify &apos;readonly&apos; modifiers on both accessors of property or indexer &apos;{0}&apos;. Instead, put a &apos;readonly&apos; modifier on the property itself..
+        /// </summary>
+        internal static string ERR_DuplicatePropertyReadOnlyMods {
+            get {
+                return ResourceManager.GetString("ERR_DuplicatePropertyReadOnlyMods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; duplicate TypeForwardedToAttribute.
         /// </summary>
         internal static string ERR_DuplicateTypeForwarder {
@@ -4953,6 +4980,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_FieldInitRefNonstatic {
             get {
                 return ResourceManager.GetString("ERR_FieldInitRefNonstatic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field-like event &apos;{0}&apos; cannot be &apos;readonly&apos;..
+        /// </summary>
+        internal static string ERR_FieldLikeEventCantBeReadOnly {
+            get {
+                return ResourceManager.GetString("ERR_FieldLikeEventCantBeReadOnly", resourceCulture);
             }
         }
         
@@ -6240,6 +6276,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidPropertyAccessMod {
             get {
                 return ResourceManager.GetString("ERR_InvalidPropertyAccessMod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot specify &apos;readonly&apos; modifiers on both property or indexer &apos;{0}&apos; and its accessor. Remove one of them..
+        /// </summary>
+        internal static string ERR_InvalidPropertyReadOnlyMods {
+            get {
+                return ResourceManager.GetString("ERR_InvalidPropertyReadOnlyMods", resourceCulture);
             }
         }
         
@@ -8206,6 +8251,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Both partial method declarations must be readonly or neither may be readonly.
+        /// </summary>
+        internal static string ERR_PartialMethodReadOnlyDifference {
+            get {
+                return ResourceManager.GetString("ERR_PartialMethodReadOnlyDifference", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Both partial method declarations must be static or neither may be static.
         /// </summary>
         internal static string ERR_PartialMethodStaticDifference {
@@ -8751,6 +8805,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RbraceExpected {
             get {
                 return ResourceManager.GetString("ERR_RbraceExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: &apos;readonly&apos; can only be used on accessors if the property or indexer has both a get and a set accessor.
+        /// </summary>
+        internal static string ERR_ReadOnlyModMissingAccessor {
+            get {
+                return ResourceManager.GetString("ERR_ReadOnlyModMissingAccessor", resourceCulture);
             }
         }
         
@@ -9678,6 +9741,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_StaticLocalFunctionCannotCaptureVariable {
             get {
                 return ResourceManager.GetString("ERR_StaticLocalFunctionCannotCaptureVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Static member &apos;{0}&apos; cannot be marked &apos;readonly&apos;..
+        /// </summary>
+        internal static string ERR_StaticMemberCantBeReadOnly {
+            get {
+                return ResourceManager.GetString("ERR_StaticMemberCantBeReadOnly", resourceCulture);
             }
         }
         
@@ -11524,6 +11596,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureReadonlyAutoImplementedProperties {
             get {
                 return ResourceManager.GetString("IDS_FeatureReadonlyAutoImplementedProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to readonly members.
+        /// </summary>
+        internal static string IDS_FeatureReadOnlyMembers {
+            get {
+                return ResourceManager.GetString("IDS_FeatureReadOnlyMembers", resourceCulture);
             }
         }
         
@@ -14451,6 +14532,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_IllegalPragma_Title {
             get {
                 return ResourceManager.GetString("WRN_IllegalPragma_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Call to non-readonly member &apos;{0}&apos; from a &apos;readonly&apos; member results in an implicit copy of &apos;{1}&apos;..
+        /// </summary>
+        internal static string WRN_ImplicitCopyInReadOnlyMember {
+            get {
+                return ResourceManager.GetString("WRN_ImplicitCopyInReadOnlyMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Call to non-readonly member from a &apos;readonly&apos; member results in an implicit copy..
+        /// </summary>
+        internal static string WRN_ImplicitCopyInReadOnlyMember_Title {
+            get {
+                return ResourceManager.GetString("WRN_ImplicitCopyInReadOnlyMember_Title", resourceCulture);
             }
         }
         

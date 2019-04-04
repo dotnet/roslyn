@@ -25,25 +25,25 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async token =>
             {
                 // if this analysis is explicitly asked by user, boost priority of this request
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, token))
                 using (arguments.ForcedAnalysis ? UserOperationBooster.Boost() : default)
                 {
                     try
                     {
                         // entry point for diagnostic service
-                        var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                        var solution = await GetSolutionAsync(token).ConfigureAwait(false);
 
-                        var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, cancellationToken).ConfigureAwait(false);
+                        var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, token).ConfigureAwait(false);
                         var projectId = arguments.ProjectId;
-                        var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(cancellationToken);
+                        var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(token);
 
                         var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
-                            analyzers, optionSet, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, cancellationToken).ConfigureAwait(false);
+                            analyzers, optionSet, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, token).ConfigureAwait(false);
 
-                        await SerializeDiagnosticResultAsync(streamName, result, cancellationToken).ConfigureAwait(false);
+                        await SerializeDiagnosticResultAsync(streamName, result, token).ConfigureAwait(false);
                     }
                     catch (IOException)
                     {
@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public void ReportAnalyzerPerformance(List<AnalyzerPerformanceInfo> snapshot, int unitCount, CancellationToken cancellationToken)
         {
-            RunService(() =>
+            RunService(token =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_ReportAnalyzerPerformance, token))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    token.ThrowIfCancellationRequested();
 
                     var service = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
                     if (service == null)

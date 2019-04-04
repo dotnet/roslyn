@@ -32,6 +32,16 @@
         <target state="translated">在運算式中使用可為 Null 的參考型別 '{0}?' 不合法，請改用基礎類型 '{0}'。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_AutoPropertyWithSetterCantBeReadOnly">
+        <source>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</source>
+        <target state="new">Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AutoSetterCantBeReadOnly">
+        <source>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</source>
+        <target state="new">Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_AttributeNotOnEventAccessor">
         <source>Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</source>
         <target state="new">Attribute '{0}' is not valid on event accessors. It is only valid on '{1}' declarations.</target>
@@ -97,6 +107,11 @@
         <target state="translated">'{0}' 已明確實作多次。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicatePropertyReadOnlyMods">
+        <source>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</source>
+        <target state="new">Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
         <source>'else' cannot start a statement.</source>
         <target state="translated">'else' 無法開始陳述式。</target>
@@ -152,6 +167,11 @@
         <target state="translated">Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FieldLikeEventCantBeReadOnly">
+        <source>Field-like event '{0}' cannot be 'readonly'.</source>
+        <target state="new">Field-like event '{0}' cannot be 'readonly'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ForEachMissingMemberWrongAsync">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'. Did you mean 'await foreach' rather than 'foreach'?</source>
         <target state="translated">因為 '{0}' 不包含 '{1}' 的公用執行個體定義，所以 foreach 陳述式無法在型別 '{0}' 的變數上作業。您指的是 'await foreach' 而不是 'foreach' 嗎?</target>
@@ -190,6 +210,11 @@
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
         <target state="translated">無效的物件建立</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyReadOnlyMods">
+        <source>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="new">Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidStackAllocArray">
@@ -267,6 +292,11 @@
         <target state="translated">out 變數不可宣告為 ref local</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
+        <source>Both partial method declarations must be readonly or neither may be readonly</source>
+        <target state="new">Both partial method declarations must be readonly or neither may be readonly</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PointerTypeInPatternMatching">
         <source>Pattern-matching is not permitted for pointer types.</source>
         <target state="translated">指標類型不允許進行模式比對。</target>
@@ -285,6 +315,11 @@
       <trans-unit id="ERR_PropertyPatternNameMissing">
         <source>A property subpattern requires a reference to the property or field to be matched, e.g. '{{ Name: {0} }}'</source>
         <target state="translated">屬性子模式需要對屬性或欄位的參考才能比對，例如 '{{ Name: {0} }}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ReadOnlyModMissingAccessor">
+        <source>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</source>
+        <target state="new">'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
@@ -315,6 +350,11 @@
       <trans-unit id="ERR_StaticLocalFunctionCannotCaptureVariable">
         <source>A static local function cannot contain a reference to '{0}'.</source>
         <target state="translated">靜態區域函式不可包含對 '{0}' 的參考。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_StaticMemberCantBeReadOnly">
+        <source>Static member '{0}' cannot be marked 'readonly'.</source>
+        <target state="new">Static member '{0}' cannot be marked 'readonly'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SwitchArmSubsumed">
@@ -760,6 +800,11 @@
       <trans-unit id="IDS_FeatureRangeOperator">
         <source>range operator</source>
         <target state="translated">範圍運算子</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureReadOnlyMembers">
+        <source>readonly members</source>
+        <target state="new">readonly members</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRecursivePatterns">
@@ -1300,6 +1345,16 @@
       <trans-unit id="WRN_IllegalPPWarningSafeOnly_Title">
         <source>Expected nullable after #pragma warning safeonly</source>
         <target state="translated">在#pragma warning safeonly 後面必須是可為 Null 的項目</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember">
+        <source>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</source>
+        <target state="new">Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ImplicitCopyInReadOnlyMember_Title">
+        <source>Call to non-readonly member from a 'readonly' member results in an implicit copy.</source>
+        <target state="new">Call to non-readonly member from a 'readonly' member results in an implicit copy.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_IsTypeNamedUnderscore">
