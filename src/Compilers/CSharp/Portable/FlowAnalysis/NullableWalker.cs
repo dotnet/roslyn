@@ -4506,8 +4506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var nestedVariables = variable.NestedVariables;
                         if (nestedVariables != null)
                         {
-                            // https://github.com/dotnet/roslyn/issues/33005: Not handling deconstructing argument of Deconstruct.
-                            //VisitDeconstructionArguments(nestedVariables, underlyingConversion, arg);
+                            VisitDeconstructionArguments(nestedVariables, underlyingConversion, right: invocation.Arguments[i]);
                         }
                         else
                         {
@@ -5800,6 +5799,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(assignment);
             }
 
+            SetNotNullResult(node);
+            return null;
+        }
+
+        public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
+        {
             SetNotNullResult(node);
             return null;
         }
