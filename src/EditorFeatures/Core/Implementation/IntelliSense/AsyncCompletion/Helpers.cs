@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
         {
             switch (trigger.Reason)
             {
+                case AsyncCompletionData.CompletionTriggerReason.InvokeAndCommitIfUnique:
+                    return new RoslynTrigger(CompletionTriggerKind.InvokeAndCommitIfUnique);
                 case AsyncCompletionData.CompletionTriggerReason.Insertion:
                     return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
                 case AsyncCompletionData.CompletionTriggerReason.Deletion:

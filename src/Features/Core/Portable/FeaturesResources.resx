@@ -11,7 +11,7 @@
     associated with the data types.
     
     Example:
-
+    
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -1412,6 +1412,9 @@ This version used in: {2}</value>
   <data name="Move_file_to_project_root_folder" xml:space="preserve">
     <value>Move file to project root folder</value>
   </data>
+  <data name="Move_to_namespace" xml:space="preserve">
+    <value>Move to namespace...</value>
+  </data>
   <data name="Change_to_global_namespace" xml:space="preserve">
     <value>Change to global namespace</value>
   </data>
@@ -1598,6 +1601,9 @@ This version used in: {2}</value>
   <data name="Make_readonly_fields_writable" xml:space="preserve">
     <value>Make readonly fields writable</value>
     <comment>{Locked="readonly"} "readonly" is C# keyword and should not be localized.</comment>
+  </data>
+  <data name="Move_contents_to_namespace" xml:space="preserve">
+    <value>Move contents to namespace...</value>
   </data>
   <data name="Add_optional_parameter_to_constructor" xml:space="preserve">
     <value>Add optional parameter to constructor</value>
