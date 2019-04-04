@@ -16,6 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     [ExportOptionProvider, Shared]
     internal class ExperimentationOptionsProvider : IOptionProvider
     {
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>();
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray<IOption>.Empty;
     }
 }
