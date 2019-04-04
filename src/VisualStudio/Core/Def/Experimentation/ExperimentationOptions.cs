@@ -11,19 +11,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     internal static class ExperimentationOptions
     {
         internal const string LocalRegistryPath = @"Roslyn\Internal\Experiment\";
-
-        public static readonly Option<bool> SolutionStatusService_ForceDelay = new Option<bool>(nameof(ExperimentationOptions), nameof(SolutionStatusService_ForceDelay), defaultValue: false,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "SolutionStatusService_ForceDelay"));
-
-        public static readonly Option<int> SolutionStatusService_DelayInMS = new Option<int>(nameof(ExperimentationOptions), nameof(SolutionStatusService_DelayInMS), defaultValue: 10000,
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + "SolutionStatusService_DelayInMS"));
     }
 
     [ExportOptionProvider, Shared]
     internal class ExperimentationOptionsProvider : IOptionProvider
     {
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            ExperimentationOptions.SolutionStatusService_ForceDelay,
-            ExperimentationOptions.SolutionStatusService_DelayInMS);
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>();
     }
 }
