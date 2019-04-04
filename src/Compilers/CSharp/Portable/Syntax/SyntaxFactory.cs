@@ -13,6 +13,7 @@ using System.Xml.Linq;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Syntax;
 using System.Collections.Immutable;
+using System.ComponentModel;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -2528,6 +2529,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static BaseExpressionSyntax BaseExpression(SyntaxToken token)
         {
             return BaseExpression(token, null);
+        }
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseSyntaxTree(
+            string text,
+            ParseOptions options,
+            string path,
+            Encoding encoding,
+            CancellationToken cancellationToken)
+        {
+            return ParseSyntaxTree(SourceText.From(text, encoding), options, path, diagnosticOptions: null, cancellationToken);
+        }
+
+        // BACK COMPAT OVERLOAD DO NOT MODIFY
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static SyntaxTree ParseSyntaxTree(
+            SourceText text,
+            ParseOptions options,
+            string path,
+            CancellationToken cancellationToken)
+        {
+            return CSharpSyntaxTree.ParseText(text, (CSharpParseOptions)options, path, diagnosticOptions: null, cancellationToken);
         }
     }
 }
