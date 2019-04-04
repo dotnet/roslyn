@@ -219,6 +219,9 @@
   <data name="IDS_FeatureUnmanagedConstructedTypes" xml:space="preserve">
     <value>unmanaged constructed types</value>
   </data>
+  <data name="IDS_FeatureReadOnlyMembers" xml:space="preserve">
+    <value>readonly members</value>
+  </data>
   <data name="IDS_FeatureDefaultLiteral" xml:space="preserve">
     <value>default literal</value>
   </data>
@@ -5408,6 +5411,36 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_NullLiteralMayIntroduceNullT_Title" xml:space="preserve">
     <value>A null literal introduces a null value for a type parameter.</value>
+  </data>
+  <data name="WRN_ImplicitCopyInReadOnlyMember" xml:space="preserve">
+    <value>Call to non-readonly member '{0}' from a 'readonly' member results in an implicit copy of '{1}'.</value>
+  </data>
+  <data name="WRN_ImplicitCopyInReadOnlyMember_Title" xml:space="preserve">
+    <value>Call to non-readonly member from a 'readonly' member results in an implicit copy.</value>
+  </data>
+  <data name="ERR_StaticMemberCantBeReadOnly" xml:space="preserve">
+    <value>Static member '{0}' cannot be marked 'readonly'.</value>
+  </data>
+  <data name="ERR_AutoSetterCantBeReadOnly" xml:space="preserve">
+    <value>Auto-implemented 'set' accessor '{0}' cannot be marked 'readonly'.</value>
+  </data>
+  <data name="ERR_AutoPropertyWithSetterCantBeReadOnly" xml:space="preserve">
+    <value>Auto-implemented property '{0}' cannot be marked 'readonly' because it has a 'set' accessor.</value>
+  </data>
+  <data name="ERR_InvalidPropertyReadOnlyMods" xml:space="preserve">
+    <value>Cannot specify 'readonly' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</value>
+  </data>
+  <data name="ERR_DuplicatePropertyReadOnlyMods" xml:space="preserve">
+    <value>Cannot specify 'readonly' modifiers on both accessors of property or indexer '{0}'. Instead, put a 'readonly' modifier on the property itself.</value>
+  </data>
+  <data name="ERR_FieldLikeEventCantBeReadOnly" xml:space="preserve">
+    <value>Field-like event '{0}' cannot be 'readonly'.</value>
+  </data>
+  <data name="ERR_PartialMethodReadOnlyDifference" xml:space="preserve">
+    <value>Both partial method declarations must be readonly or neither may be readonly</value>
+  </data>
+  <data name="ERR_ReadOnlyModMissingAccessor" xml:space="preserve">
+    <value>'{0}': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor</value>
   </data>
   <data name="WRN_NullabilityMismatchInArgument" xml:space="preserve">
     <value>Argument of type '{0}' cannot be used for parameter '{2}' of type '{1}' in '{3}' due to differences in the nullability of reference types.</value>
