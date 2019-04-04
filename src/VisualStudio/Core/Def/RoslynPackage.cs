@@ -16,10 +16,8 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Language.CodeCleanUp;
 using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
-using Microsoft.VisualStudio.LanguageServices.Implementation.CodeCleanup;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -88,8 +86,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
 
             TrackBulkFileOperations();
-
-            RegisterCodeCleanupProvider();
         }
 
         private void InitializeColors()
@@ -131,13 +127,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             LoadAnalyzerNodeComponents();
 
             LoadComponentsBackgroundAsync(cancellationToken).Forget();
-        }
-
-        private void RegisterCodeCleanupProvider()
-        {
-            var regService = ComponentModel.GetService<ICodeCleanUpFixerRegistrationService>();
-            var provider = ComponentModel.GetService<CodeCleanUpFixerProvider>();
-            regService.TryRegisterFixerProvider(provider);
         }
 
         private async Task LoadComponentsBackgroundAsync(CancellationToken cancellationToken)
