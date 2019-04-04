@@ -2,6 +2,16 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../VBResources.resx">
     <body>
+      <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
+        <source>Please use language version {0} or greater to use comments after line continuation character.</source>
+        <target state="new">Please use language version {0} or greater to use comments after line continuation character.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_CommentsAfterLineContinuation">
+        <source>comments after line continuation</source>
+        <target state="new">comments after line continuation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_UnconstrainedTypeParameterInConditional">
         <source>unconstrained type parameters in binary conditional expressions</source>
         <target state="translated">ikili koşullu ifadelerde kısıtlanmamış tür parametreleri</target>
@@ -3220,8 +3230,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_LineContWithCommentOrNoPrecSpace">
-        <source>Line continuation character '_' must be preceded by at least one white space and must be the last character on the line.</source>
-        <target state="translated">_' satır devam ettirme karakterinden önce en az bir boşluk olması ve bunun satırdaki son karakter olması gerekir.</target>
+        <source>The line continuation character '_' must be preceded by at least one white space and it must be followed by a comment or the '_' must be the last character on the line.</source>
+        <target state="needs-review-translation">_' satır devam ettirme karakterinden önce en az bir boşluk olması ve bunun satırdaki son karakter olması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadModuleFile1">

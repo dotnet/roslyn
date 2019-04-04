@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             // We currently pack everything into a 32-bit int with the following layout:
             //
-            // |            m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
+            // |          n|m|l|k|j|i|h|g|f|e|d|c|b|aaaaa|
             // 
             // a = method kind. 5 bits.
             // b = method kind populated. 1 bit.
@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // j = isUseSiteDiagnostic populated. 1 bit
             // k = isConditional populated. 1 bit
             // l = isOverriddenOrHiddenMembers populated. 1 bit
-            // 16 bits remain for future purposes.
+            // m = isReadOnly. 1 bit.
+            // n = isReadOnlyPopulated. 1 bit.
+            // 14 bits remain for future purposes.
 
             private const int MethodKindOffset = 0;
 
@@ -75,6 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsUseSiteDiagnosticPopulatedBit = 0x1 << 13;
             private const int IsConditionalPopulatedBit = 0x1 << 14;
             private const int IsOverriddenOrHiddenMembersPopulatedBit = 0x1 << 15;
+            private const int IsReadOnlyBit = 0x1 << 16;
+            private const int IsReadOnlyPopulatedBit = 0x1 << 17;
 
             private int _bits;
 
@@ -103,6 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsUseSiteDiagnosticPopulated => (_bits & IsUseSiteDiagnosticPopulatedBit) != 0;
             public bool IsConditionalPopulated => (_bits & IsConditionalPopulatedBit) != 0;
             public bool IsOverriddenOrHiddenMembersPopulated => (_bits & IsOverriddenOrHiddenMembersPopulatedBit) != 0;
+            public bool IsReadOnly => (_bits & IsReadOnlyBit) != 0;
+            public bool IsReadOnlyPopulated => (_bits & IsReadOnlyPopulatedBit) != 0;
 
 #if DEBUG
             static PackedFlags()
@@ -126,6 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public void InitializeIsExtensionMethod(bool isExtensionMethod)
             {
                 int bitsToSet = (isExtensionMethod ? IsExtensionMethodBit : 0) | IsExtensionMethodIsPopulatedBit;
+                Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
+                ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
+            }
+
+            public void InitializeIsReadOnly(bool isReadOnly)
+            {
+                int bitsToSet = (isReadOnly ? IsReadOnlyBit : 0) | IsReadOnlyPopulatedBit;
                 Debug.Assert(BitsAreUnsetOrSame(_bits, bitsToSet));
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
             }
@@ -508,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override RefKind RefKind => Signature.ReturnParam.RefKind;
 
-        public override TypeSymbolWithAnnotations ReturnType => Signature.ReturnParam.Type;
+        public override TypeWithAnnotations ReturnTypeWithAnnotations => Signature.ReturnParam.TypeWithAnnotations;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => Signature.ReturnParam.RefCustomModifiers;
 
@@ -685,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override ImmutableArray<TypeSymbolWithAnnotations> TypeArguments => IsGenericMethod ? GetTypeParametersAsTypeArguments() : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+        public override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotations => IsGenericMethod ? GetTypeParametersAsTypeArguments() : ImmutableArray<TypeWithAnnotations>.Empty;
 
         public override Symbol AssociatedSymbol => _associatedPropertyOrEventOpt;
 
@@ -1024,6 +1037,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return InterlockedOperations.Initialize(ref _lazyExplicitMethodImplementations, explicitInterfaceImplementations);
+            }
+        }
+
+        internal override bool IsDeclaredReadOnly
+        {
+            get
+            {
+                if (!_packedFlags.IsReadOnlyPopulated)
+                {
+                    bool isReadOnly = false;
+                    if (IsValidReadOnlyTarget)
+                    {
+                        var moduleSymbol = _containingType.ContainingPEModule;
+                        isReadOnly = moduleSymbol.Module.HasIsReadOnlyAttribute(_handle);
+                    }
+                    _packedFlags.InitializeIsReadOnly(isReadOnly);
+                }
+                return _packedFlags.IsReadOnly;
             }
         }
 

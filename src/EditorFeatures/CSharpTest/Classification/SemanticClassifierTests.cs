@@ -2343,7 +2343,7 @@ struct Type<T>
                         }
 
                         var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-                        await waiter.CreateWaitTask();
+                        await waiter.CreateExpeditedWaitTask();
                     }
                 }
             }
@@ -2370,7 +2370,7 @@ struct Type<T>
                 using (var disposable = (IDisposable)tagger)
                 {
                     var waiter = listenerProvider.GetWaiter(FeatureAttribute.Classification);
-                    await waiter.CreateWaitTask();
+                    await waiter.CreateExpeditedWaitTask();
 
                     var tags = tagger.GetTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection());
                     var allTags = tagger.GetAllTags(document.TextBuffer.CurrentSnapshot.GetSnapshotSpanCollection(), CancellationToken.None);
@@ -3411,6 +3411,20 @@ class True
                 Class("True"),
                 Class("True"),
                 Class("True"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestCatchDeclarationVariable()
+        {
+            await TestInMethodAsync(@"
+try
+{
+}
+catch (Exception ex)
+{
+    throw ex;
+}",
+                Local("ex"));
         }
     }
 }

@@ -3357,7 +3357,7 @@ class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
 
             var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
-            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].TypeSymbol;
+            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].Type;
             Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
             Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
         }

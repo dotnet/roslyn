@@ -40,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             builder.Add(getId(ErrorCode.WRN_NullLiteralMayIntroduceNullT));
             builder.Add(getId(ErrorCode.WRN_ConditionalAccessMayReturnNull));
             builder.Add(getId(ErrorCode.WRN_AsOperatorMayReturnNull));
+            builder.Add(getId(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull));
 
             NullableFlowAnalysisSafetyWarnings = builder.ToImmutable();
 
@@ -404,6 +405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                 case ErrorCode.WRN_ConditionalAccessMayReturnNull:
                 case ErrorCode.WRN_AsOperatorMayReturnNull:
+                case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                     return 1;
                 default:
                     return 0;

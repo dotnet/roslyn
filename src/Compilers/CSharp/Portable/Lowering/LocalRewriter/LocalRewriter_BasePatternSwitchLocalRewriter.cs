@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // assign the input expression to its temp.
-                    BoundExpression inputTemp = _tempAllocator.GetTemp(InputTemp(loweredSwitchGoverningExpression));
+                    BoundExpression inputTemp = _tempAllocator.GetTemp(BoundDagTemp.ForOriginalInput(loweredSwitchGoverningExpression));
                     Debug.Assert(inputTemp != loweredSwitchGoverningExpression);
                     result.Add(_factory.Assignment(inputTemp, loweredSwitchGoverningExpression));
                     savedInputExpression = inputTemp;

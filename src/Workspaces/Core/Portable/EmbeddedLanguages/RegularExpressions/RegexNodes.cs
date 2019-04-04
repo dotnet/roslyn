@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
     }
 
     /// <summary>
-    /// Represents a ```[:...:]``` node in a character class.  Note: the .net regex parser
+    /// Represents a ```[:...:]``` node in a character class.  Note: the .NET regex parser
     /// simply treats this as the character ```[``` and ignores the rest of the ```:...:]```.
     /// They latter part has no impact on the actual match engine that is produced.
     /// </summary>

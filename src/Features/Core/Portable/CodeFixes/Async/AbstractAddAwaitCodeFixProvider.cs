@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Async
             }
         }
 
-        protected struct DescriptionAndNode
+        protected readonly struct DescriptionAndNode
         {
             public readonly string Description;
             public readonly SyntaxNode Node;

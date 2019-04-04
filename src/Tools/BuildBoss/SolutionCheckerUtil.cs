@@ -115,7 +115,7 @@ namespace BuildBoss
             }
 
             var allGood = true;
-            foreach (var data in dataList)
+            foreach (var data in dataList.Where(x => x.ProjectEntry.ProjectType != ProjectFileType.Tool))
             {
                 var guid = getExpectedGuid(data.ProjectData);
                 if (guid != data.ProjectEntry.TypeGuid)
