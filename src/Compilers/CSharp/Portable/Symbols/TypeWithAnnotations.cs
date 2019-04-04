@@ -227,9 +227,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (((TypeParameterSymbol)typeSymbol).TypeParameterKind == TypeParameterKind.Cref)
+            var typeParameterSymbol = (TypeParameterSymbol)typeSymbol;
+            if (typeParameterSymbol.TypeParameterKind == TypeParameterKind.Cref)
             {
                 // We always bind annotated type parameters in cref as `Nullable<T>`
+                return makeNullableT();
+            }
+
+            if (typeParameterSymbol.DeclaringMethod is {} declaringMethod && (declaringMethod.IsOverride || declaringMethod.IsExplicitInterfaceImplementation))
+            {
+                // To preserve backwards compatability with pre-C# 8.0 code, T? in an explicit interface implementation, or a method override, is always treated as a Nullable<T>
                 return makeNullableT();
             }
 

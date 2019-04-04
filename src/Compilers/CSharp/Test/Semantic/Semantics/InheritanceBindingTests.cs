@@ -4723,7 +4723,7 @@ public class Class : Interface<int>
         }
 
         [Fact]
-        public void TestExplicitImplementationAmbiguousInterfaceMethod_DifferingNullabilitAnnotations1()
+        public void TestExplicitImplementationAmbiguousInterfaceMethod_DifferingNullabilityAnnotations1()
         {
             var text = @"
 #nullable enable
@@ -4749,7 +4749,7 @@ public class Class : Interface<string>
         }
 
         [Fact]
-        public void TestExplicitImplementationAmbiguousInterfaceMethod_DifferingNullabilitAnnotations2()
+        public void TestExplicitImplementationAmbiguousInterfaceMethod_DifferingNullabilityAnnotations2()
         {
             var text = @"
 #nullable enable
@@ -4768,7 +4768,13 @@ public class Class : Interface<string>
             CreateCompilation(text).VerifyDiagnostics(
                 // (11,28): warning CS0473: Explicit interface implementation 'Class.Interface<string>.Method(string?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
                 //     void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<string>.Method(string?)").WithLocation(11, 28));
+                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Method").WithArguments("Class.Interface<string>.Method(string?)").WithLocation(11, 28),
+                // (11,28): warning CS8617: Nullability of reference types in type of parameter 'i' doesn't match implemented member 'void Interface<string>.Method(string i)'.
+                //     void Interface<string>.Method(string? i) { } //this explicitly implements both methods in Interface<string>
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "Method").WithArguments("i", "void Interface<string>.Method(string i)").WithLocation(11, 28),
+                // (12,17): warning CS8614: Nullability of reference types in type of parameter 'i' doesn't match implicitly implemented member 'void Interface<string>.Method(string? i)'.
+                //     public void Method(string i) { } //this is here to avoid CS0535 - not implementing interface method
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Method").WithArguments("i", "void Interface<string>.Method(string? i)").WithLocation(12, 17));
         }
 
         [Fact]
@@ -8407,7 +8413,16 @@ class C2 : I
     void I.Foo<T>(T? value) { }
 }
 ";
-            var comp = CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (13,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(13, 12),
+                // (15,12): error CS0539: 'C2.Foo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     void I.Foo<T>(T? value) { }
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Foo").WithArguments("C2.Foo<T>(T?)").WithLocation(15, 12),
+                // (15,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void I.Foo<T>(T? value) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(15, 22));
         }
 
         [Fact]
@@ -8435,9 +8450,15 @@ class C2 : I
                 // (10,17): warning CS8614: Nullability of reference types in type of parameter 'value' doesn't match implicitly implemented member 'void I.Foo<T>(T value)'.
                 //     public void Foo<T>(T? value) where T : class { }
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnImplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T value)").WithLocation(10, 17),
-                // (15,12): warning CS8617: Nullability of reference types in type of parameter 'value' doesn't match implemented member 'void I.Foo<T>(T value)'.
+                // (13,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T)").WithLocation(13, 12),
+                // (15,12): error CS0539: 'C2.Foo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnExplicitImplementation, "Foo").WithArguments("value", "void I.Foo<T>(T value)").WithLocation(15, 12));
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Foo").WithArguments("C2.Foo<T>(T?)").WithLocation(15, 12),
+                // (15,22): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     void I.Foo<T>(T? value) { }
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(15, 22));
         }
 
         [Fact]
@@ -8580,27 +8601,12 @@ class C2<U> : I<U> where U : class
                 // (12,15): warning CS8613: Nullability of reference types in return type doesn't match implicitly implemented member 'U I<U>.Foo<T>(T? value)'.
                 //     public U? Foo<T>(T? value) where T : struct => default;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnImplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(12, 15),
-                // (15,7): error CS8646: 'I<U>.Foo<T>(T)' is explicitly implemented more than once.
-                // class C2<U> : I<U> where U : class
-                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I<U>.Foo<T>(T)").WithLocation(15, 7),
-                // (15,15): error CS0535: 'C2<U>' does not implement interface member 'I<U>.Foo<T>(T?)'
-                // class C2<U> : I<U> where U : class
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I<U>").WithArguments("C2<U>", "I<U>.Foo<T>(T?)").WithLocation(15, 15),
                 // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T value)'.
                 //     U? I<U>.Foo<T>(T value) => default;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(17, 13),
-                // (18,13): warning CS0473: Explicit interface implementation 'C2<U>.I<U>.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
+                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T? value)'.
                 //     U? I<U>.Foo<T>(T? value) => default;
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2<U>.I<U>.Foo<T>(T?)").WithLocation(18, 13),
-                // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T value)'.
-                //     U? I<U>.Foo<T>(T? value) => default;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(18, 13),
-                // (18,13): error CS0111: Type 'C2<U>' already defines a member called 'I<U>.Foo' with the same parameter types
-                //     U? I<U>.Foo<T>(T? value) => default;
-                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("I<U>.Foo", "C2<U>").WithLocation(18, 13),
-                // (18,20): error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type. Consider adding a 'class', 'struct', or type constraint.
-                //     U? I<U>.Foo<T>(T? value) => default;
-                Diagnostic(ErrorCode.ERR_NullableUnconstrainedTypeParameter, "T?").WithLocation(18, 20));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(18, 13));
         }
 
         [Fact]
@@ -8639,9 +8645,6 @@ class C2<U> : I<U> where U : class
                 // (17,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T value)'.
                 //     U? I<U>.Foo<T>(T value) => default;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T value)").WithLocation(17, 13),
-                // (18,13): warning CS0473: Explicit interface implementation 'C2<U>.I<U>.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     U? I<U>.Foo<T>(T? value) => default;
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2<U>.I<U>.Foo<T>(T?)").WithLocation(18, 13),
                 // (18,13): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'U I<U>.Foo<T>(T? value)'.
                 //     U? I<U>.Foo<T>(T? value) => default;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("U I<U>.Foo<T>(T? value)").WithLocation(18, 13));
@@ -8668,10 +8671,7 @@ class C2 : I
             var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
-                // (11,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(11, 12));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
         }
 
         [Fact]
@@ -8693,9 +8693,9 @@ class C2 : I
 }
 ";
             var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (12,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(12, 12));
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
         }
 
         [Fact]
@@ -8716,13 +8716,7 @@ class C2 : I
     void I.Foo<T>(T? value) { }
 }
 ";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
-                // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
-                // (12,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(12, 12));
+            var comp = CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -8746,10 +8740,7 @@ class C2 : I
             var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
-                // (12,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(12, 12));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
         }
 
         [Fact]
@@ -8770,10 +8761,7 @@ class C2 : I
     void I.Foo<T>(T? value) { }
 }
 ";
-            var comp = CreateCompilation(source).VerifyDiagnostics(
-                // (12,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(12, 12));
+            var comp = CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -8796,10 +8784,7 @@ class C2 : I
             var comp = CreateCompilation(source).VerifyDiagnostics(
                 // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
                 // class C2 : I
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
-                // (11,12): warning CS0473: Explicit interface implementation 'C2.I.Foo<T>(T?)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
-                //     void I.Foo<T>(T? value) { }
-                Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "Foo").WithArguments("C2.I.Foo<T>(T?)").WithLocation(11, 12));
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12));
         }
 
         [Fact]
@@ -8820,7 +8805,16 @@ class C2 : I
     string I.Foo<T>(T? value) => ""42"";
 }
 ";
-            var comp = CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
+                // (12,14): error CS0539: 'C2.Foo<T>(T?)' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     string I.Foo<T>(T? value) => "42";
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Foo").WithArguments("C2.Foo<T>(T?)").WithLocation(12, 14),
+                // (12,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     string I.Foo<T>(T? value) => "42";
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "value").WithArguments("System.Nullable<T>", "T", "T").WithLocation(12, 24));
         }
 
         [Fact]
@@ -8841,7 +8835,19 @@ class C2 : I
     object? I.Foo<T>(T? value) => 42;
 }
 ";
-            var comp = CreateCompilation(source).VerifyDiagnostics();
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (9,7): error CS8646: 'I.Foo<T>(T?)' is explicitly implemented more than once.
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_DuplicateExplicitImpl, "C2").WithArguments("I.Foo<T>(T?)").WithLocation(9, 7),
+                // (9,12): error CS0535: 'C2' does not implement interface member 'I.Foo<T>(T?)'
+                // class C2 : I
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("C2", "I.Foo<T>(T?)").WithLocation(9, 12),
+                // (11,14): warning CS8616: Nullability of reference types in return type doesn't match implemented member 'object? I.Foo<T>(T? value)'.
+                //     object I.Foo<T>(T? value) => 42;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnExplicitImplementation, "Foo").WithArguments("object? I.Foo<T>(T? value)").WithLocation(11, 14),
+                // (12,15): error CS0111: Type 'C2' already defines a member called 'I.Foo' with the same parameter types
+                //     object? I.Foo<T>(T? value) => 42;
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Foo").WithArguments("I.Foo", "C2").WithLocation(12, 15));
         }
 
         [Fact]

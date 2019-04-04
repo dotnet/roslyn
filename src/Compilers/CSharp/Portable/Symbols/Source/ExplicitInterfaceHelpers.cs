@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static (bool foundMatchingMember, Symbol implementedMember) FindMatchingInterfaceMember(Symbol implementingMember, ImmutableArray<Symbol> interfaceMembers, DiagnosticBag diagnostics)
         {
-            var comparer = MemberSignatureComparer.ExplicitImplementationLookupComparer;
+            var comparer = MemberSignatureComparer.ExplicitImplementationComparer;
             var foundMatchingMember = false;
             Symbol matchingMember = null;
 
