@@ -13949,7 +13949,7 @@ public partial class C3 : I1<A?> {}
 C3.M");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/csharplang/issues/2378#issuecomment-479634969")]
         public void Implementing_22()
         {
             var source = @"
