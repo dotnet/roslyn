@@ -60,7 +60,7 @@
     
     TODO: Inline the import when we no longer need to support earlier versions of MSBuild.
     -->
-  <Import Project="Microsoft.Managed.EditorConfig.targets" Condition="$(MSBuildVersion) >= 16.1" />
+  <Import Project="Microsoft.Managed.EditorConfig.targets" Condition="$(MSBuildVersion) >= 16.1.0" />
 
   <!--
     ========================
