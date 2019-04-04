@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
     {
         public static Glyph Convert(Microsoft.CodeAnalysis.Glyph glyph)
         {
-            switch(glyph)
+            switch (glyph)
             {
                 case Microsoft.CodeAnalysis.Glyph.None:
                     {
@@ -430,5 +430,318 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp
         }
     }
 
-
+    internal static class GlyphHelpersObsolete
+    {
+        [Obsolete("Only used to allow IVTs to work temporarily, will be removed when IVTs are fully removed.")]
+        public static Microsoft.CodeAnalysis.Glyph Convert(Glyph glyph)
+        {
+            switch (glyph)
+            {
+                case Glyph.None:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.None;
+                    }
+                case Glyph.Assembly:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Assembly;
+                    }
+                case Glyph.BasicFile:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.BasicFile;
+                    }
+                case Glyph.BasicProject:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.BasicProject;
+                    }
+                case Glyph.ClassPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ClassPublic;
+                    }
+                case Glyph.ClassProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ClassProtected;
+                    }
+                case Glyph.ClassPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ClassPrivate;
+                    }
+                case Glyph.ClassInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ClassInternal;
+                    }
+                case Glyph.CSharpFile:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.CSharpFile;
+                    }
+                case Glyph.CSharpProject:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.CSharpProject;
+                    }
+                case Glyph.ConstantPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstantPublic;
+                    }
+                case Glyph.ConstantProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstantProtected;
+                    }
+                case Glyph.ConstantPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstantPrivate;
+                    }
+                case Glyph.ConstantInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ConstantInternal;
+                    }
+                case Glyph.DelegatePublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.DelegatePublic;
+                    }
+                case Glyph.DelegateProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.DelegateProtected;
+                    }
+                case Glyph.DelegatePrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.DelegatePrivate;
+                    }
+                case Glyph.DelegateInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.DelegateInternal;
+                    }
+                case Glyph.EnumPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EnumPublic;
+                    }
+                case Glyph.EnumProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EnumProtected;
+                    }
+                case Glyph.EnumPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EnumPrivate;
+                    }
+                case Glyph.EnumInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EnumInternal;
+                    }
+                case Glyph.EnumMemberPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EnumMemberPublic;
+                    }
+                case Glyph.EnumMemberProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EnumMemberProtected;
+                    }
+                case Glyph.EnumMemberPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EnumMemberPrivate;
+                    }
+                case Glyph.EnumMemberInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EnumMemberInternal;
+                    }
+                case Glyph.Error:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Error;
+                    }
+                case Glyph.StatusInformation:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.StatusInformation;
+                    }
+                case Glyph.EventPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EventPublic;
+                    }
+                case Glyph.EventProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EventProtected;
+                    }
+                case Glyph.EventPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EventPrivate;
+                    }
+                case Glyph.EventInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.EventInternal;
+                    }
+                case Glyph.ExtensionMethodPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ExtensionMethodPublic;
+                    }
+                case Glyph.ExtensionMethodProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ExtensionMethodProtected;
+                    }
+                case Glyph.ExtensionMethodPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ExtensionMethodPrivate;
+                    }
+                case Glyph.ExtensionMethodInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ExtensionMethodInternal;
+                    }
+                case Glyph.FieldPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.FieldPublic;
+                    }
+                case Glyph.FieldProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.FieldProtected;
+                    }
+                case Glyph.FieldPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.FieldPrivate;
+                    }
+                case Glyph.FieldInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.FieldInternal;
+                    }
+                case Glyph.InterfacePublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.InterfacePublic;
+                    }
+                case Glyph.InterfaceProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.InterfaceProtected;
+                    }
+                case Glyph.InterfacePrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.InterfacePrivate;
+                    }
+                case Glyph.InterfaceInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.InterfaceInternal;
+                    }
+                case Glyph.Intrinsic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Intrinsic;
+                    }
+                case Glyph.Keyword:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Keyword;
+                    }
+                case Glyph.Label:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Label;
+                    }
+                case Glyph.Local:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Local;
+                    }
+                case Glyph.Namespace:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Namespace;
+                    }
+                case Glyph.MethodPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.MethodPublic;
+                    }
+                case Glyph.MethodProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.MethodProtected;
+                    }
+                case Glyph.MethodPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.MethodPrivate;
+                    }
+                case Glyph.MethodInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.MethodInternal;
+                    }
+                case Glyph.ModulePublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ModulePublic;
+                    }
+                case Glyph.ModuleProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ModuleProtected;
+                    }
+                case Glyph.ModulePrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ModulePrivate;
+                    }
+                case Glyph.ModuleInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.ModuleInternal;
+                    }
+                case Glyph.OpenFolder:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.OpenFolder;
+                    }
+                case Glyph.Operator:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Operator;
+                    }
+                case Glyph.Parameter:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Parameter;
+                    }
+                case Glyph.PropertyPublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.PropertyPublic;
+                    }
+                case Glyph.PropertyProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.PropertyProtected;
+                    }
+                case Glyph.PropertyPrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.PropertyPrivate;
+                    }
+                case Glyph.PropertyInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.PropertyInternal;
+                    }
+                case Glyph.RangeVariable:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.RangeVariable;
+                    }
+                case Glyph.Reference:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Reference;
+                    }
+                case Glyph.StructurePublic:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.StructurePublic;
+                    }
+                case Glyph.StructureProtected:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.StructureProtected;
+                    }
+                case Glyph.StructurePrivate:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.StructurePrivate;
+                    }
+                case Glyph.StructureInternal:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.StructureInternal;
+                    }
+                case Glyph.TypeParameter:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.TypeParameter;
+                    }
+                case Glyph.Snippet:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.Snippet;
+                    }
+                case Glyph.CompletionWarning:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.CompletionWarning;
+                    }
+                case Glyph.AddReference:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.AddReference;
+                    }
+                case Glyph.NuGet:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.NuGet;
+                    }
+                default:
+                    {
+                        return Microsoft.CodeAnalysis.Glyph.None;
+                    }
+            }
+        }
+    }
 }

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CommonCompletionItem
     {
-        [Obsolete("This is a compatibility shim for FSharp; please do not use it.", error: true)]
+        [Obsolete("This is a compatibility shim for FSharp; please do not use it.")]
         public static CompletionItem Create(
             string displayText,
             CompletionItemRules rules,
