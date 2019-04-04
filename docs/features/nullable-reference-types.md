@@ -32,8 +32,17 @@ namespace System.Runtime.CompilerServices
         AllowMultiple = false)]
     public sealed class NullableAttribute : Attribute
     {
-        public NullableAttribute(byte b) { }
-        public NullableAttribute(byte[] b) { }
+        public readonly byte[] NullableFlags;
+    
+        public NullableAttribute(byte b) 
+        {
+            NullableFlags = new byte[] { b };
+        }
+        
+        public NullableAttribute(byte[] b)
+        {
+            NullableFlags = b;
+        }
     }
 }
 ```
@@ -72,6 +81,7 @@ string[] Oblivious1; // string~[]~
 int Int; // int
 Nullable<int> NullableInt1; // Nullable<int>
 ```
+
 ## Declaration warnings
 _Describe warnings reported for declarations in initial binding._
 
