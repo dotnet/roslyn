@@ -4,7 +4,6 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -17,18 +16,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     [ExportWorkspaceServiceFactory(typeof(IWorkspaceStatusService), ServiceLayer.Host), Shared]
     internal class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
     {
-        private IAsyncServiceProvider _serviceProvider;
+        private readonly IAsyncServiceProvider2 _serviceProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioWorkspaceStatusServiceFactory(IThreadingContext threadingContext, SVsServiceProvider serviceProvider)
+        public VisualStudioWorkspaceStatusServiceFactory(SVsServiceProvider serviceProvider)
         {
-            threadingContext.JoinableTaskFactory.Run(async () =>
-            {
-                // Not sure how to get IAsyncServiceProvider from MEF in mef v2
-                await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-                _serviceProvider = (IAsyncServiceProvider)serviceProvider;
-            });
+            _serviceProvider = (IAsyncServiceProvider2)serviceProvider;
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -55,11 +49,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         private class Service : IWorkspaceStatusService
         {
-            private readonly IAsyncServiceProvider _serviceProvider;
+            private readonly IAsyncServiceProvider2 _serviceProvider;
 
             public event EventHandler<bool> StatusChanged;
 
-            public Service(IAsyncServiceProvider serviceProvider)
+            public Service(IAsyncServiceProvider2 serviceProvider)
             {
                 _serviceProvider = serviceProvider;
 
@@ -103,10 +97,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             private async Task<IVsOperationProgressStageStatus> GetProgressStageStatusAsync()
             {
-                var service = (IVsOperationProgressStatusService)await _serviceProvider.GetServiceAsync(typeof(IVsOperationProgressStatusService)).ConfigureAwait(false);
+                var service = await _serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false).ConfigureAwait(false);
                 if (service == null)
                 {
-                    // when can this return null?
                     return null;
                 }
 
