@@ -10613,7 +10613,7 @@ class B : A
             var b = compilation.GetTypeByMetadataName("B");
             var m1 = b.GetMember<MethodSymbol>("M1");
             Assert.True(m1.Parameters[0].Type.IsNullableType());
-            Assert.True(m1.Parameters[0].Type.StrippedType().IsValueType);
+            Assert.False(m1.Parameters[0].Type.StrippedType().IsValueType);
             Assert.False(m1.Parameters[0].Type.StrippedType().IsReferenceType);
             Assert.Null(m1.OverriddenMethod);
         }
