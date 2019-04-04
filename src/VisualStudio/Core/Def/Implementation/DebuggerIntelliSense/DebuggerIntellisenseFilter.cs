@@ -54,7 +54,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelli
         internal void DisableCompletion()
         {
             var featureService = _featureServiceFactory.GetOrCreate(WpfTextView);
-            _completionDisabledToken = featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
+            if (_completionDisabledToken == null)
+            {
+                _completionDisabledToken = featureService.Disable(PredefinedEditorFeatureNames.Completion, this);
+            }
         }
 
         internal void SetNextFilter(IOleCommandTarget nextFilter)
