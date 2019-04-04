@@ -27,7 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     internal class AsyncCompletionService : ForegroundThreadAffinitizedObject, IAsyncCompletionService
     {
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
         private readonly IFeatureServiceFactory _featureServiceFactory;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IInlineRenameService _inlineRenameService;
@@ -48,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public AsyncCompletionService(
             IThreadingContext threadingContext,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
             IFeatureServiceFactory featureServiceFactory,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
@@ -58,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             : base(threadingContext)
         {
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _featureServiceFactory = featureServiceFactory;
             _undoHistoryRegistry = undoHistoryRegistry;
             _inlineRenameService = inlineRenameService;
@@ -79,9 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            var vsTextView = _editorAdaptersFactoryService.GetViewAdapter(textView);
-            var wpfTextView = _editorAdaptersFactoryService.GetWpfTextView(vsTextView);
-            if (!_featureServiceFactory.GetOrCreate(wpfTextView).IsEnabled(PredefinedEditorFeatureNames.Completion))
+            if (!_featureServiceFactory.GetOrCreate(textView).IsEnabled(PredefinedEditorFeatureNames.Completion))
             {
                 controller = null;
                 return false;
