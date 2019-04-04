@@ -50,7 +50,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Initializes a <see cref="ConstructorMapper"/> that maps a constructor invocation's arguments' <see cref="ValueContentAbstractValue"/>s to <see cref="PropertySetAbstractValueKind"/>s for the properties being tracked by PropertySetAnalysis.
         /// </summary>
-        /// <param name="mapFromValueContentAbstractValueCallback">Callback that implements the mapping.</param>
+        /// <param name="mapFromValueContentAbstractValue">Callback that implements the mapping.</param>
         public ConstructorMapper(ValueContentAbstractValueCallback mapFromValueContentAbstractValue)
         {
             this.MapFromValueContentAbstractValue = mapFromValueContentAbstractValue ?? throw new ArgumentNullException(nameof(mapFromValueContentAbstractValue));
@@ -60,7 +60,7 @@ namespace Analyzer.Utilities.FlowAnalysis.Analysis.PropertySetAnalysis
         /// <summary>
         /// Initializes a <see cref="ConstructorMapper"/> that maps a constructor invocation's arguments' <see cref="NullAbstractValue"/>s to <see cref="PropertySetAbstractValueKind"/>s for the properties being tracked by PropertySetAnalysis.
         /// </summary>
-        /// <param name="mapFromNullAbstractValueCallback">Callback that implements the mapping.</param>
+        /// <param name="mapFromNullAbstractValue">Callback that implements the mapping.</param>
         public ConstructorMapper(NullAbstractValueCallback mapFromNullAbstractValue)
         {
             this.MapFromNullAbstractValue = mapFromNullAbstractValue ?? throw new ArgumentNullException(nameof(mapFromNullAbstractValue));

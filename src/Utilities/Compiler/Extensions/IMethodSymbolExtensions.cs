@@ -509,5 +509,30 @@ namespace Analyzer.Utilities.Extensions
 
         public static bool HasParameterWithDelegateType(this IMethodSymbol methodSymbol)
             => methodSymbol.Parameters.Any(p => p.Type.TypeKind == TypeKind.Delegate);
+
+        /// <summary>
+        /// Find out if the method overrides from target virtual method of a certain type
+        /// or it is the virtual method itself.
+        /// </summary>
+        /// <param name="methodSymbol">The method</param>
+        /// <param name="typeSymbol">The type has virtual method</param>
+        public static bool IsOverrideOrVirtualMethodOf(this IMethodSymbol methodSymbol, INamedTypeSymbol typeSymbol)
+        {
+            if (methodSymbol == null)
+            {
+                return false;
+            }
+            else
+            {
+                if (methodSymbol.ContainingType.Equals(typeSymbol))
+                {
+                    return true;
+                }
+                else
+                {
+                    return IsOverrideOrVirtualMethodOf(methodSymbol.OverriddenMethod, typeSymbol);
+                }
+            }
+        }
     }
 }

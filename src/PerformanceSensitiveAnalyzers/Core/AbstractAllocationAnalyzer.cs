@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
@@ -38,18 +36,7 @@ namespace Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers
 
         private void RegisterSyntaxAnalysis(CodeBlockStartAnalysisContext<TLanguageKindEnum> codeBlockStartAnalysisContext, AttributeChecker performanceSensitiveAttributeChecker)
         {
-            if (AllocationRules.IsIgnoredFile(codeBlockStartAnalysisContext.CodeBlock.SyntaxTree.FilePath))
-            {
-                return;
-            }
-
             var owningSymbol = codeBlockStartAnalysisContext.OwningSymbol;
-
-            if (owningSymbol.GetAttributes().Any(AllocationRules.IsIgnoredAttribute))
-            {
-                return;
-            }
-
             if (!performanceSensitiveAttributeChecker.TryGetContainsPerformanceSensitiveInfo(owningSymbol, out var info))
             {
                 return;
