@@ -10316,7 +10316,7 @@ class B : A
             Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/csharplang/issues/2378#issuecomment-479634969")]
         public void Overriding_03()
         {
             var source = @"
@@ -10338,7 +10338,7 @@ class B : A
     {
     }
 
-    public override T? M2<T>()
+    public override T? M2<T>() where T : class
     { 
         return null;
     }
@@ -10346,19 +10346,20 @@ class B : A
 ";
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
-            compilation.VerifyDiagnostics(
-                // (16,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
-                //     public override void M1<T>(T? x)
-                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(16, 26),
-                // (16,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     public override void M1<T>(T? x)
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(16, 35),
-                // (20,24): error CS0508: 'B.M2<T>()': return type must be 'T' to match overridden member 'A.M2<T>()'
-                //     public override T? M2<T>()
-                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("B.M2<T>()", "A.M2<T>()", "T").WithLocation(20, 24),
-                // (20,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //     public override T? M2<T>()
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "T").WithLocation(20, 24));
+            compilation.VerifyDiagnostics();
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.False(m1.Parameters[0].Type.IsNullableType());
+            Assert.Equal(NullableAnnotation.Annotated, m1.Parameters[0].TypeWithAnnotations.NullableAnnotation);
+            Assert.True(m1.Parameters[0].Type.IsReferenceType);
+            Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
+
+            var m2 = b.GetMember<MethodSymbol>("M2");
+            Assert.False(m2.ReturnType.IsNullableType());
+            Assert.Equal(NullableAnnotation.Annotated, m2.ReturnTypeWithAnnotations.NullableAnnotation);
+            Assert.True(m2.ReturnType.IsReferenceType);
+            Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
         }
 
         [Fact]
@@ -12688,6 +12689,62 @@ class B : A
                  //     public override C<string, string?> M1()
                  Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnOverride, "M1").WithLocation(11, 40)
                 );
+        }
+
+        [Fact]
+        public void Overriding_26()
+        {
+            var source = @"
+class A
+{
+    public virtual void M1<T>(T? x) where T : class 
+    { 
+    }
+
+    public virtual T? M2<T>() where T : class 
+    { 
+        return null;
+    }
+}
+
+class B : A
+{
+    public override void M1<T>(T? x)
+    {
+    }
+
+    public override T? M2<T>()
+    { 
+        return null;
+    }
+} 
+";
+            var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
+
+            compilation.VerifyDiagnostics(
+                // (16,26): error CS0115: 'B.M1<T>(T?)': no suitable method found to override
+                //     public override void M1<T>(T? x)
+                Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M1").WithArguments("B.M1<T>(T?)").WithLocation(16, 26),
+                // (16,35): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override void M1<T>(T? x)
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "x").WithArguments("System.Nullable<T>", "T", "T").WithLocation(16, 35),
+                // (20,24): error CS0508: 'B.M2<T>()': return type must be 'T' to match overridden member 'A.M2<T>()'
+                //     public override T? M2<T>()
+                Diagnostic(ErrorCode.ERR_CantChangeReturnTypeOnOverride, "M2").WithArguments("B.M2<T>()", "A.M2<T>()", "T").WithLocation(20, 24),
+                // (20,24): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
+                //     public override T? M2<T>()
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "M2").WithArguments("System.Nullable<T>", "T", "T").WithLocation(20, 24));
+
+            var b = compilation.GetTypeByMetadataName("B");
+            var m1 = b.GetMember<MethodSymbol>("M1");
+            Assert.True(m1.Parameters[0].Type.IsNullableType());
+            Assert.False(m1.Parameters[0].Type.IsReferenceType);
+            Assert.Null(m1.OverriddenMethod);
+
+            var m2 = b.GetMember<MethodSymbol>("M2");
+            Assert.True(m2.ReturnType.IsNullableType());
+            Assert.False(m2.ReturnType.IsReferenceType);
+            Assert.False(m2.OverriddenMethod.ReturnType.IsNullableType());
         }
 
         [Fact]
