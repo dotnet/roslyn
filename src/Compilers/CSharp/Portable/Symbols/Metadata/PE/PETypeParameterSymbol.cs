@@ -301,6 +301,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override bool? IsNotNullableIfReferenceType
+        {
+            get
+            {
+                if ((_flags & (GenericParameterAttributes.NotNullableValueTypeConstraint | GenericParameterAttributes.ReferenceTypeConstraint)) == 0)
+                {
+                    PEModule module = ((PEModuleSymbol)this.ContainingModule).Module;
+                    GenericParameterConstraintHandleCollection constraints;
+
+                    try
+                    {
+                        constraints = module.MetadataReader.GetGenericParameter(_handle).GetConstraints();
+                    }
+                    catch (BadImageFormatException)
+                    {
+                        constraints = default(GenericParameterConstraintHandleCollection);
+                        Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+                    }
+
+                    if (constraints.Count == 0)
+                    {
+                        if (module.HasNullableAttribute(_handle, out byte transformFlag, out _) && (NullableAnnotation)transformFlag == NullableAnnotation.Annotated)
+                        {
+                            return false;
+                        }
+
+                        return null;
+                    }
+                }
+
+                return CalculateIsNotNullableIfReferenceType();
+            }
+        }
+
         public override bool HasValueTypeConstraint
         {
             get

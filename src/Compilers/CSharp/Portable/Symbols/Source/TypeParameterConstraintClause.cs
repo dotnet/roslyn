@@ -20,6 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Unmanaged = 0x08,
         NullableReferenceType = ReferenceType | 0x10,
         NotNullableReferenceType = ReferenceType | 0x20,
+
+        /// <summary>
+        /// Type parameter has no type constraints, including `struct`, `class`, `unmanaged` and is declared in a context 
+        /// where nullable annotations are disabled.
+        /// Cannot be combined with <see cref="ReferenceType"/>, <see cref="ValueType"/> and <see cref="Unmanaged"/>.
+        /// </summary>
+        UnknownNullabilityIfReferenceType = 0x40,
     }
 
     /// <summary>
@@ -30,6 +37,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal static readonly TypeParameterConstraintClause Empty = new TypeParameterConstraintClause(
             TypeParameterConstraintKind.None,
+            ImmutableArray<TypeWithAnnotations>.Empty,
+            typeConstraintsSyntax: default,
+            otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
+
+        internal static readonly TypeParameterConstraintClause UnknownNullabilityIfReferenceType = new TypeParameterConstraintClause(
+            TypeParameterConstraintKind.UnknownNullabilityIfReferenceType,
             ImmutableArray<TypeWithAnnotations>.Empty,
             typeConstraintsSyntax: default,
             otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
@@ -66,6 +79,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ExceptionUtilities.UnexpectedValue(constraints); // This call asserts.
                     break;
             }
+
+            Debug.Assert((constraints & TypeParameterConstraintKind.UnknownNullabilityIfReferenceType) == 0 ||
+                         (constraints & ~(TypeParameterConstraintKind.UnknownNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor)) == 0);
 #endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
@@ -87,9 +103,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal readonly ImmutableArray<TypeParameterConstraintClause> OtherPartialDeclarations;
 
-        internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty;
+        internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty && OtherPartialDeclarations.IsEmpty();
 
-        internal bool IsEarly => !TypeConstraintsSyntax.IsDefault;
+        internal bool IsEarly => !TypeConstraintsSyntax.IsDefault || OtherPartialDeclarations.IsEarly();
 
         internal TypeParameterConstraintClause AddPartialDeclaration(TypeParameterConstraintClause other)
         {
@@ -102,6 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static bool IsEarly(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             return constraintClauses.Any(clause => clause.IsEarly);
+        }
+
+        internal static bool IsEmpty(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        {
+            return constraintClauses.All(clause => clause.IsEmpty);
         }
     }
 }

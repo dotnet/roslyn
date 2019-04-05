@@ -462,6 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constraints = this.MakeTypeParameterConstraintsEarly(
                     _binder,
                     TypeParameters,
+                    _syntax.TypeParameterList,
                     _syntax.ConstraintClauses,
                     _syntax.Identifier.GetLocation(),
                     diagnostics);
