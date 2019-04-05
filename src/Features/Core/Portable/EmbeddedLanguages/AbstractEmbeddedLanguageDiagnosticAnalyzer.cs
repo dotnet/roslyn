@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
@@ -17,8 +18,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-        protected AbstractEmbeddedLanguageDiagnosticAnalyzer(
-            IEmbeddedLanguageFeaturesProvider languagesProvider)
+        protected AbstractEmbeddedLanguageDiagnosticAnalyzer(IEmbeddedLanguagesProvider languagesProvider)
         {
             var supportedDiagnostics = ArrayBuilder<DiagnosticDescriptor>.GetInstance();
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
             Debug.Assert(languagesProvider.Languages.Length > 0);
             foreach (var language in languagesProvider.Languages)
             {
-                var analyzer = language.DiagnosticAnalyzer;
+                var analyzer = (language as IEmbeddedLanguageFeatures)?.DiagnosticAnalyzer;
                 if (analyzer != null)
                 {
                     analyzers.Add(analyzer);

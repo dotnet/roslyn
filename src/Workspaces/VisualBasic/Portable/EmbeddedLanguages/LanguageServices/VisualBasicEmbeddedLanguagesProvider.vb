@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
-    <ExportLanguageService(GetType(IEmbeddedLanguagesProvider), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(IEmbeddedLanguagesProvider), LanguageNames.VisualBasic, ServiceLayer.Default), [Shared]>
     Friend Class VisualBasicEmbeddedLanguagesProvider
         Inherits AbstractEmbeddedLanguagesProvider
 

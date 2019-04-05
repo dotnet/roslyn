@@ -4,15 +4,15 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
 using Microsoft.CodeAnalysis.Editor.EmbeddedLanguages;
-using Microsoft.CodeAnalysis.Features.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.CSharp.Editor.EmbeddedLanguages
 {
-    [ExportLanguageService(typeof(IEmbeddedLanguageEditorFeaturesProvider), LanguageNames.CSharp), Shared]
+    [ExportLanguageService(typeof(IEmbeddedLanguagesProvider), LanguageNames.CSharp, ServiceLayer.Editor), Shared]
     internal class CSharpEmbeddedLanguageEditorFeaturesProvider : AbstractEmbeddedLanguageEditorFeaturesProvider
     {
-        public static IEmbeddedLanguageFeaturesProvider Instance = new CSharpEmbeddedLanguageEditorFeaturesProvider();
+        public static IEmbeddedLanguagesProvider Instance = new CSharpEmbeddedLanguageEditorFeaturesProvider();
 
         public CSharpEmbeddedLanguageEditorFeaturesProvider() : base(CSharpEmbeddedLanguagesProvider.Info)
         {
