@@ -390,8 +390,8 @@
   <data name="Place_open_brace_on_new_line_for_properties_indexers_and_events" xml:space="preserve">
     <value>Place open brace on new line for properties, indexers, and events</value>
   </data>
-  <data name="Suggest_usings_for_types_in_reference_assemblies" xml:space="preserve">
-    <value>Suggest usings for types in _reference assemblies</value>
+  <data name="Suggest_usings_for_types_in_dotnet_framework_assemblies" xml:space="preserve">
+    <value>Suggest usings for types in .NET Framework assemblies</value>
   </data>
   <data name="Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
     <value>Suggest usings for types in _NuGet packages</value>

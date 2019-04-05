@@ -79,6 +79,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
+        public static IEnumerable<INamespaceSymbol> GetAllNamespaces(
+            this INamespaceSymbol namespaceSymbol,
+            CancellationToken cancellationToken)
+        {
+            var stack = new Stack<INamespaceSymbol>();
+            stack.Push(namespaceSymbol);
+
+            while (stack.Count > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var current = stack.Pop();
+                if (current is INamespaceSymbol childNamespace)
+                {
+                    stack.Push(childNamespace.GetNamespaceMembers());
+                    yield return childNamespace;
+                }
+            }
+        }
+
         public static IEnumerable<INamedTypeSymbol> GetAllTypes(
             this IEnumerable<INamespaceSymbol> namespaceSymbols,
             CancellationToken cancellationToken)

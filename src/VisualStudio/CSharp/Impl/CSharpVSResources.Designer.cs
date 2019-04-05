@@ -1339,20 +1339,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Suggest usings for types in .NET Framework assemblies.
+        /// </summary>
+        internal static string Suggest_usings_for_types_in_dotnet_framework_assemblies {
+            get {
+                return ResourceManager.GetString("Suggest_usings_for_types_in_dotnet_framework_assemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Suggest usings for types in _NuGet packages.
         /// </summary>
         internal static string Suggest_usings_for_types_in_NuGet_packages {
             get {
                 return ResourceManager.GetString("Suggest_usings_for_types_in_NuGet_packages", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Suggest usings for types in _reference assemblies.
-        /// </summary>
-        internal static string Suggest_usings_for_types_in_reference_assemblies {
-            get {
-                return ResourceManager.GetString("Suggest_usings_for_types_in_reference_assemblies", resourceCulture);
             }
         }
         
