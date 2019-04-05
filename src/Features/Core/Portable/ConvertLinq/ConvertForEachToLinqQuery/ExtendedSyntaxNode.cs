@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal struct ExtendedSyntaxNode
+    internal readonly struct ExtendedSyntaxNode
     {
         public SyntaxNode Node { get; }
 

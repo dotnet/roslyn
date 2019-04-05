@@ -35,11 +35,11 @@ class C
             var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
 
             var locDecl = (BoundLocalDeclaration)block.Statements.Single();
-            var localA = (ArrayTypeSymbol)locDecl.DeclaredType.Display;
+            var localA = (ArrayTypeSymbol)locDecl.DeclaredTypeOpt.Display;
 
             var typeM = compilation.GlobalNamespace.GetMember<TypeSymbol>("M");
 
-            Assert.Equal(typeM, localA.ElementType.TypeSymbol);
+            Assert.Equal(typeM, localA.ElementType);
         }
 
         [Fact]

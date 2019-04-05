@@ -526,9 +526,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         public override void Cancel()
         {
-            base.Cancel();
-
+            // This must be cancelled first. Otherwise we risk that MSBuild cancellation logic will take down
+            // our pipes and tasks in an order we're not expecting.
             _sharedCompileCts?.Cancel();
+
+            base.Cancel();
         }
 
         /// <summary>

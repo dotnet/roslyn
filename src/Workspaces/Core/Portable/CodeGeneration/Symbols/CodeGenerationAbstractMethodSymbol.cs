@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Editing;
 
@@ -39,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract ImmutableArray<ITypeParameterSymbol> TypeParameters { get; }
         public abstract ImmutableArray<IParameterSymbol> Parameters { get; }
         public abstract IMethodSymbol ConstructedFrom { get; }
+        public abstract bool IsReadOnly { get; }
         public abstract IMethodSymbol OverriddenMethod { get; }
         public abstract IMethodSymbol ReducedFrom { get; }
         public abstract ITypeSymbol GetTypeInferredDuringReduction(ITypeParameterSymbol reducedFromTypeParameter);

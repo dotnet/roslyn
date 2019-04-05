@@ -118,6 +118,14 @@ namespace Microsoft.CodeAnalysis
         IMethodSymbol ConstructedFrom { get; }
 
         /// <summary>
+        /// Indicates whether the method is readonly, i.e.
+        /// i.e. whether the 'this' receiver parameter is 'ref readonly'.
+        /// Returns true for readonly instance methods and accessors
+        /// and for reduced extension methods with a 'this in' parameter.
+        /// </summary>
+        bool IsReadOnly { get; }
+
+        /// <summary>
         /// Get the original definition of this symbol. If this symbol is derived from another
         /// symbol by (say) type substitution, this gets the original symbol, as it was defined in
         /// source or metadata.
