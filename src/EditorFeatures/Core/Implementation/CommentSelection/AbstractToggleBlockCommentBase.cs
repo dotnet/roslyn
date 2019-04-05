@@ -31,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
             new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
 
-        private const string ContentTypeString = "ContentType";
-        private const string SubjectBufferLengthString = "subjectBufferLength";
+        private const string LanguageNameString = "languagename";
+        private const string LengthString = "length";
 
         private readonly ITextStructureNavigatorSelectorService _navigatorSelectorService;
 
@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         {
             using (Logger.LogBlock(FunctionId.CommandHandler_ToggleBlockComment, KeyValueLogMessage.Create(LogType.UserAction, m =>
             {
-                m[ContentTypeString] = subjectBuffer.ContentType.DisplayName;
-                m[SubjectBufferLengthString] = subjectBuffer.CurrentSnapshot.Length;
+                m[LanguageNameString] = document.Project.Language;
+                m[LengthString] = subjectBuffer.CurrentSnapshot.Length;
             }), cancellationToken))
             {
                 var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
