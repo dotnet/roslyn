@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 {
@@ -14,9 +13,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 
         protected AbstractEmbeddedLanguagesProvider(EmbeddedLanguageInfo info)
         {
-            Languages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new RegexEmbeddedLanguage(info),
-                new FallbackEmbeddedLanguage(info));
+            Languages = ImmutableArray.Create<IEmbeddedLanguage>(new FallbackEmbeddedLanguage(info));
         }
     }
 }
