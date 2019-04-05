@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
@@ -84,8 +85,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return;
                 }
 
-                // TODO: this should have cancellation token
-                await status.WaitForCompletionAsync().ConfigureAwait(false);
+                // TODO: WaitForCompletionAsync should accept cancellation directly.
+                //       for now, use WithCancellation to indirectly add cancellation
+                await status.WaitForCompletionAsync().WithCancellation(cancellationToken).ConfigureAwait(false);
             }
 
             public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
