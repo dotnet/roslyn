@@ -129,56 +129,6 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return new ResettableSqlStatement(statement);
         }
 
-        public void RunInTransaction<T>(Action<T> action, T userData)
-        {
-            try
-            {
-                if (IsInTransaction)
-                {
-                    throw new InvalidOperationException("Nested transactions not currently supported");
-                }
-
-                IsInTransaction = true;
-
-                ExecuteCommand("begin transaction");
-                action(userData);
-                ExecuteCommand("commit transaction");
-            }
-            catch (SqlException ex) when (ex.Result == Result.FULL ||
-                                          ex.Result == Result.IOERR ||
-                                          ex.Result == Result.BUSY ||
-                                          ex.Result == Result.LOCKED ||
-                                          ex.Result == Result.NOMEM)
-            {
-                // See documentation here: https://sqlite.org/lang_transaction.html
-                // If certain kinds of errors occur within a transaction, the transaction 
-                // may or may not be rolled back automatically. The errors that can cause 
-                // an automatic rollback include:
-
-                // SQLITE_FULL: database or disk full
-                // SQLITE_IOERR: disk I/ O error
-                // SQLITE_BUSY: database in use by another process
-                // SQLITE_LOCKED: database in use by another connection in the same process
-                // SQLITE_NOMEM: out or memory
-
-                // It is recommended that applications respond to the errors listed above by
-                // explicitly issuing a ROLLBACK command. If the transaction has already been
-                // rolled back automatically by the error response, then the ROLLBACK command 
-                // will fail with an error, but no harm is caused by this.
-                Rollback(throwOnError: false);
-                throw;
-            }
-            catch (Exception)
-            {
-                Rollback(throwOnError: true);
-                throw;
-            }
-            finally
-            {
-                IsInTransaction = false;
-            }
-        }
-
         public TResult RunInTransaction<T, TResult>(Func<T, TResult> action, T userData)
         {
             try

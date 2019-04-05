@@ -142,6 +142,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                                     var id = InsertStringIntoDatabase_MustRunInTransaction(connection, value);
                                     idToString.Object.Add(id, value);
                                 }
+
+                                return new ValueTuple();
                             }, (stringsToAdd, idToString, connection));
                         }
                         catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)

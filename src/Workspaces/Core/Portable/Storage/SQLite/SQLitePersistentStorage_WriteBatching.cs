@@ -232,6 +232,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                     {
                         action(connection);
                     }
+
+                    return new ValueTuple();
                 }, (writesToProcess, connection));
             }
             catch (Exception ex)
