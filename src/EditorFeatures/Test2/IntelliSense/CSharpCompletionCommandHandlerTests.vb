@@ -4884,6 +4884,27 @@ namespace ThenIncludeIntellisenseBug
             End Using
         End Function
 
+        <MemberData(NameOf(AllCompletionImplementations))>
+        <WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitIfUniqueFiltersIfNotUnique(completionImplementation As CompletionImplementation) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(completionImplementation,
+                              <Document>
+class C
+{
+    void Method()
+    {
+        Me$$
+    }
+}
+                              </Document>)
+
+                state.SendCommitUniqueCompletionListItem()
+                Await state.AssertCompletionSession()
+                state.AssertCompletionItemsContainAll(displayText:={"MemberwiseClone", "Method"})
+                state.AssertCompletionItemsDoNotContainAny(displayText:={"int", "ToString()", "Microsoft", "Math"})
+            End Using
+        End Function
+
         Private Class MultipleChangeCompletionProvider
             Inherits CompletionProvider
 

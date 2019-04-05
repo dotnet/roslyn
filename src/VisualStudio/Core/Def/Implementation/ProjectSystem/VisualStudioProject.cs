@@ -358,7 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         solutionChanges,
                         documentFileNamesAdded,
                         documentsToOpen,
-                        (s, documents) => solution.AddDocuments(documents),
+                        (s, documents) => s.AddDocuments(documents),
                         WorkspaceChangeKind.DocumentAdded,
                         (s, id) =>
                         {
