@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Composition;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -16,6 +15,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Experimentation
     [ExportOptionProvider, Shared]
     internal class ExperimentationOptionsProvider : IOptionProvider
     {
-        public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>();
+        public ImmutableArray<IOption> Options { get; } = ImmutableArray<IOption>.Empty;
     }
 }

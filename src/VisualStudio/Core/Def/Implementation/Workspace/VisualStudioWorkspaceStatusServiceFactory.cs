@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
@@ -17,12 +18,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class VisualStudioWorkspaceStatusServiceFactory : IWorkspaceServiceFactory
     {
         private readonly IAsyncServiceProvider2 _serviceProvider;
+        private readonly IAsynchronousOperationListener _listener;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioWorkspaceStatusServiceFactory(SVsServiceProvider serviceProvider)
+        public VisualStudioWorkspaceStatusServiceFactory(
+            SVsServiceProvider serviceProvider, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _serviceProvider = (IAsyncServiceProvider2)serviceProvider;
+
+            // for now, we use workspace so existing tests can automatically wait for full solution load event
+            // subscription done in test
+            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -37,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
 
                 // only VSWorkspace supports partial load mode
-                return new Service(_serviceProvider);
+                return new Service(_serviceProvider, _listener);
             }
 
             return WorkspaceStatusService.Default;
@@ -53,23 +60,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public event EventHandler<bool> StatusChanged;
 
-            public Service(IAsyncServiceProvider2 serviceProvider)
+            public Service(IAsyncServiceProvider2 serviceProvider, IAsynchronousOperationListener listener)
             {
                 _serviceProvider = serviceProvider;
 
-                // TODO: there is no right place to register event?
-                Task.Run(RegisterEventAsync, CancellationToken.None);
-
-                async Task RegisterEventAsync()
+                var asyncToken = listener.BeginAsyncOperation("StatusChanged_EventSubscription");
+                Task.Run(async () =>
                 {
+                    // with IAsyncServiceProvider to get the service from BG, there is not much else
+                    // we can do to avoid this pattern to subscribe to events
                     var status = await GetProgressStageStatusAsync().ConfigureAwait(false);
                     if (status == null)
                     {
                         return;
                     }
 
-                    status.InProgressChanged += (s, e) => this.StatusChanged?.Invoke(this, !e.Status.IsInProgress);
-                }
+                    status.InProgressChanged += (_, e) => this.StatusChanged?.Invoke(this, !e.Status.IsInProgress);
+                }, CancellationToken.None).CompletesAsyncOperation(asyncToken);
             }
 
             public async Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
@@ -98,12 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             private async Task<IVsOperationProgressStageStatus> GetProgressStageStatusAsync()
             {
                 var service = await _serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false).ConfigureAwait(false);
-                if (service == null)
-                {
-                    return null;
-                }
-
-                return service.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
+                return service?.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
             }
         }
     }
