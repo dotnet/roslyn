@@ -31,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
                                        .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));
 
-        private readonly RegexEmbeddedLanguageFeatures _language;
+        private readonly RegexEmbeddedLanguage _language;
 
-        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguageFeatures language)
+        public RegexEmbeddedCompletionProvider(RegexEmbeddedLanguage language)
         {
             _language = language;
         }

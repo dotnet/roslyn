@@ -3,22 +3,37 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
+namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
-    internal class RegexEmbeddedLanguage : IEmbeddedLanguage
+    internal class RegexEmbeddedLanguage : IEmbeddedLanguageFeatures
     {
         public readonly EmbeddedLanguageInfo Info;
 
-        public ISyntaxClassifier Classifier { get; }
+        private readonly AbstractEmbeddedLanguageFeaturesProvider _provider;
 
-        public RegexEmbeddedLanguage(EmbeddedLanguageInfo info)
+        public ISyntaxClassifier Classifier { get; }
+        public IDocumentHighlightsService DocumentHighlightsService { get; }
+        public CompletionProvider CompletionProvider { get; }
+
+        public RegexEmbeddedLanguage(
+            AbstractEmbeddedLanguageFeaturesProvider provider,
+            EmbeddedLanguageInfo info)
         {
             Info = info;
             Classifier = new RegexSyntaxClassifier(info);
+
+            _provider = provider;
+
+            DocumentHighlightsService = new RegexDocumentHighlightsService(this);
+            CompletionProvider = new RegexEmbeddedCompletionProvider(this);
         }
 
         internal async Task<(RegexTree tree, SyntaxToken token)> TryGetTreeAndTokenAtPositionAsync(
@@ -45,5 +60,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 document, position, cancellationToken).ConfigureAwait(false);
             return tree;
         }
+
+        public string EscapeText(string text, SyntaxToken token)
+            => _provider.EscapeText(text, token);
     }
 }

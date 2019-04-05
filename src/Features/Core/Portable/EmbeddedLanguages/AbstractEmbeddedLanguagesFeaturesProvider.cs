@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages
         protected AbstractEmbeddedLanguageFeaturesProvider(EmbeddedLanguageInfo info) : base(info)
         {
             Languages = ImmutableArray.Create<IEmbeddedLanguage>(
-                new RegexEmbeddedLanguageFeatures(this, info),
+                new RegexEmbeddedLanguage(this, info),
                 new FallbackEmbeddedLanguage(info));
         }
 

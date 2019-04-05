@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
     {
         private readonly struct EmbeddedCompletionContext
         {
-            private readonly RegexEmbeddedLanguageFeatures _language;
+            private readonly RegexEmbeddedLanguage _language;
             private readonly CompletionContext _context;
             private readonly HashSet<string> _names;
 
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
             public readonly List<RegexItem> Items;
 
             public EmbeddedCompletionContext(
-                RegexEmbeddedLanguageFeatures language,
+                RegexEmbeddedLanguage language,
                 CompletionContext context,
                 RegexTree tree,
                 SyntaxToken stringToken)
