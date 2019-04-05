@@ -14020,6 +14020,7 @@ partial class C1
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void PartialMethods_02_02()
         {
             var source = @"
@@ -14037,6 +14038,7 @@ partial class C1
             var compilation = CreateCompilation(new[] { source }, options: WithNonNullTypesTrue());
 
             compilation.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (10,18): error CS0761: Partial method declarations of 'C1.M1<T>(T?, T[]?, Action<T?>, Action<T?[]?>?[]?)' have inconsistent type parameter constraints
                 //     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("C1.M1<T>(T?, T[]?, System.Action<T?>, System.Action<T?[]?>?[]?)").WithLocation(10, 18),
@@ -58987,7 +58989,7 @@ class A : I1
 
             foreach (var reference in new[] { comp1.ToMetadataReference(), comp1.EmitToImageReference() })
             {
-                var comp2 = CreateCompilation(source2, options: WithNonNullTypesFalse(), references: new[] { reference });
+                var comp2 = CreateCompilation(source2, options: WithNonNullTypes(NullableContextOptions.Warnings), references: new[] { reference });
 
                 comp2.VerifyDiagnostics();
             }
@@ -60518,6 +60520,7 @@ public interface I1<TF1> where TF1 : I1<TF1>?
             var source1 =
 @"
 #nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1>
 {
 }
@@ -60554,8 +60557,8 @@ partial interface I1<TF1>
         public void Constraints_114()
         {
             var source1 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1>
 {
 }
@@ -60585,6 +60588,7 @@ partial interface I1<TF1>
 }
 
 #nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1>
 {
 }
@@ -60602,8 +60606,8 @@ partial interface I1<TF1>
         public void Constraints_116()
         {
             var source1 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1>
 {
 }
@@ -60621,8 +60625,8 @@ partial interface I1<TF1> where TF1 : object
             Assert.Null(tf1.IsNotNullableIfReferenceType);
 
             var source2 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : new()
 {
 }
@@ -60688,6 +60692,7 @@ partial interface I1<TF1> where TF1 : object, new()
             var source1 =
 @"
 #nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1>
 {
 }
@@ -60706,8 +60711,8 @@ partial interface I1<TF1> where TF1 : object
             Assert.True(tf1.IsNotNullableIfReferenceType);
 
             var source2 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : new()
 {
 }
@@ -60737,6 +60742,7 @@ partial interface I1<TF1>
 }
 
 #nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : object
 {
 }
@@ -60757,6 +60763,7 @@ partial interface I1<TF1> where TF1 : new()
 }
 
 #nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : object, new()
 {
 }
@@ -60774,8 +60781,8 @@ partial interface I1<TF1> where TF1 : object, new()
         public void Constraints_120()
         {
             var source1 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1>
 {
 }
@@ -60800,8 +60807,8 @@ partial interface I1<TF1> where TF1 : object?
             Assert.False(tf1.IsNotNullableIfReferenceType);
 
             var source2 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : new()
 {
 }
@@ -60878,8 +60885,8 @@ partial interface I1<TF1> where TF1 : object?, new()
         public void Constraints_122()
         {
             var source1 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1>
 {
 }
@@ -60902,8 +60909,8 @@ partial interface I1<TF1> where TF1 : object?
             Assert.False(tf1.IsNotNullableIfReferenceType);
 
             var source2 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : new()
 {
 }
@@ -60934,8 +60941,8 @@ partial interface I1<TF1> where TF1 : object?, new()
 partial interface I1<TF1>
 {
 }
-
 #nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : object?
 {
 }
@@ -60961,8 +60968,8 @@ partial interface I1<TF1> where TF1 : object?
 partial interface I1<TF1> where TF1 : new()
 {
 }
-
 #nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : object?, new()
 {
 }
@@ -60986,8 +60993,8 @@ partial interface I1<TF1> where TF1 : object?, new()
         public void Constraints_124()
         {
             var source1 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : object?
 {
 }
@@ -61012,8 +61019,8 @@ partial interface I1<TF1>
             Assert.False(tf1.IsNotNullableIfReferenceType);
 
             var source2 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : object?, new()
 {
 }
@@ -61090,8 +61097,8 @@ partial interface I1<TF1> where TF1 : new()
         public void Constraints_126()
         {
             var source1 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : object?
 {
 }
@@ -61117,8 +61124,8 @@ partial interface I1<TF1>
             Assert.False(tf1.IsNotNullableIfReferenceType);
 
             var source2 =
-@"
-#nullable disable
+@"#nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : object?, new()
 {
 }
@@ -61154,6 +61161,7 @@ partial interface I1<TF1> where TF1 : object?
 }
 
 #nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1>
 {
 }
@@ -61178,6 +61186,7 @@ partial interface I1<TF1> where TF1 : object?, new()
 }
 
 #nullable disable
+#pragma warning enable nullable
 partial interface I1<TF1> where TF1 : new()
 {
 }
@@ -61202,6 +61211,7 @@ partial interface I1<TF1> where TF1 : new()
 partial class A
 {
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>();
 
 partial void M1<TF1>()
@@ -61235,6 +61245,7 @@ partial void M1<TF1>()
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_130()
         {
             var source1 =
@@ -61242,8 +61253,8 @@ partial void M1<TF1>()
 partial class A
 {
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>();
-
 #nullable enable
 partial void M1<TF1>()
 {
@@ -61253,6 +61264,7 @@ partial void M1<TF1>()
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (8,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(8, 14)
@@ -61268,12 +61280,14 @@ partial void M1<TF1>()
 }
 
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>();
 }
 ";
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
@@ -61281,6 +61295,7 @@ partial void M1<TF1>();
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_131()
         {
             var source1 =
@@ -61289,8 +61304,8 @@ partial class A
 {
 #nullable enable
 partial void M1<TF1>();
-
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>()
 {
 }
@@ -61299,16 +61314,17 @@ partial void M1<TF1>()
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (8,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(8, 14)
                 );
 
             var source2 =
-@"
+@"#nullable disable
 partial class A
 {
-#nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>()
 {
 }
@@ -61320,6 +61336,7 @@ partial void M1<TF1>();
             var comp2 = CreateCompilation(source2);
 
             comp2.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
@@ -61334,6 +61351,7 @@ partial void M1<TF1>();
 partial class A
 {
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>();
 
 partial void M1<TF1>() where TF1 : object
@@ -61347,6 +61365,7 @@ partial void M1<TF1>() where TF1 : object
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_133()
         {
             var source1 =
@@ -61364,6 +61383,7 @@ partial void M1<TF1>() where TF1 : object
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (7,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>() where TF1 : object
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(7, 14)
@@ -61371,6 +61391,7 @@ partial void M1<TF1>() where TF1 : object
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_134()
         {
             var source1 =
@@ -61378,8 +61399,8 @@ partial void M1<TF1>() where TF1 : object
 partial class A
 {
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>();
-
 #nullable enable
 partial void M1<TF1>() where TF1 : object
 {
@@ -61389,6 +61410,7 @@ partial void M1<TF1>() where TF1 : object
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (8,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>() where TF1 : object
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(8, 14)
@@ -61396,6 +61418,7 @@ partial void M1<TF1>() where TF1 : object
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_135()
         {
             var source1 =
@@ -61404,8 +61427,8 @@ partial class A
 {
 #nullable enable
 partial void M1<TF1>();
-
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>() where TF1 : object
 {
 }
@@ -61414,6 +61437,7 @@ partial void M1<TF1>() where TF1 : object
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (8,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>() where TF1 : object
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(8, 14)
@@ -61421,6 +61445,7 @@ partial void M1<TF1>() where TF1 : object
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_136()
         {
             var source1 =
@@ -61428,8 +61453,8 @@ partial void M1<TF1>() where TF1 : object
 partial class A
 {
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>();
-
 partial void M1<TF1>() where TF1 : object?
 {
 }
@@ -61438,6 +61463,7 @@ partial void M1<TF1>() where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (7,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>() where TF1 : object?
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(7, 14),
@@ -61451,6 +61477,7 @@ partial void M1<TF1>() where TF1 : object?
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_137()
         {
             var source1 =
@@ -61468,6 +61495,7 @@ partial void M1<TF1>() where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (7,36): error CS0702: Constraint cannot be special class 'object?'
                 // partial void M1<TF1>() where TF1 : object?
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 36)
@@ -61475,6 +61503,7 @@ partial void M1<TF1>() where TF1 : object?
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_138()
         {
             var source1 =
@@ -61482,8 +61511,8 @@ partial void M1<TF1>() where TF1 : object?
 partial class A
 {
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>();
-
 #nullable enable
 partial void M1<TF1>() where TF1 : object?
 {
@@ -61493,6 +61522,7 @@ partial void M1<TF1>() where TF1 : object?
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (8,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>() where TF1 : object?
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(8, 14),
@@ -61511,8 +61541,8 @@ partial class A
 {
 #nullable enable
 partial void M1<TF1>();
-
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>() where TF1 : object?
 {
 }
@@ -61538,6 +61568,7 @@ partial void M1<TF1>() where TF1 : object?
 partial class A
 {
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>()
 {
 }
@@ -61571,13 +61602,14 @@ partial void M1<TF1>();
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_142()
         {
             var source1 =
-@"
+@"#nullable disable
 partial class A
 {
-#nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>()
 {
 }
@@ -61589,6 +61621,7 @@ partial void M1<TF1>();
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
@@ -61596,6 +61629,7 @@ partial void M1<TF1>();
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_143()
         {
             var source1 =
@@ -61608,12 +61642,14 @@ partial void M1<TF1>()
 }
 
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>();
 }
 ";
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
@@ -61628,6 +61664,7 @@ partial void M1<TF1>();
 partial class A
 {
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>()
 {
 }
@@ -61641,6 +61678,7 @@ partial void M1<TF1>() where TF1 : object;
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_145()
         {
             var source1 =
@@ -61658,6 +61696,7 @@ partial void M1<TF1>() where TF1 : object;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
@@ -61665,13 +61704,14 @@ partial void M1<TF1>() where TF1 : object;
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_146()
         {
             var source1 =
-@"
+@"#nullable disable
 partial class A
 {
-#nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>()
 {
 }
@@ -61683,6 +61723,7 @@ partial void M1<TF1>() where TF1 : object;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
@@ -61690,6 +61731,7 @@ partial void M1<TF1>() where TF1 : object;
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_147()
         {
             var source1 =
@@ -61702,12 +61744,14 @@ partial void M1<TF1>()
 }
 
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>() where TF1 : object;
 }
 ";
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14)
@@ -61715,13 +61759,14 @@ partial void M1<TF1>() where TF1 : object;
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_148()
         {
             var source1 =
-@"
+@"#nullable disable
 partial class A
 {
-#nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>()
 {
 }
@@ -61732,6 +61777,7 @@ partial void M1<TF1>() where TF1 : object?;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14),
@@ -61769,13 +61815,14 @@ partial void M1<TF1>() where TF1 : object?;
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_150()
         {
             var source1 =
-@"
+@"#nullable disable
 partial class A
 {
-#nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>()
 {
 }
@@ -61787,6 +61834,7 @@ partial void M1<TF1>() where TF1 : object?;
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (5,14): error CS0761: Partial method declarations of 'A.M1<TF1>()' have inconsistent type parameter constraints
                 // partial void M1<TF1>()
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("A.M1<TF1>()").WithLocation(5, 14),
@@ -61807,8 +61855,8 @@ partial class A
 partial void M1<TF1>()
 {
 }
-
 #nullable disable
+#pragma warning enable nullable
 partial void M1<TF1>() where TF1 : object?;
 }
 ";
