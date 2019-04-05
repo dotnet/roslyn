@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             return id;
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34789", AllowCaptures = false)]
         private int? TryGetStringIdFromDatabase(SqlConnection connection, string value)
         {
             // First, check if we can find that string in the string table.
@@ -86,10 +87,12 @@ namespace Microsoft.CodeAnalysis.SQLite
             // values.
             try
             {
-                connection.RunInTransaction(() =>
+                stringId = connection.RunInTransaction((ValueTuple<string, SqlConnection> tuple) =>
                 {
-                    stringId = InsertStringIntoDatabase_MustRunInTransaction(connection, value);
-                });
+                    var value = tuple.Item1;
+                    var connection = tuple.Item2;
+                    return InsertStringIntoDatabase_MustRunInTransaction(connection, value);
+                }, (value, connection));
 
                 Contract.ThrowIfTrue(stringId == null);
                 return stringId;

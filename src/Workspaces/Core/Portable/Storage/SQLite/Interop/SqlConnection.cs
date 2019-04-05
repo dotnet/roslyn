@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return new ResettableSqlStatement(statement);
         }
 
-        public void RunInTransaction(Action action)
+        public void RunInTransaction<T>(Action<T> action, T userData)
         {
             try
             {
@@ -141,8 +141,59 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
                 IsInTransaction = true;
 
                 ExecuteCommand("begin transaction");
-                action();
+                action(userData);
                 ExecuteCommand("commit transaction");
+            }
+            catch (SqlException ex) when (ex.Result == Result.FULL ||
+                                          ex.Result == Result.IOERR ||
+                                          ex.Result == Result.BUSY ||
+                                          ex.Result == Result.LOCKED ||
+                                          ex.Result == Result.NOMEM)
+            {
+                // See documentation here: https://sqlite.org/lang_transaction.html
+                // If certain kinds of errors occur within a transaction, the transaction 
+                // may or may not be rolled back automatically. The errors that can cause 
+                // an automatic rollback include:
+
+                // SQLITE_FULL: database or disk full
+                // SQLITE_IOERR: disk I/ O error
+                // SQLITE_BUSY: database in use by another process
+                // SQLITE_LOCKED: database in use by another connection in the same process
+                // SQLITE_NOMEM: out or memory
+
+                // It is recommended that applications respond to the errors listed above by
+                // explicitly issuing a ROLLBACK command. If the transaction has already been
+                // rolled back automatically by the error response, then the ROLLBACK command 
+                // will fail with an error, but no harm is caused by this.
+                Rollback(throwOnError: false);
+                throw;
+            }
+            catch (Exception)
+            {
+                Rollback(throwOnError: true);
+                throw;
+            }
+            finally
+            {
+                IsInTransaction = false;
+            }
+        }
+
+        public TResult RunInTransaction<T, TResult>(Func<T, TResult> action, T userData)
+        {
+            try
+            {
+                if (IsInTransaction)
+                {
+                    throw new InvalidOperationException("Nested transactions not currently supported");
+                }
+
+                IsInTransaction = true;
+
+                ExecuteCommand("begin transaction");
+                var result = action(userData);
+                ExecuteCommand("commit transaction");
+                return result;
             }
             catch (SqlException ex) when (ex.Result == Result.FULL ||
                                           ex.Result == Result.IOERR ||
@@ -185,6 +236,8 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public int LastInsertRowId()
             => (int)raw.sqlite3_last_insert_rowid(_handle);
 
+
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34789", AllowCaptures = false)]
         public Stream ReadBlob(string dataTableName, string dataColumnName, long rowId)
         {
             // NOTE: we do need to do the blob reading in a transaction because of the
@@ -196,13 +249,15 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
             // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
             // SQLITE_ABORT.
-            Stream stream = null;
-            RunInTransaction(() =>
+            return RunInTransaction((ValueTuple<string, string, long, SqlConnection> tuple) =>
             {
-                stream = ReadBlob_InTransaction(dataTableName, dataColumnName, rowId);
-            });
+                var dataTableName = tuple.Item1;
+                var dataColumnName = tuple.Item2;
+                var rowId = tuple.Item3;
+                var connection = tuple.Item4;
 
-            return stream;
+                return connection.ReadBlob_InTransaction(dataTableName, dataColumnName, rowId);
+            }, (dataTableName, dataColumnName, rowId, this));
         }
 
         private Stream ReadBlob_InTransaction(string tableName, string columnName, long rowId)

@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34789", AllowCaptures = false)]
         private void ProcessWriteQueue(
             SqlConnection connection,
             ArrayBuilder<Action<SqlConnection>> writesToProcess)
@@ -222,13 +223,16 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 // Create a transaction and perform all writes within it.
-                connection.RunInTransaction(() =>
+                connection.RunInTransaction((ValueTuple<ArrayBuilder<Action<SqlConnection>>, SqlConnection> tuple) =>
                 {
+                    var writesToProcess = tuple.Item1;
+                    var connection = tuple.Item2;
+
                     foreach (var action in writesToProcess)
                     {
                         action(connection);
                     }
-                });
+                }, (writesToProcess, connection));
             }
             catch (Exception ex)
             {

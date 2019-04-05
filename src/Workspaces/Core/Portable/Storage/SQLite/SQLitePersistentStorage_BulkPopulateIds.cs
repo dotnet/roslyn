@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// <summary>
         /// Returns 'true' if the bulk population succeeds, or false if it doesn't.
         /// </summary>
+        [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34789", AllowCaptures = false)]
         private bool BulkPopulateProjectIdsWorker(SqlConnection connection, Project project)
         {
             // First, in bulk, get string-ids for all the paths and names for the project and documents.
@@ -130,14 +131,18 @@ namespace Microsoft.CodeAnalysis.SQLite
                     {
                         try
                         {
-                            connection.RunInTransaction(() =>
+                            connection.RunInTransaction((ValueTuple<HashSet<string>, PooledObject<Dictionary<int, string>>, SqlConnection> tuple) =>
                             {
+                                var stringsToAdd = tuple.Item1;
+                                var idToString = tuple.Item2;
+                                var connection = tuple.Item3;
+
                                 foreach (var value in stringsToAdd)
                                 {
                                     var id = InsertStringIntoDatabase_MustRunInTransaction(connection, value);
                                     idToString.Object.Add(id, value);
                                 }
-                            });
+                            }, (stringsToAdd, idToString, connection));
                         }
                         catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
                         {
