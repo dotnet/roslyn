@@ -1291,7 +1291,8 @@ class C
 }";
             var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"1", verify: Verification.Fails);
             verifier.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
-@"{
+@"
+{
   // Code size      198 (0xc6)
   .maxstack  3
   .locals init (int V_0,
@@ -1395,7 +1396,8 @@ class C
 }");
             verifier = CompileAndVerify(text, options: TestOptions.UnsafeDebugExe, expectedOutput: @"1", verify: Verification.Fails);
             verifier.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
-@"{
+@"
+{
   // Code size      227 (0xe3)
   .maxstack  3
   .locals init (int V_0,
@@ -1549,7 +1551,8 @@ class Test
             // NOTE: only one hoisted int local:  
             //       int Test.<MainAsync>d__1.<a>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
-@"{
+@"
+{
   // Code size      292 (0x124)
   .maxstack  3
   .locals init (int V_0,
@@ -1682,7 +1685,8 @@ class Test
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
-@"{
+@"
+{
   // Code size      331 (0x14b)
   .maxstack  3
   .locals init (int V_0,
@@ -1872,7 +1876,8 @@ class Test
             // NOTE: only one hoisted int local:  
             //       int Test.<MainAsync>d__1.<a>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
-@"{
+@"
+{
   // Code size      292 (0x124)
   .maxstack  3
   .locals init (int V_0,
@@ -2005,7 +2010,8 @@ class Test
             //       int Test.<MainAsync>d__1.<a>5__1  and  
             //       int Test.<MainAsync>d__1.<b>5__2
             verifier.VerifyIL("Test.<MainAsync>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
-@"{
+@"
+{
   // Code size      331 (0x14b)
   .maxstack  3
   .locals init (int V_0,
