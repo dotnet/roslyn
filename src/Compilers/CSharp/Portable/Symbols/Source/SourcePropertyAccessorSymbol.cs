@@ -432,17 +432,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // We can't emit the synthesized attribute for netmodules, so in this case we consider auto-getters **not** implicitly readonly.
-                bool isBadNetModule = DeclaringCompilation.Options.OutputKind == OutputKind.NetModule &&
-                    DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute).IsErrorType();
+                if (DeclaringCompilation.Options.OutputKind == OutputKind.NetModule &&
+                    DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute).IsErrorType())
+                {
+                    return false;
+                }
 
-                bool isReadOnlyAutoGetter =
-                    !isBadNetModule &&
-                    ContainingType.IsStructType() &&
+                return ContainingType.IsStructType() &&
                     !_property.IsStatic &&
                     _isAutoPropertyAccessor &&
                     MethodKind == MethodKind.PropertyGet;
-
-                return isReadOnlyAutoGetter;
             }
         }
 
