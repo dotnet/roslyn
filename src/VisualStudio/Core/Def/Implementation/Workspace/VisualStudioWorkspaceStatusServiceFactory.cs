@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.OperationProgress;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
@@ -56,7 +57,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// </summary>
         private class Service : IWorkspaceStatusService
         {
+            private readonly SemaphoreSlim _initializationGate = new SemaphoreSlim(initialCount: 1);
             private readonly IAsyncServiceProvider2 _serviceProvider;
+
+            private bool _initialized = false;
 
             public event EventHandler<bool> StatusChanged;
 
@@ -64,23 +68,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 _serviceProvider = serviceProvider;
 
+                // pre-emptively make sure event is subscribed. if APIs are called before it is done, calls will be blocked
+                // until event subscription is done
                 var asyncToken = listener.BeginAsyncOperation("StatusChanged_EventSubscription");
-                Task.Run(async () =>
-                {
-                    // with IAsyncServiceProvider to get the service from BG, there is not much else
-                    // we can do to avoid this pattern to subscribe to events
-                    var status = await GetProgressStageStatusAsync().ConfigureAwait(false);
-                    if (status == null)
-                    {
-                        return;
-                    }
-
-                    status.InProgressChanged += (_, e) => this.StatusChanged?.Invoke(this, !e.Status.IsInProgress);
-                }, CancellationToken.None).CompletesAsyncOperation(asyncToken);
+                Task.Run(() => EnsureInitializationAsync(CancellationToken.None), CancellationToken.None).CompletesAsyncOperation(asyncToken);
             }
 
             public async Task WaitUntilFullyLoadedAsync(CancellationToken cancellationToken)
             {
+                await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
+
                 var status = await GetProgressStageStatusAsync().ConfigureAwait(false);
                 if (status == null)
                 {
@@ -93,6 +90,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             public async Task<bool> IsFullyLoadedAsync(CancellationToken cancellationToken)
             {
+                await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
+
                 var status = await GetProgressStageStatusAsync().ConfigureAwait(false);
                 if (status == null)
                 {
@@ -106,6 +105,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 var service = await _serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false).ConfigureAwait(false);
                 return service?.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
+            }
+
+            private async Task EnsureInitializationAsync(CancellationToken cancellationToken)
+            {
+                using (await _initializationGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (_initialized)
+                    {
+                        return;
+                    }
+
+                    _initialized = true;
+
+                    // with IAsyncServiceProvider, to get a service from BG, there is not much else
+                    // we can do to avoid this pattern to subscribe to events
+                    var status = await GetProgressStageStatusAsync().ConfigureAwait(false);
+                    if (status == null)
+                    {
+                        return;
+                    }
+
+                    status.InProgressChanged += (_, e) => this.StatusChanged?.Invoke(this, !e.Status.IsInProgress);
+                }
             }
         }
     }
