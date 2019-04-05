@@ -3,19 +3,19 @@ the compiler settings and references you have. In most cases, this is easy, but 
 project files, or are consuming additional SDKs or NuGet packages, things can sometimes go wrong. This will help you
 debug the cause of what went wrong.
 
-## How do I tell if I'm in this state?
+## How do I tell if this guide is for me?
 
 There are a few ways to tell:
 
-1. If you're using Visual Studio 2015 Update 2 or later, look for warning IDE0006 in the error list:
-    ![IDE0006 error example](images/design-time-build-errors/ide0006.png)
+1. A Microsoft engineer asked you to follow these steps.
 
 2. In any version of Visual Studio, look to see if the first project drop down above a text file says "Miscellaneous Files" instead of
    the name of the project you expected to see:
 
     ![Miscellaneous Files show in the navigation bars](images/design-time-build-errors/miscellaneous-files.png)
 
-If you don't see either of these symptoms, this guide might not be for you. If a Microsoft engineer asked you to follow these steps, continue on anyways.
+3. If you're using Visual Studio 2015 Update 2 or later, look for warning IDE0006 in the error list:
+    ![IDE0006 error example](images/design-time-build-errors/ide0006.png)
 
 ## How do I get log files to diagnose what is happening in Visual Studio 2019?
 
