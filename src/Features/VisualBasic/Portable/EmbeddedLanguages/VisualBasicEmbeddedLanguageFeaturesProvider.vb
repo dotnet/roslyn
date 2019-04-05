@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
     Friend Class VisualBasicEmbeddedLanguageFeaturesProvider
         Inherits AbstractEmbeddedLanguageFeaturesProvider
 
-        Public Shared Shadows Instance As New VisualBasicEmbeddedLanguageFeaturesProvider()
-
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             MyBase.New(VisualBasicEmbeddedLanguagesProvider.Info)
         End Sub

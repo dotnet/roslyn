@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices;
 using Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
@@ -12,9 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Editor.EmbeddedLanguages
     [ExportLanguageService(typeof(IEmbeddedLanguagesProvider), LanguageNames.CSharp, ServiceLayer.Editor), Shared]
     internal class CSharpEmbeddedLanguageEditorFeaturesProvider : AbstractEmbeddedLanguageEditorFeaturesProvider
     {
-        public static IEmbeddedLanguagesProvider Instance = new CSharpEmbeddedLanguageEditorFeaturesProvider();
-
-        public CSharpEmbeddedLanguageEditorFeaturesProvider() : base(CSharpEmbeddedLanguagesProvider.Info)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CSharpEmbeddedLanguageEditorFeaturesProvider()
+            : base(CSharpEmbeddedLanguagesProvider.Info)
         {
         }
 

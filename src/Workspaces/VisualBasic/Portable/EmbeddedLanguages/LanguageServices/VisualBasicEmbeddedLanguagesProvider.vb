@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
             VisualBasicSemanticFactsService.Instance,
             VisualBasicVirtualCharService.Instance)
 
-        Public Shared Instance As New VisualBasicEmbeddedLanguagesProvider()
-
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
             MyBase.New(Info)
         End Sub
