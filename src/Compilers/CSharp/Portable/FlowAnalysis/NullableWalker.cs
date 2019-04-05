@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Invalid type, used only to catch Visit methods that do not set
         /// _result.Type. See VisitExpressionWithoutStackGuard.
         /// </summary>
-        private static readonly TypeWithState _invalidType = new TypeWithState(ErrorTypeSymbol.UnknownResultType, NullableFlowState.NotNull);
+        private static readonly TypeWithState _invalidType = TypeWithState.Create(ErrorTypeSymbol.UnknownResultType, NullableFlowState.NotNull);
 
         /// <summary>
         /// The result and l-value type of the last visited expression.
@@ -1409,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitObjectCreationInitializer(null, slot, initializerOpt);
             }
 
-            ResultType = new TypeWithState(type, resultState);
+            ResultType = TypeWithState.Create(type, resultState);
         }
 
         private void VisitObjectCreationInitializer(Symbol containingSymbol, int containingSlot, BoundExpression node)
@@ -1502,7 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void SetNotNullResult(BoundExpression node)
         {
-            ResultType = new TypeWithState(node.Type, NullableFlowState.NotNull);
+            ResultType = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
         }
 
         private int GetOrCreatePlaceholderSlot(BoundExpression node)
@@ -1552,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ResultType = new TypeWithState(anonymousType, NullableFlowState.NotNull);
+            ResultType = TypeWithState.Create(anonymousType, NullableFlowState.NotNull);
             return null;
         }
 
@@ -1563,7 +1563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitRvalue(expr);
             }
             TypeSymbol resultType = (node.InitializerOpt == null) ? node.Type : VisitArrayInitializer(node);
-            ResultType = new TypeWithState(resultType, NullableFlowState.NotNull);
+            ResultType = TypeWithState.Create(resultType, NullableFlowState.NotNull);
             return null;
         }
 
@@ -1797,12 +1797,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (operatorKind.IsLifted())
+            if (operatorKind.IsLifted() && !operatorKind.IsComparison())
             {
                 resultState = leftType.State.Join(rightType.State);
             }
 
-            return new TypeWithState(resultType, resultState);
+            return TypeWithState.Create(resultType, resultState);
         }
 
         protected override void AfterLeftChildHasBeenVisited(BoundBinaryOperator binary)
@@ -2104,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rightResult = VisitRvalueWithState(rightOperand);
                 // Should be able to use rightResult for the result of the operator but
                 // binding may have generated a different result type in the case of errors.
-                ResultType = new TypeWithState(node.Type, rightResult.State);
+                ResultType = TypeWithState.Create(node.Type, rightResult.State);
                 return null;
             }
 
@@ -2202,7 +2202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static TypeWithState GetNullCoalescingResultType(TypeWithState rightResult, TypeSymbol resultType)
         {
             NullableFlowState resultState = rightResult.State;
-            return new TypeWithState(resultType, resultState);
+            return TypeWithState.Create(resultType, resultState);
         }
 
         public override BoundNode VisitConditionalAccess(BoundConditionalAccess node)
@@ -2230,6 +2230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var accessExpressionType = VisitRvalueWithState(node.AccessExpression);
             Join(ref this.State, ref receiverState);
+
             // Per LDM 2019-02-13 decision, the result of a conditional access might be null even if
             // both the receiver and right-hand-side are believed not to be null.
             NullableFlowState resultState = NullableFlowState.MaybeNull;
@@ -2247,7 +2248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _currentConditionalReceiverVisitResult = default;
             _lastConditionalAccessSlot = previousConditionalAccessSlot;
-            ResultType = new TypeWithState(type, resultState);
+            ResultType = TypeWithState.Create(type, resultState);
             return null;
         }
 
@@ -2284,7 +2285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var lValueAnnotation = consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation);
                 var rValueState = consequenceRValue.State.Join(alternativeRValue.State);
 
-                SetResult(new TypeWithState(refResultType, rValueState), TypeWithAnnotations.Create(refResultType, lValueAnnotation));
+                SetResult(TypeWithState.Create(refResultType, rValueState), TypeWithAnnotations.Create(refResultType, lValueAnnotation));
                 return null;
             }
 
@@ -2379,7 +2380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultState = convertedConsequenceResult.State.Join(convertedAlternativeResult.State);
             }
 
-            ResultType = new TypeWithState(resultType, resultState);
+            ResultType = TypeWithState.Create(resultType, resultState);
             return null;
 
             (BoundExpression, Conversion, TypeWithState) visitConditionalOperand(LocalState state, BoundExpression operand)
@@ -2444,7 +2445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rvalueType = rvalueType.GetNullableUnderlyingType();
             }
-            ResultType = new TypeWithState(rvalueType, NullableFlowState.NotNull);
+            ResultType = TypeWithState.Create(rvalueType, NullableFlowState.NotNull);
             return null;
         }
 
@@ -3373,7 +3374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (slot > 0 && slot < this.State.Capacity)
             {
                 NullableFlowState state = this.State[slot];
-                return new TypeWithState(type.Type, state);
+                return TypeWithState.Create(type.Type, state);
             }
 
             return type;
@@ -3608,7 +3609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tupleOpt = tupleOpt.WithElementTypes(elementTypesWithAnnotations);
                 var locations = tupleOpt.TupleElements.SelectAsArray((element, location) => element.Locations.FirstOrDefault() ?? location, node.Syntax.Location);
                 tupleOpt.CheckConstraints(_conversions, includeNullability: true, node.Syntax, locations, compilation, diagnosticsOpt: null, nullabilityDiagnosticsOpt: Diagnostics);
-                ResultType = new TypeWithState(tupleOpt, NullableFlowState.NotNull);
+                ResultType = TypeWithState.Create(tupleOpt, NullableFlowState.NotNull);
             }
         }
 
@@ -3939,7 +3940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ReportNullabilityMismatchWithTargetDelegate(node.Syntax, delegateType, unboundLambda);
                         }
 
-                        return new TypeWithState(targetType, NullableFlowState.NotNull);
+                        return TypeWithState.Create(targetType, NullableFlowState.NotNull);
                     }
                     break;
 
@@ -3962,6 +3963,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.NoConversion:
+                    resultState = operandType.State;
+                    break;
+
                 case ConversionKind.DefaultOrNullLiteral:
                     checkConversion = false;
                     goto case ConversionKind.Identity;
@@ -4117,7 +4121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultState = NullableFlowState.MaybeNull;
             }
 
-            var resultType = new TypeWithState(targetType, resultState);
+            var resultType = TypeWithState.Create(targetType, resultState);
 
             if (operandType.Type?.IsErrorType() != true && !targetType.IsErrorType())
             {
@@ -4175,7 +4179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // cf. Binder.CreateUserDefinedConversion
             if (!conversion.IsValid)
             {
-                return new TypeWithState(targetType, NullableFlowState.NotNull);
+                return TypeWithState.Create(targetType, NullableFlowState.NotNull);
             }
 
             // operand -> conversion "from" type
@@ -4254,7 +4258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(ImmutableArray.Create(returnType))
                 : returnType.Type;
             NullableFlowState state = returnType.ToTypeWithState().State.Join(operandState);
-            return new TypeWithState(type, state);
+            return TypeWithState.Create(type, state);
         }
 
         private TypeWithState ClassifyAndApplyConversion(
@@ -4374,7 +4378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitThisOrBaseReference(BoundExpression node)
         {
-            var rvalueResult = new TypeWithState(node.Type, NullableFlowState.NotNull);
+            var rvalueResult = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
             var lvalueResult = TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
             SetResult(rvalueResult, lvalueResult);
         }
@@ -4418,7 +4422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 TrackNullableStateForAssignment(right, leftLValueType, MakeSlot(left), rightType, MakeSlot(right));
-                SetResult(new TypeWithState(leftLValueType.Type, rightType.State), leftLValueType);
+                SetResult(TypeWithState.Create(leftLValueType.Type, rightType.State), leftLValueType);
             }
 
             return null;
@@ -4578,7 +4582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             valueSlot = MakeSlot(rightPart);
                             if (valueSlot > 0)
                             {
-                                var valueBeforeNullableWrapping = new TypeWithState(underlyingType.Type, NullableFlowState.NotNull);
+                                var valueBeforeNullableWrapping = TypeWithState.Create(underlyingType.Type, NullableFlowState.NotNull);
                                 TrackNullableStateOfNullableValue(targetSlot, targetType.Type, rightPart, valueBeforeNullableWrapping, valueSlot);
                             }
                         }
@@ -4823,7 +4827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                resultType = new TypeWithState(node.Type, NullableFlowState.NotNull);
+                resultType = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
             }
 
             TrackNullableStateForAssignment(node, leftLValueType, MakeSlot(node.Left), resultType);
@@ -4968,7 +4972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slot > 0 && slot < this.State.Capacity)
                 {
                     var state = this.State[slot];
-                    resultType = new TypeWithState(resultType.Type, state);
+                    resultType = TypeWithState.Create(resultType.Type, state);
                 }
             }
 
@@ -5147,7 +5151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                resultType = new TypeWithState(node.Type, node.OperatorKind.IsLifted() ? argumentResult.State : NullableFlowState.NotNull);
+                resultType = TypeWithState.Create(node.Type, node.OperatorKind.IsLifted() ? argumentResult.State : NullableFlowState.NotNull);
             }
 
             ResultType = resultType;
@@ -5198,7 +5202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // https://github.com/dotnet/roslyn/issues/33879 Conversions: Lifted operator
                 // Should this use the updated flow type and state?  How should it compute nullability?
-                return new TypeWithState(node.Type, NullableFlowState.NotNull);
+                return TypeWithState.Create(node.Type, NullableFlowState.NotNull);
             }
 
             // Update method based on inferred operand types: see https://github.com/dotnet/roslyn/issues/29605.
@@ -5302,7 +5306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
         {
             var result = base.VisitTypeOfOperator(node);
-            ResultType = new TypeWithState(node.Type, NullableFlowState.NotNull);
+            ResultType = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
             return result;
         }
 
@@ -5402,7 +5406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ResultType = new TypeWithState(type, resultState);
+            ResultType = TypeWithState.Create(type, resultState);
             return null;
         }
 
@@ -5434,7 +5438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitLiteral(node);
 
             Debug.Assert(!IsConditionalState);
-            ResultType = new TypeWithState(node.Type, node.Type?.CanContainNull() != false && node.ConstantValue?.IsNull == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
+            ResultType = TypeWithState.Create(node.Type, node.Type?.CanContainNull() != false && node.ConstantValue?.IsNull == true ? NullableFlowState.MaybeNull : NullableFlowState.NotNull);
 
             return result;
         }
@@ -5570,7 +5574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitNoPiaObjectCreationExpression(BoundNoPiaObjectCreationExpression node)
         {
             var result = base.VisitNoPiaObjectCreationExpression(node);
-            ResultType = new TypeWithState(node.Type, NullableFlowState.NotNull);
+            ResultType = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
             return result;
         }
 
@@ -5679,7 +5683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
         {
             var result = base.VisitNameOfOperator(node);
-            ResultType = new TypeWithState(node.Type, NullableFlowState.NotNull);
+            ResultType = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
             return result;
         }
 
@@ -5693,7 +5697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
         {
             var result = base.VisitInterpolatedString(node);
-            ResultType = new TypeWithState(node.Type, NullableFlowState.NotNull);
+            ResultType = TypeWithState.Create(node.Type, NullableFlowState.NotNull);
             return result;
         }
 
@@ -5714,7 +5718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDiscardExpression(BoundDiscardExpression node)
         {
             var result = TypeWithAnnotations.Create(node.Type);
-            var rValueType = new TypeWithState(node.Type, NullableFlowState.MaybeNull);
+            var rValueType = TypeWithState.ForType(node.Type);
             SetResult(rValueType, result);
             return null;
         }

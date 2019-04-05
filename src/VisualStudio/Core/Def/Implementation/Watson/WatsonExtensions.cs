@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             switch (exception)
             {
                 case RemoteInvocationException remote:
-                    return $"{remote.ErrorCode} {remote.StackTrace ?? exception.Message}";
+                    return $"{remote.RemoteErrorCode} {remote.RemoteStackTrace ?? exception.Message}";
                 case AggregateException aggregate when aggregate.InnerException != null:
                     // get first exception that is not aggregated exception
                     return GetParameterString(aggregate.InnerException);

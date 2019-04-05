@@ -84,9 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_FieldlikeEventsInRoStruct, this.Locations[0]);
             }
 
-            if (inInterfaceType && !this.IsStatic)
+            if (inInterfaceType)
             {
-                if (this.IsExtern)
+                if (this.IsExtern || this.IsStatic)
                 {
                     if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
                     {

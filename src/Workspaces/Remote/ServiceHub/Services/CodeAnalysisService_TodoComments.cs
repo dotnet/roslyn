@@ -22,18 +22,18 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, IList<TodoCommentDescriptor> tokens, CancellationToken cancellationToken)
         {
-            return RunServiceAsync(async () =>
+            return RunServiceAsync(async token =>
             {
-                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.DebugName, cancellationToken))
+                using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetTodoCommentsAsync, documentId.DebugName, token))
                 {
-                    var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var service = document.GetLanguageService<ITodoCommentService>();
                     if (service != null)
                     {
                         // todo comment service supported
-                        return await service.GetTodoCommentsAsync(document, tokens, cancellationToken).ConfigureAwait(false);
+                        return await service.GetTodoCommentsAsync(document, tokens, token).ConfigureAwait(false);
                     }
 
                     return SpecializedCollections.EmptyList<TodoComment>();

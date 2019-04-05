@@ -5814,6 +5814,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else if ((object)leftType != null)
                             {
+                                // NB: We don't know if we really only need RValue access, or if we are actually
+                                // passing the receiver implicitly by ref (e.g. in a struct instance method invocation).
+                                // These checks occur later.
                                 boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
                                 return BindInstanceMemberAccess(node, right, boundLeft, rightName, rightArity, typeArgumentsSyntax, typeArguments, invoked, indexed, diagnostics);
                             }

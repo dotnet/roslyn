@@ -404,6 +404,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Exte
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting", "src\Tools\ExternalAccess\UnitTesting\Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.csproj", "{FA51A3CB-5174-4D99-B76E-DC31C5361DF3}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote", "src\Tools\ExternalAccess\Xamarin.Remote\Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote.csproj", "{DE53934B-7FC1-48A0-85AB-C519FBBD02CF}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
@@ -1069,6 +1071,10 @@ Global
 		{FA51A3CB-5174-4D99-B76E-DC31C5361DF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA51A3CB-5174-4D99-B76E-DC31C5361DF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA51A3CB-5174-4D99-B76E-DC31C5361DF3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE53934B-7FC1-48A0-85AB-C519FBBD02CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE53934B-7FC1-48A0-85AB-C519FBBD02CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE53934B-7FC1-48A0-85AB-C519FBBD02CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE53934B-7FC1-48A0-85AB-C519FBBD02CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1258,6 +1264,7 @@ Global
 		{1DDE89EE-5819-441F-A060-2FF4A986F372} = {3E5FE3DB-45F7-4D83-9097-8F05D3B3AEC6}
 		{655A5B07-39B8-48CD-8590-8AC0C2B708D8} = {8977A560-45C2-4EC2-A849-97335B382C74}
 		{FA51A3CB-5174-4D99-B76E-DC31C5361DF3} = {8977A560-45C2-4EC2-A849-97335B382C74}
+		{DE53934B-7FC1-48A0-85AB-C519FBBD02CF} = {8977A560-45C2-4EC2-A849-97335B382C74}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}

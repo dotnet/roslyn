@@ -1,13 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -24,10 +26,26 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
     /// </summary>
     internal abstract class InProcComponent : MarshalByRefObject
     {
+        private JoinableTaskFactory _joinableTaskFactory;
+
         protected InProcComponent() { }
 
         private static Dispatcher CurrentApplicationDispatcher
             => Application.Current.Dispatcher;
+
+        protected JoinableTaskFactory JoinableTaskFactory
+        {
+            get
+            {
+                if (_joinableTaskFactory is null)
+                {
+                    var threadingContext = GetComponentModelService<IThreadingContext>();
+                    Interlocked.CompareExchange(ref _joinableTaskFactory, threadingContext.JoinableTaskFactory.WithPriority(CurrentApplicationDispatcher, DispatcherPriority.Background), null);
+                }
+
+                return _joinableTaskFactory;
+            }
+        }
 
         protected static void BeginInvokeOnUIThread(Action action)
 #pragma warning disable VSTHRD001 // Avoid legacy thread switching APIs
