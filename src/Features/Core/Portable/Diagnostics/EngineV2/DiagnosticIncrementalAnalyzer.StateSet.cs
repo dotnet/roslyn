@@ -2,6 +2,7 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -120,34 +121,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/34761", AllowCaptures = false, AllowGenericEnumeration = false)]
-            public IEnumerable<DocumentId> GetDocumentsWithDiagnostics(ProjectId projectId)
+            public void CollectDocumentsWithDiagnostics(ProjectId projectId, HashSet<DocumentId> set)
             {
-                var set = GetActiveDocumentsForProject(_activeFileStates, projectId);
+                Debug.Assert(set != null);
 
-                if (!_projectStates.TryGetValue(projectId, out var projectState) || projectState.IsEmpty())
+                // Collect active documents with diagnostics
+                foreach (var kvp in _activeFileStates)
                 {
-                    return set ?? SpecializedCollections.EmptyEnumerable<DocumentId>();
+                    if (kvp.Key.ProjectId == projectId)
+                    {
+                        set.Add(kvp.Value.DocumentId);
+                    }
                 }
 
-                set ??= new HashSet<DocumentId>();
-                set.UnionWith(projectState.GetDocumentsWithDiagnostics());
-
-                return set;
-
-                static HashSet<DocumentId> GetActiveDocumentsForProject(ConcurrentDictionary<DocumentId, ActiveFileState> activeFileStates, ProjectId projectId)
+                if (_projectStates.TryGetValue(projectId, out var projectState) && !projectState.IsEmpty())
                 {
-                    HashSet<DocumentId> result = null;
-
-                    foreach (var kvp in activeFileStates)
-                    {
-                        if (kvp.Key.ProjectId == projectId)
-                        {
-                            result = result ?? new HashSet<DocumentId>();
-                            result.Add(kvp.Value.DocumentId);
-                        }
-                    }
-
-                    return result;
+                    set.UnionWith(projectState.GetDocumentsWithDiagnostics());
                 }
             }
 
