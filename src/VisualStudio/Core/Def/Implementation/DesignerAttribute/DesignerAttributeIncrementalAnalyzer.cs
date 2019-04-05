@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.Services;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 
@@ -27,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private readonly IForegroundNotificationService _notificationService;
 
         private readonly IServiceProvider _serviceProvider;
+        private readonly IProjectItemDesignerTypeUpdateService _projectItemDesignerTypeUpdateService;
         private readonly DesignerAttributeState _state;
         private readonly IAsynchronousOperationListener _listener;
 
@@ -43,12 +45,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public DesignerAttributeIncrementalAnalyzer(
             IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
+            IProjectItemDesignerTypeUpdateService projectItemDesignerTypeUpdateService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
         {
             _serviceProvider = serviceProvider;
             Contract.ThrowIfNull(_serviceProvider);
+
+            _projectItemDesignerTypeUpdateService = projectItemDesignerTypeUpdateService;
 
             _notificationService = notificationService;
             _cpsProjects = new ConcurrentDictionary<ProjectId, bool>(concurrencyLevel: 2, capacity: 10);
@@ -79,11 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
-            if (await IsCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false))
-            {
-                return;
-            }
-
             // use tree version so that things like compiler option changes are considered
             var textVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
             var projectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 // check whether we can use the data as it is (can happen when re-using persisted data from previous VS session)
                 if (CheckVersions(document, textVersion, projectVersion, existingData))
                 {
-                    RegisterDesignerAttribute(document, existingData.DesignerAttributeArgument);
+                    await RegisterDesignerAttributeAsync(document, existingData.DesignerAttributeArgument, cancellationToken).ConfigureAwait(false);
                     return;
                 }
             }
@@ -141,7 +141,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return value;
             }
 
-            // CPS projects do not support designer attributes.  So we just skip these projects entirely.
             var vsWorkspace = project.Solution.Workspace as VisualStudioWorkspaceImpl;
 
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
@@ -179,10 +178,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var data = new Data(textVersion, semanticVersion, designerAttributeArgumentOpt.Value);
             await _state.PersistAsync(document, data, cancellationToken).ConfigureAwait(false);
 
-            RegisterDesignerAttribute(document, designerAttributeArgumentOpt.Value);
+            await RegisterDesignerAttributeAsync(document, designerAttributeArgumentOpt.Value, cancellationToken).ConfigureAwait(false);
         }
 
-        private void RegisterDesignerAttribute(Document document, string designerAttributeArgument)
+        private async Task RegisterDesignerAttributeAsync(Document document, string designerAttributeArgument, CancellationToken cancellationToken)
         {
             if (!_state.Update(document.Id, designerAttributeArgument))
             {
@@ -200,49 +199,57 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
-            var documentId = document.Id;
-            _notificationService.RegisterNotification(() =>
+            var cps = await IsCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (cps)
             {
-                var hierarchy = workspace.GetHierarchy(documentId.ProjectId);
-                if (hierarchy == null)
+                await _projectItemDesignerTypeUpdateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument).ConfigureAwait(false);
+            }
+            else
+            {
+                var documentId = document.Id;
+                _notificationService.RegisterNotification(() =>
                 {
-                    return;
-                }
-
-                uint itemId = hierarchy.TryGetItemId(document.FilePath);
-
-                if (itemId == VSConstants.VSITEMID_NIL)
-                {
-                    return;
-                }
-
-                if (ErrorHandler.Succeeded(hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
-                {
-                    var currentStringValue = string.IsNullOrEmpty(currentValue as string) ? null : (string)currentValue;
-                    if (string.Equals(currentStringValue, designerAttributeArgument, StringComparison.OrdinalIgnoreCase))
+                    var hierarchy = workspace.GetHierarchy(documentId.ProjectId);
+                    if (hierarchy == null)
                     {
-                        // PERF: Avoid sending the message if the project system already has the current value.
                         return;
                     }
-                }
 
-                try
-                {
-                    var designer = GetDesignerFromForegroundThread();
-                    if (designer != null)
+                    uint itemId = hierarchy.TryGetItemId(document.FilePath);
+
+                    if (itemId == VSConstants.VSITEMID_NIL)
                     {
-                        designer.RegisterDesignViewAttribute(hierarchy, (int)itemId, dwClass: 0, pwszAttributeValue: designerAttributeArgument);
+                        return;
                     }
-                }
-                catch
-                {
-                    // DevDiv # 933717
-                    // turns out RegisterDesignViewAttribute can throw in certain cases such as a file failed to be checked out by source control
-                    // or IVSHierarchy failed to set a property for this project
-                    //
-                    // just swallow it. don't crash VS.
-                }
-            }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
+
+                    if (ErrorHandler.Succeeded(hierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ItemSubType, out var currentValue)))
+                    {
+                        var currentStringValue = string.IsNullOrEmpty(currentValue as string) ? null : (string)currentValue;
+                        if (string.Equals(currentStringValue, designerAttributeArgument, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // PERF: Avoid sending the message if the project system already has the current value.
+                            return;
+                        }
+                    }
+
+                    try
+                    {
+                        var designer = GetDesignerFromForegroundThread();
+                        if (designer != null)
+                        {
+                            designer.RegisterDesignViewAttribute(hierarchy, (int)itemId, dwClass: 0, pwszAttributeValue: designerAttributeArgument);
+                        }
+                    }
+                    catch
+                    {
+                        // DevDiv # 933717
+                        // turns out RegisterDesignViewAttribute can throw in certain cases such as a file failed to be checked out by source control
+                        // or IVSHierarchy failed to set a property for this project
+                        //
+                        // just swallow it. don't crash VS.
+                    }
+                }, _listener.BeginAsyncOperation("RegisterDesignerAttribute"));
+            }
         }
 
         private IVSMDDesignerService GetDesignerFromForegroundThread()

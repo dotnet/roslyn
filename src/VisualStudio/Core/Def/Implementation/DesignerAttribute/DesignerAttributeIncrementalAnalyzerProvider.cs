@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Services;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         private readonly IThreadingContext _threadingContext;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IProjectItemDesignerTypeUpdateService _projectItemDesignerTypeUpdateService;
         private readonly IForegroundNotificationService _notificationService;
         private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
@@ -27,18 +29,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public DesignerAttributeIncrementalAnalyzerProvider(
             IThreadingContext threadingContext,
             SVsServiceProvider serviceProvider,
+            IProjectItemDesignerTypeUpdateService projectItemDesignerTypeUpdateService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _threadingContext = threadingContext;
             _serviceProvider = serviceProvider;
+            _projectItemDesignerTypeUpdateService = projectItemDesignerTypeUpdateService;
             _notificationService = notificationService;
             _listenerProvider = listenerProvider;
         }
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(CodeAnalysis.Workspace workspace)
         {
-            return new DesignerAttributeIncrementalAnalyzer(_threadingContext, _serviceProvider, _notificationService, _listenerProvider);
+            return new DesignerAttributeIncrementalAnalyzer(
+                _threadingContext, _serviceProvider, _projectItemDesignerTypeUpdateService, _notificationService, _listenerProvider);
         }
     }
 }
