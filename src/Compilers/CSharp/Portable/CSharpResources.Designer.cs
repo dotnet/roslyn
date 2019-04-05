@@ -15809,24 +15809,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Possible null value..
-        /// </summary>
-        internal static string WRN_PossibleNull {
-            get {
-                return ResourceManager.GetString("WRN_PossibleNull", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Possible null value..
-        /// </summary>
-        internal static string WRN_PossibleNull_Title {
-            get {
-                return ResourceManager.GetString("WRN_PossibleNull_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: new protected member declared in sealed class.
         /// </summary>
         internal static string WRN_ProtectedInSealed {
@@ -16018,6 +16000,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Thrown value may be null..
+        /// </summary>
+        internal static string WRN_ThrowPossibleNull {
+            get {
+                return ResourceManager.GetString("WRN_ThrowPossibleNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Thrown value may be null..
+        /// </summary>
+        internal static string WRN_ThrowPossibleNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_ThrowPossibleNull_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Source file has exceeded the limit of 16,707,565 lines representable in the PDB; debug information will be incorrect.
         /// </summary>
         internal static string WRN_TooManyLinesForDebugger {
@@ -16140,6 +16140,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_UnassignedInternalField_Title {
             get {
                 return ResourceManager.GetString("WRN_UnassignedInternalField_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unboxing a possibly null value..
+        /// </summary>
+        internal static string WRN_UnboxPossibleNull {
+            get {
+                return ResourceManager.GetString("WRN_UnboxPossibleNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unboxing a possibly null value..
+        /// </summary>
+        internal static string WRN_UnboxPossibleNull_Title {
+            get {
+                return ResourceManager.GetString("WRN_UnboxPossibleNull_Title", resourceCulture);
             }
         }
         
