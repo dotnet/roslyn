@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
         protected abstract string GetDescription(IReadOnlyList<string> nameParts);
-        protected abstract (string description, bool hasExistingImport) GetDescription(Document document, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
+        protected abstract Task<(string description, bool hasExistingImport)> GetDescriptionAsync(Document document, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
             Document document, TextSpan span, string diagnosticId, int maxResults, bool placeSystemNamespaceFirst,
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     diagnosticId,
                     maxResults,
                     placeSystemNamespaceFirst,
+                    placement,
                     searchReferenceAssemblies,
                     packageSources
                     },

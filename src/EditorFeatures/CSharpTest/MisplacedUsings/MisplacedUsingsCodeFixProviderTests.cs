@@ -234,14 +234,16 @@ namespace Foo
 
             var fixedTestCode = @"namespace Foo
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
     using Microsoft.CodeAnalysis;
+    using SystemAction = System.Action;
     using static System.Math;
+    using System;
+
     using static System.String;
     using MyFunc = System.Func<int, bool>;
-    using SystemAction = System.Action;
+
+    using System.Collections.Generic;
+    using System.Collections;
 
     public class Bar
     {
@@ -292,13 +294,15 @@ namespace NamespaceName
             var fixedTestCode = @"namespace NamespaceName
 {
     using Microsoft.CodeAnalysis;
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
+    using SystemAction = System.Action;
     using static System.Math;
+    using System;
+
     using static System.String;
     using MyFunc = System.Func<int, bool>;
-    using SystemAction = System.Action;
+
+    using System.Collections.Generic;
+    using System.Collections;
 
     public class Bar
     {
@@ -339,8 +343,8 @@ namespace TestNamespace
             var fixedTestCode = @"// This is a file header.
 namespace TestNamespace
 {
-    using System;
     using System.Threading;
+    using System;
 }
 ";
 
@@ -376,8 +380,8 @@ namespace Foo
 
 namespace Foo
 {
-    using System;
     using Microsoft.CodeAnalysis;
+    using System;
 
     public class Bar
     {
@@ -418,8 +422,8 @@ namespace Foo
 
 namespace Foo
 {
-    using Microsoft.CodeAnalysis;
     using System;
+    using Microsoft.CodeAnalysis;
 
     public class Bar
     {
@@ -722,8 +726,8 @@ namespace TestNamespace
 }
 ";
             var fixedTestCode = @"using System;
-using System.Reflection;
 using System.Threading;
+using System.Reflection;
 
 namespace System
 {
@@ -755,8 +759,8 @@ namespace System
     using List = Collections.Generic.IList<int>;
 }
 ";
-            var fixedTestCode = @"using System.Reflection;
-using System.Threading;
+            var fixedTestCode = @"using System.Threading;
+using System.Reflection;
 using Assembly = System.Reflection.Assembly;
 using List = System.Collections.Generic.IList<int>;
 
@@ -793,8 +797,8 @@ namespace TestNamespace
     using System.Threading;
 }
 ";
-            var fixedTestCode = @"using System;
-using System.Reflection;
+            var fixedTestCode = @"using System.Reflection;
+using System;
 using System.Threading;
 
 [assembly: AssemblyVersion(""1.0.0.0"")]
@@ -867,9 +871,9 @@ namespace TestNamespace
 
 // Separated Comment
 
+using System.Collections;
 // Comment
 using System;
-using System.Collections;
 
 namespace TestNamespace
 {
@@ -896,7 +900,7 @@ namespace TestNamespace
     using System;
 
     using static System.String;
-    using MyFunc = System.Func<int,bool>;
+    using MyFunc = System.Func<int, bool>;
 
     using System.Collections.Generic;
     using System.Collections;
@@ -907,14 +911,16 @@ namespace TestNamespace
 }
 ";
 
-            var fixedTestCode = @"using System;
-using System.Collections;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
+            var fixedTestCode = @"using Microsoft.CodeAnalysis;
+using SystemAction = System.Action;
 using static System.Math;
+using System;
+
 using static System.String;
 using MyFunc = System.Func<int, bool>;
-using SystemAction = System.Action;
+
+using System.Collections.Generic;
+using System.Collections;
 
 namespace Foo
 {
@@ -950,7 +956,7 @@ namespace Foo
     using System;
 
     using static System.String;
-    using MyFunc = System.Func<int,bool>;
+    using MyFunc = System.Func<int, bool>;
 
     using System.Collections.Generic;
     using System.Collections;
@@ -962,13 +968,15 @@ namespace Foo
 ";
 
             var fixedTestCode = @"using Microsoft.CodeAnalysis;
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using SystemAction = System.Action;
 using static System.Math;
+using System;
+
 using static System.String;
 using MyFunc = System.Func<int, bool>;
-using SystemAction = System.Action;
+
+using System.Collections.Generic;
+using System.Collections;
 
 namespace Foo
 {

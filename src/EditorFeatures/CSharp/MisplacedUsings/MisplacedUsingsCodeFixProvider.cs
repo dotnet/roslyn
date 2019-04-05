@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
+using global::System;
+using global::System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 {
@@ -62,62 +64,138 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             foreach (var diagnostic in context.Diagnostics)
             {
                 context.RegisterCodeFix(
-                    new MoveMisplacedUsingsCodeAction(cancellationToken =>
-                        GetTransformedDocumentAsync(context.Document, syntaxRoot, options, cancellationToken)),
+                    new MoveMisplacedUsingsCodeAction(cancellationToken => GetTransformedDocumentAsync(context.Document, compilationUnit, options, cancellationToken)),
                     diagnostic);
             }
         }
 
-        private static async Task<Document> GetTransformedDocumentAsync(Document document, SyntaxNode syntaxRoot, OptionSet options, CancellationToken cancellationToken)
+        private static async Task<Document> GetTransformedDocumentAsync(Document document, CompilationUnitSyntax compilationUnit, OptionSet options, CancellationToken cancellationToken)
         {
-            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-            var usingDirectivesPlacement = DeterminePlacement((CompilationUnitSyntax)syntaxRoot, options);
-            var addImportService = document.GetLanguageService<IAddImportsService>();
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var usingDirectivesPlacement = DeterminePlacement(compilationUnit, options);
 
-            var (newSyntaxRoot, fileHeader) = RemoveFileHeader(syntaxRoot);
-            var compilationUnit = (CompilationUnitSyntax)newSyntaxRoot;
+            var newCompilationUnit = await ExpandUsingDirectivesAsync(document, compilationUnit, cancellationToken).ConfigureAwait(false);
+            ImmutableArray<SyntaxTrivia> fileHeader;
 
-            SyntaxNode contextNode = null;
-            IEnumerable<UsingDirectiveSyntax> usingsToAdd = null;
+            (newCompilationUnit, fileHeader) = RemoveFileHeader(newCompilationUnit);
 
-            if (usingDirectivesPlacement == AddImportPlacement.InsideNamespace)
+            newCompilationUnit = usingDirectivesPlacement switch
             {
-                usingsToAdd = compilationUnit.Usings;
-                newSyntaxRoot = compilationUnit.WithUsings(new SyntaxList<UsingDirectiveSyntax>()).WithoutLeadingTrivia();
-                newSyntaxRoot = AddLeadingEndOfLineToNamespace(newSyntaxRoot);
-                contextNode = ((CompilationUnitSyntax)newSyntaxRoot).Members.OfType<NamespaceDeclarationSyntax>().First();
-            }
-            else if (usingDirectivesPlacement == AddImportPlacement.OutsideNamespace)
-            {
-                var rootNamespace = compilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
-                usingsToAdd = rootNamespace.Usings;
+                AddImportPlacement.InsideNamespace => MoveUsingsInsideNamespace(newCompilationUnit),
+                AddImportPlacement.OutsideNamespace => MoveUsingsOutsideNamespace(newCompilationUnit),
+                _ => throw new NotSupportedException()
+            };
 
-                var newRootNamespace = rootNamespace.WithUsings(new SyntaxList<UsingDirectiveSyntax>());
-                newSyntaxRoot = newSyntaxRoot.ReplaceNode(rootNamespace, newRootNamespace);
-            }
+            newCompilationUnit = AddFileHeader(newCompilationUnit, fileHeader);
 
-            usingsToAdd = usingsToAdd.Select(FixUpUsingDirective);
+            var newDocument = document.WithSyntaxRoot(newCompilationUnit);
 
-            newSyntaxRoot = addImportService.AddImports(compilation, newSyntaxRoot, contextNode, usingsToAdd, placeSystemNamespaceFirst, usingDirectivesPlacement);
-            newSyntaxRoot = ReAddFileHeader(newSyntaxRoot, fileHeader);
-
-            if (usingDirectivesPlacement == AddImportPlacement.OutsideNamespace)
-            {
-                newSyntaxRoot = AddLeadingEndOfLineToCompilationUnit(newSyntaxRoot);
-            }
-
-            return document.WithSyntaxRoot(newSyntaxRoot);
+            return await Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, options, cancellationToken).ConfigureAwait(false);
         }
 
-        private static SyntaxNode AddLeadingEndOfLineToCompilationUnit(SyntaxNode syntaxRoot)
+        private static async Task<CompilationUnitSyntax> ExpandUsingDirectivesAsync(Document document, CompilationUnitSyntax compilationUnit, CancellationToken cancellationToken)
+        {
+            // Expand the usings declarations in the compilation unit.
+            var expandCompilationUnitUsings = compilationUnit.Usings.Select(
+                usingDirective => ExpandUsingDirectiveAsync(document, usingDirective, cancellationToken));
+            var newCompilationUnitUsings = await Task.WhenAll(expandCompilationUnitUsings).ConfigureAwait(false);
+
+            var newCompilationUnit = compilationUnit.WithUsings(new SyntaxList<UsingDirectiveSyntax>(newCompilationUnitUsings));
+
+            // To expand the using declarations in the namespace we need to get an updated document, since the 
+            // expander requires that the SyntaxTree for the semantic model match that of the using directives.
+            var newDocument = document.WithSyntaxRoot(newCompilationUnit);
+            newCompilationUnit = (CompilationUnitSyntax)await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            // Expand the using declarations in the namespace declaration.
+            var namespaceDeclaration = newCompilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
+
+            var expandNamespaceDeclarationUsings = namespaceDeclaration.Usings.Select(
+                usingDirective => ExpandUsingDirectiveAsync(newDocument, usingDirective, cancellationToken));
+            var newNamespaceDeclarationUsings = await Task.WhenAll(expandNamespaceDeclarationUsings).ConfigureAwait(false);
+
+            var newNamespaceDeclaration = namespaceDeclaration.WithUsings(new SyntaxList<UsingDirectiveSyntax>(newNamespaceDeclarationUsings));
+
+            return newCompilationUnit.ReplaceNode(namespaceDeclaration, newNamespaceDeclaration);
+        }
+
+        private static async Task<UsingDirectiveSyntax> ExpandUsingDirectiveAsync(Document document, UsingDirectiveSyntax usingDirective, CancellationToken cancellationToken)
+        {
+            var newName = await Simplifier.ExpandAsync(usingDirective.Name, document, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return usingDirective.WithName(newName);
+        }
+
+        private static CompilationUnitSyntax MoveUsingsInsideNamespace(CompilationUnitSyntax compilationUnit)
+        {
+            // Get the compilation unit usings and set them up to format when moved.
+            var usingsToAdd = FixUpUsingDirectives(compilationUnit.Usings);
+
+            // Remove usings and fix leading trivia for compilation unit.
+            var newCompilationUnit = compilationUnit.WithUsings(new SyntaxList<UsingDirectiveSyntax>());
+            newCompilationUnit = RemoveLeadingEndOfLinesFromCompilationUnit(newCompilationUnit);
+
+            // Fix the leading trivia for the namespace declaration.
+            var namespaceDeclaration = newCompilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
+            var newNamespaceDeclaration = EnsureLeadingEndOfLineForNamespace(namespaceDeclaration);
+
+            // Update the namespace declaration with the usings from the compilation unit.
+            var newUsings = newNamespaceDeclaration.Usings.InsertRange(0, usingsToAdd);
+            newNamespaceDeclaration = newNamespaceDeclaration.WithUsings(newUsings);
+
+            // Update the compilation unit with the new namespace declaration 
+            return newCompilationUnit.ReplaceNode(namespaceDeclaration, newNamespaceDeclaration);
+        }
+
+        private static CompilationUnitSyntax MoveUsingsOutsideNamespace(CompilationUnitSyntax compilationUnit)
+        {
+            var namespaceDeclaration = compilationUnit.Members.OfType<NamespaceDeclarationSyntax>().First();
+
+            // Get the namespace declaration usings and set them up to format when moved.
+            var usingsToAdd = FixUpUsingDirectives(namespaceDeclaration.Usings);
+
+            // Remove usings and fix leading trivia for namespace declaration.
+            var newNamespaceDeclaration = namespaceDeclaration.WithUsings(new SyntaxList<UsingDirectiveSyntax>());
+            newNamespaceDeclaration = RemoveLeadingEndOfLinesFromNamespaceDeclaration(newNamespaceDeclaration);
+            var newCompilationUnit = compilationUnit.ReplaceNode(namespaceDeclaration, newNamespaceDeclaration);
+
+            // Update the compilation unit with the usings from the namespace declaration.
+            var newUsings = newCompilationUnit.Usings.AddRange(usingsToAdd);
+            newCompilationUnit = newCompilationUnit.WithUsings(newUsings);
+
+            // Fix the leading trivia for the compilation unit. 
+            return EnsureLeadingEndOfLineForCompilationUnit(newCompilationUnit);
+        }
+
+        private static CompilationUnitSyntax RemoveLeadingEndOfLinesFromCompilationUnit(CompilationUnitSyntax compilationUnit)
+        {
+            if (compilationUnit.Members.Count == 0)
+            {
+                return compilationUnit;
+            }
+
+            var firstMember = compilationUnit.Members.First();
+            var firstMemberTrivia = firstMember.GetLeadingTrivia();
+
+            // If the first member already contains a leading new line then, this will already break up the usings from these members.
+            if (firstMemberTrivia.Count == 0)
+            {
+                return compilationUnit;
+            }
+
+            var newTrivia = SplitIntoLines(firstMemberTrivia)
+                .SkipWhile(trivia => trivia.All(t => t.IsWhitespaceOrEndOfLine()) && trivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
+                .SelectMany(t => t);
+
+            var newFirstMember = firstMember.WithLeadingTrivia(newTrivia);
+            return compilationUnit.ReplaceNode(firstMember, newFirstMember);
+        }
+
+        private static CompilationUnitSyntax EnsureLeadingEndOfLineForCompilationUnit(CompilationUnitSyntax compilationUnit)
         {
             // If we already have usings then, assume the code is formatted how the user intended.
             // If the namespace contains no members there is no need to break up the usings from the other members.
-            var compilationUnit = ((CompilationUnitSyntax)syntaxRoot);
             if (compilationUnit.Members.Count == 0)
             {
-                return syntaxRoot;
+                return compilationUnit;
             }
 
             var firstMember = compilationUnit.Members.First();
@@ -126,21 +204,20 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             // If the first member already contains a leading new line then, this will already break up the usings from these members.
             if (firstMemberTrivia.Count > 0 && firstMemberTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
             {
-                return syntaxRoot;
+                return compilationUnit;
             }
 
             var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
             return compilationUnit.ReplaceNode(firstMember, newFirstMember);
         }
 
-        private static SyntaxNode AddLeadingEndOfLineToNamespace(SyntaxNode syntaxRoot)
+        private static NamespaceDeclarationSyntax EnsureLeadingEndOfLineForNamespace(NamespaceDeclarationSyntax namespaceDeclaration)
         {
             // If we already have usings then, assume the code is formatted how the user intended.
             // If the namespace contains no members there is no need to break up the usings from the other members.
-            var namespaceDeclaration = ((CompilationUnitSyntax)syntaxRoot).Members.OfType<NamespaceDeclarationSyntax>().First();
             if (namespaceDeclaration.Usings.Count > 0 || namespaceDeclaration.Members.Count == 0)
             {
-                return syntaxRoot;
+                return namespaceDeclaration;
             }
 
             var firstMember = namespaceDeclaration.Members.First();
@@ -149,29 +226,66 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             // If the first member already contains a leading new line then, this will already break up the usings from these members.
             if (firstMemberTrivia.Count > 0 && firstMemberTrivia.First().IsKind(SyntaxKind.EndOfLineTrivia))
             {
-                return syntaxRoot;
+                return namespaceDeclaration;
             }
 
             var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
-            var newNamespaceDeclaration = namespaceDeclaration.ReplaceNode(firstMember, newFirstMember);
-            return syntaxRoot.ReplaceNode(namespaceDeclaration, newNamespaceDeclaration);
+            return namespaceDeclaration.ReplaceNode(firstMember, newFirstMember);
+        }
+
+        private static NamespaceDeclarationSyntax RemoveLeadingEndOfLinesFromNamespaceDeclaration(NamespaceDeclarationSyntax namespaceDeclaration)
+        {
+            if (namespaceDeclaration.Members.Count == 0)
+            {
+                return namespaceDeclaration;
+            }
+
+            var firstMember = namespaceDeclaration.Members.First();
+            var firstMemberTrivia = firstMember.GetLeadingTrivia();
+
+            // If the first member already contains a leading new line then, this will already break up the usings from these members.
+            if (firstMemberTrivia.Count == 0)
+            {
+                return namespaceDeclaration;
+            }
+
+            var newTrivia = SplitIntoLines(firstMemberTrivia)
+                .SkipWhile(trivia => trivia.All(t => t.IsWhitespaceOrEndOfLine()) && trivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
+                .SelectMany(t => t);
+
+            var newFirstMember = firstMember.WithLeadingTrivia(newTrivia);
+            return namespaceDeclaration.ReplaceNode(firstMember, newFirstMember);
+        }
+
+        private static SyntaxList<UsingDirectiveSyntax> FixUpUsingDirectives(IEnumerable<UsingDirectiveSyntax> usingDirectives)
+        {
+            var newUsingDirectives = usingDirectives.Select(FixUpUsingDirective);
+            return new SyntaxList<UsingDirectiveSyntax>(newUsingDirectives);
         }
 
         private static UsingDirectiveSyntax FixUpUsingDirective(UsingDirectiveSyntax usingDirective)
         {
-            var usingTrivia = usingDirective.GetLeadingTrivia();
+            var newUsingDirective = usingDirective.WithAdditionalAnnotations(Formatter.Annotation);
+            var newName = newUsingDirective.Name.WithAdditionalAnnotations(Simplifier.Annotation);
+            return newUsingDirective.WithName(newName);
+        }
 
-            // Only keep leading trivia if it isn't Whitespace.
-            var shouldRemoveTrivia = usingTrivia.All(trivia =>
-                trivia.IsKind(SyntaxKind.WhitespaceTrivia) ||
-                trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-
-            if (shouldRemoveTrivia)
+        private static IEnumerable<IEnumerable<SyntaxTrivia>> SplitIntoLines(SyntaxTriviaList triviaList)
+        {
+            var index = 0;
+            for (var i = 0; i < triviaList.Count; i++)
             {
-                usingDirective = usingDirective.WithoutLeadingTrivia();
+                if (triviaList[i].IsEndOfLine())
+                {
+                    yield return triviaList.TakeRange(index, i);
+                    index = i + 1;
+                }
             }
 
-            return usingDirective.WithAdditionalAnnotations(Formatter.Annotation);
+            if (index < triviaList.Count)
+            {
+                yield return triviaList.TakeRange(index, triviaList.Count - 1);
+            }
         }
 
         private static AddImportPlacement DeterminePlacement(CompilationUnitSyntax compilationUnit, OptionSet options)
@@ -221,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             return result;
         }
 
-        private static (SyntaxNode, ImmutableArray<SyntaxTrivia>) RemoveFileHeader(SyntaxNode syntaxRoot)
+        private static (CompilationUnitSyntax, ImmutableArray<SyntaxTrivia>) RemoveFileHeader(CompilationUnitSyntax syntaxRoot)
         {
             var fileHeader = GetFileHeader(syntaxRoot);
             var leadingTrivia = syntaxRoot.GetLeadingTrivia();
@@ -231,9 +345,9 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
                 leadingTrivia = leadingTrivia.RemoveAt(i);
             }
 
-            var newSyntaxRoot = syntaxRoot.WithLeadingTrivia(leadingTrivia);
+            var newCompilationUnit = syntaxRoot.WithLeadingTrivia(leadingTrivia);
 
-            return (newSyntaxRoot, fileHeader);
+            return (newCompilationUnit, fileHeader);
         }
 
         private static ImmutableArray<SyntaxTrivia> GetFileHeader(SyntaxNode syntaxRoot)
@@ -290,17 +404,19 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
             return hasHeader ? fileHeaderBuilder.ToImmutableArray() : ImmutableArray.Create<SyntaxTrivia>();
         }
 
-        private static SyntaxNode ReAddFileHeader(SyntaxNode syntaxRoot, ImmutableArray<SyntaxTrivia> fileHeader)
+        private static CompilationUnitSyntax AddFileHeader(CompilationUnitSyntax compilationUnit, ImmutableArray<SyntaxTrivia> fileHeader)
         {
             if (fileHeader.IsEmpty)
             {
-                // Only re-add the file header if it was stripped.
-                return syntaxRoot;
+                return compilationUnit;
             }
 
-            var firstToken = syntaxRoot.GetFirstToken(includeZeroWidth: true);
+            // Add leading trivia to the first token.
+            var firstToken = compilationUnit.GetFirstToken(includeZeroWidth: true);
             var newLeadingTrivia = firstToken.LeadingTrivia.InsertRange(0, fileHeader);
-            return syntaxRoot.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(newLeadingTrivia));
+            var newFirstToken = firstToken.WithLeadingTrivia(newLeadingTrivia);
+
+            return compilationUnit.ReplaceToken(firstToken, newFirstToken);
         }
 
         private class FixAll : DocumentBasedFixAllProvider
@@ -319,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsings
 
                 var syntaxRoot = await document.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
                 var options = await document.GetOptionsAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
-                var newDocument = await GetTransformedDocumentAsync(document, syntaxRoot, options, fixAllContext.CancellationToken).ConfigureAwait(false);
+                var newDocument = await GetTransformedDocumentAsync(document, (CompilationUnitSyntax)syntaxRoot, options, fixAllContext.CancellationToken).ConfigureAwait(false);
                 return await newDocument.GetSyntaxRootAsync(fixAllContext.CancellationToken).ConfigureAwait(false);
             }
         }

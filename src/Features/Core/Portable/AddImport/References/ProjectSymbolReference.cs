@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -80,11 +81,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                     textChanges, description, tags, priority, _project.Id);
             }
 
-            protected override (string description, bool hasExistingImport) GetDescription(
+            protected override async Task<(string description, bool hasExistingImport)> GetDescriptionAsync(
                 Document document, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                var (description, hasExistingImport) = base.GetDescription(document, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = await base.GetDescriptionAsync(
+                    document, node, semanticModel, cancellationToken).ConfigureAwait(false);
                 if (description == null)
                 {
                     return (null, false);

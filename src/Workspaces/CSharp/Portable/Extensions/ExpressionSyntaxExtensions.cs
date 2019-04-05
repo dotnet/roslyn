@@ -7,12 +7,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -1995,6 +1997,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         return false;
                     }
+
+                case SyntaxKind.AliasQualifiedName:
+                    {
+                        var aliasQualifiedName = (AliasQualifiedNameSyntax)expression;
+                        var simpleName = aliasQualifiedName.Name;
+
+                        replacementNode = (IdentifierNameSyntax)CSharpSyntaxGenerator.Instance.IdentifierName(simpleName.Identifier)
+                            .WithAdditionalAnnotations(Simplifier.Annotation);
+
+                        // Ensure that replacement doesn't change semantics.
+                        return !ReplacementChangesSemantics(aliasQualifiedName, replacementNode, semanticModel);
+                    }
             }
 
             return false;
@@ -2008,7 +2022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         // Note: The caller needs to verify that replacement doesn't change semantics of the original expression.
         private static bool TrySimplifyMemberAccessOrQualifiedName(
-        ExpressionSyntax left,
+            ExpressionSyntax left,
             ExpressionSyntax right,
             SemanticModel semanticModel,
             OptionSet optionSet,

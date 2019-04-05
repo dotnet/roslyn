@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return $"using { string.Join(".", nameParts) };";
         }
 
-        protected override (string description, bool hasExistingImport) GetDescription(
+        protected override async Task<(string description, bool hasExistingImport)> GetDescriptionAsync(
             Document document,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
@@ -294,8 +294,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var (externAlias, hasExistingExtern) = GetExternAliasDirective(
                 namespaceOrTypeSymbol, semanticModel, contextNode);
 
-            var (usingDirective, hasExistingUsing) = GetUsingDirective(
-                document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
+            var (usingDirective, hasExistingUsing) = await GetUsingDirectiveAsync(
+                document, namespaceOrTypeSymbol, semanticModel, root, contextNode).ConfigureAwait(false);
 
             var externAliasString = externAlias != null ? $"extern alias {externAlias.Identifier.ValueText};" : null;
             var usingDirectiveString = usingDirective != null ? GetUsingDirectiveString(namespaceOrTypeSymbol) : null;
@@ -351,8 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             var (externAliasDirective, hasExistingExtern) = GetExternAliasDirective(
                 namespaceOrTypeSymbol, semanticModel, contextNode);
 
-            var (usingDirective, hasExistingUsing) = GetUsingDirective(
-                document, namespaceOrTypeSymbol, semanticModel, root, contextNode);
+            var (usingDirective, hasExistingUsing) = await GetUsingDirectiveAsync(
+                document, namespaceOrTypeSymbol, semanticModel, root, contextNode).ConfigureAwait(false);
 
             var newImports = ArrayBuilder<SyntaxNode>.GetInstance();
             try
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     hasExistingExtern);
         }
 
-        private (UsingDirectiveSyntax, bool hasExistingImport) GetUsingDirective(
+        private async Task<(UsingDirectiveSyntax, bool hasExistingImport)> GetUsingDirectiveAsync(
             Document document,
             INamespaceOrTypeSymbol namespaceOrTypeSymbol,
             SemanticModel semanticModel,
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         {
             var addImportService = document.GetLanguageService<IAddImportsService>();
             var cancellationToken = new CancellationToken();
-            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placement = addImportService.GetImportPlacement(options);
 
             var nameSyntax = namespaceOrTypeSymbol.GenerateNameSyntax();

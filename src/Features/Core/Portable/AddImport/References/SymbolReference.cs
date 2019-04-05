@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 AddImportPlacement placement, CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var (description, hasExistingImport) = GetDescription(document, node, semanticModel, cancellationToken);
+                var (description, hasExistingImport) = await GetDescriptionAsync(document, node, semanticModel, cancellationToken).ConfigureAwait(false);
                 if (description == null)
                 {
                     return null;
@@ -122,11 +122,11 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             protected abstract CodeActionPriority GetPriority(Document document);
 
-            protected virtual (string description, bool hasExistingImport) GetDescription(
+            protected virtual Task<(string description, bool hasExistingImport)> GetDescriptionAsync(
                 Document document, SyntaxNode node,
                 SemanticModel semanticModel, CancellationToken cancellationToken)
             {
-                return provider.GetDescription(
+                return provider.GetDescriptionAsync(
                     document, SymbolResult.Symbol, semanticModel, node, cancellationToken);
             }
         }
