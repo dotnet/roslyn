@@ -84,7 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
-            // use tree version so that things like compiler option changes are considered
+            // use text and project dependent versions so that we can detect changes on this file and its dependent files
+            // in current project or projects this depends on transitively
             var textVersion = await document.GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
             var projectVersion = await document.Project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
 
