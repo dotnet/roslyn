@@ -17,6 +17,7 @@
     <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.PerformanceSensitiveAnalyzers.dll" />
     <AnalyzerNupkgFile Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers.targets" />
     <AnalyzerNupkgFile Include="PerformanceSensitiveAttribute.cs" />
+    <AnalyzerNupkgFile Include="PerformanceSensitiveAttribute.vb" />
   </ItemGroup>
 
   <ItemGroup>
