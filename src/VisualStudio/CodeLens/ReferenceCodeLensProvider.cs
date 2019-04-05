@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.CodeAnalysis.CodeLens
                             Tooltip = null,
                             Fields = new List<CodeLensDetailEntryField>()
                             {
-                                new CodeLensDetailEntryField() { Text = Descriptor.FilePath },
+                                new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.FilePath },
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.LineNumber.ToString() },
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ColumnNumber.ToString() },
                                 new CodeLensDetailEntryField() { Text = referenceLocationDescriptor.ReferenceLineText },
