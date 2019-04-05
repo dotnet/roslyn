@@ -202,5 +202,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ChangeSignature
             Members.Items.Refresh();
             SetFocusToSelectedRow();
         }
+
+        internal TestAccessor GetTestAccessor()
+            => new TestAccessor(this);
+
+        internal readonly struct TestAccessor
+        {
+            private readonly ChangeSignatureDialog _dialog;
+
+            public TestAccessor(ChangeSignatureDialog dialog)
+            {
+                _dialog = dialog;
+            }
+
+            public ChangeSignatureDialogViewModel ViewModel => _dialog._viewModel;
+
+            public DataGrid Members => _dialog.Members;
+
+            public DialogButton OKButton => _dialog.OKButton;
+
+            public DialogButton CancelButton => _dialog.CancelButton;
+
+            public DialogButton DownButton => _dialog.DownButton;
+
+            public DialogButton UpButton => _dialog.UpButton;
+
+            public DialogButton RemoveButton => _dialog.RemoveButton;
+
+            public DialogButton RestoreButton => _dialog.RestoreButton;
+        }
     }
 }

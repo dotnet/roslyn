@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             var delay = _delay;
             if (delay == null)
             {
-                var newDelay = new ResettableDelay(WorkspaceUpdateDelay);
+                var newDelay = new ResettableDelay(WorkspaceUpdateDelay, _asyncListener);
                 if (Interlocked.CompareExchange(ref _delay, newDelay, null) == null)
                 {
                     var asyncToken = _asyncListener.BeginAsyncOperation("WorkspaceGraphQueryManager.EnqueueUpdate");

@@ -1002,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 var receiver = fieldAccess.ReceiverOpt;
-                TypeSymbol fieldType = field.Type.TypeSymbol;
+                TypeSymbol fieldType = field.Type;
                 if (fieldType.IsValueType && (object)fieldType == (object)receiver.Type)
                 {
                     //Handle emitting a field of a self-containing struct (only possible in mscorlib)
@@ -1245,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used && local.LocalSymbol.RefKind != RefKind.None)
             {
-                EmitLoadIndirect(local.LocalSymbol.Type.TypeSymbol, local.Syntax);
+                EmitLoadIndirect(local.LocalSymbol.Type, local.Syntax);
             }
         }
 
@@ -1256,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (parameter.ParameterSymbol.RefKind != RefKind.None)
             {
-                var parameterType = parameter.ParameterSymbol.Type.TypeSymbol;
+                var parameterType = parameter.ParameterSymbol.Type;
                 EmitLoadIndirect(parameterType, parameter.Syntax);
             }
         }
@@ -1674,7 +1674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (useKind == UseKind.UsedAsValue && method.RefKind != RefKind.None)
             {
-                EmitLoadIndirect(method.ReturnType.TypeSymbol, call.Syntax);
+                EmitLoadIndirect(method.ReturnType, call.Syntax);
             }
             else if (useKind == UseKind.UsedAsAddress)
             {
@@ -1688,7 +1688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(methodContainingType.IsVerifierValue(), "only struct calls can be readonly");
 
-            if (methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor)
+            if (method.IsEffectivelyReadOnly && method.MethodKind != MethodKind.Constructor)
             {
                 return true;
             }
@@ -1877,7 +1877,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (arrayType.IsSZArray)
             {
                 _builder.EmitOpCode(ILOpCode.Newarr);
-                EmitSymbolToken(arrayType.ElementType.TypeSymbol, expression.Syntax);
+                EmitSymbolToken(arrayType.ElementType, expression.Syntax);
             }
             else
             {
@@ -2540,7 +2540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     BoundLocal local = (BoundLocal)expression;
                     if (local.LocalSymbol.RefKind != RefKind.None && !assignment.IsRef)
                     {
-                        EmitIndirectStore(local.LocalSymbol.Type.TypeSymbol, local.Syntax);
+                        EmitIndirectStore(local.LocalSymbol.Type, local.Syntax);
                     }
                     else
                     {
@@ -2668,7 +2668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private void EmitVectorElementStore(ArrayTypeSymbol arrayType, SyntaxNode syntaxNode)
         {
-            var elementType = arrayType.ElementType.TypeSymbol;
+            var elementType = arrayType.ElementType;
 
             if (elementType.IsEnumType())
             {
@@ -2749,7 +2749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 //NOTE: we should have the actual parameter already loaded, 
                 //now need to do a store to where it points to
-                EmitIndirectStore(parameter.ParameterSymbol.Type.TypeSymbol, parameter.Syntax);
+                EmitIndirectStore(parameter.ParameterSymbol.Type, parameter.Syntax);
             }
             else
             {
@@ -3061,7 +3061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitSymbolToken(getMethod, node.Syntax, null);
-            if (!TypeSymbol.Equals(node.Type, getMethod.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(node.Type, getMethod.ReturnType, TypeCompareKind.ConsiderEverything2))
             {
                 _builder.EmitOpCode(ILOpCode.Castclass);
                 EmitSymbolToken(node.Type, node.Syntax);
@@ -3088,7 +3088,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitSymbolToken(getField, node.Syntax, null);
-            if (!TypeSymbol.Equals(node.Type, getField.ReturnType.TypeSymbol, TypeCompareKind.ConsiderEverything2))
+            if (!TypeSymbol.Equals(node.Type, getField.ReturnType, TypeCompareKind.ConsiderEverything2))
             {
                 _builder.EmitOpCode(ILOpCode.Castclass);
                 EmitSymbolToken(node.Type, node.Syntax);
@@ -3330,7 +3330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // unless the element types are converted via variance.
             if (to.IsArray())
             {
-                return IsVarianceCast(((ArrayTypeSymbol)to).ElementType.TypeSymbol, ((ArrayTypeSymbol)from).ElementType.TypeSymbol);
+                return IsVarianceCast(((ArrayTypeSymbol)to).ElementType, ((ArrayTypeSymbol)from).ElementType);
             }
 
             return (to.IsDelegateType() && !TypeSymbol.Equals(to, from, TypeCompareKind.ConsiderEverything2)) ||

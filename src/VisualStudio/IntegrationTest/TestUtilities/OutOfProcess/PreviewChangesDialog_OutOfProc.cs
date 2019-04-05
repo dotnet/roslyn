@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void ClickApplyAndWaitForFeature(string expectedTitle, string featureName)
         {
             DialogHelpers.PressButtonWithNameFromDialogWithName(GetMainWindowHWnd(), expectedTitle, "Apply");
-            VisualStudioInstance.Workspace.WaitForAsyncOperations(featureName);
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(Helper.HangMitigatingTimeout, featureName);
         }
 
         public void ClickCancel(string expectedTitle)

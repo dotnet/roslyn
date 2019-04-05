@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var toVisit = new SortedSet<int>();
 
             var firstBlock = blocks[firstBlockOrdinal];
-            analyzer.SetCurrentAnalysisData(firstBlock, initialAnalysisData);
+            analyzer.SetCurrentAnalysisData(firstBlock, initialAnalysisData, cancellationToken);
             toVisit.Add(firstBlock.Ordinal);
 
             var processedBlocks = PooledHashSet<BasicBlock>.GetInstance();
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         continue;
                     }
 
-                    analyzer.SetCurrentAnalysisData(current, analyzer.GetEmptyAnalysisData());
+                    analyzer.SetCurrentAnalysisData(current, analyzer.GetEmptyAnalysisData(), cancellationToken);
                 }
 
                 if (current.Ordinal < firstBlockOrdinal || current.Ordinal > lastBlockOrdinal)
@@ -212,17 +212,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     case ControlFlowBranchSemantics.None:
                     case ControlFlowBranchSemantics.ProgramTermination:
                     case ControlFlowBranchSemantics.StructuredExceptionHandling:
-                    case ControlFlowBranchSemantics.Throw:
-                    case ControlFlowBranchSemantics.Rethrow:
                     case ControlFlowBranchSemantics.Error:
                         Debug.Assert(branch.Destination == null);
+                        return;
+
+                    case ControlFlowBranchSemantics.Throw:
+                    case ControlFlowBranchSemantics.Rethrow:
+                        Debug.Assert(branch.Destination == null);
+                        StepThroughFinally(current.EnclosingRegion, destinationOrdinal: lastBlockOrdinal, ref currentAnalsisData);
                         return;
 
                     case ControlFlowBranchSemantics.Regular:
                     case ControlFlowBranchSemantics.Return:
                         Debug.Assert(branch.Destination != null);
 
-                        if (StepThroughFinally(current.EnclosingRegion, branch.Destination, ref currentAnalsisData))
+                        if (StepThroughFinally(current.EnclosingRegion, branch.Destination.Ordinal, ref currentAnalsisData))
                         {
                             var destination = branch.Destination;
                             var currentDestinationData = analyzer.GetCurrentAnalysisData(destination);
@@ -234,7 +238,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             if ((current.IsReachable || !destination.IsReachable) &&
                                 (!analyzer.IsEqual(currentDestinationData, mergedAnalysisData) || !processedBlocks.Contains(destination)))
                             {
-                                analyzer.SetCurrentAnalysisData(destination, mergedAnalysisData);
+                                analyzer.SetCurrentAnalysisData(destination, mergedAnalysisData, cancellationToken);
                                 toVisit.Add(branch.Destination.Ordinal);
                             }
                         }
@@ -247,9 +251,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             // Returns whether we should proceed to the destination after finallies were taken care of.
-            bool StepThroughFinally(ControlFlowRegion region, BasicBlock destination, ref TBlockAnalysisData currentAnalysisData)
+            bool StepThroughFinally(ControlFlowRegion region, int destinationOrdinal, ref TBlockAnalysisData currentAnalysisData)
             {
-                int destinationOrdinal = destination.Ordinal;
                 while (!region.ContainsBlock(destinationOrdinal))
                 {
                     Debug.Assert(region.Kind != ControlFlowRegionKind.Root);

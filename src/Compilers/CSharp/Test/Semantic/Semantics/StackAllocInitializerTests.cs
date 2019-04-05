@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -12,6 +13,90 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.StackAllocInitializer)]
     public class StackAllocInitializerTests : CompilingTestBase
     {
+        [Fact, WorkItem(33945, "https://github.com/dotnet/roslyn/issues/33945")]
+        public void RestrictedTypesAllowedInStackalloc()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+public ref struct RefS { }
+public ref struct RefG<T> { public T field; }
+
+class C
+{
+    unsafe void M()
+    {
+        var x1 = stackalloc RefS[10];
+        var x2 = stackalloc RefG<string>[10];
+        var x3 = stackalloc RefG<int>[10];
+        var x4 = stackalloc System.TypedReference[10]; // Note: this should be disallowed by adding a dummy field to the ref assembly for TypedReference
+        var x5 = stackalloc System.ArgIterator[10];
+        var x6 = stackalloc System.RuntimeArgumentHandle[10];
+
+        var y1 = new RefS[10];
+        var y2 = new RefG<string>[10];
+        var y3 = new RefG<int>[10];
+        var y4 = new System.TypedReference[10];
+        var y5 = new System.ArgIterator[10];
+        var y6 = new System.RuntimeArgumentHandle[10];
+
+        RefS[] z1 = null;
+        RefG<string>[] z2 = null;
+        RefG<int>[] z3 = null;
+        System.TypedReference[] z4 = null;
+        System.ArgIterator[] z5 = null;
+        System.RuntimeArgumentHandle[] z6 = null;
+        _ = z1;
+        _ = z2;
+        _ = z3;
+        _ = z4;
+        _ = z5;
+        _ = z6;
+    }
+}
+", TestOptions.UnsafeReleaseDll);
+
+            comp.VerifyDiagnostics(
+                // (10,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('RefG<string>')
+                //         var x2 = stackalloc RefG<string>[10];
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "RefG<string>").WithArguments("RefG<string>").WithLocation(10, 29),
+                // (16,22): error CS0611: Array elements cannot be of type 'RefS'
+                //         var y1 = new RefS[10];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefS").WithArguments("RefS").WithLocation(16, 22),
+                // (17,22): error CS0611: Array elements cannot be of type 'RefG<string>'
+                //         var y2 = new RefG<string>[10];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefG<string>").WithArguments("RefG<string>").WithLocation(17, 22),
+                // (18,22): error CS0611: Array elements cannot be of type 'RefG<int>'
+                //         var y3 = new RefG<int>[10];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefG<int>").WithArguments("RefG<int>").WithLocation(18, 22),
+                // (19,22): error CS0611: Array elements cannot be of type 'TypedReference'
+                //         var y4 = new System.TypedReference[10];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(19, 22),
+                // (20,22): error CS0611: Array elements cannot be of type 'ArgIterator'
+                //         var y5 = new System.ArgIterator[10];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(20, 22),
+                // (21,22): error CS0611: Array elements cannot be of type 'RuntimeArgumentHandle'
+                //         var y6 = new System.RuntimeArgumentHandle[10];
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(21, 22),
+                // (23,9): error CS0611: Array elements cannot be of type 'RefS'
+                //         RefS[] z1 = null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefS").WithArguments("RefS").WithLocation(23, 9),
+                // (24,9): error CS0611: Array elements cannot be of type 'RefG<string>'
+                //         RefG<string>[] z2 = null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefG<string>").WithArguments("RefG<string>").WithLocation(24, 9),
+                // (25,9): error CS0611: Array elements cannot be of type 'RefG<int>'
+                //         RefG<int>[] z3 = null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "RefG<int>").WithArguments("RefG<int>").WithLocation(25, 9),
+                // (26,9): error CS0611: Array elements cannot be of type 'TypedReference'
+                //         System.TypedReference[] z4 = null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.TypedReference").WithArguments("System.TypedReference").WithLocation(26, 9),
+                // (27,9): error CS0611: Array elements cannot be of type 'ArgIterator'
+                //         System.ArgIterator[] z5 = null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(27, 9),
+                // (28,9): error CS0611: Array elements cannot be of type 'RuntimeArgumentHandle'
+                //         System.RuntimeArgumentHandle[] z6 = null;
+                Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "System.RuntimeArgumentHandle").WithArguments("System.RuntimeArgumentHandle").WithLocation(28, 9)
+                );
+        }
+
         [Fact]
         public void NoBestType_Pointer()
         {

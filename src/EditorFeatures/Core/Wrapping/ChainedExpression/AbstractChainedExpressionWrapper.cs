@@ -51,7 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
         private readonly int _dotToken;
         private readonly int _questionToken;
 
-        protected AbstractChainedExpressionWrapper(ISyntaxFactsService syntaxFacts)
+        protected AbstractChainedExpressionWrapper(
+            IBlankLineIndentationService indentationService,
+            ISyntaxFactsService syntaxFacts) : base(indentationService)
         {
             _syntaxFacts = syntaxFacts;
             _dotToken = syntaxFacts.SyntaxKinds.DotToken;

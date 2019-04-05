@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 {
-    internal struct ForEachInfo<TForEachStatement, TStatement>
+    internal readonly struct ForEachInfo<TForEachStatement, TStatement>
     {
         public TForEachStatement ForEachStatement { get; }
 

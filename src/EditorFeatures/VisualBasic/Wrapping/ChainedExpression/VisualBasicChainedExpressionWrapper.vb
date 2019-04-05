@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -8,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Wrapping.ChainedExpression
         Inherits AbstractChainedExpressionWrapper(Of NameSyntax, ArgumentListSyntax)
 
         Public Sub New()
-            MyBase.New(VisualBasicSyntaxFactsService.Instance)
+            MyBase.New(VisualBasicIndentationService.WithoutParameterAlignmentInstance, VisualBasicSyntaxFactsService.Instance)
         End Sub
 
         Protected Overrides Function GetNewLineBeforeOperatorTrivia(newLine As SyntaxTriviaList) As SyntaxTriviaList

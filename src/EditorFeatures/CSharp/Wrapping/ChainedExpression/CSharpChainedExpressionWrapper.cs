@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.Wrapping.ChainedExpression;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.ChainedExpression
@@ -10,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Wrapping.ChainedExpression
         AbstractChainedExpressionWrapper<NameSyntax, BaseArgumentListSyntax>
     {
         public CSharpChainedExpressionWrapper()
-            : base(CSharpSyntaxFactsService.Instance)
+            : base(CSharpIndentationService.Instance, CSharpSyntaxFactsService.Instance)
         {
         }
 
