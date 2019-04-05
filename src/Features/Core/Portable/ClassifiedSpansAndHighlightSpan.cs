@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.Classification
 {
-    internal struct ClassifiedSpansAndHighlightSpan
+    internal readonly struct ClassifiedSpansAndHighlightSpan
     {
         public const string Key = nameof(ClassifiedSpansAndHighlightSpan);
 

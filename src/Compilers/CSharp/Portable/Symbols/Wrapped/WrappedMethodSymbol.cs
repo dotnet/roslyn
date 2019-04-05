@@ -320,5 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return UnderlyingMethod.GenerateDebugInfo;
             }
         }
+
+        internal override bool IsDeclaredReadOnly => UnderlyingMethod.IsDeclaredReadOnly;
     }
 }

@@ -142,6 +142,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     checkedVariables,
                                     out conversion);
 
+            if (conversion.Method != null)
+            {
+                CheckImplicitThisCopyInReadOnlyMember(boundRHS, conversion.Method, diagnostics);
+            }
+
             FailRemainingInferencesAndSetValEscape(checkedVariables, diagnostics, rightEscape);
 
             var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: diagnostics.HasAnyErrors() || !resultIsUsed);

@@ -298,6 +298,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 this.ReportModifiersDiagnostics(diagnostics);
             }
+
+            if (containingType.IsInterface)
+            {
+                if (this.IsStatic)
+                {
+                    Binder.CheckFeatureAvailability(declarator, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, ErrorLocation);
+
+                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, ErrorLocation);
+                    }
+                }
+                else
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, ErrorLocation);
+                }
+            }
         }
 
         protected sealed override TypeSyntax TypeSyntax

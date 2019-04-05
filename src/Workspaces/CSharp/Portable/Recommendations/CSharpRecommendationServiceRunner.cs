@@ -386,6 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var excludeInstance = false;
             var excludeStatic = false;
             var symbol = leftHandBinding.GetAnySymbol();
+            ImmutableArray<ISymbol> symbols = default;
 
             if (symbol != null)
             {
@@ -448,6 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
                         excludeStatic = true;
 
+                        symbols = GetSymbols(parameter, originalExpression.SpanStart);
+
                         // case:
                         //    base.|
                         if (parameter.IsThis && !object.Equals(parameter.Type, container))
@@ -482,11 +485,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 excludeStatic = false;
             }
 
-            var symbols = GetSymbols(
-                container,
-                position: originalExpression.SpanStart,
-                excludeInstance: excludeInstance,
-                useBaseReferenceAccessibility: useBaseReferenceAccessibility);
+            if (symbols.IsDefault)
+            {
+                symbols = GetSymbols(
+                    container,
+                    position: originalExpression.SpanStart,
+                    excludeInstance: excludeInstance,
+                    useBaseReferenceAccessibility: useBaseReferenceAccessibility);
+            }
 
             // If we're showing instance members, don't include nested types
             return excludeStatic

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions
 {
     internal partial class RegexEmbeddedCompletionProvider
     {
-        private struct EmbeddedCompletionContext
+        private readonly struct EmbeddedCompletionContext
         {
             private readonly RegexEmbeddedLanguageFeatures _language;
             private readonly CompletionContext _context;

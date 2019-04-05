@@ -53,6 +53,7 @@ namespace BuildBoss
                 case ".csproj": return ProjectFileType.CSharp;
                 case ".vbproj": return ProjectFileType.Basic;
                 case ".shproj": return ProjectFileType.Shared;
+                case ".proj": return ProjectFileType.Tool;
                 default:
                     return ProjectFileType.Unknown;
             }

@@ -79,28 +79,28 @@ prefer auto properties;
 regex;
 regular expression;
 Use enhanced colors;</source>
-        <target state="needs-review-translation">닫힌 파일에 대한 진단 표시;
+        <target state="translated">닫힌 파일에 대한 진단 표시;
 정규식 색 지정; 
 커서 아래의 관련 구성 요소 강조; 
 잘못된 정규식 보고;
 전체 솔루션 분석 사용;
 외부 프로세스에서 편집기 기능 분석 수행;
 디컴파일된 소스에 탐색을 사용하도록 설정;
-Using 지시문;
-using 정렬 시 System 지시문 먼저 배치;
+using 지시문;
+using 정렬 시 system 지시문 먼저 배치;
 using 지시문 그룹 구분;
-참조 어셈블리의 형식에 대한 using 제안;
-NuGet 패키지의 형식에 대한 using 제안;
+참조 어셈블리의 형식에 using 제안;
+NuGet 패키지의 형식에 using 제안;
 강조 표시;
 커서 아래의 기호에 대한 참조 강조;
 커서 아래의 관련 키워드 강조;
 개요;
 개요 모드로 파일 열기;
-프로시저 줄 구분 기호 표시;
+프로시저 줄 구분선 표시;
 선언 수준 구문에 대한 개요 표시;
 코드 수준 구문에 대한 개요 표시;
 설명 및 전처리기 영역에 대한 개요 표시;
-정의로 축소할 때 영역 축소;
+정의로 축소 시 영역 축소;
 페이딩;
 사용하지 않는 using 페이드 아웃;
 접근할 수 없는 코드 페이드 아웃;
@@ -108,19 +108,21 @@ NuGet 패키지의 형식에 대한 using 제안;
 선언 수준 구문에 대한 가이드 표시;
 코드 수준 구문에 대한 가이드 표시;
 편집기 도움말;
-///에 대한 XML 문서 주석 생성;
+///에 대해 XML 문서 주석 생성;
 /* */ 주석을 작성할 때 새 줄의 시작 부분에 * 삽입;
 이름 바꾸기 추적 미리 보기 표시;
 &lt;Enter&gt; 키를 누르면 문자열 리터럴 분할;
 string.Format 호출에서 잘못된 자리 표시자 보고;
-메서드 추출; 사용자 지정 구조체에 ref 또는 out 추가 안 함;
+메서드 추출;
+사용자 지정 구조체에 ref 또는 out 추가 안 함;
 인터페이스 또는 추상 클래스 구현;
-속성, 이벤트 및 메서드 삽입 시 다음에 배치;
+속성, 이벤트 및 메서드 삽입 시 배치;
 같은 종류의 다른 멤버와 함께 있는 경우;
 끝에;
-속성을 생성할 때;
+속성 생성 시;
 throw되는 속성 선호;
-자동 속성 선호;</target>
+자동 속성 선호;
+향상된 색 사용;</target>
         <note>C# Advanced options page keywords</note>
       </trans-unit>
       <trans-unit id="307">
@@ -178,10 +180,10 @@ Place query expression clauses on new line;</source>
         <target state="translated">중괄호에 대한 줄 바꿈 서식 옵션;키워드에 대한 줄 바꿈 서식 옵션;중괄호에 대한 줄 바꿈 옵션;
 형식의 여는 중괄호를 새 줄에 배치;
 메서드 및 로컬 함수의 여는 중괄호를 새 줄에 배치;
-속성, 인덱스 및 이벤트의 여는 중괄호를 새 줄에 배치;
+속성, 인덱서 및 이벤트의 여는 중괄호를 새 줄에 배치;
 속성, 인덱서 및 이벤트 접근자의 여는 중괄호를 새 줄에 배치;
 무명 메서드의 여는 중괄호를 새 줄에 배치;
-제어 블록의 여는 중괄호를 새 줄에 배치,;
+제어 블록의 여는 중괄호를 새 줄에 배치;
 무명 형식의 여는 중괄호를 새 줄에 배치;
 개체, 컬렉션 및 배열 이니셜라이저의 여는 중괄호를 새 줄에 배치;
 키워드에 대한 줄 바꿈 옵션;
@@ -190,8 +192,8 @@ Place query expression clauses on new line;</source>
 새 줄에 finally 배치;
 식에 대한 줄 바꿈 옵션;
 개체 이니셜라이저의 멤버를 새 줄에 배치;
-새 줄에 무명 형식의 맴버 배치;
-새 줄에 쿼리 식 절 배치;</target>
+무명 형식의 멤버를 새 줄에 배치;
+쿼리 식의 절을 새 줄에 배치;</target>
         <note>C# Formatting &gt; New Lines options page keywords</note>
       </trans-unit>
       <trans-unit id="310">
@@ -228,31 +230,31 @@ Remove spaces before and after binary operators;
 Insert space before and after binary operators;</source>
         <target state="translated">메서드 선언의 간격 설정;
 메서드 이름과 여는 괄호 사이에 공백 삽입;
-매개 변수 목록 괄호의 내부에 공백 삽입;
-빈 매개 변수 목록 괄호의 내부에 공백 삽입;
+매개 변수 목록 괄호 내에 공백 삽입;
+빈 매개 변수 목록 괄호 내에 공백 삽입;
 메서드 호출의 간격 설정;
-인수 목록 괄호의 내부에 공백 삽입;
-빈 인수 목록 괄호의 내부에 공백 삽입;
-기타 간격 옵션 설정,;
+인수 목록 괄호 내부에 공백 삽입;
+빈 인수 목록 괄호 내부에 공백 삽입;
+기타 간격 옵션 설정;
 제어 흐름 문의 키워드 뒤에 공백 삽입;
-식의 괄호 내부에 공백 삽;
+식의 괄호 내부에 공백 삽입;
 형식 캐스트의 괄호 내부에 공백 삽입;
 제어 흐름 문의 괄호 내부에 공백 삽입;
 캐스트 뒤에 공백 삽입;
 선언문의 공백 무시;
 대괄호의 간격 설정;
 여는 대괄호 앞에 공백 삽입;
-빈 대괄호 안에 공백 삽입;
-대괄호 안에 공백 삽입;
+빈 대괄호 내부에 공백 삽입;
+대괄호 내부에 공백 삽입;
 구분 기호의 간격 설정;
 형식 선언의 기본 또는 인터페이스에 대한 콜론 뒤에 공백 삽입;
 쉼표 뒤에 공백 삽입;
 점 뒤에 공백 삽입;
-문의 세미콜론 뒤에 공백 삽입;
+for 문의 세미콜론 뒤에 공백 삽입;
 형식 선언의 기본 또는 인터페이스에 대한 콜론 앞에 공백 삽입;
 쉼표 앞에 공백 삽입;
 점 앞에 공백 삽입;
-문의 세미콜론 앞에 공백 삽입;
+for 문의 세미콜론 앞에 공백 삽입;
 연산자의 간격 설정;
 이항 연산자 주위의 공백 무시;
 이항 연산자 앞뒤의 공백 제거;
@@ -261,7 +263,7 @@ Insert space before and after binary operators;</source>
       </trans-unit>
       <trans-unit id="311">
         <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
-        <target state="translated">줄 바꿈 서식 옵션 변경;한 줄에 블록 그대로 두기;같은 줄에 문 및 멤버 선언 그대로 두기</target>
+        <target state="translated">줄 바꿈 서식 옵션 변경;블록 한 줄에 두기;문과 멤버 선언을 같은 줄에 두기</target>
         <note>C# Formatting &gt; Wrapping options page keywords</note>
       </trans-unit>
       <trans-unit id="312">
@@ -292,7 +294,7 @@ Show name suggestions;</source>
 &lt;Enter&gt; 키를 누르면 새 줄 추가 안 함;
 단어를 모두 입력한 후 &lt;Enter&gt; 키를 누르면 새 줄 추가;
 &lt;Enter&gt; 키를 누르면 항상 새 줄 추가;
-이름 제안 표시;</target>
+이름 추천 표시;</target>
         <note>C# IntelliSense options page keywords</note>
       </trans-unit>
       <trans-unit id="107">
