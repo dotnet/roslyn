@@ -1453,8 +1453,18 @@ public struct S
     public int P1 { get; private set; }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
-            comp.VerifyDiagnostics();
+            var moduleMetadata = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
+            var moduleComp = CreateCompilation("", new[] { moduleMetadata });
+            var moduleGetterAttributes = moduleComp.GetMember<PropertySymbol>("S.P1").GetMethod.GetAttributes();
+            Assert.Equal(1, moduleGetterAttributes.Length);
+            Assert.Equal("CompilerGeneratedAttribute", moduleGetterAttributes[0].AttributeClass.Name);
+
+            var dllMetadata = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45).EmitToImageReference();
+            var dllComp = CreateCompilation("", new[] { dllMetadata });
+            var dllGetterAttributes = dllComp.GetMember<PropertySymbol>("S.P1").GetMethod.GetAttributes();
+            Assert.Equal(2, dllGetterAttributes.Length);
+            Assert.Equal("IsReadOnlyAttribute", dllGetterAttributes[0].AttributeClass.Name);
+            Assert.Equal("CompilerGeneratedAttribute", dllGetterAttributes[1].AttributeClass.Name);
         }
 
         [Fact]
@@ -1466,11 +1476,14 @@ public struct S
     public int P1 { readonly get; private set; }
 }
 ";
-            var comp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
-            comp.VerifyDiagnostics(
+            var moduleComp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
+            moduleComp.VerifyDiagnostics(
                 // (4,30): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsReadOnlyAttribute' is not defined or imported
                 //     public int P1 { readonly get; private set; }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(4, 30));
+
+            var dllComp = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45);
+            dllComp.VerifyDiagnostics();
         }
 
         [Fact]

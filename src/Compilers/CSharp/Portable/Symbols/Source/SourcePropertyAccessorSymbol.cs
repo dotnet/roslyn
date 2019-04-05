@@ -422,13 +422,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.
         /// </summary>
-        internal override bool IsDeclaredReadOnly => LocalDeclaredReadOnly || _property.HasReadOnlyModifier || IsReadOnlyAutoGetter;
+        internal override bool IsDeclaredReadOnly
+        {
+            get
+            {
+                return LocalDeclaredReadOnly || _property.HasReadOnlyModifier || isReadOnlyAutoGetter();
 
-        private bool IsReadOnlyAutoGetter => ContainingType.IsStructType() && !_property.IsStatic && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertyGet && !IsBadNetModule;
+                bool isReadOnlyAutoGetter() =>
+                    ContainingType.IsStructType() &&
+                    !_property.IsStatic &&
+                    _isAutoPropertyAccessor &&
+                    MethodKind == MethodKind.PropertyGet &&
+                    !isBadNetModule();
 
-        // We can't emit the synthesized attribute for netmodules, so in this case we consider auto-getters **not** implicitly readonly.
-        private bool IsBadNetModule => DeclaringCompilation.Options.OutputKind == OutputKind.NetModule &&
-            DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute) is MissingMetadataTypeSymbol;
+                // We can't emit the synthesized attribute for netmodules, so in this case we consider auto-getters **not** implicitly readonly.
+                bool isBadNetModule() => DeclaringCompilation.Options.OutputKind == OutputKind.NetModule &&
+                    DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute) is MissingMetadataTypeSymbol;
+            }
+        }
 
         private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
             bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
