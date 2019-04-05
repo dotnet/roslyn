@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public SourceSimpleParameterSymbol(
             Symbol owner,
-            TypeSymbolWithAnnotations parameterType,
+            TypeWithAnnotations parameterType,
             int ordinal,
             RefKind refKind,
             string name,

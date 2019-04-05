@@ -162,13 +162,7 @@
   </Node>
 
   <Node Name="BoundTypeExpression" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
     <Field Name="AliasOpt" Type="AliasSymbol" Null="allow"/>
-
-    <!-- Was the type inferred via "var"? -->  
-    <Field Name="InferredType" Type="bool"/>
 
     <!-- 
     We're going to stash some extra information in the Color Color case
@@ -206,6 +200,12 @@
     identify the scenarios in which this property is populated.
     -->
     <Field Name="BoundContainingTypeOpt" Type="BoundTypeExpression" Null="allow"/>
+
+    <!-- The provided dimensions in an array type expression where dimensions were provided in error. -->
+    <Field Name="BoundDimensionsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
+
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="TypeWithAnnotations" Type="TypeWithAnnotations" Null="allow"/>
   </Node>
 
   <!-- 
@@ -329,6 +329,7 @@
 
   <Node Name="BoundRefValueOperator" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="NullableAnnotation" Type="NullableAnnotation" />
     <Field Name="Operand" Type="BoundExpression"/>
   </Node>
 
@@ -344,8 +345,8 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
-    <Field Name="LeftOperand" Type="BoundExpression" Null="allow"/>
-    <Field Name="RightOperand" Type="BoundExpression" Null="allow"/>
+    <Field Name="LeftOperandOpt" Type="BoundExpression" Null="allow"/>
+    <Field Name="RightOperandOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
@@ -769,9 +770,15 @@
   -->
   <Node Name="BoundLocalDeclaration" Base="BoundStatement">
     <Field Name="LocalSymbol" Type="LocalSymbol"/>
-    <Field Name="DeclaredType" Type="BoundTypeExpression"/>
+
+    <!-- Only set for the first declaration in BoundMultipleLocalDeclarations
+    unless the type is inferred -->
+    <Field Name="DeclaredTypeOpt" Type="BoundTypeExpression" Null="allow"/>
     <Field Name="InitializerOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="ArgumentsOpt" Type="ImmutableArray&lt;BoundExpression&gt;" Null="allow"/>
+
+    <!-- Was the type inferred via "var"? -->  
+    <Field Name="InferredType" Type="bool"/>
   </Node>
 
   <!--
@@ -1062,6 +1069,7 @@
   <Node Name="BoundBaseReference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="ExplicitBaseReferenceOpt" Type="BoundTypeExpression" Null="allow"/>
   </Node>
 
   <Node Name="BoundLocal" Base="BoundExpression">
@@ -1224,10 +1232,10 @@
     <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
   </Node>
   <Node Name="BoundDagNonNullTest" Base="BoundDagTest">
-    <!--Check that the input is not null.-->
+    <!--Check that the input is not null. Used as part of a type test.-->
   </Node>
-  <Node Name="BoundDagNullTest" Base="BoundDagTest">
-    <!--Check that the input is null.-->
+  <Node Name="BoundDagExplicitNullTest" Base="BoundDagTest">
+    <!--Check that the input is null. Used when an explicit null test appears in source.-->
   </Node>
   <Node Name="BoundDagValueTest" Base="BoundDagTest">
     <!--Check that the input is the same as the given constant value (other than null).-->
@@ -1322,7 +1330,7 @@
     <!--Non-null type is required, and will always be "dynamic". -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Receiver" Type="BoundExpression"/>
-    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeSymbolWithAnnotations&gt;" Null="allow"/>
+    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeWithAnnotations&gt;" Null="allow"/>
     <Field Name="Name" Type="string" Null="disallow"/>
   
     <!-- TODO (tomat): do we really need these flags here? it should be possible to infer them from the context -->
@@ -1389,7 +1397,7 @@
     <!-- SPEC: A method group is a set of overloaded methods resulting from a member lookup. 
          SPEC: A method group may have an associated instance expression and 
          SPEC: an associated type argument list. -->
-    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeSymbolWithAnnotations&gt;" Null="allow"/>
+    <Field Name="TypeArgumentsOpt" Type="ImmutableArray&lt;TypeWithAnnotations&gt;" Null="allow"/>
     <Field Name="Name" Type="string" Null="disallow"/>
     <Field Name="Methods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
     <Field Name="LookupSymbolOpt" Type="Symbol" Null="allow"/>
@@ -1438,6 +1446,8 @@
     <Field Name="Constructor" Type="MethodSymbol" Null="allow"/>
     <Field Name="ConstructorArguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ConstructorArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ConstructorArgumentsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+    <Field Name="ConstructorExpanded" Type="bool" />
     <Field Name="NamedArguments" Type ="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>

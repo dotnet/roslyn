@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Force a variable to have a slot.  Returns -1 if the variable has an empty struct type.
         /// </summary>
-        protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0)
+        protected virtual int GetOrCreateSlot(Symbol symbol, int containingSlot = 0, bool forceSlotEvenIfEmpty = false)
         {
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Since analysis may proceed in multiple passes, it is possible the slot is already assigned.
             if (!_variableSlot.TryGetValue(identifier, out slot))
             {
-                var variableType = VariableType(symbol).TypeSymbol;
-                if (_emptyStructTypeCache.IsEmptyStructType(variableType))
+                var variableType = symbol.GetTypeOrReturnType().Type;
+                if (!forceSlotEvenIfEmpty && _emptyStructTypeCache.IsEmptyStructType(variableType))
                 {
                     return -1;
                 }
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    containingType = restField.Type.TypeSymbol.TupleUnderlyingTypeOrSelf();
+                    containingType = restField.Type.TupleUnderlyingTypeOrSelf();
                 }
             }
 
@@ -243,28 +243,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             return GetOrCreateSlot(member, containingSlot);
-        }
-
-        protected static TypeSymbolWithAnnotations VariableType(Symbol s)
-        {
-            switch (s.Kind)
-            {
-                case SymbolKind.Local:
-                    return ((LocalSymbol)s).Type;
-                case SymbolKind.Field:
-                    return ((FieldSymbol)s).Type;
-                case SymbolKind.Parameter:
-                    return ((ParameterSymbol)s).Type;
-                case SymbolKind.Method:
-                    Debug.Assert(((MethodSymbol)s).MethodKind == MethodKind.LocalFunction);
-                    return default;
-                case SymbolKind.Property:
-                    return ((PropertySymbol)s).Type;
-                case SymbolKind.Event:
-                    return ((EventSymbol)s).Type;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(s.Kind);
-            }
         }
     }
 }

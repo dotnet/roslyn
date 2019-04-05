@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 const string configuration = "Release";
 #endif
 
-                while (directory != null && !File.Exists(path = Path.Combine(directory, "artifacts", "tools", "ILAsm", configuration, ilasmExeName)))
+                while (directory != null && !File.Exists(path = Path.Combine(directory, "artifacts", "tools", "ILTools", configuration, ilasmExeName)))
                 {
                     directory = Path.GetDirectoryName(directory);
                 }

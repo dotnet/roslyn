@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckAccessibility(DiagnosticBag diagnostics)
         {
-            var info = ModifierUtils.CheckAccessibility(Modifiers);
+            var info = ModifierUtils.CheckAccessibility(Modifiers, this, isExplicitInterfaceImplementation: false);
             if (info != null)
             {
                 diagnostics.Add(new CSDiagnostic(info, this.ErrorLocation));
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
             var location = ErrorLocation;
-            if (this.Type.NeedsNullableAttribute())
+            if (this.TypeWithAnnotations.NeedsNullableAttribute())
             {
                 DeclaringCompilation.EnsureNullableAttributeExists(diagnostics, location, modifyCompilation: true);
             }

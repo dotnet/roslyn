@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
     internal sealed partial class ContainedDocument
     {
         // this is to support old venus/razor case before dev16. 
-        // all new razor (asp.net core after dev16) should use thier own implementation not ours
+        // all new razor (asp.NET core after dev16) should use thier own implementation not ours
         public class DocumentServiceProvider : IDocumentServiceProvider
         {
             private readonly SpanMapper _spanMapper;
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                             // we don't have gurantee that pirmary snapshot is from same snapshot as roslyn snapshot. make sure
                             // we map it to right snapshot
                             var fixedUpSpan = roslynSpan.TranslateTo(roslynSnapshot, SpanTrackingMode.EdgeExclusive);
-                            var classifiedSpans = await EditorClassifier.GetClassifiedSpansAsync(document, fixedUpSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                            var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(document, fixedUpSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
                             if (classifiedSpans.IsDefault)
                             {
                                 continue;
@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                         // the EditorClassifier call above fills all the gaps for the span it is called with, but we are combining
                         // multiple spans with html code, so we need to fill those gaps
                         var builder = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                        EditorClassifier.FillInClassifiedSpanGaps(startPositionOnContentSpan, list, builder);
+                        ClassifierHelper.FillInClassifiedSpanGaps(startPositionOnContentSpan, list, builder);
 
                         // add html after roslyn content if there is any
                         if (builder.Count == 0)

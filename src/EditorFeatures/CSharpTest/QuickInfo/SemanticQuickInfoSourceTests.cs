@@ -2203,7 +2203,8 @@ class B
         $$y.ToString();
     }
 }",
-                MainDescription($"({FeaturesResources.local_variable}) A<B?>? y"));
+                // https://github.com/dotnet/roslyn/issues/26198 public API should show inferred nullability
+                MainDescription($"({FeaturesResources.local_variable}) A<B?> y"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

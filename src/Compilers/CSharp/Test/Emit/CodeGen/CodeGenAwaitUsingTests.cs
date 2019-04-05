@@ -156,7 +156,7 @@ class C : System.IAsyncDisposable
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestInAsyncAnonymousMethod()
         {
             string source = @"
@@ -298,7 +298,7 @@ class C : System.IDisposable
             comp.VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestInCatchBlock()
         {
             string source = @"
@@ -413,7 +413,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestInFinallyBlock()
         {
             string source = @"
@@ -448,7 +448,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestThrowingDisposeAsync()
         {
             string source = @"
@@ -484,7 +484,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "using caught message");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestRegularAwaitInFinallyBlock()
         {
             string source = @"
@@ -761,7 +761,7 @@ public class C : Base
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithDeclaration()
         {
             string source = @"
@@ -791,7 +791,7 @@ class C : System.IAsyncDisposable, System.IDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestIAsyncDisposableInRegularUsing()
         {
             string source = @"
@@ -871,7 +871,7 @@ class C : System.IAsyncDisposable, System.IDisposable
             CompileAndVerify(comp, expectedOutput: "body Dispose");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestIDisposableInAwaitUsing()
         {
             string source = @"
@@ -921,7 +921,7 @@ class C : System.IDisposable
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithDynamicDeclaration_ExplicitInterfaceImplementation()
         {
             string source = @"
@@ -948,7 +948,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithDynamicDeclaration()
         {
             string source = @"
@@ -975,7 +975,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync end");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithExpression()
         {
             string source = @"
@@ -1149,7 +1149,7 @@ class C : System.IAsyncDisposable
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullExpression()
         {
             string source = @"
@@ -1192,7 +1192,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithDynamicExpression()
         {
             string source = @"
@@ -1219,7 +1219,7 @@ class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithStructExpression()
         {
             string source = @"
@@ -1388,7 +1388,7 @@ struct S : System.IAsyncDisposable
 ");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullableExpression()
         {
             string source = @"
@@ -1415,7 +1415,7 @@ struct S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "body DisposeAsync");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithNullNullableExpression()
         {
             string source = @"
@@ -1478,7 +1478,7 @@ class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithMultipleResources()
         {
             string source = @"
@@ -1511,7 +1511,7 @@ class S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2_start dispose2_end dispose1_start dispose1_end");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithMultipleResourcesAndException()
         {
             string source = @"
@@ -1550,7 +1550,7 @@ class S : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "ctor1 ctor2 body dispose2 dispose1 caught");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestWithMultipleResourcesAndExceptionInSecondResource()
         {
             string source = @"
@@ -1658,7 +1658,7 @@ public class D
             Assert.True(first.GetHashCode() == another.GetHashCode());
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_ExtensionMethod()
         {
@@ -1689,7 +1689,7 @@ public static class Extensions
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_TwoOverloads()
         {
@@ -1717,7 +1717,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "dispose");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_Expression_ExtensionMethod()
         {
@@ -1748,7 +1748,7 @@ public static class Extensions
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_Expression_InstanceMethod()
         {
@@ -1778,7 +1778,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod()
         {
@@ -1808,7 +1808,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InterfacePreferredOverInstanceMethod()
         {
@@ -1840,7 +1840,7 @@ public class C : System.IAsyncDisposable
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_OptionalParameter()
         {
@@ -1870,7 +1870,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_ParamsParameter()
         {
@@ -1900,7 +1900,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end(0) return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_ReturningVoid()
         {
@@ -1928,7 +1928,7 @@ public class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_ReturningInt()
         {
@@ -1955,7 +1955,7 @@ public class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_Inaccessible()
         {
@@ -1988,7 +1988,7 @@ public class C
                 );
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_InstanceMethod_UsingDeclaration()
         {
@@ -2017,7 +2017,7 @@ public class C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_Awaitable()
         {
@@ -2057,7 +2057,7 @@ public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_ReturnsTask()
         {
@@ -2086,7 +2086,7 @@ public struct C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         [WorkItem(32316, "https://github.com/dotnet/roslyn/issues/32316")]
         public void TestPatternBasedDisposal_ReturnsTaskOfInt()
         {
@@ -2117,7 +2117,7 @@ public struct C
             CompileAndVerify(comp, expectedOutput: "using dispose_start dispose_end return");
         }
 
-        [ConditionalFact(typeof(WindowsDesktopOnly))]
+        [Fact]
         public void TestInRegularMethod()
         {
             string source = @"

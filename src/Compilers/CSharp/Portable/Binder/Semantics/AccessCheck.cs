@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -95,10 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.ArrayType:
-                    return IsSymbolAccessibleCore(((ArrayTypeSymbol)symbol).ElementType.TypeSymbol, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((ArrayTypeSymbol)symbol).ElementType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.PointerType:
-                    return IsSymbolAccessibleCore(((PointerTypeSymbol)symbol).PointedAtType.TypeSymbol, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
+                    return IsSymbolAccessibleCore(((PointerTypeSymbol)symbol).PointedAtType, within, null, out failedThroughTypeCheck, compilation, ref useSiteDiagnostics, basesBeingResolved);
 
                 case SymbolKind.NamedType:
                     return IsNamedTypeAccessible((NamedTypeSymbol)symbol, within, ref useSiteDiagnostics, basesBeingResolved);
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // type parameters are always accessible, so don't check those (so common it's
                     // worth optimizing this).
-                    if (typeArg.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.TypeSymbol, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (typeArg.Type.Kind != SymbolKind.TypeParameter && !IsSymbolAccessibleCore(typeArg.Type, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         return false;
                     }
@@ -396,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(current.IsDefinition);
 
-                    if (current.InheritsFromIgnoringConstruction(originalContainingType, compilation, ref useSiteDiagnostics, basesBeingResolved))
+                    if (current.InheritsFromOrImplementsIgnoringConstruction(originalContainingType, compilation, ref useSiteDiagnostics, basesBeingResolved))
                     {
                         // NOTE(cyrusn): We're continually walking up the 'throughType's inheritance
                         // chain.  We could compute it up front and cache it in a set.  However, we
@@ -405,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // slower to create and check inside the set versus just walking the
                         // inheritance chain.
                         if ((object)originalThroughTypeOpt == null ||
-                            originalThroughTypeOpt.InheritsFromIgnoringConstruction(current, compilation, ref useSiteDiagnostics))
+                            originalThroughTypeOpt.InheritsFromOrImplementsIgnoringConstruction(current, compilation, ref useSiteDiagnostics))
                         {
                             return true;
                         }
@@ -450,6 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)withinType != null);
             Debug.Assert((object)originalContainingType != null);
+            Debug.Assert(originalContainingType.IsDefinition);
 
             // Walk up my parent chain and see if I eventually hit the owner.  If so then I'm a
             // nested type of that owner and I'm allowed access to everything inside of it.
@@ -457,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while ((object)current != null)
             {
                 Debug.Assert(current.IsDefinition);
-                if (current.Equals(originalContainingType))
+                if (current == (object)originalContainingType)
                 {
                     return true;
                 }
@@ -470,10 +472,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Determine if "type" inherits from "baseType", ignoring constructed types, and dealing
+        /// Determine if "type" inherits from or implements "baseType", ignoring constructed types, and dealing
         /// only with original types.
         /// </summary>
-        private static bool InheritsFromIgnoringConstruction(
+        private static bool InheritsFromOrImplementsIgnoringConstruction(
             this TypeSymbol type,
             NamedTypeSymbol baseType,
             CSharpCompilation compilation,
@@ -483,16 +485,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type.IsDefinition);
             Debug.Assert(baseType.IsDefinition);
 
+            PooledHashSet<NamedTypeSymbol> interfacesLookedAt = null;
+            ArrayBuilder<NamedTypeSymbol> baseInterfaces = null;
+
+            bool baseTypeIsInterface = baseType.IsInterface;
+            if (baseTypeIsInterface)
+            {
+                interfacesLookedAt = PooledHashSet<NamedTypeSymbol>.GetInstance();
+                baseInterfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            }
+
             PooledHashSet<NamedTypeSymbol> visited = null;
             var current = type;
             bool result = false;
 
             while ((object)current != null)
             {
-                if (current.Equals(baseType))
+                Debug.Assert(current.IsDefinition);
+                if (baseTypeIsInterface == current.IsInterfaceType() &&
+                    current == (object)baseType)
                 {
                     result = true;
                     break;
+                }
+
+                if (baseTypeIsInterface)
+                {
+                    getBaseInterfaces(current, baseInterfaces, interfacesLookedAt, basesBeingResolved);
                 }
 
                 // NOTE(cyrusn): The base type of an 'original' type may not be 'original'. i.e. 
@@ -511,7 +530,76 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             visited?.Free();
+
+            if (!result && baseTypeIsInterface)
+            {
+                Debug.Assert(!result);
+
+                while (baseInterfaces.Count != 0)
+                {
+                    NamedTypeSymbol currentBase = baseInterfaces.Pop();
+
+                    if (!currentBase.IsInterface)
+                    {
+                        continue;
+                    }
+
+                    Debug.Assert(currentBase.IsDefinition);
+                    if (currentBase == (object)baseType)
+                    {
+                        result = true;
+                        break;
+                    }
+
+                    getBaseInterfaces(currentBase, baseInterfaces, interfacesLookedAt, basesBeingResolved);
+                }
+
+                if (!result)
+                {
+                    foreach (var candidate in interfacesLookedAt)
+                    {
+                        candidate.AddUseSiteDiagnostics(ref useSiteDiagnostics);
+                    }
+                }
+            }
+
+            interfacesLookedAt?.Free();
+            baseInterfaces?.Free();
             return result;
+
+            static void getBaseInterfaces(TypeSymbol derived, ArrayBuilder<NamedTypeSymbol> baseInterfaces, PooledHashSet<NamedTypeSymbol> interfacesLookedAt, ConsList<TypeSymbol> basesBeingResolved)
+            {
+                if (basesBeingResolved != null && basesBeingResolved.ContainsReference(derived))
+                {
+                    return;
+                }
+
+                ImmutableArray<NamedTypeSymbol> declaredInterfaces;
+
+                switch (derived)
+                {
+                    case TypeParameterSymbol typeParameter:
+                        declaredInterfaces = typeParameter.AllEffectiveInterfacesNoUseSiteDiagnostics;
+                        break;
+
+                    case NamedTypeSymbol namedType:
+                        declaredInterfaces = namedType.GetDeclaredInterfaces(basesBeingResolved);
+                        break;
+
+                    default:
+                        declaredInterfaces = derived.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
+                        break;
+                }
+
+                foreach (var @interface in declaredInterfaces)
+                {
+                    NamedTypeSymbol definition = @interface.OriginalDefinition;
+                    if (interfacesLookedAt.Add(definition))
+                    {
+                        baseInterfaces.Add(definition);
+                    }
+                }
+            }
         }
 
         /// <summary>

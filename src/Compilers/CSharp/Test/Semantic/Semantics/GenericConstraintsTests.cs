@@ -699,9 +699,9 @@ public class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (2,14): error CS0644: 'Child' cannot derive from special class 'Enum'
+                // (2,22): error CS0644: 'Child' cannot derive from special class 'Enum'
                 // public class Child : System.Enum
-                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "Child").WithArguments("Child", "System.Enum").WithLocation(2, 14),
+                Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "System.Enum").WithArguments("Child", "System.Enum").WithLocation(2, 22),
                 // (20,9): error CS0311: The type 'Child' cannot be used as type parameter 'T' in the generic type or method 'Test.M<T>(T)'. There is no implicit reference conversion from 'Child' to 'System.Enum'.
                 //         M(new Child());     // invalid
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("Test.M<T>(T)", "System.Enum", "T", "Child").WithLocation(20, 9));
@@ -2875,7 +2875,7 @@ unsafe public class Test
             Assert.Equal("M<int>()", value.ToFullString());
 
             var symbol = (MethodSymbol)model.GetSymbolInfo(value).Symbol;
-            Assert.Equal("System.Int32*", symbol.ReturnType.ToTestDisplayString());
+            Assert.Equal("System.Int32*", symbol.ReturnTypeWithAnnotations.ToTestDisplayString());
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3138,7 +3138,7 @@ class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single().TypeSymbol);
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArgumentsWithAnnotations.Single().Type);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3168,7 +3168,7 @@ class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
-            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArgumentsWithAnnotations.Single().SpecialType);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3194,7 +3194,7 @@ unsafe class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod);
-            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single().TypeSymbol);
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArgumentsWithAnnotations.Single().Type);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]
@@ -3223,7 +3223,7 @@ unsafe class C
             var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
 
             Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
-            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArgumentsWithAnnotations.Single().SpecialType);
         }
 
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/mono/mono/issues/10782")]

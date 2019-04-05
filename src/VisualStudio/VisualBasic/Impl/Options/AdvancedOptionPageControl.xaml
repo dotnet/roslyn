@@ -113,6 +113,16 @@
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_regular_expressions}" />
                     <CheckBox x:Name="Highlight_related_components_under_cursor"
                         Content="{x:Static local:AdvancedOptionPageStrings.Option_Highlight_related_components_under_cursor}" />
+                    <CheckBox x:Name="Show_completion_list"
+                        Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_completion_list}" />
+                </StackPanel>
+            </GroupBox>
+            
+            <GroupBox x:Uid="ClassificationsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Classifications}">
+                <StackPanel>
+                    <CheckBox x:Name="Use_enhanced_colors"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Use_enhanced_colors_for_C_and_Basic}" />
                 </StackPanel>
             </GroupBox>
 

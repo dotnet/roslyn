@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         Cci.ITypeReference Cci.IFieldReference.GetType(EmitContext context)
         {
-            TypeSymbolWithAnnotations oldType = _underlyingField.Type;
+            TypeWithAnnotations oldType = _underlyingField.TypeWithAnnotations;
             var customModifiers = oldType.CustomModifiers;
-            var type = ((PEModuleBuilder)context.Module).Translate(oldType.TypeSymbol, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
+            var type = ((PEModuleBuilder)context.Module).Translate(oldType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt, diagnostics: context.Diagnostics);
 
             if (customModifiers.Length == 0)
             {

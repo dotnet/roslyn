@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
     [ContentType(ContentTypeNames.CSharpContentType)]
     [Name(nameof(CompleteStatementCommandHandler))]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
+    [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
     internal sealed class CompleteStatementCommandHandler : IChainedCommandHandler<TypeCharCommandArgs>
     {
         public VSCommanding.CommandState GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextCommandHandler) => nextCommandHandler();
@@ -79,12 +81,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
 
             var currentNode = token.Parent;
 
-            // If cursor is right before an opening delimiter, start with node outside of delimiters since analysis 
-            // starting with a node containing delimiters assumes the caret is placed inside those delimiters. 
-            // This covers cases like `obj.ToString$()`, where `token` references `(` but the caret isn't actually 
-            // inside the argument list.
-            if (token.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.OpenBracketToken, SyntaxKind.OpenParenToken)
-                && token.Span.Start >= caretPosition)
+            // If the caret is right before an opening delimiter or right after a closing delimeter,
+            // start analysis with node outside of delimiters.
+            // Examples, 
+            //    `obj.ToString$()` where `token` references `(` but the caret isn't actually inside the argument list.
+            //    `obj.ToString()$` or `obj.method()$ .method()` where `token` references `)` but the caret isn't inside the argument list.
+            if (token.IsKind(SyntaxKind.OpenBraceToken, SyntaxKind.OpenBracketToken, SyntaxKind.OpenParenToken) && token.Span.Start >= caretPosition
+                || token.IsKind(SyntaxKind.CloseBraceToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken) && token.Span.End <= caretPosition)
             {
                 currentNode = currentNode.Parent;
             }
@@ -169,10 +172,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
         private static bool CaretIsInForStatementCondition(int caretPosition, ForStatementSyntax forStatementSyntax)
             // If condition is null and caret is in the condition section, as in `for ( ; $$; )`, 
             // we will have bailed earlier due to not being inside supported delimiters
-            => forStatementSyntax.Condition == null ?
-                false :
-                caretPosition > forStatementSyntax.Condition.SpanStart &&
-                caretPosition < forStatementSyntax.Condition.Span.End;
+            => forStatementSyntax.Condition == null
+                ? false
+                : caretPosition > forStatementSyntax.Condition.SpanStart &&
+                  caretPosition < forStatementSyntax.Condition.Span.End;
 
         private static bool CaretIsInForStatementDeclaration(int caretPosition, ForStatementSyntax forStatementSyntax)
             => forStatementSyntax.Declaration != null &&
@@ -205,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
                 // ArrayRankSpecifier: covers new Type[dim]
                 // ElementAccessExpression: covers indexer invocations like array[index]
                 // ParenthesizedExpression: covers (3*(x+y))
-                if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.ElementAccessExpression, SyntaxKind.ParenthesizedExpression))
+                if (currentNode.IsKind(SyntaxKind.ArgumentList, SyntaxKind.ArrayRankSpecifier, SyntaxKind.BracketedArgumentList, SyntaxKind.ParenthesizedExpression))
                 {
                     nodeFound = true;
                 }
@@ -239,9 +242,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement
             => syntaxFacts.IsStatement(currentNode) || currentNode.IsKind(SyntaxKind.FieldDeclaration);
 
         private static bool IsInAString(SyntaxNode currentNode, SnapshotPoint caret)
-            // If caret is at the end of the line, it is outside the string	
+            // Check to see if caret is before or after string
             => currentNode.IsKind(SyntaxKind.InterpolatedStringExpression, SyntaxKind.StringLiteralExpression)
-                && caret.Position != caret.GetContainingLine().End;
+                && caret.Position < currentNode.Span.End
+                && caret.Position > currentNode.SpanStart;
 
         private static bool StatementIsACandidate(SyntaxNode currentNode, int caretPosition)
         {

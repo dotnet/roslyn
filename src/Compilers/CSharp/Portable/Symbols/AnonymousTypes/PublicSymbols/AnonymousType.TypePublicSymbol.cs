@@ -78,9 +78,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            internal override ImmutableArray<TypeSymbolWithAnnotations> TypeArgumentsNoUseSiteDiagnostics
+            internal override ImmutableArray<TypeWithAnnotations> TypeArgumentsWithAnnotationsNoUseSiteDiagnostics
             {
-                get { return ImmutableArray<TypeSymbolWithAnnotations>.Empty; }
+                get { return ImmutableArray<TypeWithAnnotations>.Empty; }
             }
 
             internal override bool HasCodeAnalysisEmbeddedAttribute => false;
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            internal sealed override bool IsReadOnly
+            public sealed override bool IsReadOnly
             {
                 get { return false; }
             }

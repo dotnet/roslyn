@@ -134,6 +134,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CompleteStatement
             VerifyTypingSemicolon(code, expected);
         }
 
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/pull/34177")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_StringAsMethodArgument()
+        {
+            var code = CreateTestWithMethodCall(@"var test = Console.WriteLine( $$""Test"")");
+
+            var expected = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test"");$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/pull/34177")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ArgumentListOfMethodInvocation_StringAsMethodArgument2()
+        {
+            var code = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test""$$ )");
+
+            var expected = CreateTestWithMethodCall(@"var test = Console.WriteLine( ""Test"" );$$");
+
+            VerifyTypingSemicolon(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void ArgumentListOfMethodInvocation_MultiLine()
         {
@@ -2952,6 +2974,29 @@ class Program
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/issues/34176")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_VerbatimStringAsMethodArgument_EndOfLine_NotEndOfString()
+        {
+            var code = @"
+            var code = Foo(@""$$
+"") ;
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34176, "https://github.com/dotnet/roslyn/issues/34176")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void DontComplete_VerbatimStringAsMethodArgument_EndOfString_NotEndOfLine()
+        {
+
+            var code = @"
+            var code = Foo(@""  $$"" //comments
+);
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
         public void DontComplete_InterpolatedString()
         {
@@ -3122,6 +3167,183 @@ using System.$$Linq
             VerifyNoSpecialSemicolonHandling(code);
         }
 
+        [WorkItem(33851, "https://github.com/dotnet/roslyn/issues/33851")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void AtEndOfLineOutsideParens()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        string s = ""Test"";
+        string t = s.Replace(""T"", ""t"")$$
+            .Trim();
+
+    }
+}
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(33851, "https://github.com/dotnet/roslyn/issues/33851")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void OutsideParensBeforeSpaceDot()
+        {
+            var code = @"
+public class Class1
+{
+    void M()
+    {
+        string s = ""Test"";
+        string t = s.Replace(""T"", ""t"")$$ .Trim();
+
+    }
+}
+";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BeforeAttribute()
+        {
+            var code = @"
+public class C
+{
+private const string s = 
+        @""test""$$
+
+    [Fact]
+    public void M()
+            {
+            }
+        }";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ElementBindingExpression()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var data = new int[3];
+        var value = data?[0$$]
+    }
+}";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var data = new int[3];
+        var value = data?[0];$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BeforeElementBindingExpression()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var data = new int[3];
+        var value = data?$$[0]
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void AfterElementBindingExpression()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var data = new int[3];
+        var value = data?[0]$$
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void ImplicitElementAccessSyntax()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            [1$$] = 4,
+        }
+    }
+}";
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            [1] = 4,
+        };$$
+    }
+}";
+            VerifyTypingSemicolon(code, expected);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void BeforeImplicitElementAccessSyntax()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            $$[1] = 4,
+        }
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
+
+        [WorkItem(34666, "https://github.com/dotnet/roslyn/issues/34666")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CompleteStatement)]
+        public void AfterImplicitElementAccessSyntax()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var d = new Dictionary<int, int>
+        {
+            [1]$$ = 4,
+        }
+    }
+}";
+            VerifyNoSpecialSemicolonHandling(code);
+        }
         internal override VSCommanding.ICommandHandler GetCommandHandler(TestWorkspace workspace)
         {
             return workspace.ExportProvider.GetExportedValues<VSCommanding.ICommandHandler>().OfType<CompleteStatementCommandHandler>().Single();

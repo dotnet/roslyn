@@ -126,6 +126,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A new namespace will be created.
+        /// </summary>
+        internal static string A_new_namespace_will_be_created {
+            get {
+                return ResourceManager.GetString("A_new_namespace_will_be_created", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Access:.
         /// </summary>
         internal static string Access_colon {
@@ -603,6 +612,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Choose_a_Symbol_Specification_and_a_Naming_Style {
             get {
                 return ResourceManager.GetString("Choose_a_Symbol_Specification_and_a_Naming_Style", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Classifications.
+        /// </summary>
+        internal static string Classifications {
+            get {
+                return ResourceManager.GetString("Classifications", resourceCulture);
             }
         }
         
@@ -1605,6 +1623,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move to Namespace.
+        /// </summary>
+        internal static string Move_to_namespace {
+            get {
+                return ResourceManager.GetString("Move_to_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move up.
         /// </summary>
         internal static string Move_up {
@@ -1628,6 +1655,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Name_colon2 {
             get {
                 return ResourceManager.GetString("Name_colon2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespace.
+        /// </summary>
+        internal static string Namespace {
+            get {
+                return ResourceManager.GetString("Namespace", resourceCulture);
             }
         }
         
@@ -2395,6 +2431,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename {0} to {1}.
+        /// </summary>
+        internal static string Rename_0_to_1 {
+            get {
+                return ResourceManager.GetString("Rename_0_to_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reorder.
         /// </summary>
         internal static string Reorder {
@@ -2530,7 +2575,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Select Dependents.
+        ///   Looks up a localized string similar to Select _Dependents.
         /// </summary>
         internal static string Select_Dependents {
             get {
@@ -2584,7 +2629,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Select Public.
+        ///   Looks up a localized string similar to Select _Public.
         /// </summary>
         internal static string Select_Public {
             get {
@@ -2616,6 +2661,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Severity_colon {
             get {
                 return ResourceManager.GetString("Severity_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show completion list.
+        /// </summary>
+        internal static string Show_completion_list {
+            get {
+                return ResourceManager.GetString("Show_completion_list", resourceCulture);
             }
         }
         
@@ -2800,6 +2854,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Target Namespace:.
+        /// </summary>
+        internal static string Target_Namespace_colon {
+            get {
+                return ResourceManager.GetString("Target_Namespace_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The analyzer assembly &apos;{0}&apos; has changed. Diagnostics may be incorrect until Visual Studio is restarted..
         /// </summary>
         internal static string The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted {
@@ -2852,6 +2915,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string this_is_a_superset_of_the_cases_supported_by_when_variable_is_explicit {
             get {
                 return ResourceManager.GetString("this_is_a_superset_of_the_cases_supported_by_when_variable_is_explicit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is an invalid namespace.
+        /// </summary>
+        internal static string This_is_an_invalid_namespace {
+            get {
+                return ResourceManager.GetString("This_is_an_invalid_namespace", resourceCulture);
             }
         }
         
@@ -3063,6 +3135,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Unused_value_is_explicitly_assigned_to_discard {
             get {
                 return ResourceManager.GetString("Unused_value_is_explicitly_assigned_to_discard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use enhanced colors for C# and Basic.
+        /// </summary>
+        internal static string Use_enhanced_colors_for_C_and_Basic {
+            get {
+                return ResourceManager.GetString("Use_enhanced_colors_for_C_and_Basic", resourceCulture);
             }
         }
         

@@ -31,10 +31,7 @@ class C
             comp.VerifyDiagnostics(
                 // (7,52): error CS1586: Array creation must have array size or array initializer
                 //     Expression<Action<dynamic>> e = x => new object[](x);
-                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(7, 52),
-                // (7,42): error CS0149: Method name expected
-                //     Expression<Action<dynamic>> e = x => new object[](x);
-                Diagnostic(ErrorCode.ERR_MethodNameExpected, "new object[]").WithLocation(7, 42)
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(7, 52)
                 );
         }
 
@@ -2556,23 +2553,23 @@ class C
             var lambda = lambdas[0];
             var parameters = lambda.ParameterList.Parameters;
             var parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
+            Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("System.Int32 t", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[1]);
-            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
+            Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[3]);
-            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
 
             // var o = this[(a, b, c) => { }];
             lambda = lambdas[1];
             parameters = lambda.ParameterList.Parameters;
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[0]);
-            Assert.False(parameter.Type.TypeSymbol.IsErrorType());
+            Assert.False(parameter.Type.IsErrorType());
             Assert.Equal("A a", parameter.ToTestDisplayString());
             parameter = (ParameterSymbol)sm.GetDeclaredSymbol(parameters[2]);
-            Assert.Equal(tooMany, parameter.Type.TypeSymbol.IsErrorType());
+            Assert.Equal(tooMany, parameter.Type.IsErrorType());
             Assert.Equal(tooMany ? "? c" : "C c", parameter.ToTestDisplayString());
         }
 

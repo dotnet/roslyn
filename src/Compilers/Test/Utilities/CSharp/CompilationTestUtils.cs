@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var reducedFrom = reducedMethod.ReducedFrom;
             CheckReducedExtensionMethod(reducedMethod, reducedFrom);
-            Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type.TypeSymbol, reducedMethod.ReceiverType);
+            Assert.Equal(reducedMethod.CallsiteReducedFromMethod.Parameters[0].Type, reducedMethod.ReceiverType);
 
             var constructedFrom = reducedMethod.ConstructedFrom;
             CheckConstructedMethod(reducedMethod, constructedFrom);
@@ -309,35 +309,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var method = (MethodSymbol)model.GetDeclaredSymbol(annotations.Key);
                 var diagnostics = DiagnosticBag.GetInstance();
                 var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
-                var dictionary = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
+                var dictionary = new Dictionary<SyntaxNode, TypeWithAnnotations>();
                 NullableWalker.Analyze(
                     compilation,
                     method,
                     block,
                     diagnostics,
-                    callbackOpt: (BoundExpression expr, TypeSymbolWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
+                    callbackOpt: (BoundExpression expr, TypeWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
                 diagnostics.Free();
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes, message: method.ToTestDisplayString());
 
-                foreach (var entry in dictionary.Values.Where(v => !v.IsNull))
-                {
-                    // Result types cannot have nested types that are unspeakables
-                    Assert.Null(entry.VisitType(typeOpt: null,
-                        typeWithAnnotationsPredicateOpt: (tswa, a, b) => !tswa.Equals(entry, TypeCompareKind.ConsiderEverything) && !tswa.NullableAnnotation.IsSpeakable(),
-                        typePredicateOpt: (ts, _, b) => false, arg: (object)null, canDigThroughNullable: true));
-                }
-
                 string toDisplayString(SyntaxNode syntaxOpt)
                 {
                     // We don't support VerifyTypes on suppressions at the moment
                     Assert.NotEqual(syntaxOpt.Kind(), SyntaxKind.SuppressNullableWarningExpression);
 
-                    return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type)
-                        ? (type.IsNull ? "<null>" : type.ToDisplayString(TypeSymbolWithAnnotations.TestDisplayFormat))
-                        : null;
+                    return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type) ?
+                        (!type.HasType ? "<null>" : type.ToDisplayString(TypeWithAnnotations.TestDisplayFormat)) :
+                        null;
                 }
             }
 

@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             // Returns whether we should proceed to the destination after finallies were taken care of.
-            bool stepThroughFinally(ControlFlowRegion region, BasicBlockBuilder destination)
+            static bool stepThroughFinally(ControlFlowRegion region, BasicBlockBuilder destination)
             {
                 int destinationOrdinal = destination.Ordinal;
                 while (!region.ContainsBlock(destinationOrdinal))
@@ -6575,11 +6575,6 @@ oneMoreTime:
         {
             return new DelegateCreationOperation(Visit(operation.Target), semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        internal override IOperation VisitFromEndIndexOperation(IFromEndIndexOperation operation, int? argument)
-        {
-            return new FromEndIndexOperation(operation.IsLifted, semanticModel: null, operation.Syntax, operation.Type, Visit(operation.Operand), operation.Symbol, isImplicit: IsImplicit(operation));
         }
 
         public override IOperation VisitRangeOperation(IRangeOperation operation, int? argument)

@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
         }
     }
 
-    internal struct Match<
+    internal readonly struct Match<
         TExpressionSyntax,
         TStatementSyntax,
         TMemberAccessExpressionSyntax,

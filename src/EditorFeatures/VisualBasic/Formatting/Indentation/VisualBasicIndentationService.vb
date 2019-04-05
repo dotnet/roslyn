@@ -13,13 +13,24 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
     <ExportLanguageService(GetType(ISynchronousIndentationService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicIndentationService
+    Partial Friend NotInheritable Class VisualBasicIndentationService
         Inherits AbstractIndentationService(Of CompilationUnitSyntax)
 
-        Private Shared ReadOnly s_instance As AbstractFormattingRule = New SpecialFormattingRule()
+        Public Shared ReadOnly DefaultInstance As New VisualBasicIndentationService()
+        Public Shared ReadOnly WithoutParameterAlignmentInstance As New VisualBasicIndentationService(NoOpFormattingRule.Instance)
+
+        Private ReadOnly _specializedIndentationRule As AbstractFormattingRule
+
+        Public Sub New()
+            Me.New(New SpecialFormattingRule())
+        End Sub
+
+        Private Sub New(specializedIndentationRule As AbstractFormattingRule)
+            _specializedIndentationRule = specializedIndentationRule
+        End Sub
 
         Protected Overrides Function GetSpecializedIndentationFormattingRule() As AbstractFormattingRule
-            Return s_instance
+            Return _specializedIndentationRule
         End Function
 
         Protected Overrides Function GetIndenter(syntaxFacts As ISyntaxFactsService,

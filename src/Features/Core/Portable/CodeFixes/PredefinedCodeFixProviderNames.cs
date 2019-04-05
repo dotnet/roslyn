@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string ImplementInterface = nameof(ImplementInterface);
         public const string InsertMissingCast = nameof(InsertMissingCast);
         public const string MakeFieldReadonly = nameof(MakeFieldReadonly);
+        public const string MakeStatementAsynchronous = nameof(MakeStatementAsynchronous);
         public const string MakeMethodSynchronous = nameof(MakeMethodSynchronous);
         public const string MoveToTopOfFile = nameof(MoveToTopOfFile);
         public const string PopulateSwitch = nameof(PopulateSwitch);
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string Suppression = nameof(Suppression);
         public const string AddOverloads = nameof(AddOverloads);
         public const string AddNew = nameof(AddNew);
+        public const string UnsealClass = nameof(UnsealClass);
         public const string UseImplicitType = nameof(UseImplicitType);
         public const string UseExplicitType = nameof(UseExplicitType);
         public const string UseExplicitTypeForConst = nameof(UseExplicitTypeForConst);

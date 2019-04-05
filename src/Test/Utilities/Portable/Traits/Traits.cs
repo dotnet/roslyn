@@ -102,6 +102,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsInvokeDelegateWithConditionalAccess = "CodeActions.InvokeDelegateWithConditionalAccess";
             public const string CodeActionsLambdaSimplifier = "CodeActions.LambdaSimplifier";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
+            public const string CodeActionsMakeStatementAsynchronous = "CodeActions.MakeStatementAsynchronous";
             public const string CodeActionsMakeStructFieldsWritable = "CodeActions.MakeStructFieldsWritable";
             public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
@@ -110,6 +111,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMergeConsecutiveIfStatements = "CodeActions.MergeConsecutiveIfStatements";
             public const string CodeActionsMergeNestedIfStatements = "CodeActions.MergeNestedIfStatements";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
+            public const string CodeActionsMoveToNamespace = nameof(CodeActionsMoveToNamespace);
             public const string CodeActionsMoveToTopOfFile = "CodeActions.MoveToTopOfFile";
             public const string CodeActionsMoveType = "CodeActions.MoveType";
             public const string CodeActionsOrderModifiers = "CodeActions.OrderModifiers";
@@ -139,6 +141,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsSplitIntoNestedIfStatements = "CodeActions.SplitIntoNestedIfStatements";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsSyncNamespace = "CodeActions.SyncNamespace";
+            public const string CodeActionsUnsealClass = "CodeActions.UnsealClass";
             public const string CodeActionsUseInterpolatedVerbatimString = "CodeActions.UseInterpolatedVerbatimString";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
             public const string CodeActionsUseCoalesceExpression = "CodeActions.UseCoalesceExpression";
@@ -213,6 +216,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string LinkedFileDiffMerging = nameof(LinkedFileDiffMerging);
             public const string MetadataAsSource = nameof(MetadataAsSource);
             public const string MSBuildWorkspace = nameof(MSBuildWorkspace);
+            public const string MoveToNamespace = nameof(MoveToNamespace);
             public const string NamingStyle = nameof(NamingStyle);
             public const string NavigableSymbols = nameof(NavigableSymbols);
             public const string NavigateTo = nameof(NavigateTo);
