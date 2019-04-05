@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
@@ -10133,6 +10134,21 @@ class Program
             await VerifyItemIsAbsentAsync(markup, "Clone");
             await VerifyItemIsAbsentAsync(markup, "Method");
             await VerifyItemIsAbsentAsync(markup, "Target");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestDavid()
+        {
+            var markup =
+@"public class C
+{
+    int intField;
+    void M(int x)
+    {
+        M($$);
+    }
+}";
+            await VerifyItemExistsAsync(markup, "intField", matchingFilters: new List<CompletionItemFilter> { CompletionItemFilter.FieldFilter, CompletionItemFilter.MatchingTypeFilter });
         }
     }
 }

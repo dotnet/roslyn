@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,24 +28,28 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new CSharpCompletionService(workspace, exclusiveProviders);
         }
 
-        protected override Task BaseVerifyWorkerAsync(
+        private protected override Task BaseVerifyWorkerAsync(
             string code, int position,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix, string inlineDescription = null)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix, string inlineDescription = null,
+            List<CompletionItemFilter> matchingFilters)
         {
             return base.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription);
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription,
+                matchingFilters);
         }
 
-        protected override async Task VerifyWorkerAsync(
+        private protected override async Task VerifyWorkerAsync(
             string code, int position,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger,
             bool checkForAbsence, int? glyph, int? matchPriority,
-            bool? hasSuggestionItem, string displayTextSuffix, string inlineDescription = null)
+            bool? hasSuggestionItem, string displayTextSuffix, string inlineDescription = null,
+            bool? hasSuggestionItem, string displayTextSuffix,
+            List<CompletionItemFilter> matchingFilters)
         {
             await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription);
             await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, inlineDescription);

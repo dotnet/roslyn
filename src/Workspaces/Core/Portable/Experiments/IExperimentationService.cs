@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.Experiments
     [ExportWorkspaceService(typeof(IExperimentationService)), Shared]
     internal class DefaultExperimentationService : IExperimentationService
     {
-        public bool IsExperimentEnabled(string experimentName) => false;
+        public bool ReturnValue = false;
+        public bool IsExperimentEnabled(string experimentName) => ReturnValue;
     }
 
     internal static class WellKnownExperimentNames
