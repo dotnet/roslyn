@@ -59,7 +59,7 @@ class TestClass
             End Using
         End Sub
 
-        Private Shared Sub AssertVirtualCaretColumn(state As ITestState, expectedCol As Integer)
+        Private Shared Sub AssertVirtualCaretColumn(state As TestStateBase, expectedCol As Integer)
             Dim caretLine = state.GetLineFromCurrentCaretPosition()
             Dim caret = state.GetCaretPoint()
             Assert.Equal(expectedCol, caret.VirtualBufferPosition.VirtualSpaces)

@@ -1520,7 +1520,7 @@ class A
 
                 Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
                 Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
-                Assert.Equal(taskOfObject, entryPoint.ReturnType.TypeSymbol);
+                Assert.Equal(taskOfObject, entryPoint.ReturnType);
             }
 
             var firstCompilation = CSharpCompilation.CreateScriptCompilation(
@@ -2031,7 +2031,7 @@ class C { }", options: TestOptions.Script);
         [Fact]
         public void AppConfig2()
         {
-            // Create a dll with a reference to .net system
+            // Create a dll with a reference to .NET system
             string libSource = @"
 using System.Runtime.Versioning;
 public class C { public static FrameworkName Goo() { return null; }}";

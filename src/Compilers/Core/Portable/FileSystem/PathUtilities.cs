@@ -117,8 +117,7 @@ namespace Roslyn.Utilities
             return GetDirectoryName(path, IsUnixLikePlatform);
         }
 
-        // Exposed for testing purposes only.
-        internal static string GetDirectoryName(string path, bool isUnixLike)
+        private static string GetDirectoryName(string path, bool isUnixLike)
         {
             if (path != null)
             {
@@ -744,6 +743,12 @@ namespace Roslyn.Utilities
             {
                 return PathHashCode(s);
             }
+        }
+
+        internal static class TestAccessor
+        {
+            internal static string GetDirectoryName(string path, bool isUnixLike)
+                => PathUtilities.GetDirectoryName(path, isUnixLike);
         }
     }
 }

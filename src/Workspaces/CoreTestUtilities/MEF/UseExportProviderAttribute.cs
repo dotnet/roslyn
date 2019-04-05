@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void Before(MethodInfo methodUnderTest)
         {
-            MefHostServices.HookServiceCreation(CreateMefHostServices);
-            RoslynServices.HookHostServices(() => _remoteHostServices.Value);
+            MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
+            RoslynServices.TestAccessor.HookHostServices(() => _remoteHostServices.Value);
 
             // make sure we enable this for all unit tests
             AsynchronousOperationListenerProvider.Enable(enable: true, diagnostics: true);
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 // Replace hooks with ones that always throw exceptions. These hooks detect cases where code executing
                 // after the end of a test attempts to create an ExportProvider.
-                MefHostServices.HookServiceCreation(DenyMefHostServicesCreationBetweenTests);
-                RoslynServices.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
+                MefHostServices.TestAccessor.HookServiceCreation(DenyMefHostServicesCreationBetweenTests);
+                RoslynServices.TestAccessor.HookHostServices(() => throw new InvalidOperationException("Cannot create host services after test tear down."));
 
                 // Reset static state variables.
                 _hostServices = null;

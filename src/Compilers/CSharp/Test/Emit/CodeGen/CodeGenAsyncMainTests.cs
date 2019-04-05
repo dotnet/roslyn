@@ -4,6 +4,11 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Xunit;
 using System.Threading;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Reflection.PortableExecutable;
+using System.Reflection.Metadata;
+using System.Linq;
+using Roslyn.Test.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -707,7 +712,21 @@ class A
             var entry = compilation.GetEntryPoint(CancellationToken.None);
             Assert.NotNull(entry);
             Assert.Equal("System.Threading.Tasks.Task A.Main()", entry.ToTestDisplayString());
+
+            var image = compilation.EmitToArray();
+            using var reader = new PEReader(image);
+            var metadataReader = reader.GetMetadataReader();
+            var main = metadataReader.MethodDefinitions.Where(mh => getMethodName(mh) == "<Main>").Single();
+            Assert.Equal(new[] { "MemberReference:Void System.Diagnostics.DebuggerStepThroughAttribute..ctor()" }, getMethodAttributes(main));
+
+            string getMethodName(MethodDefinitionHandle handle)
+                => metadataReader.GetString(metadataReader.GetMethodDefinition(handle).Name);
+
+            IEnumerable<string> getMethodAttributes(MethodDefinitionHandle handle)
+                => metadataReader.GetMethodDefinition(handle).GetCustomAttributes()
+                    .Select(a => metadataReader.Dump(metadataReader.GetCustomAttribute(a).Constructor));
         }
+
         [Fact]
         public void MainCanReturnTask_NoAsync()
         {

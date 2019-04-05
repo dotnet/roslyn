@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
+<!-- 
+ To re-generate source from this file, run eng/generate-compiler-code.cmd
+-->
+
 <Tree Root="SyntaxNode">
   <PredefinedNode Name="CSharpSyntaxNode" Base="SyntaxNode"/>
   <PredefinedNode Name="SyntaxToken" Base="CSharpSyntaxNode"/>
@@ -740,6 +744,32 @@
       <summary>Creates a ThisExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="BaseExpressionTypeClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="BaseExpressionTypeClause"/>
+    <Field Name="OpenParenToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the open paren token.</summary>
+      </PropertyComment>
+      <Kind Name="OpenParenToken"/>
+    </Field>
+    <Field Name="BaseType" Type="TypeSyntax">
+      <PropertyComment>
+        <summary>Gets the base type syntax.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseParenToken" Type="SyntaxToken">
+      <PropertyComment>
+        <summary>Gets the close paren token.</summary>
+      </PropertyComment>
+      <Kind Name="CloseParenToken"/>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for type clause in base expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a BaseExpressionTypeSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="BaseExpressionSyntax" Base="InstanceExpressionSyntax">
     <Kind Name="BaseExpression"/>
     <Field Name="Token" Type="SyntaxToken">
@@ -747,6 +777,9 @@
       <PropertyComment>
         <summary>SyntaxToken representing the base keyword.</summary>
       </PropertyComment>
+    </Field>
+    <Field Name="TypeClause" Type="BaseExpressionTypeClauseSyntax" Optional="true">
+      <Kind Name="BaseExpressionTypeClause"/>
     </Field>
     <TypeComment>
       <summary>Class which represents the syntax node for a base expression.</summary>

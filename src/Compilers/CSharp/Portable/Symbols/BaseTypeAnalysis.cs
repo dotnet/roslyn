@@ -79,12 +79,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 foreach (var member in type.GetMembersUnordered())
                 {
                     var field = member as FieldSymbol;
-                    if ((object)field == null || field.Type.TypeKind != TypeKind.Struct || field.IsStatic)
+                    var fieldType = field?.NonPointerType();
+                    if (fieldType is null || fieldType.TypeKind != TypeKind.Struct || field.IsStatic)
                     {
                         continue;
                     }
 
-                    StructDependsClosure((NamedTypeSymbol)field.Type.TypeSymbol, partialClosure, on);
+                    StructDependsClosure((NamedTypeSymbol)fieldType, partialClosure, on);
                 }
             }
         }
@@ -134,6 +135,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // NOTE: If we do not check HasPointerType, we will unconditionally
+        //       bind Type and that may cause infinite recursion.
+        //       HasPointerType can use syntax directly and break recursion.
+        internal static TypeSymbol NonPointerType(this FieldSymbol field) =>
+            field.HasPointerType ? null : field.Type;
+
         private static (bool definitelyManaged, bool hasGenerics) DependsOnDefinitelyManagedType(NamedTypeSymbol type, HashSet<Symbol> partialClosure)
         {
             Debug.Assert((object)type != null);
@@ -164,16 +171,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         continue;
                     }
 
-                    // pointers are unmanaged
-                    // NOTE: If we do not check HasPointerType, we will unconditionally
-                    //       bind Type and that may cause infinite recursion.
-                    //       HasPointerType can use syntax directly and break recursion.
-                    if (field.HasPointerType)
+                    TypeSymbol fieldType = field.NonPointerType();
+                    if (fieldType is null)
                     {
+                        // pointers are unmanaged
                         continue;
                     }
 
-                    TypeSymbol fieldType = field.Type.TypeSymbol;
                     NamedTypeSymbol fieldNamedType = fieldType as NamedTypeSymbol;
                     if ((object)fieldNamedType == null)
                     {

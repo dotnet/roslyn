@@ -3114,6 +3114,64 @@ End Class
 
             <Fact>
             <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(16576, "https://github.com/dotnet/roslyn/issues/16576")>
+            Public Sub RenameParameterizedPropertyResolvedConflict()
+                Using result = RenameEngineResult.Create(_outputHelper,
+                        <Workspace>
+                            <Project Language="Visual Basic" CommonReferences="true">
+                                <Document><![CDATA[
+Public Class C
+    Public ReadOnly Property P(a As Object) As Int32
+        Get
+            Return 2
+        End Get
+    End Property
+    Public ReadOnly Property [|$$P2|](a As String) As Int32
+        Get
+            Return {|Conflict0:P|}("")
+        End Get
+    End Property
+End Class
+]]>
+                                </Document>
+                            </Project>
+                        </Workspace>, renameTo:="P")
+
+                    result.AssertLabeledSpansAre("Conflict0", replacement:="Return P(CObj(""""))", type:=RelatedLocationType.ResolvedNonReferenceConflict)
+                End Using
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(16576, "https://github.com/dotnet/roslyn/issues/16576")>
+            Public Sub RenameParameterizedPropertyUnresolvedConflict()
+                Using result = RenameEngineResult.Create(_outputHelper,
+                        <Workspace>
+                            <Project Language="Visual Basic" CommonReferences="true">
+                                <Document><![CDATA[
+Public Class C
+    Public ReadOnly Property {|Conflict:P|}(a As String) As Int32
+        Get
+            Return 2
+        End Get
+    End Property
+    Public ReadOnly Property [|$$P2|](a As String) As Int32
+        Get
+            Return 3
+        End Get
+    End Property
+End Class
+]]>
+                                </Document>
+                            </Project>
+                        </Workspace>, renameTo:="P")
+
+                    result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+                End Using
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
             <WorkItem(10469, "https://github.com/dotnet/roslyn/issues/10469")>
             Public Sub RenameTypeToCurrent()
                 Using result = RenameEngineResult.Create(_outputHelper,
