@@ -223,6 +223,7 @@
                 case ErrorCode.WRN_DefaultExpressionMayIntroduceNullT:
                 case ErrorCode.WRN_NullLiteralMayIntroduceNullT:
                 case ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull:
+                case ErrorCode.WRN_ImplicitCopyInReadOnlyMember:
                     return true;
                 default:
                     return false;

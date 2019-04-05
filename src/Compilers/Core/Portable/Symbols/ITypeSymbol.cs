@@ -111,6 +111,11 @@ namespace Microsoft.CodeAnalysis
         /// has no concept of unmanaged types.
         /// </summary>
         bool IsUnmanagedType { get; }
+
+        /// <summary>
+        /// True if the type is readonly.
+        /// </summary>
+        bool IsReadOnly { get; }
     }
 
     // Intentionally not extension methods. We don't want them ever be called for symbol classes
