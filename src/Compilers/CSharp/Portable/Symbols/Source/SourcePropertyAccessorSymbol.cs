@@ -426,18 +426,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return LocalDeclaredReadOnly || _property.HasReadOnlyModifier || isReadOnlyAutoGetter();
+                if (LocalDeclaredReadOnly || _property.HasReadOnlyModifier)
+                {
+                    return true;
+                }
 
-                bool isReadOnlyAutoGetter() =>
+                // We can't emit the synthesized attribute for netmodules, so in this case we consider auto-getters **not** implicitly readonly.
+                bool isBadNetModule = DeclaringCompilation.Options.OutputKind == OutputKind.NetModule &&
+                    DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute).IsErrorType();
+
+                bool isReadOnlyAutoGetter =
+                    !isBadNetModule &&
                     ContainingType.IsStructType() &&
                     !_property.IsStatic &&
                     _isAutoPropertyAccessor &&
-                    MethodKind == MethodKind.PropertyGet &&
-                    !isBadNetModule();
+                    MethodKind == MethodKind.PropertyGet;
 
-                // We can't emit the synthesized attribute for netmodules, so in this case we consider auto-getters **not** implicitly readonly.
-                bool isBadNetModule() => DeclaringCompilation.Options.OutputKind == OutputKind.NetModule &&
-                    DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute) is MissingMetadataTypeSymbol;
+                return isReadOnlyAutoGetter;
             }
         }
 

@@ -1468,6 +1468,66 @@ public struct S
         }
 
         [Fact]
+        public void NetModule_ImplicitReadOnlyAutoProperty_MalformedAttribute()
+        {
+            var csharp = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute
+    {
+        public IsReadOnlyAttribute(int x) {}
+    }
+}
+
+public struct S
+{
+    public int P1 { get; private set; }
+}
+";
+            var moduleComp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
+            moduleComp.VerifyDiagnostics(
+                // (12,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public int P1 { get; private set; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(12, 21));
+
+            var dllComp = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45);
+            dllComp.VerifyDiagnostics(
+                // (12,21): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public int P1 { get; private set; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(12, 21));
+        }
+
+        [Fact]
+        public void NetModule_ExplicitReadOnlyAutoProperty_MalformedAttribute()
+        {
+            var csharp = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute
+    {
+        public IsReadOnlyAttribute(int x) {}
+    }
+}
+
+public struct S
+{
+    public int P1 { readonly get; private set; }
+}
+";
+            var moduleComp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
+            moduleComp.VerifyDiagnostics(
+                // (12,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public int P1 { readonly get; private set; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(12, 30));
+
+            var dllComp = CreateCompilation(csharp, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib45);
+            dllComp.VerifyDiagnostics(
+                // (12,30): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public int P1 { readonly get; private set; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(12, 30));
+        }
+
+        [Fact]
         public void NetModule_ExplicitReadOnlyAutoProperty()
         {
             var csharp = @"
