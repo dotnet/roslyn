@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.MoveToNamespace;
 using Xunit;
 
@@ -45,28 +46,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
             testState.TestMoveToNamespaceOptionsService.SetOptions(moveToNamespaceOptions);
             if (expectedSuccess)
             {
-                if (optionCancelled)
-                {
-                    var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
+                var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
                         testState.InvocationDocument,
                         testState.TestInvocationDocument.SelectedSpans.Single(),
                         CancellationToken.None);
 
-                    var operationTasks = actions
-                        .Cast<AbstractMoveToNamespaceCodeAction>()
-                        .Select(action => action.GetOperationsAsync(action.GetOptions(CancellationToken.None), CancellationToken.None));
+                var operationTasks = actions
+                    .Cast<AbstractMoveToNamespaceCodeAction>()
+                    .Select(action => action.GetOperationsAsync(action.GetOptions(CancellationToken.None), CancellationToken.None));
 
-                    foreach (var task in operationTasks)
+                foreach (var task in operationTasks)
+                {
+                    var operations = await task;
+
+                    if (optionCancelled)
                     {
-                        var operations = await task;
                         Assert.Empty(operations);
+                    }
+                    else
+                    {
+                        Assert.NotEmpty(operations);
+                        Assert.NotEmpty(operations.Where(operation => operation is TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation));
                     }
 
                 }
-                else
+
+                if (!optionCancelled)
                 {
                     await TestInRegularAndScriptAsync(markup, expectedMarkup);
-
                 }
             }
             else

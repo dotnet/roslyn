@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MoveToNamespace
         private static readonly IExportProviderFactory CSharpExportProviderFactory =
             ExportProviderCache.GetOrCreateExportProviderFactory(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic
-                    .WithPart(typeof(TestMoveToNamespaceOptionsService)));
+                    .WithPart(typeof(TestMoveToNamespaceOptionsService))
+                    .WithPart(typeof(TestSymbolRenamedCodeActionOperationFactoryWorkspaceService)));
 
         protected override TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters)
             => TestWorkspace.CreateCSharp(initialMarkup, parameters.parseOptions, parameters.compilationOptions, exportProvider: CSharpExportProviderFactory.CreateExportProvider());
