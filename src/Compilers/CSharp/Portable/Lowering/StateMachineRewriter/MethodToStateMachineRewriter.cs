@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Used to enumerate the instance fields of a struct.
         /// </summary>
-        private readonly EmptyStructTypeCache _emptyStructTypeCache = new NeverEmptyStructTypeCache();
+        private readonly EmptyStructTypeCache _emptyStructTypeCache = EmptyStructTypeCache.CreateNeverEmpty();
 
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool reused = false;
                 if (!proxies.TryGetValue(local, out proxy))
                 {
-                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type.TypeSymbol).TypeSymbol, out reused, local), isReusable: true);
+                    proxy = new CapturedToStateMachineFieldReplacement(GetOrAllocateReusableHoistedField(TypeMap.SubstituteType(local.Type).Type, out reused, local), isReusable: true);
                     proxies.Add(local, proxy);
                 }
 
@@ -387,9 +387,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void AddVariableCleanup(ArrayBuilder<BoundAssignmentOperator> cleanup, FieldSymbol field)
         {
-            if (MightContainReferences(field.Type.TypeSymbol))
+            if (MightContainReferences(field.Type))
             {
-                cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type.TypeSymbol)));
+                cleanup.Add(F.AssignmentExpression(F.Field(F.This(), field), F.NullOrDefault(field.Type)));
             }
         }
 
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
             foreach (var f in _emptyStructTypeCache.GetStructInstanceFields(type))
             {
-                if (MightContainReferences(f.Type.TypeSymbol)) return true;
+                if (MightContainReferences(f.Type)) return true;
             }
             return false;
         }
@@ -441,14 +441,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void FreeReusableHoistedField(StateMachineFieldSymbol field)
         {
             ArrayBuilder<StateMachineFieldSymbol> fields;
-            if (_lazyAvailableReusableHoistedFields == null || !_lazyAvailableReusableHoistedFields.TryGetValue(field.Type.TypeSymbol, out fields))
+            if (_lazyAvailableReusableHoistedFields == null || !_lazyAvailableReusableHoistedFields.TryGetValue(field.Type, out fields))
             {
                 if (_lazyAvailableReusableHoistedFields == null)
                 {
                     _lazyAvailableReusableHoistedFields = new Dictionary<TypeSymbol, ArrayBuilder<StateMachineFieldSymbol>>(TypeSymbol.EqualsIgnoringDynamicTupleNamesAndNullabilityComparer);
                 }
 
-                _lazyAvailableReusableHoistedFields.Add(field.Type.TypeSymbol, fields = new ArrayBuilder<StateMachineFieldSymbol>());
+                _lazyAvailableReusableHoistedFields.Add(field.Type, fields = new ArrayBuilder<StateMachineFieldSymbol>());
             }
 
             fields.Add(field);
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (needsSacrificialEvaluation)
             {
-                var type = TypeMap.SubstituteType(local.Type.TypeSymbol).TypeSymbol;
+                var type = TypeMap.SubstituteType(local.Type).Type;
                 var sacrificialTemp = F.SynthesizedLocal(type, refKind: RefKind.Ref);
                 Debug.Assert(TypeSymbol.Equals(type, replacement.Type, TypeCompareKind.ConsiderEverything2));
                 return F.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), F.AssignmentExpression(F.Local(sacrificialTemp), replacement, isRef: true));

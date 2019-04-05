@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override ImmutableArray<Location> Locations
             => _property.Locations;
 
-        internal override TypeSymbolWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
-            => _property.Type;
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+            => _property.TypeWithAnnotations;
 
         internal override bool HasPointerType
             => _property.HasPointerType;

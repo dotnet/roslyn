@@ -38,7 +38,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // Case: public static implicit operator string(Program p) { return null; }
-            if (previousToken.IsKeyword() && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
+            // Case: public static implicit operator int?(Program p) { return null; }
+            // Case: public static implicit operator int*(Program p) { return null; }
+            // Case: public static implicit operator int[](Program p) { return null; }
+            // Case: public static implicit operator (int, int)(Program p) { return null; }
+            // Case: public static implicit operator Action<int>(Program p) { return null; }
+            if ((previousToken.IsKeyword() || previousToken.IsKind(SyntaxKind.QuestionToken, SyntaxKind.AsteriskToken, SyntaxKind.CloseBracketToken, SyntaxKind.CloseParenToken, SyntaxKind.GreaterThanToken))
+                && currentToken.IsOpenParenInParameterListOfAConversionOperatorDeclaration())
             {
                 return AdjustSpacesOperationZeroOrOne(optionSet, CSharpFormattingOptions.SpacingAfterMethodDeclarationName);
             }

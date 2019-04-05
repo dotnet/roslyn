@@ -11,17 +11,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LazyMissingNonNullTypesContextDiagnosticInfo : LazyDiagnosticInfo
     {
-        private readonly TypeSymbolWithAnnotations _type;
+        private readonly TypeWithAnnotations _type;
         private readonly DiagnosticInfo _info;
 
-        private LazyMissingNonNullTypesContextDiagnosticInfo(TypeSymbolWithAnnotations type, DiagnosticInfo info)
+        private LazyMissingNonNullTypesContextDiagnosticInfo(TypeWithAnnotations type, DiagnosticInfo info)
         {
             Debug.Assert(type.HasType);
             _type = type;
             _info = info;
         }
 
-        public static void AddAll(bool isNullableEnabled, TypeSymbolWithAnnotations type, Location location, DiagnosticBag diagnostics)
+        public static void AddAll(bool isNullableEnabled, TypeWithAnnotations type, Location location, DiagnosticBag diagnostics)
         {
             var rawInfos = ArrayBuilder<DiagnosticInfo>.GetInstance();
             GetRawDiagnosticInfos(isNullableEnabled, (CSharpParseOptions)location.SourceTree.Options, rawInfos);
@@ -47,19 +47,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsNullableReference(TypeSymbolWithAnnotations type)
-            => !type.HasType || !(type.IsValueType || type.IsErrorType());
+        private static bool IsNullableReference(TypeSymbol type)
+            => type is null || !(type.IsValueType || type.IsErrorType());
 
-        protected override DiagnosticInfo ResolveInfo() => IsNullableReference(_type) ? _info : null;
+        protected override DiagnosticInfo ResolveInfo() => IsNullableReference(_type.Type) ? _info : null;
 
         /// <summary>
         /// A `?` annotation on a type that isn't a value type causes:
         /// - an error before C# 8.0
         /// - a warning outside of a NonNullTypes context
         /// </summary>
-        public static void ReportNullableReferenceTypesIfNeeded(bool isNullableEnabled, TypeSymbolWithAnnotations type, Location location, DiagnosticBag diagnostics)
+        public static void ReportNullableReferenceTypesIfNeeded(bool isNullableEnabled, TypeWithAnnotations type, Location location, DiagnosticBag diagnostics)
         {
-            if (IsNullableReference(type))
+            if (IsNullableReference(type.Type))
             {
                 ReportNullableReferenceTypesIfNeeded(isNullableEnabled, location, diagnostics);
             }

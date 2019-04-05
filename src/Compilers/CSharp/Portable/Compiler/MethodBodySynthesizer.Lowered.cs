@@ -85,7 +85,7 @@ start:
                         F.If(
                             F.Binary(BinaryOperatorKind.ObjectNotEqual, F.SpecialType(SpecialType.System_Boolean),
                                 F.Parameter(text),
-                                F.Null(text.Type.TypeSymbol)),
+                                F.Null(text.Type)),
                             F.Block(
                                 F.Assignment(F.Local(hashCode), F.Literal((uint)2166136261)),
                                 F.Assignment(F.Local(i), F.Literal(0)),
@@ -93,9 +93,9 @@ start:
                                 F.Label(again),
                                 F.Assignment(
                                     F.Local(hashCode),
-                                    F.Binary(BinaryOperatorKind.Multiplication, hashCode.Type.TypeSymbol,
-                                        F.Binary(BinaryOperatorKind.Xor, hashCode.Type.TypeSymbol,
-                                            F.Convert(hashCode.Type.TypeSymbol,
+                                    F.Binary(BinaryOperatorKind.Multiplication, hashCode.Type,
+                                        F.Binary(BinaryOperatorKind.Xor, hashCode.Type,
+                                            F.Convert(hashCode.Type,
                                                 F.Call(
                                                     F.Parameter(text),
                                                     F.SpecialMethod(SpecialMember.System_String__Chars),
@@ -105,7 +105,7 @@ start:
                                         F.Literal(16777619))),
                                 F.Assignment(
                                     F.Local(i),
-                                    F.Binary(BinaryOperatorKind.Addition, i.Type.TypeSymbol,
+                                    F.Binary(BinaryOperatorKind.Addition, i.Type,
                                         F.Local(i),
                                         F.Literal(1))),
                                 F.Label(start),
@@ -269,7 +269,7 @@ start:
                 //refKindBuilder.Add(param.RefKind);
             }
 
-            BoundExpression invocation = F.Call(useBaseReference ? (BoundExpression)F.Base() : F.This(),
+            BoundExpression invocation = F.Call(useBaseReference ? (BoundExpression)F.Base(baseType: methodToInvoke.ContainingType) : F.This(),
                                                 methodToInvoke,
                                                 argBuilder.ToImmutableAndFree());
 

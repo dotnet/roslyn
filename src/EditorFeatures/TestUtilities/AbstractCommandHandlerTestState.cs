@@ -219,12 +219,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         #endregion
 
         #region editor related operation
-        public void SendBackspace()
+        public virtual void SendBackspace()
         {
             EditorOperations.Backspace();
         }
 
-        public void SendDelete()
+        public virtual void SendDelete()
         {
             EditorOperations.Delete();
         }
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
             EditorOperations.MoveToPreviousCharacter(extendSelection);
         }
 
-        public void SendDeleteWordToLeft()
+        public virtual void SendDeleteWordToLeft()
         {
             EditorOperations.DeleteWordToLeft();
         }
@@ -253,6 +253,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         {
             var history = UndoHistoryRegistry.GetHistory(SubjectBuffer);
             history.Undo(count);
+        }
+
+        public void SelectAndMoveCaret(int offset)
+        {
+            var currentCaret = GetCaretPoint();
+            EditorOperations.SelectAndMoveCaret(
+                new VirtualSnapshotPoint(SubjectBuffer.CurrentSnapshot, currentCaret.BufferPosition.Position),
+                new VirtualSnapshotPoint(SubjectBuffer.CurrentSnapshot, currentCaret.BufferPosition.Position + offset));
         }
         #endregion
 
@@ -265,8 +273,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         public string GetLineTextFromCaretPosition()
         {
-            var caretPosition = Workspace.Documents.Single(d => d.CursorPosition.HasValue).CursorPosition.Value;
-            return SubjectBuffer.CurrentSnapshot.GetLineFromPosition(caretPosition).GetText();
+            var caretPosition = GetCaretPoint();
+            return caretPosition.BufferPosition.GetContainingLine().GetText();
         }
 
         public (string TextBeforeCaret, string TextAfterCaret) GetLineTextAroundCaretPosition()
@@ -443,6 +451,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public void SendTypeChar(char typeChar, Action<TypeCharCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
         {
             commandHandler(new TypeCharCommandArgs(TextView, SubjectBuffer, typeChar), nextHandler, TestCommandExecutionContext.Create());
+        }
+
+        public void ToggleSuggestionMode(Action<ToggleCompletionModeCommandArgs, Action, CommandExecutionContext> commandHandler, Action nextHandler)
+        {
+            commandHandler(new ToggleCompletionModeCommandArgs(TextView, SubjectBuffer), nextHandler, TestCommandExecutionContext.Create());
         }
 
         public void SendTypeChars(string typeChars, Action<TypeCharCommandArgs, Action, CommandExecutionContext> commandHandler)

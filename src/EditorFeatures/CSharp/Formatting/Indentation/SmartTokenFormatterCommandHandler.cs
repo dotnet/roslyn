@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
     [Name(PredefinedCommandHandlerNames.Indent)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(Before = PredefinedCommandHandlerNames.Completion)]
+    [Order(Before = PredefinedCompletionNames.CompletionCommandHandler)]
     internal class SmartTokenFormatterCommandHandler :
         AbstractSmartTokenFormatterCommandHandler
     {

@@ -44,16 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Get the types of the parameters of a member symbol.  Should be a method, property, or event.
         /// </summary>
-        internal static ImmutableArray<TypeSymbolWithAnnotations> GetParameterTypes(this Symbol member)
+        internal static ImmutableArray<TypeWithAnnotations> GetParameterTypes(this Symbol member)
         {
             switch (member.Kind)
             {
                 case SymbolKind.Method:
-                    return ((MethodSymbol)member).ParameterTypes;
+                    return ((MethodSymbol)member).ParameterTypesWithAnnotations;
                 case SymbolKind.Property:
-                    return ((PropertySymbol)member).ParameterTypes;
+                    return ((PropertySymbol)member).ParameterTypesWithAnnotations;
                 case SymbolKind.Event:
-                    return ImmutableArray<TypeSymbolWithAnnotations>.Empty;
+                    return ImmutableArray<TypeWithAnnotations>.Empty;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
             }
@@ -110,13 +110,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             foreach (var parameterType in member.GetParameterTypes())
             {
-                if (parameterType.IsUnsafe())
+                if (parameterType.Type.IsUnsafe())
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        public static bool IsEventOrPropertyWithImplementableNonPublicAccessor(this Symbol symbol)
+        {
+            Debug.Assert(symbol.ContainingType.IsInterface);
+
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Property:
+                    var propertySymbol = (PropertySymbol)symbol;
+                    return isImplementableAndNotPublic(propertySymbol.GetMethod) || isImplementableAndNotPublic(propertySymbol.SetMethod);
+
+                case SymbolKind.Event:
+                    var eventSymbol = (EventSymbol)symbol;
+                    return isImplementableAndNotPublic(eventSymbol.AddMethod) || isImplementableAndNotPublic(eventSymbol.RemoveMethod);
+            }
+
+            return false;
+
+            bool isImplementableAndNotPublic(MethodSymbol accessor)
+            {
+                return accessor.IsImplementable() && accessor.DeclaredAccessibility != Accessibility.Public;
+            }
+        }
+
+        public static bool IsImplementable(this MethodSymbol methodOpt)
+        {
+            return (object)methodOpt != null && (methodOpt.IsAbstract || methodOpt.IsVirtual);
         }
 
         public static bool IsAccessor(this MethodSymbol methodSymbol)
@@ -168,15 +196,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = 0;
 
-            var methodReturnType = method.ReturnType;
+            var methodReturnType = method.ReturnTypeWithAnnotations;
             count += methodReturnType.CustomModifiers.Length + method.RefCustomModifiers.Length;
-            count += methodReturnType.TypeSymbol.CustomModifierCount();
+            count += methodReturnType.Type.CustomModifierCount();
 
             foreach (ParameterSymbol param in method.Parameters)
             {
-                var paramType = param.Type;
+                var paramType = param.TypeWithAnnotations;
                 count += paramType.CustomModifiers.Length + param.RefCustomModifiers.Length;
-                count += paramType.TypeSymbol.CustomModifierCount();
+                count += paramType.Type.CustomModifierCount();
             }
 
             return count;
@@ -205,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static int CustomModifierCount(this EventSymbol e)
         {
-            return e.Type.TypeSymbol.CustomModifierCount();
+            return e.Type.CustomModifierCount();
         }
 
         /// <summary>
@@ -216,15 +244,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = 0;
 
-            var type = property.Type;
+            var type = property.TypeWithAnnotations;
             count += type.CustomModifiers.Length + property.RefCustomModifiers.Length;
-            count += type.TypeSymbol.CustomModifierCount();
+            count += type.Type.CustomModifierCount();
 
             foreach (ParameterSymbol param in property.Parameters)
             {
-                var paramType = param.Type;
+                var paramType = param.TypeWithAnnotations;
                 count += paramType.CustomModifiers.Length + param.RefCustomModifiers.Length;
-                count += paramType.TypeSymbol.CustomModifierCount();
+                count += paramType.Type.CustomModifierCount();
             }
 
             return count;
@@ -308,10 +336,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (symbol.Kind)
             {
                 case SymbolKind.Method:
-                    return ((MethodSymbol)symbol).TypeArguments.SelectAsArray(TypeMap.AsTypeSymbol);
+                    return ((MethodSymbol)symbol).TypeArgumentsWithAnnotations.SelectAsArray(TypeMap.AsTypeSymbol);
                 case SymbolKind.NamedType:
                 case SymbolKind.ErrorType:
-                    return ((NamedTypeSymbol)symbol).TypeArgumentsNoUseSiteDiagnostics.SelectAsArray(TypeMap.AsTypeSymbol);
+                    return ((NamedTypeSymbol)symbol).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics.SelectAsArray(TypeMap.AsTypeSymbol);
                 case SymbolKind.Field:
                 case SymbolKind.Property:
                 case SymbolKind.Event:
@@ -428,11 +456,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Method:
                     var method = (MethodSymbol)member;
-                    return method.ReturnType.TypeSymbol.ContainsTupleNames() || method.Parameters.Any(p => p.Type.TypeSymbol.ContainsTupleNames());
+                    return method.ReturnType.ContainsTupleNames() || method.Parameters.Any(p => p.Type.ContainsTupleNames());
                 case SymbolKind.Property:
-                    return ((PropertySymbol)member).Type.TypeSymbol.ContainsTupleNames();
+                    return ((PropertySymbol)member).Type.ContainsTupleNames();
                 case SymbolKind.Event:
-                    return ((EventSymbol)member).Type.TypeSymbol.ContainsTupleNames();
+                    return ((EventSymbol)member).Type.ContainsTupleNames();
                 default:
                     // We currently don't need to use this method for fields or locals
                     throw ExceptionUtilities.UnexpectedValue(member.Kind);
