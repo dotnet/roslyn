@@ -436,6 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conversions = ArrayBuilder<Conversion>.GetInstance(n);
             var resultTypes = ArrayBuilder<TypeWithState>.GetInstance(n);
             var expressions = ArrayBuilder<BoundExpression>.GetInstance(n);
+            var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
 
             foreach (var arm in node.SwitchArms)
             {
@@ -443,34 +444,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (BoundExpression expression, Conversion conversion) = RemoveConversion(arm.Value, includeExplicitConversions: false);
                 expressions.Add(expression);
                 conversions.Add(conversion);
-                resultTypes.Add(VisitRvalueWithState(expression));
+                var armType = VisitRvalueWithState(expression);
+                resultTypes.Add(armType);
                 Join(ref endState, ref this.State);
+
+                // Build placeholders for inference in order to preserve annotations.
+                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations()));
             }
 
-            // Build placeholders for inference in order to preserve annotations.
-            TypeSymbol inferredType = null;
-            var placeholderBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
-            for (int i = 0; i < n; i++)
-                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expressions[i], resultTypes[i].ToTypeWithAnnotations()));
             var placeholders = placeholderBuilder.ToImmutableAndFree();
-
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            inferredType = BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics);
-            if (inferredType is null)
-                inferredType = node.Type.SetUnknownNullabilityForReferenceTypes();
+            TypeSymbol inferredType =
+                BestTypeInferrer.InferBestType(placeholders, _conversions, ref useSiteDiagnostics) ??
+                node.Type.SetUnknownNullabilityForReferenceTypes();
             var inferredTypeWithAnnotations = TypeWithAnnotations.Create(inferredType);
 
             // Convert elements to best type to determine element top-level nullability and to report nested nullability warnings
-            var inferredState = NullableFlowState.NotNull;
             for (int i = 0; i < n; i++)
             {
                 var placeholder = placeholders[i];
-                var oneResultType = ApplyConversion(placeholder, placeholder, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
+                resultTypes[i] = ApplyConversion(placeholder, placeholder, conversions[i], inferredTypeWithAnnotations, resultTypes[i], checkConversion: true,
                     fromExplicitCast: false, useLegacyWarnings: false, AssignmentKind.Assignment, reportRemainingWarnings: true, reportTopLevelWarnings: false);
-                resultTypes[i] = oneResultType;
-                inferredState = inferredState.Join(oneResultType.State);
             }
 
+            var inferredState = BestTypeInferrer.GetNullableState(resultTypes);
             var resultType = TypeWithState.Create(inferredType, inferredState);
             inferredTypeWithAnnotations = resultType.ToTypeWithAnnotations();
 
