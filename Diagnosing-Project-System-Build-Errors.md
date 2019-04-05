@@ -5,19 +5,30 @@ debug the cause of what went wrong.
 
 ## How do I tell if I'm in this state?
 
-There are two good ways to tell:
+There are a few ways to tell:
 
-1. If you're using Visual Studio 2015 Update 2 or later, just look for warning IDE0006 in the error list:
+1. If you're using Visual Studio 2015 Update 2 or later, look for warning IDE0006 in the error list:
     ![IDE0006 error example](images/design-time-build-errors/ide0006.png)
 
-2. In any version of Visual Studio 2015, look to see if the first project drop down above a text file says "Miscellaneous Files" instead of
+2. In any version of Visual Studio, look to see if the first project drop down above a text file says "Miscellaneous Files" instead of
    the name of the project you expected to see:
 
     ![Miscellaneous Files show in the navigation bars](images/design-time-build-errors/miscellaneous-files.png)
 
-If you don't see either of these symptoms, this guide might not be for you.
+If you don't see either of these symptoms, this guide might not be for you. If a Microsoft engineer asked you to follow these steps, continue on anyways.
 
-## How do I get log files to diagnose what is happening?
+## How do I get log files to diagnose what is happening in Visual Studio 2019?
+
+1. Install the [Project System Tools Extension from the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=VisualStudioProductTeam.ProjectSystemTools)
+2. Restart Visual Studio as a part of installing the extension. Don't open your Solution yet.
+3. Go View > Other Windows > Build Logging.
+4. In the Build Logging window, click the start button.
+5. Open your solution, and open the file you're having troubles with. You should see various entries appearing in the Build Logging window.
+6. Click the stop button in the Build Logging window.
+7. Select all the logs by clicking on one and then pressing Ctrl+A to Select All.
+8. Right click, choose Save Logs. Save them, and attach them to your feedback item.
+
+## How do I get log files to diagnose what is happening in Visual Studio 2015?
 
 1. Close Visual Studio.
 2. Find your solution file on disk, and delete the .vs hidden folder that is alongside your solution.
