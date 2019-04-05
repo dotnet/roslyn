@@ -424,7 +424,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override bool IsDeclaredReadOnly => LocalDeclaredReadOnly || _property.HasReadOnlyModifier || IsReadOnlyAutoGetter;
 
-        private bool IsReadOnlyAutoGetter => ContainingType.IsStructType() && !_property.IsStatic && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertyGet;
+        private bool IsReadOnlyAutoGetter => ContainingType.IsStructType() && !_property.IsStatic && _isAutoPropertyAccessor && MethodKind == MethodKind.PropertyGet && !IsBadNetModule;
+
+        // We can't emit the synthesized attribute for netmodules, so in this case we consider auto-getters **not** implicitly readonly.
+        private bool IsBadNetModule => DeclaringCompilation.Options.OutputKind == OutputKind.NetModule &&
+            DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute) is MissingMetadataTypeSymbol;
 
         private DeclarationModifiers MakeModifiers(AccessorDeclarationSyntax syntax, bool isExplicitInterfaceImplementation,
             bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)

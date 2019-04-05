@@ -1445,6 +1445,35 @@ public struct S
         }
 
         [Fact]
+        public void NetModule_ImplicitReadOnlyAutoProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int P1 { get; private set; }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NetModule_ExplicitReadOnlyAutoProperty()
+        {
+            var csharp = @"
+public struct S
+{
+    public int P1 { readonly get; private set; }
+}
+";
+            var comp = CreateCompilation(csharp, options: TestOptions.DebugModule, targetFramework: TargetFramework.Mscorlib45);
+            comp.VerifyDiagnostics(
+                // (4,30): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsReadOnlyAttribute' is not defined or imported
+                //     public int P1 { readonly get; private set; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "get").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(4, 30));
+        }
+
+        [Fact]
         public void ReadOnlyProperty_RedundantReadOnlyAccessor()
         {
             var csharp = @"
