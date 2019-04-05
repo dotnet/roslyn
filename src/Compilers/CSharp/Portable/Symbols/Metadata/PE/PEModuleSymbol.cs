@@ -258,20 +258,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loaded);
         }
 
-        internal void LoadCustomAttributesFilterExtensions(EntityHandle token,
+        internal void LoadCustomAttributesFilterCompilerAttributes(EntityHandle token,
             ref ImmutableArray<CSharpAttributeData> customAttributes,
-            out bool foundExtension)
+            out bool foundExtension,
+            out bool foundReadOnly)
         {
-            var loadedCustomAttributes = GetCustomAttributesFilterExtensions(token, out foundExtension);
+            var loadedCustomAttributes = GetCustomAttributesFilterCompilerAttributes(token, out foundExtension, out foundReadOnly);
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
         }
 
         internal void LoadCustomAttributesFilterExtensions(EntityHandle token,
             ref ImmutableArray<CSharpAttributeData> customAttributes)
         {
-            // Ignore whether or not extension attributes were found
-            bool ignore;
-            var loadedCustomAttributes = GetCustomAttributesFilterExtensions(token, out ignore);
+            var loadedCustomAttributes = GetCustomAttributesFilterCompilerAttributes(token, out _, out _);
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
         }
 
@@ -406,12 +405,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// <param name="token"></param>
         /// <param name="foundExtension">True if we found an extension method, false otherwise.</param>
         /// <returns>The attributes on the token, minus any ExtensionAttributes.</returns>
-        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterExtensions(EntityHandle token, out bool foundExtension)
+        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterCompilerAttributes(EntityHandle token, out bool foundExtension, out bool foundReadOnly)
         {
-            CustomAttributeHandle extensionAttribute;
-            var result = GetCustomAttributesForToken(token, out extensionAttribute, AttributeDescription.CaseSensitiveExtensionAttribute);
+            var result = GetCustomAttributesForToken(
+                token,
+                out CustomAttributeHandle extensionAttribute,
+                AttributeDescription.CaseSensitiveExtensionAttribute,
+                out CustomAttributeHandle isReadOnlyAttribute,
+                AttributeDescription.IsReadOnlyAttribute,
+                out _, default, out _, default);
 
             foundExtension = !extensionAttribute.IsNil;
+            foundReadOnly = !isReadOnlyAttribute.IsNil;
             return result;
         }
 

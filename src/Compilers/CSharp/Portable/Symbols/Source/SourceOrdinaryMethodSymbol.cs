@@ -1041,6 +1041,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
         {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
             var location = GetSyntax().ReturnType.Location;
 
             Debug.Assert(location != null);
@@ -1069,7 +1071,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 PartialMethodChecks(this, implementingPart, diagnostics);
             }
 
-            if (_refKind == RefKind.RefReadOnly || IsDeclaredReadOnly)
+            if (_refKind == RefKind.RefReadOnly)
             {
                 this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, location, modifyCompilation: true);
             }

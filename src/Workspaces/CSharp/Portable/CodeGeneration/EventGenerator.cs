@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -185,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static SyntaxTokenList GenerateModifiers(
             IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options)
         {
-            var tokens = new List<SyntaxToken>();
+            var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
             // Most modifiers not allowed if we're an explicit impl.
             if (!@event.ExplicitInterfaceImplementations.Any())
@@ -197,6 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (@event.IsStatic)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+                    }
+
+                    if (@event.AddMethod.IsReadOnly)
+                    {
+                        tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
                     }
 
                     if (@event.IsAbstract)
@@ -216,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
             }
 
-            return tokens.ToSyntaxTokenList();
+            return tokens.ToSyntaxTokenListAndFree();
         }
     }
 }

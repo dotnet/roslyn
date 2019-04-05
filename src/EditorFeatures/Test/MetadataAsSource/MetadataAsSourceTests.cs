@@ -1722,5 +1722,243 @@ Imports System.Runtime.CompilerServices
 Public Structure [|S|]
 End Structure");
         }
+
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestReadOnlyMethod()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly void M() {}
+}
+";
+            var symbolName = "S.M";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public readonly void [|M|]();
+}}");
+
+            // TODO: how to use preview features in metadata source but display in VB?
+            //            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.VisualBasic,
+            //                expected: $@"#Region ""{FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""
+            //' {CodeAnalysisResources.InMemoryAssembly}
+            //#End Region
+
+            //Imports System
+            //Imports System.Runtime.CompilerServices
+
+            //Public Structure S
+            //    <IsReadOnlyAttribute>
+            //    Sub [|M|]();
+            //End Structure");
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_ReadOnly()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public int P { get; }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public readonly int [|P|] {{ get; }}
+}}");
+            // TODO: VB
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_ReadOnlyGet()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly int P { get; }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public readonly int [|P|] {{ get; }}
+}}");
+            // TODO: VB
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_ReadOnlyGet_Set()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public int P { readonly get => 123; set {} }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public int [|P|] {{ readonly get; set; }}
+}}");
+            // TODO: VB
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_Get_ReadOnlySet()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public int P { get => 123; readonly set {} }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public int [|P|] {{ get; readonly set; }}
+}}");
+            // TODO: VB
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructProperty_ReadOnlyGet_ReadOnlySet()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly int P { get => 123; set {} }
+}
+";
+            var symbolName = "S.P";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public struct S
+{{
+    public readonly int [|P|] {{ get; set; }}
+}}");
+            // TODO: VB
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructIndexer_ReadOnlyGet()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly int this[int i] => i;
+}
+";
+            var symbolName = "S.Item";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Reflection;
+
+[DefaultMember(""Item"")]
+public struct S
+{{
+    public readonly int [|this|][int i] {{ get; }}
+}}");
+            // TODO: VB
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStructIndexer_ReadOnlyGet_Set()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public int this[int i] { readonly get => i; set {} }
+}
+";
+            var symbolName = "S.Item";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System.Reflection;
+
+[DefaultMember(""Item"")]
+public struct S
+{{
+    public int [|this|][int i] {{ readonly get; set; }}
+}}");
+            // TODO: VB
+        }
+
+        [WorkItem(34650, "https://github.com/dotnet/roslyn/issues/34650")]
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestStruct_ReadOnlyEvent()
+        {
+            var metadataSource = @"
+public struct S
+{
+    public readonly event System.Action E { add {} remove {} }
+}
+";
+            var symbolName = "S.E";
+
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview",
+                expected: $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+using System;
+
+public struct S
+{{
+    public readonly event Action [|E|];
+}}");
+            // TODO: VB
+        }
     }
 }
