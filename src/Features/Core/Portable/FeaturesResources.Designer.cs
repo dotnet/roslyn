@@ -2544,6 +2544,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move items to namespace....
+        /// </summary>
+        internal static string Move_contents_to_namespace {
+            get {
+                return ResourceManager.GetString("Move_contents_to_namespace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move declaration near reference.
         /// </summary>
         internal static string Move_declaration_near_reference {
@@ -2567,6 +2576,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Move_file_to_project_root_folder {
             get {
                 return ResourceManager.GetString("Move_file_to_project_root_folder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move contents namespace....
+        /// </summary>
+        internal static string Move_to_namespace {
+            get {
+                return ResourceManager.GetString("Move_to_namespace", resourceCulture);
             }
         }
         
