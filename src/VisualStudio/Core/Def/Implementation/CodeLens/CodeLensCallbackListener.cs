@@ -74,7 +74,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             return null;
         }
 
-        public async Task<ReferenceCount> GetReferenceCountAsync(CodeLensDescriptor descriptor, CancellationToken cancellationToken)
+        public async Task<ReferenceCount> GetReferenceCountAsync(
+            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
             if (!TryGetDocument(solution, descriptor.ProjectGuid, descriptor.FilePath, out var document))
@@ -85,13 +86,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             var maxSearchResults = await GetMaxResultCapAsync(cancellationToken).ConfigureAwait(false);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(descriptor.ApplicableToSpan.Value.ToTextSpan());
+            var node = root.FindNode(descriptorContext.ApplicableSpan.Value.ToTextSpan());
 
             var service = _workspace.Services.GetService<ICodeLensReferencesService>();
             return await service.GetReferenceCountAsync(solution, document.Id, node, maxSearchResults, cancellationToken).ConfigureAwait(false);
         }
 
-        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(CodeLensDescriptor descriptor, CancellationToken cancellationToken)
+        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(
+            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken)
         {
             var solution = _workspace.CurrentSolution;
             if (!TryGetDocument(solution, descriptor.ProjectGuid, descriptor.FilePath, out var document))
@@ -100,7 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindNode(descriptor.ApplicableToSpan.Value.ToTextSpan());
+            var node = root.FindNode(descriptorContext.ApplicableSpan.Value.ToTextSpan());
 
             var service = _workspace.Services.GetService<ICodeLensReferencesService>();
             return await service.FindReferenceLocationsAsync(solution, document.Id, node, cancellationToken).ConfigureAwait(false);

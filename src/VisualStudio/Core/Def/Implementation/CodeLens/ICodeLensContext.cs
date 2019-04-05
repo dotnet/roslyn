@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeLens;
+using Microsoft.VisualStudio.Language.CodeLens;
 using Microsoft.VisualStudio.Language.CodeLens.Remoting;
 
 namespace Microsoft.VisualStudio.LanguageServices.CodeLens
@@ -30,11 +31,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CodeLens
         /// <summary>
         /// Get reference count of the given descriptor
         /// </summary>
-        Task<ReferenceCount> GetReferenceCountAsync(CodeLensDescriptor descriptor, CancellationToken cancellationToken);
+        Task<ReferenceCount> GetReferenceCountAsync(
+            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken);
 
         /// <summary>
         /// get reference location descriptor of the given descriptor
         /// </summary>
-        Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(CodeLensDescriptor descriptor, CancellationToken cancellationToken);
+        Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(
+            CodeLensDescriptor descriptor, CodeLensDescriptorContext descriptorContext, CancellationToken cancellationToken);
     }
 }
