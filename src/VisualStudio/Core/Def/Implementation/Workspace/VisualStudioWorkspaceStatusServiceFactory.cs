@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
 
-                var status = await GetProgressStageStatusAsync().ConfigureAwait(false);
+                var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
                 if (status == null)
                 {
                     return;
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 await EnsureInitializationAsync(cancellationToken).ConfigureAwait(false);
 
-                var status = await GetProgressStageStatusAsync().ConfigureAwait(false);
+                var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
                 if (status == null)
                 {
                     return false;
@@ -103,9 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return !status.Status.IsInProgress;
             }
 
-            private async Task<IVsOperationProgressStageStatus> GetProgressStageStatusAsync()
+            private async Task<IVsOperationProgressStageStatus> GetProgressStageStatusAsync(CancellationToken cancellationToken)
             {
-                var service = await _serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false).ConfigureAwait(false);
+                var service = await _serviceProvider.GetServiceAsync<SVsOperationProgress, IVsOperationProgressStatusService>(throwOnFailure: false)
+                                                    .WithCancellation(cancellationToken).ConfigureAwait(false);
+
                 return service?.GetStageStatus(CommonOperationProgressStageIds.Intellisense);
             }
 
@@ -122,7 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                     // with IAsyncServiceProvider, to get a service from BG, there is not much else
                     // we can do to avoid this pattern to subscribe to events
-                    var status = await GetProgressStageStatusAsync().ConfigureAwait(false);
+                    var status = await GetProgressStageStatusAsync(cancellationToken).ConfigureAwait(false);
                     if (status == null)
                     {
                         return;
