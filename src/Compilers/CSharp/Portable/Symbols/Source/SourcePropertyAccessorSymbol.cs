@@ -431,10 +431,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                // We can't emit the synthesized attribute for netmodules, so in this case we consider auto-getters **not** implicitly readonly.
-                if (DeclaringCompilation.Options.OutputKind == OutputKind.NetModule &&
-                    DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute).IsErrorType())
+                // If we have IsReadOnly..ctor, we can use the attribute. Otherwise, we need to NOT be a netmodule and the type must not already exist in order to synthesize it.
+                var isReadOnlyAttributeUsable = DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor) != null ||
+                    (DeclaringCompilation.Options.OutputKind != OutputKind.NetModule &&
+                     DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute) is MissingMetadataTypeSymbol);
+
+                if (!isReadOnlyAttributeUsable)
                 {
+                    // if the readonly attribute isn't usable, don't implicitly make auto-getters readonly.
                     return false;
                 }
 
