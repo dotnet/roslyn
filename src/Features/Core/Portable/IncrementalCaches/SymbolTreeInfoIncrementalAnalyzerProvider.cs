@@ -149,6 +149,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         {
             private readonly ConcurrentDictionary<ProjectId, SymbolTreeInfo> _projectToInfo;
             private readonly ConcurrentDictionary<string, MetadataInfo> _metadataPathToInfo;
+            // This should be as close as possible to the number of projects in the solution.
+            private static readonly ObjectPool<Task[]> s_taskArrayPool = new ObjectPool<Task[]>(() => new Task[2], 64);
 
             public IncrementalAnalyzer(
                 ConcurrentDictionary<ProjectId, SymbolTreeInfo> projectToInfo,
@@ -195,39 +197,43 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 return UpdateSymbolTreeInfoAsync(project, cancellationToken);
             }
 
+            [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33172", AllowCaptures = false)]
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
                 Debug.Assert(SupportAnalysis(project));
 
                 // Produce the indices for the source and metadata symbols in parallel.
                 var isRemoteWorkspace = project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
-                Task[] tasks = isRemoteWorkspace
+                var (sourceSymbolTask, referencesTask) = isRemoteWorkspace
                     ? UpdateSymbolTreeInfoInServiceProcessAsync(project, cancellationToken)
                     : UpdateSymbolTreeInfoInCurrentProcessAsync(project, cancellationToken);
 
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                var tasks = s_taskArrayPool.Allocate();
+                tasks[0] = sourceSymbolTask;
+                tasks[1] = referencesTask;
+
+                await Task.WhenAll(tasks)
+                    .ContinueWith((t, state) =>
+                    {
+                        var tasks = (Task[])state;
+
+                        tasks[0] = tasks[1] = null;
+                        s_taskArrayPool.Free(tasks);
+                    },
+                    tasks,
+                    cancellationToken,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default).ConfigureAwait(false);
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/33172", AllowCaptures = false)]
-            private Task[] UpdateSymbolTreeInfoInCurrentProcessAsync(Project project, CancellationToken cancellationToken)
-            {
+            private (Task sourceSymbolTask, Task referencesTask) UpdateSymbolTreeInfoInCurrentProcessAsync(Project project, CancellationToken cancellationToken)
                 // When running in the current process, we try to reduce allocations by processing items without explicitly running them concurrently.
-                return new Task[]
-                {
-                    UpdateSourceSymbolTreeInfoAsync(project, cancellationToken),
-                    UpdateReferencesAsync(project, cancellationToken),
-                };
-            }
+                => (UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), UpdateReferencesAsync(project, cancellationToken));
 
-            private Task[] UpdateSymbolTreeInfoInServiceProcessAsync(Project project, CancellationToken cancellationToken)
-            {
+            private (Task sourceSymbolTask, Task referencesTask) UpdateSymbolTreeInfoInServiceProcessAsync(Project project, CancellationToken cancellationToken)
                 // We can process more work in parallel when using a remote client.
-                return new Task[]
-                {
-                    Task.Run(() => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken),
-                    Task.Run(() => UpdateReferencesAsync(project, cancellationToken), cancellationToken),
-                };
-            }
+                => (Task.Run(() => UpdateSourceSymbolTreeInfoAsync(project, cancellationToken), cancellationToken), Task.Run(() => UpdateReferencesAsync(project, cancellationToken), cancellationToken));
 
             private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
