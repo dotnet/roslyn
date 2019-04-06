@@ -16,8 +16,13 @@ namespace Roslyn.Utilities
 
         public async static Task<SemaphoreDisposer> DisposableWaitAsync(this SemaphoreSlim semaphore, CancellationToken cancellationToken = default)
         {
-            await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-            return new SemaphoreDisposer(semaphore);
+            return await semaphore.WaitAsync(cancellationToken)
+                .ContinueWith(
+                    (t, state) => { return new SemaphoreDisposer((SemaphoreSlim)state) },
+                    semaphore,
+                    cancellationToken,
+                    TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion,
+                    TaskScheduler.Default).ConfigureAwait(false);
         }
 
         internal struct SemaphoreDisposer : IDisposable
