@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -42,6 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GoToDefinition
 
                 WpfTestRunner.RequireWpfFact($"{NameOf(GoToDefinitionHelpers)}.{NameOf(GoToDefinitionHelpers.TryGoToDefinition)} assumes it's on the UI thread with a {NameOf(TaskExtensions.WaitAndGetResult)} call")
                 Dim success = GoToDefinitionHelpers.TryGoToDefinition(
+                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     symbolInfo.Symbol, document.Project,
                     {New Lazy(Of IStreamingFindUsagesPresenter)(Function() presenter)},
                     thirdPartyNavigationAllowed:=True, throwOnHiddenDefinition:=False,

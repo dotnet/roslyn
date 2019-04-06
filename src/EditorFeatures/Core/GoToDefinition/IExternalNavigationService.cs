@@ -14,6 +14,6 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Finds the symbol in the host language and navigates to it, or returns false if it doesn't recognize this symbol.
         /// ISymbol is nullable.
         /// </summary>
-        Task<bool> TryNavigateToSymbol(string rqName, ISymbol symbol, CancellationToken cancellationToken);
+        Task<bool> TryNavigateToSymbolAsync(string rqName, ISymbol symbol, CancellationToken cancellationToken);
     }
 }

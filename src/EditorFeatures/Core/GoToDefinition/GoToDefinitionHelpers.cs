@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Features.RQName;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
@@ -95,6 +96,7 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
         }
 
         public static bool TryGoToDefinition(
+            IThreadingContext threadingContext,
             ISymbol symbol,
             Project project,
             IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
@@ -109,8 +111,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 {
                     var externalNavigationService = lazyExternalNavigationService.Value;
 
-                    var navigatingExternally = externalNavigationService.TryNavigateToSymbol(RQNameInternal.From(symbol), symbol, cancellationToken)
-                        .WaitAndGetResult(cancellationToken);
+                    var rqName = RQNameInternal.From(symbol);
+                    var navigatingExternally = threadingContext.JoinableTaskFactory
+                        .Run(() => externalNavigationService.TryNavigateToSymbolAsync(rqName, symbol, cancellationToken));
+
                     if (navigatingExternally)
                         return true;
                 }

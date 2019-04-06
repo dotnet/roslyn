@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -16,13 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
     // GoToDefinition
     internal abstract class AbstractGoToDefinitionService : IGoToDefinitionService
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
         private readonly IEnumerable<Lazy<IExternalNavigationService>> _externalNavigationServices;
 
         protected AbstractGoToDefinitionService(
+            IThreadingContext threadingContext,
             IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             IEnumerable<Lazy<IExternalNavigationService>> externalNavigationServices)
         {
+            _threadingContext = threadingContext;
             _streamingPresenters = streamingPresenters;
             _externalNavigationServices = externalNavigationServices;
         }
@@ -55,7 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             var isThirdPartyNavigationAllowed = IsThirdPartyNavigationAllowed(symbol, position, document, cancellationToken);
 
-            return GoToDefinitionHelpers.TryGoToDefinition(symbol,
+            return GoToDefinitionHelpers.TryGoToDefinition(
+                _threadingContext,
+                symbol,
                 document.Project,
                 _streamingPresenters,
                 thirdPartyNavigationAllowed: isThirdPartyNavigationAllowed,

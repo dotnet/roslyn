@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
@@ -29,11 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
+        private readonly IThreadingContext _threadingContext;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
         private readonly IEnumerable<Lazy<IExternalNavigationService>> _externalNavigationServices;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
+            IThreadingContext threadingContext,
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IExternalNavigationService>> externalNavigationServices,
@@ -41,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
             : base(exportProvider, asyncServiceProvider)
         {
+            _threadingContext = threadingContext;
             _streamingPresenters = streamingPresenters;
             _externalNavigationServices = externalNavigationServices;
 
@@ -118,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
+                _threadingContext,
                 searchSymbol, searchProject,
                 _streamingPresenters, _externalNavigationServices,
                 cancellationToken);
