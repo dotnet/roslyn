@@ -111,11 +111,6 @@ namespace Test.Utilities
             return GetResultAt(CSharpDefaultFilePath, lineColumnPairs, rule, messageArguments);
         }
 
-        protected static DiagnosticResult GetAdditionalFileResultAt(int line, int column, string additionalFilePath, DiagnosticDescriptor rule, params object[] messageArguments)
-        {
-            return GetResultAt(additionalFilePath, line, column, rule, messageArguments);
-        }
-
         private static DiagnosticResult GetResultAt(string path, int line, int column, string id, string message)
         {
             return new DiagnosticResult(id, DiagnosticHelpers.DefaultDiagnosticSeverity).WithLocation(path, line, column).WithMessage(message);
@@ -192,11 +187,6 @@ namespace Test.Utilities
         protected void VerifyCSharp(string source, ReferenceFlags referenceFlags, params DiagnosticResult[] expected)
         {
             Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), referenceFlags, DefaultTestValidationMode, compilationOptions: null, parseOptions: null, expected: expected);
-        }
-
-        protected void VerifyCSharp(string source, TestValidationMode validationMode, CompilationOptions compilationOptions = null, ParseOptions parseOptions = null, params DiagnosticResult[] expected)
-        {
-            Verify(new[] { source }.ToFileAndSource(), LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), validationMode, false, ReferenceFlags.None, compilationOptions, parseOptions, expected: expected);
         }
 
         protected void VerifyCSharp(string source, ReferenceFlags referenceFlags, TestValidationMode validationMode = DefaultTestValidationMode, params DiagnosticResult[] expected)
