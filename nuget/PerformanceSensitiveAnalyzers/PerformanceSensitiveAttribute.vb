@@ -6,7 +6,7 @@ Imports System.Collections.Generic
 Imports System.Diagnostics
 Imports System.Threading.Tasks
 
-Namespace Roslyn.Utilities
+Namespace Global.Roslyn.Utilities
     ''' <summary>
     ''' Indicates that a code element Is performance sensitive under a known scenario.
     ''' </summary>
