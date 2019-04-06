@@ -17,6 +17,9 @@
 
     <!-- VS Insertion -->
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
+  
+    <!-- ServiceHub AssemblyPath -->
+    <ServiceHubAssemblyBasePath>.\</ServiceHubAssemblyBasePath>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj">

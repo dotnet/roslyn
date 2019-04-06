@@ -15,9 +15,9 @@
   <PropertyGroup>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);GenerateServiceHubConfigurationFiles</GetVsixSourceItemsDependsOn>
   </PropertyGroup>
-  
-    <Target Name="CalculateServiceHubConfigurationFiles"
-            DependsOnTargets="GetAssemblyVersion">
+
+  <Target Name="CalculateServiceHubConfigurationFiles"
+          DependsOnTargets="GetAssemblyVersion">
     <ItemGroup>
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="" HostSuffix=".x86" HostIdSuffix="32" />
       <_ServicesWithBitness Include="@(ServiceHubService)" FileSuffix="64" HostSuffix="" HostIdSuffix="" />
@@ -30,8 +30,7 @@
   "hostGroupAllowed": true,
   "serviceOverride": true, 
   "entryPoint": {
-    "assemblyPath": "Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
-    "assemblyName": "Microsoft.CodeAnalysis.Remote.ServiceHub, Version=\"$(AssemblyVersion)\", Culture=neutral, PublicKeyToken=\"$(PublicKeyToken)\"",
+    "assemblyPath": "$(ServiceHubAssemblyBasePath.Replace('\', '\\'))Microsoft.CodeAnalysis.Remote.ServiceHub.dll",
     "fullClassName": "%(_ServicesWithBitness.ClassName)",
     "appBasePath": "%VSAPPIDDIR%",
     "configPath": "%PkgDefApplicationConfigFile%"

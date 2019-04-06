@@ -7,6 +7,12 @@
     <!-- VS Insertion -->
     <TargetVsixContainerName>Roslyn.VisualStudio.Setup.ServiceHub.vsix</TargetVsixContainerName>
     <VisualStudioInsertionComponent>Microsoft.CodeAnalysis.LanguageServices</VisualStudioInsertionComponent>
+
+    <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
+    <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\LanguageServices</ExtensionInstallationFolder>
+
+    <!-- ServiceHub AssemblyPath -->
+    <ServiceHubAssemblyBasePath>..\..\..\IDE\$(ExtensionInstallationRoot)\$(ExtensionInstallationFolder)\</ServiceHubAssemblyBasePath>
   </PropertyGroup>
 
   <Target Name="_SetSwrFilePath">
