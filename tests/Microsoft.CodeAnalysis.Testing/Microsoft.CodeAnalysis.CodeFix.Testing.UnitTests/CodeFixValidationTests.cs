@@ -44,7 +44,7 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'8747' actual:'8746'", failure.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'BaseExpression' actual:'ThisExpression'", failure.Message);
         }
 
         [Fact]
@@ -92,7 +92,7 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'8747' actual:'8746'", failure.Message);
+            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'BaseExpression' actual:'ThisExpression'", failure.Message);
         }
 
         [Fact]
@@ -296,6 +296,8 @@ class TestClass {
             where TCodeFix : CodeFixProvider, new()
         {
             public override string Language => LanguageNames.CSharp;
+
+            public override Type SyntaxKindType => typeof(SyntaxKind);
 
             protected override string DefaultFileExt => "cs";
 

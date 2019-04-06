@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -12,6 +13,8 @@ namespace Microsoft.CodeAnalysis.Testing
         where TCodeFix : CodeFixProvider, new()
     {
         public override string Language => LanguageNames.CSharp;
+
+        public override Type SyntaxKindType => typeof(SyntaxKind);
 
         protected override string DefaultFileExt => "cs";
 

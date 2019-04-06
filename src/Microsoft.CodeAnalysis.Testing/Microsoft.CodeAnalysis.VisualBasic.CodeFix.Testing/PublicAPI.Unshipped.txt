@@ -7,3 +7,4 @@ Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of T
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of TAnalyzer, TCodeFix, TVerifier).GetCodeFixProviders() -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider)
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of TAnalyzer, TCodeFix, TVerifier).GetDiagnosticAnalyzers() -> System.Collections.Generic.IEnumerable(Of Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer)
 Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of TAnalyzer, TCodeFix, TVerifier).Language() -> String
+Overrides Microsoft.CodeAnalysis.VisualBasic.Testing.VisualBasicCodeFixTest(Of TAnalyzer, TCodeFix, TVerifier).SyntaxKindType() -> System.Type

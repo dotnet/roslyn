@@ -371,6 +371,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
             public override string Language => LanguageNames.CSharp;
 
+            public override Type SyntaxKindType => typeof(SyntaxKind);
+
             protected override string DefaultFileExt => "cs";
 
             protected override CompilationOptions CreateCompilationOptions()
