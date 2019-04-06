@@ -28,12 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         private readonly IForegroundNotificationService _notificationService;
 
         private readonly IServiceProvider _serviceProvider;
-        private readonly IProjectItemDesignerTypeUpdateService _projectItemDesignerTypeUpdateService;
         private readonly DesignerAttributeState _state;
         private readonly IAsynchronousOperationListener _listener;
 
         // cache whether a project is cps project or not
-        private readonly ConcurrentDictionary<ProjectId, bool> _cpsProjects;
+        private readonly ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService> _cpsProjects;
 
         /// <summary>
         /// cache designer from UI thread
@@ -45,7 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public DesignerAttributeIncrementalAnalyzer(
             IThreadingContext threadingContext,
             IServiceProvider serviceProvider,
-            IProjectItemDesignerTypeUpdateService projectItemDesignerTypeUpdateService,
             IForegroundNotificationService notificationService,
             IAsynchronousOperationListenerProvider listenerProvider)
             : base(threadingContext)
@@ -53,10 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _serviceProvider = serviceProvider;
             Contract.ThrowIfNull(_serviceProvider);
 
-            _projectItemDesignerTypeUpdateService = projectItemDesignerTypeUpdateService;
-
             _notificationService = notificationService;
-            _cpsProjects = new ConcurrentDictionary<ProjectId, bool>(concurrencyLevel: 2, capacity: 10);
+            _cpsProjects = new ConcurrentDictionary<ProjectId, IProjectItemDesignerTypeUpdateService>(concurrencyLevel: 2, capacity: 10);
 
             _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttribute);
             _state = new DesignerAttributeState();
@@ -135,7 +131,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<bool> IsCpsProjectAsync(Project project, CancellationToken cancellationToken)
+        private async Task<IProjectItemDesignerTypeUpdateService> GetUpdateServiceIfCpsProjectAsync(Project project, CancellationToken cancellationToken)
         {
             if (_cpsProjects.TryGetValue(project.Id, out var value))
             {
@@ -147,15 +143,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
-            var cps = vsWorkspace?.IsCPSProject(project) == true;
+            if (!vsWorkspace.IsCPSProject(project))
+            {
+                _cpsProjects.TryAdd(project.Id, null);
+                return null;
+            }
 
-            // The remainder of this method does not need to execute on the UI thread, but it's pointless to force a
-            // context switch if the caller of this method is the UI thread.
+            var vsProject = (IVsProject)vsWorkspace.GetHierarchy(project.Id);
+            if (ErrorHandler.Failed(vsProject.GetItemContext((uint)VSConstants.VSITEMID.Root, out var projectServiceProvider)))
+            {
+                _cpsProjects.TryAdd(project.Id, null);
+                return null;
+            }
 
-            _cpsProjects.TryAdd(project.Id, cps);
+            var serviceProvider = new Shell.ServiceProvider(projectServiceProvider);
+            var updateService = serviceProvider.GetService(typeof(IProjectItemDesignerTypeUpdateService)) as IProjectItemDesignerTypeUpdateService;
+            if (updateService == null)
+            {
+                _cpsProjects.TryAdd(project.Id, null);
+                return null;
+            }
 
-            // project is either cps or not. it doesn't change for same project
-            return cps;
+            _cpsProjects[project.Id] = updateService;
+            return updateService;
         }
 
         private bool CheckVersions(Document document, VersionStamp textVersion, VersionStamp semanticVersion, Data existingData)
@@ -200,10 +210,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
-            var cps = await IsCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (cps)
+            var updateService = await GetUpdateServiceIfCpsProjectAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            if (updateService != null)
             {
-                await _projectItemDesignerTypeUpdateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument).ConfigureAwait(false);
+                // we track work by async token but doesn't explicitly wait for it
+                var asyncToken = _listener.BeginAsyncOperation("RegisterDesignerAttribute");
+                _ = updateService.SetProjectItemDesignerTypeAsync(document.FilePath, designerAttributeArgument).CompletesAsyncOperation(asyncToken);
             }
             else
             {
