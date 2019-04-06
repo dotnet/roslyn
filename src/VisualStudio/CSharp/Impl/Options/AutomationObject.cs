@@ -74,6 +74,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CompletionOptions.ShowCompletionItemFilters, value); }
         }
 
+        public int ShowImportCompletionItems
+        {
+            get { return GetBooleanOption(CompletionOptions.ShowImportCompletionItems); }
+            set { SetBooleanOption(CompletionOptions.ShowImportCompletionItems, value); }
+        }
+
         [Obsolete("This SettingStore option has now been deprecated in favor of CSharpClosedFileDiagnostics")]
         public int ClosedFileDiagnostics
         {

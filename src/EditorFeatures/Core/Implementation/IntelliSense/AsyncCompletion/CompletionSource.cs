@@ -289,6 +289,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
             CompletionService completionService,
             Dictionary<string, AsyncCompletionData.CompletionFilter> filterCache)
         {
+            var importItem = roslynItem as TypeImportCompletionItem;
+            if (importItem?.CachedObject is VSCompletionItem vsItem)
+            {
+                return vsItem;
+            }
+
             var imageId = roslynItem.Tags.GetFirstGlyph().GetImageId();
             var filters = GetFilters(roslynItem, filterCache);
 
@@ -315,6 +321,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncComplet
                 attributeIcons: attributeImages);
 
             item.Properties.AddProperty(RoslynItem, roslynItem);
+
+            if (importItem != null)
+            {
+                importItem.CachedObject = item;
+            }
+
             return item;
         }
 

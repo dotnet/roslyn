@@ -1249,6 +1249,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show _import completion items (experimental).
+        /// </summary>
+        internal static string Show_import_completion_items {
+            get {
+                return ResourceManager.GetString("Show_import_completion_items", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Show name s_uggestions.
         /// </summary>
         internal static string Show_name_suggestions {

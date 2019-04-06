@@ -57,6 +57,11 @@
         <target state="translated">Eliminar instrucciones Using innecesarias</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_import_completion_items">
+        <source>Show _import completion items (experimental)</source>
+        <target state="new">Show _import completion items (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">Ordenar instrucciones Using</target>

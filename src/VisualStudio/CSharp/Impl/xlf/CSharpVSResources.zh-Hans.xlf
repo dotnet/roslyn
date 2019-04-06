@@ -57,6 +57,11 @@
         <target state="translated">删除不必要的 Using</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_import_completion_items">
+        <source>Show _import completion items (experimental)</source>
+        <target state="new">Show _import completion items (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Sort_usings">
         <source>Sort usings</source>
         <target state="translated">对 using 排序</target>

@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Completion
             string filterText = null,
             bool showsWarningIcon = false,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default)
+            ImmutableArray<string> tags = default,
+            string inlineDescription = null)
         {
             tags = tags.NullToEmpty();
 
@@ -65,7 +66,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 sortText: sortText,
                 properties: properties,
                 tags: tags,
-                rules: rules);
+                rules: rules,
+                inlineDescription: inlineDescription);
         }
 
         public static bool HasDescription(CompletionItem item)
