@@ -87,11 +87,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             // values.
             try
             {
-                stringId = connection.RunInTransaction((ValueTuple<string, SqlConnection> tuple) =>
+                stringId = connection.RunInTransaction(((string value, SqlConnection connection) tuple) =>
                 {
-                    var value = tuple.Item1;
-                    var connection = tuple.Item2;
-                    return InsertStringIntoDatabase_MustRunInTransaction(connection, value);
+                    return InsertStringIntoDatabase_MustRunInTransaction(tuple.connection, tuple.value);
                 }, (value, connection));
 
                 Contract.ThrowIfTrue(stringId == null);

@@ -199,14 +199,9 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
             // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
             // SQLITE_ABORT.
-            return RunInTransaction((ValueTuple<string, string, long, SqlConnection> tuple) =>
+            return RunInTransaction(((string dataTableName, string dataColumnName, long rowId, SqlConnection connection) tuple) =>
             {
-                var dataTableName = tuple.Item1;
-                var dataColumnName = tuple.Item2;
-                var rowId = tuple.Item3;
-                var connection = tuple.Item4;
-
-                return connection.ReadBlob_InTransaction(dataTableName, dataColumnName, rowId);
+                return tuple.connection.ReadBlob_InTransaction(tuple.dataTableName, tuple.dataColumnName, tuple.rowId);
             }, (dataTableName, dataColumnName, rowId, this));
         }
 

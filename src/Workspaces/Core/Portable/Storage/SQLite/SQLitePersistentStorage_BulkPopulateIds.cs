@@ -131,16 +131,12 @@ namespace Microsoft.CodeAnalysis.SQLite
                     {
                         try
                         {
-                            connection.RunInTransaction((ValueTuple<HashSet<string>, PooledObject<Dictionary<int, string>>, SqlConnection> tuple) =>
+                            connection.RunInTransaction(((HashSet<string> stringsToAdd, PooledObject<Dictionary<int, string>> idToString, SqlConnection connection) tuple) =>
                             {
-                                var stringsToAdd = tuple.Item1;
-                                var idToString = tuple.Item2;
-                                var connection = tuple.Item3;
-
-                                foreach (var value in stringsToAdd)
+                                foreach (var value in tuple.stringsToAdd)
                                 {
-                                    var id = InsertStringIntoDatabase_MustRunInTransaction(connection, value);
-                                    idToString.Object.Add(id, value);
+                                    var id = InsertStringIntoDatabase_MustRunInTransaction(tuple.connection, value);
+                                    tuple.idToString.Object.Add(id, value);
                                 }
 
                                 return new ValueTuple();
