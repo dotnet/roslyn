@@ -5079,6 +5079,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternWrongType" xml:space="preserve">
     <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}'.</value>
   </data>
+  <data name="ERR_ConstantPatternVsOpenType" xml:space="preserve">
+    <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}'. Please use language version '{2}' or greater to match an open type with a constant pattern.</value>
+  </data>
   <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
     <value>Attribute '{0}' is ignored when public signing is specified.</value>
   </data>
