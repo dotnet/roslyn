@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             {
                 if (enumerator.MoveNext())
                 {
-                    throw new XunitException(CreateMessage($"'{collectionName}' is not empty"));
+                    throw new EmptyWithMessageException(collection, CreateMessage($"'{collectionName}' is not empty"));
                 }
             }
         }
@@ -44,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             {
                 if (!EqualityComparer<T>.Default.Equals(expected, actual))
                 {
-                    Assert.True(false, CreateMessage(message));
+                    throw new EqualWithMessageException(expected, actual, CreateMessage(message));
                 }
             }
         }
@@ -96,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             {
                 if (!enumerator.MoveNext())
                 {
-                    throw new XunitException(CreateMessage($"'{collectionName}' is empty"));
+                    throw new NotEmptyWithMessageException(CreateMessage($"'{collectionName}' is empty"));
                 }
             }
         }
@@ -120,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
                 var areEqual = comparer.Equals(expected, actual);
                 if (!areEqual)
                 {
-                    Assert.True(false, CreateMessage(message));
+                    throw new EqualWithMessageException(expected, actual, CreateMessage(message));
                 }
             }
         }

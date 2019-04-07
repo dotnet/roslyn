@@ -1,3 +1,10 @@
+Microsoft.CodeAnalysis.Testing.Verifiers.EmptyWithMessageException
+Microsoft.CodeAnalysis.Testing.Verifiers.EmptyWithMessageException.EmptyWithMessageException(System.Collections.IEnumerable collection, string userMessage) -> void
+Microsoft.CodeAnalysis.Testing.Verifiers.EqualWithMessageException
+Microsoft.CodeAnalysis.Testing.Verifiers.EqualWithMessageException.EqualWithMessageException(object expected, object actual, string userMessage) -> void
+Microsoft.CodeAnalysis.Testing.Verifiers.EqualWithMessageException.EqualWithMessageException(string expected, string actual, int expectedIndex, int actualIndex, string userMessage) -> void
+Microsoft.CodeAnalysis.Testing.Verifiers.NotEmptyWithMessageException
+Microsoft.CodeAnalysis.Testing.Verifiers.NotEmptyWithMessageException.NotEmptyWithMessageException(string userMessage) -> void
 Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier
 Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.Empty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
 Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.Equal<T>(T expected, T actual, string message = null) -> void
@@ -9,3 +16,6 @@ Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.PushContext(string contex
 Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.SequenceEqual<T>(System.Collections.Generic.IEnumerable<T> expected, System.Collections.Generic.IEnumerable<T> actual, System.Collections.Generic.IEqualityComparer<T> equalityComparer = null, string message = null) -> void
 Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.True(bool assert, string message = null) -> void
 Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.XUnitVerifier() -> void
+override Microsoft.CodeAnalysis.Testing.Verifiers.EmptyWithMessageException.Message.get -> string
+override Microsoft.CodeAnalysis.Testing.Verifiers.EqualWithMessageException.Message.get -> string
+override Microsoft.CodeAnalysis.Testing.Verifiers.NotEmptyWithMessageException.Message.get -> string
