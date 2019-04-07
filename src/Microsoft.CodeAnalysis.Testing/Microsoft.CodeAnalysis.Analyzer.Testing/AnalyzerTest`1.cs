@@ -98,10 +98,9 @@ namespace Microsoft.CodeAnalysis.Testing
         public Dictionary<string, string> XmlReferences { get; } = new Dictionary<string, string>();
 
         /// <summary>
-        /// Gets or sets a value the analysis exclusions to verify. The default value is a combination of
-        /// <see cref="AnalysisExclusions.GeneratedCode"/> and <see cref="AnalysisExclusions.Suppression"/>.
+        /// Gets or sets the quirks applying to this analyzer. The default value is <see cref="AnalysisQuirks.None"/>.
         /// </summary>
-        public AnalysisExclusions Exclusions { get; set; } = AnalysisExclusions.GeneratedCode | AnalysisExclusions.Suppression;
+        public AnalysisQuirks Quirks { get; set; }
 
         /// <summary>
         /// Gets a collection of diagnostics to explicitly disable in the <see cref="CompilationOptions"/> for projects.
@@ -155,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private async Task VerifyGeneratedCodeDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
-            if (!Exclusions.HasFlag(AnalysisExclusions.GeneratedCode))
+            if (Quirks.HasFlag(AnalysisQuirks.SkipGeneratedCodeCheck))
             {
                 return;
             }
@@ -180,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private async Task VerifySuppressionDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, (string filename, SourceText content)[] sources, (string filename, SourceText content)[] additionalFiles, MetadataReference[] additionalMetadataReferences, DiagnosticResult[] expected, IVerifier verifier, CancellationToken cancellationToken)
         {
-            if (!Exclusions.HasFlag(AnalysisExclusions.Suppression))
+            if (Quirks.HasFlag(AnalysisQuirks.SkipSuppressionCheck))
             {
                 return;
             }

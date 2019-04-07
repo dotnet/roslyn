@@ -1,17 +1,17 @@
-Microsoft.CodeAnalysis.Testing.AnalysisExclusions
-Microsoft.CodeAnalysis.Testing.AnalysisExclusions.GeneratedCode = 1 -> Microsoft.CodeAnalysis.Testing.AnalysisExclusions
-Microsoft.CodeAnalysis.Testing.AnalysisExclusions.None = 0 -> Microsoft.CodeAnalysis.Testing.AnalysisExclusions
-Microsoft.CodeAnalysis.Testing.AnalysisExclusions.Suppression = 2 -> Microsoft.CodeAnalysis.Testing.AnalysisExclusions
+Microsoft.CodeAnalysis.Testing.AnalysisQuirks
+Microsoft.CodeAnalysis.Testing.AnalysisQuirks.None = 0 -> Microsoft.CodeAnalysis.Testing.AnalysisQuirks
+Microsoft.CodeAnalysis.Testing.AnalysisQuirks.SkipGeneratedCodeCheck = 1 -> Microsoft.CodeAnalysis.Testing.AnalysisQuirks
+Microsoft.CodeAnalysis.Testing.AnalysisQuirks.SkipSuppressionCheck = 2 -> Microsoft.CodeAnalysis.Testing.AnalysisQuirks
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.AnalyzerTest() -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.get -> Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CompilerDiagnostics.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.CreateProject((string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] sources, (string filename, Microsoft.CodeAnalysis.Text.SourceText content)[] additionalFiles, Microsoft.CodeAnalysis.MetadataReference[] additionalMetadataReferences, string language) -> Microsoft.CodeAnalysis.Project
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.DisabledDiagnostics.get -> System.Collections.Generic.List<string>
-Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Exclusions.get -> Microsoft.CodeAnalysis.Testing.AnalysisExclusions
-Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Exclusions.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.ExpectedDiagnostics.get -> System.Collections.Generic.List<Microsoft.CodeAnalysis.Testing.DiagnosticResult>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.OptionsTransforms.get -> System.Collections.Generic.List<System.Func<Microsoft.CodeAnalysis.Options.OptionSet, Microsoft.CodeAnalysis.Options.OptionSet>>
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Quirks.get -> Microsoft.CodeAnalysis.Testing.AnalysisQuirks
+Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Quirks.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.SolutionTransforms.get -> System.Collections.Generic.List<System.Func<Microsoft.CodeAnalysis.Solution, Microsoft.CodeAnalysis.ProjectId, Microsoft.CodeAnalysis.Solution>>
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestCode.set -> void
 Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.TestState.get -> Microsoft.CodeAnalysis.Testing.SolutionState
