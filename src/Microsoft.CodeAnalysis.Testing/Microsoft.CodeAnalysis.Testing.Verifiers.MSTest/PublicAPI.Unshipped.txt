@@ -1,11 +1,11 @@
 Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier
-Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.Empty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.Equal<T>(T expected, T actual, string message = null) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.Fail(string message = null) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.False(bool assert, string message = null) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.LanguageIsSupported(string language) -> void
 Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.MSTestVerifier() -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.NotEmpty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.PushContext(string context) -> Microsoft.CodeAnalysis.Testing.IVerifier
-Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.SequenceEqual<T>(System.Collections.Generic.IEnumerable<T> expected, System.Collections.Generic.IEnumerable<T> actual, System.Collections.Generic.IEqualityComparer<T> equalityComparer = null, string message = null) -> void
-Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.True(bool assert, string message = null) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.Empty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.Equal<T>(T expected, T actual, string message = null) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.Fail(string message = null) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.False(bool assert, string message = null) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.LanguageIsSupported(string language) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.NotEmpty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.PushContext(string context) -> Microsoft.CodeAnalysis.Testing.IVerifier
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.SequenceEqual<T>(System.Collections.Generic.IEnumerable<T> expected, System.Collections.Generic.IEnumerable<T> actual, System.Collections.Generic.IEqualityComparer<T> equalityComparer = null, string message = null) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.MSTestVerifier.True(bool assert, string message = null) -> void

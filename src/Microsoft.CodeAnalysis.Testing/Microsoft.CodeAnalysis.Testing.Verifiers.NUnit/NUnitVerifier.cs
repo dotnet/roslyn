@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             _context = context;
         }
 
-        public void Empty<T>(string collectionName, IEnumerable<T> collection)
+        public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
             Assert.IsEmpty(collection, CreateMessage($"Expected '{collectionName}' to be empty, contains '{collection?.Count()}' elements"));
         }
 
-        public void Equal<T>(T expected, T actual, string message = null)
+        public virtual void Equal<T>(T expected, T actual, string message = null)
         {
             if (message is null && _context.IsEmpty)
             {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void True(bool assert, string message = null)
+        public virtual void True(bool assert, string message = null)
         {
             if (message is null && _context.IsEmpty)
             {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void False(bool assert, string message = null)
+        public virtual void False(bool assert, string message = null)
         {
             if (message is null && _context.IsEmpty)
             {
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void Fail(string message = null)
+        public virtual void Fail(string message = null)
         {
             if (message is null && _context.IsEmpty)
             {
@@ -75,17 +75,17 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void LanguageIsSupported(string language)
+        public virtual void LanguageIsSupported(string language)
         {
             Assert.IsFalse(language != LanguageNames.CSharp && language != LanguageNames.VisualBasic, CreateMessage($"Unsupported Language: '{language}'"));
         }
 
-        public void NotEmpty<T>(string collectionName, IEnumerable<T> collection)
+        public virtual void NotEmpty<T>(string collectionName, IEnumerable<T> collection)
         {
             Assert.IsNotEmpty(collection, CreateMessage($"expected '{collectionName}' to be non-empty, contains"));
         }
 
-        public void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> equalityComparer = null, string message = null)
+        public virtual void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> equalityComparer = null, string message = null)
         {
             var comparer = new SequenceEqualEnumerableEqualityComparer<T>(equalityComparer);
             var areEqual = comparer.Equals(expected, actual);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public IVerifier PushContext(string context)
+        public virtual IVerifier PushContext(string context)
         {
             return new NUnitVerifier(_context.Push(context));
         }
