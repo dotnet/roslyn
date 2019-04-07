@@ -297,4 +297,7 @@
   <data name="Unused_local" xml:space="preserve">
     <value>Unused local</value>
   </data>
+  <data name="Show_import_completion_items" xml:space="preserve">
+    <value>Show _import completion items (experimental)</value>
+  </data>
 </root>

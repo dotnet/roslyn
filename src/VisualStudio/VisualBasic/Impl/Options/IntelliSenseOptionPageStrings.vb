@@ -40,5 +40,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Include_snippets_when_question_Tab_is_typed_after_an_identifier As String =
             BasicVSResources.Include_snippets_when_Tab_is_typed_after_an_identifier
+
+        Public ReadOnly Property Option_Show_import_completion_items As String =
+            BasicVSResources.Show_import_completion_items
+
     End Module
 End Namespace

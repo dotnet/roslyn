@@ -42,6 +42,11 @@
         <target state="translated">Başvuru eşitliği denetimleri için 'Is Nothing'i tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_import_completion_items">
+        <source>Show _import completion items (experimental)</source>
+        <target state="new">Show _import completion items (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">Yordam satır ayıraçlarını _göster</target>

@@ -57,7 +57,15 @@
                         <RadioButton  GroupName="InsertNewlineOnEnterRadio"
                                           x:Name="Always_add_new_line_on_enter"
                                           Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Always_add_new_line_on_enter}"/>
-                    </StackPanel>
+                    </StackPanel>                                                                                             
+                    
+                    <CheckBox x:Uid="Show_import_completion_items"
+                                  x:Name="Show_import_completion_items"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_import_completion_items}" 
+                              Checked="Show_import_completion_items_CheckedChanged"       
+                              Unchecked="Show_import_completion_items_CheckedChanged"
+                              Indeterminate="Show_import_completion_items_CheckedChanged"
+                              IsThreeState="True"/>
                 </StackPanel>
             </GroupBox>
         </StackPanel>

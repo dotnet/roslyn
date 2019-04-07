@@ -42,6 +42,11 @@
         <target state="translated">U kontrol rovnosti odkazů dávat přednost možnosti Is Nothing</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_import_completion_items">
+        <source>Show _import completion items (experimental)</source>
+        <target state="new">Show _import completion items (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">Zob_razit oddělovače řádků procedur</target>

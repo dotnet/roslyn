@@ -42,6 +42,11 @@
         <target state="translated">參考相等檢查最好使用 'Is Nothing'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_import_completion_items">
+        <source>Show _import completion items (experimental)</source>
+        <target state="new">Show _import completion items (experimental)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">顯示程序行分隔符號(_S)</target>
