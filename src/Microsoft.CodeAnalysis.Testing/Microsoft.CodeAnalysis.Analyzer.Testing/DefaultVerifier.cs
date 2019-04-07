@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Testing
             return new DefaultVerifier(Context.Push(context));
         }
 
-        private string CreateMessage(string message)
+        protected virtual string CreateMessage(string message)
         {
             foreach (var frame in Context)
             {

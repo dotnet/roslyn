@@ -2,6 +2,7 @@ Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier
 Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Context.get -> System.Collections.Immutable.ImmutableStack<string>
 Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.NUnitVerifier() -> void
 Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.NUnitVerifier(System.Collections.Immutable.ImmutableStack<string> context) -> void
+virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.CreateMessage(string message) -> string
 virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Empty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
 virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Equal<T>(T expected, T actual, string message = null) -> void
 virtual Microsoft.CodeAnalysis.Testing.Verifiers.NUnitVerifier.Fail(string message = null) -> void

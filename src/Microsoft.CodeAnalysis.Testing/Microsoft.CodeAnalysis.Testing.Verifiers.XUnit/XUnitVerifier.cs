@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             return new XUnitVerifier(Context.Push(context));
         }
 
-        private string CreateMessage(string message)
+        protected virtual string CreateMessage(string message)
         {
             foreach (var frame in Context)
             {
