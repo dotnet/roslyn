@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class DefaultVerifier : IVerifier
     {
-        private readonly ImmutableStack<string> _context;
-
         public DefaultVerifier()
             : this(ImmutableStack<string>.Empty)
         {
@@ -18,8 +16,10 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private DefaultVerifier(ImmutableStack<string> context)
         {
-            _context = context;
+            Context = context;
         }
+
+        private ImmutableStack<string> Context { get; }
 
         public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
@@ -86,12 +86,12 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public virtual IVerifier PushContext(string context)
         {
-            return new DefaultVerifier(_context.Push(context));
+            return new DefaultVerifier(Context.Push(context));
         }
 
         private string CreateMessage(string message)
         {
-            foreach (var frame in _context)
+            foreach (var frame in Context)
             {
                 message = "Context: " + frame + Environment.NewLine + message;
             }

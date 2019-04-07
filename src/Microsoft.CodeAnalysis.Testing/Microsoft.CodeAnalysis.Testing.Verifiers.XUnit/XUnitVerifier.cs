@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
     public class XUnitVerifier : IVerifier
     {
-        private readonly ImmutableStack<string> _context;
-
         public XUnitVerifier()
             : this(ImmutableStack<string>.Empty)
         {
@@ -20,8 +18,10 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         private XUnitVerifier(ImmutableStack<string> context)
         {
-            _context = context;
+            Context = context;
         }
+
+        private ImmutableStack<string> Context { get; }
 
         public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void Equal<T>(T expected, T actual, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.Equal(expected, actual);
             }
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void True(bool assert, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.True(assert);
             }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void False(bool assert, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.False(assert);
             }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void Fail(string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.True(false);
             }
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> equalityComparer = null, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 if (equalityComparer is null)
                 {
@@ -127,12 +127,12 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual IVerifier PushContext(string context)
         {
-            return new XUnitVerifier(_context.Push(context));
+            return new XUnitVerifier(Context.Push(context));
         }
 
         private string CreateMessage(string message)
         {
-            foreach (var frame in _context)
+            foreach (var frame in Context)
             {
                 message = "Context: " + frame + Environment.NewLine + message;
             }

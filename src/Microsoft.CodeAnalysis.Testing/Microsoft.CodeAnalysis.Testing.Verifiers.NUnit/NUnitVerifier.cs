@@ -10,8 +10,6 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
     public class NUnitVerifier : IVerifier
     {
-        private readonly ImmutableStack<string> _context;
-
         public NUnitVerifier()
             : this(ImmutableStack<string>.Empty)
         {
@@ -19,8 +17,10 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         private NUnitVerifier(ImmutableStack<string> context)
         {
-            _context = context;
+            Context = context;
         }
+
+        private ImmutableStack<string> Context { get; }
 
         public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void Equal<T>(T expected, T actual, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.AreEqual(expected, actual);
             }
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void True(bool assert, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.IsTrue(assert);
             }
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void False(bool assert, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.IsFalse(assert);
             }
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual void Fail(string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.Fail();
             }
@@ -97,12 +97,12 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual IVerifier PushContext(string context)
         {
-            return new NUnitVerifier(_context.Push(context));
+            return new NUnitVerifier(Context.Push(context));
         }
 
         private string CreateMessage(string message)
         {
-            foreach (var frame in _context)
+            foreach (var frame in Context)
             {
                 message = "Context: " + frame + Environment.NewLine + message;
             }
