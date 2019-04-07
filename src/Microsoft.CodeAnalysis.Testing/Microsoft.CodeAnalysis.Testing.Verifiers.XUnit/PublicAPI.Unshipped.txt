@@ -1,5 +1,7 @@
 Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier
+Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.Context.get -> System.Collections.Immutable.ImmutableStack<string>
 Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.XUnitVerifier() -> void
+Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.XUnitVerifier(System.Collections.Immutable.ImmutableStack<string> context) -> void
 virtual Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.Empty<T>(string collectionName, System.Collections.Generic.IEnumerable<T> collection) -> void
 virtual Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.Equal<T>(T expected, T actual, string message = null) -> void
 virtual Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier.Fail(string message = null) -> void

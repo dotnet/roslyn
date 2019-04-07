@@ -26,7 +26,9 @@ Microsoft.CodeAnalysis.Testing.CompilerDiagnostics.None = 0 -> Microsoft.CodeAna
 Microsoft.CodeAnalysis.Testing.CompilerDiagnostics.Suggestions = 3 -> Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
 Microsoft.CodeAnalysis.Testing.CompilerDiagnostics.Warnings = 2 -> Microsoft.CodeAnalysis.Testing.CompilerDiagnostics
 Microsoft.CodeAnalysis.Testing.DefaultVerifier
+Microsoft.CodeAnalysis.Testing.DefaultVerifier.Context.get -> System.Collections.Immutable.ImmutableStack<string>
 Microsoft.CodeAnalysis.Testing.DefaultVerifier.DefaultVerifier() -> void
+Microsoft.CodeAnalysis.Testing.DefaultVerifier.DefaultVerifier(System.Collections.Immutable.ImmutableStack<string> context) -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.DiagnosticLocation(Microsoft.CodeAnalysis.FileLinePositionSpan span, Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions options) -> void
 Microsoft.CodeAnalysis.Testing.DiagnosticLocation.Options.get -> Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions
