@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
         {
         }
 
-        private MSTestVerifier(ImmutableStack<string> context)
+        protected MSTestVerifier(ImmutableStack<string> context)
         {
-            Context = context;
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        private ImmutableStack<string> Context { get; }
+        protected ImmutableStack<string> Context { get; }
 
         public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual IVerifier PushContext(string context)
         {
+            Assert.AreEqual(typeof(MSTestVerifier), GetType());
             return new MSTestVerifier(Context.Push(context));
         }
 

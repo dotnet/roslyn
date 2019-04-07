@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis.Testing
         {
         }
 
-        private DefaultVerifier(ImmutableStack<string> context)
+        protected DefaultVerifier(ImmutableStack<string> context)
         {
-            Context = context;
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        private ImmutableStack<string> Context { get; }
+        protected ImmutableStack<string> Context { get; }
 
         public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public virtual IVerifier PushContext(string context)
         {
+            if (GetType() != typeof(DefaultVerifier))
+            {
+                throw new InvalidOperationException($"Custom verifier types must override {nameof(PushContext)}");
+            }
+
             return new DefaultVerifier(Context.Push(context));
         }
 

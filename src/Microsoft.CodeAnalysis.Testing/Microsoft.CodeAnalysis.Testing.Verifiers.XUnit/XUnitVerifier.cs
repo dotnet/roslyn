@@ -16,12 +16,12 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
         {
         }
 
-        private XUnitVerifier(ImmutableStack<string> context)
+        protected XUnitVerifier(ImmutableStack<string> context)
         {
-            Context = context;
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        private ImmutableStack<string> Context { get; }
+        protected ImmutableStack<string> Context { get; }
 
         public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
@@ -127,6 +127,7 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 
         public virtual IVerifier PushContext(string context)
         {
+            Assert.IsType<XUnitVerifier>(this);
             return new XUnitVerifier(Context.Push(context));
         }
 
