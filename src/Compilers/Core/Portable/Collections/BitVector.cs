@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Roslyn.Utilities;
-using Word = System.UInt32;
+using Word = System.UInt64;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
     internal struct BitVector : IEquatable<BitVector>
     {
         private const Word ZeroWord = 0;
-        private const int Log2BitsPerWord = 5;
+        private const int Log2BitsPerWord = 6;
 
         public const int BitsPerWord = 1 << Log2BitsPerWord;
 
@@ -38,10 +38,11 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(BitVector other)
         {
-            // Bit arrays only equal if their underlying sets are of the same size.
+            // Bit arrays only equal if their underlying sets are of the same size
             return _capacity == other._capacity
+                // and have the same set of bits set
                 && _bits0 == other._bits0
-                && _bits.ValueEquals(other._bits);
+                && _bits.AsSpan().SequenceEqual(other._bits.AsSpan());
         }
 
         public override bool Equals(object obj)
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis
                 yield return _bits0;
             }
 
-            for (int i = 0; i < _bits?.Length; i++)
+            for (int i = 0, n = _bits?.Length ?? 0; i < n; i++)
             {
                 yield return _bits[i];
             }
