@@ -30,13 +30,11 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export(typeof(VisualStudioWorkspaceImpl))]
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
-        private readonly IThreadingContext _threadingContext;
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
         private readonly IEnumerable<Lazy<IExternalNavigationService>> _externalNavigationServices;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
-            IThreadingContext threadingContext,
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
             [ImportMany] IEnumerable<Lazy<IExternalNavigationService>> externalNavigationServices,
@@ -44,7 +42,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             [Import(typeof(SVsServiceProvider))] IAsyncServiceProvider asyncServiceProvider)
             : base(exportProvider, asyncServiceProvider)
         {
-            _threadingContext = threadingContext;
             _streamingPresenters = streamingPresenters;
             _externalNavigationServices = externalNavigationServices;
 
@@ -122,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                _threadingContext,
+                ThreadingContext,
                 searchSymbol, searchProject,
                 _streamingPresenters, _externalNavigationServices,
                 cancellationToken);
