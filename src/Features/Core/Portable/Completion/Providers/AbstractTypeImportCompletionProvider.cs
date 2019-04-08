@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
 #if DEBUG
             DebugObject.DebugClear();
-            var tick = Environment.TickCount;
+            var tick = System.Environment.TickCount;
 #endif
             var document = completionContext.Document;
             var position = completionContext.Position;
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var items = await GetCompletionItemsAsync(document, syntaxContext, position, cancellationToken).ConfigureAwait(false);
             completionContext.AddItems(items);
 #if DEBUG
-            DebugObject.debug_total_time_with_ItemCreation = Environment.TickCount - tick;
+            DebugObject.debug_total_time_with_ItemCreation = System.Environment.TickCount - tick;
 #endif
             return;
         }
