@@ -88,7 +88,8 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 // Wait for all previous writes to be flushed.
-                await previousWritesTask.ConfigureAwait(false);
+                if (previousWritesTask != null)
+                    await previousWritesTask.ConfigureAwait(false);
 
                 if (writesToProcess.Count == 0)
                 {
@@ -156,9 +157,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     keyToWriteActions.Remove(key);
 
                     // Find the existing task responsible for writing to this queue.
-                    var existingWriteTask = keyToWriteTask.TryGetValue(key, out var task)
-                        ? task
-                        : Task.CompletedTask;
+                    keyToWriteTask.TryGetValue(key, out var existingWriteTask);
 
                     if (writesToProcess.Count == 0)
                     {
