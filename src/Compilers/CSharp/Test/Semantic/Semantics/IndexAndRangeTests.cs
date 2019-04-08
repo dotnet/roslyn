@@ -15,6 +15,163 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private const string RangeEndAtSignature = "System.Range System.Range.EndAt(System.Index end)";
         private const string RangeAllSignature = "System.Range System.Range.All.get";
 
+
+        [Fact]
+        public void PatternIndexAndRangeNoGetOffset()
+        {
+            var src = @"
+namespace System
+{
+    public struct Index
+    {
+        public Index(int value, bool fromEnd) { }
+        public static implicit operator Index(int value) => default;
+    }
+    public struct Range
+    {
+        public Range(Index start, Index end) { }
+    }
+}
+class C
+{
+    public int Length => 0;
+    public int this[int i] => 0;
+    public int Slice(int i, int j) => 0;
+    void M()
+    {
+        _ = this[^0];
+        _ = this[0..];
+    }
+}";
+            var comp = CreateCompilation(src);
+            comp.VerifyDiagnostics(
+                // At binding time we don't look for all the necessary members
+                // on the Index and Range types.
+                );
+            comp.VerifyEmitDiagnostics(
+                // (20,5): error CS0656: Missing compiler required member 'System.Index.GetOffset'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        _ = this[^0];
+        _ = this[0..];
+    }").WithArguments("System.Index", "GetOffset").WithLocation(20, 5));
+        }
+
+        [Theory]
+        [InlineData("Start")]
+        [InlineData("End")]
+        public void PatternIndexAndRangeNoStartAndEnd(string propertyName)
+        {
+            var src = @"
+namespace System
+{
+    public struct Index
+    {
+        public Index(int value, bool fromEnd) { }
+        public static implicit operator Index(int value) => default;
+        public int GetOffset(int length) => 0;
+    }
+    public struct Range
+    {
+        public Range(Index start, Index end) { }
+        public Index " + propertyName + @" => default;
+    }
+}
+class C
+{
+    public int Length => 0;
+    public int this[int i] => 0;
+    public int Slice(int i, int j) => 0;
+    void M()
+    {
+        _ = this[^0];
+        _ = this[0..];
+    }
+}";
+            var comp = CreateCompilation(src);
+
+            comp.VerifyDiagnostics(
+                // At binding time we don't look for all the necessary members
+                // on the Index and Range types.
+                );
+
+            comp.VerifyEmitDiagnostics(
+                // (22,5): error CS0656: Missing compiler required member 'System.Range.get_{propertyName}'
+                //     {
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"{
+        _ = this[^0];
+        _ = this[0..];
+    }").WithArguments("System.Range", "get_" + (propertyName == "Start" ? "End" : "Start")).WithLocation(22, 5));
+        }
+
+        [Fact]
+        public void PatternIndexAndRangeNoOptionalParams()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+class C
+{
+    public int Length => 0;
+    public int this[int i, int j = 0] => i;
+    public int Slice(int i, int j, int k = 0) => i;
+    public void M()
+    {
+        _ = this[^0];
+        _ = this[0..];
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,18): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         _ = this[^0];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(9, 18),
+                // (10,18): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         _ = this[0..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "0..").WithArguments("1", "System.Range", "int").WithLocation(10, 18));
+        }
+
+        [Fact]
+        public void PatternIndexAndRangeUseOriginalDefition()
+        {
+            var comp = CreateCompilationWithIndexAndRange(@"
+struct S1<T>
+{
+    public int Length => 0;
+    public int this[T t] => 0;
+    public int Slice(T t, int j) => 0;
+}
+struct S2<T>
+{
+    public T Length => default;
+    public int this[int t] => 0;
+    public int Slice(int t, int j) => 0;
+}
+class C
+{
+    void M()
+    {
+        var s1 = new S1<int>();
+        _ = s1[^0];
+        _ = s1[0..];
+
+        var s2 = new S2<int>();
+        _ = s2[^0];
+        _ = s2[0..];
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (19,16): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         _ = s1[^0];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(19, 16),
+                // (20,16): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         _ = s1[0..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "0..").WithArguments("1", "System.Range", "int").WithLocation(20, 16),
+                // (23,16): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
+                //         _ = s2[^0];
+                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(23, 16),
+                // (24,16): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
+                //         _ = s2[0..];
+                Diagnostic(ErrorCode.ERR_BadArgType, "0..").WithArguments("1", "System.Range", "int").WithLocation(24, 16));
+        }
+
         [Fact]
         [WorkItem(31889, "https://github.com/dotnet/roslyn/issues/31889")]
         public void ArrayRangeIllegalRef()
@@ -156,13 +313,7 @@ class C
         var y = s[1..];
     }
 }");
-            comp.VerifyDiagnostics(
-                // (6,19): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
-                //         var x = s[^0];
-                Diagnostic(ErrorCode.ERR_BadArgType, "^0").WithArguments("1", "System.Index", "int").WithLocation(6, 19),
-                // (7,19): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
-                //         var y = s[1..];
-                Diagnostic(ErrorCode.ERR_BadArgType, "1..").WithArguments("1", "System.Range", "int").WithLocation(7, 19));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -209,27 +360,6 @@ public class C {
                 // (4,25): error CS1510: A ref or out value must be an assignable variable
                 //         ref var x = ref ^0;
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "^0").WithLocation(4, 25));
-        }
-
-        [Fact]
-        public void NetStandard20StringNoIndexRangeIndexers()
-        {
-            var comp = CreateCompilationWithIndexAndRange(@"
-public class C
-{
-    public void M(string s)
-    {
-        var x = s[^2];
-        var y = s[0..2];
-    }
-}");
-            comp.VerifyDiagnostics(
-                // (6,19): error CS1503: Argument 1: cannot convert from 'System.Index' to 'int'
-                //         var x = s[^2];
-                Diagnostic(ErrorCode.ERR_BadArgType, "^2").WithArguments("1", "System.Index", "int").WithLocation(6, 19),
-                // (7,19): error CS1503: Argument 1: cannot convert from 'System.Range' to 'int'
-                //         var y = s[0..2];
-                Diagnostic(ErrorCode.ERR_BadArgType, "0..2").WithArguments("1", "System.Range", "int").WithLocation(7, 19));
         }
 
         [Fact]

@@ -1188,6 +1188,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitIndexOrRangePatternIndexerAccess(BoundIndexOrRangePatternIndexerAccess node)
+        {
+            // Index or Range pattern indexers evaluate the following in order:
+            // 1. The receiver
+            // 1. The Count or Length method off the receiver
+            // 2. The argument to the access
+            // 3. The pattern method
+            VisitRvalue(node.Receiver);
+            var method = GetReadMethod(node.LengthOrCountProperty);
+            VisitReceiverAfterCall(node.Receiver, method);
+            VisitRvalue(node.Argument);
+            VisitReceiverAfterCall(node.Receiver, node.PatternMethod);
+
+            return null;
+        }
+
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
             VisitRvalue(node.ReceiverOpt);
