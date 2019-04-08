@@ -1998,17 +1998,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return false;
                     }
 
-                case SyntaxKind.AliasQualifiedName:
-                    {
-                        var aliasQualifiedName = (AliasQualifiedNameSyntax)expression;
-                        var simpleName = aliasQualifiedName.Name;
-
-                        replacementNode = (IdentifierNameSyntax)CSharpSyntaxGenerator.Instance.IdentifierName(simpleName.Identifier)
-                            .WithAdditionalAnnotations(Simplifier.Annotation);
-
-                        // Ensure that replacement doesn't change semantics.
-                        return !ReplacementChangesSemantics(aliasQualifiedName, replacementNode, semanticModel);
-                    }
             }
 
             return false;

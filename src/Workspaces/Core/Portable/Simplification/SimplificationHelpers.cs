@@ -86,6 +86,12 @@ namespace Microsoft.CodeAnalysis.Simplification
                 }
             }
 
+            var symbol = semanticModel.GetDeclaredSymbol(expression);
+            if (symbol != null)
+            {
+                return symbol;
+            }
+
             var symbolInfo = semanticModel.GetSymbolInfo(expression);
             if (!IsValidSymbolInfo(symbolInfo.Symbol))
             {
