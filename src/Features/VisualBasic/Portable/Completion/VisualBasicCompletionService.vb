@@ -27,30 +27,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     Partial Friend Class VisualBasicCompletionService
         Inherits CommonCompletionService
 
-        Private ReadOnly _completionProviders As ImmutableArray(Of CompletionProvider) = ImmutableArray.Create(Of CompletionProvider)(
-            New KeywordCompletionProvider(),
-            New SymbolCompletionProvider(),
-            New ObjectInitializerCompletionProvider(),
-            New ObjectCreationCompletionProvider(),
-            New EnumCompletionProvider(),
-            New NamedParameterCompletionProvider(),
-            New VisualBasicSuggestionModeCompletionProvider(),
-            New ImplementsClauseCompletionProvider(),
-            New HandlesClauseCompletionProvider(),
-            New PartialTypeCompletionProvider(),
-            New CrefCompletionProvider(),
-            New CompletionListTagCompletionProvider(),
-            New OverrideCompletionProvider(),
-            New XmlDocCommentCompletionProvider(),
-            New InternalsVisibleToCompletionProvider(),
-            New EmbeddedLanguageCompletionProvider(VisualBasicEmbeddedLanguageFeaturesProvider.Instance))
+        Private ReadOnly _completionProviders As ImmutableArray(Of CompletionProvider)
 
         Private ReadOnly _workspace As Workspace
 
         Public Sub New(workspace As Workspace,
                        Optional exclusiveProviders As ImmutableArray(Of CompletionProvider)? = Nothing)
             MyBase.New(workspace, exclusiveProviders)
+
             _workspace = workspace
+            _completionProviders = ImmutableArray.Create(Of CompletionProvider)(
+                New KeywordCompletionProvider(),
+                New SymbolCompletionProvider(),
+                New ObjectInitializerCompletionProvider(),
+                New ObjectCreationCompletionProvider(),
+                New EnumCompletionProvider(),
+                New NamedParameterCompletionProvider(),
+                New VisualBasicSuggestionModeCompletionProvider(),
+                New ImplementsClauseCompletionProvider(),
+                New HandlesClauseCompletionProvider(),
+                New PartialTypeCompletionProvider(),
+                New CrefCompletionProvider(),
+                New CompletionListTagCompletionProvider(),
+                New OverrideCompletionProvider(),
+                New XmlDocCommentCompletionProvider(),
+                New InternalsVisibleToCompletionProvider(),
+                New EmbeddedLanguageCompletionProvider(VisualBasicEmbeddedLanguageFeaturesProvider.Instance),
+                New TypeImportCompletionProvider(workspace))
         End Sub
 
         Public Overrides ReadOnly Property Language As String

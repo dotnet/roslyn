@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
 
         protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
-        protected abstract HashSet<INamespaceSymbol> GetNamespacesInScope(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract ImmutableHashSet<string> GetNamespacesInScope(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
 
         private readonly ITypeImportCompletionService _typeImportCompletionService;
         private readonly IExperimentationService _experimentationService;
@@ -47,8 +46,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowImportCompletionItems, document.Project.Language);
 
+            // Don't trigger import completion if the option value is "default" and the experiment is disabled for the user. 
             if (importCompletionOptionValue == false ||
-                importCompletionOptionValue == null && _experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion) != true)
+                (importCompletionOptionValue == null && _experimentationService?.IsExperimentEnabled(WellKnownExperimentNames.TypeImportCompletion) != true))
             {
                 return;
             }
@@ -67,51 +67,44 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (context.IsTypeContext)
             {
-                var project = document.Project;
-                var node = context.LeftToken.Parent;
-
-                var namespacesInScope = GetNamespacesInScope(node, context.SemanticModel, cancellationToken)
-                    .Select(symbol => symbol.ToDisplayString(SymbolDisplayFormats.NameFormat))
-                    .ToImmutableHashSet();
-
-                if (project.SupportsCompilation)
+                using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
                 {
+                    var project = document.Project;
+                    var node = context.LeftToken.Parent;
+
+                    var namespacesInScope = GetNamespacesInScope(node, context.SemanticModel, cancellationToken);
                     var builder = ArrayBuilder<TypeImportCompletionItem>.GetInstance();
 
-                    using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
+                    var declarationsInCurrentProject = await _typeImportCompletionService
+                        .GetAccessibleTopLevelTypesFromProjectAsync(project, namespacesInScope, cancellationToken).ConfigureAwait(false);
+                    builder.AddRange(declarationsInCurrentProject);
+
+                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    foreach (var reference in compilation.References)
                     {
-                        var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                        var declarationsInCurrentProject = await _typeImportCompletionService
-                                                            .GetAccessibleTopLevelTypesFromProjectAsync(project, namespacesInScope, cancellationToken)
-                                                            .ConfigureAwait(false);
-                        builder.AddRange(declarationsInCurrentProject);
-
-                        foreach (var reference in compilation.References)
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var declarationsInReference = ImmutableArray<TypeImportCompletionItem>.Empty;
+                        if (reference is CompilationReference compilationReference)
                         {
-                            cancellationToken.ThrowIfCancellationRequested();
+                            declarationsInReference = await _typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
+                                project.Solution,
+                                compilation,
+                                compilationReference,
+                                namespacesInScope,
+                                cancellationToken).ConfigureAwait(false);
 
-                            if (reference is CompilationReference compilationReference)
-                            {
-                                var declarationsInReference =
-                                    await _typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
-                                        project.Solution,
-                                        compilation,
-                                        compilationReference,
-                                        namespacesInScope,
-                                        cancellationToken).ConfigureAwait(false);
-
-                                builder.AddRange(declarationsInReference);
-                            }
-                            else if (reference is PortableExecutableReference peReference)
-                            {
-                                var declarationsInReference = _typeImportCompletionService.GetAccessibleTopLevelTypesFromPEReference(project.Solution,
-                                                                                                                                     compilation,
-                                                                                                                                     peReference,
-                                                                                                                                     namespacesInScope,
-                                                                                                                                     cancellationToken);
-                                builder.AddRange(declarationsInReference);
-                            }
                         }
+                        else if (reference is PortableExecutableReference peReference)
+                        {
+                            declarationsInReference = _typeImportCompletionService.GetAccessibleTopLevelTypesFromPEReference(
+                                project.Solution,
+                                compilation,
+                                peReference,
+                                namespacesInScope,
+                                cancellationToken);
+                        }
+
+                        builder.AddRange(declarationsInReference);
                     }
 
                     return ImmutableArray<CompletionItem>.CastUp(builder.ToImmutableAndFree());
@@ -147,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            var change = Utilities.Collapse(newText, changes.ToList());
+            var change = Utilities.Collapse(newText, changes.ToImmutableArray());
 
             return CompletionChange.Create(change, newPosition, includesCommitCharacter: true);
         }
@@ -158,33 +151,34 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
+            // Complete type name.
             var finalText = root.GetText(text.Encoding)
-                .Replace(completionItem.Span, completionItem.DisplayText.Trim());
-
+                .Replace(completionItem.Span, completionItem.DisplayText);
             document = document.WithText(finalText);
 
+            // Annotate added node so we can move caret to proper location later.
             tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var addedNode = root.FindNode(completionItem.Span);
             var annotatedNode = addedNode.WithAdditionalAnnotations(_annotation);
-
             root = root.ReplaceNode(addedNode, annotatedNode);
             document = document.WithSyntaxRoot(root);
 
-            if (completionItem is TypeImportCompletionItem importItem)
-            {
-                var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-                var importNode = CreateImport(document, importItem.ContainingNamespace);
+            // Add required using/imports directive.
+            var importItem = (TypeImportCompletionItem)completionItem;
+            var importNode = CreateImport(document, importItem.ContainingNamespace);
 
-                var addImportService = document.GetLanguageService<IAddImportsService>();
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
-                root = addImportService.AddImport(compilation, root, annotatedNode, importNode, placeSystemNamespaceFirst);
-                document = document.WithSyntaxRoot(root);
+            var addImportService = document.GetLanguageService<IAddImportsService>();
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-                document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-            }
+            root = addImportService.AddImport(compilation, root, annotatedNode, importNode, placeSystemNamespaceFirst);
+            document = document.WithSyntaxRoot(root);
+
+            // Format newly added nodes.
+            document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return document;
         }
@@ -204,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var symbol = compilation.GetTypeByMetadataName(importItem.MetadataName);
                 if (symbol != null)
                 {
-                    var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 #if DEBUG
                     return CompletionDescription.FromText(DebugObject.DebugText);
 #else

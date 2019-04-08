@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 
@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class Utilities
     {
-        public static TextChange Collapse(SourceText newText, IList<TextChange> changes)
+        public static TextChange Collapse(SourceText newText, ImmutableArray<TextChange> changes)
         {
-            if (changes.Count == 0)
+            if (changes.Length == 0)
             {
                 return new TextChange(new TextSpan(0, 0), "");
             }
-            else if (changes.Count == 1)
+            else if (changes.Length == 1)
             {
                 return changes[0];
             }

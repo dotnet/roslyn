@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var created = ImmutableArray<TypeImportCompletionItem>.Empty;
 #if DEBUG
                 try
-                {
 #endif
+                {
                     // Cache miss, create all requested items.
                     if (!cache.TryGetValue(key, out var cacheEntry) ||
                         cacheEntry.Checksum != checksum ||
@@ -189,8 +189,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     returned = itemsToCache.WhereAsArray(item => !excludedNamespaces.Contains(item.ContainingNamespace));
 
                     return returned;
-#if DEBUG
                 }
+#if DEBUG
                 finally
                 {
                     tick = Environment.TickCount - tick;
@@ -219,16 +219,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 bool isInternalsVisible)
             {
                 var builder = ArrayBuilder<TypeImportCompletionItem>.GetInstance();
-                VisitNamespace(rootNamespaceSymbol, null);
+                VisitNamespace(rootNamespaceSymbol, null, predicate, isInternalsVisible, builder);
                 return builder.ToImmutableAndFree();
 
-                void VisitNamespace(INamespaceSymbol symbol, string containingNamespace)
+                static void VisitNamespace(
+                    INamespaceSymbol symbol,
+                    string containingNamespace,
+                    Func<string, bool> predicate,
+                    bool isInternalsVisible,
+                    ArrayBuilder<TypeImportCompletionItem> builder)
                 {
                     containingNamespace = ConcatNamespace(containingNamespace, symbol.Name);
 
                     foreach (var memberNamespace in symbol.GetNamespaceMembers())
                     {
-                        VisitNamespace(memberNamespace, containingNamespace);
+                        VisitNamespace(memberNamespace, containingNamespace, predicate, isInternalsVisible, builder);
                     }
 
                     if (predicate(containingNamespace))

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -37,10 +36,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static TypeImportCompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, int overloadCount)
         {
+            // TODO: Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
             return new TypeImportCompletionItem(
                  displayText: typeSymbol.Name,
+                 filterText: typeSymbol.Name,
+                 sortText: typeSymbol.Name,
+                 span: default,
+                 properties: null,
+                 tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
+                 rules: CompletionItemRules.Default,
+                 displayTextPrefix: null,
                  displayTextSuffix: typeSymbol.Arity == 0 ? null : "<>",
-                 glyph: typeSymbol.GetGlyph(),
                  inlineDescription: containingNamespace,
                  typeArity: typeSymbol.Arity,
                  containingNamespace: containingNamespace,
@@ -123,55 +129,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             OverloadCount = overloadCount;
         }
 
-        private TypeImportCompletionItem(
-            string displayText,
-            string displayTextSuffix,
-            Glyph glyph,
-            int typeArity,
-            string containingNamespace,
-            string inlineDescription = null,
-            int overloadCount = 0)
-            : this(
-                displayText: displayText,
-                filterText: displayText,
-                sortText: displayText,
-                span: default,
-                properties: null,
-                tags: GlyphTags.GetTags(glyph),
-                rules: CompletionItemRules.Default,
-                displayTextPrefix: null,
-                displayTextSuffix: displayTextSuffix,
-                inlineDescription: inlineDescription,
-                typeArity: typeArity,
-                containingNamespace: containingNamespace,
-                overloadCount: overloadCount)
-        {
-        }
-
         private const string GenericTypeNameManglingString = "`";
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
         private static string GetAritySuffix(int arity)
         {
             Debug.Assert(arity > 0);
-            return (arity <= 9) ? s_aritySuffixesOneToNine[arity - 1] : string.Concat(GenericTypeNameManglingString, arity.ToString(CultureInfo.InvariantCulture));
+            return (arity <= s_aritySuffixesOneToNine.Length)
+                ? s_aritySuffixesOneToNine[arity - 1]
+                : string.Concat(GenericTypeNameManglingString, arity.ToString(CultureInfo.InvariantCulture));
         }
 
         private static string GetFullyQualifiedName(string namespaceName, string typeName)
-        {
-            if (namespaceName.Length == 0)
-            {
-                return typeName;
-            }
-            else
-            {
-                return namespaceName + "." + typeName;
-            }
-        }
+            => namespaceName.Length == 0 ? typeName : namespaceName + "." + typeName;
 
         private static string ComposeAritySuffixedMetadataName(string name, int arity)
-        {
-            return arity == 0 ? name : name + GetAritySuffix(arity);
-        }
+            => arity == 0 ? name : name + GetAritySuffix(arity);
     }
 }

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
@@ -22,14 +23,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Protected Overrides Async Function CreateContextAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of SyntaxContext)
+            ' Need regular semantic model because we will use it to get imported namepsace symbols.
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetNamespacesInScope(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As HashSet(Of INamespaceSymbol)
+        Protected Overrides Function GetNamespacesInScope(location As SyntaxNode, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ImmutableHashSet(Of String)
 
-            ' TODO: handle command line option -imports
-            Dim result = New HashSet(Of INamespaceSymbol)(semanticModel.GetImportNamespacesInScope(location))
+            ' Names in VB are case insensitive, so case insensitive comparer is required to decide if a namespace is in scope.
+            Dim builder = ImmutableHashSet.CreateBuilder(Of String)(CaseInsensitiveComparison.Comparer)
+
+            ' Get namespaces from import directives
+            Dim importsInScope = semanticModel.GetImportNamespacesInScope(location)
+            For Each import As INamespaceSymbol In importsInScope
+                builder.Add(import.ToDisplayString(SymbolDisplayFormats.NameFormat))
+            Next
+
+            ' Get global imports from compilation option
+            Dim vbOptions = DirectCast(semanticModel.Compilation.Options, VisualBasicCompilationOptions)
+            For Each globalImport As GlobalImport In vbOptions.GlobalImports
+                builder.Add(globalImport.Name)
+            Next
+
+            ' Get containing namespaces
             Dim containingNamespaceDeclaration = location.GetAncestorOrThis(Of NamespaceStatementSyntax)()
 
             Dim containingNamespaceSymbol As INamespaceSymbol
@@ -40,13 +56,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             If containingNamespaceSymbol IsNot Nothing Then
-                While Not containingNamespaceSymbol.IsGlobalNamespace
-                    result.Add(containingNamespaceSymbol)
+                While containingNamespaceSymbol IsNot Nothing
+                    builder.Add(containingNamespaceSymbol.ToDisplayString(SymbolDisplayFormats.NameFormat))
                     containingNamespaceSymbol = containingNamespaceSymbol.ContainingNamespace
                 End While
             End If
 
-            Return result
+            Return builder.ToImmutable()
         End Function
     End Class
 End Namespace

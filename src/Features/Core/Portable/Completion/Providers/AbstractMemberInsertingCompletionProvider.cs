@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
-            var change = Utilities.Collapse(newText, changes.ToList());
+            var change = Utilities.Collapse(newText, changes.ToImmutableArray());
 
             return CompletionChange.Create(change, newPosition, includesCommitCharacter: true);
         }
