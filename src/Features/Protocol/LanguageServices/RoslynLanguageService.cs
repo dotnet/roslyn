@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Protocol.LanguageServices.Extensions;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Structure;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
                 return Array.Empty<SymbolInformation>();
             }
 
-            var symbols = new List<object>();
+            var symbols = ArrayBuilder<object>.GetInstance();
 
             var navBarService = document.Project.LanguageServices.GetService<INavigationBarItemService>();
             var navBarItems = await navBarService.GetItemsAsync(document, cancellationToken).ConfigureAwait(false);
@@ -234,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         /// <returns>A list of the symbols found in the current document</returns>
         public async Task<SymbolInformation[]> GetWorkspaceSymbolsAsync(Solution solution, WorkspaceSymbolParams request, CancellationToken cancellationToken)
         {
-            var symbols = new List<SymbolInformation>();
+            var symbols = ArrayBuilder<SymbolInformation>.GetInstance();
 
             if (solution == null)
             {
@@ -321,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
                 return Array.Empty<VSLocation>();
             }
 
-            var identifiers = new List<VSLocation>();
+            var identifiers = ArrayBuilder<VSLocation>.GetInstance(); ;
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -370,7 +371,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         /// <returns>Returns a list of locations of references to the given symbol</returns>
         public async Task<VSLocation[]> FindAllReferencesAsync(Solution solution, ReferenceParams request, CancellationToken cancellationToken)
         {
-            var locations = new List<VSLocation>();
+            var locations = ArrayBuilder<VSLocation>.GetInstance();
 
             var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         /// <returns>Returns a list of locations of references to the given symbol</returns>
         public async Task<VSLocation[]> FindAllImplementationsAsync(Solution solution, TextDocumentPositionParams request, CancellationToken cancellationToken)
         {
-            var locations = new List<VSLocation>();
+            var locations = ArrayBuilder<VSLocation>.GetInstance();
 
             var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
@@ -439,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         /// <returns>Returns a list of locations of references to the given symbol</returns>
         public async Task<DocumentHighlight[]> GetHighlightReferencesAsync(Solution solution, TextDocumentPositionParams request, CancellationToken cancellationToken)
         {
-            var docHighlights = new List<DocumentHighlight>();
+            var docHighlights = ArrayBuilder<DocumentHighlight>.GetInstance();
 
             var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
@@ -481,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         /// <returns>Returns a list of locations of references to the given symbol</returns>
         public async Task<FoldingRange[]> GetFoldingRangeAsync(Solution solution, FoldingRangeParams request, CancellationToken cancellationToken)
         {
-            var foldingRanges = new List<FoldingRange>();
+            var foldingRanges = ArrayBuilder<FoldingRange>.GetInstance();
 
             var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
@@ -538,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
 
         private async Task<VSLocation[]> GetDefinitionAsync(Solution solution, TextDocumentPositionParams request, bool typeOnly, CancellationToken cancellationToken)
         {
-            var locations = new List<VSLocation>();
+            var locations = ArrayBuilder<VSLocation>.GetInstance();
 
             var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
