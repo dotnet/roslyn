@@ -26,9 +26,8 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
     /// <summary>
     /// This is the roslyn language service.
     ///
-    /// this glues workspace snapshot and language service protocol to
-    /// roslyn solution and services and at the end, it talks things in terms of
-    /// workspace snapshot id and LSP types.
+    /// This glues the LSP requests and solution to 
+    /// Roslyn (and services) and outputs LSP types.
     /// </summary>
     public sealed class RoslynLanguageService
     {
@@ -64,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         /// <returns>A list of the symbols found in the current document</returns>
         public async Task<object[]> GetDocumentSymbolsAsync(Solution solution, DocumentSymbolParams request, CancellationToken cancellationToken)
         {
-            var document = solution?.GetDocument(request.TextDocument.Uri);
+            var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
                 return Array.Empty<SymbolInformation>();
@@ -282,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
 
         public async Task<Hover> GetHoverAsync(Solution solution, TextDocumentPositionParams request, CancellationToken cancellationToken)
         {
-            var document = solution?.GetDocument(request.TextDocument.Uri);
+            var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
                 return null;
@@ -316,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
 
         public async Task<VSLocation[]> GetDocumentIdentifiersAsync(Solution solution, VSLocation location, CancellationToken cancellationToken)
         {
-            var document = solution?.GetDocument(location.Uri);
+            var document = solution.GetDocument(location.Uri);
             if (document == null)
             {
                 return Array.Empty<VSLocation>();
@@ -373,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         {
             var locations = new List<VSLocation>();
 
-            var document = solution?.GetDocument(request.TextDocument.Uri);
+            var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
                 return locations.ToArray();
@@ -413,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         {
             var locations = new List<VSLocation>();
 
-            var document = solution?.GetDocument(request.TextDocument.Uri);
+            var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
                 return locations.ToArray();
@@ -442,7 +441,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         {
             var docHighlights = new List<DocumentHighlight>();
 
-            var document = solution?.GetDocument(request.TextDocument.Uri);
+            var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
                 return docHighlights.ToArray();
@@ -484,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         {
             var foldingRanges = new List<FoldingRange>();
 
-            var document = solution?.GetDocument(request.TextDocument.Uri);
+            var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
                 return foldingRanges.ToArray();
@@ -541,7 +540,7 @@ namespace Microsoft.CodeAnalysis.Protocol.LanguageServices
         {
             var locations = new List<VSLocation>();
 
-            var document = solution?.GetDocument(request.TextDocument.Uri);
+            var document = solution.GetDocument(request.TextDocument.Uri);
             if (document == null)
             {
                 return locations.ToArray();
