@@ -215,3 +215,39 @@ jobs:
       continueOnError: true
       condition: not(succeeded())
 
+- job: macOS_Test
+  pool:
+    vmImage: 'macOS-10.13'
+  strategy:
+    maxParallel: 2
+    matrix:
+      coreclr:
+        _args: --testCoreClr
+        _name: CoreClr
+        _configuration: Debug
+      mono:
+        _args: --testMono --docker
+        _name: Mono
+        _configuration: Debug
+  timeoutInMinutes: 90
+  steps:
+    - script: ./eng/cibuild.sh --configuration $(_configuration) --prepareMachine $(_args)
+      displayName: Build and Test
+    - task: PublishTestResults@2
+      displayName: Publish xUnit Test Results
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '$(Build.SourcesDirectory)/artifacts/TestResults/$(_configuration)/*.xml'
+        mergeTestResults: true
+        testRunTitle: 'macOS $(_name)'
+      condition: always()
+
+    - task: PublishBuildArtifacts@1
+      displayName: Publish Logs
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/artifacts/log/$(_configuration)'
+        ArtifactName: 'macOS $(_name)'
+        publishLocation: Container
+      continueOnError: true
+      condition: not(succeeded())
+
