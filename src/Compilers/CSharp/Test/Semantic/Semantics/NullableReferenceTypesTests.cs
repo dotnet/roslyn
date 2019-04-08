@@ -84428,7 +84428,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33005: Not handling deconstructing argument of Deconstruct.
             comp.VerifyDiagnostics(
                 // (9,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         (T a, (T? b, T? c)) = p; // 1
@@ -84462,7 +84461,6 @@ class Program
     }
 }";
             var comp = CreateCompilation(source, options: WithNonNullTypesTrue());
-            // https://github.com/dotnet/roslyn/issues/33005: Not handling deconstructing argument of Deconstruct.
             comp.VerifyDiagnostics(
                 // (9,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         (T a, (T? b, T? c)) = p; // 1
