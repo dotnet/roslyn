@@ -884,18 +884,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             statements.Add(null); // placeholder at statements[0] for the dispatch
             foreach (var section in sections)
             {
-                LabelSymbol sectionLabel;
-                // If the section only contains a goto statement, use that label.
-                if (section.Statements.Length == 1 && section.Statements[0] is BoundGotoStatement bgoto)
-                {
-                    sectionLabel = bgoto.Label;
-                }
-                else
-                {
-                    sectionLabel = new GeneratedLabelSymbol("case " + section.Values[0]);
-                    statements.Add(Label(sectionLabel));
-                    statements.AddRange(section.Statements);
-                }
+                LabelSymbol sectionLabel = new GeneratedLabelSymbol("case " + section.Values[0]);
+                statements.Add(Label(sectionLabel));
+                statements.AddRange(section.Statements);
 
                 foreach (var value in section.Values)
                 {
