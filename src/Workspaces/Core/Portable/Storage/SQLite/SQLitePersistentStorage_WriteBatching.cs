@@ -50,21 +50,21 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private async Task FlushSpecificWritesAsync<TKey>(
+        private Task FlushSpecificWritesAsync<TKey>(
             MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
             Dictionary<TKey, Task> keyToWriteTask,
             TKey key,
             CancellationToken cancellationToken)
         {
             var writesToProcess = ArrayBuilder<Action<SqlConnection>>.GetInstance();
-            try
-            {
-                await FlushSpecificWritesAsync(keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
-            }
-            finally
-            {
-                writesToProcess.Free();
-            }
+
+            return FlushSpecificWritesAsync(keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken)
+                .ContinueWith(
+                    (_, state) => ((ArrayBuilder<Action<SqlConnection>>)state).Free(),
+                    writesToProcess,
+                    cancellationToken,
+                    TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default);
         }
 
         private async Task FlushSpecificWritesAsync<TKey>(
