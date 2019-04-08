@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,6 +30,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
     {
         private static readonly CommentSelectionResult s_emptyCommentSelectionResult =
             new CommentSelectionResult(new List<TextChange>(), new List<CommentTrackingSpan>(), Operation.Uncomment);
+
+        private const string LanguageNameString = "languagename";
+        private const string LengthString = "length";
 
         private readonly ITextStructureNavigatorSelectorService _navigatorSelectorService;
 
@@ -83,21 +87,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         internal async override Task<CommentSelectionResult> CollectEditsAsync(Document document, ICommentSelectionService service,
             ITextBuffer subjectBuffer, NormalizedSnapshotSpanCollection selectedSpans, ValueTuple command, CancellationToken cancellationToken)
         {
-            var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
-            if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynToggleBlockComment))
+            using (Logger.LogBlock(FunctionId.CommandHandler_ToggleBlockComment, KeyValueLogMessage.Create(LogType.UserAction, m =>
             {
+                m[LanguageNameString] = document.Project.Language;
+                m[LengthString] = subjectBuffer.CurrentSnapshot.Length;
+            }), cancellationToken))
+            {
+                var experimentationService = document.Project.Solution.Workspace.Services.GetRequiredService<IExperimentationService>();
+                if (!experimentationService.IsExperimentEnabled(WellKnownExperimentNames.RoslynToggleBlockComment))
+                {
+                    return s_emptyCommentSelectionResult;
+                }
+
+                var navigator = _navigatorSelectorService.GetTextStructureNavigator(subjectBuffer);
+
+                var commentInfo = await service.GetInfoAsync(document, selectedSpans.First().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+                if (commentInfo.SupportsBlockComment)
+                {
+                    return await ToggleBlockCommentsAsync(document, commentInfo, navigator, selectedSpans, cancellationToken).ConfigureAwait(false);
+                }
+
                 return s_emptyCommentSelectionResult;
             }
-
-            var navigator = _navigatorSelectorService.GetTextStructureNavigator(subjectBuffer);
-
-            var commentInfo = await service.GetInfoAsync(document, selectedSpans.First().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
-            if (commentInfo.SupportsBlockComment)
-            {
-                return await ToggleBlockCommentsAsync(document, commentInfo, navigator, selectedSpans, cancellationToken).ConfigureAwait(false);
-            }
-
-            return s_emptyCommentSelectionResult;
         }
 
         private async Task<CommentSelectionResult> ToggleBlockCommentsAsync(Document document, CommentSelectionInfo commentInfo,
