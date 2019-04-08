@@ -340,7 +340,7 @@ next:;
                     }
                 }
 
-                if (results.IsEmpty())
+                if (results.ContainsOnlyEmptyConstraintClauses())
                 {
                     results = ImmutableArray<TypeParameterConstraintClause>.Empty;
                 }

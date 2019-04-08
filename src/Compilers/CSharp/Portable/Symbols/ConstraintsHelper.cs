@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 ImmutableArray<TypeParameterConstraintClause> defaultClauses = binder.GetDefaultTypeParameterConstraintClauses(typeParameterList);
 
-                return defaultClauses.IsEmpty() ? ImmutableArray<TypeParameterConstraintClause>.Empty : defaultClauses;
+                return defaultClauses.ContainsOnlyEmptyConstraintClauses() ? ImmutableArray<TypeParameterConstraintClause>.Empty : defaultClauses;
             }
 
             // Wrap binder from factory in a generic constraints specific binder

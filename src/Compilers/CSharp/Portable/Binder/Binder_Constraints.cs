@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!hasTypeLikeConstraint && !IsNullableEnabled(typeParameterSyntax.Identifier))
             {
-                constraints |= TypeParameterConstraintKind.UnknownNullabilityIfReferenceType;
+                constraints |= TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType;
             }
 
             return TypeParameterConstraintClause.Create(constraints, constraintTypes.ToImmutableAndFree(), syntaxBuilder.ToImmutableAndFree());
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (TypeParameterSyntax typeParameterSyntax in typeParameterList.Parameters)
             {
-                builder.Add(IsNullableEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.UnknownNullabilityIfReferenceType);
+                builder.Add(IsNullableEnabled(typeParameterSyntax.Identifier) ? TypeParameterConstraintClause.Empty : TypeParameterConstraintClause.ObliviousNullabilityIfReferenceType);
             }
 
             return builder.ToImmutableAndFree();

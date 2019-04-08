@@ -24,9 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Type parameter has no type constraints, including `struct`, `class`, `unmanaged` and is declared in a context 
         /// where nullable annotations are disabled.
-        /// Cannot be combined with <see cref="ReferenceType"/>, <see cref="ValueType"/> and <see cref="Unmanaged"/>.
+        /// Cannot be combined with <see cref="ReferenceType"/>, <see cref="ValueType"/> or <see cref="Unmanaged"/>.
+        /// Note, presence of this flag suppresses generation of Nullable attribute on the corresponding type parameter.
+        /// This imitates the shape of metadata produced by pre-nullable compilers. Metadata import is adjusted accordingly
+        /// to distinguish between the two situations.
         /// </summary>
-        UnknownNullabilityIfReferenceType = 0x40,
+        ObliviousNullabilityIfReferenceType = 0x40,
     }
 
     /// <summary>
@@ -41,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             typeConstraintsSyntax: default,
             otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
 
-        internal static readonly TypeParameterConstraintClause UnknownNullabilityIfReferenceType = new TypeParameterConstraintClause(
-            TypeParameterConstraintKind.UnknownNullabilityIfReferenceType,
+        internal static readonly TypeParameterConstraintClause ObliviousNullabilityIfReferenceType = new TypeParameterConstraintClause(
+            TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType,
             ImmutableArray<TypeWithAnnotations>.Empty,
             typeConstraintsSyntax: default,
             otherPartialDeclarations: ImmutableArray<TypeParameterConstraintClause>.Empty);
@@ -80,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
             }
 
-            Debug.Assert((constraints & TypeParameterConstraintKind.UnknownNullabilityIfReferenceType) == 0 ||
-                         (constraints & ~(TypeParameterConstraintKind.UnknownNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor)) == 0);
+            Debug.Assert((constraints & TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType) == 0 ||
+                         (constraints & ~(TypeParameterConstraintKind.ObliviousNullabilityIfReferenceType | TypeParameterConstraintKind.Constructor)) == 0);
 #endif 
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
@@ -103,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal readonly ImmutableArray<TypeParameterConstraintClause> OtherPartialDeclarations;
 
-        internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty && OtherPartialDeclarations.IsEmpty();
+        internal bool IsEmpty => Constraints == TypeParameterConstraintKind.None && ConstraintTypes.IsEmpty && OtherPartialDeclarations.ContainsOnlyEmptyConstraintClauses();
 
         internal bool IsEarly => !TypeConstraintsSyntax.IsDefault || OtherPartialDeclarations.IsEarly();
 
@@ -120,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return constraintClauses.Any(clause => clause.IsEarly);
         }
 
-        internal static bool IsEmpty(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        internal static bool ContainsOnlyEmptyConstraintClauses(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
         {
             return constraintClauses.All(clause => clause.IsEmpty);
         }
