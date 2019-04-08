@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.NamingStyles;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Utilities
 {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Utilities
             {
                 // Otherwise, massage it a bit to be a more suitable match for
                 // how people actually writing parameters.
-                var trimmed = NamingStyle.StripCommonPrefixes(nameBasedOnArgument, out var _);
+                var trimmed = NamingStyle.StripCommonPrefixes(nameBasedOnArgument);
                 BestNameForParameter = trimmed.Length > 0 ? trimmed.ToCamelCase() : nameBasedOnArgument;
                 BestNameForParameter = parameterNamingRule.NamingStyle.MakeCompliant(BestNameForParameter).First();
             }

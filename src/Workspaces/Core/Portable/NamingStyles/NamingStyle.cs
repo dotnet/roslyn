@@ -346,7 +346,13 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             return FinishFixingName(name);
         }
 
-        internal static string StripCommonPrefixes(string name, out string prefix)
+        public static string StripCommonPrefixes(string name)
+        {
+            StripCommonPrefixes(name, out _);
+            return name;
+        }
+
+        public static string StripCommonPrefixes(string name, out string prefix)
         {
             var index = 0;
             while (index + 1 < name.Length)
