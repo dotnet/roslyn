@@ -217,9 +217,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 #endif
                 static bool AccessibilityMatch(bool includeInternalTypes, bool isInternalsVisible)
                 {
-                    return isInternalsVisible
-                        ? includeInternalTypes
-                        : true;
+                    // If the acceesibility of cached items is differenct from minimum accessibility that is visible from the 
+                    // requesting project (for example, if we only have public types for a reference in the cache, but current requesting
+                    // project has IVT to the reference), we simply drop the cache entry and recalculate everything for this reference from symbols.
+                    // This shouldn't almost never affect PE references, and only affect source references for the first invocation after jumping between
+                    // projects with difference access levels, which is much rarer than typing in same document. So basically, this is trading performance
+                    // in rarer situation for simplicity> Otherwise, we need to keep track the accessibility of indivual types and maintain two items 
+                    // for each internal types (one for proejct with IVT, another one for project without).
+                    return isInternalsVisible == includeInternalTypes;
                 }
             }
 
