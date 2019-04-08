@@ -3680,7 +3680,9 @@ class D
         [WorkItem(33673, "https://github.com/dotnet/roslyn/issues/33673")]
         [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         [InlineData("_s", "s")]
+        [InlineData("_S", "s")]
         [InlineData("m_s", "s")]
+        [InlineData("m_S", "s")]
         [InlineData("s_s", "s")]
         [InlineData("t_s", "s")]
         public async Task GenerateConstructor_ArgumentHasCommonPrefix(string argumentName, string fieldName)
