@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface ITypeImportCompletionService : IWorkspaceService
     {
-        ImmutableArray<TypeImportCompletionItem> GetAccessibleTopLevelTypesFromPEReference(
+        ImmutableArray<CompletionItem> GetAccessibleTopLevelTypesFromPEReference(
             Solution solution,
             Compilation compilation,
             PortableExecutableReference peReference,
             ImmutableHashSet<string> excludedNamespaces,
             CancellationToken cancellationToken);
 
-        Task<ImmutableArray<TypeImportCompletionItem>> GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
+        Task<ImmutableArray<CompletionItem>> GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
             Solution solution,
             Compilation compilation,
             CompilationReference compilationReference,
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// support compilation. 
         /// For getting types from PE, use <see cref="GetAccessibleTopLevelTypesFromPEReference"/>.
         /// </summary>
-        Task<ImmutableArray<TypeImportCompletionItem>> GetAccessibleTopLevelTypesFromProjectAsync(
+        Task<ImmutableArray<CompletionItem>> GetAccessibleTopLevelTypesFromProjectAsync(
             Project project,
             ImmutableHashSet<string> excludedNamespaces,
             CancellationToken cancellationToken);
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _projectItemsCache = projectReferenceCache;
             }
 
-            public async Task<ImmutableArray<TypeImportCompletionItem>> GetAccessibleTopLevelTypesFromProjectAsync(
+            public async Task<ImmutableArray<CompletionItem>> GetAccessibleTopLevelTypesFromProjectAsync(
                 Project project,
                 ImmutableHashSet<string> excludedNamespaces,
                 CancellationToken cancellationToken)
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return GetAccessibleTopLevelTypesWorker(project.Id, compilation.Assembly.GlobalNamespace, checksum, excludedNamespaces, isInternalsVisible: true, _projectItemsCache, cancellationToken);
             }
 
-            public async Task<ImmutableArray<TypeImportCompletionItem>> GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
+            public async Task<ImmutableArray<CompletionItem>> GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
                 Solution solution,
                 Compilation compilation,
                 CompilationReference compilationReference,
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (!(compilation.GetAssemblyOrModuleSymbol(compilationReference) is IAssemblySymbol assemblySymbol))
                 {
-                    return ImmutableArray<TypeImportCompletionItem>.Empty;
+                    return ImmutableArray<CompletionItem>.Empty;
                 }
 
                 var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return GetAccessibleTopLevelTypesWorker(assemblyProject.Id, assemblySymbol.GlobalNamespace, checksum, excludedNamespaces, isInternalsVisible, _projectItemsCache, cancellationToken);
             }
 
-            public ImmutableArray<TypeImportCompletionItem> GetAccessibleTopLevelTypesFromPEReference(
+            public ImmutableArray<CompletionItem> GetAccessibleTopLevelTypesFromPEReference(
                 Solution solution,
                 Compilation compilation,
                 PortableExecutableReference peReference,
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
                 {
-                    return ImmutableArray<TypeImportCompletionItem>.Empty;
+                    return ImmutableArray<CompletionItem>.Empty;
                 }
 
                 var key = GetReferenceKey(peReference);
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     => reference.FilePath ?? reference.Display;
             }
 
-            private static ImmutableArray<TypeImportCompletionItem> GetAccessibleTopLevelTypesWorker<TKey>(
+            private static ImmutableArray<CompletionItem> GetAccessibleTopLevelTypesWorker<TKey>(
                 TKey key,
                 INamespaceSymbol rootNamespace,
                 Checksum checksum,
@@ -161,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 CancellationToken cancellationToken)
             {
                 var tick = Environment.TickCount;
-                var returned = ImmutableArray<TypeImportCompletionItem>.Empty;
-                var created = ImmutableArray<TypeImportCompletionItem>.Empty;
+                var returned = ImmutableArray<CompletionItem>.Empty;
+                var created = ImmutableArray<CompletionItem>.Empty;
 #if DEBUG
                 try
 #endif
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     // Having fewer excluded names space in cache than in request means the cache contains items for all the types not excluded.
                     if (cacheEntry.ExcludedNamespaces.IsSubsetOf(excludedNamespaces))
                     {
-                        returned = cacheEntry.CachedItems.WhereAsArray(item => !excludedNamespaces.Contains(item.ContainingNamespace));
+                        returned = cacheEntry.CachedItems.WhereAsArray(item => !excludedNamespaces.Contains(TypeImportCompletionItem.GetContainingNamespace(item)));
                         return returned;
                     }
 
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     cache[key] = new ReferenceCacheEntry(checksum, isInternalsVisible, excludedNamespacesToCache, itemsToCache);
 
                     created = itemsFromNamespacesToInclude;
-                    returned = itemsToCache.WhereAsArray(item => !excludedNamespaces.Contains(item.ContainingNamespace));
+                    returned = itemsToCache.WhereAsArray(item => !excludedNamespaces.Contains(TypeImportCompletionItem.GetContainingNamespace(item)));
 
                     return returned;
                 }
@@ -223,12 +223,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            private static ImmutableArray<TypeImportCompletionItem> GetCompletionItemsForTopLevelTypeDeclarations(
+            private static ImmutableArray<CompletionItem> GetCompletionItemsForTopLevelTypeDeclarations(
                 INamespaceSymbol rootNamespaceSymbol,
                 Func<string, bool> predicate,
                 bool isInternalsVisible)
             {
-                var builder = ArrayBuilder<TypeImportCompletionItem>.GetInstance();
+                var builder = ArrayBuilder<CompletionItem>.GetInstance();
                 VisitNamespace(rootNamespaceSymbol, null, predicate, isInternalsVisible, builder);
                 return builder.ToImmutableAndFree();
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     string containingNamespace,
                     Func<string, bool> predicate,
                     bool isInternalsVisible,
-                    ArrayBuilder<TypeImportCompletionItem> builder)
+                    ArrayBuilder<CompletionItem> builder)
                 {
                     containingNamespace = ConcatNamespace(containingNamespace, symbol.Name);
 
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 Checksum checksum,
                 bool includeInternalTypes,
                 ImmutableHashSet<string> excludedNamespaces,
-                ImmutableArray<TypeImportCompletionItem> cachedItems)
+                ImmutableArray<CompletionItem> cachedItems)
             {
                 IncludeInternalTypes = includeInternalTypes;
                 ExcludedNamespaces = excludedNamespaces;
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             public ImmutableHashSet<string> ExcludedNamespaces { get; }
 
-            public ImmutableArray<TypeImportCompletionItem> CachedItems { get; }
+            public ImmutableArray<CompletionItem> CachedItems { get; }
         }
     }
 }

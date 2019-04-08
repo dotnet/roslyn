@@ -1,136 +1,95 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
-    internal class TypeImportCompletionItem : CompletionItem
+    internal static class TypeImportCompletionItem
     {
-        public int TypeArity { get; }
+        private const string GenericTypeNameManglingString = "`";
+        private static readonly string[] s_IntegerOneToNine = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+        private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
-        public int OverloadCount { get; }
+        private const string ContainingNamespaceName = nameof(ContainingNamespaceName);
+        private const string OverloadCountName = nameof(OverloadCountName);
+        private const string TypeArityName = nameof(TypeArityName);
 
-        public string ContainingNamespace { get; }
-
-        private string _metadataName = null;
-        public string MetadataName
+        public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, int overloadCount)
         {
-            get
+            var builder = PooledDictionary<string, string>.GetInstance();
+            builder.Add(ContainingNamespaceName, containingNamespace);
+
+            if (overloadCount > 0)
             {
-                if (_metadataName == null)
-                {
-                    _metadataName = ComposeAritySuffixedMetadataName(
-                       GetFullyQualifiedName(this.ContainingNamespace, this.DisplayText),
-                       this.TypeArity);
-                }
-
-                return _metadataName;
+                builder.Add(OverloadCountName, GetInteger(overloadCount));
             }
-        }
 
-        internal override bool UseEditorCompletionItemCache => true;
+            if (typeSymbol.Arity > 0)
+            {
+                builder.Add(TypeArityName, GetInteger(typeSymbol.Arity));
+            }
 
-        public static TypeImportCompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, int overloadCount)
-        {
             // TODO: Suffix should be language specific, i.e. `(Of ...)` if triggered from VB.
-            return new TypeImportCompletionItem(
+            return CompletionItem.CreateInternal(
                  displayText: typeSymbol.Name,
                  filterText: typeSymbol.Name,
                  sortText: typeSymbol.Name,
-                 span: default,
-                 properties: null,
+                 properties: builder.ToImmutableDictionaryAndFree(),
                  tags: GlyphTags.GetTags(typeSymbol.GetGlyph()),
                  rules: CompletionItemRules.Default,
                  displayTextPrefix: null,
                  displayTextSuffix: typeSymbol.Arity == 0 ? null : "<>",
                  inlineDescription: containingNamespace,
-                 typeArity: typeSymbol.Arity,
-                 containingNamespace: containingNamespace,
-                 overloadCount: overloadCount);
+                 useEditorCompletionItemCache: true);
         }
 
-        protected override CompletionItem With(
-            Optional<TextSpan> span = default,
-            Optional<string> displayText = default,
-            Optional<string> filterText = default,
-            Optional<string> sortText = default,
-            Optional<ImmutableDictionary<string, string>> properties = default,
-            Optional<ImmutableArray<string>> tags = default,
-            Optional<CompletionItemRules> rules = default,
-            Optional<string> displayTextPrefix = default,
-            Optional<string> displayTextSuffix = default,
-            Optional<string> inlineDescription = default)
+        public static string GetContainingNamespace(CompletionItem item)
         {
-            var newSpan = span.HasValue ? span.Value : this.Span;
-            var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;
-            var newFilterText = filterText.HasValue ? filterText.Value : this.FilterText;
-            var newSortText = sortText.HasValue ? sortText.Value : this.SortText;
-            var newInlineDescription = inlineDescription.HasValue ? inlineDescription.Value : this.InlineDescription;
-            var newProperties = properties.HasValue ? properties.Value : this.Properties;
-            var newTags = tags.HasValue ? tags.Value : this.Tags;
-            var newRules = rules.HasValue ? rules.Value : this.Rules;
-            var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : this.DisplayTextPrefix;
-            var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : this.DisplayTextSuffix;
+            return item.Properties.TryGetValue(ContainingNamespaceName, out var containingNamespace)
+                ? containingNamespace
+                : null;
+        }
 
-            if (newSpan == this.Span &&
-                newDisplayText == this.DisplayText &&
-                newFilterText == this.FilterText &&
-                newSortText == this.SortText &&
-                newProperties == this.Properties &&
-                newTags == this.Tags &&
-                newRules == this.Rules &&
-                newDisplayTextPrefix == this.DisplayTextPrefix &&
-                newDisplayTextSuffix == this.DisplayTextSuffix &&
-                newInlineDescription == this.InlineDescription)
+        public static async Task<CompletionDescription> GetCompletionDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            var metadataName = GetMetadataName(item);
+            if (!string.IsNullOrEmpty(metadataName))
             {
-                return this;
+                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var symbol = compilation.GetTypeByMetadataName(metadataName);
+                if (symbol != null)
+                {
+                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var overloadCount = item.Properties.TryGetValue(TypeImportCompletionItem.OverloadCountName, out var count)
+                        ? int.Parse(count)
+                        : 0;
+
+                    return await CommonCompletionUtilities.CreateDescriptionAsync(
+                        document.Project.Solution.Workspace,
+                        semanticModel,
+                        position: 0,
+                        symbol,
+                        overloadCount: overloadCount,
+                        supportedPlatforms: null,
+                        cancellationToken).ConfigureAwait(false);
+                }
             }
 
-            return new TypeImportCompletionItem(
-                displayText: newDisplayText,
-                filterText: newFilterText,
-                span: newSpan,
-                sortText: newSortText,
-                properties: newProperties,
-                tags: newTags,
-                rules: newRules,
-                displayTextPrefix: newDisplayTextPrefix,
-                displayTextSuffix: newDisplayTextSuffix,
-                inlineDescription: newInlineDescription,
-                typeArity: this.TypeArity,
-                containingNamespace: this.ContainingNamespace,
-                overloadCount: this.OverloadCount);
+            return null;
         }
 
-        private TypeImportCompletionItem(
-            string displayText,
-            string filterText,
-            string sortText,
-            TextSpan span,
-            ImmutableDictionary<string, string> properties,
-            ImmutableArray<string> tags,
-            CompletionItemRules rules,
-            string displayTextPrefix,
-            string displayTextSuffix,
-            string inlineDescription,
-            int typeArity,
-            string containingNamespace,
-            int overloadCount)
-            : base(displayText: displayText, filterText: filterText, sortText: sortText, span: span,
-                   properties: properties, tags: tags, rules: rules, displayTextPrefix: displayTextPrefix,
-                   displayTextSuffix: displayTextSuffix, inlineDescription: inlineDescription)
+        private static string GetInteger(int integer)
         {
-            TypeArity = typeArity;
-            ContainingNamespace = containingNamespace;
-            OverloadCount = overloadCount;
+            Debug.Assert(integer > 0);
+            return (integer <= s_IntegerOneToNine.Length)
+                ? s_IntegerOneToNine[integer - 1]
+                : integer.ToString(CultureInfo.InvariantCulture);
         }
-
-        private const string GenericTypeNameManglingString = "`";
-        private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
         private static string GetAritySuffix(int arity)
         {
@@ -145,5 +104,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static string ComposeAritySuffixedMetadataName(string name, int arity)
             => arity == 0 ? name : name + GetAritySuffix(arity);
+
+        private static string GetMetadataName(CompletionItem item)
+        {
+            if (item.Properties.TryGetValue(ContainingNamespaceName, out var containingNamespace))
+            {
+                var arity = item.Properties.TryGetValue(TypeArityName, out var arityString) ? int.Parse(arityString) : 0;
+                return ComposeAritySuffixedMetadataName(GetFullyQualifiedName(containingNamespace, item.DisplayText), arity);
+            }
+
+            return null;
+        }
     }
 }

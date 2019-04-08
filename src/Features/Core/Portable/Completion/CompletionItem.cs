@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Completion
     /// One of many possible completions used to form the completion list presented to the user.
     /// </summary>
     [DebuggerDisplay("{DisplayText}")]
-    public class CompletionItem : IComparable<CompletionItem>
+    public sealed class CompletionItem : IComparable<CompletionItem>
     {
         /// <summary>
         /// The text that is displayed to the user.
@@ -97,16 +97,16 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <see cref="CachedEditorCompletionItem"/> is used for storing the item.
         /// Not available to clients. Only used to improve perf by Completion subsystem on a case-by-case basis.
         /// </summary>
-        internal virtual bool UseEditorCompletionItemCache => false;
+        internal bool UseEditorCompletionItemCache { get; }
 
         /// <summary>
         /// Storing converted completion item for target editor. Used if <see cref="UseEditorCompletionItemCache"/> 
         /// returns <see langword="true"/> 
         /// Not available to clients. Only used to improve perf by Completion subsystem on a case-by-case basis.
         /// </summary>
-        internal virtual object CachedEditorCompletionItem { get; set; }
+        internal object CachedEditorCompletionItem { get; set; }
 
-        protected CompletionItem(
+        private CompletionItem(
             string displayText,
             string filterText,
             string sortText,
@@ -116,7 +116,8 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionItemRules rules,
             string displayTextPrefix,
             string displayTextSuffix,
-            string inlineDescription)
+            string inlineDescription,
+            bool useEditorCompletionItemCache)
         {
             this.DisplayText = displayText ?? "";
             this.DisplayTextPrefix = displayTextPrefix ?? "";
@@ -128,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             this.Tags = tags.NullToEmpty();
             this.Rules = rules ?? CompletionItemRules.Default;
+            this.UseEditorCompletionItemCache = useEditorCompletionItemCache;
         }
 
         // binary back compat overload
@@ -177,7 +179,34 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: rules,
                 displayTextPrefix: displayTextPrefix,
                 displayTextSuffix: displayTextSuffix,
-                inlineDescription: inlineDescription);
+                inlineDescription: inlineDescription,
+                useEditorCompletionItemCache: false);
+        }
+
+        internal static CompletionItem CreateInternal(
+            string displayText,
+            string filterText = null,
+            string sortText = null,
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableArray<string> tags = default,
+            CompletionItemRules rules = null,
+            string displayTextPrefix = null,
+            string displayTextSuffix = null,
+            string inlineDescription = null,
+            bool useEditorCompletionItemCache = false)
+        {
+            return new CompletionItem(
+                span: default,
+                displayText: displayText,
+                filterText: filterText,
+                sortText: sortText,
+                properties: properties,
+                tags: tags,
+                rules: rules,
+                displayTextPrefix: displayTextPrefix,
+                displayTextSuffix: displayTextSuffix,
+                inlineDescription: inlineDescription,
+                useEditorCompletionItemCache: useEditorCompletionItemCache);
         }
 
         /// <summary>
@@ -212,10 +241,11 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: rules,
                 displayTextPrefix: null,
                 displayTextSuffix: null,
-                inlineDescription: null);
+                inlineDescription: null,
+                useEditorCompletionItemCache: false);
         }
 
-        protected virtual CompletionItem With(
+        private CompletionItem With(
             Optional<TextSpan> span = default,
             Optional<string> displayText = default,
             Optional<string> filterText = default,
@@ -225,7 +255,8 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<CompletionItemRules> rules = default,
             Optional<string> displayTextPrefix = default,
             Optional<string> displayTextSuffix = default,
-            Optional<string> inlineDescription = default)
+            Optional<string> inlineDescription = default,
+            Optional<bool> useEditorCompletionItemCache = default)
         {
             var newSpan = span.HasValue ? span.Value : this.Span;
             var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;
@@ -237,6 +268,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var newRules = rules.HasValue ? rules.Value : this.Rules;
             var newDisplayTextPrefix = displayTextPrefix.HasValue ? displayTextPrefix.Value : this.DisplayTextPrefix;
             var newDisplayTextSuffix = displayTextSuffix.HasValue ? displayTextSuffix.Value : this.DisplayTextSuffix;
+            var newUseEditorCompletionItemCache = useEditorCompletionItemCache.HasValue ? useEditorCompletionItemCache.Value : this.UseEditorCompletionItemCache;
 
             if (newSpan == this.Span &&
                 newDisplayText == this.DisplayText &&
@@ -247,11 +279,13 @@ namespace Microsoft.CodeAnalysis.Completion
                 newRules == this.Rules &&
                 newDisplayTextPrefix == this.DisplayTextPrefix &&
                 newDisplayTextSuffix == this.DisplayTextSuffix &&
-                newInlineDescription == this.InlineDescription)
+                newInlineDescription == this.InlineDescription &&
+                newUseEditorCompletionItemCache == this.UseEditorCompletionItemCache)
             {
                 return this;
             }
 
+            // We don't keep CachedEditorCompletionItem around if any of the properies has changed.
             return new CompletionItem(
                 displayText: newDisplayText,
                 filterText: newFilterText,
@@ -262,7 +296,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: newRules,
                 displayTextPrefix: newDisplayTextPrefix,
                 displayTextSuffix: newDisplayTextSuffix,
-                inlineDescription: newInlineDescription);
+                inlineDescription: newInlineDescription,
+                useEditorCompletionItemCache: newUseEditorCompletionItemCache);
         }
 
         /// <summary>

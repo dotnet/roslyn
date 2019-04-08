@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
@@ -9,7 +10,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var declarationsInReference = ImmutableArray<TypeImportCompletionItem>.Empty;
+                    var declarationsInReference = ImmutableArray<CompletionItem>.Empty;
                     if (reference is CompilationReference compilationReference)
                     {
                         declarationsInReference = await _typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
@@ -145,19 +145,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private async Task<Document> ComputeNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
-            var importCompletionItem = (TypeImportCompletionItem)completionItem;
+            var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(completionItem);
+            Debug.Assert(containingNamespace != null);
+
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Complete type name.
-            var textWithTypeName = root.GetText(text.Encoding).Replace(importCompletionItem.Span, importCompletionItem.DisplayText);
+            var textWithTypeName = root.GetText(text.Encoding).Replace(completionItem.Span, completionItem.DisplayText);
             var documentWithTypeName = document.WithText(textWithTypeName);
 
             // Annotate added node so we can move caret to proper location later.
             var treeWithTypeName = await documentWithTypeName.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var rootWithTypeName = await treeWithTypeName.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var addedSpan = new TextSpan(importCompletionItem.Span.Start, importCompletionItem.DisplayText.Length);
+            var addedSpan = new TextSpan(completionItem.Span.Start, completionItem.DisplayText.Length);
             var addedNode = rootWithTypeName.FindNode(addedSpan);
             var annotatedNode = addedNode.WithAdditionalAnnotations(_annotation);
             var rootWithAnnotatedTypeName = rootWithTypeName.ReplaceNode(addedNode, annotatedNode);
@@ -168,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var optionSet = await documentWithAnnotatedTypeName.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, documentWithAnnotatedTypeName.Project.Language);
             var compilation = await documentWithAnnotatedTypeName.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var importNode = CreateImport(documentWithAnnotatedTypeName, importCompletionItem.ContainingNamespace);
+            var importNode = CreateImport(documentWithAnnotatedTypeName, containingNamespace);
 
             var rootWithImport = addImportService.AddImport(compilation, rootWithAnnotatedTypeName, annotatedNode, importNode, placeSystemNamespaceFirst);
             var documentWithImport = documentWithAnnotatedTypeName.WithSyntaxRoot(rootWithImport);
@@ -183,32 +185,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return syntaxGenerator.NamespaceImportDeclaration(namespaceName).WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(
             Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (item is TypeImportCompletionItem importItem)
-            {
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = compilation.GetTypeByMetadataName(importItem.MetadataName);
-                if (symbol != null)
-                {
-                    var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 #if DEBUG
-                    return CompletionDescription.FromText(DebugObject.DebugText);
+            return CompletionDescription.FromText(DebugObject.DebugText);
 #else
-                    return await CommonCompletionUtilities.CreateDescriptionAsync(
-                        document.Project.Solution.Workspace,
-                        semanticModel,
-                        position: 0,
-                        symbol,
-                        importItem.OverloadCount,
-                        supportedPlatforms: null,
-                        cancellationToken).ConfigureAwait(false);
+            return TypeImportCompletionItem.GetCompletionDescriptionAsync(document, item, cancellationToken);
 #endif
-                }
-            }
-
-            return CompletionDescription.Empty;
         }
     }
 
