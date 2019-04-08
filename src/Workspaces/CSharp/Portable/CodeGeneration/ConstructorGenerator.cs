@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AddAccessibilityModifiers(constructor.DeclaredAccessibility, tokens, options, Accessibility.Private);
             }
 
-            return tokens.ToSyntaxTokenList();
+            return tokens.ToSyntaxTokenListAndFree();
         }
     }
 }

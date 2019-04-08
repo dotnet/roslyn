@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
                     }
 
-                    if (@event.AddMethod.IsReadOnly)
+                    if (@event.AddMethod?.IsReadOnly == true)
                     {
                         tokens.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword));
                     }

@@ -59,6 +59,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         bool ITypeSymbol.IsUnmanagedType => throw new System.NotImplementedException();
 
-        bool ITypeSymbol.IsReadOnly => throw new System.NotImplementedException();
+        bool ITypeSymbol.IsReadOnly => Modifiers.IsReadOnly;
     }
 }

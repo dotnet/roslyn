@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 tokens.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
             }
 
-            return tokens.ToSyntaxTokenList();
+            return tokens.ToSyntaxTokenListAndFree();
         }
     }
 }
