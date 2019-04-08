@@ -14,15 +14,15 @@ namespace Roslyn.Utilities
             return new SemaphoreDisposer(semaphore);
         }
 
-        public async static Task<SemaphoreDisposer> DisposableWaitAsync(this SemaphoreSlim semaphore, CancellationToken cancellationToken = default)
+        public static Task<SemaphoreDisposer> DisposableWaitAsync(this SemaphoreSlim semaphore, CancellationToken cancellationToken = default)
         {
-            return await semaphore.WaitAsync(cancellationToken)
+            return semaphore.WaitAsync(cancellationToken)
                 .ContinueWith(
-                    (t, state) => { return new SemaphoreDisposer((SemaphoreSlim)state) },
+                    (_, state) => new SemaphoreDisposer((SemaphoreSlim)state),
                     semaphore,
                     cancellationToken,
                     TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion,
-                    TaskScheduler.Default).ConfigureAwait(false);
+                    TaskScheduler.Default);
         }
 
         internal struct SemaphoreDisposer : IDisposable

@@ -131,16 +131,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     {
                         try
                         {
-                            connection.RunInTransaction(((HashSet<string> stringsToAdd, PooledObject<Dictionary<int, string>> idToString, SqlConnection connection) tuple) =>
-                            {
-                                foreach (var value in tuple.stringsToAdd)
-                                {
-                                    var id = InsertStringIntoDatabase_MustRunInTransaction(tuple.connection, value);
-                                    tuple.idToString.Object.Add(id, value);
-                                }
-
-                                return new ValueTuple();
-                            }, (stringsToAdd, idToString, connection));
+                            connection.RunInTransaction((stringsToAdd, idToString, connection), tuple => InsertStringIntoDatabase(tuple));
                         }
                         catch (SqlException ex) when (ex.Result == Result.CONSTRAINT)
                         {
@@ -166,6 +157,17 @@ namespace Microsoft.CodeAnalysis.SQLite
                 }
 
                 return true;
+
+                static ValueTuple InsertStringIntoDatabase((HashSet<string> stringsToAdd, PooledObject<Dictionary<int, string>> idToString, SqlConnection connection) tuple)
+                {
+                    foreach (var value in tuple.stringsToAdd)
+                    {
+                        var id = InsertStringIntoDatabase_MustRunInTransaction(tuple.connection, value);
+                        tuple.idToString.Object.Add(id, value);
+                    }
+
+                    return new ValueTuple();
+                }
             }
 
             bool AddDocumentIds()

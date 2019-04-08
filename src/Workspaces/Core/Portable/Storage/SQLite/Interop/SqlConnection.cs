@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return new ResettableSqlStatement(statement);
         }
 
-        public TResult RunInTransaction<T, TResult>(Func<T, TResult> action, T userData)
+        public TResult RunInTransaction<T, TResult>(T userData, Func<T, TResult> action)
         {
             try
             {
@@ -199,10 +199,10 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             // the one the BLOB handle is open on. Calls to sqlite3_blob_read() and 
             // sqlite3_blob_write() for an expired BLOB handle fail with a return code of
             // SQLITE_ABORT.
-            return RunInTransaction(((string dataTableName, string dataColumnName, long rowId, SqlConnection connection) tuple) =>
-            {
-                return tuple.connection.ReadBlob_InTransaction(tuple.dataTableName, tuple.dataColumnName, tuple.rowId);
-            }, (dataTableName, dataColumnName, rowId, this));
+            return RunInTransaction((dataTableName, dataColumnName, rowId, this), tuple => ReadBlobInTransaction(tuple));
+
+            static Stream ReadBlobInTransaction((string dataTableName, string dataColumnName, long rowId, SqlConnection connection) tuple)
+                => tuple.connection.ReadBlob_InTransaction(tuple.dataTableName, tuple.dataColumnName, tuple.rowId);
         }
 
         private Stream ReadBlob_InTransaction(string tableName, string columnName, long rowId)

@@ -223,19 +223,21 @@ namespace Microsoft.CodeAnalysis.SQLite
             try
             {
                 // Create a transaction and perform all writes within it.
-                connection.RunInTransaction(((ArrayBuilder<Action<SqlConnection>> writesToProcess, SqlConnection connection) tuple) =>
-                {
-                    foreach (var action in tuple.writesToProcess)
-                    {
-                        action(tuple.connection);
-                    }
-
-                    return new ValueTuple();
-                }, (writesToProcess, connection));
+                connection.RunInTransaction((writesToProcess, connection), tuple => ProcessWrites(tuple));
             }
             catch (Exception ex)
             {
                 StorageDatabaseLogger.LogException(ex);
+            }
+
+            static ValueTuple ProcessWrites((ArrayBuilder<Action<SqlConnection>> writesToProcess, SqlConnection connection) tuple)
+            {
+                foreach (var action in tuple.writesToProcess)
+                {
+                    action(tuple.connection);
+                }
+
+                return new ValueTuple();
             }
         }
     }

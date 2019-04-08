@@ -87,10 +87,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             // values.
             try
             {
-                stringId = connection.RunInTransaction(((string value, SqlConnection connection) tuple) =>
-                {
-                    return InsertStringIntoDatabase_MustRunInTransaction(tuple.connection, tuple.value);
-                }, (value, connection));
+                stringId = connection.RunInTransaction((value, connection), tuple => InsertStringIntoDatabase(tuple));
 
                 Contract.ThrowIfTrue(stringId == null);
                 return stringId;
@@ -109,6 +106,9 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             return null;
+
+            static int? InsertStringIntoDatabase((string value, SqlConnection connection) tuple)
+                => InsertStringIntoDatabase_MustRunInTransaction(tuple.connection, tuple.value);
         }
 
         private static int InsertStringIntoDatabase_MustRunInTransaction(SqlConnection connection, string value)
