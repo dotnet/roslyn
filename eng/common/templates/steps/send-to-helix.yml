@@ -1,3 +1,4 @@
+# Please remember to update the documentation if you make changes to these parameters!
 parameters:
   HelixSource: 'pr/default'              # required -- sources must start with pr/, official/, prodcon/, or agent/
   HelixType: 'tests/default/'            # required -- Helix telemetry which identifies what type of data this is; should include "test" for clarity and must end in '/'
