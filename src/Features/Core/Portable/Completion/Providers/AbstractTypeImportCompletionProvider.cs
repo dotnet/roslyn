@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImports;
@@ -13,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
@@ -20,19 +20,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     internal abstract partial class AbstractTypeImportCompletionProvider : CommonCompletionProvider
     {
         private readonly SyntaxAnnotation _annotation = new SyntaxAnnotation();
-
-        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
-        protected abstract ImmutableHashSet<string> GetNamespacesInScope(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
-
         private readonly ITypeImportCompletionService _typeImportCompletionService;
         private readonly IExperimentationService _experimentationService;
 
         public AbstractTypeImportCompletionProvider(Workspace workspace)
-            : base()
         {
             _typeImportCompletionService = workspace.Services.GetService<ITypeImportCompletionService>();
             _experimentationService = workspace.Services.GetService<IExperimentationService>();
         }
+
+        protected abstract Task<SyntaxContext> CreateContextAsync(Document document, int position, CancellationToken cancellationToken);
+
+        protected abstract ImmutableHashSet<string> GetNamespacesInScope(SyntaxNode location, SemanticModel semanticModel, CancellationToken cancellationToken);
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
@@ -55,63 +54,62 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             var syntaxContext = await CreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
 
-            var items = await GetCompletionItemsAsync(document, syntaxContext, position, cancellationToken).ConfigureAwait(false);
-            completionContext.AddItems(items);
+            await AddCompletionItemsAsync(document, syntaxContext, position, completionContext, cancellationToken).ConfigureAwait(false);
 #if DEBUG
             DebugObject.debug_total_time_with_ItemCreation = System.Environment.TickCount - tick;
 #endif
             return;
         }
 
-        private async Task<ImmutableArray<CompletionItem>> GetCompletionItemsAsync(Document document, SyntaxContext context, int position, CancellationToken cancellationToken)
+        private async Task AddCompletionItemsAsync(Document document, SyntaxContext context, int position, CompletionContext completionContext, CancellationToken cancellationToken)
         {
-            if (context.IsTypeContext)
+            if (!context.IsTypeContext)
             {
-                using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
-                {
-                    var project = document.Project;
-                    var node = context.LeftToken.Parent;
-
-                    var namespacesInScope = GetNamespacesInScope(node, context.SemanticModel, cancellationToken);
-                    var builder = ArrayBuilder<TypeImportCompletionItem>.GetInstance();
-
-                    var declarationsInCurrentProject = await _typeImportCompletionService
-                        .GetAccessibleTopLevelTypesFromProjectAsync(project, namespacesInScope, cancellationToken).ConfigureAwait(false);
-                    builder.AddRange(declarationsInCurrentProject);
-
-                    var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                    foreach (var reference in compilation.References)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-                        var declarationsInReference = ImmutableArray<TypeImportCompletionItem>.Empty;
-                        if (reference is CompilationReference compilationReference)
-                        {
-                            declarationsInReference = await _typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
-                                project.Solution,
-                                compilation,
-                                compilationReference,
-                                namespacesInScope,
-                                cancellationToken).ConfigureAwait(false);
-
-                        }
-                        else if (reference is PortableExecutableReference peReference)
-                        {
-                            declarationsInReference = _typeImportCompletionService.GetAccessibleTopLevelTypesFromPEReference(
-                                project.Solution,
-                                compilation,
-                                peReference,
-                                namespacesInScope,
-                                cancellationToken);
-                        }
-
-                        builder.AddRange(declarationsInReference);
-                    }
-
-                    return ImmutableArray<CompletionItem>.CastUp(builder.ToImmutableAndFree());
-                }
+                return;
             }
 
-            return ImmutableArray<CompletionItem>.Empty;
+            using (Logger.LogBlock(FunctionId.Completion_TypeImportCompletionProvider_GetCompletionItemsAsync, cancellationToken))
+            {
+                var root = await context.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                var node = root.FindNode(context.LeftToken.Span);
+                var project = document.Project;
+
+                // Find all namespaces in scope at current cursor location, 
+                // which will be used to filter so the provider only returns out-of-scope types.
+                var namespacesInScope = GetNamespacesInScope(node, context.SemanticModel, cancellationToken);
+
+                var declarationsInCurrentProject = await _typeImportCompletionService
+                    .GetAccessibleTopLevelTypesFromProjectAsync(project, namespacesInScope, cancellationToken).ConfigureAwait(false);
+                completionContext.AddItems(declarationsInCurrentProject);
+
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                foreach (var reference in compilation.References)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var declarationsInReference = ImmutableArray<TypeImportCompletionItem>.Empty;
+                    if (reference is CompilationReference compilationReference)
+                    {
+                        declarationsInReference = await _typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
+                            project.Solution,
+                            compilation,
+                            compilationReference,
+                            namespacesInScope,
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                    else if (reference is PortableExecutableReference peReference)
+                    {
+                        declarationsInReference = _typeImportCompletionService.GetAccessibleTopLevelTypesFromPEReference(
+                            project.Solution,
+                            compilation,
+                            peReference,
+                            namespacesInScope,
+                            cancellationToken);
+                    }
+
+                    completionContext.AddItems(declarationsInReference);
+                }
+            }
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default, CancellationToken cancellationToken = default)
@@ -147,40 +145,36 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private async Task<Document> ComputeNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
         {
+            var importCompletionItem = (TypeImportCompletionItem)completionItem;
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Complete type name.
-            var finalText = root.GetText(text.Encoding)
-                .Replace(completionItem.Span, completionItem.DisplayText);
-            document = document.WithText(finalText);
+            var textWithTypeName = root.GetText(text.Encoding).Replace(importCompletionItem.Span, importCompletionItem.DisplayText);
+            var documentWithTypeName = document.WithText(textWithTypeName);
 
             // Annotate added node so we can move caret to proper location later.
-            tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var addedNode = root.FindNode(completionItem.Span);
+            var treeWithTypeName = await documentWithTypeName.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var rootWithTypeName = await treeWithTypeName.GetRootAsync(cancellationToken).ConfigureAwait(false);
+            var addedSpan = new TextSpan(importCompletionItem.Span.Start, importCompletionItem.DisplayText.Length);
+            var addedNode = rootWithTypeName.FindNode(addedSpan);
             var annotatedNode = addedNode.WithAdditionalAnnotations(_annotation);
-            root = root.ReplaceNode(addedNode, annotatedNode);
-            document = document.WithSyntaxRoot(root);
+            var rootWithAnnotatedTypeName = rootWithTypeName.ReplaceNode(addedNode, annotatedNode);
+            var documentWithAnnotatedTypeName = documentWithTypeName.WithSyntaxRoot(rootWithAnnotatedTypeName);
 
-            // Add required using/imports directive.
-            var importItem = (TypeImportCompletionItem)completionItem;
-            var importNode = CreateImport(document, importItem.ContainingNamespace);
+            // Add required using/imports directive.                              
+            var addImportService = documentWithAnnotatedTypeName.GetLanguageService<IAddImportsService>();
+            var optionSet = await documentWithAnnotatedTypeName.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, documentWithAnnotatedTypeName.Project.Language);
+            var compilation = await documentWithAnnotatedTypeName.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var importNode = CreateImport(documentWithAnnotatedTypeName, importCompletionItem.ContainingNamespace);
 
-            var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-
-            var addImportService = document.GetLanguageService<IAddImportsService>();
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            root = addImportService.AddImport(compilation, root, annotatedNode, importNode, placeSystemNamespaceFirst);
-            document = document.WithSyntaxRoot(root);
+            var rootWithImport = addImportService.AddImport(compilation, rootWithAnnotatedTypeName, annotatedNode, importNode, placeSystemNamespaceFirst);
+            var documentWithImport = documentWithAnnotatedTypeName.WithSyntaxRoot(rootWithImport);
 
             // Format newly added nodes.
-            document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            return document;
+            return await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private static SyntaxNode CreateImport(Document document, string namespaceName)

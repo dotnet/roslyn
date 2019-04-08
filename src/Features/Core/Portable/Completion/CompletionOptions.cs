@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.Completion
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
 
         //Dev16 options
+
+        // Use tri-value so the default state can be used to turn on the feature with experimentation service.
         public static readonly PerLanguageOption<bool?> ShowImportCompletionItems =
             new PerLanguageOption<bool?>(nameof(CompletionOptions), nameof(ShowImportCompletionItems), defaultValue: null,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowImportCompletionItems"));

@@ -92,6 +92,20 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         internal string ProviderName { get; set; }
 
+        /// <summary>
+        /// Whether to cache converted completion item for target editor. If returns <see langword="true"/>,
+        /// <see cref="CachedEditorCompletionItem"/> is used for storing the item.
+        /// Not available to clients. Only used to improve perf by Completion subsystem on a case-by-case basis.
+        /// </summary>
+        internal virtual bool UseEditorCompletionItemCache => false;
+
+        /// <summary>
+        /// Storing converted completion item for target editor. Used if <see cref="UseEditorCompletionItemCache"/> 
+        /// returns <see langword="true"/> 
+        /// Not available to clients. Only used to improve perf by Completion subsystem on a case-by-case basis.
+        /// </summary>
+        internal virtual object CachedEditorCompletionItem { get; set; }
+
         protected CompletionItem(
             string displayText,
             string filterText,

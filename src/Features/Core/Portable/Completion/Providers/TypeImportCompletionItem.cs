@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        public object CachedObject { get; set; }
+        internal override bool UseEditorCompletionItemCache => true;
 
         public static TypeImportCompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, int overloadCount)
         {

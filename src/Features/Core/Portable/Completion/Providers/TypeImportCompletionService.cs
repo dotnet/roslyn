@@ -31,6 +31,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             ImmutableHashSet<string> excludedNamespaces,
             CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Get all the top level types from given project, with types in specified namespaces filtered out.
+        /// This method is intended to be used for getting types from source only, so the project must 
+        /// support compilation. 
+        /// For getting types from PE, use <see cref="GetAccessibleTopLevelTypesFromPEReference"/>.
+        /// </summary>
         Task<ImmutableArray<TypeImportCompletionItem>> GetAccessibleTopLevelTypesFromProjectAsync(
             Project project,
             ImmutableHashSet<string> excludedNamespaces,
@@ -79,6 +85,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 ImmutableHashSet<string> excludedNamespaces,
                 CancellationToken cancellationToken)
             {
+                if (!project.SupportsCompilation)
+                {
+                    throw new ArgumentException(nameof(project));
+                }
 #if DEBUG
                 DebugObject.IsCurrentCompilation = true;
 #endif
