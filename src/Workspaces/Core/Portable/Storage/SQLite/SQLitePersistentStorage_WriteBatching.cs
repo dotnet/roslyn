@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             return;
 
             // Local functions
-            static async Task<(Task previousTask, TaskCompletionSource<int> taskCompletionSource)> GetWriteTaskAsync(
+            static async ValueTask<(Task previousTask, TaskCompletionSource<int> taskCompletionSource)> GetWriteTaskAsync(
                 MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
                 Dictionary<TKey, Task> keyToWriteTask,
                 TKey key,
