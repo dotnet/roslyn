@@ -179,14 +179,14 @@ jobs:
       condition: succeeded()
 
 - job: Linux_Test
-  pool: 
+  pool:
    name: NetCorePublic-Int-Pool
    queue: BuildPool.Ubuntu.1604.amd64.Open
   strategy:
     maxParallel: 2
     matrix:
       coreclr:
-        _args: --testCoreClr
+        _args: --testCoreClr --docker
         _name: CoreClr
         _configuration: Debug
       mono:
@@ -226,7 +226,7 @@ jobs:
         _name: CoreClr
         _configuration: Debug
       mono:
-        _args: --testMono --docker
+        _args: --testMono
         _name: Mono
         _configuration: Debug
   timeoutInMinutes: 90
