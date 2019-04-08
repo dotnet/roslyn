@@ -176,18 +176,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return $"Imports { String.Join(".", nameParts) }"
         End Function
 
-        Protected Overrides Async Function GetDescriptionAsync(
+        Protected Overrides Function GetDescriptionAsync(
                 document As Document,
                 symbol As INamespaceOrTypeSymbol,
                 semanticModel As SemanticModel,
                 root As SyntaxNode,
                 cancellationToken As CancellationToken) As Task(Of (description As String, hasExistingImport As Boolean))
+            Return Task.Run(
+                Function()
+                    Dim importsStatement = GetImportsStatement(symbol)
+                    Dim addImportService = document.GetLanguageService(Of IAddImportsService)
 
-            Dim importsStatement = GetImportsStatement(symbol)
-            Dim addImportService = document.GetLanguageService(Of IAddImportsService)
-
-            Return ($"Imports {symbol.ToDisplayString()}",
-                    addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement))
+                    Return ($"Imports {symbol.ToDisplayString()}",
+                            addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement))
+                End Function, cancellationToken)
         End Function
 
         Private Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
