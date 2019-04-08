@@ -60554,6 +60554,7 @@ partial interface I1<TF1>
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_114()
         {
             var source1 =
@@ -60571,6 +60572,7 @@ partial interface I1<TF1>
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
                 // partial interface I1<TF1>
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
@@ -60578,6 +60580,7 @@ partial interface I1<TF1>
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_115()
         {
             var source1 =
@@ -60596,6 +60599,7 @@ partial interface I1<TF1>
             var comp1 = CreateCompilation(source1);
 
             comp1.VerifyDiagnostics(
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
                 // (3,19): error CS0265: Partial declarations of 'I1<TF1>' have inconsistent constraints for type parameter 'TF1'
                 // partial interface I1<TF1>
                 Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1>", "TF1").WithLocation(3, 19)
@@ -60830,6 +60834,31 @@ partial interface I1<TF1> where TF1 : object?, new()
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 45)
                 );
+
+            var source3 =
+@"#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1, TF2> where TF2 : new()
+{
+}
+
+partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+{
+}
+";
+            var comp3 = CreateCompilation(source3);
+
+            comp3.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1, TF2> where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
+                // (7,44): error CS0702: Constraint cannot be special class 'object?'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 44),
+                // (7,50): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(7, 50)
+                );
         }
 
         [Fact]
@@ -60879,9 +60908,32 @@ partial interface I1<TF1> where TF1 : object?, new()
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 39)
                 );
+
+            var source3 =
+@"
+#nullable enable
+partial interface I1<TF1, TF2> where TF2 : new()
+{
+}
+
+partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+{
+}
+";
+            var comp3 = CreateCompilation(source3);
+
+            comp3.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1, TF2> where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
+                // (7,44): error CS0702: Constraint cannot be special class 'object?'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(7, 44)
+                );
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_122()
         {
             var source1 =
@@ -60930,9 +60982,37 @@ partial interface I1<TF1> where TF1 : object?, new()
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 39)
                 );
+
+            var source3 =
+@"#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1, TF2> where TF2 : new()
+{
+}
+
+#nullable enable
+partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+{
+}
+";
+            var comp3 = CreateCompilation(source3);
+
+            comp3.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1, TF2> where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF2'
+                // partial interface I1<TF1, TF2> where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF2").WithLocation(3, 19),
+                // (8,44): error CS0702: Constraint cannot be special class 'object?'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 44)
+                );
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_123()
         {
             var source1 =
@@ -60986,6 +61066,36 @@ partial interface I1<TF1> where TF1 : object?, new()
                 // (8,45): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 45)
+                );
+
+            var source3 =
+@"
+#nullable enable
+partial interface I1<TF1, TF2> where TF2 : new()
+{
+}
+#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+{
+}
+";
+            var comp3 = CreateCompilation(source3);
+
+            comp3.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1, TF2> where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF2'
+                // partial interface I1<TF1, TF2> where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF2").WithLocation(3, 19),
+                // (8,44): error CS0702: Constraint cannot be special class 'object?'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(8, 44),
+                // (8,50): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(8, 50)
                 );
         }
 
@@ -61042,6 +61152,31 @@ partial interface I1<TF1> where TF1 : new()
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 45)
                 );
+
+            var source3 =
+@"#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+{
+}
+
+partial interface I1<TF1, TF2> where TF2 : new()
+{
+}
+";
+            var comp3 = CreateCompilation(source3);
+
+            comp3.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
+                // (3,44): error CS0702: Constraint cannot be special class 'object?'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44),
+                // (3,50): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 50)
+                );
         }
 
         [Fact]
@@ -61091,9 +61226,32 @@ partial interface I1<TF1> where TF1 : new()
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
                 );
+
+            var source3 =
+@"
+#nullable enable
+partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+{
+}
+
+partial interface I1<TF1, TF2> where TF2 : new()
+{
+}
+";
+            var comp3 = CreateCompilation(source3);
+
+            comp3.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
+                // (3,44): error CS0702: Constraint cannot be special class 'object?'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44)
+                );
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_126()
         {
             var source1 =
@@ -61148,9 +61306,40 @@ partial interface I1<TF1> where TF1 : new()
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 45)
                 );
+
+            var source3 =
+@"#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+{
+}
+
+#nullable enable
+partial interface I1<TF1, TF2> where TF2 : new()
+{
+}
+";
+            var comp3 = CreateCompilation(source3);
+
+            comp3.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF2'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF2").WithLocation(3, 19),
+                // (3,44): error CS0702: Constraint cannot be special class 'object?'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44),
+                // (3,50): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' context.
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(3, 50)
+                );
         }
 
         [Fact]
+        [WorkItem(30229, "https://github.com/dotnet/roslyn/issues/30229")]
         public void Constraints_127()
         {
             var source1 =
@@ -61200,6 +61389,34 @@ partial interface I1<TF1> where TF1 : new()
                 // (3,39): error CS0702: Constraint cannot be special class 'object?'
                 // partial interface I1<TF1> where TF1 : object?, new()
                 Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 39)
+                );
+
+            var source3 =
+@"
+#nullable enable
+partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+{
+}
+
+#nullable disable
+#pragma warning enable nullable
+partial interface I1<TF1, TF2> where TF2 : new()
+{
+}
+";
+            var comp3 = CreateCompilation(source3);
+
+            comp3.VerifyDiagnostics(
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF1'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF1").WithLocation(3, 19),
+                // https://github.com/dotnet/roslyn/issues/30229 - The following error should probably be a nullable warning instead
+                // (3,19): error CS0265: Partial declarations of 'I1<TF1, TF2>' have inconsistent constraints for type parameter 'TF2'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "I1").WithArguments("I1<TF1, TF2>", "TF2").WithLocation(3, 19),
+                // (3,44): error CS0702: Constraint cannot be special class 'object?'
+                // partial interface I1<TF1, TF2> where TF1 : object? where TF2 : new()
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object?").WithArguments("object?").WithLocation(3, 44)
                 );
         }
 
