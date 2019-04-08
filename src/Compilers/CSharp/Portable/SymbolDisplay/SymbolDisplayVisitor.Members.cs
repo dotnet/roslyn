@@ -82,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddAccessibilityIfRequired(symbol);
             AddMemberModifiersIfRequired(symbol);
 
+            if (symbol.ShouldDisplayReadOnly())
+            {
+                AddReadOnlyIfRequired();
+            }
+
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
                 if (symbol.ReturnsByRef)
@@ -167,6 +172,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AddAccessibilityIfRequired(symbol);
             AddMemberModifiersIfRequired(symbol);
+
+            if ((symbol.AddMethod ?? symbol.RemoveMethod).IsReadOnly)
+            {
+                AddReadOnlyIfRequired();
+            }
 
             if (format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeMemberKeyword))
             {
@@ -256,6 +266,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddAccessibilityIfRequired(symbol);
                 AddMemberModifiersIfRequired(symbol);
+
+                if (symbol.IsReadOnly)
+                {
+                    AddReadOnlyIfRequired();
+                }
 
                 if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
                 {
@@ -753,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void AddAccessor(ISymbol property, IMethodSymbol method, SyntaxKind keyword)
+        private void AddAccessor(IPropertySymbol property, IMethodSymbol method, SyntaxKind keyword)
         {
             if (method != null)
             {
@@ -761,6 +776,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (method.DeclaredAccessibility != property.DeclaredAccessibility)
                 {
                     AddAccessibility(method);
+                }
+
+                if (!property.ShouldDisplayReadOnly() && method.IsReadOnly)
+                {
+                    AddReadOnlyIfRequired();
                 }
 
                 AddKeyword(keyword);
@@ -824,6 +844,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddKeyword(SyntaxKind.RefKeyword);
                 AddSpace();
+                AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                AddSpace();
+            }
+        }
+
+        private void AddReadOnlyIfRequired()
+        {
+            if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeModifiers))
+            {
                 AddKeyword(SyntaxKind.ReadOnlyKeyword);
                 AddSpace();
             }

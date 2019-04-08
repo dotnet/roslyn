@@ -70,5 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return false;
         }
+
+        public static bool ShouldDisplayReadOnly(this IPropertySymbol property)
+        {
+            // If both the GetMethod and SetMethod are either readonly or absent, the property should be marked readonly.
+            return property.GetMethod?.IsReadOnly != false && property.SetMethod?.IsReadOnly != false;
+        }
     }
 }
