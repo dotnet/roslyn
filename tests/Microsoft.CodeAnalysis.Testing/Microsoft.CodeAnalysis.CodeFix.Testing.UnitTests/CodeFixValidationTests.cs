@@ -44,7 +44,57 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'8747' actual:'8746'", failure.Message);
+            Assert.Equal(
+                @"Context: Iterative code fix application
+Actual and expected values differ. Expected shown in baseline of diff:
+ Node(CompilationUnit):
+   Node(ClassDeclaration):
+     Token(ClassKeyword): class
+       Leading(EndOfLineTrivia): \r\n
+       Trailing(WhitespaceTrivia):  
+     Token(IdentifierToken): TestClass
+       Trailing(WhitespaceTrivia):  
+     Token(OpenBraceToken): {
+       Trailing(EndOfLineTrivia): \r\n
+     Node(MethodDeclaration):
+       Node(PredefinedType):
+         Token(VoidKeyword): void
+           Leading(WhitespaceTrivia):   
+           Trailing(WhitespaceTrivia):  
+       Token(IdentifierToken): TestMethod
+       Node(ParameterList):
+         Token(OpenParenToken): (
+         Token(CloseParenToken): )
+           Trailing(WhitespaceTrivia):  
+       Node(Block):
+         Token(OpenBraceToken): {
+           Trailing(WhitespaceTrivia):  
+         Node(ExpressionStatement):
+           Node(InvocationExpression):
+             Node(SimpleMemberAccessExpression):
+-              Node(BaseExpression):
+-                Token(BaseKeyword): base
++              Node(ThisExpression):
++                Token(ThisKeyword): base
+               Token(DotToken): .
+               Node(IdentifierName):
+                 Token(IdentifierToken): Equals
+             Node(ArgumentList):
+               Token(OpenParenToken): (
+               Node(Argument):
+                 Node(NullLiteralExpression):
+                   Token(NullKeyword): null
+               Token(CloseParenToken): )
+           Token(SemicolonToken): ;
+             Trailing(WhitespaceTrivia):  
+         Token(CloseBraceToken): }
+           Trailing(EndOfLineTrivia): \r\n
+     Token(CloseBraceToken): }
+       Trailing(EndOfLineTrivia): \r\n
+   Token(EndOfFileToken): 
+ 
+",
+                failure.Message);
         }
 
         [Fact]
@@ -61,9 +111,56 @@ class TestClass {
                 }.RunAsync();
             });
 
-            // This isn't the best message - it's reporting a mismatch in the number of SyntaxTrivia in the traling
-            // trivia list of the open brace token preceding 'base'.
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'1' actual:'0'", failure.Message);
+            Assert.Equal(
+                @"Context: Iterative code fix application
+Actual and expected values differ. Expected shown in baseline of diff:
+ Node(CompilationUnit):
+   Node(ClassDeclaration):
+     Token(ClassKeyword): class
+       Leading(EndOfLineTrivia): \r\n
+       Trailing(WhitespaceTrivia):  
+     Token(IdentifierToken): TestClass
+       Trailing(WhitespaceTrivia):  
+     Token(OpenBraceToken): {
+       Trailing(EndOfLineTrivia): \r\n
+     Node(MethodDeclaration):
+       Node(PredefinedType):
+         Token(VoidKeyword): void
+           Leading(WhitespaceTrivia):   
+           Trailing(WhitespaceTrivia):  
+       Token(IdentifierToken): TestMethod
+       Node(ParameterList):
+         Token(OpenParenToken): (
+         Token(CloseParenToken): )
+           Trailing(WhitespaceTrivia):  
+       Node(Block):
+         Token(OpenBraceToken): {
+-          Trailing(WhitespaceTrivia):  
+         Node(ExpressionStatement):
+           Node(InvocationExpression):
+             Node(SimpleMemberAccessExpression):
+               Node(BaseExpression):
+                 Token(BaseKeyword): base
++                  Leading(WhitespaceTrivia):  
+               Token(DotToken): .
+               Node(IdentifierName):
+                 Token(IdentifierToken): Equals
+             Node(ArgumentList):
+               Token(OpenParenToken): (
+               Node(Argument):
+                 Node(NullLiteralExpression):
+                   Token(NullKeyword): null
+               Token(CloseParenToken): )
+           Token(SemicolonToken): ;
+             Trailing(WhitespaceTrivia):  
+         Token(CloseBraceToken): }
+           Trailing(EndOfLineTrivia): \r\n
+     Token(CloseBraceToken): }
+       Trailing(EndOfLineTrivia): \r\n
+   Token(EndOfFileToken): 
+ 
+",
+                failure.Message);
         }
 
         [Fact]
@@ -92,7 +189,46 @@ class TestClass {
                 }.RunAsync();
             });
 
-            Assert.Equal($"Context: Iterative code fix application{Environment.NewLine}items not equal.  expected:'8747' actual:'8746'", failure.Message);
+            Assert.Equal(
+                @"Context: Iterative code fix application
+Actual and expected values differ. Expected shown in baseline of diff:
+ Node(CompilationUnit):
+   Node(ClassDeclaration):
+     Token(ClassKeyword): class
+     Token(IdentifierToken): TestClass
+     Token(OpenBraceToken): {
+     Node(MethodDeclaration):
+       Node(PredefinedType):
+         Token(VoidKeyword): void
+       Token(IdentifierToken): TestMethod
+       Node(ParameterList):
+         Token(OpenParenToken): (
+         Token(CloseParenToken): )
+       Node(Block):
+         Token(OpenBraceToken): {
+         Node(ExpressionStatement):
+           Node(InvocationExpression):
+             Node(SimpleMemberAccessExpression):
+-              Node(BaseExpression):
+-                Token(BaseKeyword): base
++              Node(ThisExpression):
++                Token(ThisKeyword): base
+               Token(DotToken): .
+               Node(IdentifierName):
+                 Token(IdentifierToken): Equals
+             Node(ArgumentList):
+               Token(OpenParenToken): (
+               Node(Argument):
+                 Node(NullLiteralExpression):
+                   Token(NullKeyword): null
+               Token(CloseParenToken): )
+           Token(SemicolonToken): ;
+         Token(CloseBraceToken): }
+     Token(CloseBraceToken): }
+   Token(EndOfFileToken): 
+ 
+",
+                failure.Message);
         }
 
         [Fact]
@@ -296,6 +432,8 @@ class TestClass {
             where TCodeFix : CodeFixProvider, new()
         {
             public override string Language => LanguageNames.CSharp;
+
+            public override Type SyntaxKindType => typeof(SyntaxKind);
 
             protected override string DefaultFileExt => "cs";
 

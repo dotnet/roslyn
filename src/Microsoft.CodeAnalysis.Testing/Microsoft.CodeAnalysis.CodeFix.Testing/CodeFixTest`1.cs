@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -149,6 +151,11 @@ namespace Microsoft.CodeAnalysis.Testing
         /// <see cref="CodeFixValidationMode.SemanticStructure"/>.
         /// </summary>
         public CodeFixValidationMode CodeFixValidationMode { get; set; } = CodeFixValidationMode.SemanticStructure;
+
+        /// <summary>
+        /// Gets the syntax kind enumeration type for the current code fix test.
+        /// </summary>
+        public abstract Type SyntaxKindType { get; }
 
         protected CodeFixTest()
         {
@@ -491,13 +498,28 @@ namespace Microsoft.CodeAnalysis.Testing
                 var recreatedTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 if (CodeFixValidationMode != CodeFixValidationMode.None)
                 {
-                    // We expect the tree produced by the code fix (initialTree) to match the form of the tree produced
-                    // by the compiler for the same text (recreatedTree).
-                    TreeEqualityVisitor.AssertNodesEqual(
-                        verifier,
-                        await recreatedTree.GetRootAsync(cancellationToken).ConfigureAwait(false),
-                        await initialTree.GetRootAsync(cancellationToken).ConfigureAwait(false),
-                        checkTrivia: CodeFixValidationMode == CodeFixValidationMode.Full);
+                    try
+                    {
+                        // We expect the tree produced by the code fix (initialTree) to match the form of the tree produced
+                        // by the compiler for the same text (recreatedTree).
+                        TreeEqualityVisitor.AssertNodesEqual(
+                            verifier,
+                            SyntaxKindType,
+                            await recreatedTree.GetRootAsync(cancellationToken).ConfigureAwait(false),
+                            await initialTree.GetRootAsync(cancellationToken).ConfigureAwait(false),
+                            checkTrivia: CodeFixValidationMode == CodeFixValidationMode.Full);
+                    }
+                    catch
+                    {
+                        // Try to revalidate the tree with a better message
+                        var renderedInitialTree = TreeToString(await initialTree.GetRootAsync(cancellationToken).ConfigureAwait(false), CodeFixValidationMode);
+                        var renderedRecreatedTree = TreeToString(await recreatedTree.GetRootAsync(cancellationToken).ConfigureAwait(false), CodeFixValidationMode);
+                        verifier.EqualOrDiff(renderedRecreatedTree, renderedInitialTree);
+
+                        // This is not expected to be hit, but it will be hit if the validation failure occurred in a
+                        // portion of the tree not captured by the rendered form from TreeToString.
+                        throw;
+                    }
                 }
 
                 project = document.Project;
@@ -696,6 +718,84 @@ namespace Microsoft.CodeAnalysis.Testing
             return false;
         }
 
+        private string TreeToString(SyntaxNodeOrToken syntaxNodeOrToken, CodeFixValidationMode validationMode)
+        {
+            var result = new StringBuilder();
+            TreeToString(syntaxNodeOrToken, string.Empty, validationMode, result);
+            return result.ToString();
+        }
+
+        private void TreeToString(SyntaxNodeOrToken syntaxNodeOrToken, string indent, CodeFixValidationMode validationMode, StringBuilder result)
+        {
+            if (syntaxNodeOrToken.IsNode)
+            {
+                result.AppendLine($"{indent}Node({Kind(syntaxNodeOrToken.RawKind)}):");
+
+                var childIndent = indent + "  ";
+                foreach (var child in syntaxNodeOrToken.ChildNodesAndTokens())
+                {
+                    TreeToString(child, childIndent, validationMode, result);
+                }
+            }
+            else
+            {
+                var syntaxToken = syntaxNodeOrToken.AsToken();
+                result.AppendLine($"{indent}Token({Kind(syntaxToken.RawKind)}): {Escape(syntaxToken.Text)}");
+
+                if (validationMode == CodeFixValidationMode.Full)
+                {
+                    var childIndent = indent + "  ";
+                    foreach (var trivia in syntaxToken.LeadingTrivia)
+                    {
+                        if (trivia.HasStructure)
+                        {
+                            result.AppendLine($"{childIndent}Leading({Kind(trivia.RawKind)}):");
+                            TreeToString(trivia.GetStructure(), childIndent + "  ", validationMode, result);
+                        }
+                        else
+                        {
+                            result.AppendLine($"{childIndent}Leading({Kind(trivia.RawKind)}): {Escape(trivia.ToString())}");
+                        }
+                    }
+
+                    foreach (var trivia in syntaxToken.TrailingTrivia)
+                    {
+                        if (trivia.HasStructure)
+                        {
+                            result.AppendLine($"{childIndent}Trailing({Kind(trivia.RawKind)}):");
+                            TreeToString(trivia.GetStructure(), childIndent + "  ", validationMode, result);
+                        }
+                        else
+                        {
+                            result.AppendLine($"{childIndent}Trailing({Kind(trivia.RawKind)}): {Escape(trivia.ToString())}");
+                        }
+                    }
+                }
+            }
+
+            // Local functions
+            string Escape(string text)
+            {
+                return text
+                    .Replace("\\", "\\\\")
+                    .Replace("\t", "\\t")
+                    .Replace("\r", "\\r")
+                    .Replace("\n", "\\n");
+            }
+
+            string Kind(int syntaxKind)
+            {
+                if (SyntaxKindType.GetTypeInfo()?.IsEnum ?? false)
+                {
+                    return Enum.Format(SyntaxKindType, (ushort)syntaxKind, "G");
+                }
+                else
+                {
+                    return syntaxKind.ToString();
+                }
+            }
+        }
+
         private sealed class SourceFileEqualityComparer : IEqualityComparer<(string filename, SourceText content)>
         {
             private SourceFileEqualityComparer()
@@ -731,30 +831,32 @@ namespace Microsoft.CodeAnalysis.Testing
         private class TreeEqualityVisitor
         {
             private readonly IVerifier _verifier;
+            private readonly Type _syntaxKindType;
             private readonly SyntaxNode _expected;
             private readonly bool _checkTrivia;
 
-            private TreeEqualityVisitor(IVerifier verifier, SyntaxNode expected, bool checkTrivia)
+            private TreeEqualityVisitor(IVerifier verifier, Type syntaxKindType, SyntaxNode expected, bool checkTrivia)
             {
                 _verifier = verifier;
+                _syntaxKindType = syntaxKindType;
                 _expected = expected ?? throw new ArgumentNullException(nameof(expected));
                 _checkTrivia = checkTrivia;
             }
 
             public void Visit(SyntaxNode node)
             {
-                _verifier.Equal(_expected.RawKind, node.RawKind);
+                AssertSyntaxKindEqual(_expected.RawKind, node.RawKind);
                 AssertChildSyntaxListEqual(_expected.ChildNodesAndTokens(), node.ChildNodesAndTokens(), _checkTrivia);
             }
 
-            internal static void AssertNodesEqual(IVerifier verifier, SyntaxNode expected, SyntaxNode actual, bool checkTrivia)
+            internal static void AssertNodesEqual(IVerifier verifier, Type syntaxKindType, SyntaxNode expected, SyntaxNode actual, bool checkTrivia)
             {
-                new TreeEqualityVisitor(verifier, expected, checkTrivia).Visit(actual);
+                new TreeEqualityVisitor(verifier, syntaxKindType, expected, checkTrivia).Visit(actual);
             }
 
             private void AssertNodesEqual(SyntaxNode expected, SyntaxNode actual, bool checkTrivia)
             {
-                AssertNodesEqual(_verifier, expected, actual, checkTrivia);
+                AssertNodesEqual(_verifier, _syntaxKindType, expected, actual, checkTrivia);
             }
 
             private void AssertChildSyntaxListEqual(ChildSyntaxList expected, ChildSyntaxList actual, bool checkTrivia)
@@ -778,7 +880,7 @@ namespace Microsoft.CodeAnalysis.Testing
             private void AssertTokensEqual(SyntaxToken expected, SyntaxToken actual, bool checkTrivia)
             {
                 AssertTriviaListEqual(expected.LeadingTrivia, actual.LeadingTrivia, checkTrivia);
-                _verifier.Equal(expected.RawKind, actual.RawKind);
+                AssertSyntaxKindEqual(expected.RawKind, actual.RawKind);
                 _verifier.Equal(expected.Value, actual.Value);
                 _verifier.Equal(expected.Text, actual.Text);
                 _verifier.Equal(expected.ValueText, actual.ValueText);
@@ -807,13 +909,32 @@ namespace Microsoft.CodeAnalysis.Testing
                     return;
                 }
 
-                _verifier.Equal(expected.RawKind, actual.RawKind);
+                AssertSyntaxKindEqual(expected.RawKind, actual.RawKind);
                 _verifier.Equal(expected.HasStructure, actual.HasStructure);
                 _verifier.Equal(expected.IsDirective, actual.IsDirective);
                 _verifier.Equal(expected.GetAnnotations(), actual.GetAnnotations());
                 if (expected.HasStructure)
                 {
                     AssertNodesEqual(expected.GetStructure(), actual.GetStructure(), checkTrivia);
+                }
+            }
+
+            private void AssertSyntaxKindEqual(int expected, int actual)
+            {
+                if (expected == actual)
+                {
+                    return;
+                }
+
+                if (_syntaxKindType.GetTypeInfo()?.IsEnum ?? false)
+                {
+                    _verifier.Equal(
+                        Enum.Format(_syntaxKindType, (ushort)expected, "G"),
+                        Enum.Format(_syntaxKindType, (ushort)actual, "G"));
+                }
+                else
+                {
+                    _verifier.Equal(expected, actual);
                 }
             }
         }

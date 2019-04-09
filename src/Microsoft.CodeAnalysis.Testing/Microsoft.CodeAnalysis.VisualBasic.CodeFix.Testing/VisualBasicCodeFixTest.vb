@@ -11,6 +11,12 @@ Public Class VisualBasicCodeFixTest(Of TAnalyzer As {DiagnosticAnalyzer, New}, T
         End Get
     End Property
 
+    Public Overrides ReadOnly Property SyntaxKindType As Type
+        Get
+            Return GetType(SyntaxKind)
+        End Get
+    End Property
+
     Protected Overrides ReadOnly Property DefaultFileExt As String
         Get
             Return "vb"
