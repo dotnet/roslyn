@@ -135,3 +135,35 @@ function Use-VsixTool([string]$vsDir, [string]$vsId, [string]$rootSuffix, [strin
     Exec-Console "`"$installerExe`"" "`"$vsixPath`" /vsInstallDir:`"$vsDir`" $rootSuffixArg $additionalArgs"
   }
 }
+
+function Stop-Processes([string]$vsDir, [string]$extensionDir) {
+  $stopProcesses = @()
+  foreach ($process in Get-Process) {
+    if ($process.Path) {
+      $dir = Split-Path $process.Path
+      if ($dir.StartsWith($vsDir) -or $dir.StartsWith($extensionDir)) {
+        $stopProcesses += $process
+      }
+    }
+  }
+
+  if ($stopProcesses.Length -eq 0) {
+    return
+  }
+
+  Write-Host "The following processes need to be stopped before installation can continue. Proceed? [Y/N]"
+  foreach ($process in $stopProcesses) {
+    Write-Host "> $($process.Path)"
+  }
+
+  $input = Read-Host
+  if ($input -ne "y" -and $input -ne "yes") {
+    Write-Host "Installation cancelled" -ForegroundColor Yellow
+    exit 1
+  }
+
+  foreach ($process in $stopProcesses) {
+    Write-Host "Stopping $($process.Path)"
+    $_ = $process.Kill
+  }
+}
