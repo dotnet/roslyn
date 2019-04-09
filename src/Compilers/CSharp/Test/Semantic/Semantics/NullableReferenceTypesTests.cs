@@ -87434,5 +87434,114 @@ class C
             var comp = CreateCompilation(new[] { source, EnsuresNotNullAttributeDefinition }, options: WithNonNullTypesTrue());
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(34841, "https://github.com/dotnet/roslyn/issues/34841")]
+        public void PartialClassWithConstraints_01()
+        {
+            var source1 =
+@"#nullable enable
+using System;
+partial class C<T> where T : IEquatable<T>
+{
+}";
+            var source2 =
+@"using System;
+partial class C<T> where T : IEquatable<T>
+{
+}";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics(
+                // (3,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : IEquatable<T>
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(3, 15));
+        }
+
+        [Fact]
+        [WorkItem(34841, "https://github.com/dotnet/roslyn/issues/34841")]
+        public void PartialClassWithConstraints_02()
+        {
+            var source1 =
+@"#nullable enable
+using System;
+partial class C<T> where T : class?, IEquatable<T?>
+{
+}";
+            var source2 =
+@"using System;
+partial class C<T> where T : class, IEquatable<T>
+{
+}";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics(
+                // (3,15): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T> where T : IEquatable<T>
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(3, 15));
+        }
+
+        [Fact]
+        [WorkItem(34841, "https://github.com/dotnet/roslyn/issues/34841")]
+        public void PartialClassWithConstraints_03()
+        {
+            var source1 =
+@"#nullable enable
+using System;
+class C<T> where T : IEquatable<T>
+{
+}";
+            var source2 =
+@"using System;
+class C<T> where T : IEquatable<T>
+{
+}";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics(
+                // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
+                // class C<T> where T : IEquatable<T>
+                Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>").WithLocation(2, 7),
+                // (3,7): error CS0265: Partial declarations of 'C<T>' have inconsistent constraints for type parameter 'T'
+                // class C<T> where T : IEquatable<T>
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T>", "T").WithLocation(3, 7));
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_04()
+        {
+            var source1 =
+@"#nullable enable
+using System;
+partial class C
+{
+    static partial void F<T>() where T : IEquatable<T>;
+}";
+            var source2 =
+@"using System;
+partial class C
+{
+    static partial void F<T>() where T : IEquatable<T> { }
+}";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void PartialClassWithConstraints_05()
+        {
+            var source1 =
+@"#nullable enable
+using System;
+partial class C
+{
+    static partial void F<T>() where T : class?, IEquatable<T?>;
+}";
+            var source2 =
+@"using System;
+partial class C
+{
+    static partial void F<T>() where T : class, IEquatable<T> { }
+}";
+            var comp = CreateCompilation(new[] { source1, source2 });
+            comp.VerifyDiagnostics();
+        }
     }
 }
