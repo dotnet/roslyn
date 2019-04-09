@@ -1849,7 +1849,7 @@ done:
             // then take that state and run analysis on the statement or expression being speculated on.
             // Currently, it will return incorrect info because it's just running analysis on the speculated
             // part.
-            var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot);
+            var binder = GetEnclosingBinder(GetAdjustedNodePosition(bindableRoot));
             var boundRoot = Bind(binder, bindableRoot, diagnostics);
             boundRoot = RewriteNullableBoundNodes(boundRoot, binder.Conversions, diagnostics);
 
