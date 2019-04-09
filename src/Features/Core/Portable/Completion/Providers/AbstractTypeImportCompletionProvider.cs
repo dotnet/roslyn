@@ -146,31 +146,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var newDocument = await ComputeNewDocumentAsync(document, item, cancellationToken).ConfigureAwait(false);
             var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            int? newPosition = null;
-
-            // Attempt to find the inserted node and move the caret appropriately
-            if (newRoot != null)
-            {
-                var caretTarget = newRoot.GetAnnotatedNodesAndTokens(_annotation).FirstOrNullable();
-                if (caretTarget != null)
-                {
-                    var targetPosition = caretTarget.Value.AsNode().GetLastToken().Span.End;
-
-                    // Something weird happened and we failed to get a valid position.
-                    // Bail on moving the caret.
-                    if (targetPosition > 0 && targetPosition <= newText.Length)
-                    {
-                        newPosition = targetPosition;
-                    }
-                }
-            }
 
             var changes = await newDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
             var change = Utilities.Collapse(newText, changes.ToImmutableArray());
 
-            return CompletionChange.Create(change, newPosition, includesCommitCharacter: true);
+            return CompletionChange.Create(change);
         }
 
         private async Task<Document> ComputeNewDocumentAsync(Document document, CompletionItem completionItem, CancellationToken cancellationToken)
@@ -186,24 +166,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var textWithTypeName = root.GetText(text.Encoding).Replace(completionItem.Span, completionItem.DisplayText);
             var documentWithTypeName = document.WithText(textWithTypeName);
 
-            // Annotate added node so we can move caret to proper location later.
+            // Find added node so we can use it to decide where to insert using/imports.
             var treeWithTypeName = await documentWithTypeName.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var rootWithTypeName = await treeWithTypeName.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var addedSpan = new TextSpan(completionItem.Span.Start, completionItem.DisplayText.Length);
-            var addedNode = rootWithTypeName.FindNode(addedSpan);
-            var annotatedNode = addedNode.WithAdditionalAnnotations(_annotation);
-            var rootWithAnnotatedTypeName = rootWithTypeName.ReplaceNode(addedNode, annotatedNode);
-            var documentWithAnnotatedTypeName = documentWithTypeName.WithSyntaxRoot(rootWithAnnotatedTypeName);
+            var addedNode = rootWithTypeName.FindToken(completionItem.Span.Start, findInsideTrivia: true).Parent;
 
             // Add required using/imports directive.                              
-            var addImportService = documentWithAnnotatedTypeName.GetLanguageService<IAddImportsService>();
-            var optionSet = await documentWithAnnotatedTypeName.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, documentWithAnnotatedTypeName.Project.Language);
-            var compilation = await documentWithAnnotatedTypeName.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var importNode = CreateImport(documentWithAnnotatedTypeName, containingNamespace);
+            var addImportService = documentWithTypeName.GetLanguageService<IAddImportsService>();
+            var optionSet = await documentWithTypeName.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = optionSet.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, documentWithTypeName.Project.Language);
+            var compilation = await documentWithTypeName.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var importNode = CreateImport(documentWithTypeName, containingNamespace);
 
-            var rootWithImport = addImportService.AddImport(compilation, rootWithAnnotatedTypeName, annotatedNode, importNode, placeSystemNamespaceFirst);
-            var documentWithImport = documentWithAnnotatedTypeName.WithSyntaxRoot(rootWithImport);
+            var rootWithImport = addImportService.AddImport(compilation, rootWithTypeName, addedNode, importNode, placeSystemNamespaceFirst);
+            var documentWithImport = documentWithTypeName.WithSyntaxRoot(rootWithImport);
 
             // Format newly added nodes.
             return await Formatter.FormatAsync(documentWithImport, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
