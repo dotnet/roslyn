@@ -6792,6 +6792,88 @@ namespace Nested
         }
 
         [Fact]
+        public void TestReadOnlyMembers_Malformed()
+        {
+            var source = @"
+struct X
+{
+    int P1 { }
+    readonly int P2 { }
+    readonly event System.Action E1 { }
+    readonly event System.Action E2 { remove { } }
+}
+";
+            var format = SymbolDisplayFormat.TestFormat
+                .AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)
+                .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            var comp = CreateCompilation(source).VerifyDiagnostics(
+                // (4,9): error CS0548: 'X.P1': property or indexer must have at least one accessor
+                //     int P1 { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P1").WithArguments("X.P1").WithLocation(4, 9),
+                // (5,18): error CS0548: 'X.P2': property or indexer must have at least one accessor
+                //     readonly int P2 { }
+                Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P2").WithArguments("X.P2").WithLocation(5, 18),
+                // (6,34): error CS0065: 'X.E1': event property must have both add and remove accessors
+                //     readonly event System.Action E1 { }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("X.E1").WithLocation(6, 34),
+                // (7,34): error CS0065: 'X.E2': event property must have both add and remove accessors
+                //     readonly event System.Action E2 { remove { } }
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E2").WithArguments("X.E2").WithLocation(7, 34));
+
+            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+
+            var declaration = (BaseTypeDeclarationSyntax)semanticModel.SyntaxTree.GetRoot().DescendantNodes().Single(n => n.Kind() == SyntaxKind.StructDeclaration);
+            var members = semanticModel.GetDeclaredSymbol(declaration).GetMembers();
+
+            Verify(members[0].ToDisplayParts(format), "int X.P1 { }",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation);
+
+            Verify(members[1].ToDisplayParts(format), "int X.P2 { }",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.PropertyName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation);
+
+            Verify(members[2].ToDisplayParts(format), "event System.Action X.E1",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.EventName);
+
+            Verify(members[3].ToDisplayParts(format), "readonly event System.Action X.E2",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.StructName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.EventName);
+        }
+
+        [Fact]
         public void TestReadOnlyMembers()
         {
             var source = @"
