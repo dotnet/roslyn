@@ -10,26 +10,26 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
 {
     public class MSTestVerifier : IVerifier
     {
-        private readonly ImmutableStack<string> _context;
-
         public MSTestVerifier()
             : this(ImmutableStack<string>.Empty)
         {
         }
 
-        private MSTestVerifier(ImmutableStack<string> context)
+        protected MSTestVerifier(ImmutableStack<string> context)
         {
-            _context = context;
+            Context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        public void Empty<T>(string collectionName, IEnumerable<T> collection)
+        protected ImmutableStack<string> Context { get; }
+
+        public virtual void Empty<T>(string collectionName, IEnumerable<T> collection)
         {
             Assert.IsFalse(collection?.Any() == true, CreateMessage($"expected '{collectionName}' to be empty, contains '{collection?.Count()}' elements"));
         }
 
-        public void Equal<T>(T expected, T actual, string message = null)
+        public virtual void Equal<T>(T expected, T actual, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.AreEqual(expected, actual);
             }
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void True(bool assert, string message = null)
+        public virtual void True(bool assert, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.IsTrue(assert);
             }
@@ -51,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void False(bool assert, string message = null)
+        public virtual void False(bool assert, string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.IsFalse(assert);
             }
@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void Fail(string message = null)
+        public virtual void Fail(string message = null)
         {
-            if (message is null && _context.IsEmpty)
+            if (message is null && Context.IsEmpty)
             {
                 Assert.Fail();
             }
@@ -75,17 +75,17 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public void LanguageIsSupported(string language)
+        public virtual void LanguageIsSupported(string language)
         {
             Assert.IsFalse(language != LanguageNames.CSharp && language != LanguageNames.VisualBasic, CreateMessage($"Unsupported Language: '{language}'"));
         }
 
-        public void NotEmpty<T>(string collectionName, IEnumerable<T> collection)
+        public virtual void NotEmpty<T>(string collectionName, IEnumerable<T> collection)
         {
             Assert.IsTrue(collection?.Any() == true, CreateMessage($"expected '{collectionName}' to be non-empty, contains"));
         }
 
-        public void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> equalityComparer = null, string message = null)
+        public virtual void SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> equalityComparer = null, string message = null)
         {
             var comparer = new SequenceEqualEnumerableEqualityComparer<T>(equalityComparer);
             var areEqual = comparer.Equals(expected, actual);
@@ -95,14 +95,15 @@ namespace Microsoft.CodeAnalysis.Testing.Verifiers
             }
         }
 
-        public IVerifier PushContext(string context)
+        public virtual IVerifier PushContext(string context)
         {
-            return new MSTestVerifier(_context.Push(context));
+            Assert.AreEqual(typeof(MSTestVerifier), GetType());
+            return new MSTestVerifier(Context.Push(context));
         }
 
-        private string CreateMessage(string message)
+        protected virtual string CreateMessage(string message)
         {
-            foreach (var frame in _context)
+            foreach (var frame in Context)
             {
                 message = "Context: " + frame + Environment.NewLine + message;
             }
