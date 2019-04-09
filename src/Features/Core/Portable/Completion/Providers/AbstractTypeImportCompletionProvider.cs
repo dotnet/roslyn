@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -12,8 +13,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -80,12 +79,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 #if DEBUG
                 DebugObject.IsCurrentCompilation = true;
 #endif
-                var declarationsInCurrentProject =
-                    await _typeImportCompletionService.GetAccessibleTopLevelTypesFromProjectAsync(project, cancellationToken).ConfigureAwait(false);
-                var count = AddItems(completionContext, declarationsInCurrentProject, namespacesInScope); 
-#if DEBUG
-                DebugObject.debug_total_compilation_decl += count;
+                Action<CompletionItem> handleAccessibleItem = item => AddItems(item, completionContext, namespacesInScope);
 
+                await _typeImportCompletionService.GetAccessibleTopLevelTypesFromProjectAsync(project, handleAccessibleItem, cancellationToken)
+                    .ConfigureAwait(false);
+#if DEBUG
                 DebugObject.IsCurrentCompilation = false;
 #endif
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -96,22 +94,23 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     var declarationsInReference = ImmutableArray<CompletionItem>.Empty;
                     if (reference is CompilationReference compilationReference)
                     {
-                        declarationsInReference = await _typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
+                        await _typeImportCompletionService.GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
                             project.Solution,
                             compilation,
                             compilationReference,
+                            handleAccessibleItem,
                             cancellationToken).ConfigureAwait(false);
                     }
                     else if (reference is PortableExecutableReference peReference)
                     {
-                        declarationsInReference = _typeImportCompletionService.GetAccessibleTopLevelTypesFromPEReference(
+                        _typeImportCompletionService.GetAccessibleTopLevelTypesFromPEReference(
                             project.Solution,
                             compilation,
                             peReference,
+                            handleAccessibleItem,
                             cancellationToken);
                     }
 
-                    var refrenceCount = AddItems(completionContext, declarationsInReference, namespacesInScope);
 #if DEBUG
                     if (reference is CompilationReference)
                     {
@@ -125,19 +124,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 }
             }
 
-            static int AddItems(CompletionContext completionContext, ImmutableArray<CompletionItem> items, ImmutableHashSet<string> namespacesInScope)
+            static void AddItems(CompletionItem item, CompletionContext completionContext, ImmutableHashSet<string> namespacesInScope)
             {
-                var count = 0;
-                foreach (var item in items)
+                var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(item);
+                if (!namespacesInScope.Contains(containingNamespace))
                 {
-                    var containingNamespace = TypeImportCompletionItem.GetContainingNamespace(item);
-                    if (!namespacesInScope.Contains(containingNamespace))
-                    {
-                        completionContext.AddItem(item);
-                        count++;
-                    }
+                    completionContext.AddItem(item);
                 }
-                return count;
             }
         }
 

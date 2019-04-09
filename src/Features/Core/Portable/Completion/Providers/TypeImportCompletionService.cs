@@ -17,16 +17,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal interface ITypeImportCompletionService : IWorkspaceService
     {
-        ImmutableArray<CompletionItem> GetAccessibleTopLevelTypesFromPEReference(
+        void GetAccessibleTopLevelTypesFromPEReference(
             Solution solution,
             Compilation compilation,
             PortableExecutableReference peReference,
+            Action<CompletionItem> handleAccessibleItem,
             CancellationToken cancellationToken);
 
-        Task<ImmutableArray<CompletionItem>> GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
+        Task GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
             Solution solution,
             Compilation compilation,
             CompilationReference compilationReference,
+            Action<CompletionItem> handleAccessibleItem,
             CancellationToken cancellationToken);
 
         /// <summary>
@@ -34,8 +36,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// getting types from source only, so the project must support compilation. 
         /// For getting types from PE, use <see cref="GetAccessibleTopLevelTypesFromPEReference"/>.
         /// </summary>
-        Task<ImmutableArray<CompletionItem>> GetAccessibleTopLevelTypesFromProjectAsync(
+        Task GetAccessibleTopLevelTypesFromProjectAsync(
             Project project,
+            Action<CompletionItem> handleAccessibleItem,
             CancellationToken cancellationToken);
     }
 
@@ -76,8 +79,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 _projectItemsCache = projectReferenceCache;
             }
 
-            public async Task<ImmutableArray<CompletionItem>> GetAccessibleTopLevelTypesFromProjectAsync(
+            public async Task GetAccessibleTopLevelTypesFromProjectAsync(
                 Project project,
+                Action<CompletionItem> handleAccessibleItem,
                 CancellationToken cancellationToken)
             {
                 if (!project.SupportsCompilation)
@@ -88,36 +92,52 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
 
-                return GetAccessibleTopLevelTypesWorker(project.Id, compilation.Assembly.GlobalNamespace, checksum, isInternalsVisible: true, _projectItemsCache, cancellationToken);
+                GetAccessibleTopLevelTypesWorker(
+                    project.Id,
+                    compilation.Assembly.GlobalNamespace,
+                    checksum,
+                    isInternalsVisible: true,
+                    handleAccessibleItem,
+                    _projectItemsCache,
+                    cancellationToken);
             }
 
-            public async Task<ImmutableArray<CompletionItem>> GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
+            public async Task GetAccessibleTopLevelTypesFromCompilationReferenceAsync(
                 Solution solution,
                 Compilation compilation,
                 CompilationReference compilationReference,
+                Action<CompletionItem> handleAccessibleItem,
                 CancellationToken cancellationToken)
             {
                 if (!(compilation.GetAssemblyOrModuleSymbol(compilationReference) is IAssemblySymbol assemblySymbol))
                 {
-                    return ImmutableArray<CompletionItem>.Empty;
+                    return;
                 }
 
                 var isInternalsVisible = compilation.Assembly.IsSameAssemblyOrHasFriendAccessTo(assemblySymbol);
                 var assemblyProject = solution.GetProject(assemblySymbol, cancellationToken);
                 var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(assemblyProject, cancellationToken).ConfigureAwait(false);
 
-                return GetAccessibleTopLevelTypesWorker(assemblyProject.Id, assemblySymbol.GlobalNamespace, checksum, isInternalsVisible, _projectItemsCache, cancellationToken);
+                GetAccessibleTopLevelTypesWorker(
+                    assemblyProject.Id,
+                    assemblySymbol.GlobalNamespace,
+                    checksum,
+                    isInternalsVisible,
+                    handleAccessibleItem,
+                    _projectItemsCache,
+                    cancellationToken);
             }
 
-            public ImmutableArray<CompletionItem> GetAccessibleTopLevelTypesFromPEReference(
+            public void GetAccessibleTopLevelTypesFromPEReference(
                 Solution solution,
                 Compilation compilation,
                 PortableExecutableReference peReference,
+                Action<CompletionItem> handleAccessibleItem,
                 CancellationToken cancellationToken)
             {
                 if (!(compilation.GetAssemblyOrModuleSymbol(peReference) is IAssemblySymbol assemblySymbol))
                 {
-                    return ImmutableArray<CompletionItem>.Empty;
+                    return;
                 }
 
                 var key = GetReferenceKey(peReference);
@@ -127,43 +147,63 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (key == null)
                 {
                     // Can't cache items for reference with null key, so just create them and return. 
-                    return GetCompletionItemsForTopLevelTypeDeclarations(rootNamespaceSymbol, isInternalsVisible);
+                    var items = GetCompletionItemsForTopLevelTypeDeclarations(rootNamespaceSymbol);
+                    HandleItems(items, isInternalsVisible, handleAccessibleItem);
                 }
 
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken);
-                return GetAccessibleTopLevelTypesWorker(key, rootNamespaceSymbol, checksum, isInternalsVisible, _peItemsCache, cancellationToken);
+                GetAccessibleTopLevelTypesWorker(
+                    key,
+                    rootNamespaceSymbol,
+                    checksum,
+                    isInternalsVisible,
+                    handleAccessibleItem,
+                    _peItemsCache,
+                    cancellationToken);
 
                 static string GetReferenceKey(PortableExecutableReference reference)
                     => reference.FilePath ?? reference.Display;
             }
 
-            private static ImmutableArray<CompletionItem> GetAccessibleTopLevelTypesWorker<TKey>(
+            private static void HandleItems(
+                ImmutableArray<(CompletionItem item, bool visibleWithoutIVT)> items,
+                bool isInternalsVisible,
+                Action<CompletionItem> handleAccessibleItem)
+            {
+                for (var i = 0; i < items.Length; ++i)
+                {
+                    var item = items[i];
+                    if (item.visibleWithoutIVT || isInternalsVisible)
+                    {
+                        handleAccessibleItem(item.item);
+                    }
+                }
+            }
+
+            private static void GetAccessibleTopLevelTypesWorker<TKey>(
                 TKey key,
                 INamespaceSymbol rootNamespace,
                 Checksum checksum,
                 bool isInternalsVisible,
+                Action<CompletionItem> handleAccessibleItem,
                 ConcurrentDictionary<TKey, ReferenceCacheEntry> cache,
                 CancellationToken cancellationToken)
             {
                 var tick = Environment.TickCount;
-                var created = ImmutableArray<CompletionItem>.Empty;
+                var created = ImmutableArray<(CompletionItem, bool)>.Empty;
 #if DEBUG
                 try
 #endif
                 {
                     // Cache miss, create all requested items.
                     if (!cache.TryGetValue(key, out var cacheEntry) ||
-                        cacheEntry.Checksum != checksum ||
-                        !AccessibilityMatch(cacheEntry.IncludeInternalTypes, isInternalsVisible))
+                        cacheEntry.Checksum != checksum)
                     {
-                        var items = GetCompletionItemsForTopLevelTypeDeclarations(rootNamespace, isInternalsVisible);
-                        cache[key] = new ReferenceCacheEntry(checksum, isInternalsVisible, items);
-
-                        created = items;
-                        return items;
+                        created = GetCompletionItemsForTopLevelTypeDeclarations(rootNamespace);
+                        cacheEntry = new ReferenceCacheEntry(checksum, created);
                     }
 
-                    return cacheEntry.CachedItems;
+                    HandleItems(cacheEntry.CachedItems, isInternalsVisible, handleAccessibleItem);
                 }
 #if DEBUG
                 finally
@@ -192,40 +232,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     }
                 }
 #endif
-                static bool AccessibilityMatch(bool includeInternalTypes, bool isInternalsVisible)
-                {
-                    // If the acceesibility of cached items is differenct from minimum accessibility that is visible from the 
-                    // requesting project (for example, if we only have public types for a reference in the cache, but current requesting
-                    // project has IVT to the reference), we simply drop the cache entry and recalculate everything for this reference from symbols.
-                    // This shouldn't almost never affect PE references, and only affect source references for the first invocation after jumping between
-                    // projects with difference access levels, which is much rarer than typing in same document. So basically, this is trading performance
-                    // in rarer situation for simplicity> Otherwise, we need to keep track the accessibility of indivual types and maintain two items 
-                    // for each internal types (one for proejct with IVT, another one for project without).
-
-                    // TODO: add telemetry to validate this assumption.
-                    return isInternalsVisible == includeInternalTypes;
-                }
             }
 
-            private static ImmutableArray<CompletionItem> GetCompletionItemsForTopLevelTypeDeclarations(
-                INamespaceSymbol rootNamespaceSymbol,
-                bool isInternalsVisible)
+            private static ImmutableArray<(CompletionItem item, bool visibleWithoutIVT)> GetCompletionItemsForTopLevelTypeDeclarations(INamespaceSymbol rootNamespaceSymbol)
             {
-                var builder = ArrayBuilder<CompletionItem>.GetInstance();
-                VisitNamespace(rootNamespaceSymbol, null, isInternalsVisible, builder);
+                var builder = ArrayBuilder<(CompletionItem, bool)>.GetInstance();
+                VisitNamespace(rootNamespaceSymbol, null, builder);
                 return builder.ToImmutableAndFree();
 
                 static void VisitNamespace(
                     INamespaceSymbol symbol,
                     string containingNamespace,
-                    bool isInternalsVisible,
-                    ArrayBuilder<CompletionItem> builder)
+                    ArrayBuilder<(CompletionItem, bool)> builder)
                 {
                     containingNamespace = ConcatNamespace(containingNamespace, symbol.Name);
 
                     foreach (var memberNamespace in symbol.GetNamespaceMembers())
                     {
-                        VisitNamespace(memberNamespace, containingNamespace, isInternalsVisible, builder);
+                        VisitNamespace(memberNamespace, containingNamespace, builder);
                     }
 
                     var overloads = PooledDictionary<string, TypeOverloadInfo>.GetInstance();
@@ -233,8 +257,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     foreach (var memberType in memberTypes)
                     {
-                        if (IsAccessible(memberType.DeclaredAccessibility, isInternalsVisible)
-                            && memberType.CanBeReferencedByName)
+                        if (IsAccessible(memberType.DeclaredAccessibility) && memberType.CanBeReferencedByName)
                         {
                             if (!overloads.TryGetValue(memberType.Name, out var overloadInfo))
                             {
@@ -249,25 +272,22 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                         var overloadInfo = pair.Value;
                         if (overloadInfo.NonGenericOverload != null)
                         {
-                            var item = TypeImportCompletionItem.Create(overloadInfo.NonGenericOverload, containingNamespace, overloadInfo.Count - 1);
-                            builder.Add(item);
+                            var item = TypeImportCompletionItem.Create(overloadInfo.NonGenericOverload, containingNamespace);
+                            builder.Add((item, overloadInfo.NonGenericOverload.DeclaredAccessibility == Accessibility.Public));
                         }
 
                         if (overloadInfo.BestGenericOverload != null)
                         {
-                            var item = TypeImportCompletionItem.Create(overloadInfo.BestGenericOverload, containingNamespace, overloadInfo.Count - 1);
-                            builder.Add(item);
+                            var item = TypeImportCompletionItem.Create(overloadInfo.BestGenericOverload, containingNamespace);
+                            builder.Add((item, overloadInfo.ContainsPublicGenericOverload));
                         }
                     }
-
                 }
 
-                static bool IsAccessible(Accessibility declaredAccessibility, bool isInternalsVisible)
+                static bool IsAccessible(Accessibility declaredAccessibility)
                 {
                     // For top level types, default accessibility is `internal`
-                    return isInternalsVisible
-                        ? declaredAccessibility >= Accessibility.Internal || declaredAccessibility == Accessibility.NotApplicable
-                        : declaredAccessibility >= Accessibility.Public;
+                    return declaredAccessibility >= Accessibility.Internal || declaredAccessibility == Accessibility.NotApplicable;
                 }
             }
         }
@@ -280,21 +300,16 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return name;
             }
 
-            var @namespace = containingNamespace + "." + name;
-#if DEBUG
-            DebugObject.debug_total_namespace_concat++;
-            DebugObject.Namespaces.Add(@namespace);
-#endif
-            return @namespace;
+            return containingNamespace + "." + name;
         }
 
         private readonly struct TypeOverloadInfo
         {
-            public TypeOverloadInfo(INamedTypeSymbol nonGenericOverload, INamedTypeSymbol bestGenericOverload, int count)
+            public TypeOverloadInfo(INamedTypeSymbol nonGenericOverload, INamedTypeSymbol bestGenericOverload, bool containsPublicGenericOverload)
             {
                 NonGenericOverload = nonGenericOverload;
                 BestGenericOverload = bestGenericOverload;
-                Count = count;
+                ContainsPublicGenericOverload = containsPublicGenericOverload;
             }
 
             public INamedTypeSymbol NonGenericOverload { get; }
@@ -302,22 +317,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             // Generic with fewest type parameters is considered best symbol to show in description.
             public INamedTypeSymbol BestGenericOverload { get; }
 
-            public int Count { get; }
+            public bool ContainsPublicGenericOverload { get; }
 
             public TypeOverloadInfo Aggregate(INamedTypeSymbol type)
             {
                 if (type.Arity == 0)
                 {
-                    return new TypeOverloadInfo(type, BestGenericOverload, Count + 1);
+                    return new TypeOverloadInfo(type, BestGenericOverload, ContainsPublicGenericOverload);
                 }
+
+                var containsPublic = type.DeclaredAccessibility >= Accessibility.Public || ContainsPublicGenericOverload;
 
                 // We consider generic with fewer type parameters better symbol to show in description.
                 if (BestGenericOverload == null || type.Arity < BestGenericOverload.Arity)
                 {
-                    return new TypeOverloadInfo(NonGenericOverload, type, Count + 1);
+                    return new TypeOverloadInfo(NonGenericOverload, type, containsPublic);
                 }
 
-                return new TypeOverloadInfo(NonGenericOverload, BestGenericOverload, Count + 1);
+                return new TypeOverloadInfo(NonGenericOverload, BestGenericOverload, containsPublic);
             }
         }
 
@@ -325,19 +342,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             public ReferenceCacheEntry(
                 Checksum checksum,
-                bool includeInternalTypes,
-                ImmutableArray<CompletionItem> cachedItems)
+                ImmutableArray<(CompletionItem item, bool visibleWithoutIVT)> cachedItems)
             {
-                IncludeInternalTypes = includeInternalTypes;
                 Checksum = checksum;
                 CachedItems = cachedItems;
             }
 
             public Checksum Checksum { get; }
 
-            public bool IncludeInternalTypes { get; }
-
-            public ImmutableArray<CompletionItem> CachedItems { get; }
+            public ImmutableArray<(CompletionItem item, bool visibleWithoutIVT)> CachedItems { get; }
         }
     }
 }

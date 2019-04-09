@@ -16,18 +16,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly string[] s_aritySuffixesOneToNine = { "`1", "`2", "`3", "`4", "`5", "`6", "`7", "`8", "`9" };
 
         private const string ContainingNamespaceName = nameof(ContainingNamespaceName);
-        private const string OverloadCountName = nameof(OverloadCountName);
         private const string TypeArityName = nameof(TypeArityName);
 
-        public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace, int overloadCount)
+        public static CompletionItem Create(INamedTypeSymbol typeSymbol, string containingNamespace)
         {
             var builder = PooledDictionary<string, string>.GetInstance();
             builder.Add(ContainingNamespaceName, containingNamespace);
-
-            if (overloadCount > 0)
-            {
-                builder.Add(OverloadCountName, GetInteger(overloadCount));
-            }
 
             if (typeSymbol.Arity > 0)
             {
@@ -65,16 +59,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (symbol != null)
                 {
                     var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                    var overloadCount = item.Properties.TryGetValue(TypeImportCompletionItem.OverloadCountName, out var count)
-                        ? int.Parse(count)
-                        : 0;
 
                     return await CommonCompletionUtilities.CreateDescriptionAsync(
                         document.Project.Solution.Workspace,
                         semanticModel,
                         position: 0,
                         symbol,
-                        overloadCount: overloadCount,
+                        overloadCount: 0,
                         supportedPlatforms: null,
                         cancellationToken).ConfigureAwait(false);
                 }
