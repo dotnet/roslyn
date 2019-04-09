@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -34,12 +33,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
-#if DEBUG
-            DebugObject.DebugClear();
-            var tick = System.Environment.TickCount;
-#endif
             var document = completionContext.Document;
-            var position = completionContext.Position;
             var cancellationToken = completionContext.CancellationToken;
 
             var importCompletionOptionValue = completionContext.Options.GetOption(CompletionOptions.ShowImportCompletionItems, document.Project.Language);
@@ -51,16 +45,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return;
             }
 
-            var syntaxContext = await CreateContextAsync(document, position, cancellationToken).ConfigureAwait(false);
-
-            await AddCompletionItemsAsync(document, syntaxContext, position, completionContext, cancellationToken).ConfigureAwait(false);
-#if DEBUG
-            DebugObject.debug_total_time_with_ItemCreation = System.Environment.TickCount - tick;
-#endif
-            return;
+            var syntaxContext = await CreateContextAsync(document, completionContext.Position, cancellationToken).ConfigureAwait(false);
+            await AddCompletionItemsAsync(document, syntaxContext, completionContext, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task AddCompletionItemsAsync(Document document, SyntaxContext context, int position, CompletionContext completionContext, CancellationToken cancellationToken)
+        private async Task AddCompletionItemsAsync(Document document, SyntaxContext context, CompletionContext completionContext, CancellationToken cancellationToken)
         {
             if (!context.IsTypeContext)
             {
@@ -75,17 +64,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 // Find all namespaces in scope at current cursor location, 
                 // which will be used to filter so the provider only returns out-of-scope types.
                 var namespacesInScope = GetNamespacesInScope(node, context.SemanticModel, cancellationToken);
-
-#if DEBUG
-                DebugObject.IsCurrentCompilation = true;
-#endif
                 Action<CompletionItem> handleAccessibleItem = item => AddItems(item, completionContext, namespacesInScope);
 
                 await _typeImportCompletionService.GetAccessibleTopLevelTypesFromProjectAsync(project, handleAccessibleItem, cancellationToken)
                     .ConfigureAwait(false);
-#if DEBUG
-                DebugObject.IsCurrentCompilation = false;
-#endif
+
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 foreach (var reference in compilation.References)
                 {
@@ -110,17 +93,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             handleAccessibleItem,
                             cancellationToken);
                     }
-
-#if DEBUG
-                    if (reference is CompilationReference)
-                    {
-                        DebugObject.debug_total_compilationRef_decl += refrenceCount;
-                    }
-                    else if (reference is PortableExecutableReference)
-                    {
-                        DebugObject.debug_total_pe_decl += refrenceCount;
-                    }
-#endif
                 }
             }
 
@@ -183,110 +155,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return syntaxGenerator.NamespaceImportDeclaration(namespaceName).WithAdditionalAnnotations(Formatter.Annotation);
         }
 
-        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(
-            Document document, CompletionItem item, CancellationToken cancellationToken)
-        {
-#if DEBUG
-            return Task.FromResult(CompletionDescription.FromText(DebugObject.DebugText));
-#else
-            return TypeImportCompletionItem.GetCompletionDescriptionAsync(document, item, cancellationToken);
-#endif
-        }
+        protected override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+            => TypeImportCompletionItem.GetCompletionDescriptionAsync(document, item, cancellationToken);
     }
-
-#if DEBUG
-    internal static class DebugObject
-    {
-        public static string DebugText =>
-           $@"
-Current Declarations: {debug_total_compilation_decl}   
-Current Declarations Created: {debug_total_compilation_decl_created}
-Elapsed time: {debug_total_compilation_time}
-
-Ref Compilations: {debug_total_compilationRef}
-Ref Declarations: {debug_total_compilationRef_decl}   
-Ref Declarations Created: {debug_total_compilationRef_decl_created}
-Elapsed time: {debug_total_compilationRef_time}
-
-Total PEs: {debug_total_pe}
-Total Declarations: {debug_total_pe_decl}  
-Total Declarations Created: {debug_total_pe_decl_created}
-Elapsed time: {debug_total_pe_time}
-
-Total namespace concat: {debug_total_namespace_concat}
-Total indistinct namespaces: {Namespaces.Count}
-Total time: {debug_total_time_with_ItemCreation}";
-
-        public static int debug_total_compilation_decl = 0;
-        public static int debug_total_compilation_decl_created = 0;
-        public static int debug_total_compilation_time = 0;
-
-        public static int debug_total_compilationRef = 0;
-        public static int debug_total_compilationRef_decl = 0;
-        public static int debug_total_compilationRef_decl_created = 0;
-        public static int debug_total_compilationRef_time = 0;
-
-        public static int debug_total_pe = 0;
-        public static int debug_total_pe_decl = 0;
-        public static int debug_total_pe_decl_created = 0;
-        public static int debug_total_pe_time = 0;
-
-        public static int debug_total_time_with_ItemCreation = 0;
-
-        public static int debug_total_namespace_concat = 0;
-
-        public static bool IsCurrentCompilation { get; set; }
-
-        public static HashSet<string> Namespaces { get; } = new HashSet<string>();
-
-
-        public static void SetPE(int decl, int decl_created, int time)
-        {
-            debug_total_pe++;
-            debug_total_pe_decl += decl;
-            debug_total_pe_decl_created += decl_created;
-            debug_total_pe_time += time;
-        }
-
-        public static void SetCompilation(int decl, int decl_created, int time)
-        {
-            if (IsCurrentCompilation)
-            {
-                debug_total_compilation_decl += decl;
-                debug_total_compilation_decl_created += decl_created;
-                debug_total_compilation_time += time;
-            }
-            else
-            {
-                debug_total_compilationRef++;
-                debug_total_compilationRef_decl += decl;
-                debug_total_compilationRef_decl_created += decl_created;
-                debug_total_compilationRef_time += time;
-            }
-        }
-
-        public static void DebugClear()
-        {
-            Namespaces.Clear();
-            IsCurrentCompilation = false;
-
-            debug_total_compilation_decl = 0;
-            debug_total_compilation_decl_created = 0;
-            debug_total_compilation_time = 0;
-
-            debug_total_compilationRef = 0;
-            debug_total_compilationRef_decl = 0;
-            debug_total_compilationRef_decl_created = 0;
-            debug_total_compilationRef_time = 0;
-
-            debug_total_pe = 0;
-            debug_total_pe_decl = 0;
-            debug_total_pe_decl_created = 0;
-            debug_total_pe_time = 0;
-
-            debug_total_time_with_ItemCreation = 0;
-            debug_total_namespace_concat = 0;
-        }
-    }
-#endif
 }

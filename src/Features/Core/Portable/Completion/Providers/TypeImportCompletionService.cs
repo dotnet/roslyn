@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 if (key == null)
                 {
                     // Can't cache items for reference with null key, so just create them and return. 
-                    var items = GetCompletionItemsForTopLevelTypeDeclarations(rootNamespaceSymbol);
-                    HandleItems(items, isInternalsVisible, handleAccessibleItem);
+                    var items = GetCompletionItemsForTopLevelTypeDeclarations(rootNamespaceSymbol, cancellationToken);
+                    HandleAccessibleItems(items, isInternalsVisible, handleAccessibleItem);
                 }
 
                 var checksum = SymbolTreeInfo.GetMetadataChecksum(solution, peReference, cancellationToken);
@@ -165,17 +165,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     => reference.FilePath ?? reference.Display;
             }
 
-            private static void HandleItems(
-                ImmutableArray<(CompletionItem item, bool visibleWithoutIVT)> items,
+            /// <summary>
+            /// Filter out inaccessible items and pass the rest to the callback
+            /// </summary>
+            private static void HandleAccessibleItems(
+                ImmutableArray<CompletionItemEntry> items,
                 bool isInternalsVisible,
                 Action<CompletionItem> handleAccessibleItem)
             {
                 for (var i = 0; i < items.Length; ++i)
                 {
                     var item = items[i];
-                    if (item.visibleWithoutIVT || isInternalsVisible)
+                    if (item.IsPublic || isInternalsVisible)
                     {
-                        handleAccessibleItem(item.item);
+                        handleAccessibleItem(item.Item);
                     }
                 }
             }
@@ -189,72 +192,44 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 ConcurrentDictionary<TKey, ReferenceCacheEntry> cache,
                 CancellationToken cancellationToken)
             {
-                var tick = Environment.TickCount;
-                var created = ImmutableArray<(CompletionItem, bool)>.Empty;
-#if DEBUG
-                try
-#endif
+                // Cache miss, create all requested items.
+                if (!cache.TryGetValue(key, out var cacheEntry) ||
+                    cacheEntry.Checksum != checksum)
                 {
-                    // Cache miss, create all requested items.
-                    if (!cache.TryGetValue(key, out var cacheEntry) ||
-                        cacheEntry.Checksum != checksum)
-                    {
-                        created = GetCompletionItemsForTopLevelTypeDeclarations(rootNamespace);
-                        cacheEntry = new ReferenceCacheEntry(checksum, created);
-                    }
-
-                    HandleItems(cacheEntry.CachedItems, isInternalsVisible, handleAccessibleItem);
+                    var items = GetCompletionItemsForTopLevelTypeDeclarations(rootNamespace, cancellationToken);
+                    cacheEntry = new ReferenceCacheEntry(checksum, items);
+                    cache[key] = cacheEntry;
                 }
-#if DEBUG
-                finally
-                {
-                    tick = Environment.TickCount - tick;
 
-                    if (key is string)
-                    {
-                        DebugObject.debug_total_pe++;
-                        DebugObject.debug_total_pe_decl_created += created.Length;
-                        DebugObject.debug_total_pe_time += tick;
-                    }
-                    else
-                    {
-                        if (DebugObject.IsCurrentCompilation)
-                        {
-                            DebugObject.debug_total_compilation_decl_created += created.Length;
-                            DebugObject.debug_total_compilation_time += tick;
-                        }
-                        else
-                        {
-                            DebugObject.debug_total_compilationRef++;
-                            DebugObject.debug_total_compilationRef_decl_created += created.Length;
-                            DebugObject.debug_total_compilationRef_time += tick;
-                        }
-                    }
-                }
-#endif
+                HandleAccessibleItems(cacheEntry.CachedItems, isInternalsVisible, handleAccessibleItem);
             }
 
-            private static ImmutableArray<(CompletionItem item, bool visibleWithoutIVT)> GetCompletionItemsForTopLevelTypeDeclarations(INamespaceSymbol rootNamespaceSymbol)
+            private static ImmutableArray<CompletionItemEntry> GetCompletionItemsForTopLevelTypeDeclarations(
+                INamespaceSymbol rootNamespaceSymbol,
+                CancellationToken cancellationToken)
             {
-                var builder = ArrayBuilder<(CompletionItem, bool)>.GetInstance();
-                VisitNamespace(rootNamespaceSymbol, null, builder);
+                var builder = ArrayBuilder<CompletionItemEntry>.GetInstance();
+                VisitNamespace(rootNamespaceSymbol, null, builder, cancellationToken);
                 return builder.ToImmutableAndFree();
 
                 static void VisitNamespace(
                     INamespaceSymbol symbol,
                     string containingNamespace,
-                    ArrayBuilder<(CompletionItem, bool)> builder)
+                    ArrayBuilder<CompletionItemEntry> builder,
+                    CancellationToken cancellationToken)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     containingNamespace = ConcatNamespace(containingNamespace, symbol.Name);
 
                     foreach (var memberNamespace in symbol.GetNamespaceMembers())
                     {
-                        VisitNamespace(memberNamespace, containingNamespace, builder);
+                        VisitNamespace(memberNamespace, containingNamespace, builder, cancellationToken);
                     }
 
                     var overloads = PooledDictionary<string, TypeOverloadInfo>.GetInstance();
                     var memberTypes = symbol.GetTypeMembers();
 
+                    // Iterate over all top level internal and public types, keep track of "type overloads".
                     foreach (var memberType in memberTypes)
                     {
                         if (IsAccessible(memberType.DeclaredAccessibility) && memberType.CanBeReferencedByName)
@@ -270,25 +245,33 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     foreach (var pair in overloads)
                     {
                         var overloadInfo = pair.Value;
+
+                        // Create CompletionItem for non-generic type overload, if exists.
                         if (overloadInfo.NonGenericOverload != null)
                         {
                             var item = TypeImportCompletionItem.Create(overloadInfo.NonGenericOverload, containingNamespace);
-                            builder.Add((item, overloadInfo.NonGenericOverload.DeclaredAccessibility == Accessibility.Public));
+                            var isPublic = overloadInfo.NonGenericOverload.DeclaredAccessibility == Accessibility.Public;
+                            builder.Add(new CompletionItemEntry(item, isPublic));
                         }
 
+                        // Create one CompletionItem for all generic type overloads, if there's any.
+                        // For simplicity, we always show the type symbol with lowest arity in CompletionDescription
+                        // and without displaying the total number of overloads.
                         if (overloadInfo.BestGenericOverload != null)
                         {
+                            // If any of the generic overloads is public, then the completion item is considered public.
                             var item = TypeImportCompletionItem.Create(overloadInfo.BestGenericOverload, containingNamespace);
-                            builder.Add((item, overloadInfo.ContainsPublicGenericOverload));
+                            var isPublic = overloadInfo.ContainsPublicGenericOverload;
+                            builder.Add(new CompletionItemEntry(item, isPublic));
                         }
                     }
+
+                    overloads.Free();
                 }
 
-                static bool IsAccessible(Accessibility declaredAccessibility)
-                {
-                    // For top level types, default accessibility is `internal`
-                    return declaredAccessibility >= Accessibility.Internal || declaredAccessibility == Accessibility.NotApplicable;
-                }
+                // For top level types, default accessibility is `internal`
+                static bool IsAccessible(Accessibility declaredAccessibility) =>
+                    declaredAccessibility >= Accessibility.Internal || declaredAccessibility == Accessibility.NotApplicable;
             }
         }
 
@@ -342,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             public ReferenceCacheEntry(
                 Checksum checksum,
-                ImmutableArray<(CompletionItem item, bool visibleWithoutIVT)> cachedItems)
+                ImmutableArray<CompletionItemEntry> cachedItems)
             {
                 Checksum = checksum;
                 CachedItems = cachedItems;
@@ -350,7 +333,20 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             public Checksum Checksum { get; }
 
-            public ImmutableArray<(CompletionItem item, bool visibleWithoutIVT)> CachedItems { get; }
+            public ImmutableArray<CompletionItemEntry> CachedItems { get; }
+        }
+
+        private readonly struct CompletionItemEntry
+        {
+            public CompletionItemEntry(CompletionItem item, bool isPublic)
+            {
+                Item = item;
+                IsPublic = isPublic;
+            }
+
+            public CompletionItem Item { get; }
+
+            public bool IsPublic { get; }
         }
     }
 }
